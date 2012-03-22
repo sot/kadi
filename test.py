@@ -3,12 +3,11 @@ from itertools import izip, cycle
 import numpy as np
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy.ext.declarative import declarative_base
+# from sqlalchemy.ext.declarative import declarative_base
 
-from tlmevent import TlmEvent, Manvr
+from tlmevent import TlmEvent, Manvr, Base
 
-Base = declarative_base()
-engine = create_engine('sqlite:///test.db3', echo=False)
+engine = create_engine('sqlite:///test.db3', echo=True)
 session = sessionmaker(bind=engine)()
 Base.metadata.create_all(engine)
 
@@ -21,7 +20,7 @@ priorvals = cycle([3.2, 'npnt', 1])
 # Make fake telemetry events
 for msid, time, priorval, val in izip(msids, xrange(size),
                                       priorvals, vals):
-    tlmevent = TlmEvent(msid, float(time), priorval, val)
+    tlmevent = TlmEvent(msid, float(time), float(time), priorval, val)
     session.add(tlmevent)
 session.commit()
 

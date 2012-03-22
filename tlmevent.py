@@ -41,17 +41,19 @@ class TlmEvent(Base):
 
     id = Column(Integer, primary_key=True)
     msid = Column(String)
+    time0 = Column(Float)
     time = Column(Float, index=True)
-    priorval = Column(PickleType)
+    val0 = Column(PickleType)
     val = Column(PickleType)
 
-    def __init__(self, msid, time, priorval, val):
+    def __init__(self, msid, time0, time, val0, val):
         self.msid = msid
+        self.time0 = time0
         self.time = time
-        self.priorval = priorval
+        self.val0 = val0
         self.val = val
 
     def __repr__(self):
         return "<TlmEvent({}, {}, {}, {})>".format(
             repr(self.msid), repr(self.time),
-            repr(self.priorval), repr(self.val))
+            repr(self.val0), repr(self.val))
