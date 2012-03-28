@@ -20,20 +20,43 @@ class Manvr(Base):
                              backref=__tablename__)
 
     id = Column(Integer, primary_key=True)
-    tstart = Column(Float)
-    tstop = Column(Float)
+    dwell0start = Column(Float)
+    manstart = Column(Float)
+    manstop = Column(Float)
+    dwell1stop = Column(Float)
 
-    def __init__(self, session, tstart, tstop):
-        self.tstart = tstart
-        self.tstop = tstop
-        tlmevents = session.query(TlmEvent).filter(TlmEvent.time >= tstart) \
-                                     .filter(TlmEvent.time <= tstop)
-        for tlmevent in tlmevents:
-            self.tlmevents.append(tlmevent)
+    def __init__(self, tlmevents, manstart, manstop):
+        self.manstart = manstart
+        self.manstop = manstop
+        self.dwell0start = tlmevents[0].time
+        self.dwell1stop = tlmevents[-1].time0
+
+        if 0:
+            self.dwell0_start
+            self.dwell0_nman_npnt
+            self.dwell0_npnt_nman
+            self.manvr_start
+            self.manvr_stop
+            self.dwell1_nman_npnt
+            self.dwell1_init_acq0
+            self.dwell1_acq_guid0
+            self.dwell1_guid_kalm0
+            self.dwell1_init_acq1
+            self.dwell1_acq_guid1
+            self.dwell1_guid_kalm1
+            self.dwell1_init_acq2
+            self.dwell1_acq_guid2
+            self.dwell1_guid_kalm2
+            self.dwell1_npnt_nman
+            self.dwell1_stop
+
+        self.tlmevents = tlmevents
+        # for tlmevent in tlmevents:
+        #    self.tlmevents.append(tlmevent)
 
     def __repr__(self):
         return "<Manvr('{}','{}')>".format(
-            self.tstart, self.tstop)
+            self.manstart, self.manstop)
 
 
 class TlmEvent(Base):
