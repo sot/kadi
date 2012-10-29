@@ -1,0 +1,70 @@
+Telemetry Events
+================
+
+http://occweb.cfa.harvard.edu/twiki/Aspect/StarWorkingGroupMeeting2012x03x21
+
+Maneuver events
+----------------
+- Define maneuver characteristics.
+- Define "acceptable" maneuvers (for use in IRU calibration).
+- Define other ACA/PCAD tables/characteristics, e.g., table of PCAD events (BSH, NSM, SSM, etc.).
+
+===== ===========================================================================
+Event Sequence for Maneuvers:
+===== ===========================================================================
+t0    previous AOFATTMD = STDY
+t1    previous NMAN --> NPNT transition time
+t2    NPNT --> NMAN transition time
+tref1 AOFATTMD = MNVR (AOMANUVR time)
+tref2 AOFATTMD = STDY
+t3    NMAN --> NPNT transition time (first CEBR check passes or times out)
+t4    AOPSACPR changes from INIT to ACT (second CEBR check passes or times out)
+t5    AOACASEQ changes from ACQ to GUID / 1-shot (acquisition star success)
+t6    AOACASEQ changes from GUID to KALM (guide star success)
+t7    NPNT --> NMAN transition time
+t8    AOFATTMD = MNVR (AOMANUVR time)
+===== ===========================================================================
+
+MSIDs of Interest
+^^^^^^^^^^^^^^^^^^
+- AOPCADMD
+- AOFATTMD
+- AOACASEQ
+- AOPSACPR
+- AOUNLOAD
+
+Maneuver Attributes
+^^^^^^^^^^^^^^^^^^^^
+
+- AOATTQT1..AOATTQT4
+- AOTARQT1..AOTARQT4
+- AOATUPQ1..AOATUPQ3
+- AOATTER1..AOATTER3
+- AOGYRCT1..AOGYRCT4
+- AOGBIAS1..AOGBIAS4
+- Maneuver angle
+- Eigenaxis
+- Maneuver type
+
+Other telemetry events
+-------------------------
+
+- NSM
+- SSM
+- BSH
+- Dark Current Cals 
+- IRU calibration uplinks
+- swapped IRUS
+- meteor shower
+- gyro hold
+- momentum dumps
+- solar array off point
+- SIM motion
+- grating motion
+- eclipses
+- anomalous momentum dump
+- CCD set point temperature changes
+- guideline changes
+- uplinked new dump parameters
+- SCS-107 runs
+- SOSA
