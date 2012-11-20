@@ -51,18 +51,23 @@ Other telemetry events
 
 - NSM
 - SSM
+
+  - Time of trip
+  - CTU swap
+  - Back to OBC control
+  - Back to science
+
 - BSH
 - Dark Current Cals 
 - IRU calibration uplinks
 - swapped IRUS
 - meteor shower
 - gyro hold
-- momentum dumps
+- momentum dumps (flag for anomalous)
 - solar array off point
 - SIM motion
 - grating motion
 - eclipses
-- anomalous momentum dump
 - CCD set point temperature changes
 - guideline changes
 - uplinked new dump parameters
