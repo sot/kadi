@@ -81,34 +81,47 @@ Other telemetry event tables
 - SCS 107 runs
 
   - SCS 107 execution start and stop time
-  - return to science time
-  - cause?  (may be too difficult)
+  - Return to science time
+  - Cause?  (may be too difficult)
 
-    - should this only include SCS 107 "only" safing events (e.g. Radmon)?  Or all (e.g. SSM, NSM)?
+    - Should this only include SCS 107 "only" safing events (e.g. Radmon)?  Or all (e.g. SSM, NSM)?
 
-- momentum dumps 
+- Momentum dumps 
 
   - PCAD mode  (AOPCADMD)
   - 1-shot  (RSS of AOATTERx)
-  - system momentum (AOSYMOMx)
-  - pulse counts (AOTHRSTx)
+  - System momentum (AOSYMOMx)
+  - Pulse counts (AOTHRSTx)
   - VDE used (AOVDESEL)
-  - thruster temps (PMxTHV1T and PMxTHV2T)
-  - slightly-more detailed calculations:
+  - Thruster temps (PMxTHV1T and PMxTHV2T)
+  - Slightly-more detailed calculations:
 
-    - thruster efficiency 
-    - duty cycles 
-    - warm start count
-    - fuel flow rate
-    - fuel used
-    - tank pressure
-    - flag for anomalous
+    - Thruster efficiency 
+    - Duty cycles 
+    - Warm start count
+    - Fuel flow rate
+    - Fuel used
+    - Tank pressure
+    - Flag for anomalous
 
 - Eclipses
 
+  - Penumbra start and stop time
+  - Umbra start and stop time
+  - Discharge current
+  - Charge current
+  - Relay status
+
 - SIM motion
 
+  - Start and stop time
+  - Starting and ending position
+  - Convert counts into instrument?
+
 - Grating motion
+
+  - Start and stop times
+  - Starting and ending grating
 
 - Dark Current Cals 
 
@@ -118,28 +131,28 @@ Other telemetry event tables
 
 - IRU calibration uplink
 
-  - time
+  - Time
 
 - CCD set point temperature changes
 
-  - time
-  - set point
+  - Time
+  - Set point
 
-- gyro holds
+- Gyro holds
 
-  - start and stop times
+  - Start and stop times
 
-- meteor showers
+- Meteor showers
   
-  - type (based on date)
-  - start and stop times (from Brent or strictly by date)
+  - Type (based on date)
+  - Start and stop times (from Brent or strictly by date)
 
-- guideline changes
-
-
-- Misc events
+- Misc events (ideally this would be the only table with manual inputs)
 
   - SOSA uplink
-  - uplinked new dump parameters
-  - swapped IRUS
-  - solar array off-point (usually eclipses or meteor showers)
+  - Uplinked new dump parameters
+  - Swapped IRUS
+  - FSS-B turn-on
+  - Solar array off-point (usually eclipses or meteor showers)
+  - Guideline changes
+  - Several more based on Paul's event table in quarterly report
