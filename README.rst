@@ -45,6 +45,10 @@ Maneuver Attributes
 - Maneuver angle
 - Eigenaxis
 - Maneuver type
+- 1-shot magnitude
+- Max acceleration?
+- Max velocity?
+- Flag for "unusual"?
 
 Other telemetry events
 -------------------------
