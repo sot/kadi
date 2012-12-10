@@ -3,11 +3,13 @@ Telemetry Events
 
 http://occweb.cfa.harvard.edu/twiki/Aspect/StarWorkingGroupMeeting2012x03x21
 
+Envision multiple tables (maneuvers, BSH, NSM, etc), each of which has "default"
+times that can be used for filtering data.
+
 Maneuver events
 ----------------
 - Define maneuver characteristics.
 - Define "acceptable" maneuvers (for use in IRU calibration).
-- Define other ACA/PCAD tables/characteristics, e.g., table of PCAD events (BSH, NSM, SSM, etc.).
 
 ===== ===========================================================================
 Event Sequence for Maneuvers:
@@ -50,7 +52,7 @@ Maneuver Attributes
 - Max velocity?
 - Flag for "unusual"?
 
-Other telemetry events
+Other telemetry event tables
 -------------------------
 
 - NSM
@@ -68,6 +70,8 @@ Other telemetry events
 - meteor shower
 - gyro hold
 - momentum dumps (flag for anomalous)
+   - PCAD mode
+  
 - solar array off point
 - SIM motion
 - grating motion
