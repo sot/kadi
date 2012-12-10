@@ -78,6 +78,7 @@ Other telemetry event tables
   - VDE used (AOVDESEL)
   - thruster temps (PMxTHV1T and PMxTHV2T)
   - slightly-more detailed calculations:
+
     - thruster efficiency 
     - duty cycles 
     - warm start count
