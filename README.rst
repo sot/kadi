@@ -70,8 +70,20 @@ Other telemetry event tables
 - meteor shower
 - gyro hold
 - momentum dumps (flag for anomalous)
-   - PCAD mode
-  
+
+  - PCAD mode  (AOPCADMD)
+  - 1-shot  (RSS of AOATTERx)
+  - system momentum (AOSYMOMx)
+  - pulse counts (AOTHRSTx)
+  - VDE used (AOVDESEL)
+  - thruster temps (PMxTHV1T and PMxTHV2T)
+  - slightly-more detailed calculations:
+    - thruster efficiency 
+    - duty cycles 
+    - warm start count
+    - fuel flow rate
+    - fuel used
+
 - solar array off point
 - SIM motion
 - grating motion
