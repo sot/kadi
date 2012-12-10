@@ -55,21 +55,38 @@ Maneuver Attributes
 Other telemetry event tables
 -------------------------
 
-- NSM
 - SSM
 
   - Time of trip
   - CTU swap
-  - Back to OBC control
+  - Back to OBC control / NSM transition
+  - NPM transition (BSH)
+  - NPM transition (on guide stars)
+  - Back to science
+
+- NSM
+
+  - Time of trip
+  - NPM transition (BSH)
+  - NPM transition (on guide stars)
   - Back to science
 
 - BSH
-- Dark Current Cals 
-- IRU calibration uplinks
-- swapped IRUS
-- meteor shower
-- gyro hold
-- momentum dumps (flag for anomalous)
+
+  - Time of trip
+  - NPM transition (BSH)
+  - NPM transition (on guide stars)
+  - Back to science
+
+- SCS 107 runs
+
+  - SCS 107 execution start and stop time
+  - return to science time
+  - cause?  (may be too difficult)
+
+    - should this only include SCS 107 "only" safing events (e.g. Radmon)?  Or all (e.g. SSM, NSM)?
+
+- momentum dumps 
 
   - PCAD mode  (AOPCADMD)
   - 1-shot  (RSS of AOATTERx)
@@ -84,13 +101,45 @@ Other telemetry event tables
     - warm start count
     - fuel flow rate
     - fuel used
+    - tank pressure
+    - flag for anomalous
 
-- solar array off point
+- Eclipses
+
 - SIM motion
-- grating motion
-- eclipses
+
+- Grating motion
+
+- Dark Current Cals 
+
+  - Start and stop time
+  
+    - But will split replicas show up as two?  Is this preferable, or should each replica be called out indiv?
+
+- IRU calibration uplink
+
+  - time
+
 - CCD set point temperature changes
+
+  - time
+  - set point
+
+- gyro holds
+
+  - start and stop times
+
+- meteor showers
+  
+  - type (based on date)
+  - start and stop times (from Brent or strictly by date)
+
 - guideline changes
-- uplinked new dump parameters
-- SCS-107 runs
-- SOSA
+
+
+- Misc events
+
+  - SOSA uplink
+  - uplinked new dump parameters
+  - swapped IRUS
+  - solar array off-point (usually eclipses or meteor showers)
