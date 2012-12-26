@@ -78,7 +78,7 @@ class TlmEvent(Event):
         tstop = DateTime(tstop).secs
 
         # Get the related MSIDs
-        rel_msids = fetch.Msidset(cls.rel_msids, tstart, tstop) if cls.rel_msids else []
+        rel_msids = fetch.Msidset(cls.rel_msids, tstart, tstop) if cls.rel_msids else {}
 
         # Get the MSID that defines the event and find state intervals on that MSID
         event_msid = fetch.Msid(cls.event_msid, tstart, tstop)
@@ -148,3 +148,15 @@ class FaMove(TlmEvent):
 
     start_3fapos = models.IntegerField()
     stop_3fapos = models.IntegerField()
+
+
+class MomentumDump(TlmEvent):
+    name = 'momentum_dump'
+    event_msid = 'aounload'
+    event_val = 'GRND'
+
+
+class Eclipse(TlmEvent):
+    name = 'eclipse'
+    event_msid = 'aoeclips'
+    event_val = 'ECL '
