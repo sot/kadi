@@ -53,108 +53,98 @@ class Event(models.Model):
         abstract = True
 
 
-class TscMove(Event):
-    name = 'tsc_move'
-    tlm_msids = ['3tscmove', '3tscpos']
+class TlmEvent(Event):
+    event_msid = None  # must be overridden by derived class
+    event_val = None
+    rel_msids = None
 
-    tscpos_start = models.IntegerField()
-    tscpos_stop = models.IntegerField()
-    det_start = models.CharField(max_length=6)
-    det_stop = models.CharField(max_length=6)
+    class Meta:
+        abstract = True
 
+    @classmethod
+    def add_extras(cls, event, event_msid, rel_msids):
+        pass
+
+    @classmethod
     @import_ska
-    @staticmethod
-    def get_events(tstart, tstop):
+    def get_events(cls, tstart, tstop):
+        """
+        Get events from telemetry defined by a simple rule that the value of
+        `event_msid` == `event_val`.  Related MSIDs in the list `rel_msid`
+        are fetched and put into the event at the time `rel_dt` seconds
+        before the event start and after the event end.
+        """
         tstart = DateTime(tstart).secs
         tstop = DateTime(tstop).secs
-        msids = fetch.Msidset(TscMove.tlm_msids, tstart, tstop)
-        pos = msids['3tscpos']
-        states = msids['3tscmove'].state_intervals()
 
-        # Require that the processed moves be flanked by a non-move state
-        # to ensure that the full move was seen in telemetry.
-        if states[0]['val'] == 'T':
+        # Get the related MSIDs
+        rel_msids = fetch.Msidset(cls.rel_msids, tstart, tstop) if cls.rel_msids else []
+
+        # Get the MSID that defines the event and find state intervals on that MSID
+        event_msid = fetch.Msid(cls.event_msid, tstart, tstop)
+        states = event_msid.state_intervals()
+
+        # Require that the event states be flanked by a non-event state
+        # to ensure that the full event was seen in telemetry.
+        if states[0]['val'] == cls.event_val:
             states = states[1:]
-        if states[-1]['val'] == 'T':
+        if states[-1]['val'] == cls.event_val:
             states = states[:-1]
 
-        # Select states with val=T (moving) that are entirely contained within interval
-        ok = (states['val'] == 'T') & (states['tstart'] >= tstart) & (states['tstop'] <= tstop)
+        # import pdb; pdb.set_trace()
+
+        # Select event states that are entirely contained within interval
+        ok = ((states['val'] == cls.event_val) &
+              (states['tstart'] >= tstart) & (states['tstop'] <= tstop))
         states = states[ok]
 
+        # Assemble a list of dicts corresponding to events in this tlm interval
+        events = []
         for state in states:
             tstart = state['tstart']
             tstop = state['tstop']
-            tscposs = interpolate(pos.vals, pos.times, [tstart - 70, tstop + 70],
-                                  method='nearest')
-            dets = [get_si(tscpos) for tscpos in tscposs]
-            ts = {'t{}'.format(i): 10000.0 for i in range(40)}
-            tsc_move = TscMove(tstart=tstart,
-                               tstop=tstop,
-                               datestart=DateTime(tstart).date,
-                               datestop=DateTime(tstop).date,
-                               tscpos_start=tscposs[0],
-                               tscpos_stop=tscposs[1],
-                               det_start=dets[0],
-                               det_stop=dets[1],
-                               )
-            print 'Saving {}'.format(tsc_move)
-            tsc_move.save()
-            tsc_move.tscmovetimes_set.create(**ts)
+            event = dict(tstart=tstart,
+                         tstop=tstop,
+                         datestart=DateTime(tstart).date,
+                         datestop=DateTime(tstop).date)
+
+            for rel_msid in rel_msids.values():
+                vals = interpolate(rel_msid.vals, rel_msid.times,
+                                   [tstart - cls.rel_dt, tstop + cls.rel_dt],
+                                   method='nearest')
+                event['start_{}'.format(rel_msid.msid)] = vals[0]
+                event['stop_{}'.format(rel_msid.msid)] = vals[1]
+
+            # Custom processing defined by subclasses to add more attrs to event
+            cls.add_extras(event, event_msid, rel_msids)
+
+            events.append(event)
+
+        return events
 
 
-class TscMoveTimes(models.Model):
-    tscmove = models.ForeignKey(TscMove)
-    t0 = models.FloatField()
-    t1 = models.FloatField()
-    t2 = models.FloatField()
-    t3 = models.FloatField()
-    t4 = models.FloatField()
-    t5 = models.FloatField()
-    t6 = models.FloatField()
-    t7 = models.FloatField()
-    t8 = models.FloatField()
-    t9 = models.FloatField()
-    t10 = models.FloatField()
-    t11 = models.FloatField()
-    t12 = models.FloatField()
-    t10 = models.FloatField()
-    t11 = models.FloatField()
-    t12 = models.FloatField()
-    t13 = models.FloatField()
-    t14 = models.FloatField()
-    t15 = models.FloatField()
-    t16 = models.FloatField()
-    t17 = models.FloatField()
-    t18 = models.FloatField()
-    t19 = models.FloatField()
-    t20 = models.FloatField()
-    t21 = models.FloatField()
-    t22 = models.FloatField()
-    t23 = models.FloatField()
-    t24 = models.FloatField()
-    t25 = models.FloatField()
-    t26 = models.FloatField()
-    t27 = models.FloatField()
-    t28 = models.FloatField()
-    t29 = models.FloatField()
-    t30 = models.FloatField()
-    t31 = models.FloatField()
-    t32 = models.FloatField()
-    t33 = models.FloatField()
-    t34 = models.FloatField()
-    t35 = models.FloatField()
-    t36 = models.FloatField()
-    t37 = models.FloatField()
-    t38 = models.FloatField()
-    t39 = models.FloatField()
+class TscMove(TlmEvent):
+    name = 'tsc_move'
+    event_msid = '3tscmove'
+    event_val = 'T'
+    rel_msids = ['3tscpos']
+    rel_dt = 66  # just over 2 major frame rate samples
+
+    start_3tscpos = models.IntegerField()
+    stop_3tscpos = models.IntegerField()
+
+    @classmethod
+    def add_extras(cls, event, event_msid, rel_msids):
+        event['start_det'] = get_si(event['start_3tscpos'])
+        event['stop_det'] = get_si(event['stop_3tscpos'])
 
 
-class FaMove(models.Model):
+class FaMove(TlmEvent):
     name = 'fa_move'
-    tlm_msids = ['3famov', '3fapos']
+    event_msid = '3famove'
+    event_val = 'T'
+    rel_msids = ['3fapos']
+    rel_dt = 16.4  # 1/2 major frame (FA moves can be within 2 minutes)
 
-    tstart = models.FloatField()
-    tstop = models.FloatField()
     start_3fapos = models.IntegerField()
     stop_3fapos = models.IntegerField()
