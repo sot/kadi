@@ -2,6 +2,8 @@ from itertools import izip
 
 from django.db import models
 
+from .manvr_templates import get_manvr_templates
+
 # Fool pyflakes into thinking these are defined
 fetch = None
 interpolate = None
@@ -34,18 +36,20 @@ def get_msid_changes(msids):
     of each time any MSID value changes.
     """
     changes = []
+    sortmsids = {'aofattmd': 1, 'aopcadmd': 2, 'aoacaseq': 3, 'aopsacpr': 4}
     for msid in msids:
         i_changes = np.flatnonzero(msid.vals[1:] != msid.vals[:-1])
         for i in i_changes:
             changes.append((msid.msid,
+                            sortmsids.get(msid.msid, 10),
                             msid.vals[i], msid.vals[i + 1],
                             DateTime(msid.times[i]).date, DateTime(msid.times[i + 1]).date,
                             0.0,
                             msid.times[i], msid.times[i + 1],
                             ))
-    changes = np.rec.fromrecords(changes, names=('msid', 'val0', 'val',
+    changes = np.rec.fromrecords(changes, names=('msid', 'sortmsid', 'val0', 'val',
                                                  'date0', 'date', 'dt', 'time0', 'time'))
-    changes.sort(order='time0')
+    changes.sort(order=['time0', 'sortmsid'])
     return changes
 
 
@@ -310,6 +314,19 @@ class Maneuver(TlmEvent):
             n_kalman=len(match('aoacaseq', 'KALM', None, 'after')),
             anomalous=anomalous,
             )
+
+        # Templates of previously seen maneuver sequences. These cover sequences seen at
+        # least twice as of ~Mar 2012.
+        manvr_templates = get_manvr_templates()
+        seqs = ['{}_{}_{}'.format(c['msid'], c['val0'], c['val']) for c in changes
+                if (c['msid'] in ('aopcadmd', 'aofattmd', 'aoacaseq') and
+                    c['dt'] >= ZERO_DT)]
+        for name, template in manvr_templates:
+            if seqs == template[2:]:
+                manvr_attrs['template'] = name
+                break
+        else:
+            manvr_attrs['template'] = 'unknown'
 
         for i, dwell in enumerate(dwells):
             prefix = 'dwell_' if i == 0 else 'dwell{}_'.format(i + 1)
