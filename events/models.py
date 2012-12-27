@@ -1,3 +1,4 @@
+from itertools import izip
 
 from django.db import models
 
@@ -5,6 +6,9 @@ from django.db import models
 fetch = None
 interpolate = None
 DateTime = None
+np = None
+
+ZERO_DT = -1e-6
 
 
 def get_si(simpos):
@@ -24,6 +28,27 @@ def get_si(simpos):
     return si
 
 
+def get_msid_changes(msids):
+    """
+    For the list of fetch MSID objects, return a sorted structured array
+    of each time any MSID value changes.
+    """
+    changes = []
+    for msid in msids:
+        i_changes = np.flatnonzero(msid.vals[1:] != msid.vals[:-1])
+        for i in i_changes:
+            changes.append((msid.msid,
+                            msid.vals[i], msid.vals[i + 1],
+                            DateTime(msid.times[i]).date, DateTime(msid.times[i + 1]).date,
+                            0.0,
+                            msid.times[i], msid.times[i + 1],
+                            ))
+    changes = np.rec.fromrecords(changes, names=('msid', 'val0', 'val',
+                                                 'date0', 'date', 'dt', 'time0', 'time'))
+    changes.sort(order='time0')
+    return changes
+
+
 def import_ska(func):
     """
     Decorator to lazy import useful Ska functions.  Web app should not
@@ -36,9 +61,11 @@ def import_ska(func):
         from Chandra.Time import DateTime
         from Ska.Numpy import interpolate
         import Ska.engarchive.fetch_eng as fetch
+        import numpy as np
         globals()['interpolate'] = interpolate
         globals()['DateTime'] = DateTime
         globals()['fetch'] = fetch
+        globals()['np'] = np
         return func(*args, **kwargs)
     return wrapper
 
@@ -173,7 +200,125 @@ class Eclipse(TlmEvent):
 class Maneuver(TlmEvent):
     event_msid = 'aofattmd'  # MNVR STDY NULL DTHR
     event_val = 'MNVR'
-    rel_msids = ['aopcadmd', 'aoacaseq', 'aopsacpr']
+    rel_msids = ['aopcadmd', 'aoacaseq', 'aopsacpr', 'aounload']
+
+    @classmethod
+    def get_dwells(cls, changes):
+        dwells = []
+        state = None
+        t0 = 0
+        ok = changes['dt'] >= ZERO_DT
+        dwell = {}
+        for change in changes[ok]:
+            # Not in a dwell and ACA sequence is KALMAN => start dwell.
+            if (state is None
+                    and change['msid'] == 'aoacaseq'
+                    and change['val'] == 'KALM'):
+                t0 = change['time']
+                dwell['dt'] = change['dt']
+                dwell['tstart'] = change['time']
+                dwell['datestart'] = change['date']
+                state = 'dwell'
+
+            # Another KALMAN within 400 secs of previous KALMAN in dwell.
+            # This is another acquisition sequence and moves the dwell start back.
+            elif (state == 'dwell'
+                  and change['msid'] == 'aoacaseq'
+                  and change['val'] == 'KALM'
+                  and change['time'] - t0 < 400):
+                t0 = change['time']
+                dwell['dt'] = change['dt']
+                dwell['tstart'] = change['time']
+                dwell['datestart'] = change['date']
+
+            # End of dwell because of NPNT => NMAN transition OR another acquisition
+            elif (state == 'dwell'
+                  and ((change['msid'] == 'aopcadmd' and change['val'] == 'NMAN') or
+                       (change['msid'] == 'aoacaseq' and change['time'] - t0 > 400))):
+                dwell['tstop'] = change['time0']
+                dwell['datestop'] = change['date0']
+                dwells.append(dwell)
+                dwell = {}
+                state = None
+
+        return dwells
+
+    @classmethod
+    def get_manvr_attrs(cls, changes):
+        """
+        Get attributes of the maneuver event and possible dwells based on
+        the MSID `changes`.
+        """
+        def match(msid, val, idx=None, filter=None):
+            """
+            Find a match for the given `msid` and `val`.  The `filter` can
+            be either 'before' or 'after' to select changes before or after
+            the maneuver end.  The `idx` value then selects form the matching
+            changes.  If the desired match is not available then None is returned.
+            """
+            ok = (changes['msid'] == msid)
+            if val.startswith('!'):
+                ok &= (changes['val'] != val[1:])
+            else:
+                ok &= (changes['val'] == val)
+            if filter == 'before':
+                ok &= (changes['dt'] < ZERO_DT)
+            elif filter == 'after':
+                ok &= (changes['dt'] >= ZERO_DT)
+            try:
+                if idx is None:
+                    return changes[ok]['date']
+                else:
+                    return changes[ok][idx]['date']
+            except IndexError:
+                return None
+
+        # Get the dwells from the sequence of changes
+        dwells = cls.get_dwells(changes)
+
+        # Check for any telemetry values that are off-nominal
+        nom_vals = {'aopcadmd': ('NPNT', 'NMAN'),
+                    'aoacaseq': ('GUID', 'KALM', 'AQXN'),
+                    'aofattmd': ('MNVR', 'STDY'),
+                    'aopsacpr': ('INIT', 'INAC', 'ACT ')}
+        anomalous = False
+        for change in changes[changes['dt'] >= ZERO_DT]:
+            if change['val'] not in nom_vals[change['msid']]:
+                anomalous = True
+                break
+
+        manvr_attrs = dict(
+            prev_manvr_stop=match('aofattmd', '!MNVR', -1, 'before'),  # Last STDY before this manvr
+            prev_npnt_start=match('aopcadmd', 'NPNT', -1, 'before'),  # Last NPNT before this manvr
+
+            nman_start=match('aopcadmd', 'NMAN', -1, 'before'),  # NMAN that precedes this manvr
+            manvr_start=match('aofattmd', 'MNVR', -1, 'before'),  # start of this manvr
+            manvr_stop=match('aofattmd', '!MNVR', 0, 'after'),
+
+            npnt_start=match('aopcadmd', 'NPNT', 0, 'after'),
+            acq_start=match('aoacaseq', 'AQXN', 0, 'after'),
+            guide_start=match('aoacaseq', 'GUID', 0, 'after'),
+            kalman_start=match('aoacaseq', 'KALM', 0, 'after'),
+            aca_proc_act_start=match('aopsacpr', 'ACT ', 0, 'after'),
+            npnt_stop=match('aopcadmd', '!NPNT', -1, 'after'),
+
+            next_nman_start=match('aopcadmd', 'NMAN', -1, 'after'),
+            next_manvr_start=match('aofattmd', 'MNVR', -1, 'after'),
+            n_dwell=len(dwells),
+            n_acq=len(match('aoacaseq', 'AQXN', None, 'after')),
+            n_guide=len(match('aoacaseq', 'GUID', None, 'after')),
+            n_kalman=len(match('aoacaseq', 'KALM', None, 'after')),
+            anomalous=anomalous,
+            )
+
+        for i, dwell in enumerate(dwells):
+            prefix = 'dwell_' if i == 0 else 'dwell{}_'.format(i + 1)
+            manvr_attrs[prefix + 'datestart'] = dwell['datestart']
+            manvr_attrs[prefix + 'datestop'] = dwell['datestop']
+            manvr_attrs[prefix + 'dt_start'] = dwell['dt']
+            manvr_attrs[prefix + 'dur'] = dwell['tstop'] - dwell['tstart']
+
+        return manvr_attrs
 
     @classmethod
     @import_ska
@@ -182,16 +327,28 @@ class Maneuver(TlmEvent):
         Get maneuver events from telemetry.
         """
         states, event_msid, rel_msids = cls.get_msids_states(start, stop)
+        changes = get_msid_changes([event_msid] + rel_msids.values())
 
-        # Assemble a list of dicts corresponding to events in this tlm interval
         events = []
-        for state in states:
-            tstart = state['tstart']
-            tstop = state['tstop']
+        for manvr_prev, manvr, manvr_next in izip(states, states[1:], states[2:]):
+            tstart = manvr['tstart']
+            tstop = manvr['tstop']
+            i0 = np.searchsorted(changes['time'], manvr_prev['tstop'])
+            i1 = np.searchsorted(changes['time'], manvr_next['tstart'])
+            sequence = changes[i0:i1 + 1]
+            sequence['dt'] = (sequence['time'] + sequence['time0']) / 2.0 - manvr['tstop']
+            ok = ((sequence['dt'] >= ZERO_DT) | (sequence['msid'] == 'aofattmd') |
+                  (sequence['msid'] == 'aopcadmd'))
+            sequence = sequence[ok]
+            manvr_attrs = cls.get_manvr_attrs(sequence)
+
             event = dict(tstart=tstart,
                          tstop=tstop,
                          datestart=DateTime(tstart).date,
-                         datestop=DateTime(tstop).date)
+                         datestop=DateTime(tstop).date,
+                         sequence=sequence,
+                         manvr_attrs=manvr_attrs,
+                         )
 
             events.append(event)
 
