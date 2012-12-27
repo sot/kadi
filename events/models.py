@@ -66,16 +66,13 @@ class TlmEvent(Event):
         pass
 
     @classmethod
-    @import_ska
-    def get_events(cls, tstart, tstop):
+    def get_msids_states(cls, start, stop):
         """
-        Get events from telemetry defined by a simple rule that the value of
-        `event_msid` == `event_val`.  Related MSIDs in the list `rel_msid`
-        are fetched and put into the event at the time `rel_dt` seconds
-        before the event start and after the event end.
+        Get event and related MSIDs and compute the states corresponding
+        to the event.
         """
-        tstart = DateTime(tstart).secs
-        tstop = DateTime(tstop).secs
+        tstart = DateTime(start).secs
+        tstop = DateTime(stop).secs
 
         # Get the related MSIDs
         rel_msids = fetch.Msidset(cls.rel_msids, tstart, tstop) if cls.rel_msids else {}
@@ -91,12 +88,23 @@ class TlmEvent(Event):
         if states[-1]['val'] == cls.event_val:
             states = states[:-1]
 
-        # import pdb; pdb.set_trace()
-
         # Select event states that are entirely contained within interval
         ok = ((states['val'] == cls.event_val) &
               (states['tstart'] >= tstart) & (states['tstop'] <= tstop))
         states = states[ok]
+
+        return states, event_msid, rel_msids
+
+    @classmethod
+    @import_ska
+    def get_events(cls, start, stop=None):
+        """
+        Get events from telemetry defined by a simple rule that the value of
+        `event_msid` == `event_val`.  Related MSIDs in the list `rel_msid`
+        are fetched and put into the event at the time `rel_dt` seconds
+        before the event start and after the event end.
+        """
+        states, event_msid, rel_msids = cls.get_msids_states(start, stop)
 
         # Assemble a list of dicts corresponding to events in this tlm interval
         events = []
@@ -160,3 +168,31 @@ class Eclipse(TlmEvent):
     name = 'eclipse'
     event_msid = 'aoeclips'
     event_val = 'ECL '
+
+
+class Maneuver(TlmEvent):
+    event_msid = 'aofattmd'  # MNVR STDY NULL DTHR
+    event_val = 'MNVR'
+    rel_msids = ['aopcadmd', 'aoacaseq', 'aopsacpr']
+
+    @classmethod
+    @import_ska
+    def get_events(cls, start, stop=None):
+        """
+        Get maneuver events from telemetry.
+        """
+        states, event_msid, rel_msids = cls.get_msids_states(start, stop)
+
+        # Assemble a list of dicts corresponding to events in this tlm interval
+        events = []
+        for state in states:
+            tstart = state['tstart']
+            tstop = state['tstop']
+            event = dict(tstart=tstart,
+                         tstop=tstop,
+                         datestart=DateTime(tstart).date,
+                         datestop=DateTime(tstop).date)
+
+            events.append(event)
+
+        return events
