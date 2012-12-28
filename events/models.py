@@ -3,6 +3,7 @@ from itertools import izip
 from django.db import models
 
 from .manvr_templates import get_manvr_templates
+from .json_field import JSONField
 
 # Fool pyflakes into thinking these are defined
 fetch = None
@@ -10,7 +11,7 @@ interpolate = None
 DateTime = None
 np = None
 
-ZERO_DT = -1e-6
+ZERO_DT = -1e-4
 
 
 def get_si(simpos):
@@ -161,6 +162,29 @@ class TlmEvent(Event):
 
         return events
 
+    @property
+    def msidset(self):
+        """
+        fetch.MSIDset of self.fetch_event_msids.  By default filter_bad is True.
+        """
+        if not hasattr(self, '_msidset'):
+            self._msidset = self.fetch_event()
+        return self._msidset
+
+    @import_ska
+    def fetch_event(self, pad=None, extra_msids=None, filter_bad=True):
+        """
+        Fetch an MSIDset of self.fetch_msids.
+        """
+        if pad is None:
+            pad = self.fetch_event_pad
+        msids = self.fetch_event_msids[:]
+        if extra_msids is not None:
+            msids.extend(extra_msids)
+        msidset = fetch.MSIDset(msids, self.tstart - pad, self.tstop + pad,
+                                filter_bad=filter_bad)
+        return msidset
+
 
 class TscMove(TlmEvent):
     name = 'tsc_move'
@@ -205,6 +229,15 @@ class Maneuver(TlmEvent):
     event_msid = 'aofattmd'  # MNVR STDY NULL DTHR
     event_val = 'MNVR'
     rel_msids = ['aopcadmd', 'aoacaseq', 'aopsacpr', 'aounload']
+    fetch_event_msids = ['one_shot', 'aofattmd', 'aopcadmd', 'aoacaseq',
+                         'aopsacpr', 'aounload',
+                         'aoattqt1', 'aoattqt2', 'aoattqt3', 'aoattqt4',
+                         'aogyrct1', 'aogyrct2', 'aogyrct3', 'aogyrct4',
+                         'aoatupq1', 'aoatupq2', 'aoatupq3',
+                         'aotarqt1', 'aotarqt2', 'aotarqt3',
+                         'aoatter1', 'aoatter2', 'aoatter3',
+                         'aogbias1', 'aogbias2', 'aogbias3']
+    fetch_event_pad = 600
 
     prev_manvr_stop = models.CharField(max_length=21, null=True)
     prev_npnt_start = models.CharField(max_length=21, null=True)
@@ -233,6 +266,7 @@ class Maneuver(TlmEvent):
     dwell2_stop = models.CharField(max_length=21, null=True)
     dwell2_dt = models.FloatField(null=True)
     dwell2_dur = models.FloatField(null=True)
+    tlm = JSONField()
 
     @classmethod
     def get_dwells(cls, changes):
@@ -367,6 +401,13 @@ class Maneuver(TlmEvent):
         return manvr_attrs
 
     @classmethod
+    def get_tlm(cls, event):
+        tlm = {'start': {'aoatterr': [0.0, 0, 0, 0]},
+               'stop': {'aoatterr': [1.0, 0, 0, 1]},
+               }
+        return tlm
+
+    @classmethod
     @import_ska
     def get_events(cls, start, stop=None):
         """
@@ -395,7 +436,67 @@ class Maneuver(TlmEvent):
                          sequence=sequence,
                          )
             event.update(manvr_attrs)
+            event['tlm'] = cls.get_tlm(event)
 
             events.append(event)
 
         return events
+
+    def plot(self, figsize=(8, 10), fig=None):
+        import matplotlib.pyplot as plt
+        from Ska.Matplotlib import plot_cxctime, remake_ticks
+
+        def fix_ylim(ax, min_ylim):
+            y0, y1 = ax.get_ylim()
+            dy = y1 - y0
+            if dy < min_ylim:
+                ymid = (y0 + y1) / 2.0
+                y0 = ymid - min_ylim / 2.0
+                y1 = ymid + min_ylim / 2.0
+                ax.set_ylim(y0, y1)
+
+        R2A = 206264.8  # radians to arcsec
+        ms = self.msidset
+        if fig is None:
+            fig = plt.figure(figsize=figsize)
+        fig.clf()
+        tstarts = [self.tstart, self.tstart]
+        tstops = [self.tstop, self.tstop]
+        colors = ['r', 'b', 'g', 'm']
+
+        # AOATTQT estimated quaternion
+        ax1 = fig.add_subplot(3, 1, 1)
+        for i, color in zip(range(1, 5), colors):
+            msid = 'aoattqt{}'.format(i)
+            plot_cxctime(ms[msid].times, ms[msid].vals, fig=fig, ax=ax1,
+                         color=color, linestyle='-', label=msid, interactive=False)
+        ax1.set_ylim(-1.05, 1.05)
+        ax1.set_title('Maneuver at {}'.format(self.datestart[:-4]))
+
+        # AOATTER attitude error (arcsec)
+        ax2 = fig.add_subplot(3, 1, 2, sharex=ax1)
+        msids = ['aoatter{}'.format(i) for i in range(1, 4)] + ['one_shot']
+        scales = [R2A, R2A, R2A, 1.0]
+        for color, msid, scale in zip(colors, msids, scales):
+            plot_cxctime(ms[msid].times, ms[msid].vals * scale, fig=fig, ax=ax2,
+                         color=color, linestyle='-', label=msid, interactive=False)
+        ax2.set_ylabel('Attitude error (arcsec)')
+        fix_ylim(ax2, 10)
+
+        # ACA sequence
+        ax3 = fig.add_subplot(3, 1, 3, sharex=ax1)
+        msid = ms['aoacaseq']
+        plot_cxctime(msid.times, msid.raw_vals, state_codes=msid.state_codes, fig=fig, ax=ax3,
+                     interactive=False, label='aoacaseq')
+        fix_ylim(ax3, 2.2)
+
+        for ax in [ax1, ax2, ax3]:
+            ax.callbacks.connect('xlim_changed', remake_ticks)
+            plot_cxctime(tstarts, ax.get_ylim(), '--r', fig=fig, ax=ax, interactive=False)
+            plot_cxctime(tstops, ax.get_ylim(), '--r', fig=fig, ax=ax, interactive=False)
+            ax.grid()
+            leg = ax.legend(loc='upper left', fontsize='small', fancybox=True)
+            if leg is not None:
+                leg.get_frame().set_alpha(0.7)
+
+        fig.canvas.draw()
