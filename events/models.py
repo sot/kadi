@@ -75,9 +75,9 @@ def import_ska(func):
 
 
 class Event(models.Model):
-    tstart = models.FloatField()
+    tstart = models.FloatField(db_index=True)
     tstop = models.FloatField()
-    datestart = models.CharField(max_length=21)
+    datestart = models.CharField(max_length=21, db_index=True)
     datestop = models.CharField(max_length=21)
 
     class Meta:
@@ -206,6 +206,34 @@ class Maneuver(TlmEvent):
     event_val = 'MNVR'
     rel_msids = ['aopcadmd', 'aoacaseq', 'aopsacpr', 'aounload']
 
+    prev_manvr_stop = models.CharField(max_length=21, null=True)
+    prev_npnt_start = models.CharField(max_length=21, null=True)
+    nman_start = models.CharField(max_length=21, null=True)
+    manvr_start = models.CharField(max_length=21, null=True)
+    manvr_stop = models.CharField(max_length=21, null=True)
+    npnt_start = models.CharField(max_length=21, null=True)
+    acq_start = models.CharField(max_length=21, null=True)
+    guide_start = models.CharField(max_length=21, null=True)
+    kalman_start = models.CharField(max_length=21, null=True)
+    aca_proc_act_start = models.CharField(max_length=21, null=True)
+    npnt_stop = models.CharField(max_length=21, null=True)
+    next_nman_start = models.CharField(max_length=21, null=True)
+    next_manvr_start = models.CharField(max_length=21, null=True)
+    n_dwell = models.IntegerField()
+    n_acq = models.IntegerField()
+    n_guide = models.IntegerField()
+    n_kalman = models.IntegerField()
+    anomalous = models.BooleanField()
+    template = models.CharField(max_length=16)
+    dwell_start = models.CharField(max_length=21, null=True)
+    dwell_stop = models.CharField(max_length=21, null=True)
+    dwell_dt = models.FloatField(null=True)
+    dwell_dur = models.FloatField(null=True)
+    dwell2_start = models.CharField(max_length=21, null=True)
+    dwell2_stop = models.CharField(max_length=21, null=True)
+    dwell2_dt = models.FloatField(null=True)
+    dwell2_dur = models.FloatField(null=True)
+
     @classmethod
     def get_dwells(cls, changes):
         dwells = []
@@ -291,6 +319,19 @@ class Maneuver(TlmEvent):
                 anomalous = True
                 break
 
+        # Templates of previously seen maneuver sequences. These cover sequences seen at
+        # least twice as of ~Mar 2012.
+        manvr_templates = get_manvr_templates()
+        seqs = ['{}_{}_{}'.format(c['msid'], c['val0'], c['val']) for c in changes
+                if (c['msid'] in ('aopcadmd', 'aofattmd', 'aoacaseq') and
+                    c['dt'] >= ZERO_DT)]
+        for name, manvr_template in manvr_templates:
+            if seqs == manvr_template[2:]:  # skip first two which are STDY-MNVR and MNVR-STDY
+                template = name
+                break
+        else:
+            template = 'unknown'
+
         manvr_attrs = dict(
             prev_manvr_stop=match('aofattmd', '!MNVR', -1, 'before'),  # Last STDY before this manvr
             prev_npnt_start=match('aopcadmd', 'NPNT', -1, 'before'),  # Last NPNT before this manvr
@@ -313,26 +354,14 @@ class Maneuver(TlmEvent):
             n_guide=len(match('aoacaseq', 'GUID', None, 'after')),
             n_kalman=len(match('aoacaseq', 'KALM', None, 'after')),
             anomalous=anomalous,
+            template=template,
             )
-
-        # Templates of previously seen maneuver sequences. These cover sequences seen at
-        # least twice as of ~Mar 2012.
-        manvr_templates = get_manvr_templates()
-        seqs = ['{}_{}_{}'.format(c['msid'], c['val0'], c['val']) for c in changes
-                if (c['msid'] in ('aopcadmd', 'aofattmd', 'aoacaseq') and
-                    c['dt'] >= ZERO_DT)]
-        for name, template in manvr_templates:
-            if seqs == template[2:]:
-                manvr_attrs['template'] = name
-                break
-        else:
-            manvr_attrs['template'] = 'unknown'
 
         for i, dwell in enumerate(dwells):
             prefix = 'dwell_' if i == 0 else 'dwell{}_'.format(i + 1)
-            manvr_attrs[prefix + 'datestart'] = dwell['datestart']
-            manvr_attrs[prefix + 'datestop'] = dwell['datestop']
-            manvr_attrs[prefix + 'dt_start'] = dwell['dt']
+            manvr_attrs[prefix + 'start'] = dwell['datestart']
+            manvr_attrs[prefix + 'stop'] = dwell['datestop']
+            manvr_attrs[prefix + 'dt'] = dwell['dt']
             manvr_attrs[prefix + 'dur'] = dwell['tstop'] - dwell['tstart']
 
         return manvr_attrs
@@ -364,8 +393,8 @@ class Maneuver(TlmEvent):
                          datestart=DateTime(tstart).date,
                          datestop=DateTime(tstop).date,
                          sequence=sequence,
-                         manvr_attrs=manvr_attrs,
                          )
+            event.update(manvr_attrs)
 
             events.append(event)
 
