@@ -39,16 +39,16 @@ def get_opt(args=None):
 
 def update(EventModel, date_now):
     date_now = DateTime(date_now)
-    name = EventModel.name
-    logger.info('Updating {} events to {}'.format(name, date_now.date))
+    cls_name = EventModel.__name__
+    logger.info('Updating {} events to {}'.format(cls_name, date_now.date))
 
     try:
-        update = models.Update.objects.get(name=name)
+        update = models.Update.objects.get(name=cls_name)
         date_start = DateTime(update.date)
         update.date = date_now.date
     except ObjectDoesNotExist:
-        logger.info('No previous update for {} found'.format(name))
-        update = models.Update(name=name, date=date_now.date)
+        logger.info('No previous update for {} found'.format(cls_name))
+        update = models.Update(name=cls_name, date=date_now.date)
         date_start = date_now
 
     # Get events for this model from telemetry.  This is returned as a list
@@ -61,24 +61,24 @@ def update(EventModel, date_now):
             try:
                 event_model = EventModel.objects.get(start=event['start'])
                 logger.verbose('Skipping {} at {}: already in database'
-                               .format(name, event['start']))
+                               .format(cls_name, event['start']))
                 continue
             except ObjectDoesNotExist:
                 pass  # add the event
 
             event_model = EventModel.from_dict(event, logger)
-            logger.info('Adding {} {}'.format(name, event_model))
+            logger.info('Adding {} {}'.format(cls_name, event_model))
             event_model.save()
 
             # Add any foreign rows (many to one)
-            for class_name, rows in event.get('foreign', {}).items():
-                ForeignModel = getattr(models, class_name)
+            for foreign_cls_name, rows in event.get('foreign', {}).items():
+                ForeignModel = getattr(models, foreign_cls_name)
                 if isinstance(rows, np.ndarray):
                     rows = [{key: row[key].tolist() for key in row.dtype.names} for row in rows]
                 for row in rows:
                     # Convert to a plain dict if row is structured array
                     foreign_model = ForeignModel.from_dict(row, logger)
-                    setattr(foreign_model, name, event_model)
+                    setattr(foreign_model, event_model.name, event_model)
                     logger.verbose('Adding {}'.format(foreign_model))
                     foreign_model.save()
 
@@ -111,7 +111,7 @@ def main():
     EventModels = [val for name, val in vars(models).items()
                    if (isinstance(val, (type, types.ClassType))  # is a class
                        and issubclass(val, models.Event)  # is an Event subclass
-                       and hasattr(val, 'name')  # is not a base class
+                       and 'Meta' not in val.__dict__  # is not a base class
                        )]
 
     if opt.models:

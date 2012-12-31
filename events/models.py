@@ -101,19 +101,18 @@ class BaseModel(models.Model):
             if hasattr(model, key):
                 if logger is not None:
                     logger.debug('Setting {} model with {}={}'
-                                 .format(model.model_name, key, val))
+                                 .format(model.name, key, val))
                 setattr(model, key, val)
         return model
 
     @property
-    def model_name(self):
+    def name(self):
         if not hasattr(self, '_name'):
             chars = []
             for i, char in enumerate(self.__class__.__name__):
-                if char >= 'A' and char <= 'Z':
-                    if i != 0:
-                        chars.append('_')
-                    chars.append(char.lower())
+                if char >= 'A' and char <= 'Z' and i != 0:
+                    chars.append('_')
+                chars.append(char.lower())
             self._name = ''.join(chars)
         return self._name
 
@@ -234,7 +233,6 @@ class TlmEvent(Event):
 
 
 class TscMove(TlmEvent):
-    name = 'tsc_move'
     event_msid = '3tscmove'
     event_val = 'T'
     rel_msids = ['3tscpos']
@@ -254,7 +252,6 @@ class TscMove(TlmEvent):
 
 
 class FaMove(TlmEvent):
-    name = 'fa_move'
     event_msid = '3famove'
     event_val = 'T'
     rel_msids = ['3fapos']
@@ -269,19 +266,16 @@ class FaMove(TlmEvent):
 
 
 class Dump(TlmEvent):
-    name = 'dump'
     event_msid = 'aounload'
     event_val = 'GRND'
 
 
 class Eclipse(TlmEvent):
-    name = 'eclipse'
     event_msid = 'aoeclips'
     event_val = 'ECL '
 
 
 class Manvr(TlmEvent):
-    name = 'manvr'
     event_msid = 'aofattmd'  # MNVR STDY NULL DTHR
     event_val = 'MNVR'
     rel_msids = ['aopcadmd', 'aoacaseq', 'aopsacpr']
