@@ -26,7 +26,7 @@ def get_opt(args=None):
                         help=("Processing start date (loops by max-lookback-time "
                               "until date-now if set)"))
     parser.add_argument("--log-level",
-                        default=pyyaks.logger.VERBOSE,
+                        default=pyyaks.logger.INFO,
                         help=("Logging level"))
     parser.add_argument("--model",
                         action='append',
@@ -40,20 +40,22 @@ def get_opt(args=None):
 def update(EventModel, date_now):
     date_now = DateTime(date_now)
     cls_name = EventModel.__name__
-    logger.info('Updating {} events to {}'.format(cls_name, date_now.date))
 
     try:
         update = models.Update.objects.get(name=cls_name)
-        date_start = DateTime(update.date)
+        date_start = DateTime(update.date) - EventModel.lookback
         update.date = date_now.date
     except ObjectDoesNotExist:
         logger.info('No previous update for {} found'.format(cls_name))
         update = models.Update(name=cls_name, date=date_now.date)
-        date_start = date_now
+        date_start = date_now - EventModel.lookback
+
+    logger.info('Updating {} events from {} to {}'
+                .format(cls_name, date_start.date[:-4], date_now.date[:-4]))
 
     # Get events for this model from telemetry.  This is returned as a list
     # of dicts with key/val pairs corresponding to model fields
-    events = EventModel.get_events(date_start - EventModel.lookback, date_now)
+    events = EventModel.get_events(date_start, date_now)
 
     with transaction.commit_on_success():
         for event in events:
@@ -103,7 +105,7 @@ def main():
     else:
         t_starts = np.arange(DateTime(opt.date_start).secs,
                              DateTime(opt.date_now).secs,
-                             30 * 86400.)
+                             100 * 86400.)
         date_nows = [DateTime(t).date for t in t_starts]
         date_nows.append(opt.date_now)
 
@@ -116,7 +118,7 @@ def main():
 
     if opt.models:
         EventModels = [x for x in EventModels
-                       if any(re.match(y, x.name) for y in opt.models)]
+                       if any(re.match(y, x.__name__) for y in opt.models)]
 
     for EventModel in EventModels:
         for date_now in date_nows:

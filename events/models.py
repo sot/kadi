@@ -1,7 +1,8 @@
-from itertools import izip
+from itertools import count, izip
 
 from django.db import models
 
+import pyyaks.logger
 from .manvr_templates import get_manvr_templates
 from .json_field import JSONField
 
@@ -12,6 +13,9 @@ DateTime = None
 np = None
 
 ZERO_DT = -1e-4
+
+logger = pyyaks.logger.get_logger(name='events', level=pyyaks.logger.INFO,
+                                  format="%(asctime)s %(message)s")
 
 
 def get_si(simpos):
@@ -73,6 +77,28 @@ def import_ska(func):
         globals()['np'] = np
         return func(*args, **kwargs)
     return wrapper
+
+
+@import_ska
+def fuzz_states(states, t_fuzz):
+    """
+    For a set of `states` (from fetch.MSID.state_intervals()), compress any that are
+    within `t_fuzz` of each other.
+    """
+    done = False
+    while not done:
+        for i, state0, state1 in izip(count(), states, states[1:]):
+            if state1['tstart'] - state0['tstop'] < t_fuzz and state0['val'] == state1['val']:
+                # Merge state1 into state0 and delete state1
+                state0['tstop'] = state1['tstop']
+                state0['datestop'] = state1['datestop']
+                state0['duration'] = state0['tstop'] - state0['tstart']
+                states = np.concatenate([states[:i + 1], states[i + 2:]])
+                break
+        else:
+            done = True
+
+    return states
 
 
 class Update(models.Model):
@@ -144,6 +170,7 @@ class TlmEvent(Event):
         pass
 
     @classmethod
+    @import_ska
     def get_msids_states(cls, start, stop):
         """
         Get event and related MSIDs and compute the states corresponding
@@ -151,25 +178,47 @@ class TlmEvent(Event):
         """
         tstart = DateTime(start).secs
         tstop = DateTime(stop).secs
+        event_time_fuzz = cls.event_time_fuzz if hasattr(cls, 'event_time_fuzz') else None
 
         # Get the related MSIDs
         rel_msids = fetch.Msidset(cls.rel_msids, tstart, tstop) if cls.rel_msids else {}
 
         # Get the MSID that defines the event and find state intervals on that MSID
         event_msid = fetch.Msid(cls.event_msid, tstart, tstop)
-        states = event_msid.state_intervals()
 
-        # Require that the event states be flanked by a non-event state
-        # to ensure that the full event was seen in telemetry.
-        if states[0]['val'] == cls.event_val:
-            states = states[1:]
-        if states[-1]['val'] == cls.event_val:
-            states = states[:-1]
+        try:
+            states = event_msid.state_intervals()
+        except ValueError:
+            if event_time_fuzz is None:
+                logger.warn('Warning: No telemetry available for {}'
+                            .format(cls.__name__))
+            return [], event_msid, rel_msids
 
-        # Select event states that are entirely contained within interval
+        # Events like Safe Sun Mode just appear in telemetry without any surrounding
+        # non-event states.  In this case use a 'event_time_fuzz' class attribute t
+        if event_time_fuzz:
+            if (tstart + event_time_fuzz > states[0]['tstart']
+                    or tstop - event_time_fuzz < states[-1]['tstop']):
+                # Tstart or tstop is within event_time_fuzz of the start and stop of states so
+                # bail out and don't return any states.
+                logger.warn('Warning: dropping {} states because of insufficent event time pad'
+                            .format(cls.__name__))
+                return [], event_msid, rel_msids
+        else:
+            # Require that the event states be flanked by a non-event state
+            # to ensure that the full event was seen in telemetry.
+            if states[0]['val'] == cls.event_val:
+                states = states[1:]
+            if states[-1]['val'] == cls.event_val:
+                states = states[:-1]
+
+        # Select event states that have the right value and are contained within interval
         ok = ((states['val'] == cls.event_val) &
               (states['tstart'] >= tstart) & (states['tstop'] <= tstop))
         states = states[ok]
+
+        if event_time_fuzz:
+            states = fuzz_states(states, event_time_fuzz)
 
         return states, event_msid, rel_msids
 
@@ -520,3 +569,11 @@ class ManvrSeq(BaseModel):
     def __unicode__(self):
         return ('{}: {} => {} at {}'
                 .format(self.msid.upper(), self.prev_val, self.val, self.date))
+
+
+class SafeSun(TlmEvent):
+    notes = models.TextField()
+
+    event_msid = '61psts02'
+    event_val = 'SSM'
+    event_time_fuzz = 86400  # One full day of fuzz / pad
