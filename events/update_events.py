@@ -6,6 +6,7 @@ import argparse
 
 import numpy as np
 from django.core.exceptions import ObjectDoesNotExist
+from django.db import transaction
 
 import pyyaks.logger
 from Chandra.Time import DateTime
@@ -44,30 +45,42 @@ def update(EventModel, date_now):
     try:
         update = models.Update.objects.get(name=name)
         date_start = DateTime(update.date)
+        update.date = date_now.date
     except ObjectDoesNotExist:
         logger.info('No previous update for {} found'.format(name))
-        update = models.Update(name, date_now.date)
+        update = models.Update(name=name, date=date_now.date)
         date_start = date_now
 
     # Get events for this model from telemetry.  This is returned as a list
     # of dicts with key/val pairs corresponding to model fields
     events = EventModel.get_events(date_start - EventModel.lookback, date_now)
 
-    for event in events:
-        # Check if event is already in database
-        try:
-            event_model = EventModel.objects.get(start=event['start'])
-            logger.verbose('Skipping {} at {}: already in database'
-                           .format(name, event['start']))
-            continue
-        except ObjectDoesNotExist:
-            pass  # add the event
+    with transaction.commit_on_success():
+        for event in events:
+            # Check if event is already in database
+            try:
+                event_model = EventModel.objects.get(start=event['start'])
+                logger.verbose('Skipping {} at {}: already in database'
+                               .format(name, event['start']))
+                continue
+            except ObjectDoesNotExist:
+                pass  # add the event
 
-        event_model = EventModel.from_dict(event, logger)
-        logger.info('Adding {}'.format(event_model))
-        event_model.save()
+            event_model = EventModel.from_dict(event, logger)
+            logger.info('Adding {} {}'.format(name, event_model))
+            event_model.save()
 
-        # TODO: Add any foreign rows (many to one)
+            # Add any foreign rows (many to one)
+            for class_name, rows in event.get('foreign', {}).items():
+                ForeignModel = getattr(models, class_name)
+                if isinstance(rows, np.ndarray):
+                    rows = [{key: row[key].tolist() for key in row.dtype.names} for row in rows]
+                for row in rows:
+                    # Convert to a plain dict if row is structured array
+                    foreign_model = ForeignModel.from_dict(row, logger)
+                    setattr(foreign_model, name, event_model)
+                    logger.verbose('Adding {}'.format(foreign_model))
+                    foreign_model.save()
 
     # If processing got here with no exceptions then save the event update
     # information to database

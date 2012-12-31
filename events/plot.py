@@ -33,7 +33,7 @@ def plot_manvr(manvr, figsize=(8, 10), fig=None):
         plot_cxctime(ms[msid].times, ms[msid].vals, fig=fig, ax=ax1,
                      color=color, linestyle='-', label=msid, interactive=False)
     ax1.set_ylim(-1.05, 1.05)
-    ax1.set_title('Maneuver at {}'.format(manvr.datestart[:-4]))
+    ax1.set_title('Maneuver at {}'.format(manvr.start[:-4]))
 
     # AOATTER attitude error (arcsec)
     ax2 = fig.add_subplot(3, 1, 2, sharex=ax1)

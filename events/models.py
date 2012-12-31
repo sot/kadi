@@ -48,8 +48,8 @@ def get_msid_changes(msids, sortmsids={}):
                       msid.times[i], msid.times[i + 1],
                       )
             changes.append(change)
-    changes = np.rec.fromrecords(changes, names=('msid', 'sortmsid', 'val0', 'val',
-                                                 'date0', 'date', 'dt', 'time0', 'time'))
+    changes = np.rec.fromrecords(changes, names=('msid', 'sortmsid', 'prev_val', 'val',
+                                                 'prev_date', 'date', 'dt', 'prev_time', 'time'))
     changes.sort(order=['time', 'sortmsid'])
     return changes
 
@@ -82,8 +82,43 @@ class Update(models.Model):
     name = models.CharField(max_length=30, primary_key=True)  # model name
     date = models.CharField(max_length=21)
 
+    def __unicode__(self):
+        return ('name={} date={}'.format(self.name, self.date))
 
-class Event(models.Model):
+
+class BaseModel(models.Model):
+    class Meta:
+        abstract = True
+
+    @classmethod
+    def from_dict(cls, model_dict, logger=None):
+        """
+        Set model from a dict `model_dict` which might have extra stuff not in
+        Model.  If `logger` is supplied then log output at debug level.
+        """
+        model = cls()
+        for key, val in model_dict.items():
+            if hasattr(model, key):
+                if logger is not None:
+                    logger.debug('Setting {} model with {}={}'
+                                 .format(model.model_name, key, val))
+                setattr(model, key, val)
+        return model
+
+    @property
+    def model_name(self):
+        if not hasattr(self, '_name'):
+            chars = []
+            for i, char in enumerate(self.__class__.__name__):
+                if char >= 'A' and char <= 'Z':
+                    if i != 0:
+                        chars.append('_')
+                    chars.append(char.lower())
+            self._name = ''.join(chars)
+        return self._name
+
+
+class Event(BaseModel):
     start = models.CharField(max_length=21, primary_key=True)
     stop = models.CharField(max_length=21)
     tstart = models.FloatField(db_index=True)
@@ -92,21 +127,6 @@ class Event(models.Model):
 
     class Meta:
         abstract = True
-
-    @classmethod
-    def from_dict(cls, event_dict, logger=None):
-        """
-        Set Event model from a dict `event_dict` which might have extra stuff not in
-        Model.  If `logger` is supplied then log output at debug level.
-        """
-        event_model = cls()
-        for key, val in event_dict.items():
-            if hasattr(event_model, key):
-                if logger is not None:
-                    logger.debug('Setting {} model with {}={}'
-                                 .format(event_model.name, key, val))
-                setattr(event_model, key, val)
-        return event_model
 
     def __unicode__(self):
         return ('start={}'.format(self.start))
@@ -343,8 +363,8 @@ class Manvr(TlmEvent):
             elif (state == 'dwell'
                   and ((change['msid'] == 'aopcadmd' and change['val'] == 'NMAN') or
                        (change['msid'] == 'aoacaseq' and change['time'] - t0 > 400))):
-                dwell['tstop'] = change['time0']
-                dwell['stop'] = change['date0']
+                dwell['tstop'] = change['prev_time']
+                dwell['stop'] = change['prev_date']
                 dwells.append(dwell)
                 dwell = {}
                 state = None
@@ -399,7 +419,7 @@ class Manvr(TlmEvent):
         # Templates of previously seen maneuver sequences. These cover sequences seen at
         # least twice as of ~Mar 2012.
         manvr_templates = get_manvr_templates()
-        seqs = ['{}_{}_{}'.format(c['msid'], c['val0'], c['val']) for c in changes
+        seqs = ['{}_{}_{}'.format(c['msid'], c['prev_val'], c['val']) for c in changes
                 if (c['msid'] in ('aopcadmd', 'aofattmd', 'aoacaseq') and
                     c['dt'] >= ZERO_DT)]
         for name, manvr_template in manvr_templates:
@@ -468,7 +488,7 @@ class Manvr(TlmEvent):
             i0 = np.searchsorted(changes['time'], manvr_prev['tstop'])
             i1 = np.searchsorted(changes['time'], manvr_next['tstart'])
             sequence = changes[i0:i1 + 1]
-            sequence['dt'] = (sequence['time'] + sequence['time0']) / 2.0 - manvr['tstop']
+            sequence['dt'] = (sequence['time'] + sequence['prev_time']) / 2.0 - manvr['tstop']
             ok = ((sequence['dt'] >= ZERO_DT) | (sequence['msid'] == 'aofattmd') |
                   (sequence['msid'] == 'aopcadmd'))
             sequence = sequence[ok]
@@ -492,12 +512,17 @@ class Manvr(TlmEvent):
         plot_manvr(self, figsize, fig)
 
 
-class ManvrSeq(models.Model):
+class ManvrSeq(BaseModel):
     manvr = models.ForeignKey(Manvr)
     msid = models.CharField(max_length=8)
-    val0 = models.CharField(max_length=4)
+    prev_val = models.CharField(max_length=4)
     val = models.CharField(max_length=4)
-    date0 = models.CharField(max_length=21)
+    date = models.CharField(max_length=21)
     dt = models.FloatField()
-    time0 = models.FloatField()
     time = models.FloatField()
+    prev_date = models.CharField(max_length=21)
+    prev_time = models.FloatField()
+
+    def __unicode__(self):
+        return ('{}: {} => {} at {}'
+                .format(self.msid.upper(), self.prev_val, self.val, self.date))
