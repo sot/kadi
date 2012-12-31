@@ -75,14 +75,41 @@ def import_ska(func):
     return wrapper
 
 
+class EventUpdate(models.Model):
+    """
+    Last telemetry which was searched for an update.
+    """
+    name = models.CharField(max_length=30, primary_key=True)  # model name
+    date = models.CharField(max_length=21)
+
+
 class Event(models.Model):
+    datestart = models.CharField(max_length=21, primary_key=True)
+    datestop = models.CharField(max_length=21)
     tstart = models.FloatField(db_index=True)
     tstop = models.FloatField()
-    datestart = models.CharField(max_length=21, db_index=True)
-    datestop = models.CharField(max_length=21)
+    lookback = 21  # days of lookback into telemetry
 
     class Meta:
         abstract = True
+
+    @classmethod
+    def from_dict(cls, event_dict, logger=None):
+        """
+        Set Event model from a dict `event_dict` which might have extra stuff not in
+        Model.  If `logger` is supplied then log output at debug level.
+        """
+        event_model = cls()
+        for key, val in event_dict.items():
+            if hasattr(event_model, key):
+                if logger is not None:
+                    logger.debug('Setting {} model with {}={}'
+                                 .format(event_model.name, key, val))
+                setattr(event_model, key, val)
+        return event_model
+
+    def __unicode__(self):
+        return ('datestart={}'.format(self.datestart))
 
 
 class TlmEvent(Event):
@@ -201,6 +228,10 @@ class TscMove(TlmEvent):
         event['start_det'] = get_si(event['start_3tscpos'])
         event['stop_det'] = get_si(event['stop_3tscpos'])
 
+    def __unicode__(self):
+        return ('datestart={} start_3tscpos={} stop_3tscpos={}'
+                .format(self.datestart, self.start_3tscpos, self.stop_3tscpos))
+
 
 class FaMove(TlmEvent):
     name = 'fa_move'
@@ -212,9 +243,13 @@ class FaMove(TlmEvent):
     start_3fapos = models.IntegerField()
     stop_3fapos = models.IntegerField()
 
+    def __unicode__(self):
+        return ('datestart={} start_3fapos={} stop_3fapos={}'
+                .format(self.datestart, self.start_3fapos, self.stop_3fapos))
 
-class MomentumDump(TlmEvent):
-    name = 'momentum_dump'
+
+class Dump(TlmEvent):
+    name = 'dump'
     event_msid = 'aounload'
     event_val = 'GRND'
 
@@ -225,7 +260,8 @@ class Eclipse(TlmEvent):
     event_val = 'ECL '
 
 
-class Maneuver(TlmEvent):
+class Manvr(TlmEvent):
+    name = 'manvr'
     event_msid = 'aofattmd'  # MNVR STDY NULL DTHR
     event_val = 'MNVR'
     rel_msids = ['aopcadmd', 'aoacaseq', 'aopsacpr', 'aounload']
@@ -267,6 +303,11 @@ class Maneuver(TlmEvent):
     dwell2_dt = models.FloatField(null=True)
     dwell2_dur = models.FloatField(null=True)
     tlm = JSONField()
+
+    def __unicode__(self):
+        dwell_dt = 'None' if self.dwell_dt is None else '{:.1f} ks'.format(self.dwell_dt)
+        return ('datestart={} dwell_dt={} template={}'
+                .format(self.datestart[:-4], dwell_dt, self.template))
 
     @classmethod
     def get_dwells(cls, changes):
@@ -346,7 +387,8 @@ class Maneuver(TlmEvent):
         nom_vals = {'aopcadmd': ('NPNT', 'NMAN'),
                     'aoacaseq': ('GUID', 'KALM', 'AQXN'),
                     'aofattmd': ('MNVR', 'STDY'),
-                    'aopsacpr': ('INIT', 'INAC', 'ACT ')}
+                    'aopsacpr': ('INIT', 'INAC', 'ACT '),
+                    'aounload': ('MON ', 'GRND')}
         anomalous = False
         for change in changes[changes['dt'] >= ZERO_DT]:
             if change['val'] not in nom_vals[change['msid']]:
@@ -433,7 +475,7 @@ class Maneuver(TlmEvent):
                          tstop=tstop,
                          datestart=DateTime(tstart).date,
                          datestop=DateTime(tstop).date,
-                         sequence=sequence,
+                         foreign={'ManvrSeq': sequence},
                          )
             event.update(manvr_attrs)
             event['tlm'] = cls.get_tlm(event)
@@ -445,3 +487,13 @@ class Maneuver(TlmEvent):
     def plot(self, figsize=(8, 10), fig=None):
         from .plot import plot_manvr
         plot_manvr(self, figsize, fig)
+
+class ManvrSeq(models.Model):
+    manvr = models.ForeignKey(Manvr)
+    msid = models.CharField(max_length=8)
+    val0 = models.CharField(max_length=4)
+    val = models.CharField(max_length=4)
+    date0 = models.CharField(max_length=21)
+    dt = models.FloatField()
+    time0 = models.FloatField()
+    time = models.FloatField()
