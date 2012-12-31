@@ -42,11 +42,11 @@ def update(EventModel, date_now):
     logger.info('Updating {} events to {}'.format(name, date_now.date))
 
     try:
-        event_update = models.EventUpdate.objects.get(name=name)
-        date_start = DateTime(event_update.date)
+        update = models.Update.objects.get(name=name)
+        date_start = DateTime(update.date)
     except ObjectDoesNotExist:
         logger.info('No previous update for {} found'.format(name))
-        event_update = models.EventUpdate(name, date_now.date)
+        update = models.Update(name, date_now.date)
         date_start = date_now
 
     # Get events for this model from telemetry.  This is returned as a list
@@ -56,9 +56,9 @@ def update(EventModel, date_now):
     for event in events:
         # Check if event is already in database
         try:
-            event_model = EventModel.objects.get(datestart=event['datestart'])
+            event_model = EventModel.objects.get(start=event['start'])
             logger.verbose('Skipping {} at {}: already in database'
-                           .format(name, event['datestart']))
+                           .format(name, event['start']))
             continue
         except ObjectDoesNotExist:
             pass  # add the event
@@ -71,7 +71,7 @@ def update(EventModel, date_now):
 
     # If processing got here with no exceptions then save the event update
     # information to database
-    event_update.save()
+    update.save()
 
 
 def main():

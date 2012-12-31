@@ -75,7 +75,7 @@ def import_ska(func):
     return wrapper
 
 
-class EventUpdate(models.Model):
+class Update(models.Model):
     """
     Last telemetry which was searched for an update.
     """
@@ -84,8 +84,8 @@ class EventUpdate(models.Model):
 
 
 class Event(models.Model):
-    datestart = models.CharField(max_length=21, primary_key=True)
-    datestop = models.CharField(max_length=21)
+    start = models.CharField(max_length=21, primary_key=True)
+    stop = models.CharField(max_length=21)
     tstart = models.FloatField(db_index=True)
     tstop = models.FloatField()
     lookback = 21  # days of lookback into telemetry
@@ -109,7 +109,7 @@ class Event(models.Model):
         return event_model
 
     def __unicode__(self):
-        return ('datestart={}'.format(self.datestart))
+        return ('start={}'.format(self.start))
 
 
 class TlmEvent(Event):
@@ -172,8 +172,8 @@ class TlmEvent(Event):
             tstop = state['tstop']
             event = dict(tstart=tstart,
                          tstop=tstop,
-                         datestart=DateTime(tstart).date,
-                         datestop=DateTime(tstop).date)
+                         start=DateTime(tstart).date,
+                         stop=DateTime(tstop).date)
 
             for rel_msid in rel_msids.values():
                 vals = interpolate(rel_msid.vals, rel_msid.times,
@@ -229,8 +229,8 @@ class TscMove(TlmEvent):
         event['stop_det'] = get_si(event['stop_3tscpos'])
 
     def __unicode__(self):
-        return ('datestart={} start_3tscpos={} stop_3tscpos={}'
-                .format(self.datestart, self.start_3tscpos, self.stop_3tscpos))
+        return ('start={} start_3tscpos={} stop_3tscpos={}'
+                .format(self.start, self.start_3tscpos, self.stop_3tscpos))
 
 
 class FaMove(TlmEvent):
@@ -244,8 +244,8 @@ class FaMove(TlmEvent):
     stop_3fapos = models.IntegerField()
 
     def __unicode__(self):
-        return ('datestart={} start_3fapos={} stop_3fapos={}'
-                .format(self.datestart, self.start_3fapos, self.stop_3fapos))
+        return ('start={} start_3fapos={} stop_3fapos={}'
+                .format(self.start, self.start_3fapos, self.stop_3fapos))
 
 
 class Dump(TlmEvent):
@@ -307,8 +307,8 @@ class Manvr(TlmEvent):
     def __unicode__(self):
         dwell_dur = ('None' if self.dwell_dur is None
                      else '{:.1f} ks'.format(self.dwell_dur / 1000.))
-        return ('datestart={} dwell_dur={} template={}'
-                .format(self.datestart[:-4], dwell_dur, self.template))
+        return ('start={} dwell_dur={} template={}'
+                .format(self.start, dwell_dur, self.template))
 
     @classmethod
     def get_dwells(cls, changes):
@@ -325,7 +325,7 @@ class Manvr(TlmEvent):
                 t0 = change['time']
                 dwell['dt'] = change['dt']
                 dwell['tstart'] = change['time']
-                dwell['datestart'] = change['date']
+                dwell['start'] = change['date']
                 state = 'dwell'
 
             # Another KALMAN within 400 secs of previous KALMAN in dwell.
@@ -337,14 +337,14 @@ class Manvr(TlmEvent):
                 t0 = change['time']
                 dwell['dt'] = change['dt']
                 dwell['tstart'] = change['time']
-                dwell['datestart'] = change['date']
+                dwell['start'] = change['date']
 
             # End of dwell because of NPNT => NMAN transition OR another acquisition
             elif (state == 'dwell'
                   and ((change['msid'] == 'aopcadmd' and change['val'] == 'NMAN') or
                        (change['msid'] == 'aoacaseq' and change['time'] - t0 > 400))):
                 dwell['tstop'] = change['time0']
-                dwell['datestop'] = change['date0']
+                dwell['stop'] = change['date0']
                 dwells.append(dwell)
                 dwell = {}
                 state = None
@@ -436,8 +436,8 @@ class Manvr(TlmEvent):
 
         for i, dwell in enumerate(dwells):
             prefix = 'dwell_' if i == 0 else 'dwell{}_'.format(i + 1)
-            manvr_attrs[prefix + 'start'] = dwell['datestart']
-            manvr_attrs[prefix + 'stop'] = dwell['datestop']
+            manvr_attrs[prefix + 'start'] = dwell['start']
+            manvr_attrs[prefix + 'stop'] = dwell['stop']
             manvr_attrs[prefix + 'rel_tstart'] = dwell['dt']  # dwell_dt is ambiguous
             manvr_attrs[prefix + 'dur'] = dwell['tstop'] - dwell['tstart']
 
@@ -476,8 +476,8 @@ class Manvr(TlmEvent):
 
             event = dict(tstart=tstart,
                          tstop=tstop,
-                         datestart=DateTime(tstart).date,
-                         datestop=DateTime(tstop).date,
+                         start=DateTime(tstart).date,
+                         stop=DateTime(tstop).date,
                          foreign={'ManvrSeq': sequence},
                          )
             event.update(manvr_attrs)
