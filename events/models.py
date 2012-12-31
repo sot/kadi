@@ -31,26 +31,26 @@ def get_si(simpos):
     return si
 
 
-def get_msid_changes(msids):
+def get_msid_changes(msids, sortmsids={}):
     """
     For the list of fetch MSID objects, return a sorted structured array
     of each time any MSID value changes.
     """
     changes = []
-    sortmsids = {'aofattmd': 1, 'aopcadmd': 2, 'aoacaseq': 3, 'aopsacpr': 4}
     for msid in msids:
         i_changes = np.flatnonzero(msid.vals[1:] != msid.vals[:-1])
         for i in i_changes:
-            changes.append((msid.msid,
-                            sortmsids.get(msid.msid, 10),
-                            msid.vals[i], msid.vals[i + 1],
-                            DateTime(msid.times[i]).date, DateTime(msid.times[i + 1]).date,
-                            0.0,
-                            msid.times[i], msid.times[i + 1],
-                            ))
+            change = (msid.msid,
+                      sortmsids.get(msid.msid, 10),
+                      msid.vals[i], msid.vals[i + 1],
+                      DateTime(msid.times[i]).date, DateTime(msid.times[i + 1]).date,
+                      0.0,
+                      msid.times[i], msid.times[i + 1],
+                      )
+            changes.append(change)
     changes = np.rec.fromrecords(changes, names=('msid', 'sortmsid', 'val0', 'val',
                                                  'date0', 'date', 'dt', 'time0', 'time'))
-    changes.sort(order=['time0', 'sortmsid'])
+    changes.sort(order=['time', 'sortmsid'])
     return changes
 
 
@@ -264,7 +264,7 @@ class Manvr(TlmEvent):
     name = 'manvr'
     event_msid = 'aofattmd'  # MNVR STDY NULL DTHR
     event_val = 'MNVR'
-    rel_msids = ['aopcadmd', 'aoacaseq', 'aopsacpr', 'aounload']
+    rel_msids = ['aopcadmd', 'aoacaseq', 'aopsacpr']
     fetch_event_msids = ['one_shot', 'aofattmd', 'aopcadmd', 'aoacaseq',
                          'aopsacpr', 'aounload',
                          'aoattqt1', 'aoattqt2', 'aoattqt3', 'aoattqt4',
@@ -296,18 +296,19 @@ class Manvr(TlmEvent):
     template = models.CharField(max_length=16)
     dwell_start = models.CharField(max_length=21, null=True)
     dwell_stop = models.CharField(max_length=21, null=True)
-    dwell_dt = models.FloatField(null=True)
+    dwell_rel_tstart = models.FloatField(null=True)
     dwell_dur = models.FloatField(null=True)
     dwell2_start = models.CharField(max_length=21, null=True)
     dwell2_stop = models.CharField(max_length=21, null=True)
-    dwell2_dt = models.FloatField(null=True)
+    dwell2_rel_tstart = models.FloatField(null=True)
     dwell2_dur = models.FloatField(null=True)
     tlm = JSONField()
 
     def __unicode__(self):
-        dwell_dt = 'None' if self.dwell_dt is None else '{:.1f} ks'.format(self.dwell_dt)
-        return ('datestart={} dwell_dt={} template={}'
-                .format(self.datestart[:-4], dwell_dt, self.template))
+        dwell_dur = ('None' if self.dwell_dur is None
+                     else '{:.1f} ks'.format(self.dwell_dur / 1000.))
+        return ('datestart={} dwell_dur={} template={}'
+                .format(self.datestart[:-4], dwell_dur, self.template))
 
     @classmethod
     def get_dwells(cls, changes):
@@ -437,7 +438,7 @@ class Manvr(TlmEvent):
             prefix = 'dwell_' if i == 0 else 'dwell{}_'.format(i + 1)
             manvr_attrs[prefix + 'start'] = dwell['datestart']
             manvr_attrs[prefix + 'stop'] = dwell['datestop']
-            manvr_attrs[prefix + 'dt'] = dwell['dt']
+            manvr_attrs[prefix + 'rel_tstart'] = dwell['dt']  # dwell_dt is ambiguous
             manvr_attrs[prefix + 'dur'] = dwell['tstop'] - dwell['tstart']
 
         return manvr_attrs
@@ -456,7 +457,9 @@ class Manvr(TlmEvent):
         Get maneuver events from telemetry.
         """
         states, event_msid, rel_msids = cls.get_msids_states(start, stop)
-        changes = get_msid_changes([event_msid] + rel_msids.values())
+        changes = get_msid_changes([event_msid] + rel_msids.values(),
+                                   sortmsids={'aofattmd': 1, 'aopcadmd': 2,
+                                              'aoacaseq': 3, 'aopsacpr': 4})
 
         events = []
         for manvr_prev, manvr, manvr_next in izip(states, states[1:], states[2:]):
@@ -487,6 +490,7 @@ class Manvr(TlmEvent):
     def plot(self, figsize=(8, 10), fig=None):
         from .plot import plot_manvr
         plot_manvr(self, figsize, fig)
+
 
 class ManvrSeq(models.Model):
     manvr = models.ForeignKey(Manvr)
