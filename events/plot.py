@@ -14,6 +14,32 @@ def fix_ylim(ax, min_ylim):
         ax.set_ylim(y0, y1)
 
 
+def plot_generic(evt, figsize=None, fig=None):
+    """
+    Plot a Manvr event
+    """
+    ms = evt.msidset
+    n_axes = len(evt.fetch_event_msids)
+    if fig is None:
+        figsizes = {1: (8, 5), 2: (8, 6.5), 3: (8, 8), 4: (8, 10)}
+        fig = plt.figure(figsize=figsizes.get(n_axes, (8, 12)))
+    fig.clf()
+
+    for i, msid in enumerate(evt.fetch_event_msids):
+        if i == 0:
+            ax1 = fig.add_subplot(n_axes, 1, 1)
+            ax = ax1
+        else:
+            ax = fig.add_subplot(n_axes, 1, i + 1, sharex=ax1)
+
+        plot_cxctime(ms[msid].times, ms[msid].raw_vals, state_codes=ms[msid].state_codes,
+                     label=msid, ax=ax)
+        ax.grid()
+        leg = ax.legend(loc='upper left', fontsize='small', fancybox=True)
+        if leg is not None:
+            leg.get_frame().set_alpha(0.7)
+
+
 def plot_manvr(manvr, figsize=(8, 10), fig=None):
     """
     Plot a Manvr event

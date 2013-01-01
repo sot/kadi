@@ -184,6 +184,10 @@ class TlmEvent(Event):
     class Meta:
         abstract = True
 
+    def plot(self, figsize=(8, 10), fig=None):
+        from .plot import plot_generic
+        plot_generic(self, figsize, fig)
+
     @classmethod
     def add_extras(cls, event, event_msid, rel_msids):
         pass
@@ -341,6 +345,8 @@ class Dump(TlmEvent):
 class Eclipse(TlmEvent):
     event_msid = 'aoeclips'
     event_val = 'ECL '
+    fetch_event_msids = ['aoeclips', 'eb1k5', 'eb2k5', 'eb3k5']
+    fetch_event_pad = 1800
 
 
 class Manvr(TlmEvent):
