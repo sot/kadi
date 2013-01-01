@@ -82,8 +82,8 @@ def import_ska(func):
 @import_ska
 def fuzz_states(states, t_fuzz):
     """
-    For a set of `states` (from fetch.MSID.state_intervals()), compress any that are
-    within `t_fuzz` of each other.
+    For a set of `states` (from fetch.MSID.state_intervals()), merge any that are
+    within `t_fuzz` seconds of each other.
     """
     done = False
     while not done:
@@ -141,6 +141,25 @@ class BaseModel(models.Model):
                 chars.append(char.lower())
             self._name = ''.join(chars)
         return self._name
+
+    @classmethod
+    @import_ska
+    def find(cls, start=None, stop=None, subset=None, **kwargs):
+        objs = cls.objects.all()
+        if start is not None:
+            objs = objs.filter(start__gte=DateTime(start).date)
+        if stop is not None:
+            objs = objs.filter(stop__lte=DateTime(stop).date)
+        if kwargs:
+            objs = objs.filter(**kwargs)
+        if subset:
+            if not isinstance(subset, slice):
+                raise ValueError('subset parameter must be a slice() object')
+            objs = objs[subset]
+        names = [f.name for f in cls._meta.fields]
+        rows = objs.values_list()
+        dat = np.rec.fromrecords(rows, names=names)
+        return dat.view(np.ndarray)
 
 
 class Event(BaseModel):
