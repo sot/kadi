@@ -18,13 +18,17 @@ logger = None  # for pyflakes
 
 def get_opt(args=None):
     parser = argparse.ArgumentParser(description='Update the events database')
-    parser.add_argument("--date-now",
+    parser.add_argument("--date-stop",
                         default=DateTime().date,
-                        help="Set effective processing date for testing (default=NOW)")
+                        help="Processing stop date (default=NOW)")
     parser.add_argument("--date-start",
                         default=None,
                         help=("Processing start date (loops by max-lookback-time "
                               "until date-now if set)"))
+    parser.add_argument("--loop-days",
+                        default=100,
+                        type=int,
+                        help=("Number of days in interval for looping (default=100)"))
     parser.add_argument("--log-level",
                         default=pyyaks.logger.INFO,
                         help=("Logging level"))
@@ -37,25 +41,32 @@ def get_opt(args=None):
     return args
 
 
-def update(EventModel, date_now):
-    date_now = DateTime(date_now)
+def update(EventModel, date_stop):
+    date_stop = DateTime(date_stop)
     cls_name = EventModel.__name__
 
     try:
         update = models.Update.objects.get(name=cls_name)
+        duration = date_stop - DateTime(update.date)
         date_start = DateTime(update.date) - EventModel.lookback
-        update.date = date_now.date
+        update.date = date_stop.date
     except ObjectDoesNotExist:
         logger.info('No previous update for {} found'.format(cls_name))
-        update = models.Update(name=cls_name, date=date_now.date)
-        date_start = date_now - EventModel.lookback
+        duration = EventModel.lookback
+        update = models.Update(name=cls_name, date=date_stop.date)
+        date_start = date_stop - EventModel.lookback
+
+    if duration < 0.5:
+        logger.info('Skipping {} events because update duration={:.1f} is < 0.5 day'
+                    .format(cls_name, duration))
+        return
 
     logger.info('Updating {} events from {} to {}'
-                .format(cls_name, date_start.date[:-4], date_now.date[:-4]))
+                .format(cls_name, date_start.date[:-4], date_stop.date[:-4]))
 
     # Get events for this model from telemetry.  This is returned as a list
     # of dicts with key/val pairs corresponding to model fields
-    events = EventModel.get_events(date_start, date_now)
+    events = EventModel.get_events(date_start, date_stop)
 
     with transaction.commit_on_success():
         for event in events:
@@ -97,17 +108,17 @@ def main():
                                       format="%(asctime)s %(message)s")
 
     # Allow for a cmd line option --date-start.  If supplied then loop the
-    # effective value of opt.date_now from date_start to the cmd line
+    # effective value of opt.date_stop from date_start to the cmd line
     # --date-now in steps of --max-lookback-time
 
     if opt.date_start is None:
-        date_nows = [opt.date_now]
+        date_stops = [opt.date_stop]
     else:
         t_starts = np.arange(DateTime(opt.date_start).secs,
-                             DateTime(opt.date_now).secs,
-                             100 * 86400.)
-        date_nows = [DateTime(t).date for t in t_starts]
-        date_nows.append(opt.date_now)
+                             DateTime(opt.date_stop).secs,
+                             opt.loop_days * 86400.)
+        date_stops = [DateTime(t).date for t in t_starts]
+        date_stops.append(opt.date_stop)
 
     # Get the event classes in models module
     EventModels = [val for name, val in vars(models).items()
@@ -121,8 +132,8 @@ def main():
                        if any(re.match(y, x.__name__) for y in opt.models)]
 
     for EventModel in EventModels:
-        for date_now in date_nows:
-            update(EventModel, date_now)
+        for date_stop in date_stops:
+            update(EventModel, date_stop)
 
 if __name__ == '__main__':
     main()
