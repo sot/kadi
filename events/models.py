@@ -186,13 +186,15 @@ class Event(BaseModel):
     stop = models.CharField(max_length=21)
     tstart = models.FloatField(db_index=True)
     tstop = models.FloatField()
+    dur = models.FloatField()
+
     lookback = 21  # days of lookback into telemetry
 
     class Meta:
         abstract = True
 
     def __unicode__(self):
-        return ('start={}'.format(self.start))
+        return ('start={} dur={:.0f}'.format(self.start, self.dur))
 
 
 class TlmEvent(Event):
@@ -291,6 +293,7 @@ class TlmEvent(Event):
             tstop = state['tstop']
             event = dict(tstart=tstart,
                          tstop=tstop,
+                         dur=tstop - tstart,
                          start=DateTime(tstart).date,
                          stop=DateTime(tstop).date)
 
@@ -343,8 +346,8 @@ class TscMove(TlmEvent):
         return out
 
     def __unicode__(self):
-        return ('start={} start_3tscpos={} stop_3tscpos={}'
-                .format(self.start, self.start_3tscpos, self.stop_3tscpos))
+        return ('start={} dur={:.0f} start_3tscpos={} stop_3tscpos={}'
+                .format(self.start, self.dur, self.start_3tscpos, self.stop_3tscpos))
 
 
 class FaMove(TlmEvent):
@@ -363,8 +366,8 @@ class FaMove(TlmEvent):
         return out
 
     def __unicode__(self):
-        return ('start={} start_3fapos={} stop_3fapos={}'
-                .format(self.start, self.start_3fapos, self.stop_3fapos))
+        return ('start={} dur={:.0f} start_3fapos={} stop_3fapos={}'
+                .format(self.start, self.dur, self.start_3fapos, self.stop_3fapos))
 
 
 class Dump(TlmEvent):
@@ -424,8 +427,8 @@ class Manvr(TlmEvent):
     def __unicode__(self):
         dwell_dur = ('None' if self.dwell_dur is None
                      else '{:.1f} ks'.format(self.dwell_dur / 1000.))
-        return ('start={} dwell_dur={} template={}'
-                .format(self.start, dwell_dur, self.template))
+        return ('start={} dur={:.0f} dwell_dur={} template={}'
+                .format(self.start, self.dur, dwell_dur, self.template))
 
     @classmethod
     def get_dwells(cls, changes):
@@ -593,6 +596,7 @@ class Manvr(TlmEvent):
 
             event = dict(tstart=tstart,
                          tstop=tstop,
+                         dur=tstop - tstart,
                          start=DateTime(tstart).date,
                          stop=DateTime(tstop).date,
                          foreign={'ManvrSeq': sequence},
