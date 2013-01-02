@@ -121,10 +121,11 @@ def main():
         date_stops.append(opt.date_stop)
 
     # Get the event classes in models module
-    EventModels = [val for name, val in vars(models).items()
-                   if (isinstance(val, (type, types.ClassType))  # is a class
-                       and issubclass(val, models.Event)  # is an Event subclass
-                       and 'Meta' not in val.__dict__  # is not a base class
+    EventModels = [Model for name, Model in vars(models).items()
+                   if (isinstance(Model, (type, types.ClassType))  # is a class
+                       and issubclass(Model, models.Event)  # is an Event subclass
+                       and 'Meta' not in Model.__dict__  # is not a base class
+                       and hasattr(Model, 'get_events')  # can get events
                        )]
 
     if opt.models:

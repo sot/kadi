@@ -188,8 +188,6 @@ class Event(BaseModel):
     tstop = models.FloatField()
     dur = models.FloatField()
 
-    lookback = 21  # days of lookback into telemetry
-
     class Meta:
         abstract = True
 
@@ -200,6 +198,8 @@ class Event(BaseModel):
 class TlmEvent(Event):
     event_msids = None  # must be overridden by derived class
     event_val = None
+
+    lookback = 21  # days of lookback into telemetry
 
     class Meta:
         abstract = True
@@ -414,21 +414,11 @@ class Manvr(TlmEvent):
     n_kalman = models.IntegerField()
     anomalous = models.BooleanField()
     template = models.CharField(max_length=16)
-    dwell_start = models.CharField(max_length=21, null=True)
-    dwell_stop = models.CharField(max_length=21, null=True)
-    dwell_rel_tstart = models.FloatField(null=True)
-    dwell_dur = models.FloatField(null=True)
-    dwell2_start = models.CharField(max_length=21, null=True)
-    dwell2_stop = models.CharField(max_length=21, null=True)
-    dwell2_rel_tstart = models.FloatField(null=True)
-    dwell2_dur = models.FloatField(null=True)
     tlm = JSONField()
 
     def __unicode__(self):
-        dwell_dur = ('None' if self.dwell_dur is None
-                     else '{:.1f} ks'.format(self.dwell_dur / 1000.))
-        return ('start={} dur={:.0f} dwell_dur={} template={}'
-                .format(self.start, self.dur, dwell_dur, self.template))
+        return ('start={} dur={:.0f} n_dwell={} template={}'
+                .format(self.start, self.dur, self.n_dwell, self.template))
 
     @classmethod
     def get_dwells(cls, changes):
@@ -443,7 +433,7 @@ class Manvr(TlmEvent):
                     and change['msid'] == 'aoacaseq'
                     and change['val'] == 'KALM'):
                 t0 = change['time']
-                dwell['dt'] = change['dt']
+                dwell['rel_tstart'] = change['dt']
                 dwell['tstart'] = change['time']
                 dwell['start'] = change['date']
                 state = 'dwell'
@@ -455,7 +445,7 @@ class Manvr(TlmEvent):
                   and change['val'] == 'KALM'
                   and change['time'] - t0 < 400):
                 t0 = change['time']
-                dwell['dt'] = change['dt']
+                dwell['rel_tstart'] = change['dt']
                 dwell['tstart'] = change['time']
                 dwell['start'] = change['date']
 
@@ -465,6 +455,7 @@ class Manvr(TlmEvent):
                        (change['msid'] == 'aoacaseq' and change['time'] - t0 > 400))):
                 dwell['tstop'] = change['prev_time']
                 dwell['stop'] = change['prev_date']
+                dwell['dur'] = dwell['tstop'] - dwell['tstart']
                 dwells.append(dwell)
                 dwell = {}
                 state = None
@@ -500,9 +491,6 @@ class Manvr(TlmEvent):
                     return changes[ok][idx]['date']
             except IndexError:
                 return None
-
-        # Get the dwells from the sequence of changes
-        dwells = cls.get_dwells(changes)
 
         # Check for any telemetry values that are off-nominal
         nom_vals = {'aopcadmd': ('NPNT', 'NMAN'),
@@ -546,20 +534,12 @@ class Manvr(TlmEvent):
 
             next_nman_start=match('aopcadmd', 'NMAN', -1, 'after'),
             next_manvr_start=match('aofattmd', 'MNVR', -1, 'after'),
-            n_dwell=len(dwells),
             n_acq=len(match('aoacaseq', 'AQXN', None, 'after')),
             n_guide=len(match('aoacaseq', 'GUID', None, 'after')),
             n_kalman=len(match('aoacaseq', 'KALM', None, 'after')),
             anomalous=anomalous,
             template=template,
             )
-
-        for i, dwell in enumerate(dwells):
-            prefix = 'dwell_' if i == 0 else 'dwell{}_'.format(i + 1)
-            manvr_attrs[prefix + 'start'] = dwell['start']
-            manvr_attrs[prefix + 'stop'] = dwell['stop']
-            manvr_attrs[prefix + 'rel_tstart'] = dwell['dt']  # dwell_dt is ambiguous
-            manvr_attrs[prefix + 'dur'] = dwell['tstop'] - dwell['tstart']
 
         return manvr_attrs
 
@@ -593,13 +573,16 @@ class Manvr(TlmEvent):
                   (sequence['msid'] == 'aopcadmd'))
             sequence = sequence[ok]
             manvr_attrs = cls.get_manvr_attrs(sequence)
+            dwells = cls.get_dwells(sequence)
 
             event = dict(tstart=tstart,
                          tstop=tstop,
                          dur=tstop - tstart,
                          start=DateTime(tstart).date,
                          stop=DateTime(tstop).date,
-                         foreign={'ManvrSeq': sequence},
+                         n_dwell=len(dwells),
+                         foreign={'ManvrSeq': sequence,
+                                  'Dwell': dwells},
                          )
             event.update(manvr_attrs)
             event['tlm'] = cls.get_tlm(event)
@@ -607,6 +590,22 @@ class Manvr(TlmEvent):
             events.append(event)
 
         return events
+
+
+class Dwell(Event):
+    """
+    Represent an NPM dwell.  This is not derived from TlmEvent because it is created as a
+    by-product of Manvr processing.
+    """
+    rel_tstart = models.FloatField()
+    manvr = models.ForeignKey(Manvr)
+
+    # To do: add ra dec roll quaternion
+
+    def __unicode__(self):
+        # TODO add ra, dec, roll
+        return ('start={} dur={:.0f}'
+                .format(self.start, self.dur))
 
 
 class ManvrSeq(BaseModel):
