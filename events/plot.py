@@ -14,9 +14,9 @@ def fix_ylim(ax, min_ylim):
         ax.set_ylim(y0, y1)
 
 
-def plot_generic(evt, figsize=None, fig=None):
+def tlm_event(evt, figsize=None, fig=None):
     """
-    Plot a Manvr event
+    Generic plot for a telemetry event
     """
     ms = evt.msidset
     n_axes = len(evt.fetch_event_msids)
@@ -40,16 +40,16 @@ def plot_generic(evt, figsize=None, fig=None):
             leg.get_frame().set_alpha(0.7)
 
 
-def plot_manvr(manvr, figsize=(8, 10), fig=None):
+def manvr(evt, figsize=(8, 10), fig=None):
     """
     Plot a Manvr event
     """
-    ms = manvr.msidset
+    ms = evt.msidset
     if fig is None:
         fig = plt.figure(figsize=figsize)
     fig.clf()
-    tstarts = [manvr.tstart, manvr.tstart]
-    tstops = [manvr.tstop, manvr.tstop]
+    tstarts = [evt.tstart, evt.tstart]
+    tstops = [evt.tstop, evt.tstop]
     colors = ['r', 'b', 'g', 'm']
 
     # AOATTQT estimated quaternion
@@ -59,7 +59,7 @@ def plot_manvr(manvr, figsize=(8, 10), fig=None):
         plot_cxctime(ms[msid].times, ms[msid].vals, fig=fig, ax=ax1,
                      color=color, linestyle='-', label=msid, interactive=False)
     ax1.set_ylim(-1.05, 1.05)
-    ax1.set_title('Maneuver at {}'.format(manvr.start[:-4]))
+    ax1.set_title('Maneuver at {}'.format(evt.start[:-4]))
 
     # AOATTER attitude error (arcsec)
     ax2 = fig.add_subplot(3, 1, 2, sharex=ax1)

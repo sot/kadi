@@ -184,9 +184,18 @@ class TlmEvent(Event):
     class Meta:
         abstract = True
 
-    def plot(self, figsize=(8, 10), fig=None):
-        from .plot import plot_generic
-        plot_generic(self, figsize, fig)
+    def plot(self, figsize=None, fig=None):
+        """
+        Wrapper interface to plotting routines in plot module.  This is factored out
+        of this module (models) to reduce loading of other modules (matplotlib) req'd
+        for plotting.
+        """
+        from . import plot
+        try:
+            plot_func = getattr(plot, self.name)
+        except AttributeError:
+            plot_func = plot.tlm_event
+        plot_func(self, figsize, fig)
 
     @classmethod
     def add_extras(cls, event, event_msid, rel_msids):
@@ -574,10 +583,6 @@ class Manvr(TlmEvent):
             events.append(event)
 
         return events
-
-    def plot(self, figsize=(8, 10), fig=None):
-        from .plot import plot_manvr
-        plot_manvr(self, figsize, fig)
 
 
 class ManvrSeq(BaseModel):
