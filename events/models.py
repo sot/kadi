@@ -18,7 +18,7 @@ logger = pyyaks.logger.get_logger(name='events', level=pyyaks.logger.INFO,
                                   format="%(asctime)s %(message)s")
 
 
-def get_si(simpos):
+def _get_si(simpos):
     """
     Get SI corresponding to the given SIM position.
     """
@@ -35,7 +35,26 @@ def get_si(simpos):
     return si
 
 
-def get_msid_changes(msids, sortmsids={}):
+def _get_start_stop_vals(event, event_msidset, msids, rel_dt):
+    """
+    Get the values of related telemetry MSIDs `msids` to the `event` as
+    `start_<MSID>` and `stop_<MSID>`.  The value is taken from telemetry
+    within `event_msidset` at event start - `rel_dt` and stop + `rel_dt`.
+    Returns a dict of <MSID>: <VAL> pairs.
+    """
+    out = {}
+    rel_msids = [event_msidset[msid] for msid in msids]
+    for rel_msid in rel_msids:
+        vals = interpolate(rel_msid.vals, rel_msid.times,
+                           [event['tstart'] - rel_dt, event['tstop'] + rel_dt],
+                           method='nearest')
+        out['start_{}'.format(rel_msid.msid)] = vals[0]
+        out['stop_{}'.format(rel_msid.msid)] = vals[1]
+
+    return out
+
+
+def _get_msid_changes(msids, sortmsids={}):
     """
     For the list of fetch MSID objects, return a sorted structured array
     of each time any MSID value changes.
@@ -177,9 +196,8 @@ class Event(BaseModel):
 
 
 class TlmEvent(Event):
-    event_msid = None  # must be overridden by derived class
+    event_msids = None  # must be overridden by derived class
     event_val = None
-    rel_msids = None
 
     class Meta:
         abstract = True
@@ -198,8 +216,13 @@ class TlmEvent(Event):
         plot_func(self, figsize, fig)
 
     @classmethod
-    def add_extras(cls, event, event_msid, rel_msids):
-        pass
+    def get_extras(cls, event, event_msidset):
+        """
+        Get extra stuff for the event based on telemetry available in event_msidset.
+        This is a hook within get_events() that should be overridden in individual
+        classes.
+        """
+        return {}
 
     @classmethod
     @import_ska
@@ -212,19 +235,17 @@ class TlmEvent(Event):
         tstop = DateTime(stop).secs
         event_time_fuzz = cls.event_time_fuzz if hasattr(cls, 'event_time_fuzz') else None
 
-        # Get the related MSIDs
-        rel_msids = fetch.Msidset(cls.rel_msids, tstart, tstop) if cls.rel_msids else {}
-
-        # Get the MSID that defines the event and find state intervals on that MSID
-        event_msid = fetch.Msid(cls.event_msid, tstart, tstop)
+        # Get the event telemetry MSID objects
+        event_msidset = fetch.Msidset(cls.event_msids, tstart, tstop)
 
         try:
-            states = event_msid.state_intervals()
+            # Telemetry values for event_msids[0] define the states
+            states = event_msidset[cls.event_msids[0]].state_intervals()
         except ValueError:
             if event_time_fuzz is None:
                 logger.warn('Warning: No telemetry available for {}'
                             .format(cls.__name__))
-            return [], event_msid, rel_msids
+            return [], event_msidset
 
         # Events like Safe Sun Mode just appear in telemetry without any surrounding
         # non-event states.  In this case use a 'event_time_fuzz' class attribute t
@@ -235,7 +256,7 @@ class TlmEvent(Event):
                 # bail out and don't return any states.
                 logger.warn('Warning: dropping {} states because of insufficent event time pad'
                             .format(cls.__name__))
-                return [], event_msid, rel_msids
+                return [], event_msidset
         else:
             # Require that the event states be flanked by a non-event state
             # to ensure that the full event was seen in telemetry.
@@ -252,18 +273,16 @@ class TlmEvent(Event):
         if event_time_fuzz:
             states = fuzz_states(states, event_time_fuzz)
 
-        return states, event_msid, rel_msids
+        return states, event_msidset
 
     @classmethod
     @import_ska
     def get_events(cls, start, stop=None):
         """
         Get events from telemetry defined by a simple rule that the value of
-        `event_msid` == `event_val`.  Related MSIDs in the list `rel_msid`
-        are fetched and put into the event at the time `rel_dt` seconds
-        before the event start and after the event end.
+        `event_msids[0]` == `event_val`.
         """
-        states, event_msid, rel_msids = cls.get_msids_states(start, stop)
+        states, event_msidset = cls.get_msids_states(start, stop)
 
         # Assemble a list of dicts corresponding to events in this tlm interval
         events = []
@@ -275,15 +294,8 @@ class TlmEvent(Event):
                          start=DateTime(tstart).date,
                          stop=DateTime(tstop).date)
 
-            for rel_msid in rel_msids.values():
-                vals = interpolate(rel_msid.vals, rel_msid.times,
-                                   [tstart - cls.rel_dt, tstop + cls.rel_dt],
-                                   method='nearest')
-                event['start_{}'.format(rel_msid.msid)] = vals[0]
-                event['stop_{}'.format(rel_msid.msid)] = vals[1]
-
             # Custom processing defined by subclasses to add more attrs to event
-            cls.add_extras(event, event_msid, rel_msids)
+            event.update(cls.get_extras(event, event_msidset))
 
             events.append(event)
 
@@ -314,18 +326,21 @@ class TlmEvent(Event):
 
 
 class TscMove(TlmEvent):
-    event_msid = '3tscmove'
+    event_msids = ['3tscmove', '3tscpos']
     event_val = 'T'
-    rel_msids = ['3tscpos']
-    rel_dt = 66  # just over 2 major frame rate samples
 
     start_3tscpos = models.IntegerField()
     stop_3tscpos = models.IntegerField()
 
     @classmethod
-    def add_extras(cls, event, event_msid, rel_msids):
-        event['start_det'] = get_si(event['start_3tscpos'])
-        event['stop_det'] = get_si(event['stop_3tscpos'])
+    def get_extras(cls, event, event_msidset):
+        """
+        Define start/stop_3tscpos and start/stop_det.
+        """
+        out = _get_start_stop_vals(event, event_msidset, msids=['3tscpos'], rel_dt=66.0)
+        out['start_det'] = _get_si(out['start_3tscpos'])
+        out['stop_det'] = _get_si(out['stop_3tscpos'])
+        return out
 
     def __unicode__(self):
         return ('start={} start_3tscpos={} stop_3tscpos={}'
@@ -333,13 +348,19 @@ class TscMove(TlmEvent):
 
 
 class FaMove(TlmEvent):
-    event_msid = '3famove'
+    event_msids = ['3famove', '3fapos']
     event_val = 'T'
-    rel_msids = ['3fapos']
-    rel_dt = 16.4  # 1/2 major frame (FA moves can be within 2 minutes)
 
     start_3fapos = models.IntegerField()
     stop_3fapos = models.IntegerField()
+
+    @classmethod
+    def get_extras(cls, event, event_msidset):
+        """
+        Define start/stop_3fapos.
+        """
+        out = _get_start_stop_vals(event, event_msidset, msids=['3fapos'], rel_dt=16.4)
+        return out
 
     def __unicode__(self):
         return ('start={} start_3fapos={} stop_3fapos={}'
@@ -347,21 +368,20 @@ class FaMove(TlmEvent):
 
 
 class Dump(TlmEvent):
-    event_msid = 'aounload'
+    event_msids = ['aounload']
     event_val = 'GRND'
 
 
 class Eclipse(TlmEvent):
-    event_msid = 'aoeclips'
+    event_msids = ['aoeclips']
     event_val = 'ECL '
     fetch_event_msids = ['aoeclips', 'eb1k5', 'eb2k5', 'eb3k5']
-    fetch_event_pad = 1800
 
 
 class Manvr(TlmEvent):
-    event_msid = 'aofattmd'  # MNVR STDY NULL DTHR
+    event_msids = ['aofattmd', 'aopcadmd', 'aoacaseq', 'aopsacpr']
     event_val = 'MNVR'
-    rel_msids = ['aopcadmd', 'aoacaseq', 'aopsacpr']
+
     fetch_event_msids = ['one_shot', 'aofattmd', 'aopcadmd', 'aoacaseq',
                          'aopsacpr', 'aounload',
                          'aoattqt1', 'aoattqt2', 'aoattqt3', 'aoattqt4',
@@ -553,10 +573,10 @@ class Manvr(TlmEvent):
         """
         Get maneuver events from telemetry.
         """
-        states, event_msid, rel_msids = cls.get_msids_states(start, stop)
-        changes = get_msid_changes([event_msid] + rel_msids.values(),
-                                   sortmsids={'aofattmd': 1, 'aopcadmd': 2,
-                                              'aoacaseq': 3, 'aopsacpr': 4})
+        states, event_msidset = cls.get_msids_states(start, stop)
+        changes = _get_msid_changes(event_msidset.values(),
+                                    sortmsids={'aofattmd': 1, 'aopcadmd': 2,
+                                               'aoacaseq': 3, 'aopsacpr': 4})
 
         events = []
         for manvr_prev, manvr, manvr_next in izip(states, states[1:], states[2:]):
@@ -604,6 +624,6 @@ class ManvrSeq(BaseModel):
 class SafeSun(TlmEvent):
     notes = models.TextField()
 
-    event_msid = '61psts02'
+    event_msids = ['61psts02']
     event_val = 'SSM'
     event_time_fuzz = 86400  # One full day of fuzz / pad
