@@ -630,3 +630,40 @@ class SafeSun(TlmEvent):
     event_msids = ['61psts02']
     event_val = 'SSM'
     event_time_fuzz = 86400  # One full day of fuzz / pad
+
+
+class MajorEvent(BaseModel):
+    start = models.CharField(max_length=8, db_index=True)
+    date = models.CharField(max_length=11)
+    tstart = models.FloatField(db_index=True)
+    descr = models.TextField()
+    notes = models.TextField()
+    source = models.CharField(max_length=3)
+
+    def __unicode__(self):
+        descr = self.descr
+        if len(descr) > 30:
+            descr = descr[:27] + '...'
+        notes = self.notes
+        if len(notes) > 20:
+            notes = notes[:17] + '...'
+        return ('start={} date={} descr={} notes={}'.format(self.start, self.dur))
+
+    @classmethod
+    @import_ska
+    def get_events(cls, start, stop=None):
+        """
+        Get Major Events from FDB and FOT tables on the OCCweb
+        """
+        from . import scrape
+
+        tstart = DateTime(start).secs
+        tstop = DateTime(stop).secs
+
+        events = scrape.get_fot_major_events() + scrape.get_fdb_major_events()
+
+        # Select events within time range and sort by tstart key
+        events = sorted((x for x in events if tstart <= x['tstart'] <= tstop),
+                        key=lambda x: x['tstart'])
+
+        return events
