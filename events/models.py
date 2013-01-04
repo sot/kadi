@@ -181,7 +181,22 @@ class BaseModel(models.Model):
         return dat.view(np.ndarray)
 
 
-class Event(BaseModel):
+class BaseEvent(BaseModel):
+    """
+    Base class for any event that gets updated in update_events.main().  Note
+    that BaseModel is the base class for models like ManvrSeq that get
+    generated as part of another event class.
+    """
+    class Meta:
+        abstract = True
+
+    lookback = 21  # days of lookback
+
+    def __unicode__(self):
+        return ('start={}'.format(self.start))
+
+
+class Event(BaseEvent):
     start = models.CharField(max_length=21, primary_key=True)
     stop = models.CharField(max_length=21)
     tstart = models.FloatField(db_index=True)
@@ -198,8 +213,6 @@ class Event(BaseModel):
 class TlmEvent(Event):
     event_msids = None  # must be overridden by derived class
     event_val = None
-
-    lookback = 21  # days of lookback into telemetry
 
     class Meta:
         abstract = True
@@ -632,22 +645,23 @@ class SafeSun(TlmEvent):
     event_time_fuzz = 86400  # One full day of fuzz / pad
 
 
-class MajorEvent(BaseModel):
+class MajorEvent(BaseEvent):
+    key = models.CharField(max_length=24, primary_key=True)
     start = models.CharField(max_length=8, db_index=True)
     date = models.CharField(max_length=11)
     tstart = models.FloatField(db_index=True)
     descr = models.TextField()
-    notes = models.TextField()
+    note = models.TextField()
     source = models.CharField(max_length=3)
 
     def __unicode__(self):
         descr = self.descr
         if len(descr) > 30:
             descr = descr[:27] + '...'
-        notes = self.notes
-        if len(notes) > 20:
-            notes = notes[:17] + '...'
-        return ('start={} date={} descr={} notes={}'.format(self.start, self.dur))
+        note = self.note
+        if note:
+            descr += ' (' + (note if len(note) < 30 else note[:27] + '...') + ')'
+        return ('{} ({}) {}: {}'.format(self.start, self.date[5:], self.source, descr))
 
     @classmethod
     @import_ska
@@ -656,6 +670,7 @@ class MajorEvent(BaseModel):
         Get Major Events from FDB and FOT tables on the OCCweb
         """
         from . import scrape
+        import hashlib
 
         tstart = DateTime(start).secs
         tstop = DateTime(stop).secs
@@ -665,5 +680,10 @@ class MajorEvent(BaseModel):
         # Select events within time range and sort by tstart key
         events = sorted((x for x in events if tstart <= x['tstart'] <= tstop),
                         key=lambda x: x['tstart'])
+
+        # Manually generate a unique key for event since date is not unique
+        for event in events:
+            key = ''.join(event[x] for x in ('start', 'descr', 'note', 'source'))
+            event['key'] = hashlib.sha1(key).hexdigest()[:24]
 
         return events

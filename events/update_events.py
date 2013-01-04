@@ -5,8 +5,8 @@ import types
 import argparse
 
 import numpy as np
+import django.db
 from django.core.exceptions import ObjectDoesNotExist
-from django.db import transaction
 
 import pyyaks.logger
 from Chandra.Time import DateTime
@@ -30,7 +30,7 @@ def get_opt(args=None):
                         type=int,
                         help=("Number of days in interval for looping (default=100)"))
     parser.add_argument("--log-level",
-                        default=pyyaks.logger.INFO,
+                        default=pyyaks.logger.VERBOSE,
                         help=("Logging level"))
     parser.add_argument("--model",
                         action='append',
@@ -68,20 +68,20 @@ def update(EventModel, date_stop):
     # of dicts with key/val pairs corresponding to model fields
     events = EventModel.get_events(date_start, date_stop)
 
-    with transaction.commit_on_success():
+    with django.db.transaction.commit_on_success():
         for event in events:
-            # Check if event is already in database
+            # Try to save event.  Use force_insert=True because otherwise django will
+            # update if the event primary key already exists.  In this case we want to
+            # force an exception and move on to the next event.
             try:
-                event_model = EventModel.objects.get(start=event['start'])
+                event_model = EventModel.from_dict(event, logger)
+                event_model.save(force_insert=True)
+            except django.db.utils.IntegrityError:
                 logger.verbose('Skipping {} at {}: already in database'
                                .format(cls_name, event['start']))
                 continue
-            except ObjectDoesNotExist:
-                pass  # add the event
 
-            event_model = EventModel.from_dict(event, logger)
-            logger.info('Adding {} {}'.format(cls_name, event_model))
-            event_model.save()
+            logger.info('Added {} {}'.format(cls_name, event_model))
 
             # Add any foreign rows (many to one)
             for foreign_cls_name, rows in event.get('foreign', {}).items():
@@ -123,7 +123,7 @@ def main():
     # Get the event classes in models module
     EventModels = [Model for name, Model in vars(models).items()
                    if (isinstance(Model, (type, types.ClassType))  # is a class
-                       and issubclass(Model, models.Event)  # is an Event subclass
+                       and issubclass(Model, models.BaseEvent)  # is a BaseEvent subclass
                        and 'Meta' not in Model.__dict__  # is not a base class
                        and hasattr(Model, 'get_events')  # can get events
                        )]
