@@ -690,3 +690,47 @@ class MajorEvent(BaseEvent):
             event['key'] = hashlib.sha1(key).hexdigest()[:24]
 
         return events
+
+
+class CAP(BaseEvent):
+    """
+    CAP from iFOT database
+    """
+    start = models.CharField(max_length=21, primary_key=True)
+    stop = models.CharField(max_length=21)
+    num = models.CharField(max_length=15)
+    title = models.TextField()
+    descr = models.TextField()
+    notes = models.TextField()
+    link = models.CharField(max_length=250)
+
+    @classmethod
+    @import_ska
+    def get_events(cls, start, stop=None):
+        """
+        Get Major Events from FDB and FOT tables on the OCCweb
+        """
+        from . import occweb
+
+        datestart = DateTime(start).date
+        datestop = DateTime(stop).date
+
+        # def get_ifot(event_type, start=None, stop=None, props=[], columns=[], timeout=TIMEOUT):
+        columns = ['tstart', 'tstop']
+        props = ['NUM', 'START', 'STOP', 'TITLE', 'LINK', 'DESC']
+        ifot_evts = occweb.get_ifot('CAP', start=datestart, stop=datestop, props=props,
+                                    columns=columns)
+
+        events = []
+        for ifot_evt in ifot_evts:
+            event = {key.lower(): ifot_evt['CAP.' + key].tolist() for key in props}
+            for st in ('start', 'stop'):
+                if not event[st].strip():
+                    event[st] = ifot_evt['t' + st]
+            events.append(event)
+
+        return events
+
+    def __unicode__(self):
+        return ('{}: {} {}'
+                .format(self.num, self.start[:17], self.title))
