@@ -153,11 +153,14 @@ class BaseModel(models.Model):
     @property
     def name(self):
         if not hasattr(self, '_name'):
+            cc_name = self.__class__.__name__
             chars = []
-            for i, char in enumerate(self.__class__.__name__):
-                if char >= 'A' and char <= 'Z' and i != 0:
+            for c0, c1 in izip(cc_name[:-1], cc_name[1:]):
+                # Lower case followed by Upper case then insert "_"
+                chars.append(c0.lower())
+                if c0.lower() == c0 and c1.lower() != c1:
                     chars.append('_')
-                chars.append(char.lower())
+            chars.append(c1.lower())
             self._name = ''.join(chars)
         return self._name
 
