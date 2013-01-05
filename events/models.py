@@ -705,6 +705,7 @@ class IFotEvent(BaseEvent):
 
     ifot_columns = ['id', 'tstart', 'tstop']
     ifot_props = []
+    ifot_types = {}  # Override automatic type inference for properties or columns
 
     @classmethod
     @import_ska
@@ -719,7 +720,8 @@ class IFotEvent(BaseEvent):
 
         # def get_ifot(event_type, start=None, stop=None, props=[], columns=[], timeout=TIMEOUT):
         ifot_evts = occweb.get_ifot(cls.ifot_type_desc, start=datestart, stop=datestop,
-                                    props=cls.ifot_props, columns=cls.ifot_columns)
+                                    props=cls.ifot_props, columns=cls.ifot_columns,
+                                    types=cls.ifot_types)
 
         events = []
         for ifot_evt in ifot_evts:
@@ -754,3 +756,25 @@ class CAP(IFotEvent):
     def __unicode__(self):
         return ('{}: {} {}'
                 .format(self.num, self.start[:17], self.title))
+
+
+class DsnComm(IFotEvent):
+    """
+    Scheduled DSN comm period
+    """
+    bot = models.CharField(max_length=4)
+    eot = models.CharField(max_length=4)
+    activity = models.CharField(max_length=30)
+    config = models.CharField(max_length=10)
+    data_rate = models.CharField(9)
+    site = models.CharField(max_length=12)
+    soe = models.CharField(max_length=4)
+    station = models.CharField(max_length=6)
+
+    ifot_type_desc = 'DSN_COMM'
+    ifot_props = ['bot', 'eot', 'activity', 'config', 'data_rate', 'site', 'soe', 'station']
+    ifot_types = {'DSN_COMM.bot': 'str', 'DSN_COMM.eot': 'str'}
+
+    def __unicode__(self):
+        return ('{}: {} {}-{} {}'
+                .format(self.station, self.start[:17], self.bot, self.eot, self.activity))
