@@ -692,17 +692,19 @@ class MajorEvent(BaseEvent):
         return events
 
 
-class CAP(BaseEvent):
+class IFotEvent(BaseEvent):
     """
-    CAP from iFOT database
+    Event from iFOT database
     """
-    start = models.CharField(max_length=21, primary_key=True)
+    ifot_id = models.IntegerField(primary_key=True)
+    start = models.CharField(max_length=21)
     stop = models.CharField(max_length=21)
-    num = models.CharField(max_length=15)
-    title = models.TextField()
-    descr = models.TextField()
-    notes = models.TextField()
-    link = models.CharField(max_length=250)
+
+    class Meta:
+        abstract = True
+
+    ifot_columns = ['id', 'tstart', 'tstop']
+    ifot_props = []
 
     @classmethod
     @import_ska
@@ -716,20 +718,38 @@ class CAP(BaseEvent):
         datestop = DateTime(stop).date
 
         # def get_ifot(event_type, start=None, stop=None, props=[], columns=[], timeout=TIMEOUT):
-        columns = ['tstart', 'tstop']
-        props = ['NUM', 'START', 'STOP', 'TITLE', 'LINK', 'DESC']
-        ifot_evts = occweb.get_ifot('CAP', start=datestart, stop=datestop, props=props,
-                                    columns=columns)
+        ifot_evts = occweb.get_ifot(cls.ifot_type_desc, start=datestart, stop=datestop,
+                                    props=cls.ifot_props, columns=cls.ifot_columns)
 
         events = []
         for ifot_evt in ifot_evts:
-            event = {key.lower(): ifot_evt['CAP.' + key].tolist() for key in props}
+            event = {key.lower(): ifot_evt[cls.ifot_type_desc + '.' + key].tolist()
+                     for key in cls.ifot_props}
+            # Prefer start or stop from props, but if not there use column tstart/tstop
             for st in ('start', 'stop'):
-                if not event[st].strip():
+                if st not in event or not event[st].strip():
                     event[st] = ifot_evt['t' + st]
             events.append(event)
 
         return events
+
+    def __unicode__(self):
+        return ('{}: {} {}'
+                .format(self.ifot_id, self.start[:17]))
+
+
+class CAP(IFotEvent):
+    """
+    CAP from iFOT database
+    """
+    num = models.CharField(max_length=15)
+    title = models.TextField()
+    descr = models.TextField()
+    notes = models.TextField()
+    link = models.CharField(max_length=250)
+
+    ifot_type_desc = 'CAP'
+    ifot_props = ['NUM', 'START', 'STOP', 'TITLE', 'LINK', 'DESC']
 
     def __unicode__(self):
         return ('{}: {} {}'
