@@ -4,6 +4,9 @@ Update the cmd_states table to reflect current load segments / timelines
 in database.  This is normally run as a cron job.
 """
 
+import os
+
 if __name__ == '__main__':
-    from events import update_events
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "kadi.settings")
+    from kadi.events import update_events
     update_events.main()

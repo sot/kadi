@@ -350,6 +350,8 @@ class TscMove(TlmEvent):
 
     start_3tscpos = models.IntegerField()
     stop_3tscpos = models.IntegerField()
+    start_det = models.CharField(max_length=6)
+    stop_det = models.CharField(max_length=6)
 
     @classmethod
     def get_extras(cls, event, event_msidset):
@@ -766,7 +768,7 @@ class DsnComm(IFotEvent):
     eot = models.CharField(max_length=4)
     activity = models.CharField(max_length=30)
     config = models.CharField(max_length=10)
-    data_rate = models.CharField(9)
+    data_rate = models.CharField(max_length=9)
     site = models.CharField(max_length=12)
     soe = models.CharField(max_length=4)
     station = models.CharField(max_length=6)
