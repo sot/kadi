@@ -1,5 +1,18 @@
+Kadi
+====
+
+This package maintains and provides access to an online archive of many Chandra
+operational events, including:
+
+- Events in telemetry such as maneuvers, NPM dwells, obsids, mech movements,
+  momentum dumps, orbit events, etc.
+- CAPs, DSN passes, dark cals, SCS107, safe modes, bright star hold, etc
+- Chandra major events since launch
+- Every load command run on-board since 2002, with a link to source load products
+
+
 Telemetry Events
-================
+-----------------
 
 http://occweb.cfa.harvard.edu/twiki/Aspect/StarWorkingGroupMeeting2012x03x21
 
@@ -7,7 +20,7 @@ Envision multiple tables (maneuvers, BSH, NSM, etc), each of which has "default"
 times that can be used for filtering data.
 
 Maneuver events
-----------------
+^^^^^^^^^^^^^^^^^
 - Define maneuver characteristics.
 - Define "acceptable" maneuvers (for use in IRU calibration).
 
@@ -28,7 +41,7 @@ t8    AOFATTMD = MNVR (AOMANUVR time)
 ===== ===========================================================================
 
 MSIDs of Interest
-^^^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~~~
 - AOPCADMD
 - AOFATTMD
 - AOACASEQ
@@ -36,7 +49,7 @@ MSIDs of Interest
 - AOUNLOAD
 
 Maneuver Attributes
-^^^^^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~~~~~~
 
 - AOATTQT1..AOATTQT4
 - AOTARQT1..AOTARQT4
@@ -53,7 +66,7 @@ Maneuver Attributes
 - Flag for "unusual"?
 
 Other telemetry event tables
--------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 - SSM
 
@@ -143,16 +156,40 @@ Other telemetry event tables
   - Start and stop times
 
 - Meteor showers
-  
+
   - Type (based on date)
   - Start and stop times (from Brent or strictly by date)
 
-- Misc events (ideally this would be the only table with manual inputs)
 
-  - SOSA uplink
-  - Uplinked new dump parameters
-  - Swapped IRUS
-  - FSS-B turn-on
-  - Solar array off-point (usually eclipses or meteor showers)
-  - Guideline changes
-  - Several more based on Paul's event table in quarterly report
+Events with iFOT heritage
+-------------------------
+
+Certain iFOT tables will be synced into the Kadi event archive:
+
+- CAPs
+- DSN passes
+- Load segment
+
+The information within many other iFOT tables will be available in Kadi,
+but with an intent for a higher degree of completeness.  For instance
+the iFOT radiation zone table is missing times when there was no RADMON
+commanding, and the ACA dark calibration is missing events in 2005 and 2006.
+
+Major Events
+--------------------
+
+There are two major event tables that are maintained and available on OCCweb:
+
+- The mission event history available from the FDB page
+- The major event table available within the FOT engineering area
+
+Kadi merges these two into a common format and makes them available for query.
+
+SCS load commands
+-----------------
+
+Using the history of load segment runtimes maintained in the Ska commanded states
+processing, Kadi maintains a database of all commands that were run via weekly load
+commanding since 2002.  (Prior to that the data for precisely which load segments were run
+over which times is not available in the commanded states history).  This database
+can be quickly loaded and searched by time-based or attribute-based queries.
