@@ -29,7 +29,8 @@ def get_opt(args=None):
     parser = argparse.ArgumentParser(description='Update HDF5 cmds table')
     parser.add_argument("--outroot",
                         default='cmds',
-                        help="root filename for HDF5 (.h5) and pickle (.pkl) cmds files")
+                        help="root filename for HDF5 (.h5) and "
+                             "pickle (.pkl) files (default='cmds')")
     parser.add_argument("--mp-dir",
                         default='/data/mpcrit1/mplogs',
                         help="MP load directory")
@@ -76,13 +77,13 @@ def get_cmds(timeline_loads, mp_dir='/data/mpcrit1/mplogs'):
         for bs_cmd in bs_cmds:
             bs_cmd['timeline_id'] = tl['id']
 
-        logging.info('get_cmds: got %d commands from %s'
-                     % (len(bs_cmds), bs_file))
+        logging.info('  Got {} backstop commands for timeline_id={} and SCS={}'
+                     .format(len(bs_cmds), tl['id'], tl['scs']))
         cmds.extend(bs_cmds)
 
     # Sort by date and SCS step number.
     cmds = sorted(cmds, key=lambda y: (y['date'], y['step']))
-    logging.debug('Total of {} commands'.format(len(cmds)))
+    logging.debug('Read total of {} commands'.format(len(cmds)))
 
     return cmds
 
@@ -99,8 +100,8 @@ def get_idx_cmds(cmds, pars_dict):
     idx_cmds = []
 
     for i, cmd in enumerate(cmds):
-        if i % 10000 == 0:
-            logging.debug('get_cmd_set: iteration {}'.format(i))
+        if i % 10000 == 9999:
+            logging.info('   Iteration {}'.format(i))
 
         # Define a consistently ordered tuple that has all command parameter information
         pars = cmd['params']
@@ -129,8 +130,6 @@ def add_h5_cmds(h5file, idx_cmds):
     Add `idx_cmds` to HDF5 file `h5file` of indexed spacecraft commands.
     If file does not exist then create it.
     """
-    logging.info('Creating HDF5 cmd_states table ..')
-
     # Note: reading this file uncompressed is about 5 times faster, so sacrifice file size
     # for read speed and do not use compression.
     h5 = tables.openFile(h5file, mode='a')
@@ -141,8 +140,10 @@ def add_h5_cmds(h5file, idx_cmds):
 
     try:
         h5d = h5.root.data
+        logging.info('Opened h5 cmds table {}'.format(h5file))
     except tables.NoSuchNodeError:
         h5.createTable(h5.root, 'data', cmds, "cmds", expectedrows=2e6)
+        logging.info('Created h5 cmds table {}'.format(h5file))
     else:
         h5_timeline_ids = h5d.cols.timeline_id[:]
         ok = np.zeros(len(h5_timeline_ids), dtype=bool)
@@ -151,13 +152,13 @@ def add_h5_cmds(h5file, idx_cmds):
         del_idxs = np.flatnonzero(ok)
         if not np.all(np.diff(del_idxs) == 1):
             raise ValueError('Inconsistency in timeline_ids')
-        logging.debug('Deleting indexes {} .. {}'.format(np.min(del_idxs), np.max(del_idxs)))
         h5d.truncate(np.min(del_idxs))
+        logging.debug('Deleted cmds indexes {} .. {}'.format(np.min(del_idxs), np.max(del_idxs)))
         h5d.append(cmds)
-        logging.info('Added {} commands to HDF5 cmd_states table'.format(len(cmds)))
+        logging.info('Added {} commands to HDF5 cmds table'.format(len(cmds)))
 
     h5.flush()
-    logging.info('HDF5 cmd_states table successfully created')
+    logging.info('Upated HDF5 cmds table {}'.format(h5file))
     h5.close()
 
 
@@ -180,11 +181,15 @@ def main(args=None):
                                  .format(start.date, stop.date))
     db.conn.close()
 
+    logging.info('Found {} timelines included within {} to {}'
+                 .format(len(timeline_loads), start.date, stop.date))
+
     h5file = opt.outroot + '.h5'
     pars_dict_file = opt.outroot + '.pkl'
     try:
         with open(pars_dict_file, 'r') as fh:
             pars_dict = pickle.load(fh)
+        logging.info('Read {} pars_dict values from {}'.format(len(pars_dict), pars_dict_file))
     except IOError:
         logging.info('No pars_dict file {} found, starting from empty dict'
                      .format(pars_dict_file))
@@ -195,8 +200,8 @@ def main(args=None):
     add_h5_cmds(h5file, idx_cmds)
 
     with open(pars_dict_file, 'w') as fh:
-        logging.info('Writing pars_dict with {} entries'.format(len(pars_dict)))
         pickle.dump(pars_dict, fh, protocol=-1)
+        logging.info('Wrote {} pars_dict values to {}'.format(len(pars_dict), pars_dict_file))
 
     return cmds
 
