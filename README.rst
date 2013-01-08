@@ -10,6 +10,18 @@ operational events, including:
 - Chandra major events since launch
 - Every load command run on-board since 2002, with a link to source load products
 
+The contents of the Kadi archive will be accessible on the HEAD and GRETA networks in any
+of three ways:
+
+- From Python using a query API for processing and analysis.  This is be
+  based largely on the Django object relational model that provides an abstraction
+  layer over the SQL database backend.
+- Via a web browser application on the icxc site or by a localhost server on GRETA.  This
+  will use the Django web framework to provide query and administrative capabilities.
+- Directly via the SQL database using any convenient method.
+
+Another possibility would be a RESTful web service API.
+
 
 Telemetry Events
 -----------------
