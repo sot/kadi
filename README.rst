@@ -11,16 +11,15 @@ operational events, including:
 - Every load command run on-board since 2002, with a link to source load products
 
 The contents of the Kadi archive will be accessible on the HEAD and GRETA networks in any
-of three ways:
+of four ways:
 
 - From Python using a query API for processing and analysis.  This is be
   based largely on the Django object relational model that provides an abstraction
   layer over the SQL database backend.
 - Via a web browser application on the icxc site or by a localhost server on GRETA.  This
   will use the Django web framework to provide query and administrative capabilities.
+- RESTful web service API on the icxc site.
 - Directly via the SQL database using any convenient method.
-
-Another possibility would be a RESTful web service API.
 
 
 Telemetry Events
@@ -205,3 +204,10 @@ processing, Kadi maintains a database of all commands that were run via weekly l
 commanding since 2002.  (Prior to that the data for precisely which load segments were run
 over which times is not available in the commanded states history).  This database
 can be quickly loaded and searched by time-based or attribute-based queries.
+
+Thermal limit updates
+---------------------
+
+List of updates to key thermal G_LIMMON limits (e.g. TEPHIN).  To the extent that it
+is practical and value-added, a more comprehensive list of limit updates could be
+included.
