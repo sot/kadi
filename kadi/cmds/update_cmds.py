@@ -9,14 +9,12 @@ import tables
 
 import Ska.DBI
 import Ska.File
-import Ska.ParseCM
 from Chandra.Time import DateTime
 
 
 CMDS_DTYPE = [('idx', np.uint16),
               ('date', '|S21'),
-              ('time', np.float64),
-              ('cmd', '|S12'),
+              ('type', '|S12'),
               ('tlmsid', '|S10'),
               ('scs', np.uint8),
               ('step', np.uint16),
@@ -63,7 +61,7 @@ def get_cmds(timeline_loads, mp_dir='/data/mpcrit1/mplogs'):
         bs_file = Ska.File.get_globfiles(os.path.join(mp_dir + tl.mp_dir,
                                                       '*.backstop'))[0]
         if bs_file not in cache:
-            bs_cmds = Ska.ParseCM.read_backstop(bs_file)
+            bs_cmds = read_backstop(bs_file)
             logging.info('Read {} commands from {}'.format(len(bs_cmds), bs_file))
             cache[bs_file] = bs_cmds
         else:
@@ -119,7 +117,7 @@ def get_idx_cmds(cmds, pars_dict):
             par_idx = len(pars_dict)
             pars_dict[pars_tup] = par_idx
 
-        idx_cmds.append((par_idx, cmd['date'], cmd['time'], cmd['cmd'], cmd.get('tlmsid'),
+        idx_cmds.append((par_idx, cmd['date'], cmd['type'], cmd.get('tlmsid'),
                          cmd['scs'], cmd['step'], cmd['timeline_id']))
 
     return idx_cmds
@@ -204,6 +202,67 @@ def main(args=None):
         logging.info('Wrote {} pars_dict values to {}'.format(len(pars_dict), pars_dict_file))
 
     return cmds
+
+
+def _coerce_type(val):
+    """Coerce the supplied ``val`` (typically a string) into an int or float if
+    possible, otherwise as a string.
+    """
+    try:
+        val = int(val)
+    except ValueError:
+        try:
+            val = float(val)
+        except ValueError:
+            val = str(val)
+    return val
+
+
+def parse_params(paramstr):
+    """
+    Parse parameters key1=val1,key2=val2,... from ``paramstr``
+
+    Parameter values are cast to the first type (int, float, or str) that
+    succeeds.
+
+    :param paramstr: Comma separated string of key=val pairs
+    :rtype: dict of key=val pairs
+    """
+    params = {}
+    for opt in paramstr.split(','):
+        try:
+            key, val = opt.split('=')
+            params[key] = val if key == 'HEX' else _coerce_type(val)
+        except:
+            pass  # backstop has some quirks like blank or '??????' fields
+
+    return params
+
+
+def read_backstop(filename):
+    """
+    Read commands from backstop file.
+
+    Create dict with keys as follows for each command.  ``paramstr`` is the
+    actual string with comma-separated parameters and ``params`` is the
+    corresponding dict of key=val pairs.
+
+    :param filename: Backstop file name
+    :returns: list of dict for each command
+    """
+    bs = []
+    for bs_line in open(filename):
+        bs_line = bs_line.replace(' ', '')
+        date, vcdu, cmd_type, paramstr = [x for x in bs_line.split('|')]
+        params = parse_params(paramstr)
+        bs.append({'date': date,
+                   'type': cmd_type,
+                   'params': params,
+                   'tlmsid': params.get('TLMSID'),
+                   'scs': params.get('SCS'),
+                   'step': params.get('STEP'),
+                   })
+    return bs
 
 
 if __name__ == '__main__':
