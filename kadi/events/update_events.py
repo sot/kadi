@@ -30,12 +30,12 @@ def get_opt(args=None):
                         type=int,
                         help=("Number of days in interval for looping (default=100)"))
     parser.add_argument("--log-level",
-                        default=pyyaks.logger.VERBOSE,
+                        default=pyyaks.logger.INFO,
                         help=("Logging level"))
     parser.add_argument("--model",
                         action='append',
                         dest='models',
-                        help="Model name to process [match regex] (default = all)")
+                        help="Model class name to process [match regex] (default = all)")
 
     args = parser.parse_args(args)
     return args
@@ -91,7 +91,7 @@ def update(EventModel, date_stop):
                 for row in rows:
                     # Convert to a plain dict if row is structured array
                     foreign_model = ForeignModel.from_dict(row, logger)
-                    setattr(foreign_model, event_model.name, event_model)
+                    setattr(foreign_model, event_model.model_name, event_model)
                     logger.verbose('Adding {}'.format(foreign_model))
                     foreign_model.save()
 

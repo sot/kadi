@@ -146,13 +146,13 @@ class BaseModel(models.Model):
             if hasattr(model, key):
                 if logger is not None:
                     logger.debug('Setting {} model with {}={}'
-                                 .format(model.name, key, val))
+                                 .format(model.model_name, key, val))
                 setattr(model, key, val)
         return model
 
     @property
-    def name(self):
-        if not hasattr(self, '_name'):
+    def model_name(self):
+        if not hasattr(self, '_model_name'):
             cc_name = self.__class__.__name__
             chars = []
             for c0, c1 in izip(cc_name[:-1], cc_name[1:]):
@@ -161,8 +161,8 @@ class BaseModel(models.Model):
                 if c0.lower() == c0 and c1.lower() != c1:
                     chars.append('_')
             chars.append(c1.lower())
-            self._name = ''.join(chars)
-        return self._name
+            self._model_name = ''.join(chars)
+        return self._model_name
 
     @classmethod
     @import_ska
@@ -230,7 +230,7 @@ class TlmEvent(Event):
         """
         from . import plot
         try:
-            plot_func = getattr(plot, self.name)
+            plot_func = getattr(plot, self.model_name)
         except AttributeError:
             plot_func = plot.tlm_event
         plot_func(self, figsize, fig)
@@ -840,6 +840,6 @@ class Orbit(Event):
 class OrbitPoint(BaseModel):
     orbit = models.ForeignKey(Orbit)
     date = models.CharField(max_length=21)
-    point = models.CharField(max_length=9)
+    name = models.CharField(max_length=9)
     orbit_num = models.IntegerField()
     descr = models.CharField(max_length=50)
