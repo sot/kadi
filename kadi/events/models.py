@@ -169,9 +169,11 @@ class BaseModel(models.Model):
     def find(cls, start=None, stop=None, subset=None, **kwargs):
         objs = cls.objects.all()
         if start is not None:
-            objs = objs.filter(start__gte=DateTime(start).date)
+            kwargs['start__gte'] = DateTime(start).date
         if stop is not None:
-            objs = objs.filter(stop__lte=DateTime(stop).date)
+            field_names = [x.name for x in cls._meta.fields]
+            attr = ('stop__lte' if 'stop' in field_names else 'start__lte')
+            kwargs[attr] = DateTime(stop).date
         if kwargs:
             objs = objs.filter(**kwargs)
         if subset:
