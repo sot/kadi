@@ -782,3 +782,64 @@ class DsnComm(IFotEvent):
     def __unicode__(self):
         return ('{}: {} {}-{} {}'
                 .format(self.station, self.start[:17], self.bot, self.eot, self.activity))
+
+
+class Orbit(Event):
+    """
+    Full orbit, with dates corresponding to start (ORBIT ASCENDING NODE CROSSING), stop,
+    apogee, perigee, radzone start and radzone stop.  Radzone is defined as the time
+    covering perigee when radmon is disabled by command.  This corresponds to the planned
+    values and may differ from actual in the case of events that run SCS107 and
+    prematurely disable RADMON.
+
+    """
+    orbit_num = models.IntegerField()
+    perigee = models.CharField(max_length=21)
+    apogee = models.CharField(max_length=21)
+    t_perigee = models.FloatField()
+    start_radzone = models.CharField(max_length=21)
+    stop_radzone = models.CharField(max_length=21)
+    dt_start_radzone = models.FloatField()
+    dt_stop_radzone = models.FloatField()
+
+    @classmethod
+    @import_ska
+    def get_events(cls, start, stop=None):
+        """
+        Get Orbit Events from timeline reports.
+        """
+        from . import orbit_funcs
+
+        datestart = DateTime(start).date
+        datestop = DateTime(stop).date
+        years = sorted(set(x[:4] for x in (datestart, datestop)))
+        file_dates = []
+        for year in years:
+            file_dates.extend(orbit_funcs.get_tlr_files(year))
+        tlr_files = [x['name'] for x in file_dates if datestart <= x['date'] <= datestop]
+
+        # Get all orbit points from the tlr files as a list of tuples
+        orbit_points = orbit_funcs.get_orbit_points(tlr_files)
+
+        # Process the points, doing various cleanup and return as a np.array
+        orbit_points = orbit_funcs.process_orbit_points(orbit_points)
+
+        # Get the orbits from the orbit points
+        orbits = orbit_funcs.get_orbits(orbit_points)
+
+        events = []
+        for orbit in orbits:
+            ok = orbit_points['orbit_num'] == orbit['orbit_num']
+            event = {key: orbit[key] for key in orbit.dtype.names}
+            event['foreign'] = {'OrbitPoint': orbit_points[ok]}
+            events.append(event)
+
+        return events
+
+
+class OrbitPoint(BaseModel):
+    orbit = models.ForeignKey(Orbit)
+    date = models.CharField(max_length=21)
+    point = models.CharField(max_length=9)
+    orbit_num = models.IntegerField()
+    descr = models.CharField(max_length=50)
