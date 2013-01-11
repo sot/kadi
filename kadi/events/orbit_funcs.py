@@ -1,8 +1,8 @@
 from __future__ import division
 
-import sys
 import re
 import os
+import logging
 
 import numpy as np
 
@@ -17,9 +17,12 @@ ORBIT_POINTS_DTYPE = [('date', 'S21'), ('name', 'S8'),
 
 ORBITS_DTYPE = [('orbit_num', 'i4'),
                 ('start', 'S21'), ('stop', 'S21'),
-                ('perigee', 'S21'), ('apogee', 'S21'),
+                ('tstart', 'f8'), ('tstop', 'f8'), ('dur', 'f4'),
+                ('perigee', 'S21'), ('t_perigee', 'f8'), ('apogee', 'S21'),
                 ('start_radzone', 'S21'), ('stop_radzone', 'S21'),
                 ('dt_start_radzone', 'f4'), ('dt_stop_radzone', 'f4')]
+
+logger = logging.getLogger('events')
 
 # Just for reference, all name=descr pairs between 2000 to 2013:001
 NAMES = {
@@ -71,10 +74,23 @@ def prune_dirs(dirs, regex):
         dirs.remove(prune)
 
 
-def get_tlr_files(rootdir='/data/mpcrit1/mplogs/'):
+# get_tlr_files is slow, so cache results (mostly for testing)
+get_tlr_files_cache = {}
+
+
+def get_tlr_files(mpdir=''):
     """
-    Get all timeline report files within the specified root directory.
+    Get all timeline report files within the specified SOT MP directory
+    ``mpdir`` relative to the root of /data/mpcrit1/mplogs.
+
+    Returns a list of dicts [{name, date},..]
     """
+    rootdir = os.path.join('/data/mpcrit1/mplogs', mpdir)
+    try:
+        return get_tlr_files_cache[rootdir]
+    except KeyError:
+        pass
+
     tlrfiles = []
     for root, dirs, files in os.walk(rootdir):
         root = root.rstrip('/')
@@ -88,9 +104,9 @@ def get_tlr_files(rootdir='/data/mpcrit1/mplogs/'):
         elif depth > 5:
             tlrs = [x for x in files if re.match(r'.+\.tlr$', x)]
             if len(tlrs) == 0:
-                print 'NO tlr file found in {}'.format(root)
+                logger.info('NO tlr file found in {}'.format(root))
             else:
-                print(os.path.join(root, tlrs[0]))
+                logger.info('Located TLR file {}'.format(os.path.join(root, tlrs[0])))
                 tlrfiles.append(os.path.join(root, tlrs[0]))
             while dirs:
                 dirs.pop()
@@ -103,10 +119,13 @@ def get_tlr_files(rootdir='/data/mpcrit1/mplogs/'):
         yy = int(monddyy[5:7])
         yyyy = 1900 + yy if yy > 95 else 2000 + yy
         caldate = '{}{}{} at 12:00:00.000'.format(yyyy, mon, dd)
-        files.append((tlrfile, DateTime(caldate).date[:8] + oflsv))
+        files.append((tlrfile, DateTime(caldate).date[:8] + oflsv, DateTime(caldate).date))
 
     files = sorted(files, key=lambda x: x[1])
-    return [x[0] for x in files]
+    out = [{'name': x[0], 'date': x[2]} for x in files]
+    get_tlr_files_cache[rootdir] = out
+
+    return out
 
 
 def prune_a_loads(tlrfiles):
@@ -151,12 +170,11 @@ def get_orbit_points(tlrfiles):
         # Parse thing like this:
         #  2012:025:21:22:21.732 EQF013M     1722   PROTON FLUX ENTRY FOR ENERGY 0 LEVEL ...
         # 012345678901234567890123456789012345678901234567890123456789
-        print tlrfile
-        sys.stdout.flush()
+        logger.info('Getting points from {}'.format(tlrfile))
         try:
             fh = open(tlrfile, 'r')
         except IOError as err:
-            print err
+            logger.warn(err)
             continue
         for line in fh:
             if len(line) < 30 or line[:2] != ' 2':
@@ -175,16 +193,16 @@ def get_orbit_points(tlrfiles):
             if 'DSS-' in name:
                 continue
             if not re.match(r'\d{4}:\d{3}:\d{2}:\d{2}:\d{2}\.\d{3}', date):
-                print 'Failed for date: "{}"'.format(date)
+                logger.info('Failed for date: "{}"'.format(date))
                 continue
             if not re.match(r'[A-Z]+', name):
-                print 'Failed for name: "{}"'.format(name)
+                logger.info('Failed for name: "{}"'.format(name))
                 continue
 
             try:
                 orbit_num = int(orbit_num)
             except TypeError:
-                print 'Failed for orbit_num: {}'.format(orbit_num)
+                logger.info('Failed for orbit_num: {}'.format(orbit_num))
                 continue
 
             descr = descr.strip()
@@ -228,13 +246,13 @@ def interpolate_orbit_points(orbit_points, name):
             time = time0 + (orb_num - orb_num0) / (orb_num1 - orb_num0) * (time1 - time0)
             date = DateTime(time).date
             new_orbit_point = (date, name, orb_num, op0['descr'])
-            print('Adding new orbit point {}'.format(new_orbit_point))
+            logger.info('Adding new orbit point {}'.format(new_orbit_point))
             new_orbit_points.append(new_orbit_point)
 
     return new_orbit_points
 
 
-def process_orbit_events(orbit_points):
+def process_orbit_points(orbit_points):
     """
     Take the raw orbit points (list of tuples) and do some processing:
 
@@ -255,7 +273,7 @@ def process_orbit_events(orbit_points):
         if op0[1:4] == op1[1:4]:
             dt = (DateTime(op1[0]) - DateTime(op0[0])) * 86400
             if dt < 180:
-                # print('Removing duplicate orbit points:\n  {}\n  {}'
+                # logger.info('Removing duplicate orbit points:\n  {}\n  {}'
                 #      .format(str(op0), str(op1)))
                 continue
         uniq_orbit_points.append(op1)
@@ -283,7 +301,7 @@ def process_orbit_events(orbit_points):
         if op[1] == 'EASCNCR':
             new_ops.append((op[0], 'XASCNCR', op[2] - 1, op[3] + ' EXIT'))
 
-    print('Adding {} new orbit points'.format(len(new_ops)))
+    logger.info('Adding {} new orbit points'.format(len(new_ops)))
     new_ops = np.array(new_ops, dtype=ORBIT_POINTS_DTYPE)
     orbit_points = np.concatenate([orbit_points, new_ops])
     orbit_points.sort(order=['date', 'orbit_num'])
@@ -296,17 +314,17 @@ def process_orbit_events(orbit_points):
             prev_num, prev_idx = get_nearest_orbit_num(orbit_nums, idx, -1)
             next_num, next_idx = get_nearest_orbit_num(orbit_nums, idx, +1)
         except NotFoundError:
-            print('No nearest orbit point for orbit_points[{}] (len={})'
+            logger.info('No nearest orbit point for orbit_points[{}] (len={})'
                   .format(idx, len(orbit_points)))
         else:
             if prev_num == next_num:
                 orbit_nums[idx] = next_num
             else:
-                print('Unable to assign orbit num idx={} prev={} next={}'
+                logger.info('Unable to assign orbit num idx={} prev={} next={}'
                       .format(idx, prev_num, next_num))
-                print '  ', prev_idx, orbit_points[prev_idx]
-                print ' *', idx, orbit_points[idx]
-                print '  ', next_idx, orbit_points[next_idx]
+                logger.info('  {} {}'.format(prev_idx, orbit_points[prev_idx]))
+                logger.info(' * {} {}'.format(idx, orbit_points[idx]))
+                logger.info('  {} {}'.format(next_idx, orbit_points[next_idx]))
 
     return orbit_points
 
@@ -323,7 +341,8 @@ def get_orbits(orbit_points):
 
       ORBITS_DTYPE = [('orbit_num', 'i4'),
                       ('start', 'S21'), ('stop', 'S21'),
-                      ('perigee', 'S21'), ('apogee', 'S21'),
+                      ('tstart', 'f8'), ('tstop', 'f8'), ('dur', 'f4'),
+                      ('perigee', 'S21'), ('t_perigee', 'f8'), ('apogee', 'S21'),
                       ('start_radzone', 'S21'), ('stop_radzone', 'S21'),
                       ('dt_start_radzone', 'f4'), ('dt_stop_radzone', 'f4')]
     """
@@ -399,7 +418,7 @@ def get_orbits(orbit_points):
 
         try:
             if 'EASCNCR' not in ops['name'] or 'XASCNCR' not in ops['name']:
-                raise NotFoundError('Skipping orbit {} incomplete\n{}'.format(orbit_num, str(ops)))
+                raise NotFoundError('Skipping orbit {} incomplete'.format(orbit_num))
 
             start = get_date(ops, 'EASCNCR')
             stop = get_date(ops, 'XASCNCR')
@@ -409,17 +428,20 @@ def get_orbits(orbit_points):
             idx_perigee = get_idx(ops, 'EPERIGEE') + i0
             start_radzone, stop_radzone = find_radzone(idx_perigee)
         except NotFoundError as err:
-            print(err)
+            logger.info(err)
             continue
         else:
             dt_radzones = [(DateTime(date) - DateTime(date_perigee)) * 86400.0
                            for date in (start_radzone, stop_radzone)]
+            tstart = DateTime(start).secs
+            tstop = DateTime(stop).secs
             orbit = (orbit_num,
                      start, stop,
-                     date_perigee, date_apogee,
+                     tstart, tstop, tstop - tstart,
+                     date_perigee, DateTime(date_perigee).secs, date_apogee,
                      start_radzone, stop_radzone,
                      dt_radzones[0], dt_radzones[1])
-            # print('Adding orbit {}'.format(orbit))
+            logger.info('Adding orbit {} {} {}'.format(orbit_num, start, stop))
             orbits.append(orbit)
 
     orbits = np.array(orbits, dtype=ORBITS_DTYPE)
