@@ -91,8 +91,11 @@ def get_tlr_files(mpdir=''):
     except KeyError:
         pass
 
+    logger.info('Looking for TLR files in {}'.format(rootdir))
+
     tlrfiles = []
     for root, dirs, files in os.walk(rootdir):
+        logger.debug('get_trl_files: root={}'.format(root))
         root = root.rstrip('/')
         depth = len(root.split('/')) - 1
         if depth == 3:
@@ -392,7 +395,7 @@ def get_orbits(orbit_points):
             idx += 1
             if idx >= len(orbit_points):
                 raise NotFoundError('Did not find RADMON enable after to {}'
-                                    .format(orbit_points[idx_perigee]))
+                                    .format(str(orbit_points[idx_perigee])))
             if orbit_points['name'][idx] == 'OORMPEN':
                 stop_radzone = orbit_points['date'][idx]
                 break
@@ -441,7 +444,7 @@ def get_orbits(orbit_points):
                      date_perigee, DateTime(date_perigee).secs, date_apogee,
                      start_radzone, stop_radzone,
                      dt_radzones[0], dt_radzones[1])
-            logger.info('Adding orbit {} {} {}'.format(orbit_num, start, stop))
+            logger.info('get_orbits: Adding orbit {} {} {}'.format(orbit_num, start, stop))
             orbits.append(orbit)
 
     orbits = np.array(orbits, dtype=ORBITS_DTYPE)

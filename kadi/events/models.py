@@ -784,7 +784,7 @@ class DsnComm(IFotEvent):
                 .format(self.station, self.start[:17], self.bot, self.eot, self.activity))
 
 
-class Orbit(Event):
+class Orbit(BaseEvent):
     """
     Full orbit, with dates corresponding to start (ORBIT ASCENDING NODE CROSSING), stop,
     apogee, perigee, radzone start and radzone stop.  Radzone is defined as the time
@@ -793,7 +793,12 @@ class Orbit(Event):
     prematurely disable RADMON.
 
     """
-    orbit_num = models.IntegerField()
+    start = models.CharField(max_length=21)
+    stop = models.CharField(max_length=21)
+    tstart = models.FloatField(db_index=True)
+    tstop = models.FloatField()
+    dur = models.FloatField()
+    orbit_num = models.IntegerField(primary_key=True)
     perigee = models.CharField(max_length=21)
     apogee = models.CharField(max_length=21)
     t_perigee = models.FloatField()
@@ -836,6 +841,11 @@ class Orbit(Event):
 
         return events
 
+    def __unicode__(self):
+        return ('{} {} dur={:.1f} radzone={:.1f} to {:.1f} ksec'
+                .format(self.orbit_num, self.start[:17], self.dur / 1000,
+                        self.dt_start_radzone / 1000, self.dt_stop_radzone / 1000))
+
 
 class OrbitPoint(BaseModel):
     orbit = models.ForeignKey(Orbit)
@@ -843,3 +853,7 @@ class OrbitPoint(BaseModel):
     name = models.CharField(max_length=9)
     orbit_num = models.IntegerField()
     descr = models.CharField(max_length=50)
+
+    def __unicode__(self):
+        return ('{} (orbit {}) {}: {}'
+                .format(self.date[:17], self.orbit_num, self.name, self.descr[:30]))

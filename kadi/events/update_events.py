@@ -30,6 +30,7 @@ def get_opt(args=None):
                         type=int,
                         help=("Number of days in interval for looping (default=100)"))
     parser.add_argument("--log-level",
+                        type=int,
                         default=pyyaks.logger.INFO,
                         help=("Logging level"))
     parser.add_argument("--model",
