@@ -210,6 +210,7 @@ class Event(BaseEvent):
 
     class Meta:
         abstract = True
+        ordering = ['start']
 
     def __unicode__(self):
         return ('start={} dur={:.0f}'.format(self.start, self.dur))
@@ -435,6 +436,9 @@ class Manvr(TlmEvent):
     anomalous = models.BooleanField()
     template = models.CharField(max_length=16)
     tlm = JSONField()
+
+    class Meta:
+        ordering = ['start']
 
     def __unicode__(self):
         return ('start={} dur={:.0f} n_dwell={} template={}'
