@@ -134,6 +134,7 @@ class Update(models.Model):
 class BaseModel(models.Model):
     class Meta:
         abstract = True
+        ordering = ['start']
 
     @classmethod
     def from_dict(cls, model_dict, logger=None):
@@ -194,6 +195,7 @@ class BaseEvent(BaseModel):
     """
     class Meta:
         abstract = True
+        ordering = ['start']
 
     lookback = 21  # days of lookback
 
@@ -222,6 +224,7 @@ class TlmEvent(Event):
 
     class Meta:
         abstract = True
+        ordering = ['start']
 
     def plot(self, figsize=None, fig=None):
         """
@@ -643,6 +646,9 @@ class ManvrSeq(BaseModel):
     prev_date = models.CharField(max_length=21)
     prev_time = models.FloatField()
 
+    class Meta:
+        ordering = ['manvr', 'date']
+
     def __unicode__(self):
         return ('{}: {} => {} at {}'
                 .format(self.msid.upper(), self.prev_val, self.val, self.date))
@@ -710,6 +716,7 @@ class IFotEvent(BaseEvent):
 
     class Meta:
         abstract = True
+        ordering = ['start']
 
     ifot_columns = ['id', 'tstart', 'tstop']
     ifot_props = []
@@ -857,6 +864,9 @@ class OrbitPoint(BaseModel):
     name = models.CharField(max_length=9)
     orbit_num = models.IntegerField()
     descr = models.CharField(max_length=50)
+
+    class Meta:
+        ordering = ['date']
 
     def __unicode__(self):
         return ('{} (orbit {}) {}: {}'

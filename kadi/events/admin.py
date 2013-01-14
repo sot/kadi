@@ -1,4 +1,5 @@
 import re
+import inspect
 
 from django.contrib import admin
 from django.contrib.admin.views import main
@@ -86,7 +87,8 @@ class MyChangeList(main.ChangeList):
         return qs
 
 
-class MyModelAdmin(admin.ModelAdmin):
+class ModelAdminBase(admin.ModelAdmin):
+    search_fields = ('start',)
 
     def get_changelist(self, request, **kwargs):
         """
@@ -95,21 +97,61 @@ class MyModelAdmin(admin.ModelAdmin):
         return MyChangeList
 
 
-class TscMoveAdmin(MyModelAdmin):
+class TscMoveAdmin(ModelAdminBase):
     list_display = ('start', 'stop', 'start_3tscpos', 'stop_3tscpos', 'start_det', 'stop_det')
-    search_fields = ('start',)
 
 
-class FaMoveAdmin(MyModelAdmin):
+class FaMoveAdmin(ModelAdminBase):
     list_display = ('start', 'stop', 'start_3fapos', 'stop_3fapos')
-    search_fields = ('start',)
 
 
-class ManvrAdmin(MyModelAdmin):
+class ManvrAdmin(ModelAdminBase):
     list_display = ('start', 'stop', 'dur', 'template', 'n_dwell', 'n_kalman', 'next_nman_start')
-    search_fields = ('start',)
 
 
-admin.site.register(mdl.Manvr, ManvrAdmin)
-admin.site.register(mdl.TscMove, TscMoveAdmin)
-admin.site.register(mdl.FaMove, FaMoveAdmin)
+class ManvrSeqAdmin(ModelAdminBase):
+    list_display = ('date', 'msid', 'prev_val', 'val', 'dt', 'manvr')
+
+
+class DumpAdmin(ModelAdminBase):
+    list_display = ('start', 'stop', 'dur')
+
+
+class EclipseAdmin(ModelAdminBase):
+    list_display = ('start', 'stop', 'dur')
+
+
+class SafeSunAdmin(ModelAdminBase):
+    list_display = ('start', 'stop', 'dur', 'notes')
+
+
+class MajorEventAdmin(ModelAdminBase):
+    list_display = ('start', 'date', 'source', 'descr', 'note')
+
+
+class CAP(ModelAdminBase):
+    list_display = ('start', 'num', 'title', 'descr', 'notes')
+
+
+class DsnCommAdmin(ModelAdminBase):
+    list_display = ('start', 'stop', 'bot', 'eot', 'activity', 'site', 'soe', 'station')
+
+
+class OrbitAdmin(ModelAdminBase):
+    list_display = ('start', 'stop', 'orbit_num', 'perigee', 'apogee',
+                    'dt_start_radzone', 'dt_stop_radzone')
+
+
+class OrbitPointAdmin(ModelAdminBase):
+    list_display = ('date', 'orbit_num', 'name', 'orbit', 'descr')
+
+
+class DwellAdmin(ModelAdminBase):
+    list_display = ('start', 'stop', 'rel_tstart', 'manvr')
+
+
+for name, obj in vars().items():
+    if name.endswith('Admin') and inspect.isclass(obj) and issubclass(obj, ModelAdminBase):
+        mdl_cls_name = name[:-5]
+        print('Registeering {} {}'.format(mdl_cls_name, name))
+        admin.site.register(getattr(mdl, mdl_cls_name), obj)
