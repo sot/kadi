@@ -1,4 +1,10 @@
+import os
+
 from itertools import count, izip
+import collections
+
+if 'DJANGO_SETTINGS_MODULE' not in os.environ:
+    os.environ['DJANGO_SETTINGS_MODULE'] = 'kadi.settings'
 
 from django.db import models
 
@@ -11,6 +17,7 @@ fetch = None
 interpolate = None
 DateTime = None
 np = None
+Quat = None
 
 ZERO_DT = -1e-4
 
@@ -88,12 +95,14 @@ def import_ska(func):
     def wrapper(*args, **kwargs):
         from Chandra.Time import DateTime
         from Ska.Numpy import interpolate
+        from Quaternion import Quat
         import Ska.engarchive.fetch_eng as fetch
         import numpy as np
         globals()['interpolate'] = interpolate
         globals()['DateTime'] = DateTime
         globals()['fetch'] = fetch
         globals()['np'] = np
+        globals()['Quat'] = Quat
         return func(*args, **kwargs)
     return wrapper
 
@@ -571,10 +580,26 @@ class Manvr(TlmEvent):
         return manvr_attrs
 
     @classmethod
-    def get_tlm(cls, event):
-        tlm = {'start': {'aoatterr': [0.0, 0, 0, 0]},
-               'stop': {'aoatterr': [1.0, 0, 0, 1]},
-               }
+    @import_ska
+    def get_tlm(cls, event, event_msidset):
+        tlm = collections.defaultdict(dict)
+        for label, dt in (('start', -60), ('stop', 60)):
+            time = event['tstart'] + dt
+            q123 = []
+            for i in range(1, 4):
+                name = 'aotarqt{}'.format(i)
+                msid = event_msidset[name]
+                idx = np.searchsorted(msid.times, time)
+                q123.append(msid.vals[idx])
+            q123 = np.array(q123)
+            sum_q123_sq = np.sum(q123 ** 2)
+            q4 = np.sqrt(np.abs(1.0 - sum_q123_sq))
+            norm = np.sqrt(sum_q123_sq + q4 ** 2)
+            quat = Quat(np.concatenate([q123, [q4]]) / norm)
+            tlm[label]['aotarqt'] = quat.q.tolist()
+            tlm[label]['ra'] = float(quat.ra)
+            tlm[label]['dec'] = float(quat.dec)
+            tlm[label]['roll'] = float(quat.roll)
         return tlm
 
     @classmethod
@@ -583,6 +608,7 @@ class Manvr(TlmEvent):
         """
         Get maneuver events from telemetry.
         """
+        tarqt_msidset = fetch.Msidset(['aotarqt1', 'aotarqt2', 'aotarqt3'], start, stop)
         states, event_msidset = cls.get_msids_states(start, stop)
         changes = _get_msid_changes(event_msidset.values(),
                                     sortmsids={'aofattmd': 1, 'aopcadmd': 2,
@@ -612,7 +638,7 @@ class Manvr(TlmEvent):
                                   'Dwell': dwells},
                          )
             event.update(manvr_attrs)
-            event['tlm'] = cls.get_tlm(event)
+            event['tlm'] = cls.get_tlm(event, tarqt_msidset)
 
             events.append(event)
 
