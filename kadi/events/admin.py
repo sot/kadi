@@ -98,7 +98,7 @@ class ModelAdminBase(admin.ModelAdmin):
 
 
 class TscMoveAdmin(ModelAdminBase):
-    list_display = ('start', 'stop', 'start_3tscpos', 'stop_3tscpos', 'start_det', 'stop_det')
+    list_display = ('start', 'stop', 'start_3tscpos', 'stop_3tscpos', 'start_det', 'stop_det', 'max_pwm')
 
 
 class FaMoveAdmin(ModelAdminBase):

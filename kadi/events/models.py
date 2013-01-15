@@ -10,7 +10,6 @@ from django.db import models
 
 import pyyaks.logger
 from .manvr_templates import get_manvr_templates
-from .json_field import JSONField
 
 # Fool pyflakes into thinking these are defined
 fetch = None
@@ -42,18 +41,17 @@ def _get_si(simpos):
     return si
 
 
-def _get_start_stop_vals(event, event_msidset, msids, rel_dt):
+def _get_start_stop_vals(tstart, tstop, msidset, msids):
     """
-    Get the values of related telemetry MSIDs `msids` to the `event` as
-    `start_<MSID>` and `stop_<MSID>`.  The value is taken from telemetry
-    within `event_msidset` at event start - `rel_dt` and stop + `rel_dt`.
-    Returns a dict of <MSID>: <VAL> pairs.
+    Get the values of related telemetry MSIDs ``msids`` to the event as ``start_<MSID>``
+    and ``stop_<MSID>``.  The value is taken from telemetry within `msidset` at ``tstart``
+    and ``tstop``.  Returns a dict of <MSID>: <VAL> pairs.
     """
     out = {}
-    rel_msids = [event_msidset[msid] for msid in msids]
+    rel_msids = [msidset[msid] for msid in msids]
     for rel_msid in rel_msids:
         vals = interpolate(rel_msid.vals, rel_msid.times,
-                           [event['tstart'] - rel_dt, event['tstop'] + rel_dt],
+                           [tstart, tstop],
                            method='nearest')
         out['start_{}'.format(rel_msid.msid)] = vals[0]
         out['stop_{}'.format(rel_msid.msid)] = vals[1]
@@ -360,22 +358,26 @@ class TlmEvent(Event):
 
 
 class TscMove(TlmEvent):
-    event_msids = ['3tscmove', '3tscpos']
+    event_msids = ['3tscmove', '3tscpos', '3mrmmxmv']
     event_val = 'T'
 
     start_3tscpos = models.IntegerField()
     stop_3tscpos = models.IntegerField()
     start_det = models.CharField(max_length=6)
     stop_det = models.CharField(max_length=6)
+    max_pwm = models.IntegerField()
 
     @classmethod
     def get_extras(cls, event, event_msidset):
         """
         Define start/stop_3tscpos and start/stop_det.
         """
-        out = _get_start_stop_vals(event, event_msidset, msids=['3tscpos'], rel_dt=66.0)
+        out = _get_start_stop_vals(event['tstart'] - 66, event['tstop'] + 66,
+                                   event_msidset, msids=['3tscpos'])
         out['start_det'] = _get_si(out['start_3tscpos'])
         out['stop_det'] = _get_si(out['stop_3tscpos'])
+        pwm = event_msidset['3mrmmxmv']
+        out['max_pwm'] = interpolate(pwm.vals, pwm.times, [event['tstop'] + 66])[0]
         return out
 
     def __unicode__(self):
@@ -395,7 +397,8 @@ class FaMove(TlmEvent):
         """
         Define start/stop_3fapos.
         """
-        out = _get_start_stop_vals(event, event_msidset, msids=['3fapos'], rel_dt=16.4)
+        out = _get_start_stop_vals(event['tstart'] - 16.4, event['tstop'] + 16.4,
+                                   event_msidset, msids=['3fapos'])
         return out
 
     def __unicode__(self):
@@ -447,7 +450,22 @@ class Manvr(TlmEvent):
     n_kalman = models.IntegerField()
     anomalous = models.BooleanField()
     template = models.CharField(max_length=16)
-    tlm = JSONField()
+    # start_aotarqt1 = models.floatField()
+    # start_aotarqt2 = models.floatField()
+    # start_aotarqt3 = models.floatField()
+    # start_aotarqt4 = models.floatField()
+    # stop_aotarqt1 = models.floatField()
+    # stop_aotarqt2 = models.floatField()
+    # stop_aotarqt3 = models.floatField()
+    # stop_aotarqt4 = models.floatField()
+    start_ra = models.FloatField()
+    start_dec = models.FloatField()
+    start_roll = models.FloatField()
+    stop_ra = models.FloatField()
+    stop_dec = models.FloatField()
+    stop_roll = models.FloatField()
+    angle = models.FloatField()
+
 
     class Meta:
         ordering = ['start']
@@ -581,26 +599,41 @@ class Manvr(TlmEvent):
 
     @classmethod
     @import_ska
-    def get_tlm(cls, event, event_msidset):
-        tlm = collections.defaultdict(dict)
+    def get_target_attitudes(cls, event, msidset):
+        """
+        Define start/stop_aotarqt<1..4> and start/stop_ra,dec,roll
+        """
+        out = {}
+        quats = {}
         for label, dt in (('start', -60), ('stop', 60)):
             time = event['tstart'] + dt
             q123 = []
             for i in range(1, 4):
                 name = 'aotarqt{}'.format(i)
-                msid = event_msidset[name]
-                idx = np.searchsorted(msid.times, time)
-                q123.append(msid.vals[idx])
+                msid = msidset[name]
+                q123.append(interpolate(msid.vals, msid.times, [time], method='nearest')[0])
             q123 = np.array(q123)
             sum_q123_sq = np.sum(q123 ** 2)
             q4 = np.sqrt(np.abs(1.0 - sum_q123_sq))
             norm = np.sqrt(sum_q123_sq + q4 ** 2)
             quat = Quat(np.concatenate([q123, [q4]]) / norm)
-            tlm[label]['aotarqt'] = quat.q.tolist()
-            tlm[label]['ra'] = float(quat.ra)
-            tlm[label]['dec'] = float(quat.dec)
-            tlm[label]['roll'] = float(quat.roll)
-        return tlm
+            quats[label] = quat
+            out[label + '_aotarqt1'] = float(quat.q[0])
+            out[label + '_aotarqt2'] = float(quat.q[1])
+            out[label + '_aotarqt3'] = float(quat.q[2])
+            out[label + '_aotarqt4'] = float(quat.q[3])
+            out[label + '_ra'] = float(quat.ra)
+            out[label + '_dec'] = float(quat.dec)
+            out[label + '_roll'] = float(quat.roll)
+
+        dq = quats['stop'] / quats['start']  # = (wx * sa2, wy * sa2, wz * sa2, ca2)
+        q3 = np.abs(dq.q[3])
+        if q3 >= 1.0:  # Floating point error possible
+            out['angle'] = 0.0
+        else:
+            out['angle'] = float(np.arccos(q3) * 2 * 180 / np.pi)
+
+        return out
 
     @classmethod
     @import_ska
@@ -638,7 +671,7 @@ class Manvr(TlmEvent):
                                   'Dwell': dwells},
                          )
             event.update(manvr_attrs)
-            event['tlm'] = cls.get_tlm(event, tarqt_msidset)
+            event.update(cls.get_target_attitudes(event, tarqt_msidset))
 
             events.append(event)
 
