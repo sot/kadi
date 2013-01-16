@@ -126,6 +126,10 @@ class SafeSunAdmin(ModelAdminBase):
     list_display = ('start', 'stop', 'dur', 'notes')
 
 
+class Scs107Admin(ModelAdminBase):
+    list_display = ('start', 'stop', 'dur', 'notes')
+
+
 class MajorEventAdmin(ModelAdminBase):
     list_display = ('start', 'date', 'source', 'descr', 'note')
 

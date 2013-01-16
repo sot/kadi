@@ -407,6 +407,8 @@ class TscMove(TlmEvent):
 
 
 class Scs107(TlmEvent):
+    notes = models.TextField()
+
     event_msids = ['3tscmove', 'aorwbias', 'coradmen']
 
     @classmethod
@@ -451,7 +453,8 @@ class Scs107(TlmEvent):
                          tstop=tstop,
                          dur=tstop - tstart,
                          start=DateTime(tstart).date,
-                         stop=DateTime(tstop).date)
+                         stop=DateTime(tstop).date,
+                         notes='')
 
             events.append(event)
 
