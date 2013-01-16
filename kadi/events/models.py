@@ -106,6 +106,27 @@ def import_ska(func):
 
 
 @import_ska
+def _state_intervals(vals, times):
+    transitions = np.hstack([[True], vals[:-1] != vals[1:], [True]])
+    t0 = times[0] - (times[1] - times[0]) / 2
+    t1 = times[-1] + (times[-1] - times[-2]) / 2
+    midtimes = np.hstack([[t0], (times[:-1] + times[1:]) / 2, [t1]])
+
+    state_vals = vals[transitions[1:]]
+    state_times = midtimes[transitions]
+
+    intervals = {'datestart': DateTime(state_times[:-1]).date,
+                 'datestop': DateTime(state_times[1:]).date,
+                 'tstart': state_times[:-1],
+                 'tstop': state_times[1:],
+                 'duration': state_times[1:] - state_times[:-1],
+                 'val': state_vals}
+
+    import Ska.Numpy
+    return Ska.Numpy.structured_array(intervals)
+
+
+@import_ska
 def fuzz_states(states, t_fuzz):
     """
     For a set of `states` (from fetch.MSID.state_intervals()), merge any that are
@@ -383,6 +404,58 @@ class TscMove(TlmEvent):
     def __unicode__(self):
         return ('start={} dur={:.0f} start_3tscpos={} stop_3tscpos={}'
                 .format(self.start, self.dur, self.start_3tscpos, self.stop_3tscpos))
+
+
+class Scs107(TlmEvent):
+    event_msids = ['3tscmove', 'aorwbias', 'coradmen']
+
+    @classmethod
+    @import_ska
+    def get_events(cls, start, stop=None):
+        msidset = fetch.MSIDset(cls.event_msids, start, stop)
+        # Interpolate all MSIDs to a common time and make a common bads array
+        msidset.interpolate(16.4, filter_bad=False)
+        common_bads = np.zeros(len(msidset.times), dtype=bool)
+        for msid in msidset.values():
+            common_bads |= msid.bads
+
+        # Apply the common bads array and filter out these bad values
+        for msid in msidset.values():
+            msid.bads = common_bads
+            msid.filter_bad()
+
+        scs107 = ((msidset['3tscmove'].vals == 'T') & (msidset['aorwbias'].vals == 'DISA')
+                  & (msidset['coradmen'].vals == 'DISA'))
+        states = _state_intervals(scs107, msidset.times)
+        if states[0]['val'] is True:
+            states = states[1:]
+        if states[-1]['val'] is True:
+            states = states[:-1]
+
+        # Select event states that are True (SCS107 in progress)
+        ok = (states['val']
+              & (states['tstart'] >= DateTime(start).secs)
+              & (states['tstop'] <= DateTime(stop).secs))
+        states = states[ok]
+
+        # Earlier in the mission there were two SIM translations, which generates
+        # two states here.  So fuzz them together.
+        states = fuzz_states(states, 600)
+
+        # Assemble a list of dicts corresponding to events in this tlm interval
+        events = []
+        for state in states:
+            tstart = state['tstart']
+            tstop = state['tstop']
+            event = dict(tstart=tstart,
+                         tstop=tstop,
+                         dur=tstop - tstart,
+                         start=DateTime(tstart).date,
+                         stop=DateTime(tstop).date)
+
+            events.append(event)
+
+        return events
 
 
 class FaMove(TlmEvent):
