@@ -196,6 +196,9 @@ class BaseModel(models.Model):
     @classmethod
     @import_ska
     def find(cls, start=None, stop=None, subset=None, **kwargs):
+        def un_unicode(vals):
+            return tuple(val.encode('ascii') if isinstance(val, unicode) else val
+                         for val in vals)
         objs = cls.objects.all()
         if start is not None:
             kwargs['start__gte'] = DateTime(start).date
@@ -210,7 +213,7 @@ class BaseModel(models.Model):
                 raise ValueError('subset parameter must be a slice() object')
             objs = objs[subset]
         names = [f.name for f in cls._meta.fields]
-        rows = objs.values_list()
+        rows = [un_unicode(vals) for vals in objs.values_list()]
         dat = np.rec.fromrecords(rows, names=names)
         return dat.view(np.ndarray)
 
