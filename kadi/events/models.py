@@ -196,6 +196,28 @@ class BaseModel(models.Model):
     @classmethod
     @import_ska
     def find(cls, start=None, stop=None, subset=None, **kwargs):
+        """
+        Find events between ``start`` and ``stop`` which match the filter
+        attributes in ``**kwargs``.  The matching events are returned as a
+        structured array.  If ``start`` or ``stop`` are not supplied they
+        default to the beginning / end of available data.  The optional
+        ``subset`` arg must be a Python slice() object and allows slicing
+        of the filtered output.
+
+        Examples
+        --------
+
+          >>> from kadi.events.models import Manvr
+          >>> Manvr.find('2011:001', '2012:001', n_dwell__exact=1, angle__gte=140)
+          >>> Manvr.find('2011:001', '2012:001', subset=slice(None, 5))  # first 5
+
+        :param start: start time (DateTime compatible format)
+        :param stop: stop time (DateTime compatible format)
+        :param subset: subset of matching events that are output
+        :param start: start time (DateTime compatible format)
+
+        :returns: structured array with matching events
+        """
         def un_unicode(vals):
             return tuple(val.encode('ascii') if isinstance(val, unicode) else val
                          for val in vals)
@@ -529,14 +551,6 @@ class Manvr(TlmEvent):
     n_kalman = models.IntegerField()
     anomalous = models.BooleanField()
     template = models.CharField(max_length=16)
-    # start_aotarqt1 = models.floatField()
-    # start_aotarqt2 = models.floatField()
-    # start_aotarqt3 = models.floatField()
-    # start_aotarqt4 = models.floatField()
-    # stop_aotarqt1 = models.floatField()
-    # stop_aotarqt2 = models.floatField()
-    # stop_aotarqt3 = models.floatField()
-    # stop_aotarqt4 = models.floatField()
     start_ra = models.FloatField()
     start_dec = models.FloatField()
     start_roll = models.FloatField()
@@ -544,7 +558,6 @@ class Manvr(TlmEvent):
     stop_dec = models.FloatField()
     stop_roll = models.FloatField()
     angle = models.FloatField()
-
 
     class Meta:
         ordering = ['start']
