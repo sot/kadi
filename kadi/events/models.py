@@ -1,7 +1,6 @@
 import os
 
 from itertools import count, izip
-import collections
 
 if 'DJANGO_SETTINGS_MODULE' not in os.environ:
     os.environ['DJANGO_SETTINGS_MODULE'] = 'kadi.settings'
