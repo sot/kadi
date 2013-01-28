@@ -22,6 +22,13 @@ ZERO_DT = -1e-4
 logger = pyyaks.logger.get_logger(name='events', level=pyyaks.logger.INFO,
                                   format="%(asctime)s %(message)s")
 
+import operator
+
+
+def un_unicode(vals):
+    return tuple(val.encode('ascii') if isinstance(val, unicode) else val
+                 for val in vals)
+
 
 def _get_si(simpos):
     """
@@ -217,9 +224,6 @@ class BaseModel(models.Model):
 
         :returns: structured array with matching events
         """
-        def un_unicode(vals):
-            return tuple(val.encode('ascii') if isinstance(val, unicode) else val
-                         for val in vals)
         objs = cls.objects.all()
         if start is not None:
             kwargs['start__gte'] = DateTime(start).date
@@ -237,6 +241,30 @@ class BaseModel(models.Model):
         rows = [un_unicode(vals) for vals in objs.values_list()]
         dat = np.rec.fromrecords(rows, names=names)
         return dat.view(np.ndarray)
+
+    @classmethod
+    def qs(cls):
+        return Query(cls)
+
+    @classmethod
+    @import_ska
+    def _get_event_times(cls, start, stop):
+        # Initially get events within padded date range.  Filter on only
+        # the "start" field because this is always indexed, and filtering
+        # on two fields is much slower in SQL.
+        datestart = (DateTime(start) - cls.lookback).date
+        datestop = (DateTime(stop) + cls.lookback).date
+        query = ("select start, stop from {} where start >= %s and start <= %s"
+                 .format(cls._meta.db_table))
+        events = cls.objects.raw(query, [datestart, datestop])
+
+        datestart = DateTime(start).date
+        datestop = DateTime(stop).date
+        times = [un_unicode((max(event.start, datestart),
+                             min(event.stop, datestop)))
+                 for event in events
+                 if event.start <= datestop and event.stop >= datestart]
+        return times
 
 
 class BaseEvent(BaseModel):
