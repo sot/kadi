@@ -25,6 +25,39 @@ logger = pyyaks.logger.get_logger(name='events', level=pyyaks.logger.INFO,
 import operator
 
 
+class Query(object):
+    def __init__(self, cls=None, left=None, right=None, op=None):
+        self.cls = cls
+        self.left = left
+        self.right = right
+        self.op = op
+
+    @property
+    def name(self):
+        return self.cls.__name__
+
+    def __and__(self, other):
+        return Query(left=self, right=other, op=operator.and_)
+
+    def __or__(self, other):
+        return Query(left=self, right=other, op=operator.or_)
+
+    def __invert__(self):
+        return Query(left=self, op=operator.not_)
+
+    def intervals(self, start, stop):
+        if self.op is not None:
+            left_times = self.left.intervals(start, stop)
+            if self.right is None:
+                return left_times
+            else:
+                right_times = self.right.intervals(start, stop)
+                return sorted(left_times + right_times)
+        else:
+            event_times = self.cls._get_event_times(start, stop)
+            return event_times
+
+
 def un_unicode(vals):
     return tuple(val.encode('ascii') if isinstance(val, unicode) else val
                  for val in vals)
