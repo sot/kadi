@@ -72,7 +72,6 @@ class MyChangeList(main.ChangeList):
             start = None
             for bit in self.query.split():
                 m = re.match(r'(\w+)=(.+)', bit)
-                print(m)
                 if m:
                     field_name, field_value = m.groups()
                     qs = qs.filter(**{'{}__iexact'.format(field_name): coerce_type(field_value)})
@@ -83,7 +82,8 @@ class MyChangeList(main.ChangeList):
                     else:
                         qs = qs.filter(start__lte=bit)
                 else:
-                    print('Bad filter item')  # Just drop it
+                    pass
+                    # print('Bad filter item')  # Just drop it
         return qs
 
 
@@ -158,5 +158,4 @@ class DwellAdmin(ModelAdminBase):
 for name, obj in vars().items():
     if name.endswith('Admin') and inspect.isclass(obj) and issubclass(obj, ModelAdminBase):
         mdl_cls_name = name[:-5]
-        print('Registeering {} {}'.format(mdl_cls_name, name))
         admin.site.register(getattr(mdl, mdl_cls_name), obj)
