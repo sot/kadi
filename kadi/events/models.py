@@ -22,41 +22,6 @@ ZERO_DT = -1e-4
 logger = pyyaks.logger.get_logger(name='events', level=pyyaks.logger.INFO,
                                   format="%(asctime)s %(message)s")
 
-import operator
-
-
-class Query(object):
-    def __init__(self, cls=None, left=None, right=None, op=None):
-        self.cls = cls
-        self.left = left
-        self.right = right
-        self.op = op
-
-    @property
-    def name(self):
-        return self.cls.__name__
-
-    def __and__(self, other):
-        return Query(left=self, right=other, op=operator.and_)
-
-    def __or__(self, other):
-        return Query(left=self, right=other, op=operator.or_)
-
-    def __invert__(self):
-        return Query(left=self, op=operator.not_)
-
-    def intervals(self, start, stop):
-        if self.op is not None:
-            left_times = self.left.intervals(start, stop)
-            if self.right is None:
-                return left_times
-            else:
-                right_times = self.right.intervals(start, stop)
-                return sorted(left_times + right_times)
-        else:
-            event_times = self.cls._get_event_times(start, stop)
-            return event_times
-
 
 def un_unicode(vals):
     return tuple(val.encode('ascii') if isinstance(val, unicode) else val
@@ -276,28 +241,35 @@ class BaseModel(models.Model):
         return dat.view(np.ndarray)
 
     @classmethod
-    def qs(cls):
-        return Query(cls)
-
-    @classmethod
     @import_ska
-    def _get_event_times(cls, start, stop):
+    def get_date_intervals(cls, start, stop, pads=None):
+        # OPTIMIZE ME!
+
         # Initially get events within padded date range.  Filter on only
         # the "start" field because this is always indexed, and filtering
         # on two fields is much slower in SQL.
+        if pads is None:
+            pads = (0.0, 0.0)
+        if len(pads) != 2:
+            raise ValueError('pads must have length=2')
+
         datestart = (DateTime(start) - cls.lookback).date
         datestop = (DateTime(stop) + cls.lookback).date
-        query = ("select start, stop from {} where start >= %s and start <= %s"
-                 .format(cls._meta.db_table))
-        events = cls.objects.raw(query, [datestart, datestop])
+        events = cls.objects.filter(start__gte=datestart, start__lte=datestop)
 
         datestart = DateTime(start).date
         datestop = DateTime(stop).date
-        times = [un_unicode((max(event.start, datestart),
-                             min(event.stop, datestop)))
-                 for event in events
-                 if event.start <= datestop and event.stop >= datestart]
-        return times
+
+        intervals = []
+        for event in events:
+            event_datestart = DateTime(event.tstart - pads[0], format='secs').date
+            event_datestop = DateTime(event.tstop + pads[0], format='secs').date
+
+            if event_datestart <= datestop and event_datestop >= datestart:
+                intervals.append((max(event_datestart, datestart),
+                                  min(event_datestop, datestop)))
+
+        return intervals
 
 
 class BaseEvent(BaseModel):
