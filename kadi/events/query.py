@@ -11,6 +11,11 @@ from . import models
 __all__ = []  # this gets updated dynamically by code at the end
 
 
+def un_unicode(vals):
+    return tuple(val.encode('ascii') if isinstance(val, unicode) else val
+                 for val in vals)
+
+
 def get_true_intervals(dates, vals):
     """
     For an interval-like quantity ``vals`` at ``dates``, return the
@@ -154,6 +159,49 @@ class EventQuery(object):
         else:
             date_intervals = self.cls.get_date_intervals(start, stop, self.interval_pad)
             return date_intervals
+
+    def find(self, start=None, stop=None, subset=None, **kwargs):
+        """
+        Find events between ``start`` and ``stop`` which match the filter
+        attributes in ``**kwargs``.  The matching events are returned as a
+        structured array.  If ``start`` or ``stop`` are not supplied they
+        default to the beginning / end of available data.  The optional
+        ``subset`` arg must be a Python slice() object and allows slicing
+        of the filtered output.
+
+        Examples
+        --------
+
+          >>> from kadi.events.models import Manvr
+          >>> Manvr.find('2011:001', '2012:001', n_dwell__exact=1, angle__gte=140)
+          >>> Manvr.find('2011:001', '2012:001', subset=slice(None, 5))  # first 5
+
+        :param start: start time (DateTime compatible format)
+        :param stop: stop time (DateTime compatible format)
+        :param subset: subset of matching events that are output
+        :param start: start time (DateTime compatible format)
+
+        :returns: structured array with matching events
+        """
+        cls = self.cls
+        objs = cls.objects.all()
+        if start is not None:
+            kwargs['start__gte'] = DateTime(start).date
+        if stop is not None:
+            field_names = [x.name for x in cls._meta.fields]
+            attr = ('stop__lte' if 'stop' in field_names else 'start__lte')
+            kwargs[attr] = DateTime(stop).date
+        if kwargs:
+            objs = objs.filter(**kwargs)
+        if subset:
+            if not isinstance(subset, slice):
+                raise ValueError('subset parameter must be a slice() object')
+            objs = objs[subset]
+        names = [f.name for f in cls._meta.fields]
+        rows = [un_unicode(vals) for vals in objs.values_list()]
+        dat = np.rec.fromrecords(rows, names=names)
+        return dat.view(np.ndarray)
+
 
 # Put EventQuery objects for each query-able model class into module globals
 for name, var in vars(models).items():
