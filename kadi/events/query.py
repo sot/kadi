@@ -8,7 +8,7 @@ from Chandra.Time import DateTime
 
 from . import models
 
-__all__ = []  # this gets updated dynamically by code at the end
+__all__ = ['EventQuery', 'queryset_to_array']  # this gets updated dynamically by code at the end
 
 
 def un_unicode(vals):
@@ -160,11 +160,11 @@ class EventQuery(object):
             date_intervals = self.cls.get_date_intervals(start, stop, self.interval_pad)
             return date_intervals
 
-    def find(self, start=None, stop=None, subset=None, **kwargs):
+    def filter(self, start=None, stop=None, subset=None, **kwargs):
         """
         Find events between ``start`` and ``stop`` which match the filter
         attributes in ``**kwargs``.  The matching events are returned as a
-        structured array.  If ``start`` or ``stop`` are not supplied they
+        Django query set.  If ``start`` or ``stop`` are not supplied they
         default to the beginning / end of available data.  The optional
         ``subset`` arg must be a Python slice() object and allows slicing
         of the filtered output.
@@ -172,16 +172,16 @@ class EventQuery(object):
         Examples
         --------
 
-          >>> from kadi.events.models import Manvr
-          >>> Manvr.find('2011:001', '2012:001', n_dwell__exact=1, angle__gte=140)
-          >>> Manvr.find('2011:001', '2012:001', subset=slice(None, 5))  # first 5
+          >>> from kadi import events
+          >>> events.manvrs.filter('2011:001', '2012:001', n_dwell__exact=1, angle__gte=140)
+          >>> events.manvrs.filter('2011:001', '2012:001', subset=slice(None, 5))  # first 5
 
         :param start: start time (DateTime compatible format)
         :param stop: stop time (DateTime compatible format)
         :param subset: subset of matching events that are output
         :param start: start time (DateTime compatible format)
 
-        :returns: structured array with matching events
+        :returns: Django query set with matching events
         """
         cls = self.cls
         objs = cls.objects.all()
@@ -197,10 +197,42 @@ class EventQuery(object):
             if not isinstance(subset, slice):
                 raise ValueError('subset parameter must be a slice() object')
             objs = objs[subset]
-        names = [f.name for f in cls._meta.fields]
-        rows = [un_unicode(vals) for vals in objs.values_list()]
-        dat = np.rec.fromrecords(rows, names=names)
-        return dat.view(np.ndarray)
+
+        return objs
+
+    def find(self, start=None, stop=None, subset=None, **kwargs):
+        """
+        Find events between ``start`` and ``stop`` which match the filter
+        attributes in ``**kwargs``.  The matching events are returned as a
+        structured array.  If ``start`` or ``stop`` are not supplied they
+        default to the beginning / end of available data.  The optional
+        ``subset`` arg must be a Python slice() object and allows slicing
+        of the filtered output.
+
+        Examples
+        --------
+
+          >>> from kadi import events
+          >>> events.manvrs.find('2011:001', '2012:001', n_dwell__exact=1, angle__gte=140)
+          >>> events.manvrs.find('2011:001', '2012:001', subset=slice(None, 5))  # first 5
+
+        :param start: start time (DateTime compatible format)
+        :param stop: stop time (DateTime compatible format)
+        :param subset: subset of matching events that are output
+        :param start: start time (DateTime compatible format)
+
+        :returns: structured array with matching events
+        """
+        objs = self.filter(start, stop, subset, **kwargs)
+        dat = queryset_to_array(objs)
+        return dat
+
+
+def queryset_to_array(queryset):
+    names = [f.name for f in queryset.model._meta.fields]
+    rows = [un_unicode(vals) for vals in queryset.values_list()]
+    dat = np.rec.fromrecords(rows, names=names)
+    return dat.view(np.ndarray)
 
 
 # Put EventQuery objects for each query-able model class into module globals
