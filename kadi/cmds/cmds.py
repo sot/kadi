@@ -6,6 +6,8 @@ import numpy as np
 
 from Chandra.Time import DateTime
 
+__all__ = ['filter', 'find']
+
 FILES = {'idx_cmds': 'cmds.h5',
          'pars_dict': 'cmds.pkl'}
 
@@ -58,7 +60,7 @@ pars_dict = LazyVal(load_pars_dict)
 rev_pars_dict = LazyVal(lambda: {v: k for k, v in pars_dict.items()})
 
 
-def get_idx_cmds(start=None, stop=None, **kwargs):
+def filter(start=None, stop=None, **kwargs):
     """
     Get commands between ``start`` and ``stop``.  Additional ``key=val`` pairs
     can be supplied to further filter the results.  Both ``key`` and ``val``
@@ -68,14 +70,13 @@ def get_idx_cmds(start=None, stop=None, **kwargs):
     date : Exact date of command e.g. '2013:003:22:11:45.530'
     type : Command type e.g. COMMAND_SW, COMMAND_HW, ACISPKT, SIMTRANS
 
-    Examples
-    --------
+    Examples::
 
-      >>> from kadi.cmds import get_cmds
-      >>> cmds = get_cmds('2012:001', '2012:030')
-      >>> cmds = get_cmds('2012:001', '2012:030', type='simtrans')
-      >>> cmds = get_cmds(type='acispkt', tlmsid='wsvidalldn')
-      >>> cmds = get_cmds(msid='aflcrset')
+      >>> from kadi import cmds
+      >>> cs = cmds.filter('2012:001', '2012:030')
+      >>> cs = cmds.filter('2012:001', '2012:030', type='simtrans')
+      >>> cs = cmds.filter(type='acispkt', tlmsid='wsvidalldn')
+      >>> cs = cmds.filter(msid='aflcrset')
 
     Parameters
     ----------
@@ -89,7 +90,43 @@ def get_idx_cmds(start=None, stop=None, **kwargs):
 
     Returns
     -------
-    idx_cmds : numpy structured array
+    cmds : CmdList object (list of commands)
+    """
+    cmds = find(start, stop, **kwargs)
+    return CmdList(cmds)
+
+
+def find(start=None, stop=None, **kwargs):
+    """
+    Get commands between ``start`` and ``stop``.  Additional ``key=val`` pairs
+    can be supplied to further filter the results.  Both ``key`` and ``val``
+    are case insensitive.  In addition to the any of the command parameters
+    such as TLMSID, MSID, SCS, STEP, or POS, the ``key`` can be:
+
+    date : Exact date of command e.g. '2013:003:22:11:45.530'
+    type : Command type e.g. COMMAND_SW, COMMAND_HW, ACISPKT, SIMTRANS
+
+    Examples::
+
+      >>> from kadi import cmds
+      >>> cs = cmds.filter('2012:001', '2012:030')
+      >>> cs = cmds.filter('2012:001', '2012:030', type='simtrans')
+      >>> cs = cmds.filter(type='acispkt', tlmsid='wsvidalldn')
+      >>> cs = cmds.filter(msid='aflcrset')
+
+    Parameters
+    ----------
+    start : DateTime format (optional)
+        Start time, defaults to beginning of available commands (2002:001)
+
+    stop : DateTime format (optional)
+        Stop time, defaults to end of available commands
+
+    **kwargs : any key=val keyword argument pairs
+
+    Returns
+    -------
+    cmds : numpy structured array of commands
     """
     ok = np.ones(len(idx_cmds), dtype=bool)
     par_ok = np.zeros(len(idx_cmds), dtype=bool)
@@ -112,8 +149,7 @@ def get_idx_cmds(start=None, stop=None, **kwargs):
                     par_ok |= (idx_cmds['idx'] == idx)
             ok &= par_ok
     cmds = idx_cmds[ok]
-
-    return CmdList(cmds)
+    return cmds
 
 
 class Cmd(OrderedDict):
@@ -127,8 +163,9 @@ class Cmd(OrderedDict):
             del self['tlmsid']
 
     def __repr__(self):
-        out = ('{} {} '.format(self['date'], self['type']) +
-               ' '.join('{}={}'.format(key, val) for key, val in self.items()))
+        out = ('{} {:11s} '.format(self['date'], self['type']) +
+               ' '.join('{}={}'.format(key, val) for key, val in self.items()
+                        if key not in ('type', 'date')))
         return out
 
     def __str__(self):
