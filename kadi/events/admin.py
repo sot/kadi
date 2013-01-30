@@ -155,6 +155,10 @@ class DwellAdmin(ModelAdminBase):
     list_display = ('start', 'stop', 'rel_tstart', 'manvr')
 
 
+class RadZoneAdmin(ModelAdminBase):
+    list_display = ('orbit_num', 'start', 'stop', 'dur')
+
+
 for name, obj in vars().items():
     if name.endswith('Admin') and inspect.isclass(obj) and issubclass(obj, ModelAdminBase):
         mdl_cls_name = name[:-5]

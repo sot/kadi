@@ -982,7 +982,8 @@ class Orbit(BaseEvent):
         for orbit in orbits:
             ok = orbit_points['orbit_num'] == orbit['orbit_num']
             event = {key: orbit[key] for key in orbit.dtype.names}
-            event['foreign'] = {'OrbitPoint': orbit_points[ok]}
+            event['foreign'] = {'OrbitPoint': orbit_points[ok],
+                                'RadZone': [orbit_funcs.get_radzone_from_orbit(orbit)]}
             events.append(event)
 
         return events
@@ -1006,3 +1007,13 @@ class OrbitPoint(BaseModel):
     def __unicode__(self):
         return ('{} (orbit {}) {}: {}'
                 .format(self.date[:17], self.orbit_num, self.name, self.descr[:30]))
+
+
+class RadZone(Event):
+    orbit = models.ForeignKey(Orbit)
+    orbit_num = models.IntegerField()
+
+    def __unicode__(self):
+        return ('{} {} {} dur={:.1f} ksec'
+                .format(self.orbit_num, self.start[:17], self.stop[:17],
+                        self.dur / 1000))

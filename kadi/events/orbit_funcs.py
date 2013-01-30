@@ -449,3 +449,23 @@ def get_orbits(orbit_points):
 
     orbits = np.array(orbits, dtype=ORBITS_DTYPE)
     return orbits
+
+
+def get_radzone_from_orbit(orbit):
+    """
+    Extract the RadZone fields from an orbit descriptor (which is one row
+    of the orbits structured array).
+    """
+    start_radzone = DateTime(orbit['start_radzone'], format='date')
+    stop_radzone = DateTime(orbit['stop_radzone'], format='date')
+    tstart = start_radzone.secs
+    tstop = stop_radzone.secs
+    dur = tstop - tstart
+    radzone = {'start': start_radzone.date,
+               'stop': stop_radzone.date,
+               'tstart': tstart,
+               'tstop': tstop,
+               'dur': dur,
+               'orbit_num': orbit['orbit_num']}
+
+    return radzone
