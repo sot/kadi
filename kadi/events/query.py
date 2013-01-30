@@ -8,7 +8,8 @@ from Chandra.Time import DateTime
 
 from . import models
 
-__all__ = ['EventQuery', 'queryset_to_array']  # this gets updated dynamically by code at the end
+# This gets updated dynamically by code at the end
+__all__ = ['get_dates_vals', 'EventQuery', 'queryset_to_array']
 
 
 def un_unicode(vals):
@@ -152,7 +153,9 @@ class EventQuery(object):
         if self.op is not None:
             intervals0 = self.left.intervals(start, stop)
             if self.right is None:
-                return intervals0
+                # This assumes any unary operator is ~.  FIX ME!
+                intervals1 = [(DateTime(start).date, DateTime(stop).date)]
+                return combine_intervals(operator.xor, intervals0, intervals1, start, stop)
             else:
                 intervals1 = self.right.intervals(start, stop)
                 return combine_intervals(self.op, intervals0, intervals1, start, stop)
