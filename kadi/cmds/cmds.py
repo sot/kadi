@@ -1,3 +1,4 @@
+import os
 import cPickle as pickle
 import tables
 from collections import OrderedDict
@@ -6,10 +7,12 @@ import numpy as np
 
 from Chandra.Time import DateTime
 
+from .. import paths
+
 __all__ = ['filter', 'find']
 
-FILES = {'idx_cmds': 'cmds.h5',
-         'pars_dict': 'cmds.pkl'}
+IDX_CMDS_PATH = os.path.join(paths.DATA_DIR, 'cmds.h5')
+PARS_DICT_PATH = os.path.join(paths.DATA_DIR, 'cmds.pkl')
 
 
 class LazyVal(object):
@@ -42,14 +45,14 @@ class LazyVal(object):
 
 
 def load_idx_cmds():
-    h5 = tables.openFile(FILES['idx_cmds'], mode='r')
+    h5 = tables.openFile(IDX_CMDS_PATH, mode='r')
     idx_cmds = h5.root.data[:]
     h5.close()
     return idx_cmds
 
 
 def load_pars_dict():
-    with open(FILES['pars_dict'], 'r') as fh:
+    with open(PARS_DICT_PATH, 'r') as fh:
         pars_dict = pickle.load(fh)
     return pars_dict
 
