@@ -466,6 +466,7 @@ def get_radzone_from_orbit(orbit):
                'tstart': tstart,
                'tstop': tstop,
                'dur': dur,
-               'orbit_num': orbit['orbit_num']}
+               'orbit_num': orbit['orbit_num'],
+               'perigee': orbit['perigee']}
 
     return radzone

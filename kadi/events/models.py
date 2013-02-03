@@ -1045,6 +1045,7 @@ class OrbitPoint(BaseModel):
 class RadZone(Event):
     orbit = models.ForeignKey(Orbit)
     orbit_num = models.IntegerField()
+    perigee = models.CharField(max_length=21)
 
     def __unicode__(self):
         return ('{} {} {} dur={:.1f} ksec'
