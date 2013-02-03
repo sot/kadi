@@ -584,7 +584,7 @@ class Manvr(TlmEvent):
                 .format(self.start, self.dur, self.n_dwell, self.template))
 
     @classmethod
-    def get_dwells(cls, changes):
+    def get_dwells(cls, event, changes):
         dwells = []
         state = None
         t0 = 0
@@ -622,6 +622,10 @@ class Manvr(TlmEvent):
                 dwells.append(dwell)
                 dwell = {}
                 state = None
+
+        for dwell in dwells:
+            for att in ('ra', 'dec', 'roll'):
+                dwell[att] = event['stop_' + att]
 
         return dwells
 
@@ -768,19 +772,20 @@ class Manvr(TlmEvent):
                   (sequence['msid'] == 'aopcadmd'))
             sequence = sequence[ok]
             manvr_attrs = cls.get_manvr_attrs(sequence)
-            dwells = cls.get_dwells(sequence)
 
             event = dict(tstart=tstart,
                          tstop=tstop,
                          dur=tstop - tstart,
                          start=DateTime(tstart).date,
                          stop=DateTime(tstop).date,
-                         n_dwell=len(dwells),
-                         foreign={'ManvrSeq': sequence,
-                                  'Dwell': dwells},
+                         foreign={'ManvrSeq': sequence},
                          )
             event.update(manvr_attrs)
             event.update(cls.get_target_attitudes(event, tarqt_msidset))
+
+            dwells = cls.get_dwells(event, sequence)
+            event['foreign']['Dwell'] = dwells
+            event['n_dwell'] = len(dwells)
 
             events.append(event)
 
@@ -794,6 +799,9 @@ class Dwell(Event):
     """
     rel_tstart = models.FloatField()
     manvr = models.ForeignKey(Manvr)
+    ra = models.FloatField()
+    dec = models.FloatField()
+    roll = models.FloatField()
 
     # To do: add ra dec roll quaternion
 
