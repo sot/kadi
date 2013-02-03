@@ -387,6 +387,39 @@ class TlmEvent(Event):
         return msidset
 
 
+class Obsid(TlmEvent):
+    event_msids = ['cobsrqid']
+
+    obsid = models.IntegerField()
+
+    @classmethod
+    @import_ska
+    def get_events(cls, start, stop=None):
+        """
+        Get obsid events from telemetry.  A event is defined by a
+        contiguous interval of the telemetered obsid.
+        """
+        # Get the event telemetry MSID objects
+        event_msidset = fetch.Msidset(cls.event_msids, start, stop)
+        obsid = event_msidset['cobsrqid']
+        states = obsid.state_intervals()
+        events = []
+        # Skip the first and last states as they are likely incomplete
+        for state in states[1:-1]:
+            event = dict(start=state['datestart'],
+                         stop=state['datestop'],
+                         tstart=state['tstart'],
+                         tstop=state['tstop'],
+                         dur=state['tstop'] - state['tstart'],
+                         obsid=state['val'])
+            events.append(event)
+        return events
+
+    def __unicode__(self):
+        return ('start={} dur={:.0f} obsid={}'
+                .format(self.start, self.dur, self.obsid))
+
+
 class TscMove(TlmEvent):
     event_msids = ['3tscmove', '3tscpos', '3mrmmxmv']
     event_val = 'T'
