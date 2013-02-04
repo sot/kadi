@@ -147,6 +147,37 @@ def fuzz_states(states, t_fuzz):
     return states
 
 
+class Pad(object):
+    def __init__(self, start, stop=None):
+        self.start = start
+        self.stop = stop
+
+
+class IntervalPad(object):
+    """
+    Data descriptor that sets and gets an interval pad.  This pad has
+    two values that are applied to the start and stop times for an interval,
+    respectively.
+    """
+
+    def __init__(self, start, stop=None):
+        self.pad = Pad(start, stop)
+
+    def __get__(self, instance, owner):
+        return self.pad
+
+    def __set__(self, instance, val):
+        try:
+            len_val = len(val)
+        except TypeError:
+            self.pad = Pad(float(val), float(val))
+        else:
+            if len_val == 2:
+                self.pad = Pad(val[0], val[1])
+            else:
+                raise ValueError('interval_pad must be a float scalar or 2-element list')
+
+
 class Update(models.Model):
     """
     Last telemetry which was searched for an update.
@@ -235,6 +266,17 @@ class BaseEvent(BaseModel):
         ordering = ['start']
 
     lookback = 21  # days of lookback
+    interval_pad = IntervalPad(300, 300)  # interval padding before/ after event start/stop
+
+    def get_commands(self):
+        """
+        Get load commands within start/stop interval for this event.
+        Apply padding defined by command_pads.
+        """
+        from .. import cmds as commands
+        cmds = commands.filter(self.tstart - self.interval_pad.start,
+                               self.tstop + self.interval_pad.stop)
+        return cmds
 
     def __unicode__(self):
         return ('start={}'.format(self.start))
@@ -902,7 +944,7 @@ class IFotEvent(BaseEvent):
     @import_ska
     def get_events(cls, start, stop=None):
         """
-        Get Major Events from FDB and FOT tables on the OCCweb
+        Get events from iFOT web interface
         """
         from . import occweb
 
