@@ -5,5 +5,5 @@ in database.  This is normally run as a cron job.
 """
 
 if __name__ == '__main__':
-    from kadi.cmds import update_cmds
+    from kadi import update_cmds
     update_cmds.main()

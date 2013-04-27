@@ -5,5 +5,4 @@ djangotutorial
 kadi/events/cache
 *.log
 web2py
-kadi/events/occweb.py
 NOTES.build

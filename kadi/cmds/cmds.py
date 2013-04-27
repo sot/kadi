@@ -7,12 +7,9 @@ import numpy as np
 
 from Chandra.Time import DateTime
 
-from .. import paths
+from ..paths import IDX_CMDS_PATH, PARS_DICT_PATH
 
 __all__ = ['filter', 'find']
-
-IDX_CMDS_PATH = os.path.join(paths.DATA_DIR, 'cmds.h5')
-PARS_DICT_PATH = os.path.join(paths.DATA_DIR, 'cmds.pkl')
 
 
 class LazyVal(object):

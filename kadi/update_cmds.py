@@ -25,10 +25,6 @@ def get_opt(args=None):
     """Get options for command line interface to update_cmd_states.
     """
     parser = argparse.ArgumentParser(description='Update HDF5 cmds table')
-    parser.add_argument("--outroot",
-                        default='cmds',
-                        help="root filename for HDF5 (.h5) and "
-                             "pickle (.pkl) files (default='cmds')")
     parser.add_argument("--mp-dir",
                         default='/data/mpcrit1/mplogs',
                         help="MP load directory")
@@ -40,6 +36,9 @@ def get_opt(args=None):
                         type=int,
                         default=10,
                         help='Log level (10=debug, 20=info, 30=warnings)')
+    parser.add_argument("--data-root",
+                        default='.',
+                        help="Data root (default='.')")
 
     args = parser.parse_args(args)
     return args
@@ -163,6 +162,12 @@ def add_h5_cmds(h5file, idx_cmds):
 def main(args=None):
     opt = get_opt(args)
 
+    # Set the global root data directory.  This gets used in ..paths to
+    # construct file names.  The use of an env var is needed to allow
+    # configurability of the root data directory within django.
+    os.environ['KADI'] = os.path.abspath(opt.data_root)
+    from .paths import IDX_CMDS_PATH, PARS_DICT_PATH
+
     # Configure logging to emit msgs to stdout
     logging.basicConfig(level=opt.loglevel,
                         format='%(message)s',
@@ -182,24 +187,22 @@ def main(args=None):
     logging.info('Found {} timelines included within {} to {}'
                  .format(len(timeline_loads), start.date, stop.date))
 
-    h5file = opt.outroot + '.h5'
-    pars_dict_file = opt.outroot + '.pkl'
     try:
-        with open(pars_dict_file, 'r') as fh:
+        with open(PARS_DICT_PATH, 'r') as fh:
             pars_dict = pickle.load(fh)
-        logging.info('Read {} pars_dict values from {}'.format(len(pars_dict), pars_dict_file))
+        logging.info('Read {} pars_dict values from {}'.format(len(pars_dict), PARS_DICT_PATH))
     except IOError:
         logging.info('No pars_dict file {} found, starting from empty dict'
-                     .format(pars_dict_file))
+                     .format(PARS_DICT_PATH))
         pars_dict = {}
 
     cmds = get_cmds(timeline_loads, opt.mp_dir)
     idx_cmds = get_idx_cmds(cmds, pars_dict)
-    add_h5_cmds(h5file, idx_cmds)
+    add_h5_cmds(IDX_CMDS_PATH, idx_cmds)
 
-    with open(pars_dict_file, 'w') as fh:
+    with open(PARS_DICT_PATH, 'w') as fh:
         pickle.dump(pars_dict, fh, protocol=-1)
-        logging.info('Wrote {} pars_dict values to {}'.format(len(pars_dict), pars_dict_file))
+        logging.info('Wrote {} pars_dict values to {}'.format(len(pars_dict), PARS_DICT_PATH))
 
     return cmds
 

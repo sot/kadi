@@ -8,5 +8,5 @@ import os
 
 if __name__ == '__main__':
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "kadi.settings")
-    from kadi.events import update_events
+    from kadi import update_events
     update_events.main()

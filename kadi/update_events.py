@@ -1,17 +1,14 @@
 """Update the events database"""
 
+import os
 import re
 import types
 import argparse
 
 import numpy as np
-import django.db
-from django.core.exceptions import ObjectDoesNotExist
 
 import pyyaks.logger
 from Chandra.Time import DateTime
-
-from . import models
 
 logger = None  # for pyflakes
 
@@ -37,12 +34,19 @@ def get_opt(args=None):
                         action='append',
                         dest='models',
                         help="Model class name to process [match regex] (default = all)")
+    parser.add_argument("--data-root",
+                        default=".",
+                        help="Root data directory (default='.')")
 
     args = parser.parse_args(args)
     return args
 
 
 def update(EventModel, date_stop):
+    import django.db
+    from django.core.exceptions import ObjectDoesNotExist
+    from .events import models
+
     date_stop = DateTime(date_stop)
     cls_name = EventModel.__name__
 
@@ -105,6 +109,12 @@ def main():
     global logger
 
     opt = get_opt()
+
+    # Set the global root data directory.  This gets used in the django
+    # setup to find the sqlite3 database file.
+    os.environ['KADI'] = os.path.abspath(opt.data_root)
+    from .events import models
+
     logger = pyyaks.logger.get_logger(name='events', level=opt.log_level,
                                       format="%(asctime)s %(message)s")
 
