@@ -1,8 +1,12 @@
-cmds.h5
-cmds.pkl
-events.db3
 djangotutorial
 kadi/events/cache
 *.log
 web2py
 NOTES.build
+build/
+dist/
+*.ipynb
+*.pkl
+*.db3
+*.h5
+MANIFEST
