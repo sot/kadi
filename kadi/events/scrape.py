@@ -3,7 +3,7 @@ import re
 from BeautifulSoup import BeautifulSoup as parse_html
 
 from Chandra.Time import DateTime
-from . import occweb
+from .. import occweb
 
 REPLACES = ((r'&#150', '-'),
             (r'&amp;', '&'),

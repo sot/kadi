@@ -946,7 +946,7 @@ class IFotEvent(BaseEvent):
         """
         Get events from iFOT web interface
         """
-        from . import occweb
+        from .. import occweb
 
         datestart = DateTime(start).date
         datestop = DateTime(stop).date
