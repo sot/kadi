@@ -964,6 +964,7 @@ class IFotEvent(BaseEvent):
             for st in ('start', 'stop'):
                 if st not in event or not event[st].strip():
                     event[st] = ifot_evt['t' + st]
+            event['ifot_id'] = ifot_evt['id']
             events.append(event)
 
         return events
