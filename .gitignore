@@ -2,7 +2,6 @@ djangotutorial
 kadi/events/cache
 *.log
 web2py
-NOTES.build
 build/
 dist/
 *.ipynb
