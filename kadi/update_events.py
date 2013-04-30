@@ -7,6 +7,7 @@ import argparse
 
 import numpy as np
 
+from . import occweb
 import pyyaks.logger
 from Chandra.Time import DateTime
 
@@ -14,6 +15,7 @@ logger = None  # for pyflakes
 
 
 def get_opt(args=None):
+    OCC_SOT_ACCOUNT = os.environ['USER'].lower() == 'sot'
     parser = argparse.ArgumentParser(description='Update the events database')
     parser.add_argument("--stop",
                         default=DateTime().date,
@@ -37,6 +39,10 @@ def get_opt(args=None):
     parser.add_argument("--data-root",
                         default=".",
                         help="Root data directory (default='.')")
+    parser.add_argument("--occ",
+                        default=OCC_SOT_ACCOUNT,
+                        action='store_true',
+                        help="Running at OCC as copy-only client")
 
     args = parser.parse_args(args)
     return args
@@ -110,18 +116,24 @@ def main():
 
     opt = get_opt()
 
-    # Set the global root data directory.  This gets used in the django
-    # setup to find the sqlite3 database file.
-    os.environ['KADI'] = os.path.abspath(opt.data_root)
-    from .events import models
-
     logger = pyyaks.logger.get_logger(name='events', level=opt.log_level,
                                       format="%(asctime)s %(message)s")
 
-    # Allow for a cmd line option --date-start.  If supplied then loop the
-    # effective value of opt.stop from date_start to the cmd line
-    # --date-now in steps of --max-lookback-time
+    # Set the global root data directory.  This gets used in the django
+    # setup to find the sqlite3 database file.
+    os.environ['KADI'] = os.path.abspath(opt.data_root)
+    from .paths import EVENTS_DB_PATH
 
+    if opt.occ:
+        # Get events database file from HEAD via lucky ftp
+        occweb.ftp_get_from_lucky('kadi', [EVENTS_DB_PATH], logger=logger)
+        return
+
+    from .events import models
+
+    # Allow for a cmd line option --start.  If supplied then loop the
+    # effective value of opt.stop from start to the cmd line
+    # --stop in steps of --max-lookback-time
     if opt.start is None:
         date_stops = [opt.stop]
     else:
@@ -146,6 +158,9 @@ def main():
     for EventModel in EventModels:
         for date_stop in date_stops:
             update(EventModel, date_stop)
+
+    # Push events database file to OCC via lucky ftp
+    occweb.ftp_put_to_lucky('kadi', [EVENTS_DB_PATH], logger=logger)
 
 if __name__ == '__main__':
     main()
