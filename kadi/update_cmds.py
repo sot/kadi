@@ -1,16 +1,14 @@
-import sys
 import os
-import logging
 import argparse
 import cPickle as pickle
 
 import numpy as np
 import tables
 
+import pyyaks.logger
 import Ska.DBI
 import Ska.File
 from Chandra.Time import DateTime
-
 
 CMDS_DTYPE = [('idx', np.uint16),
               ('date', '|S21'),
@@ -20,9 +18,12 @@ CMDS_DTYPE = [('idx', np.uint16),
               ('step', np.uint16),
               ('timeline_id', np.uint32)]
 
+logger = None  # This is set as a global in main.  Define here for pyflakes.
+
 
 def get_opt(args=None):
-    """Get options for command line interface to update_cmd_states.
+    """
+    Get options for command line interface to update_cmd_states.
     """
     parser = argparse.ArgumentParser(description='Update HDF5 cmds table')
     parser.add_argument("--mp-dir",
@@ -32,7 +33,7 @@ def get_opt(args=None):
                         help="Start date for update (default=stop-21 days)")
     parser.add_argument("--stop",
                         help="Stop date for update (default=Now)")
-    parser.add_argument("--loglevel",
+    parser.add_argument("--log-level",
                         type=int,
                         default=10,
                         help='Log level (10=debug, 20=info, 30=warnings)')
@@ -61,7 +62,7 @@ def get_cmds(timeline_loads, mp_dir='/data/mpcrit1/mplogs'):
                                                       '*.backstop'))[0]
         if bs_file not in cache:
             bs_cmds = read_backstop(bs_file)
-            logging.info('Read {} commands from {}'.format(len(bs_cmds), bs_file))
+            logger.info('Read {} commands from {}'.format(len(bs_cmds), bs_file))
             cache[bs_file] = bs_cmds
         else:
             bs_cmds = cache[bs_file]
@@ -74,13 +75,13 @@ def get_cmds(timeline_loads, mp_dir='/data/mpcrit1/mplogs'):
         for bs_cmd in bs_cmds:
             bs_cmd['timeline_id'] = tl['id']
 
-        logging.info('  Got {} backstop commands for timeline_id={} and SCS={}'
-                     .format(len(bs_cmds), tl['id'], tl['scs']))
+        logger.info('  Got {} backstop commands for timeline_id={} and SCS={}'
+                    .format(len(bs_cmds), tl['id'], tl['scs']))
         cmds.extend(bs_cmds)
 
     # Sort by date and SCS step number.
     cmds = sorted(cmds, key=lambda y: (y['date'], y['step']))
-    logging.debug('Read total of {} commands'.format(len(cmds)))
+    logger.debug('Read total of {} commands'.format(len(cmds)))
 
     return cmds
 
@@ -98,7 +99,7 @@ def get_idx_cmds(cmds, pars_dict):
 
     for i, cmd in enumerate(cmds):
         if i % 10000 == 9999:
-            logging.info('   Iteration {}'.format(i))
+            logger.info('   Iteration {}'.format(i))
 
         # Define a consistently ordered tuple that has all command parameter information
         pars = cmd['params']
@@ -137,10 +138,10 @@ def add_h5_cmds(h5file, idx_cmds):
 
     try:
         h5d = h5.root.data
-        logging.info('Opened h5 cmds table {}'.format(h5file))
+        logger.info('Opened h5 cmds table {}'.format(h5file))
     except tables.NoSuchNodeError:
         h5.createTable(h5.root, 'data', cmds, "cmds", expectedrows=2e6)
-        logging.info('Created h5 cmds table {}'.format(h5file))
+        logger.info('Created h5 cmds table {}'.format(h5file))
     else:
         h5_timeline_ids = h5d.cols.timeline_id[:]
         ok = np.zeros(len(h5_timeline_ids), dtype=bool)
@@ -150,28 +151,28 @@ def add_h5_cmds(h5file, idx_cmds):
         if not np.all(np.diff(del_idxs) == 1):
             raise ValueError('Inconsistency in timeline_ids')
         h5d.truncate(np.min(del_idxs))
-        logging.debug('Deleted cmds indexes {} .. {}'.format(np.min(del_idxs), np.max(del_idxs)))
+        logger.debug('Deleted cmds indexes {} .. {}'.format(np.min(del_idxs), np.max(del_idxs)))
         h5d.append(cmds)
-        logging.info('Added {} commands to HDF5 cmds table'.format(len(cmds)))
+        logger.info('Added {} commands to HDF5 cmds table'.format(len(cmds)))
 
     h5.flush()
-    logging.info('Upated HDF5 cmds table {}'.format(h5file))
+    logger.info('Upated HDF5 cmds table {}'.format(h5file))
     h5.close()
 
 
 def main(args=None):
+    global logger
+
     opt = get_opt(args)
+
+    logger = pyyaks.logger.get_logger(name='events', level=opt.log_level,
+                                      format="%(asctime)s %(message)s")
 
     # Set the global root data directory.  This gets used in ..paths to
     # construct file names.  The use of an env var is needed to allow
     # configurability of the root data directory within django.
     os.environ['KADI'] = os.path.abspath(opt.data_root)
     from .paths import IDX_CMDS_PATH, PARS_DICT_PATH
-
-    # Configure logging to emit msgs to stdout
-    logging.basicConfig(level=opt.loglevel,
-                        format='%(message)s',
-                        stream=sys.stdout)
 
     stop = DateTime(opt.stop)
     start = DateTime(opt.start) if opt.start else stop - 21
@@ -184,16 +185,16 @@ def main(args=None):
                                  .format(start.date, stop.date))
     db.conn.close()
 
-    logging.info('Found {} timelines included within {} to {}'
-                 .format(len(timeline_loads), start.date, stop.date))
+    logger.info('Found {} timelines included within {} to {}'
+                .format(len(timeline_loads), start.date, stop.date))
 
     try:
         with open(PARS_DICT_PATH, 'r') as fh:
             pars_dict = pickle.load(fh)
-        logging.info('Read {} pars_dict values from {}'.format(len(pars_dict), PARS_DICT_PATH))
+        logger.info('Read {} pars_dict values from {}'.format(len(pars_dict), PARS_DICT_PATH))
     except IOError:
-        logging.info('No pars_dict file {} found, starting from empty dict'
-                     .format(PARS_DICT_PATH))
+        logger.info('No pars_dict file {} found, starting from empty dict'
+                    .format(PARS_DICT_PATH))
         pars_dict = {}
 
     cmds = get_cmds(timeline_loads, opt.mp_dir)
@@ -202,7 +203,7 @@ def main(args=None):
 
     with open(PARS_DICT_PATH, 'w') as fh:
         pickle.dump(pars_dict, fh, protocol=-1)
-        logging.info('Wrote {} pars_dict values to {}'.format(len(pars_dict), PARS_DICT_PATH))
+        logger.info('Wrote {} pars_dict values to {}'.format(len(pars_dict), PARS_DICT_PATH))
 
     return cmds
 
