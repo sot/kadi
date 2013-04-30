@@ -2,8 +2,8 @@ cd ~/git/kadi
 export KADI=$PWD
 rm events.db3 cmds.h5 cmds.pkl
 ./manage.py syncdb
-./update_events --date-start=1999:245 --date-stop=2000:001 --model=SafeSun
-./update_events --date-start=2000:001
+./update_events --start=1999:245 --stop=2000:001 --model=SafeSun
+./update_events --start=2000:001
 ./update_cmds --start=2000:001
 
 

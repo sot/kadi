@@ -15,13 +15,13 @@ logger = None  # for pyflakes
 
 def get_opt(args=None):
     parser = argparse.ArgumentParser(description='Update the events database')
-    parser.add_argument("--date-stop",
+    parser.add_argument("--stop",
                         default=DateTime().date,
                         help="Processing stop date (default=NOW)")
-    parser.add_argument("--date-start",
+    parser.add_argument("--start",
                         default=None,
-                        help=("Processing start date (loops by max-lookback-time "
-                              "until date-now if set)"))
+                        help=("Processing start date (loops by --loop-days "
+                              "until --stop date if set)"))
     parser.add_argument("--loop-days",
                         default=100,
                         type=int,
@@ -119,17 +119,17 @@ def main():
                                       format="%(asctime)s %(message)s")
 
     # Allow for a cmd line option --date-start.  If supplied then loop the
-    # effective value of opt.date_stop from date_start to the cmd line
+    # effective value of opt.stop from date_start to the cmd line
     # --date-now in steps of --max-lookback-time
 
-    if opt.date_start is None:
-        date_stops = [opt.date_stop]
+    if opt.start is None:
+        date_stops = [opt.stop]
     else:
-        t_starts = np.arange(DateTime(opt.date_start).secs,
-                             DateTime(opt.date_stop).secs,
+        t_starts = np.arange(DateTime(opt.start).secs,
+                             DateTime(opt.stop).secs,
                              opt.loop_days * 86400.)
         date_stops = [DateTime(t).date for t in t_starts]
-        date_stops.append(opt.date_stop)
+        date_stops.append(opt.stop)
 
     # Get the event classes in models module
     EventModels = [Model for name, Model in vars(models).items()
