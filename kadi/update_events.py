@@ -116,7 +116,7 @@ def main():
 
     opt = get_opt()
 
-    logger = pyyaks.logger.get_logger(name='events', level=opt.log_level,
+    logger = pyyaks.logger.get_logger(name='kadi', level=opt.log_level,
                                       format="%(asctime)s %(message)s")
 
     # Set the global root data directory.  This gets used in the django

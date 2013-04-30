@@ -9,6 +9,7 @@ import pyyaks.logger
 import Ska.DBI
 import Ska.File
 from Chandra.Time import DateTime
+from . import occweb
 
 CMDS_DTYPE = [('idx', np.uint16),
               ('date', '|S21'),
@@ -25,6 +26,7 @@ def get_opt(args=None):
     """
     Get options for command line interface to update_cmd_states.
     """
+    OCC_SOT_ACCOUNT = os.environ['USER'].lower() == 'sot'
     parser = argparse.ArgumentParser(description='Update HDF5 cmds table')
     parser.add_argument("--mp-dir",
                         default='/data/mpcrit1/mplogs',
@@ -40,6 +42,10 @@ def get_opt(args=None):
     parser.add_argument("--data-root",
                         default='.',
                         help="Data root (default='.')")
+    parser.add_argument("--occ",
+                        default=OCC_SOT_ACCOUNT,
+                        action='store_true',
+                        help="Running at OCC as copy-only client")
 
     args = parser.parse_args(args)
     return args
@@ -165,7 +171,7 @@ def main(args=None):
 
     opt = get_opt(args)
 
-    logger = pyyaks.logger.get_logger(name='events', level=opt.log_level,
+    logger = pyyaks.logger.get_logger(name='kadi', level=opt.log_level,
                                       format="%(asctime)s %(message)s")
 
     # Set the global root data directory.  This gets used in ..paths to
@@ -173,6 +179,11 @@ def main(args=None):
     # configurability of the root data directory within django.
     os.environ['KADI'] = os.path.abspath(opt.data_root)
     from .paths import IDX_CMDS_PATH, PARS_DICT_PATH
+
+    if opt.occ:
+        # Get cmds files from HEAD via lucky ftp
+        occweb.ftp_get_from_lucky('kadi', [IDX_CMDS_PATH, PARS_DICT_PATH], logger=logger)
+        return
 
     stop = DateTime(opt.stop)
     start = DateTime(opt.start) if opt.start else stop - 21
@@ -205,7 +216,8 @@ def main(args=None):
         pickle.dump(pars_dict, fh, protocol=-1)
         logger.info('Wrote {} pars_dict values to {}'.format(len(pars_dict), PARS_DICT_PATH))
 
-    return cmds
+    # Push cmds files to OCC via lucky ftp
+    occweb.ftp_put_to_lucky('kadi', [IDX_CMDS_PATH, PARS_DICT_PATH], logger=logger)
 
 
 def _coerce_type(val):
