@@ -46,6 +46,10 @@ def get_opt(args=None):
                         default=OCC_SOT_ACCOUNT,
                         action='store_true',
                         help="Running at OCC as copy-only client")
+    parser.add_argument("--ftp",
+                        default=False,
+                        action='store_true',
+                        help="Store or get files via ftp (implied for --occ)")
 
     args = parser.parse_args(args)
     return args
@@ -222,8 +226,9 @@ def main(args=None):
         pickle.dump(pars_dict, fh, protocol=-1)
         logger.info('Wrote {} pars_dict values to {}'.format(len(pars_dict), PARS_DICT_PATH))
 
-    # Push cmds files to OCC via lucky ftp
-    occweb.ftp_put_to_lucky('kadi', [IDX_CMDS_PATH, PARS_DICT_PATH], logger=logger)
+    if opt.ftp:
+        # Push cmds files to OCC via lucky ftp
+        occweb.ftp_put_to_lucky('kadi', [IDX_CMDS_PATH, PARS_DICT_PATH], logger=logger)
 
 
 def _coerce_type(val):
