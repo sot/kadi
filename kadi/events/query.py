@@ -7,6 +7,7 @@ import numpy as np
 from Chandra.Time import DateTime
 
 from . import models
+from .models import IntervalPad
 
 # This gets updated dynamically by code at the end
 __all__ = ['get_dates_vals', 'EventQuery', 'queryset_to_array']
@@ -113,12 +114,14 @@ def combine_intervals(op, intervals0, intervals1, start, stop):
 
 
 class EventQuery(object):
+    interval_pad = IntervalPad()  # descriptor defining a Pad for intervals
+
     def __init__(self, cls=None, left=None, right=None, op=None):
         self.cls = cls
         self.left = left
         self.right = right
         self.op = op
-        self._interval_pad = getattr(cls, 'interval_pad', (0.0, 0.0))
+        self.interval_pad = getattr(cls, 'interval_pad', None)
 
     @property
     def name(self):
@@ -132,22 +135,6 @@ class EventQuery(object):
 
     def __invert__(self):
         return EventQuery(left=self, op=operator.not_)
-
-    @property
-    def interval_pad(self):
-        return self._interval_pad
-
-    @interval_pad.setter
-    def interval_pad(self, val):
-        try:
-            len_val = len(val)
-        except TypeError:
-            self._interval_pad = (float(val), float(val))
-        else:
-            if len_val == 2:
-                self._interval_pad = tuple(val)
-            else:
-                raise ValueError('interval_pad must be a float scalar or 2-element list')
 
     def intervals(self, start, stop):
         if self.op is not None:

@@ -148,9 +148,13 @@ def fuzz_states(states, t_fuzz):
 
 
 class Pad(object):
-    def __init__(self, start, stop=None):
-        self.start = start
-        self.stop = stop
+    def __init__(self, start=None, stop=None):
+        self.start = start or 0.0
+        self.stop = stop or 0.0
+
+    def __repr__(self):
+        return '<{} start={} stop={} at 0x{:x}>'.format(
+            self.__class__.__name__, self.start, self.stop, id(self))
 
 
 class IntervalPad(object):
@@ -160,22 +164,26 @@ class IntervalPad(object):
     respectively.
     """
 
-    def __init__(self, start, stop=None):
-        self.pad = Pad(start, stop)
-
     def __get__(self, instance, owner):
-        return self.pad
+        if not hasattr(instance, '_pad'):
+            instance._pad = Pad(0, 0)
+        return instance._pad
 
     def __set__(self, instance, val):
-        try:
-            len_val = len(val)
-        except TypeError:
-            self.pad = Pad(float(val), float(val))
+        if val is None:
+            instance._pad = Pad(0, 0)
+        elif isinstance(val, Pad):
+            instance._pad = Pad(val.start, val.stop)
         else:
-            if len_val == 2:
-                self.pad = Pad(val[0], val[1])
+            try:
+                len_val = len(val)
+            except TypeError:
+                instance._pad = Pad(float(val), float(val))
             else:
-                raise ValueError('interval_pad must be a float scalar or 2-element list')
+                if len_val == 2:
+                    instance._pad = Pad(val[0], val[1])
+                else:
+                    raise ValueError('interval_pad must be a float scalar or 2-element list')
 
 
 class Update(models.Model):
@@ -225,16 +233,16 @@ class BaseModel(models.Model):
 
     @classmethod
     @import_ska
-    def get_date_intervals(cls, start, stop, pads=None):
+    def get_date_intervals(cls, start, stop, pad=None):
         # OPTIMIZE ME!
 
         # Initially get events within padded date range.  Filter on only
         # the "start" field because this is always indexed, and filtering
         # on two fields is much slower in SQL.
-        if pads is None:
-            pads = (0.0, 0.0)
-        if len(pads) != 2:
-            raise ValueError('pads must have length=2')
+        if pad is None:
+            pad = Pad()
+        elif not isinstance(pad, Pad):
+            raise TypeError('pad arg must be a Pad object')
 
         datestart = (DateTime(start) - cls.lookback).date
         datestop = (DateTime(stop) + cls.lookback).date
@@ -245,8 +253,8 @@ class BaseModel(models.Model):
 
         intervals = []
         for event in events:
-            event_datestart = DateTime(event.tstart - pads[0], format='secs').date
-            event_datestop = DateTime(event.tstop + pads[0], format='secs').date
+            event_datestart = DateTime(event.tstart - pad.start, format='secs').date
+            event_datestop = DateTime(event.tstop + pad.stop, format='secs').date
 
             if event_datestart <= datestop and event_datestop >= datestart:
                 intervals.append((max(event_datestart, datestart),
@@ -266,12 +274,12 @@ class BaseEvent(BaseModel):
         ordering = ['start']
 
     lookback = 21  # days of lookback
-    interval_pad = IntervalPad(300, 300)  # interval padding before/ after event start/stop
+    interval_pad = IntervalPad()  # interval padding before/ after event start/stop
 
     def get_commands(self):
         """
         Get load commands within start/stop interval for this event.
-        Apply padding defined by command_pads.
+        Apply padding defined by interval_pad attribute.
         """
         from .. import cmds as commands
         cmds = commands.filter(self.tstart - self.interval_pad.start,
@@ -472,6 +480,8 @@ class TscMove(TlmEvent):
     stop_det = models.CharField(max_length=6)
     max_pwm = models.IntegerField()
 
+    interval_pad = IntervalPad()  # interval padding before/ after event start/stop
+
     @classmethod
     def get_extras(cls, event, event_msidset):
         """
@@ -590,6 +600,8 @@ class Manvr(TlmEvent):
                          'aoatter1', 'aoatter2', 'aoatter3',
                          'aogbias1', 'aogbias2', 'aogbias3']
     fetch_event_pad = 600
+
+    interval_pad = IntervalPad()  # interval padding before/ after event start/stop
 
     prev_manvr_stop = models.CharField(max_length=21, null=True)
     prev_npnt_start = models.CharField(max_length=21, null=True)
