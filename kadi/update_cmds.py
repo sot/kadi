@@ -155,7 +155,13 @@ def add_h5_cmds(h5file, idx_cmds):
             ok |= h5_timeline_ids == timeline_id
         del_idxs = np.flatnonzero(ok)
         if not np.all(np.diff(del_idxs) == 1):
-            raise ValueError('Inconsistency in timeline_ids')
+            error_dump = {}
+            for name in ['ok', 'del_idxs', 'h5_timeline_ids', 'cmds']:
+                error_dump[name] = locals()[name]
+            pickle.dump(error_dump, open(h5file + '-fail.pkl', 'w'))
+            h5.close()
+            raise ValueError('Inconsistency in timeline_ids, wrote diagnostic output to {}'
+                             .format(h5file + '-fail.pkl'))
         h5d.truncate(np.min(del_idxs))
         logger.debug('Deleted cmds indexes {} .. {}'.format(np.min(del_idxs), np.max(del_idxs)))
         h5d.append(cmds)
