@@ -81,6 +81,26 @@ def _get_msid_changes(msids, sortmsids={}):
     return changes
 
 
+def get_event_models():
+    """
+    Get all Event models that represent actual events (and are not base
+    or meta classes).
+
+    :returns: dict of {model_name:ModelClass, ...}
+    """
+    import inspect
+
+    models = {}
+    for name, var in globals().items():
+        if inspect.isclass(var) and issubclass(var, BaseEvent):
+            # Make an instance of event class to discover if it is an abstact base class.
+            event = var()
+            if not event._meta.abstract:
+                models[event.model_name] = var
+
+    return models
+
+
 def import_ska(func):
     """
     Decorator to lazy import useful Ska functions.  Web app should not
@@ -291,11 +311,12 @@ class BaseEvent(BaseModel):
 
 
 class Event(BaseEvent):
-    start = models.CharField(max_length=21, primary_key=True)
-    stop = models.CharField(max_length=21)
-    tstart = models.FloatField(db_index=True)
-    tstop = models.FloatField()
-    dur = models.FloatField()
+    start = models.CharField(max_length=21, primary_key=True,
+                             help_text='Start time (YYYY:DDD:HH:MM:SS)')
+    stop = models.CharField(max_length=21, help_text='Stop time (YYYY:DDD:HH:MM:SS)')
+    tstart = models.FloatField(db_index=True, help_text='Start time (CXC secs)')
+    tstop = models.FloatField(help_text='Stop time (CXC secs)')
+    dur = models.FloatField(help_text='Duration (secs)')
 
     class Meta:
         abstract = True
@@ -438,9 +459,16 @@ class TlmEvent(Event):
 
 
 class Obsid(TlmEvent):
+    """
+    Observation identifier
+
+    **Event definition**: interval where ``COBSRQID`` is unchanged.
+
+    **Attributes**
+    """
     event_msids = ['cobsrqid']
 
-    obsid = models.IntegerField()
+    obsid = models.IntegerField(help_text='Observation ID (COBSRQID)')
 
     @classmethod
     @import_ska
@@ -471,14 +499,28 @@ class Obsid(TlmEvent):
 
 
 class TscMove(TlmEvent):
+    """
+    SIM TSC translation
+
+    **Event definition**: interval where ``3TSCMOVE = MOVE``
+
+    In addition to reporting the start and stop TSC position, these positions are also
+    converted to the corresponding science instrument detector name, one of ``ACIS-I``,
+    ``ACIS-S``, ``HRC-I``, or ``HRC-S``.  The maximum PWM value ``3MRMMXMV`` (sampled at
+    the stop time + 66 seconds) is also included.
+
+    **Attributes**
+    """
     event_msids = ['3tscmove', '3tscpos', '3mrmmxmv']
     event_val = 'T'
 
-    start_3tscpos = models.IntegerField()
-    stop_3tscpos = models.IntegerField()
-    start_det = models.CharField(max_length=6)
-    stop_det = models.CharField(max_length=6)
-    max_pwm = models.IntegerField()
+    start_3tscpos = models.IntegerField(help_text='Start TSC position (steps)')
+    stop_3tscpos = models.IntegerField(help_text='Stop TSC position (steps)')
+    start_det = models.CharField(max_length=6,
+                                 help_text='Start detector (ACIS-I ACIS-S HRC-I HRC-S)')
+    stop_det = models.CharField(max_length=6,
+                                help_text='Stop detector (ACIS-I ACIS-S HRC-I HRC-S)')
+    max_pwm = models.IntegerField(help_text='Max PWM during translation')
 
     interval_pad = IntervalPad()  # interval padding before/ after event start/stop
 
@@ -501,7 +543,25 @@ class TscMove(TlmEvent):
 
 
 class Scs107(TlmEvent):
-    notes = models.TextField()
+    """
+    SCS107 run
+
+    **Event definition**: interval with the following combination of state values::
+
+      3TSCMOVE = MOVE
+      AORWBIAS = DISA
+      CORADMEN = DISA
+
+    These MSIDs are first sampled onto a common time sequence of 16.4 sec samples
+    so the start / stop times are accurate only to that resolution.
+
+    Early in the mission there were two SIM TSC translations during an SCS107 run.
+    By the above rules this would generate two SCS107 events, but instead any two
+    SCS107 events within 600 seconds are combined into a single event.
+
+    **Attributes**
+    """
+    notes = models.TextField(help_text='Supplemental notes')
 
     event_msids = ['3tscmove', 'aorwbias', 'coradmen']
 
@@ -556,11 +616,18 @@ class Scs107(TlmEvent):
 
 
 class FaMove(TlmEvent):
+    """
+    SIM FA translation
+
+    **Event definition**: interval where ``3FAMOVE = MOVE``
+
+    **Attributes**
+    """
     event_msids = ['3famove', '3fapos']
     event_val = 'T'
 
-    start_3fapos = models.IntegerField()
-    stop_3fapos = models.IntegerField()
+    start_3fapos = models.IntegerField(help_text='Start FA position (steps)')
+    stop_3fapos = models.IntegerField(help_text='Stop FA position (steps)')
 
     @classmethod
     def get_extras(cls, event, event_msidset):
@@ -577,17 +644,82 @@ class FaMove(TlmEvent):
 
 
 class Dump(TlmEvent):
+    """
+    Ground commanded momentum dump
+
+    **Event definition**: interval where ``AOUNLOAD = GRND``
+
+    **Attributes**
+    """
     event_msids = ['aounload']
     event_val = 'GRND'
 
 
 class Eclipse(TlmEvent):
+    """
+    Eclipse
+
+    **Event definition**: interval where ``AOECLIPS = ECL``
+    """
     event_msids = ['aoeclips']
     event_val = 'ECL '
     fetch_event_msids = ['aoeclips', 'eb1k5', 'eb2k5', 'eb3k5']
 
 
 class Manvr(TlmEvent):
+    """
+    Maneuver
+
+    **Event definition**: interval where ``AOFATTMD = MNVR`` (spacecraft actually maneuvering)
+
+    The maneuver event includes a number of attributes that give a detailed
+    characterization of the timing and nature of the maneuver and corresponding
+    star acquisitions and normal point model dwells.
+
+    The ``start`` and ``stop`` time attributes for a maneuver event correspond exactly to
+    the start and stop of the actual maneuver.  However, the full maneuver event
+    contains information covering a larger time span from the end of the previous maneuver
+    to the start of the next maneuver::
+
+      Previous maneuver
+                             <---- Start of included information
+        Previous MANV end
+        Previous NPNT start
+
+        ==> Maneuver <==
+
+        Star acquisition
+        Transition to KALM
+        Kalman dwell
+          Optional: more dwells, star acq sequences, NMAN/NPNT
+
+        Transition to NMAN
+        Transition to MANV
+                             <---- End of included information
+      Next maneuver
+
+    **Attributes**
+
+    ``n_acq``, ``n_guide``, and ``n_kalman``: these provide a count of the number of times
+        after the maneuver ends that ``AOACASEQ`` changes value from anything to ``AQXN``,
+        ``GUID``, and ``KALM`` respectively.
+
+    ``anomalous``: this is ``True`` if the following MSIDs have values that are
+        not in the list of nominal state values:
+
+        ==========  ===========================
+           MSID          Nominal state values
+        ==========  ===========================
+         AOPCADMD       NPNT NMAN
+         AOACASEQ       GUID KALM AQXN
+         AOFATTMD       MNVR STDY
+         AOPSACPR       INIT INAC ACT
+         AOUNLOAD       MON  GRND
+        ==========  ===========================
+
+    ``template``: this indicates which of the pre-defined maneuver sequence templates were
+        matched by this maneuver.  For details see :ref:`maneuver_templates`.
+    """
     event_msids = ['aofattmd', 'aopcadmd', 'aoacaseq', 'aopsacpr']
     event_val = 'MNVR'
 
@@ -603,32 +735,49 @@ class Manvr(TlmEvent):
 
     interval_pad = IntervalPad()  # interval padding before/ after event start/stop
 
-    prev_manvr_stop = models.CharField(max_length=21, null=True)
-    prev_npnt_start = models.CharField(max_length=21, null=True)
-    nman_start = models.CharField(max_length=21, null=True)
-    manvr_start = models.CharField(max_length=21, null=True)
-    manvr_stop = models.CharField(max_length=21, null=True)
-    npnt_start = models.CharField(max_length=21, null=True)
-    acq_start = models.CharField(max_length=21, null=True)
-    guide_start = models.CharField(max_length=21, null=True)
-    kalman_start = models.CharField(max_length=21, null=True)
-    aca_proc_act_start = models.CharField(max_length=21, null=True)
-    npnt_stop = models.CharField(max_length=21, null=True)
-    next_nman_start = models.CharField(max_length=21, null=True)
-    next_manvr_start = models.CharField(max_length=21, null=True)
-    n_dwell = models.IntegerField()
-    n_acq = models.IntegerField()
-    n_guide = models.IntegerField()
-    n_kalman = models.IntegerField()
-    anomalous = models.BooleanField()
-    template = models.CharField(max_length=16)
-    start_ra = models.FloatField()
-    start_dec = models.FloatField()
-    start_roll = models.FloatField()
-    stop_ra = models.FloatField()
-    stop_dec = models.FloatField()
-    stop_roll = models.FloatField()
-    angle = models.FloatField()
+    prev_manvr_stop = models.CharField(max_length=21, null=True,
+                                       help_text='Stop time of previous AOFATTMD=MNVR before manvr')
+    prev_npnt_start = models.CharField(max_length=21, null=True, help_text='Start time of previous '
+                                       'AOPCADMD=NPNT before manvr')
+    nman_start = models.CharField(max_length=21, null=True,
+                                  help_text='Start time of AOPCADMD=NMAN for manvr')
+    manvr_start = models.CharField(max_length=21, null=True,
+                                   help_text='Start time of AOFATTMD=MNVR for manvr')
+    manvr_stop = models.CharField(max_length=21, null=True,
+                                  help_text='Stop time of AOFATTMD=MNVR for manvr')
+    npnt_start = models.CharField(max_length=21, null=True,
+                                  help_text='Start time of AOPCADMD=NPNT after manvr')
+    acq_start = models.CharField(max_length=21, null=True,
+                                 help_text='Start time of AOACASEQ=AQXN after manvr')
+    guide_start = models.CharField(max_length=21, null=True,
+                                   help_text='Start time of AOACASEQ=GUID after manvr')
+    kalman_start = models.CharField(max_length=21, null=True,
+                                    help_text='Start time of AOACASEQ=KALM after manvr')
+    aca_proc_act_start = models.CharField(max_length=21, null=True,
+                                          help_text='Start time of AOPSACPR=ACT after manvr')
+    npnt_stop = models.CharField(max_length=21, null=True,
+                                 help_text='Stop time of AOPCADMD=NPNT after manvr')
+    next_nman_start = models.CharField(max_length=21, null=True,
+                                       help_text='Start time of next AOPCADMD=NMAN after manvr')
+    next_manvr_start = models.CharField(max_length=21, null=True,
+                                        help_text='Start time of next AOFATTMD=MNVR after manvr')
+    n_dwell = models.IntegerField(help_text=
+                                  'Number of kalman dwells after manvr and before next manvr')
+    n_acq = models.IntegerField(help_text='Number of AQXN intervals after '
+                                'manvr and before next manvr')
+    n_guide = models.IntegerField(help_text='Number of GUID intervals after '
+                                  'manvr and before next manvr')
+    n_kalman = models.IntegerField(help_text='Number of KALM intervals after '
+                                   'manvr and before next manvr')
+    anomalous = models.BooleanField(help_text='Key MSID shows off-nominal value')
+    template = models.CharField(max_length=16, help_text='Matched maneuver template')
+    start_ra = models.FloatField(help_text='Start right ascension before manvr')
+    start_dec = models.FloatField(help_text='Start declination before manvr')
+    start_roll = models.FloatField(help_text='Start roll angle before manvr')
+    stop_ra = models.FloatField(help_text='Stop right ascension after manvr')
+    stop_dec = models.FloatField(help_text='Stop declination after manvr')
+    stop_roll = models.FloatField(help_text='Stop roll angle after manvr')
+    angle = models.FloatField(help_text='Maneuver angle (deg)')
 
     class Meta:
         ordering = ['start']
@@ -639,6 +788,20 @@ class Manvr(TlmEvent):
 
     @classmethod
     def get_dwells(cls, event, changes):
+        """
+        Get the Kalman dwells associated with a maneuver event.
+
+        A Kalman dwell is the contiguous interval of AOACASEQ = KALM between::
+
+          Start: AOACASEQ ==> KALM  (transition from any state to KALM)
+          Stop:  AOACASEQ ==> not KALM (transition to any state other than KALM)
+                        **or**
+                 AOPCADMD ==> NMAN
+
+        Short Kalman dwells that are less than 400 seconds long are *ignored* and
+        are not recorded in the database.  These are typically associated with monitor
+        window commanding or multiple acquisition attempts).
+        """
         dwells = []
         state = None
         t0 = 0
@@ -749,7 +912,7 @@ class Manvr(TlmEvent):
             npnt_start=match('aopcadmd', 'NPNT', 0, 'after'),
             acq_start=match('aoacaseq', 'AQXN', 0, 'after'),
             guide_start=match('aoacaseq', 'GUID', 0, 'after'),
-            kalman_start=match('aoacaseq', 'KALM', 0, 'after'),
+            Kalman_start=match('aoacaseq', 'KALM', 0, 'after'),
             aca_proc_act_start=match('aopsacpr', 'ACT ', 0, 'after'),
             npnt_stop=match('aopcadmd', '!NPNT', -1, 'after'),
 
@@ -757,7 +920,7 @@ class Manvr(TlmEvent):
             next_manvr_start=match('aofattmd', 'MNVR', -1, 'after'),
             n_acq=len(match('aoacaseq', 'AQXN', None, 'after')),
             n_guide=len(match('aoacaseq', 'GUID', None, 'after')),
-            n_kalman=len(match('aoacaseq', 'KALM', None, 'after')),
+            n_Kalman=len(match('aoacaseq', 'KALM', None, 'after')),
             anomalous=anomalous,
             template=template,
             )
@@ -848,8 +1011,22 @@ class Manvr(TlmEvent):
 
 class Dwell(Event):
     """
-    Represent an NPM dwell.  This is not derived from TlmEvent because it is created as a
-    by-product of Manvr processing.
+    Dwell in Kalman mode
+
+    **Event definition**: contiguous interval of AOACASEQ = KALM between::
+
+      Start: AOACASEQ ==> KALM  (transition from any state to KALM)
+      Stop:  AOACASEQ ==> not KALM (transition to any state other than KALM)
+                    **or**
+             AOPCADMD ==> NMAN
+
+    Short Kalman dwells that are less than 400 seconds long are *ignored* and
+    are not recorded in the database.  These are typically associated with monitor
+    window commanding or multiple acquisition attempts).
+
+    **Attributes**
+
+    ``manvr``: Link back to the maneuver event that contains this dwell.
     """
     rel_tstart = models.FloatField()
     manvr = models.ForeignKey(Manvr)
@@ -866,6 +1043,18 @@ class Dwell(Event):
 
 
 class ManvrSeq(BaseModel):
+    """
+    MSID transition associated with a maneuver event
+
+    Each entry in this table corresponds to a state transition for an MSID
+    that is relevant to the sequence of events comprising a maneuver event.
+
+    **Attributes**
+
+    ``manvr``: Link back to the maneuver event that contains this maneuver
+      sequence transition.
+    """
+
     manvr = models.ForeignKey(Manvr)
     msid = models.CharField(max_length=8)
     prev_val = models.CharField(max_length=4)
@@ -885,6 +1074,16 @@ class ManvrSeq(BaseModel):
 
 
 class SafeSun(TlmEvent):
+    """
+    Safe sun event
+
+    **Event definition**: interval when CPE PCAD mode ``61PSTS02 = SSM``
+
+    During a safing event and recovery this MSID can toggle to different values,
+    so SafeSun events within 24 hours of each other are merged.
+
+    **Attributes**
+    """
     notes = models.TextField()
 
     event_msids = ['61psts02']
@@ -893,13 +1092,35 @@ class SafeSun(TlmEvent):
 
 
 class MajorEvent(BaseEvent):
-    key = models.CharField(max_length=24, primary_key=True)
-    start = models.CharField(max_length=8, db_index=True)
-    date = models.CharField(max_length=11)
-    tstart = models.FloatField(db_index=True)
-    descr = models.TextField()
-    note = models.TextField()
-    source = models.CharField(max_length=3)
+    """
+    Major event
+
+    **Event definition**: events from the two lists maintained by the FOT and
+      the FDB (systems engineering).
+
+    Two lists of major event related to Chandra are available on OCCweb:
+
+    - http://occweb.cfa.harvard.edu/occweb/web/fot_web/eng/reports/Chandra_major_events.htm
+    - http://occweb.cfa.harvard.edu/occweb/web/fdb_web/Major_Events.html
+
+    These two event lists are scraped from OCCweb and merged into a single list with a
+    common structure.  Unlike most kadi event types, the MajorEvent class does not
+    represent an interval of time (``start`` and ``stop``) but only has ``start``
+    (YYYY:DOY) and ``date`` (YYYY-Mon-DD) attributes to indicate the time.
+
+    **Attributes**
+    """
+    key = models.CharField(max_length=24, primary_key=True,
+                           help_text='Unique key for this event')
+    start = models.CharField(max_length=8, db_index=True,
+                             help_text='Event time to the nearest day (YYYY:DOY)')
+    date = models.CharField(max_length=11,
+                            help_text='Event time to the nearest day (YYYY-Mon-DD)')
+    tstart = models.FloatField(db_index=True,
+                               help_text='Event time to the nearest day (CXC sec)')
+    descr = models.TextField(help_text='Event description')
+    note = models.TextField(help_text='Note (comments or CAP # or FSW PR #)')
+    source = models.CharField(max_length=3, help_text='Event source (FDB or FOT)')
 
     def __unicode__(self):
         descr = self.descr
@@ -938,7 +1159,7 @@ class MajorEvent(BaseEvent):
 
 class IFotEvent(BaseEvent):
     """
-    Event from iFOT database
+    Base class for events from the iFOT database
     """
     ifot_id = models.IntegerField(primary_key=True)
     start = models.CharField(max_length=21)
@@ -989,12 +1210,16 @@ class IFotEvent(BaseEvent):
 class CAP(IFotEvent):
     """
     CAP from iFOT database
+
+    **Event definition**: CAP from iFOT database
+
+    **Attributes**
     """
-    num = models.CharField(max_length=15)
-    title = models.TextField()
-    descr = models.TextField()
-    notes = models.TextField()
-    link = models.CharField(max_length=250)
+    num = models.CharField(max_length=15, help_text='CAP number')
+    title = models.TextField(help_text='CAP title')
+    descr = models.TextField(help_text='CAP description')
+    notes = models.TextField(help_text='CAP notes')
+    link = models.CharField(max_length=250, help_text='CAP link')
 
     ifot_type_desc = 'CAP'
     ifot_props = ['NUM', 'START', 'STOP', 'TITLE', 'LINK', 'DESC']
@@ -1007,15 +1232,20 @@ class CAP(IFotEvent):
 class DsnComm(IFotEvent):
     """
     Scheduled DSN comm period
+
+    **Event definition**: DSN comm pass beginning of support to end of support (not
+      beginning / end of track).
+
+    **Attributes**
     """
-    bot = models.CharField(max_length=4)
-    eot = models.CharField(max_length=4)
-    activity = models.CharField(max_length=30)
-    config = models.CharField(max_length=10)
-    data_rate = models.CharField(max_length=9)
-    site = models.CharField(max_length=12)
-    soe = models.CharField(max_length=4)
-    station = models.CharField(max_length=6)
+    bot = models.CharField(max_length=4, help_text='Beginning of track')
+    eot = models.CharField(max_length=4, help_text='End of track')
+    activity = models.CharField(max_length=30, help_text='Activity description')
+    config = models.CharField(max_length=10, help_text='Configuration')
+    data_rate = models.CharField(max_length=9, help_text='Data rate')
+    site = models.CharField(max_length=12, help_text='DSN site')
+    soe = models.CharField(max_length=4, help_text='DSN Sequence Of Events')
+    station = models.CharField(max_length=6, help_text='DSN station')
 
     ifot_type_desc = 'DSN_COMM'
     ifot_props = ['bot', 'eot', 'activity', 'config', 'data_rate', 'site', 'soe', 'station']
@@ -1028,26 +1258,35 @@ class DsnComm(IFotEvent):
 
 class Orbit(BaseEvent):
     """
+    **Event definition**:
+
     Full orbit, with dates corresponding to start (ORBIT ASCENDING NODE CROSSING), stop,
     apogee, perigee, radzone start and radzone stop.  Radzone is defined as the time
     covering perigee when radmon is disabled by command.  This corresponds to the planned
     values and may differ from actual in the case of events that run SCS107 and
     prematurely disable RADMON.
 
+    **Attributes**
+
     """
-    start = models.CharField(max_length=21)
-    stop = models.CharField(max_length=21)
-    tstart = models.FloatField(db_index=True)
-    tstop = models.FloatField()
-    dur = models.FloatField()
-    orbit_num = models.IntegerField(primary_key=True)
-    perigee = models.CharField(max_length=21)
-    apogee = models.CharField(max_length=21)
-    t_perigee = models.FloatField()
-    start_radzone = models.CharField(max_length=21)
-    stop_radzone = models.CharField(max_length=21)
-    dt_start_radzone = models.FloatField()
-    dt_stop_radzone = models.FloatField()
+    start = models.CharField(max_length=21,
+                             help_text='Start time (orbit ascending node crossing)')
+    stop = models.CharField(max_length=21,
+                            help_text='Stop time (next orbit ascending node crossing)')
+    tstart = models.FloatField(db_index=True,
+                               help_text='Start time (orbit ascending node crossing)')
+    tstop = models.FloatField(help_text='Stop time (next orbit ascending node crossing)')
+    dur = models.FloatField(help_text='Orbit duration (sec)')
+    orbit_num = models.IntegerField(primary_key=True, help_text='Orbit number')
+    perigee = models.CharField(max_length=21, help_text='Perigee time')
+    apogee = models.CharField(max_length=21, help_text='Apogee time')
+    t_perigee = models.FloatField(help_text='Perigee time (CXC sec)')
+    start_radzone = models.CharField(max_length=21, help_text='Start time of rad zone')
+    stop_radzone = models.CharField(max_length=21, help_text='Stop time of rad zone')
+    dt_start_radzone = models.FloatField(help_text='Start time of rad zone relative '
+                                         'to perigee (sec)')
+    dt_stop_radzone = models.FloatField(help_text='Stop time of rad zone relative '
+                                        'to perigee (sec)')
 
     @classmethod
     @import_ska
@@ -1091,6 +1330,13 @@ class Orbit(BaseEvent):
 
 
 class OrbitPoint(BaseModel):
+    """
+    Orbit point
+
+    **Attributes**
+
+    ``orbit``: Link back to the orbit event that contains this orbit point.
+    """
     orbit = models.ForeignKey(Orbit)
     date = models.CharField(max_length=21)
     name = models.CharField(max_length=9)
@@ -1106,6 +1352,11 @@ class OrbitPoint(BaseModel):
 
 
 class RadZone(Event):
+    """
+    Radiation zone
+
+    ``orbit``: Link back to the orbit event that contains this radiation zone.
+    """
     orbit = models.ForeignKey(Orbit)
     orbit_num = models.IntegerField()
     perigee = models.CharField(max_length=21)

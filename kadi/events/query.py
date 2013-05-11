@@ -114,6 +114,21 @@ def combine_intervals(op, intervals0, intervals1, start, stop):
 
 
 class EventQuery(object):
+    """
+    Provide a high-level interface handle event queries.
+
+    This includes a few key methods:
+
+    - filter() : filter events matching criteria and return Django query set
+    - find() : filter events matching criteria and return np array
+    - intervals(): return time intervals between event start/stop times
+
+    A key feature is that EventQuery objects can be combined with boolean
+    and, or, and not logic to generate composite EventQuery objects.  From
+    there the intervals() output can be used to select or remove the intervals
+    from Ska.engarchive fetch datasets.
+    """
+
     interval_pad = IntervalPad()  # descriptor defining a Pad for intervals
 
     def __init__(self, cls=None, left=None, right=None, op=None):
@@ -159,8 +174,7 @@ class EventQuery(object):
         ``subset`` arg must be a Python slice() object and allows slicing
         of the filtered output.
 
-        Examples
-        --------
+        Example::
 
           >>> from kadi import events
           >>> events.manvrs.filter('2011:001', '2012:001', n_dwell__exact=1, angle__gte=140)
@@ -199,8 +213,7 @@ class EventQuery(object):
         ``subset`` arg must be a Python slice() object and allows slicing
         of the filtered output.
 
-        Examples
-        --------
+        Example::
 
           >>> from kadi import events
           >>> events.manvrs.find('2011:001', '2012:001', n_dwell__exact=1, angle__gte=140)
@@ -226,10 +239,8 @@ def queryset_to_array(queryset):
 
 
 # Put EventQuery objects for each query-able model class into module globals
-for name, var in vars(models).items():
-    if inspect.isclass(var) and issubclass(var, models.BaseEvent):
-        event = var()  # make an instance of the event class
-        if not event._meta.abstract:
-            query_name = event.model_name + 's'  # simple pluralization
-            globals()[query_name] = EventQuery(cls=var)
-            __all__.append(query_name)
+event_models = models.get_event_models()
+for model_name, model_class in event_models.items():
+    query_name = model_name + 's'  # simple pluralization
+    globals()[query_name] = EventQuery(cls=model_class)
+    __all__.append(query_name)

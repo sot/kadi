@@ -9,7 +9,7 @@ include /proj/sot/ska/include/Makefile.FLIGHT
 WWW  = $(INSTALL)/www
 # Define the installed executables for the task.  This directory is reserved
 # for documented tools and not for dedicated scripts, one-off codes etc
-DOC = doc/_build/html/*
+DOC = docs/_build/html/*
 
 # Installed data.  These are template RDB files, mostly relevant for testing
 DATA = task_schedule*.cfg
@@ -25,11 +25,11 @@ doc:
 install: $(TEST_DEPS)
 	mkdir -p $(INSTALL_SHARE)
 	mkdir -p $(INSTALL_DATA)
-#	mkdir -p $(INSTALL_DOC)
+	mkdir -p $(INSTALL_DOC)
 #
 	rsync --times --cvs-exclude $(SHARE) $(INSTALL_SHARE)/
 	rsync --times --cvs-exclude $(DATA) $(INSTALL_DATA)/
-#	rsync --archive --times $(DOC)   $(INSTALL_DOC)/
+	rsync --archive --times $(DOC)   $(INSTALL_DOC)/
 
 install_doc:
 	rsync --archive --times $(DOC)   $(INSTALL_DOC)/
