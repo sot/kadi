@@ -123,11 +123,17 @@ def make_events_table(outfile=None):
     Make the summary table of event classes and descriptions.
     """
     rows = []
+    out_lines = []
     for model_name in sorted(models):
         model = models[model_name]
-        row = (':class:`~kadi.events.models.{}`'.format(model.__name__),
-               ':ref:`event_{}`'.format(model_name))
+        query_name = model_name + 's'  # See query.py main
+        out_lines.append('.. |{0}| replace:: :class:`~kadi.events.models.{0}`'
+                         .format(model.__name__))
+        row = ('|{}|`'.format(model.__name__),
+               ':ref:`event_{}'.format(model_name),
+               '``{}``'.format(query_name))
         rows.append(row)
-    dat = Table(zip(*rows), names=('Event class', 'Description'))
-    out_lines = table_to_rst(dat)
+    dat = Table(zip(*rows), names=('Event class', 'Description', 'Query name'))
+    out_lines.append('')
+    out_lines.extend(table_to_rst(dat))
     write_lines(out_lines, outfile)
