@@ -1164,7 +1164,7 @@ class Dwell(Event):
 
 class ManvrSeq(BaseModel):
     """
-    MSID transition associated with a maneuver event
+    Maneuver sequence event
 
     Each entry in this table corresponds to a state transition for an MSID
     that is relevant to the sequence of events comprising a maneuver event.
