@@ -6,10 +6,14 @@ Auto-generate event class documenation based on sphinx model definitions.
 - make_event_descriptions_section
 
 """
+import sys
+import os
 import re
 import textwrap
 
 from astropy.table import Table
+
+sys.path.insert(0, os.path.abspath('..'))
 from kadi.events.models import get_event_models, BaseModel
 import kadi.events.models
 
