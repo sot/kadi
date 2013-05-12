@@ -242,6 +242,23 @@ class BaseModel(models.Model):
                 data[-1] = "...(remaining elements truncated)..."
             return '\n'.join(repr(x) for x in data)
 
+        @property
+        def table(self):
+            def un_unicode(vals):
+                return tuple(val.encode('ascii') if isinstance(val, unicode) else val
+                             for val in vals)
+
+            import numpy as np
+            from numpy.lib.recfunctions import drop_fields
+            from astropy.table import Table
+            names = [f.name for f in self.model._meta.fields]
+            rows = [un_unicode(vals) for vals in self.values_list()]
+            dat = np.rec.fromrecords(rows, names=names)
+            drop_names = [name for name in dat.dtype.names if dat[name].dtype.kind == 'O']
+            if drop_names:
+                dat = drop_fields(dat, drop_names, usemask=False)
+            return Table(dat.view(np.ndarray), copy=False)
+
     class Meta:
         abstract = True
         ordering = ['start']
