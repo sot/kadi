@@ -217,7 +217,31 @@ class Update(models.Model):
         return ('name={} date={}'.format(self.name, self.date))
 
 
+class MyManager(models.Manager):
+    """
+    Custom query manager that allows for overriding the default __repr__.
+    The purpose is to make a more user friendly output for event queries.
+
+    http://stackoverflow.com/questions/2163151/custom-queryset-and-manager-without-breaking-dry
+    https://docs.djangoproject.com/en/1.5/topics/db/managers/#custom-managers
+    """
+    def get_query_set(self):
+        return self.model.QuerySet(self.model)
+
+
 class BaseModel(models.Model):
+    objects = MyManager()  # Custom manager to use custom QuerySet below
+
+    class QuerySet(models.query.QuerySet):
+        """
+        More user-friendly output from event queries.
+        """
+        def __repr__(self):
+            data = list(self[:models.query.REPR_OUTPUT_SIZE + 1])
+            if len(data) > models.query.REPR_OUTPUT_SIZE:
+                data[-1] = "...(remaining elements truncated)..."
+            return '\n'.join(repr(x) for x in data)
+
     class Meta:
         abstract = True
         ordering = ['start']
