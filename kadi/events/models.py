@@ -255,6 +255,8 @@ class BaseModel(models.Model):
             rows = [un_unicode(vals) for vals in self.values_list()]
             dat = np.rec.fromrecords(rows, names=names)
             drop_names = [name for name in dat.dtype.names if dat[name].dtype.kind == 'O']
+            drop_names.extend([f.name for f in self.model._meta.fields
+                               if getattr(f, '_kadi_hidden', False)])
             if drop_names:
                 dat = drop_fields(dat, drop_names, usemask=False)
             return Table(dat.view(np.ndarray), copy=False)
@@ -1307,6 +1309,7 @@ class MajorEvent(BaseEvent):
     """
     key = models.CharField(max_length=24, primary_key=True,
                            help_text='Unique key for this event')
+    key._kadi_hidden = True
     start = models.CharField(max_length=8, db_index=True,
                              help_text='Event time to the nearest day (YYYY:DOY)')
     date = models.CharField(max_length=11,
