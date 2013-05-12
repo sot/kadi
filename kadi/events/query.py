@@ -1,4 +1,3 @@
-import inspect
 import operator
 from itertools import izip
 
@@ -10,7 +9,7 @@ from . import models
 from .models import IntervalPad
 
 # This gets updated dynamically by code at the end
-__all__ = ['get_dates_vals', 'EventQuery', 'queryset_to_array']
+__all__ = ['get_dates_vals', 'EventQuery']
 
 
 def un_unicode(vals):
@@ -115,7 +114,7 @@ def combine_intervals(op, intervals0, intervals1, start, stop):
 
 class EventQuery(object):
     """
-    Provide a high-level interface handle event queries.
+    High-level interface for handling event queries.
 
     This includes a few key methods:
 
@@ -204,38 +203,30 @@ class EventQuery(object):
 
         return objs
 
-    def find(self, start=None, stop=None, subset=None, **kwargs):
+    def all(self):
         """
-        Find events between ``start`` and ``stop`` which match the filter
-        attributes in ``**kwargs``.  The matching events are returned as a
-        structured array.  If ``start`` or ``stop`` are not supplied they
-        default to the beginning / end of available data.  The optional
-        ``subset`` arg must be a Python slice() object and allows slicing
-        of the filtered output.
+        Return all events as a Django query set object.
 
         Example::
 
           >>> from kadi import events
-          >>> events.manvrs.find('2011:001', '2012:001', n_dwell__exact=1, angle__gte=140)
-          >>> events.manvrs.find('2011:001', '2012:001', subset=slice(None, 5))  # first 5
+          >>> print events.safe_suns.all()
+          <SafeSun: start=1999:229:20:18:22.688 dur=105043>
+          <SafeSun: start=1999:250:16:31:46.461 dur=1697905>
+          <SafeSun: start=2000:048:08:09:30.216 dur=68689>
+          <SafeSun: start=2011:187:12:29:22.579 dur=288496>
+          <SafeSun: start=2012:150:03:33:45.816 dur=118577>
 
-        :param start: start time (DateTime compatible format)
-        :param stop: stop time (DateTime compatible format)
-        :param subset: subset of matching events that are output
-        :param start: start time (DateTime compatible format)
-
-        :returns: structured array with matching events
+          >>> print events.safe_suns.all().table
+                  start                  stop             tstart        tstop          dur      notes
+          --------------------- --------------------- ------------- ------------- ------------- -----
+          1999:229:20:18:22.688 1999:231:01:29:05.885 51308366.8723  51413410.069 105043.196657
+          1999:250:16:31:46.461 1999:270:08:10:11.850 53109170.6451 54807076.0338 1697905.38868
+          2000:048:08:09:30.216 2000:049:03:14:19.260 67162234.4001 67230923.4436 68689.0435828
+          2011:187:12:29:22.579 2011:190:20:37:38.914 426342628.763 426631125.098 288496.334723
+          2012:150:03:33:45.816 2012:151:12:30:03.213   454649692.0 454768269.397 118577.396626
         """
-        objs = self.filter(start, stop, subset, **kwargs)
-        dat = queryset_to_array(objs)
-        return dat
-
-
-def queryset_to_array(queryset):
-    names = [f.name for f in queryset.model._meta.fields]
-    rows = [un_unicode(vals) for vals in queryset.values_list()]
-    dat = np.rec.fromrecords(rows, names=names)
-    return dat.view(np.ndarray)
+        return self.filter()
 
 
 # Put EventQuery objects for each query-able model class into module globals
