@@ -81,7 +81,7 @@ def _get_msid_changes(msids, sortmsids={}):
     return changes
 
 
-def get_event_models():
+def get_event_models(baseclass=None):
     """
     Get all Event models that represent actual events (and are not base
     or meta classes).
@@ -92,7 +92,7 @@ def get_event_models():
 
     models = {}
     for name, var in globals().items():
-        if inspect.isclass(var) and issubclass(var, BaseEvent):
+        if inspect.isclass(var) and issubclass(var, baseclass or BaseEvent):
             # Make an instance of event class to discover if it is an abstact base class.
             event = var()
             if not event._meta.abstract:
@@ -464,7 +464,7 @@ class Obsid(TlmEvent):
 
     **Event definition**: interval where ``COBSRQID`` is unchanged.
 
-    **Attributes**
+    **Fields**
     """
     event_msids = ['cobsrqid']
 
@@ -509,7 +509,7 @@ class TscMove(TlmEvent):
     ``ACIS-S``, ``HRC-I``, or ``HRC-S``.  The maximum PWM value ``3MRMMXMV`` (sampled at
     the stop time + 66 seconds) is also included.
 
-    **Attributes**
+    **Fields**
     """
     event_msids = ['3tscmove', '3tscpos', '3mrmmxmv']
     event_val = 'T'
@@ -559,7 +559,7 @@ class Scs107(TlmEvent):
     By the above rules this would generate two SCS107 events, but instead any two
     SCS107 events within 600 seconds are combined into a single event.
 
-    **Attributes**
+    **Fields**
     """
     notes = models.TextField(help_text='Supplemental notes')
 
@@ -621,7 +621,7 @@ class FaMove(TlmEvent):
 
     **Event definition**: interval where ``3FAMOVE = MOVE``
 
-    **Attributes**
+    **Fields**
     """
     event_msids = ['3famove', '3fapos']
     event_val = 'T'
@@ -649,7 +649,7 @@ class Dump(TlmEvent):
 
     **Event definition**: interval where ``AOUNLOAD = GRND``
 
-    **Attributes**
+    **Fields**
     """
     event_msids = ['aounload']
     event_val = 'GRND'
@@ -660,6 +660,8 @@ class Eclipse(TlmEvent):
     Eclipse
 
     **Event definition**: interval where ``AOECLIPS = ECL``
+
+    **Fields**
     """
     event_msids = ['aoeclips']
     event_val = 'ECL '
@@ -698,7 +700,7 @@ class Manvr(TlmEvent):
                              <---- End of included information
       Next maneuver
 
-    **Attributes**
+    **Fields**
 
     ``n_acq``, ``n_guide``, and ``n_kalman``: these provide a count of the number of times
         after the maneuver ends that ``AOACASEQ`` changes value from anything to ``AQXN``,
@@ -1024,15 +1026,13 @@ class Dwell(Event):
     are not recorded in the database.  These are typically associated with monitor
     window commanding or multiple acquisition attempts).
 
-    **Attributes**
-
-    ``manvr``: Link back to the maneuver event that contains this dwell.
+    **Fields**
     """
-    rel_tstart = models.FloatField()
-    manvr = models.ForeignKey(Manvr)
-    ra = models.FloatField()
-    dec = models.FloatField()
-    roll = models.FloatField()
+    rel_tstart = models.FloatField(help_text='Start time relative to manvr end (sec)')
+    manvr = models.ForeignKey(Manvr, help_text='Maneuver that contains this dwell')
+    ra = models.FloatField(help_text='Right ascension (deg)')
+    dec = models.FloatField(help_text='Declination (deg)')
+    roll = models.FloatField(help_text='Roll angle (deg)')
 
     # To do: add ra dec roll quaternion
 
@@ -1049,10 +1049,7 @@ class ManvrSeq(BaseModel):
     Each entry in this table corresponds to a state transition for an MSID
     that is relevant to the sequence of events comprising a maneuver event.
 
-    **Attributes**
-
-    ``manvr``: Link back to the maneuver event that contains this maneuver
-      sequence transition.
+    **Fields**
     """
 
     manvr = models.ForeignKey(Manvr)
@@ -1082,7 +1079,7 @@ class SafeSun(TlmEvent):
     During a safing event and recovery this MSID can toggle to different values,
     so SafeSun events within 24 hours of each other are merged.
 
-    **Attributes**
+    **Fields**
     """
     notes = models.TextField()
 
@@ -1108,7 +1105,7 @@ class MajorEvent(BaseEvent):
     represent an interval of time (``start`` and ``stop``) but only has ``start``
     (YYYY:DOY) and ``date`` (YYYY-Mon-DD) attributes to indicate the time.
 
-    **Attributes**
+    **Fields**
     """
     key = models.CharField(max_length=24, primary_key=True,
                            help_text='Unique key for this event')
@@ -1213,7 +1210,7 @@ class CAP(IFotEvent):
 
     **Event definition**: CAP from iFOT database
 
-    **Attributes**
+    **Fields**
     """
     num = models.CharField(max_length=15, help_text='CAP number')
     title = models.TextField(help_text='CAP title')
@@ -1236,7 +1233,7 @@ class DsnComm(IFotEvent):
     **Event definition**: DSN comm pass beginning of support to end of support (not
       beginning / end of track).
 
-    **Attributes**
+    **Fields**
     """
     bot = models.CharField(max_length=4, help_text='Beginning of track')
     eot = models.CharField(max_length=4, help_text='End of track')
@@ -1258,7 +1255,9 @@ class DsnComm(IFotEvent):
 
 class Orbit(BaseEvent):
     """
-    **Event definition**:
+    Orbit
+
+    **Event definition**: single Chandra orbit starting from ascending node crossing
 
     Full orbit, with dates corresponding to start (ORBIT ASCENDING NODE CROSSING), stop,
     apogee, perigee, radzone start and radzone stop.  Radzone is defined as the time
@@ -1266,8 +1265,7 @@ class Orbit(BaseEvent):
     values and may differ from actual in the case of events that run SCS107 and
     prematurely disable RADMON.
 
-    **Attributes**
-
+    **Fields**
     """
     start = models.CharField(max_length=21,
                              help_text='Start time (orbit ascending node crossing)')
@@ -1333,9 +1331,7 @@ class OrbitPoint(BaseModel):
     """
     Orbit point
 
-    **Attributes**
-
-    ``orbit``: Link back to the orbit event that contains this orbit point.
+    **Fields**
     """
     orbit = models.ForeignKey(Orbit)
     date = models.CharField(max_length=21)
@@ -1355,7 +1351,7 @@ class RadZone(Event):
     """
     Radiation zone
 
-    ``orbit``: Link back to the orbit event that contains this radiation zone.
+    **Fields**
     """
     orbit = models.ForeignKey(Orbit)
     orbit_num = models.IntegerField()
