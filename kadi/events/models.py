@@ -465,6 +465,17 @@ class Obsid(TlmEvent):
     **Event definition**: interval where ``COBSRQID`` is unchanged.
 
     **Fields**
+
+    ======== ========== ================================
+     Field      Type              Description
+    ======== ========== ================================
+      start   Char(21)   Start time (YYYY:DDD:HH:MM:SS)
+       stop   Char(21)    Stop time (YYYY:DDD:HH:MM:SS)
+     tstart      Float            Start time (CXC secs)
+      tstop      Float             Stop time (CXC secs)
+        dur      Float                  Duration (secs)
+      obsid    Integer        Observation ID (COBSRQID)
+    ======== ========== ================================
     """
     event_msids = ['cobsrqid']
 
@@ -510,6 +521,21 @@ class TscMove(TlmEvent):
     the stop time + 66 seconds) is also included.
 
     **Fields**
+
+    =============== ========== ============================================
+         Field         Type                    Description
+    =============== ========== ============================================
+             start   Char(21)               Start time (YYYY:DDD:HH:MM:SS)
+              stop   Char(21)                Stop time (YYYY:DDD:HH:MM:SS)
+            tstart      Float                        Start time (CXC secs)
+             tstop      Float                         Stop time (CXC secs)
+               dur      Float                              Duration (secs)
+     start_3tscpos    Integer                   Start TSC position (steps)
+      stop_3tscpos    Integer                    Stop TSC position (steps)
+         start_det    Char(6)   Start detector (ACIS-I ACIS-S HRC-I HRC-S)
+          stop_det    Char(6)    Stop detector (ACIS-I ACIS-S HRC-I HRC-S)
+           max_pwm    Integer                   Max PWM during translation
+    =============== ========== ============================================
     """
     event_msids = ['3tscmove', '3tscpos', '3mrmmxmv']
     event_val = 'T'
@@ -560,6 +586,17 @@ class Scs107(TlmEvent):
     SCS107 events within 600 seconds are combined into a single event.
 
     **Fields**
+
+    ======== ========== ================================
+     Field      Type              Description
+    ======== ========== ================================
+      start   Char(21)   Start time (YYYY:DDD:HH:MM:SS)
+       stop   Char(21)    Stop time (YYYY:DDD:HH:MM:SS)
+     tstart      Float            Start time (CXC secs)
+      tstop      Float             Stop time (CXC secs)
+        dur      Float                  Duration (secs)
+      notes       Text               Supplemental notes
+    ======== ========== ================================
     """
     notes = models.TextField(help_text='Supplemental notes')
 
@@ -622,6 +659,18 @@ class FaMove(TlmEvent):
     **Event definition**: interval where ``3FAMOVE = MOVE``
 
     **Fields**
+
+    ============== ========== ================================
+        Field         Type              Description
+    ============== ========== ================================
+            start   Char(21)   Start time (YYYY:DDD:HH:MM:SS)
+             stop   Char(21)    Stop time (YYYY:DDD:HH:MM:SS)
+           tstart      Float            Start time (CXC secs)
+            tstop      Float             Stop time (CXC secs)
+              dur      Float                  Duration (secs)
+     start_3fapos    Integer        Start FA position (steps)
+      stop_3fapos    Integer         Stop FA position (steps)
+    ============== ========== ================================
     """
     event_msids = ['3famove', '3fapos']
     event_val = 'T'
@@ -650,6 +699,16 @@ class Dump(TlmEvent):
     **Event definition**: interval where ``AOUNLOAD = GRND``
 
     **Fields**
+
+    ======== ========== ================================
+     Field      Type              Description
+    ======== ========== ================================
+      start   Char(21)   Start time (YYYY:DDD:HH:MM:SS)
+       stop   Char(21)    Stop time (YYYY:DDD:HH:MM:SS)
+     tstart      Float            Start time (CXC secs)
+      tstop      Float             Stop time (CXC secs)
+        dur      Float                  Duration (secs)
+    ======== ========== ================================
     """
     event_msids = ['aounload']
     event_val = 'GRND'
@@ -662,6 +721,16 @@ class Eclipse(TlmEvent):
     **Event definition**: interval where ``AOECLIPS = ECL``
 
     **Fields**
+
+    ======== ========== ================================
+     Field      Type              Description
+    ======== ========== ================================
+      start   Char(21)   Start time (YYYY:DDD:HH:MM:SS)
+       stop   Char(21)    Stop time (YYYY:DDD:HH:MM:SS)
+     tstart      Float            Start time (CXC secs)
+      tstop      Float             Stop time (CXC secs)
+        dur      Float                  Duration (secs)
+    ======== ========== ================================
     """
     event_msids = ['aoeclips']
     event_val = 'ECL '
@@ -701,6 +770,42 @@ class Manvr(TlmEvent):
       Next maneuver
 
     **Fields**
+
+    ==================== ========== ============================================================
+           Field            Type                            Description
+    ==================== ========== ============================================================
+                  start   Char(21)                               Start time (YYYY:DDD:HH:MM:SS)
+                   stop   Char(21)                                Stop time (YYYY:DDD:HH:MM:SS)
+                 tstart      Float                                        Start time (CXC secs)
+                  tstop      Float                                         Stop time (CXC secs)
+                    dur      Float                                              Duration (secs)
+        prev_manvr_stop   Char(21)             Stop time of previous AOFATTMD=MNVR before manvr
+        prev_npnt_start   Char(21)            Start time of previous AOPCADMD=NPNT before manvr
+             nman_start   Char(21)                        Start time of AOPCADMD=NMAN for manvr
+            manvr_start   Char(21)                        Start time of AOFATTMD=MNVR for manvr
+             manvr_stop   Char(21)                         Stop time of AOFATTMD=MNVR for manvr
+             npnt_start   Char(21)                      Start time of AOPCADMD=NPNT after manvr
+              acq_start   Char(21)                      Start time of AOACASEQ=AQXN after manvr
+            guide_start   Char(21)                      Start time of AOACASEQ=GUID after manvr
+           kalman_start   Char(21)                      Start time of AOACASEQ=KALM after manvr
+     aca_proc_act_start   Char(21)                       Start time of AOPSACPR=ACT after manvr
+              npnt_stop   Char(21)                       Stop time of AOPCADMD=NPNT after manvr
+        next_nman_start   Char(21)                 Start time of next AOPCADMD=NMAN after manvr
+       next_manvr_start   Char(21)                 Start time of next AOFATTMD=MNVR after manvr
+                n_dwell    Integer    Number of kalman dwells after manvr and before next manvr
+                  n_acq    Integer   Number of AQXN intervals after manvr and before next manvr
+                n_guide    Integer   Number of GUID intervals after manvr and before next manvr
+               n_kalman    Integer   Number of KALM intervals after manvr and before next manvr
+              anomalous    Boolean                             Key MSID shows off-nominal value
+               template   Char(16)                                    Matched maneuver template
+               start_ra      Float                           Start right ascension before manvr
+              start_dec      Float                               Start declination before manvr
+             start_roll      Float                                Start roll angle before manvr
+                stop_ra      Float                             Stop right ascension after manvr
+               stop_dec      Float                                 Stop declination after manvr
+              stop_roll      Float                                  Stop roll angle after manvr
+                  angle      Float                                         Maneuver angle (deg)
+    ==================== ========== ============================================================
 
     ``n_acq``, ``n_guide``, and ``n_kalman``: these provide a count of the number of times
         after the maneuver ends that ``AOACASEQ`` changes value from anything to ``AQXN``,
@@ -1027,6 +1132,21 @@ class Dwell(Event):
     window commanding or multiple acquisition attempts).
 
     **Fields**
+
+    ============ ============ ========================================
+       Field         Type                   Description
+    ============ ============ ========================================
+          start     Char(21)           Start time (YYYY:DDD:HH:MM:SS)
+           stop     Char(21)            Stop time (YYYY:DDD:HH:MM:SS)
+         tstart        Float                    Start time (CXC secs)
+          tstop        Float                     Stop time (CXC secs)
+            dur        Float                          Duration (secs)
+     rel_tstart        Float   Start time relative to manvr end (sec)
+          manvr   ForeignKey        Maneuver that contains this dwell
+             ra        Float                    Right ascension (deg)
+            dec        Float                        Declination (deg)
+           roll        Float                         Roll angle (deg)
+    ============ ============ ========================================
     """
     rel_tstart = models.FloatField(help_text='Start time relative to manvr end (sec)')
     manvr = models.ForeignKey(Manvr, help_text='Maneuver that contains this dwell')
@@ -1050,6 +1170,20 @@ class ManvrSeq(BaseModel):
     that is relevant to the sequence of events comprising a maneuver event.
 
     **Fields**
+
+    =========== ============ ===========
+       Field        Type     Description
+    =========== ============ ===========
+         manvr   ForeignKey
+          msid      Char(8)
+      prev_val      Char(4)
+           val      Char(4)
+          date     Char(21)
+            dt        Float
+          time        Float
+     prev_date     Char(21)
+     prev_time        Float
+    =========== ============ ===========
     """
 
     manvr = models.ForeignKey(Manvr)
@@ -1080,6 +1214,17 @@ class SafeSun(TlmEvent):
     so SafeSun events within 24 hours of each other are merged.
 
     **Fields**
+
+    ======== ========== ================================
+     Field      Type              Description
+    ======== ========== ================================
+      start   Char(21)   Start time (YYYY:DDD:HH:MM:SS)
+       stop   Char(21)    Stop time (YYYY:DDD:HH:MM:SS)
+     tstart      Float            Start time (CXC secs)
+      tstop      Float             Stop time (CXC secs)
+        dur      Float                  Duration (secs)
+      notes       Text
+    ======== ========== ================================
     """
     notes = models.TextField()
 
@@ -1106,6 +1251,18 @@ class MajorEvent(BaseEvent):
     (YYYY:DOY) and ``date`` (YYYY-Mon-DD) attributes to indicate the time.
 
     **Fields**
+
+    ======== ========== =============================================
+     Field      Type                     Description
+    ======== ========== =============================================
+        key   Char(24)                     Unique key for this event
+      start    Char(8)      Event time to the nearest day (YYYY:DOY)
+       date   Char(11)   Event time to the nearest day (YYYY-Mon-DD)
+     tstart      Float       Event time to the nearest day (CXC sec)
+      descr       Text                             Event description
+       note       Text          Note (comments or CAP # or FSW PR #)
+     source    Char(3)                     Event source (FDB or FOT)
+    ======== ========== =============================================
     """
     key = models.CharField(max_length=24, primary_key=True,
                            help_text='Unique key for this event')
@@ -1211,6 +1368,19 @@ class CAP(IFotEvent):
     **Event definition**: CAP from iFOT database
 
     **Fields**
+
+    ========= =========== =================
+      Field       Type       Description
+    ========= =========== =================
+     ifot_id     Integer
+       start    Char(21)
+        stop    Char(21)
+         num    Char(15)        CAP number
+       title        Text         CAP title
+       descr        Text   CAP description
+       notes        Text         CAP notes
+        link   Char(250)          CAP link
+    ========= =========== =================
     """
     num = models.CharField(max_length=15, help_text='CAP number')
     title = models.TextField(help_text='CAP title')
@@ -1234,6 +1404,22 @@ class DsnComm(IFotEvent):
       beginning / end of track).
 
     **Fields**
+
+    =========== ========== ========================
+       Field       Type          Description
+    =========== ========== ========================
+       ifot_id    Integer
+         start   Char(21)
+          stop   Char(21)
+           bot    Char(4)       Beginning of track
+           eot    Char(4)             End of track
+      activity   Char(30)     Activity description
+        config   Char(10)            Configuration
+     data_rate    Char(9)                Data rate
+          site   Char(12)                 DSN site
+           soe    Char(4)   DSN Sequence Of Events
+       station    Char(6)              DSN station
+    =========== ========== ========================
     """
     bot = models.CharField(max_length=4, help_text='Beginning of track')
     eot = models.CharField(max_length=4, help_text='End of track')
@@ -1266,6 +1452,24 @@ class Orbit(BaseEvent):
     prematurely disable RADMON.
 
     **Fields**
+
+    ================== ========== ==================================================
+          Field           Type                       Description
+    ================== ========== ==================================================
+                start   Char(21)         Start time (orbit ascending node crossing)
+                 stop   Char(21)     Stop time (next orbit ascending node crossing)
+               tstart      Float         Start time (orbit ascending node crossing)
+                tstop      Float     Stop time (next orbit ascending node crossing)
+                  dur      Float                               Orbit duration (sec)
+            orbit_num    Integer                                       Orbit number
+              perigee   Char(21)                                       Perigee time
+               apogee   Char(21)                                        Apogee time
+            t_perigee      Float                             Perigee time (CXC sec)
+        start_radzone   Char(21)                             Start time of rad zone
+         stop_radzone   Char(21)                              Stop time of rad zone
+     dt_start_radzone      Float   Start time of rad zone relative to perigee (sec)
+      dt_stop_radzone      Float    Stop time of rad zone relative to perigee (sec)
+    ================== ========== ==================================================
     """
     start = models.CharField(max_length=21,
                              help_text='Start time (orbit ascending node crossing)')
@@ -1332,6 +1536,16 @@ class OrbitPoint(BaseModel):
     Orbit point
 
     **Fields**
+
+    =========== ============ ===========
+       Field        Type     Description
+    =========== ============ ===========
+         orbit   ForeignKey
+          date     Char(21)
+          name      Char(9)
+     orbit_num      Integer
+         descr     Char(50)
+    =========== ============ ===========
     """
     orbit = models.ForeignKey(Orbit)
     date = models.CharField(max_length=21)
@@ -1352,6 +1566,19 @@ class RadZone(Event):
     Radiation zone
 
     **Fields**
+
+    =========== ============ ================================
+       Field        Type               Description
+    =========== ============ ================================
+         start     Char(21)   Start time (YYYY:DDD:HH:MM:SS)
+          stop     Char(21)    Stop time (YYYY:DDD:HH:MM:SS)
+        tstart        Float            Start time (CXC secs)
+         tstop        Float             Stop time (CXC secs)
+           dur        Float                  Duration (secs)
+         orbit   ForeignKey
+     orbit_num      Integer
+       perigee     Char(21)
+    =========== ============ ================================
     """
     orbit = models.ForeignKey(Orbit)
     orbit_num = models.IntegerField()
