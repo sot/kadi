@@ -3,6 +3,7 @@ kadi/events/cache
 *.log
 web2py
 build/
+_build/
 dist/
 *.ipynb
 *.pkl
