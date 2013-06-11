@@ -1,6 +1,7 @@
 import os
 import argparse
 import cPickle as pickle
+import difflib
 
 import numpy as np
 import tables
@@ -10,6 +11,8 @@ import Ska.DBI
 import Ska.File
 from Chandra.Time import DateTime
 from . import occweb
+
+MIN_MATCHING_BLOCK_SIZE = 500
 
 CMDS_DTYPE = [('idx', np.uint16),
               ('date', '|S21'),
@@ -153,23 +156,54 @@ def add_h5_cmds(h5file, idx_cmds):
         h5.createTable(h5.root, 'data', cmds, "cmds", expectedrows=2e6)
         logger.info('Created h5 cmds table {}'.format(h5file))
     else:
-        h5_timeline_ids = h5d.cols.timeline_id[:]
-        ok = np.zeros(len(h5_timeline_ids), dtype=bool)
-        for timeline_id in set(cmds['timeline_id']):
-            ok |= h5_timeline_ids == timeline_id
-        del_idxs = np.flatnonzero(ok)
-        if not np.all(np.diff(del_idxs) == 1):
-            error_dump = {}
-            for name in ['ok', 'del_idxs', 'h5_timeline_ids', 'cmds']:
-                error_dump[name] = locals()[name]
-            pickle.dump(error_dump, open(h5file + '-fail.pkl', 'w'))
-            h5.close()
-            raise ValueError('Inconsistency in timeline_ids, wrote diagnostic output to {}'
-                             .format(h5file + '-fail.pkl'))
-        h5d.truncate(np.min(del_idxs))
-        logger.debug('Deleted cmds indexes {} .. {}'.format(np.min(del_idxs), np.max(del_idxs)))
-        h5d.append(cmds)
-        logger.info('Added {} commands to HDF5 cmds table'.format(len(cmds)))
+        date0 = min(idx_cmd[1] for idx_cmd in idx_cmds)
+        h5_date = h5d.cols.date[:]
+        idx_recent = np.searchsorted(h5_date, date0)
+        logger.info('Selecting commands from h5d[{}:]'.format(idx_recent))
+        logger.info('  {}'.format(str(h5d[idx_recent])))
+        h5d_recent = h5d[idx_recent:]  # recent h5d entries
+
+        # Define the column names that specify a complete and unique row
+        key_names = ('date', 'type', 'tlmsid', 'scs', 'step', 'timeline_id')
+
+        h5d_recent_vals = [tuple(str(row[x]) for x in key_names) for row in h5d_recent]
+        idx_cmds_vals = [tuple(str(x) for x in row[1:]) for row in idx_cmds]
+
+        diff = difflib.SequenceMatcher(a=h5d_recent_vals, b=idx_cmds_vals, autojunk=False)
+        blocks = diff.get_matching_blocks()
+        logger.info('Matching blocks for existing HDF5 and timeline commands')
+        for block in blocks:
+            logger.info('  {}'.format(block))
+        opcodes = diff.get_opcodes()
+        logger.info('Diffs between existing HDF5 and timeline commands')
+        for opcode in opcodes:
+            logger.info('  {}'.format(opcode))
+        # Find the first matching block that is sufficiently long
+        for block in blocks:
+            if block.size > MIN_MATCHING_BLOCK_SIZE:
+                break
+        else:
+            raise ValueError('No matching blocks at least {} long'
+                             .format(MIN_MATCHING_BLOCK_SIZE))
+
+        # Index into idx_cmds at the end of the large matching block.  block.b is the
+        # beginning of the match.
+        idx_cmds_idx = block.b + block.size
+
+        if idx_cmds_idx < len(cmds):
+            # Index into h5d at the point of the first diff after the large matching block
+            h5d_idx = block.a + block.size + idx_recent
+
+            if h5d_idx < len(h5d):
+                logger.debug('Deleted relative cmds indexes {} .. {}'.format(h5d_idx - idx_recent,
+                                                                             len(h5d) - idx_recent))
+                logger.debug('Deleted cmds indexes {} .. {}'.format(h5d_idx, len(h5d)))
+                h5d.truncate(h5d_idx)
+
+            h5d.append(cmds[idx_cmds_idx:])
+            logger.info('Added {} commands to HDF5 cmds table'.format(len(cmds[idx_cmds_idx:])))
+        else:
+            logger.info('No new timeline commands, HDF5 cmds table not updated')
 
     h5.flush()
     logger.info('Upated HDF5 cmds table {}'.format(h5file))
