@@ -42,14 +42,14 @@ class LazyVal(object):
 
 
 def load_idx_cmds():
-    h5 = tables.openFile(IDX_CMDS_PATH, mode='r')
+    h5 = tables.openFile(IDX_CMDS_PATH(), mode='r')
     idx_cmds = h5.root.data[:]
     h5.close()
     return idx_cmds
 
 
 def load_pars_dict():
-    with open(PARS_DICT_PATH, 'r') as fh:
+    with open(PARS_DICT_PATH(), 'r') as fh:
         pars_dict = pickle.load(fh)
     return pars_dict
 

@@ -130,7 +130,7 @@ def main():
 
     if opt.occ:
         # Get events database file from HEAD via lucky ftp
-        occweb.ftp_get_from_lucky('kadi', [EVENTS_DB_PATH], logger=logger)
+        occweb.ftp_get_from_lucky('kadi', [EVENTS_DB_PATH()], logger=logger)
         return
 
     from .events import models
@@ -165,7 +165,7 @@ def main():
 
     if opt.ftp:
         # Push events database file to OCC via lucky ftp
-        occweb.ftp_put_to_lucky('kadi', [EVENTS_DB_PATH], logger=logger)
+        occweb.ftp_put_to_lucky('kadi', [EVENTS_DB_PATH()], logger=logger)
 
 if __name__ == '__main__':
     main()
