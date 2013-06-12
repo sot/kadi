@@ -164,6 +164,10 @@ class EventQuery(object):
             date_intervals = self.cls.get_date_intervals(start, stop, self.interval_pad)
             return date_intervals
 
+    @property
+    def table(self):
+        return self.all().table
+
     def filter(self, start=None, stop=None, subset=None, **kwargs):
         """
         Find events between ``start`` and ``stop`` which match the filter
