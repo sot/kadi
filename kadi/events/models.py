@@ -1362,6 +1362,9 @@ class IFotEvent(BaseEvent):
     ifot_id = models.IntegerField(primary_key=True)
     start = models.CharField(max_length=21)
     stop = models.CharField(max_length=21)
+    tstart = models.FloatField(db_index=True, help_text='Start time (CXC secs)')
+    tstop = models.FloatField(help_text='Stop time (CXC secs)')
+    dur = models.FloatField(help_text='Duration (secs)')
 
     class Meta:
         abstract = True
@@ -1393,9 +1396,23 @@ class IFotEvent(BaseEvent):
                      for key in cls.ifot_props}
             # Prefer start or stop from props, but if not there use column tstart/tstop
             for st in ('start', 'stop'):
+                tst = 't{}'.format(st)
                 if st not in event or not event[st].strip():
-                    event[st] = ifot_evt['t' + st]
+                    event[st] = ifot_evt[tst]
+                # The above still might not be OK because sometimes what is in the
+                # <prop>.START/STOP values is not a valid date.
+                try:
+                    DateTime(event[st]).date
+                except:
+                    # Fail, roll back to the tstart/tstop version
+                    logger.info('WARNING: Bad value of ifot_evt[{}.{}] = {}'
+                                .format(cls.ifot_type_desc, st, event[st]))
+                    event[st] = ifot_evt[tst]
+
             event['ifot_id'] = ifot_evt['id']
+            event['tstart'] = DateTime(event['start']).secs
+            event['tstop'] = DateTime(event['stop']).secs
+            event['dur'] = event['tstop'] - event['tstart']
             events.append(event)
 
         return events
@@ -1413,18 +1430,21 @@ class CAP(IFotEvent):
 
     **Fields**
 
-    ========= =========== =================
-      Field       Type       Description
-    ========= =========== =================
+    ========= =========== =======================
+      Field       Type          Description
+    ========= =========== =======================
      ifot_id     Integer
        start    Char(21)
         stop    Char(21)
-         num    Char(15)        CAP number
-       title        Text         CAP title
-       descr        Text   CAP description
-       notes        Text         CAP notes
-        link   Char(250)          CAP link
-    ========= =========== =================
+      tstart       Float   Start time (CXC secs)
+       tstop       Float    Stop time (CXC secs)
+         dur       Float         Duration (secs)
+         num    Char(15)              CAP number
+       title        Text               CAP title
+       descr        Text         CAP description
+       notes        Text               CAP notes
+        link   Char(250)                CAP link
+    ========= =========== =======================
     """
     num = models.CharField(max_length=15, help_text='CAP number')
     title = models.TextField(help_text='CAP title')
@@ -1455,6 +1475,9 @@ class DsnComm(IFotEvent):
        ifot_id    Integer
          start   Char(21)
           stop   Char(21)
+        tstart      Float    Start time (CXC secs)
+         tstop      Float     Stop time (CXC secs)
+           dur      Float          Duration (secs)
            bot    Char(4)       Beginning of track
            eot    Char(4)             End of track
       activity   Char(30)     Activity description
