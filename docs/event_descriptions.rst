@@ -11,18 +11,21 @@ CAP from iFOT database
 
 **Fields**
 
-========= =========== =================
-  Field       Type       Description
-========= =========== =================
+========= =========== =======================
+  Field       Type          Description
+========= =========== =======================
  ifot_id     Integer
    start    Char(21)
     stop    Char(21)
-     num    Char(15)        CAP number
-   title        Text         CAP title
-   descr        Text   CAP description
-   notes        Text         CAP notes
-    link   Char(250)          CAP link
-========= =========== =================
+  tstart       Float   Start time (CXC secs)
+   tstop       Float    Stop time (CXC secs)
+     dur       Float         Duration (secs)
+     num    Char(15)              CAP number
+   title        Text               CAP title
+   descr        Text         CAP description
+   notes        Text               CAP notes
+    link   Char(250)                CAP link
+========= =========== =======================
 
 .. _event_dsn_comm:
 
@@ -40,6 +43,9 @@ Scheduled DSN comm period
    ifot_id    Integer
      start   Char(21)
       stop   Char(21)
+    tstart      Float    Start time (CXC secs)
+     tstop      Float     Stop time (CXC secs)
+       dur      Float          Duration (secs)
        bot    Char(4)       Beginning of track
        eot    Char(4)             End of track
   activity   Char(30)     Activity description
