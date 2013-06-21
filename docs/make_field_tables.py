@@ -5,6 +5,18 @@ Auto-generate event class documenation based on sphinx model definitions.
 - make_events_table
 - make_event_descriptions_section
 
+Usage:
+
+ipython
+run make_field_tables
+
+>>> update_model_docstrings(outfile='models_test.py')
+% diff models_test.py ../kadi/events/models.py
+% mv models_test.py ../kadi/events/models.py
+# Or just set outfile to ../kadi/events/models.py straight away
+
+>>> make_event_descriptions_section('event_descriptions.rst')
+
 """
 import sys
 import os
@@ -105,7 +117,11 @@ def make_event_descriptions_section(outfile=None):
     """
     Make the Event Descriptions section of the Kadi RST docs.
     """
-    out_lines = []
+    out_lines = ['=======================',
+                 'Event Descriptions',
+                 '=======================',
+                 '']
+
     for model_name in sorted(models):
         model = models[model_name]
         docstring = textwrap.dedent(model.__doc__).strip()
