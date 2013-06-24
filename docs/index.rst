@@ -79,14 +79,47 @@ Field name     Description
 
 Many of the event types have additional fields that are specific to that type.  For
 example the |FaMove| event also provides the values of the FA step position
-``3FAPOS`` before and after the SIM focus assembly translation.
+``3FAPOS`` before and after the SIM focus assembly translation, and the |DsnComm| event
+provides a host of information about each comm pass:
+
+=========== ========== ========================
+   Field       Type          Description
+=========== ========== ========================
+   ifot_id    Integer
+     start   Char(21)
+      stop   Char(21)
+    tstart      Float    Start time (CXC secs)
+     tstop      Float     Stop time (CXC secs)
+       dur      Float          Duration (secs)
+       bot    Char(4)       Beginning of track
+       eot    Char(4)             End of track
+  activity   Char(30)     Activity description
+    config   Char(10)            Configuration
+ data_rate    Char(9)                Data rate
+      site   Char(12)                 DSN site
+       soe    Char(4)   DSN Sequence Of Events
+   station    Char(6)              DSN station
+=========== ========== ========================
 
 Non-interval events
 """"""""""""""""""""""
 
 The event types |MajorEvent|, |ManvrSeq|, and |OrbitPoint| are a bit different in that
 they refer to **moment in time** rather than an interval.  For these types the only field
-they all have in common is ``date``.
+they all have in common is ``date``.  For example the |MajorEvent| type has the following fields:
+
+======== ========== =============================================
+ Field      Type                     Description
+======== ========== =============================================
+    key   Char(24)                     Unique key for this event
+  start    Char(8)      Event time to the nearest day (YYYY:DOY)
+   date   Char(11)   Event time to the nearest day (YYYY-Mon-DD)
+ tstart      Float       Event time to the nearest day (CXC sec)
+  descr       Text                             Event description
+   note       Text          Note (comments or CAP # or FSW PR #)
+ source    Char(3)                     Event source (FDB or FOT)
+======== ========== =============================================
+
 
 Even though many Chandra Major Events (such as a safe mode) are really intervals in time,
 the source databases do not encapsulate that information so the derived Kadi database is
@@ -165,10 +198,11 @@ an inclusive time range you would supply both the start and stop date in that or
 e.g. ``filter('2012:001', '2013:001')``.
 
 The last bit of the chain is the `.table` attribute, which says to convert the
-``filter('2012:001')`` output from a QuerySet object (which is discussed later) into a
-simple Table object that can be printed, plotted, and used in computations.  Now let's
-look at what came out by printing the Table.  Before you do this make your terminal window
-plenty wide, there are a bunch of fields and you want to see them all::
+``filter('2012:001')`` output from a QuerySet object (which is discussed later) into a an
+astropy `Table <http://docs.astropy.org/en/stable/table/index.html>`_ that can be printed,
+plotted, and used in computations.  Now let's look at what came out by printing the Table.
+Before you do this make your terminal window plenty wide, there are a bunch of fields and
+you want to see them all::
 
   >>> print tsc_moves
           start                  stop             tstart        tstop          dur      start_3tscpos stop_3tscpos start_det stop_det max_pwm
@@ -208,6 +242,9 @@ grating motions, and momentum dumps.  With Kadi doing this sort of filtering is 
 Here we show just the simple example above.  First we plot the E1300 rates over a 30 day
 span, including rad zones::
 
+  >>> from Ska.engarchive import fetch
+  >>> figure()
+
   >>> e1300 = fetch.Msid("SCE1300", '2012:020', '2012:050')
   >>> e1300_log = np.log10(e1300.vals.clip(10))
   >>> plot_cxctime(e1300.times, e1300_log, '-b')
@@ -225,6 +262,42 @@ data in red::
 
 .. image:: e1300_rates2.png
 
+The converse operation of *selecting* intervals is also available::
+
+  >>> e1300.remove_intervals(events.rad_zones)
+
+The event intervals within a particular time range can be accessed as a list of 
+``(start, stop)`` with the ``intervals()`` method::
+
+  >>> events.rad_zones.intervals('2012:020', '2012:030')
+  [('2012:020:14:56:33.713', '2012:020:23:42:31.713'),
+   ('2012:023:06:15:15.541', '2012:023:16:15:33.248'),
+   ('2012:025:21:22:22.506', '2012:026:08:10:20.506'),
+   ('2012:028:13:22:04.533', '2012:028:22:20:02.533')]
+
+Boolean combinations
+"""""""""""""""""""""
+
+The real power of intervals is that they can be combined with boolean expressions and
+can be padded on either end to make it easy to create complex time filters.  The
+following example selects all Kalman mode dwells, but removes times that could
+be affected by a SIM TSC move or a momentum dump.
+
+  >>> dwells = events.dwells
+  >>> dwells.interval_pad = -100    # Negative pad means make the interval smaller
+  >>> tsc_moves = events.tsc_moves
+  >>> tsc_moves.interval_pad = 300  # Pad TSC moves by 300 seconds on each side
+  >>> dumps = events.dumps
+  >>> dumps.interval_pad = (10, 500)  # Pad dumps 10 secs before and 500 secs after
+
+  >>> good_times = dwells & ~(tsc_moves | dumps)
+  >>> dat = fetch.Msid('aoattqt1', '2012:001', '2012:002')
+  >>> dat.plot()
+  >>> dat.select_intervals(good_times)
+  >>> dat.plot('.r')
+  >>> grid()
+
+.. image:: complex_event_filter.png
 
 Get commands
 ^^^^^^^^^^^^^^^^
@@ -234,6 +307,7 @@ possibly followed by accessing the results in tabular format with the ``table``
 attribute.  For example you find the load commands that occurred in the first hour of 2012
 New Year with::
 
+  >>> from kadi import cmds
   >>> new_year_cmds = cmds.filter('2012:001:00:00:00', '2012:001:01:00:00')
   >>> print new_year_cmds.table
            date            type      tlmsid   scs step timeline_id
@@ -300,6 +374,12 @@ and then get the corresponding item using dictionary-style access::
 
 Details
 -----------
+
+The advanced usage section is incomplete, however examples of advanced
+usage are demonstrated in thie `Kadi demo IPython notebook
+<http://nbviewer.ipython.org/url/cxc.harvard.edu/mta/ASPECT/ipynb/kadi_demo.ipynb>`_.
+Please refer to this notebook and download and run it.
+
 
 Event definitions
 ^^^^^^^^^^^^^^^^^^^
