@@ -229,13 +229,77 @@ data in red::
 Get commands
 ^^^^^^^^^^^^^^^^
 
+As with event queries, the basic way to select commands is with the ``filter()`` method,
+possibly followed by accessing the results in tabular format with the ``table``
+attribute.  For example you find the load commands that occurred in the first hour of 2012
+New Year with::
+
+  >>> new_year_cmds = cmds.filter('2012:001:00:00:00', '2012:001:01:00:00')
+  >>> print new_year_cmds.table
+           date            type      tlmsid   scs step timeline_id
+  --------------------- ---------- ---------- --- ---- -----------
+  2012:001:00:11:29.455    ACISPKT AA00000000 131 1615   426098423
+  2012:001:00:11:33.455    ACISPKT AA00000000 131 1619   426098423
+  2012:001:00:11:37.455    ACISPKT WSPOW00000 131 1623   426098423
+  2012:001:00:12:01.455    ACISPKT WSPOW08002 131 1629   426098423
+  2012:001:00:13:04.455    ACISPKT WT00910014 131 1635   426098423
+  2012:001:00:13:08.455    ACISPKT XTZ0000005 131 1723   426098423
+  2012:001:00:13:12.455    ACISPKT RS_0000001 131 1728   426098423
+  2012:001:00:13:16.455    ACISPKT RH_0000001 131 1732   426098423
+  2012:001:00:18:50.781 COMMAND_HW      CNOOP 128 1073   426098422
+  2012:001:00:18:51.806 COMMAND_HW      CNOOP 128 1075   426098422
+
+The output is an astropy `Table <http://docs.astropy.org/en/stable/table/index.html>`_
+object with many powerful and handy features built in.  For instance you can easily select
+two of the columns and make a new table::
+
+  >>> print new_year_cmds.table['type', 'tlmsid']
+     type      tlmsid
+  ---------- ----------
+     ACISPKT AA00000000
+     ACISPKT AA00000000
+     ACISPKT WSPOW00000
+     ACISPKT WSPOW08002
+     ACISPKT WT00910014
+     ACISPKT XTZ0000005
+     ACISPKT RS_0000001
+     ACISPKT RH_0000001
+  COMMAND_HW      CNOOP
+  COMMAND_HW      CNOOP
+
+Unlike event queries, the output of the ``filter()`` method is frequently useful even for
+simple cases because it is the only way to access the parameters associated with the
+command.  To see this just print the raw ``new_year_cmds`` without converting into a
+table::
+
+   >>> new_year_cmds
+  2012:001:00:11:29.455 ACISPKT     tlmsid=AA00000000 scs=131 step=1615 timeline_id=426098423 cmds=3 packet(40)=D80000300030603001300 words=3
+  2012:001:00:11:33.455 ACISPKT     tlmsid=AA00000000 scs=131 step=1619 timeline_id=426098423 cmds=3 packet(40)=D80000300030603001300 words=3
+  2012:001:00:11:37.455 ACISPKT     tlmsid=WSPOW00000 scs=131 step=1623 timeline_id=426098423 cmds=5 packet(40)=D8000070007030500200000000000010000 words=7
+  2012:001:00:12:01.455 ACISPKT     tlmsid=WSPOW08002 scs=131 step=1629 timeline_id=426098423 cmds=5 packet(40)=D80000700071A9D00200000008000010002 words=7
+  2012:001:00:13:04.455 ACISPKT     tlmsid=WT00910014 scs=131 step=1635 timeline_id=426098423 cmds=87 packet(40)=D800096009623390009000471CF00140091AA7A0 words=150
+  2012:001:00:13:08.455 ACISPKT     tlmsid=XTZ0000005 scs=131 step=1723 timeline_id=426098423 cmds=4 packet(40)=D8000040004003A000E000400000 words=4
+  2012:001:00:13:12.455 ACISPKT     tlmsid=RS_0000001 scs=131 step=1728 timeline_id=426098423 cmds=3 packet(40)=D80000300030042002100 words=3
+  2012:001:00:13:16.455 ACISPKT     tlmsid=RH_0000001 scs=131 step=1732 timeline_id=426098423 cmds=3 packet(40)=D80000300030044002300 words=3
+  2012:001:00:18:50.781 COMMAND_HW  tlmsid=CNOOP scs=128 step=1073 timeline_id=426098422 hex=7E00000 msid=CNOOPLR
+  2012:001:00:18:51.806 COMMAND_HW  tlmsid=CNOOP scs=128 step=1075 timeline_id=426098422
+  hex=7E00000 msid=CNOOPLR
+
+To access the details of a particular command, select that command with the correct row index
+and then get the corresponding item using dictionary-style access::
+
+  >>> new_year_cmds[1]
+  2012:001:00:11:33.455 ACISPKT     tlmsid=AA00000000 scs=131 step=1619 timeline_id=426098423 cmds=3 packet(40)=D80000300030603001300 words=3
+
+  >>> new_year_cmds[1]['cmds']
+  3
+
+  >>> new_year_cmds[1]['packet(40)']
+  'D80000300030603001300'
 
 
-Chandra events
-----------------
-
-
-
+Details
+-----------
 
 Event definitions
 ^^^^^^^^^^^^^^^^^^^
@@ -262,8 +326,11 @@ Event definitions
 ============= ======================== ================
 
 
-Find and filter
+
+Event filtering
 ^^^^^^^^^^^^^^^^^^
+
+*TBD*
 
 Event intervals
 ^^^^^^^^^^^^^^^^^^^
@@ -272,8 +339,12 @@ The :class:`~kadi.events.query.EventQuery` class provides a powerful way to defi
 time intervals based on events or combinations of events.
 
 
+*TBD*
+
 Commands
-------------
+^^^^^^^^^^^^
+
+*TBD*
 
 API and related docs
 ---------------------
