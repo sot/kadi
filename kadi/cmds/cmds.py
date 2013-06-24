@@ -1,15 +1,15 @@
-import os
 import cPickle as pickle
 import tables
 from collections import OrderedDict
 
 import numpy as np
 
+from astropy.table import Table
 from Chandra.Time import DateTime
 
 from ..paths import IDX_CMDS_PATH, PARS_DICT_PATH
 
-__all__ = ['filter', 'find']
+__all__ = ['filter']
 
 
 class LazyVal(object):
@@ -77,6 +77,7 @@ def filter(start=None, stop=None, **kwargs):
       >>> cs = cmds.filter('2012:001', '2012:030', type='simtrans')
       >>> cs = cmds.filter(type='acispkt', tlmsid='wsvidalldn')
       >>> cs = cmds.filter(msid='aflcrset')
+      >>> print cs.table
 
     Parameters
     ----------
@@ -92,11 +93,11 @@ def filter(start=None, stop=None, **kwargs):
     -------
     cmds : CmdList object (list of commands)
     """
-    cmds = find(start, stop, **kwargs)
+    cmds = _find(start, stop, **kwargs)
     return CmdList(cmds)
 
 
-def find(start=None, stop=None, **kwargs):
+def _find(start=None, stop=None, **kwargs):
     """
     Get commands between ``start`` and ``stop``.  Additional ``key=val`` pairs
     can be supplied to further filter the results.  Both ``key`` and ``val``
@@ -109,10 +110,10 @@ def find(start=None, stop=None, **kwargs):
     Examples::
 
       >>> from kadi import cmds
-      >>> cs = cmds.filter('2012:001', '2012:030')
-      >>> cs = cmds.filter('2012:001', '2012:030', type='simtrans')
-      >>> cs = cmds.filter(type='acispkt', tlmsid='wsvidalldn')
-      >>> cs = cmds.filter(msid='aflcrset')
+      >>> cs = cmds._find('2012:001', '2012:030')
+      >>> cs = cmds._find('2012:001', '2012:030', type='simtrans')
+      >>> cs = cmds._find(type='acispkt', tlmsid='wsvidalldn')
+      >>> cs = cmds._find(msid='aflcrset')
 
     Parameters
     ----------
@@ -149,7 +150,7 @@ def find(start=None, stop=None, **kwargs):
                     par_ok |= (idx_cmds['idx'] == idx)
             ok &= par_ok
     cmds = idx_cmds[ok]
-    return cmds
+    return Table(cmds)
 
 
 class Cmd(OrderedDict):
@@ -175,6 +176,10 @@ class Cmd(OrderedDict):
 class CmdList(object):
     def __init__(self, cmds):
         self.cmds = cmds
+
+    @property
+    def table(self):
+        return self.cmds
 
     def __getitem__(self, item):
         cmds = self.cmds
