@@ -179,7 +179,10 @@ class CmdList(object):
 
     @property
     def table(self):
-        return self.cmds
+        if not hasattr(self, '_table'):
+            self._table = Table(self.cmds)
+            self._table.remove_column('idx')
+        return self._table
 
     def __getitem__(self, item):
         cmds = self.cmds
