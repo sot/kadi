@@ -12,6 +12,7 @@
 .. |MajorEvent| replace:: :class:`~kadi.events.models.MajorEvent`
 .. |Manvr| replace:: :class:`~kadi.events.models.Manvr`
 .. |ManvrSeq| replace:: :class:`~kadi.events.models.ManvrSeq`
+.. |NormalSun| replace:: :class:`~kadi.events.models.NormalSun`
 .. |Obsid| replace:: :class:`~kadi.events.models.Obsid`
 .. |Orbit| replace:: :class:`~kadi.events.models.Orbit`
 .. |OrbitPoint| replace:: :class:`~kadi.events.models.OrbitPoint`
@@ -396,6 +397,7 @@ Event definitions
 |MajorEvent|  :ref:`event_major_event` ``major_events``
      |Manvr|        :ref:`event_manvr`       ``manvrs``
   |ManvrSeq|    :ref:`event_manvr_seq`   ``manvr_seqs``
+ |NormalSun|   :ref:`event_normal_sun`  ``normal_suns``
      |Obsid|        :ref:`event_obsid`       ``obsids``
      |Orbit|        :ref:`event_orbit`       ``orbits``
 |OrbitPoint|  :ref:`event_orbit_point` ``orbit_points``

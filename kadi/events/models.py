@@ -1280,6 +1280,32 @@ class SafeSun(TlmEvent):
     event_time_fuzz = 86400  # One full day of fuzz / pad
 
 
+class NormalSun(TlmEvent):
+    """
+    Normal sun mode event
+
+    **Event definition**: interval when PCAD mode ``AOPCADMD = NSUN``
+
+    During a safing event and recovery this MSID can toggle to different values,
+    so NormalSun events within 4 hours of each other are merged.
+
+    **Fields**
+
+    ======== ========== ================================
+     Field      Type              Description
+    ======== ========== ================================
+      start   Char(21)   Start time (YYYY:DDD:HH:MM:SS)
+       stop   Char(21)    Stop time (YYYY:DDD:HH:MM:SS)
+     tstart      Float            Start time (CXC secs)
+      tstop      Float             Stop time (CXC secs)
+        dur      Float                  Duration (secs)
+    ======== ========== ================================
+    """
+    event_msids = ['aopcadmd']
+    event_val = 'NSUN'
+    event_time_fuzz = 86400  # One full day of fuzz
+
+
 class MajorEvent(BaseEvent):
     """
     Major event

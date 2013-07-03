@@ -295,6 +295,28 @@ that is relevant to the sequence of events comprising a maneuver event.
  prev_time        Float
 =========== ============ ===========
 
+.. _event_normal_sun:
+
+Normal sun event
+-------------
+
+**Event definition**: interval when PCAD mode ``AOPCADMD = NSUN``
+
+During a safing event and recovery this MSID can toggle to different values,
+so NormalSun events within 4 hours of each other are merged.
+
+**Fields**
+
+======== ========== ================================
+ Field      Type              Description
+======== ========== ================================
+  start   Char(21)   Start time (YYYY:DDD:HH:MM:SS)
+   stop   Char(21)    Stop time (YYYY:DDD:HH:MM:SS)
+ tstart      Float            Start time (CXC secs)
+  tstop      Float             Stop time (CXC secs)
+    dur      Float                  Duration (secs)
+======== ========== ================================
+
 .. _event_obsid:
 
 Observation identifier
