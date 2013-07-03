@@ -298,7 +298,7 @@ that is relevant to the sequence of events comprising a maneuver event.
 .. _event_normal_sun:
 
 Normal sun event
--------------
+-----------------
 
 **Event definition**: interval when PCAD mode ``AOPCADMD = NSUN``
 
