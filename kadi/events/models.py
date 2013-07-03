@@ -422,12 +422,16 @@ class TlmEvent(Event):
                             .format(cls.__name__))
             return [], event_msidset
 
-        # Events like Safe Sun Mode just appear in telemetry without any surrounding
-        # non-event states.  In this case use a 'event_time_fuzz' class attribute t
+        # When `event_time_fuzz` is specified, e.g. for events like Safe Sun Mode
+        # or normal sun mode then ensure that the end of the event is at least
+        # event_time_fuzz from the end of the search interval.  If not the event
+        # might be split between the current search interval and the next.  Since
+        # the next search interval will step forward in time, it is sure that
+        # eventually the event will be fully contained.
         if event_time_fuzz:
-            if (tstart + event_time_fuzz > states[0]['tstart']
-                    or tstop - event_time_fuzz < states[-1]['tstop']):
-                # Tstart or tstop is within event_time_fuzz of the start and stop of states so
+            if (tstop - event_time_fuzz < states[-1]['tstop']
+                    and states[-1]['val'] == cls.event_val):
+                # Event tstop is within event_time_fuzz of the stop of states so
                 # bail out and don't return any states.
                 logger.warn('Warning: dropping {} states because of insufficent event time pad'
                             .format(cls.__name__))
