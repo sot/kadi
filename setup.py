@@ -9,4 +9,5 @@ setup(name='kadi',
       author_email='aldcroft@head.cfa.harvard.edu',
       url='http://www.python.org/',
       packages=['kadi', 'kadi.events', 'kadi.cmds'],
+      package_data={'kadi.events': ['templates/*/*.html']},
       )
