@@ -1069,7 +1069,7 @@ class Manvr(TlmEvent):
             npnt_start=match('aopcadmd', 'NPNT', 0, 'after'),
             acq_start=match('aoacaseq', 'AQXN', 0, 'after'),
             guide_start=match('aoacaseq', 'GUID', 0, 'after'),
-            Kalman_start=match('aoacaseq', 'KALM', 0, 'after'),
+            kalman_start=match('aoacaseq', 'KALM', 0, 'after'),
             aca_proc_act_start=match('aopsacpr', 'ACT ', 0, 'after'),
             npnt_stop=match('aopcadmd', '!NPNT', -1, 'after'),
 
@@ -1077,7 +1077,7 @@ class Manvr(TlmEvent):
             next_manvr_start=match('aofattmd', 'MNVR', -1, 'after'),
             n_acq=len(match('aoacaseq', 'AQXN', None, 'after')),
             n_guide=len(match('aoacaseq', 'GUID', None, 'after')),
-            n_Kalman=len(match('aoacaseq', 'KALM', None, 'after')),
+            n_kalman=len(match('aoacaseq', 'KALM', None, 'after')),
             anomalous=anomalous,
             template=template,
             )
