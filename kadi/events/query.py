@@ -72,6 +72,12 @@ def get_dates_vals(intervals, start, stop):
     dates = []
     vals = []
 
+    # Handle the trivial case of an empty list of intervals => all False in range
+    if not intervals:
+        dates = [datestart, datestop]
+        vals = [False, False]
+        return dates, vals
+
     # If the first interval does not start exactly at datestart then add
     # a "False" interval from datestart to the beginning of the first interval
     if intervals[0][0] > datestart:
