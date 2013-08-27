@@ -176,21 +176,24 @@ class EventQuery(object):
 
     def filter(self, start=None, stop=None, obsid=None, subset=None, **kwargs):
         """
-        Find events between ``start`` and ``stop`` which match the filter
-        attributes in ``**kwargs``.  The matching events are returned as a
-        Django query set.  If ``start`` or ``stop`` are not supplied they
-        default to the beginning / end of available data.  The optional
-        ``subset`` arg must be a Python slice() object and allows slicing
-        of the filtered output.
+        Find events between ``start`` and ``stop``, or with the given ``obsid``, which
+        match the filter attributes in ``**kwargs``.  The matching events are returned as
+        a Django query set.
+
+        If ``start`` or ``stop`` are not supplied they default to the beginning / end of
+        available data.  The optional ``subset`` arg must be a Python slice() object and
+        allows slicing of the filtered output.
 
         Example::
 
           >>> from kadi import events
           >>> events.manvrs.filter('2011:001', '2012:001', n_dwell__exact=1, angle__gte=140)
           >>> events.manvrs.filter('2011:001', '2012:001', subset=slice(None, 5))  # first 5
+          >>> events.manvrs.filter(obsid=14305)
 
         :param start: start time (DateTime compatible format)
         :param stop: stop time (DateTime compatible format)
+        :param obsid: obsid for event
         :param subset: subset of matching events that are output
         :param start: start time (DateTime compatible format)
 

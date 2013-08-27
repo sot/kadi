@@ -230,6 +230,9 @@ class MyManager(models.Manager):
 
 
 class BaseModel(models.Model):
+    """
+    Base class for for all models.
+    """
     _get_obsid_start_attr = 'date'  # Attribute to use for getting event obsid
     objects = MyManager()  # Custom manager to use custom QuerySet below
 
@@ -330,6 +333,14 @@ class BaseModel(models.Model):
         return intervals
 
     def get_obsid(self):
+        """
+        Return the obsid associated with the event.
+
+        Typically this is the obsid at the start of the event, but for maneuvers it is the
+        obsid at the end of the maneuver.
+
+        :returns: obsid
+        """
         from . import query
 
         # Get the start of the event.  If derived from Event or BaseEvent then
