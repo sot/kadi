@@ -45,9 +45,19 @@ def test_get_obsid():
     """
     models = events.models.get_event_models()
     for model in models.values():
-        first = model.objects.filter(start__gte='2000:010')[0]
-        obsid = first.get_obsid()
+        model_obj = model.objects.filter(start__gte='2000:010')[0]
+        obsid = model_obj.get_obsid()
         obsid_obj = events.obsids.filter(obsid__exact=obsid)[0]
-        first_start = DateTime(getattr(first, first._get_obsid_start_attr)).date
-        assert obsid_obj.start <= first_start
-        assert obsid_obj.stop > first_start
+        model_obj_start = DateTime(getattr(model_obj, model_obj._get_obsid_start_attr)).date
+        assert obsid_obj.start <= model_obj_start
+        assert obsid_obj.stop > model_obj_start
+
+        # Now test that searching for objects with the same obsid gets
+        # some matching objects and that they all have the same obsid.
+        if model_obj.model_name in ('major_event', 'safe_sun'):
+            continue  # Doesn't work for these
+        query = getattr(events, model_obj.model_name + 's')
+        query_events = query.filter(obsid=obsid)
+        assert len(query_events) >= 1
+        for query_event in query_events:
+            assert query_event.get_obsid() == obsid
