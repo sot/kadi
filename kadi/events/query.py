@@ -174,23 +174,26 @@ class EventQuery(object):
     def table(self):
         return self.all().table
 
-    def filter(self, start=None, stop=None, subset=None, **kwargs):
+    def filter(self, start=None, stop=None, obsid=None, subset=None, **kwargs):
         """
-        Find events between ``start`` and ``stop`` which match the filter
-        attributes in ``**kwargs``.  The matching events are returned as a
-        Django query set.  If ``start`` or ``stop`` are not supplied they
-        default to the beginning / end of available data.  The optional
-        ``subset`` arg must be a Python slice() object and allows slicing
-        of the filtered output.
+        Find events between ``start`` and ``stop``, or with the given ``obsid``, which
+        match the filter attributes in ``**kwargs``.  The matching events are returned as
+        a Django query set.
+
+        If ``start`` or ``stop`` are not supplied they default to the beginning / end of
+        available data.  The optional ``subset`` arg must be a Python slice() object and
+        allows slicing of the filtered output.
 
         Example::
 
           >>> from kadi import events
           >>> events.manvrs.filter('2011:001', '2012:001', n_dwell__exact=1, angle__gte=140)
           >>> events.manvrs.filter('2011:001', '2012:001', subset=slice(None, 5))  # first 5
+          >>> events.manvrs.filter(obsid=14305)
 
         :param start: start time (DateTime compatible format)
         :param stop: stop time (DateTime compatible format)
+        :param obsid: obsid for event
         :param subset: subset of matching events that are output
         :param start: start time (DateTime compatible format)
 
@@ -198,12 +201,36 @@ class EventQuery(object):
         """
         cls = self.cls
         objs = cls.objects.all()
+
+        if obsid is not None:
+            if start or stop:
+                raise ValueError('Cannot set both obsid and start or stop')
+
+            # If obsid is set then define a filter so that the start of the event occurs
+            # in the interval of the requested obsid.  First get the interval.
+            obsid_events = obsids.filter(obsid__exact=obsid)
+            if len(obsid_events) != 1:
+                raise ValueError('Error: Found {} events matching obsid={}'
+                                 .format(len(obsid_events), obsid))
+            start = obsid_events[0].start
+            stop = obsid_events[0].stop
+
+            # Normally obsid_attr is 'start' so that this filter requires
+            # that (event start >= obsid start) & (event start < obsid stop).
+            # Notable exception in Manvr where the obsid is taken at the
+            # end of the maneuver to correspond to the contained dwells.
+            obsid_attr = cls._get_obsid_start_attr
+            kwargs[obsid_attr + '__gte'] = start
+            kwargs[obsid_attr + '__lt'] = stop
+
         if stop is not None:
             kwargs['start__lte'] = DateTime(stop).date
+
         if start is not None:
             field_names = [x.name for x in cls._meta.fields]
-            attr = ('stop__gte' if 'stop' in field_names else 'start__lte')
+            attr = ('stop__gt' if 'stop' in field_names else 'start__gt')
             kwargs[attr] = DateTime(start).date
+
         if kwargs:
             objs = objs.filter(**kwargs)
         if subset:

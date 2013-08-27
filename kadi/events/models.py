@@ -230,6 +230,10 @@ class MyManager(models.Manager):
 
 
 class BaseModel(models.Model):
+    """
+    Base class for for all models.
+    """
+    _get_obsid_start_attr = 'date'  # Attribute to use for getting event obsid
     objects = MyManager()  # Custom manager to use custom QuerySet below
 
     class QuerySet(models.query.QuerySet):
@@ -328,6 +332,27 @@ class BaseModel(models.Model):
 
         return intervals
 
+    def get_obsid(self):
+        """
+        Return the obsid associated with the event.
+
+        Typically this is the obsid at the start of the event, but for maneuvers it is the
+        obsid at the end of the maneuver.
+
+        :returns: obsid
+        """
+        from . import query
+
+        # Get the start of the event.  If derived from Event or BaseEvent then
+        # self will have a start attr.  Otherwise it must be from BaseModel in
+        # which case it will have a date attr.
+        start = getattr(self, self._get_obsid_start_attr)
+        obsids = query.obsids.filter(start, start)
+        if len(obsids) != 1:
+            raise ValueError('Expected one obsid at {} but got {}'
+                             .format(start, obsids))
+        return obsids[0].obsid
+
 
 class BaseEvent(BaseModel):
     """
@@ -339,6 +364,7 @@ class BaseEvent(BaseModel):
         abstract = True
         ordering = ['start']
 
+    _get_obsid_start_attr = 'start'  # Attribute to use for getting event obsid
     lookback = 21  # days of lookback
     interval_pad = IntervalPad()  # interval padding before/ after event start/stop
 
@@ -877,6 +903,7 @@ class Manvr(TlmEvent):
     ``template``: this indicates which of the pre-defined maneuver sequence templates were
         matched by this maneuver.  For details see :ref:`maneuver_templates`.
     """
+    _get_obsid_start_attr = 'stop'  # Attribute to use for getting event obsid
     event_msids = ['aofattmd', 'aopcadmd', 'aoacaseq', 'aopsacpr']
     event_val = 'MNVR'
 

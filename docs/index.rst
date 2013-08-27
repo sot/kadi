@@ -231,6 +231,61 @@ modulation for each SIM translation as a function of time::
 
 .. Use figure(figsize=(5, 3.5))
 
+Events and obsids
+"""""""""""""""""
+
+With ``kadi`` it's easy to find the obsid for a particular event using the
+:func:`~kadi.events.models.BaseModel.get_obsid()` method of an event object that is
+returned from a filter query.  The following example asks for all maneuvers within the
+range 2013:001:12:00:00 to 2013:002:12:00:00.  It then prints the obsid for the first
+matching maneuver, then prints the obsid for all matching maneuvers.  Note that in this
+case you do *not* use the final ``.table`` attribute as shown in the previous examples.
+::
+
+  >>> manvrs = events.manvrs.filter('2013:001:12:00:00', '2013:002:12:00:00')
+  >>> print manvrs[0].get_obsid()
+  15046
+  >>> for manvr in manvrs:
+  ...    print manvr.start, 'Obsid :', manvr.get_obsid()
+  2013:001:16:38:45.535 Obsid : 15046
+  2013:001:21:16:45.361 Obsid : 15213
+
+The converse of finding events that match an obsid is possible as well.  In this
+case there may be zero, one or many matching events.  In the following example
+we start by looking for all manuever events between 2013:100 and 2013:200 that have
+exactly two Kalman dwells::
+
+  >>> manvrs = events.manvrs.filter('2013:100', '2013:200', n_dwell__exact=2)
+  >>> print manvrs
+  <Manvr: start=2013:104:21:38:11.867 dur=1442 n_dwell=2 template=two_acq>
+  <Manvr: start=2013:142:12:43:01.918 dur=1763 n_dwell=2 template=three_acq>
+  <Manvr: start=2013:144:19:19:07.204 dur=1553 n_dwell=2 template=three_acq>
+
+Now we get the obsid for the first matching maneuver and search for Kalman dwells with
+that obsid::
+
+  >>> print manvrs[0].get_obsid()
+  15304
+  >>> print events.dwells.filter(obsid=15304)
+  <Dwell: start=2013:104:22:04:05.255 dur=5795>
+  <Dwell: start=2013:104:23:41:44.155 dur=4290>
+
+As expected this matches what comes from asking directly for the dwells associated
+with the maneuver via the ``dwell_set`` attribute::
+
+  >>> print manvrs[0].dwell_set.all()
+  <Dwell: start=2013:104:22:04:05.255 dur=5795>
+  <Dwell: start=2013:104:23:41:44.155 dur=4290>
+
+.. Note::
+
+   For most event types the event obsid (as returned by
+   :func:`~kadi.events.models.BaseModel.get_obsid()`) is defined as the obsid at the start
+   of the event.  The exception is maneuver events, for which it makes most sense to use
+   the obsid at the *end* of the maneuver since that is the obsid for the corresponding
+   Kalman dwell(s), star catalog and OR / ER.
+
+
 Use events to filter telemetry
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
