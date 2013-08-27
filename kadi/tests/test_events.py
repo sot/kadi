@@ -1,4 +1,5 @@
 from .. import events
+from Chandra.Time import DateTime
 
 
 def test_query_event_intervals():
@@ -36,3 +37,16 @@ def test_short_query():
     assert len(dwells) == 1
     dwells = events.dwells.filter('2012:002:02:49:00', '2012:002:02:50:00')
     assert len(dwells) == 1
+
+
+def test_get_obsid():
+    """
+    Test that the get_obsid() method gives the right obsid for all event models.
+    """
+    models = events.models.get_event_models()
+    for model in models.values():
+        first = model.objects.filter(start__gte='2000:010')[0]
+        obsid = first.get_obsid()
+        obsid_obj = events.obsids.filter(obsid__exact=obsid)[0]
+        assert obsid_obj.start <= DateTime(first.start).date
+        assert obsid_obj.stop > DateTime(first.start).date

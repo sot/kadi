@@ -202,7 +202,7 @@ class EventQuery(object):
             kwargs['start__lte'] = DateTime(stop).date
         if start is not None:
             field_names = [x.name for x in cls._meta.fields]
-            attr = ('stop__gte' if 'stop' in field_names else 'start__lte')
+            attr = ('stop__gt' if 'stop' in field_names else 'start__gt')
             kwargs[attr] = DateTime(start).date
         if kwargs:
             objs = objs.filter(**kwargs)

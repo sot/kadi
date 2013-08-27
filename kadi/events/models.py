@@ -328,6 +328,19 @@ class BaseModel(models.Model):
 
         return intervals
 
+    def get_obsid(self):
+        from . import query
+
+        # Get the start of the event.  If derived from Event or BaseEvent then
+        # self will have a start attr.  Otherwise it must be from BaseModel in
+        # which case it will have a date attr.
+        start = getattr(self, 'start', None) or self.date
+        obsids = query.obsids.filter(start, start)
+        if len(obsids) != 1:
+            raise ValueError('Expected one obsid at {} but got {}'
+                             .format(start, obsids))
+        return obsids[0].obsid
+
 
 class BaseEvent(BaseModel):
     """
