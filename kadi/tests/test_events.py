@@ -1,4 +1,5 @@
 from .. import events
+from Chandra.Time import DateTime
 
 
 def test_query_event_intervals():
@@ -36,3 +37,27 @@ def test_short_query():
     assert len(dwells) == 1
     dwells = events.dwells.filter('2012:002:02:49:00', '2012:002:02:50:00')
     assert len(dwells) == 1
+
+
+def test_get_obsid():
+    """
+    Test that the get_obsid() method gives the right obsid for all event models.
+    """
+    models = events.models.get_event_models()
+    for model in models.values():
+        model_obj = model.objects.filter(start__gte='2000:010')[0]
+        obsid = model_obj.get_obsid()
+        obsid_obj = events.obsids.filter(obsid__exact=obsid)[0]
+        model_obj_start = DateTime(getattr(model_obj, model_obj._get_obsid_start_attr)).date
+        assert obsid_obj.start <= model_obj_start
+        assert obsid_obj.stop > model_obj_start
+
+        # Now test that searching for objects with the same obsid gets
+        # some matching objects and that they all have the same obsid.
+        if model_obj.model_name in ('major_event', 'safe_sun'):
+            continue  # Doesn't work for these
+        query = getattr(events, model_obj.model_name + 's')
+        query_events = query.filter(obsid=obsid)
+        assert len(query_events) >= 1
+        for query_event in query_events:
+            assert query_event.get_obsid() == obsid
