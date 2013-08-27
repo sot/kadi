@@ -48,5 +48,6 @@ def test_get_obsid():
         first = model.objects.filter(start__gte='2000:010')[0]
         obsid = first.get_obsid()
         obsid_obj = events.obsids.filter(obsid__exact=obsid)[0]
-        assert obsid_obj.start <= DateTime(first.start).date
-        assert obsid_obj.stop > DateTime(first.start).date
+        first_start = DateTime(getattr(first, first._get_obsid_start_attr)).date
+        assert obsid_obj.start <= first_start
+        assert obsid_obj.stop > first_start
