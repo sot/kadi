@@ -90,28 +90,29 @@ def get_ifot(event_type, start=None, stop=None, props=[], columns=[], timeout=TI
 
 
 def ftp_put_to_lucky(ftp_dirname, local_files, user='taldcroft', logger=None):
-    """Put the ``files`` onto lucky in /``user``/``ftp_dirname``. First put it at the top
+    """Put the ``local_files`` onto lucky in /``user``/``ftp_dirname``. First put it at the top
     level, then when complete move it into a subdir eng_archive.  This lets the OCC side
     just watch for fully-uploaded files in that directory.
+
+    The directory paths of ``local_files`` are stripped off so they all wind up
+    in a flat structure within ``ftp_dirname``.
     """
     import Ska.File
     import Ska.ftp
     import uuid
 
-    ftp = Ska.ftp.FTP('lucky', logger=logger)
-    ftp.cd('/{}'.format(user))
-    files = ftp.nlst()
+    ftp = Ska.ftp.SFTP('lucky', logger=logger)
+    ftp.cd('/home/{}'.format(user))
+    files = ftp.ls()
 
     if ftp_dirname not in files:
-        ftp.mkd(ftp_dirname)
+        ftp.mkdir(ftp_dirname)
 
     for local_file in local_files:
         file_dir, file_base = os.path.split(os.path.abspath(local_file))
         ftp_file = str(uuid.uuid4())  # random unique identifier
         with Ska.File.chdir(file_dir):
             ftp.put(file_base, ftp_file)
-            if logger:
-                logger.info('rename {} to {}/{}'.format(ftp_file, ftp_dirname, file_base))
             ftp.rename(ftp_file, '{}/{}'.format(ftp_dirname, file_base))
 
     ftp.close()
@@ -119,21 +120,21 @@ def ftp_put_to_lucky(ftp_dirname, local_files, user='taldcroft', logger=None):
 
 def ftp_get_from_lucky(ftp_dirname, local_files, user='taldcroft', logger=None):
     """
-    Get files from lucky.
+    Get files from lucky.  This looks in remote ``ftp_dirname`` for files that
+    have basenames matching those of ``local_files``.  The remote files
+    are copied to the corresponding local_files names.  This is the converse
+    of ftp_put_to_lucky and thus requires unique basenames for all files.
     """
     import Ska.ftp
     import Ska.File
 
-    ftp = Ska.ftp.FTP('lucky', logger=logger)
-    ftp.set_pasv(False)  # req'd on GRETA network
-    ftp.cd('/{}/{}'.format(user, ftp_dirname))
+    ftp = Ska.ftp.SFTP('lucky', logger=logger)
+    ftp.cd('/home/{}/{}'.format(user, ftp_dirname))
     for local_file in local_files:
         file_dir, file_base = os.path.split(os.path.abspath(local_file))
         if file_base in ftp.ls():
             with Ska.File.chdir(file_dir):
-                logger.info('Getting ftp file {} as {}'.format(file_base, local_file))
                 ftp.get(file_base)
-                logger.info('Deleting ftp {0}'.format(file_base))
                 ftp.delete(file_base)
 
     ftp.close()
