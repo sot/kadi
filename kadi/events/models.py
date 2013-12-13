@@ -503,6 +503,10 @@ class TlmEvent(Event):
                          start=DateTime(tstart).date,
                          stop=DateTime(tstop).date)
 
+            # Reject events that are shorter than the minimum duration
+            if hasattr(cls, 'event_min_dur') and event['dur'] < cls.event_min_dur:
+                continue
+
             # Custom processing defined by subclasses to add more attrs to event
             event.update(cls.get_extras(event, event_msidset))
 
@@ -642,6 +646,58 @@ class TscMove(TlmEvent):
     def __unicode__(self):
         return ('start={} dur={:.0f} start_3tscpos={} stop_3tscpos={}'
                 .format(self.start, self.dur, self.start_3tscpos, self.stop_3tscpos))
+
+
+class DarkCalReplica(TlmEvent):
+    """
+    ACA dark current calibration replica
+
+    **Event definition**: interval where ``CIUMACAC = ON``
+
+    CIUMACAC is the IU MODE ACA CALIBRATION INDICATOR.
+
+    **Fields**
+
+    ======== ========== ================================
+     Field      Type              Description
+    ======== ========== ================================
+      start   Char(21)   Start time (YYYY:DDD:HH:MM:SS)
+       stop   Char(21)    Stop time (YYYY:DDD:HH:MM:SS)
+     tstart      Float            Start time (CXC secs)
+      tstop      Float             Stop time (CXC secs)
+        dur      Float                  Duration (secs)
+    ======== ========== ================================
+    """
+    event_msids = ['ciumacac']
+    event_val = 'ON '
+    event_min_dur = 300
+
+
+class DarkCal(TlmEvent):
+    """
+    ACA dark current calibration event
+
+    **Event definition**: interval where ``CIUMACAC = ON``
+
+    CIUMACAC is the IU MODE ACA CALIBRATION INDICATOR.  Individual intervals
+    within one day are joined together to a single calibration event.
+
+    **Fields**
+
+    ======== ========== ================================
+     Field      Type              Description
+    ======== ========== ================================
+      start   Char(21)   Start time (YYYY:DDD:HH:MM:SS)
+       stop   Char(21)    Stop time (YYYY:DDD:HH:MM:SS)
+     tstart      Float            Start time (CXC secs)
+      tstop      Float             Stop time (CXC secs)
+        dur      Float                  Duration (secs)
+    ======== ========== ================================
+    """
+    event_msids = ['ciumacac']
+    event_val = 'ON '
+    event_time_fuzz = 86400  # One full day of fuzz / pad
+    event_min_dur = 8000
 
 
 class Scs107(TlmEvent):
