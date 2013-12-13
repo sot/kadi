@@ -4,6 +4,8 @@
    contain the root `toctree` directive.
 
 .. |CAP| replace:: :class:`~kadi.events.models.CAP`
+.. |DarkCal| replace:: :class:`~kadi.events.models.DarkCal`
+.. |DarkCalReplica| replace:: :class:`~kadi.events.models.DarkCalReplica`
 .. |DsnComm| replace:: :class:`~kadi.events.models.DsnComm`
 .. |Dump| replace:: :class:`~kadi.events.models.Dump`
 .. |Dwell| replace:: :class:`~kadi.events.models.Dwell`
@@ -440,28 +442,29 @@ Please refer to this notebook and download and run it.
 Event definitions
 ^^^^^^^^^^^^^^^^^^^
 
-============= ======================== ================
- Event class        Description           Query name
-============= ======================== ================
-       |CAP|          :ref:`event_cap`         ``caps``
-   |DsnComm|     :ref:`event_dsn_comm`    ``dsn_comms``
-      |Dump|         :ref:`event_dump`        ``dumps``
-     |Dwell|        :ref:`event_dwell`       ``dwells``
-   |Eclipse|      :ref:`event_eclipse`     ``eclipses``
-    |FaMove|      :ref:`event_fa_move`     ``fa_moves``
-|MajorEvent|  :ref:`event_major_event` ``major_events``
-     |Manvr|        :ref:`event_manvr`       ``manvrs``
-  |ManvrSeq|    :ref:`event_manvr_seq`   ``manvr_seqs``
- |NormalSun|   :ref:`event_normal_sun`  ``normal_suns``
-     |Obsid|        :ref:`event_obsid`       ``obsids``
-     |Orbit|        :ref:`event_orbit`       ``orbits``
-|OrbitPoint|  :ref:`event_orbit_point` ``orbit_points``
-   |RadZone|     :ref:`event_rad_zone`    ``rad_zones``
-   |SafeSun|     :ref:`event_safe_sun`    ``safe_suns``
-    |Scs107|       :ref:`event_scs107`      ``scs107s``
-   |TscMove|     :ref:`event_tsc_move`    ``tsc_moves``
-============= ======================== ================
-
+================= ============================ =====================
+   Event class            Description                Query name
+================= ============================ =====================
+           |CAP|`              :ref:`event_cap              ``caps``
+       |DarkCal|`         :ref:`event_dark_cal         ``dark_cals``
+|DarkCalReplica|` :ref:`event_dark_cal_replica ``dark_cal_replicas``
+       |DsnComm|`         :ref:`event_dsn_comm         ``dsn_comms``
+          |Dump|`             :ref:`event_dump             ``dumps``
+         |Dwell|`            :ref:`event_dwell            ``dwells``
+       |Eclipse|`          :ref:`event_eclipse          ``eclipses``
+        |FaMove|`          :ref:`event_fa_move          ``fa_moves``
+    |MajorEvent|`      :ref:`event_major_event      ``major_events``
+         |Manvr|`            :ref:`event_manvr            ``manvrs``
+      |ManvrSeq|`        :ref:`event_manvr_seq        ``manvr_seqs``
+     |NormalSun|`       :ref:`event_normal_sun       ``normal_suns``
+         |Obsid|`            :ref:`event_obsid            ``obsids``
+         |Orbit|`            :ref:`event_orbit            ``orbits``
+    |OrbitPoint|`      :ref:`event_orbit_point      ``orbit_points``
+       |RadZone|`         :ref:`event_rad_zone         ``rad_zones``
+       |SafeSun|`         :ref:`event_safe_sun         ``safe_suns``
+        |Scs107|`           :ref:`event_scs107           ``scs107s``
+       |TscMove|`         :ref:`event_tsc_move         ``tsc_moves``
+================= ============================ =====================
 
 
 Event filtering
