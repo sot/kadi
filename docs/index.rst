@@ -442,9 +442,9 @@ Please refer to this notebook and download and run it.
 Event definitions
 ^^^^^^^^^^^^^^^^^^^
 
-================= ============================ =====================
-   Event class            Description                Query name
-================= ============================ =====================
+================ ============================= =====================
+  Event class             Description                Query name
+================ ============================= =====================
            |CAP|              :ref:`event_cap`              ``caps``
        |DarkCal|         :ref:`event_dark_cal`         ``dark_cals``
 |DarkCalReplica| :ref:`event_dark_cal_replica` ``dark_cal_replicas``
@@ -464,7 +464,7 @@ Event definitions
        |SafeSun|         :ref:`event_safe_sun`         ``safe_suns``
         |Scs107|           :ref:`event_scs107`           ``scs107s``
        |TscMove|         :ref:`event_tsc_move`         ``tsc_moves``
-================= ============================ =====================
+================ ============================= =====================
 
 
 Event filtering

@@ -145,8 +145,8 @@ def make_events_table(outfile=None):
         query_name = model_name + 's'  # See query.py main
         out_lines.append('.. |{0}| replace:: :class:`~kadi.events.models.{0}`'
                          .format(model.__name__))
-        row = ('|{}|`'.format(model.__name__),
-               ':ref:`event_{}'.format(model_name),
+        row = ('|{}|'.format(model.__name__),
+               ':ref:`event_{}`'.format(model_name),
                '``{}``'.format(query_name))
         rows.append(row)
     dat = Table(zip(*rows), names=('Event class', 'Description', 'Query name'))
