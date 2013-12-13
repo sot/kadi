@@ -27,6 +27,49 @@ CAP from iFOT database
     link   Char(250)                CAP link
 ========= =========== =======================
 
+.. _event_dark_cal:
+
+ACA dark current calibration event
+----------------------------------
+
+**Event definition**: interval where ``CIUMACAC = ON``
+
+CIUMACAC is the IU MODE ACA CALIBRATION INDICATOR.  Individual intervals
+within one day are joined together to a single calibration event.
+
+**Fields**
+
+======== ========== ================================
+ Field      Type              Description
+======== ========== ================================
+  start   Char(21)   Start time (YYYY:DDD:HH:MM:SS)
+   stop   Char(21)    Stop time (YYYY:DDD:HH:MM:SS)
+ tstart      Float            Start time (CXC secs)
+  tstop      Float             Stop time (CXC secs)
+    dur      Float                  Duration (secs)
+======== ========== ================================
+
+.. _event_dark_cal_replica:
+
+ACA dark current calibration replica
+------------------------------------
+
+**Event definition**: interval where ``CIUMACAC = ON``
+
+CIUMACAC is the IU MODE ACA CALIBRATION INDICATOR.
+
+**Fields**
+
+======== ========== ================================
+ Field      Type              Description
+======== ========== ================================
+  start   Char(21)   Start time (YYYY:DDD:HH:MM:SS)
+   stop   Char(21)    Stop time (YYYY:DDD:HH:MM:SS)
+ tstart      Float            Start time (CXC secs)
+  tstop      Float             Stop time (CXC secs)
+    dur      Float                  Duration (secs)
+======== ========== ================================
+
 .. _event_dsn_comm:
 
 Scheduled DSN comm period
@@ -297,8 +340,8 @@ that is relevant to the sequence of events comprising a maneuver event.
 
 .. _event_normal_sun:
 
-Normal sun event
------------------
+Normal sun mode event
+---------------------
 
 **Event definition**: interval when PCAD mode ``AOPCADMD = NSUN``
 
