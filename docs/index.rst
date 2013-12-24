@@ -177,7 +177,7 @@ Get events as a table
 The most basic operation is to get some events from the Kadi archive.  So let's find all
 the SIM TSC moves since 2012:001::
 
-  >>> tsc_moves = events.tsc_moves.filter('2012:001').table
+  >>> tsc_moves = events.tsc_moves.filter(start='2012:001').table
 
 Let's break this statement down to understand what is happening.  Remember that in Python
 everything is an object and you can access object attributes or methods by chaining them
@@ -194,14 +194,14 @@ all the available event types for query by doing::
   events.dwells           events.major_events     events.orbits           events.tsc_moves
   events.eclipses         events.manvrs           events.query
 
-From ``events.tsc_moves`` we chain the ``filter('2012:001')`` method to select events that
+From ``events.tsc_moves`` we chain the ``filter(start='2012:001')`` method to select events that
 occurred after ``2012:001``.  The ``filter()`` method is very powerful and can perform
 complex filters based on all the available attributes of an event.  In this case to select
 an inclusive time range you would supply both the start and stop date in that order,
-e.g. ``filter('2012:001', '2013:001')``.
+e.g. ``filter(start='2012:001', stop='2013:001')``.
 
 The last bit of the chain is the `.table` attribute, which says to convert the
-``filter('2012:001')`` output from a QuerySet object (which is discussed later) into a an
+``filter(start='2012:001')`` output from a QuerySet object (which is discussed later) into a an
 astropy `Table <http://docs.astropy.org/en/stable/table/index.html>`_ that can be printed,
 plotted, and used in computations.  Now let's look at what came out by printing the Table.
 Before you do this make your terminal window plenty wide, there are a bunch of fields and
@@ -286,6 +286,156 @@ with the maneuver via the ``dwell_set`` attribute::
    of the event.  The exception is maneuver events, for which it makes most sense to use
    the obsid at the *end* of the maneuver since that is the obsid for the corresponding
    Kalman dwell(s), star catalog and OR / ER.
+
+
+Getting help
+^^^^^^^^^^^^^^
+
+There are a lot of event types in `kadi` and it's not easy to remember everything.
+Here we will make use of the IPython ``?`` function to get help on objects.
+Starting from the top, you can list the available event types with the following::
+
+  >>> from kadi import events
+  >>> events?
+  Type:       module
+  String Form:<module 'kadi.events' from 'kadi/events/__init__.py'>
+  File:       /data/baffin/tom/git/kadi/kadi/events/__init__.py
+  Docstring:
+  Access and manipulate events related to the Chandra X-ray Observatory
+
+  Available events are:
+
+  =================  ====================================  ==============
+      Query name                 Description                Event class
+  =================  ====================================  ==============
+               caps                CAP from iFOT database             CAP
+          dark_cals    ACA dark current calibration event         DarkCal
+  dark_cal_replicas  ACA dark current calibration replica  DarkCalReplica
+          dsn_comms             Scheduled DSN comm period         DsnComm
+              dumps        Ground commanded momentum dump            Dump
+             dwells                  Dwell in Kalman mode           Dwell
+           eclipses                               Eclipse         Eclipse
+           fa_moves                    SIM FA translation          FaMove
+       major_events                           Major event      MajorEvent
+             manvrs                              Maneuver           Manvr
+         manvr_seqs               Maneuver sequence event        ManvrSeq
+        normal_suns                 Normal sun mode event       NormalSun
+             obsids                Observation identifier           Obsid
+             orbits                                 Orbit           Orbit
+       orbit_points                           Orbit point      OrbitPoint
+          rad_zones                        Radiation zone         RadZone
+          safe_suns                        Safe sun event         SafeSun
+            scs107s                            SCS107 run          Scs107
+          tsc_moves                   SIM TSC translation         TscMove
+  =================  ====================================  ==============
+
+  More help available at:
+
+  - Getting started
+      http://cxc.cfa.harvard.edu/mta/ASPECT/tool_doc/kadi/#getting-started
+
+  - Details (event definitions, filtering, intervals)
+      http://cxc.cfa.harvard.edu/mta/ASPECT/tool_doc/kadi/#details
+
+Next you may want to learn about the specific fields that are available
+for an event type.  Use the same ``?`` strategy here::
+
+  >>> events.orbits?
+  Type:       EventQuery
+  String Form:<kadi.events.query.EventQuery object at 0x358f5d0>
+  File:       /data/baffin/tom/git/kadi/kadi/events/query.py
+  Docstring:
+  Orbit
+
+  **Event definition**: single Chandra orbit starting from ascending node crossing
+
+  Full orbit, with dates corresponding to start (ORBIT ASCENDING NODE CROSSING), stop,
+  apogee, perigee, radzone start and radzone stop.  Radzone is defined as the time
+  covering perigee when radmon is disabled by command.  This corresponds to the planned
+  values and may differ from actual in the case of events that run SCS107 and
+  prematurely disable RADMON.
+
+  **Fields**
+
+  ================== ========== ==================================================
+        Field           Type                       Description
+  ================== ========== ==================================================
+              start   Char(21)         Start time (orbit ascending node crossing)
+               stop   Char(21)     Stop time (next orbit ascending node crossing)
+             tstart      Float         Start time (orbit ascending node crossing)
+              tstop      Float     Stop time (next orbit ascending node crossing)
+                dur      Float                               Orbit duration (sec)
+          orbit_num    Integer                                       Orbit number
+            perigee   Char(21)                                       Perigee time
+             apogee   Char(21)                                        Apogee time
+          t_perigee      Float                             Perigee time (CXC sec)
+      start_radzone   Char(21)                             Start time of rad zone
+       stop_radzone   Char(21)                              Stop time of rad zone
+   dt_start_radzone      Float   Start time of rad zone relative to perigee (sec)
+    dt_stop_radzone      Float    Stop time of rad zone relative to perigee (sec)
+  ================== ========== ==================================================
+
+  Class Docstring:
+  High-level interface for handling event queries.
+
+  This includes a few key methods:
+
+  - filter() : filter events matching criteria and return Django query set
+  - intervals(): return time intervals between event start/stop times
+
+  A key feature is that EventQuery objects can be combined with boolean
+  and, or, and not logic to generate composite EventQuery objects.  From
+  there the intervals() output can be used to select or remove the intervals
+  from Ska.engarchive fetch datasets.
+
+Finally, the EventQuery ``filter`` method has detailed help available to remind
+you of syntax here::
+
+  >>> events.manvrs.filter?
+  Type:       instancemethod
+  String Form:<bound method EventQuery.filter of <kadi.events.query.EventQuery object at 0x309e8d0>>
+  File:       /data/baffin/tom/git/kadi/kadi/events/query.py
+  Definition: events.manvrs.filter(self, start=None, stop=None, obsid=None, subset=None, **kwargs)
+  Docstring:
+  Find events between ``start`` and ``stop``, or with the given ``obsid``, which
+  match the filter attributes in subsequent keyword argumentse.  The matching events
+  are returned as a Django query set [1].
+
+  If ``start`` or ``stop`` are not supplied they default to the beginning / end of
+  available data.  The optional ``subset`` arg must be a Python slice() object and
+  allows slicing of the filtered output.
+
+  This function allows for the powerful field lookups from the underlying
+  Django model implementation.  A field lookup is similar to an SQL ``WHERE``
+  clause with the form ``<field_name>__<filter_type>=<value>`` (with a double
+  underscore between.  For instance ``n_dwell__lte=1`` would be the same as
+  ``SELECT ... WHERE n_dwell <= 1``.  Common filter types are:
+
+  - ``exact`` (exact match), ``contains`` (contains string)
+  - ``startswith``, ``endswith`` (starts or ends with string)
+  - ``gt``, ``gte``, ``lt``, ``lte`` (comparisons)
+  - ``isnull`` (field value is missing, e.g. manvrs.aca_proc_act_start)
+
+  For the common case of testing equality (``exact``) there is a shortcut where
+  the ``__exact`` can be skipped, so for instance ``n_dwell=1`` selects
+  maneuver events with one dwell.  The full list of field lookups is at [2].
+
+  Examples::
+
+    >>> from kadi import events
+    >>> events.manvrs.filter('2011:001', '2012:001', n_dwell=1, angle__gte=140)
+    >>> events.manvrs.filter('2011:001', '2012:001', subset=slice(None, 5))  # first 5
+    >>> events.manvrs.filter(obsid=14305)
+
+  [1]: https://docs.djangoproject.com/en/1.5/topics/db/queries/
+  [2]: https://docs.djangoproject.com/en/1.5/ref/models/querysets/#field-lookups
+
+  :param start: start time (DateTime compatible format)
+  :param stop: stop time (DateTime compatible format)
+  :param obsid: obsid for event
+  :param subset: subset of matching events that are output
+
+  :returns: Django query set with matching events
 
 
 Use events to filter telemetry
@@ -470,12 +620,74 @@ Event definitions
 Event filtering
 ^^^^^^^^^^^^^^^^^^
 
-*TBD*
+The :class:`~kadi.events.query.EventQuery` :func:`~kadi.events.query.EventQuery.filter`
+method allows you to find events between ``start`` and ``stop``, or with the given
+``obsid``, which match the filter attributes in subsequent keyword arguments.  The
+matching events are returned as a Django query set [1].
+
+If ``start`` or ``stop`` are not supplied they default to the beginning / end of
+available data.  The optional ``subset`` arg must be a Python slice() object and
+allows slicing of the filtered output.
+
+This method allows for the use of `Django field lookups
+<https://docs.djangoproject.com/en/1.5/ref/models/querysets/#field-lookups>`_ from the
+underlying Django model implementation.  A field lookup is similar to an SQL ``WHERE``
+clause with the form ``<field_name>__<filter_type>=<value>`` (with a double underscore
+between).  For instance ``n_dwell__lte=1`` would be the same as ``SELECT ... WHERE n_dwell
+<= 1``.  Common filter types are:
+
+- ``exact`` (exact match), ``contains`` (contains string)
+- ``startswith``, ``endswith`` (starts or ends with string)
+- ``gt``, ``gte``, ``lt``, ``lte`` (comparisons)
+- ``isnull`` (field value is missing, e.g. manvrs.aca_proc_act_start)
+
+For the common case of testing equality (``exact``) there is a shortcut where
+the ``__exact`` can be skipped, so for instance ``n_dwell=1`` selects
+maneuver events with one dwell.  For a full list of field lookups see the general
+Django documentation on `Making queries <https://docs.djangoproject.com/en/1.5/topics/db/queries/>`_
+
+Examples::
+
+  >>> from kadi import events
+  >>> events.manvrs.filter('2011:001', '2012:001', n_dwell=1, angle__gte=140)
+  >>> events.manvrs.filter('2011:001', '2012:001')[:5]  # first 5
+  >>> events.manvrs.filter(obsid=14305)  # Manveuver(s) where obsid=14305 at start
+
+To get all of the events use the :func:`~kadi.events.query.EventQuery.all` method::
+
+  >>> events.normal_suns.all()
+  <NormalSun: start=2000:027:13:33:38.872 dur=1020>
+  <NormalSun: start=2000:049:03:23:08.544 dur=126872>
+     ...
+  <NormalSun: start=2011:299:05:09:02.945 dur=81773>
+  <NormalSun: start=2012:151:12:33:36.285 dur=48711>
+
+Advanced filtering
+"""""""""""""""""""
+
+The result of a :func:`~kadi.events.query.EventQuery.filter` query is a Django
+``QuerySet`` object.  From this starting point you can chain additional queries
+or take advantage of any of the ``QuerySet`` functionality described in
+`Making queries <https://docs.djangoproject.com/en/1.5/topics/db/queries/>`_.
+
+For example if you wanted to find all maneuvers in 2011-Jan that were not "normal"
+and did not have an intermediate attitude, you could do::
+
+  >>> manvrs_2011 = events.manvrs.filter('2011-01-01T00:00:00', '2012-01-01T00:00:00')
+  >>> manvrs_2011.exclude(template='normal').exclude(template='interm_att')
+  <Manvr: start=2011:111:11:09:03.933 dur=1011 n_dwell=1 template=two_acq>
+  <Manvr: start=2011:112:06:22:42.186 dur=1116 n_dwell=1 template=two_acq>
+     ...
+  <Manvr: start=2011:296:21:46:41.147 dur=1934 n_dwell=2 template=three_acq>
+  <Manvr: start=2011:298:22:07:37.432 dur=492 n_dwell=3 template=unknown>
+
+To go really crazy and allow for even more complex queries, like those requiring ``OR``
+logic, you can use `Django Q objects <https://docs.djangoproject.com/en/1.5/topics/db/queries/#complex-lookups-with-q-objects>`_.
 
 Event intervals
 ^^^^^^^^^^^^^^^^^^^
 
-The :class:`~kadi.events.query.EventQuery` class provides a powerful way to define
+The :class:`~kadi.events.query.EventQuery` class provides a way to define
 time intervals based on events or combinations of events.
 
 
