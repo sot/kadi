@@ -6,6 +6,8 @@ if 'DJANGO_SETTINGS_MODULE' not in os.environ:
     os.environ['DJANGO_SETTINGS_MODULE'] = 'kadi.settings'
 
 from django.db import models
+models.query.REPR_OUTPUT_SIZE = 1000  # Increase default number of rows printed
+
 
 import pyyaks.logger
 from .manvr_templates import get_manvr_templates

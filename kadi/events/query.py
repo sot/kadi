@@ -125,7 +125,6 @@ class EventQuery(object):
     This includes a few key methods:
 
     - filter() : filter events matching criteria and return Django query set
-    - find() : filter events matching criteria and return np array
     - intervals(): return time intervals between event start/stop times
 
     A key feature is that EventQuery objects can be combined with boolean
@@ -177,25 +176,42 @@ class EventQuery(object):
     def filter(self, start=None, stop=None, obsid=None, subset=None, **kwargs):
         """
         Find events between ``start`` and ``stop``, or with the given ``obsid``, which
-        match the filter attributes in ``**kwargs``.  The matching events are returned as
-        a Django query set.
+        match the filter attributes in subsequent keyword arguments.  The matching events
+        are returned as a Django query set [1].
 
         If ``start`` or ``stop`` are not supplied they default to the beginning / end of
         available data.  The optional ``subset`` arg must be a Python slice() object and
         allows slicing of the filtered output.
 
-        Example::
+        This function allows for the powerful field lookups from the underlying
+        Django model implementation.  A field lookup is similar to an SQL ``WHERE``
+        clause with the form ``<field_name>__<filter_type>=<value>`` (with a double
+        underscore between).  For instance ``n_dwell__lte=1`` would be the same as
+        ``SELECT ... WHERE n_dwell <= 1``.  Common filter types are:
+
+        - ``exact`` (exact match), ``contains`` (contains string)
+        - ``startswith``, ``endswith`` (starts or ends with string)
+        - ``gt``, ``gte``, ``lt``, ``lte`` (comparisons)
+        - ``isnull`` (field value is missing, e.g. manvrs.aca_proc_act_start)
+
+        For the common case of testing equality (``exact``) there is a shortcut where
+        the ``__exact`` can be skipped, so for instance ``n_dwell=1`` selects
+        maneuver events with one dwell.  The full list of field lookups is at [2].
+
+        Examples::
 
           >>> from kadi import events
-          >>> events.manvrs.filter('2011:001', '2012:001', n_dwell__exact=1, angle__gte=140)
+          >>> events.manvrs.filter('2011:001', '2012:001', n_dwell=1, angle__gte=140)
           >>> events.manvrs.filter('2011:001', '2012:001', subset=slice(None, 5))  # first 5
           >>> events.manvrs.filter(obsid=14305)
+
+        [1]: https://docs.djangoproject.com/en/1.5/topics/db/queries/
+        [2]: https://docs.djangoproject.com/en/1.5/ref/models/querysets/#field-lookups
 
         :param start: start time (DateTime compatible format)
         :param stop: stop time (DateTime compatible format)
         :param obsid: obsid for event
         :param subset: subset of matching events that are output
-        :param start: start time (DateTime compatible format)
 
         :returns: Django query set with matching events
         """
@@ -270,5 +286,7 @@ class EventQuery(object):
 event_models = models.get_event_models()
 for model_name, model_class in event_models.items():
     query_name = model_name + 's'  # simple pluralization
-    globals()[query_name] = EventQuery(cls=model_class)
+    query_instance = EventQuery(cls=model_class)
+    query_instance.__doc__ = model_class.__doc__
+    globals()[query_name] = query_instance
     __all__.append(query_name)
