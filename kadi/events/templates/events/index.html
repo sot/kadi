@@ -1,0 +1,11 @@
+
+{% block content %}
+
+<h2> Kadi Models  </h2>
+<ul>
+  {% for event_model in event_models %}
+  <li> <a href="{{ event_model.name }}/list">{{ event_model.description }}</a> </li>
+  {% endfor %}
+</ul>
+
+{% endblock %}
