@@ -1,6 +1,7 @@
 
 {% block content %}
-    <h2>Manveuvers</h2>
+    <h2>Manveuves</h2>
+    {{ field_names }}
     <ul>
         {% for manvr in object_list %}
             <li>{{ manvr.start }}</li>

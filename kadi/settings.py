@@ -25,7 +25,7 @@ DATABASES = {
     }
 }
 
-FORCE_SCRIPT_NAME = '/kadi'
+# FORCE_SCRIPT_NAME = '/kadi'
 APPEND_SLASH = True
 
 # Local time zone for this installation. Choices can be found here:
@@ -64,11 +64,19 @@ MEDIA_URL = ''
 # Don't put anything in this directory yourself; store your static files
 # in apps' "static/" subdirectories and in STATICFILES_DIRS.
 # Example: "/home/media/media.lawrence.com/static/"
-STATIC_ROOT = '/proj/web-ccosmos/htdocs/kadi/static/'
+STATIC_ROOT = ''
+
+# Following was an attempt to handle having the prefix 'kadi' in the
+# CXC web site.  But it didn't work.
+# STATIC_ROOT = '/proj/web-ccosmos/htdocs/kadi/static/'
 
 # URL prefix for static files.
 # Example: "http://media.lawrence.com/static/"
-STATIC_URL = 'https://icxc.cfa.harvard.edu/kadi/static/'
+STATIC_URL = '/static/'
+
+# Following was an attempt to handle having the prefix 'kadi' in the
+# CXC web site.  But it didn't work.
+# STATIC_URL = 'https://icxc.cfa.harvard.edu/kadi/static/'
 
 # Additional locations of static files
 STATICFILES_DIRS = (

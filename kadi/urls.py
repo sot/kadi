@@ -1,5 +1,4 @@
 from django.conf.urls import patterns, include, url
-from events.views import ManvrList
 
 # Uncomment the next two lines to enable the admin:
 from django.contrib import admin
@@ -13,5 +12,5 @@ urlpatterns = patterns('',
                        url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
                        # Uncomment the next line to enable the admin:
                        url(r'^admin/', include(admin.site.urls)),
-                       url(r'^manvr/$', ManvrList.as_view()),
+                       url(r'^kadi/events/', include('kadi.events.urls')),
                        )
