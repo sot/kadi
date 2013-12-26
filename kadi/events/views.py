@@ -32,11 +32,15 @@ class EventList(ListView):
         # Call the base implementation first to get a context
         context = super(EventList, self).get_context_data(**kwargs)
 
-        context['field_names'] = [field.name for field in self.model._meta.fields]
+        context['field_names'] = [field.name for field in self.model._meta.fields
+                                  if not hasattr(field, '_kadi_no_list_view')]
         context['model_description'] = self.model.__doc__.strip().splitlines()[0]
         context['model_name'] = MODEL_NAMES[self.model.__name__]
         event_list = context['event_list']
-        context['event_rows'] = [[getattr(event, attr) for attr in context['field_names']]
+        formats = {field.name: getattr(field, '_kadi_format', '{}')
+                   for field in self.model._meta.fields}
+        context['event_rows'] = [[formats[name].format(getattr(event, name))
+                                  for name in context['field_names']]
                                  for event in event_list]
         return context
 

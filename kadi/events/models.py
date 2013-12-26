@@ -392,6 +392,11 @@ class Event(BaseEvent):
     tstop = models.FloatField(help_text='Stop time (CXC secs)')
     dur = models.FloatField(help_text='Duration (secs)')
 
+    # By default do not show tstart and tstop in web list view
+    tstart._kadi_no_list_view = True
+    tstop._kadi_no_list_view = True
+    dur._kadi_format = '{:.1f}'
+
     class Meta:
         abstract = True
         ordering = ['start']
