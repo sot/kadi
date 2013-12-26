@@ -1,10 +1,26 @@
 # Create your views here.
-from django.views.generic import ListView
+from django.views.generic import ListView, TemplateView
 from . import models
 
 # Provide translation from event model class names like DarkCal to the URL name like dark_cal
 MODEL_NAMES = {m_class.__name__: m_name
                for m_name, m_class in models.get_event_models().items()}
+
+
+class IndexView(TemplateView):
+    template_name = 'events/index.html'
+
+    def get_context_data(self, **kwargs):
+        # Call the base implementation first to get a context
+        context = super(IndexView, self).get_context_data(**kwargs)
+
+        event_models = models.get_event_models()
+        # Make a list of tuples [(description1, name1), (description2, name2), ...]
+        descr_names = [(model.__doc__.strip().splitlines()[0], name)
+                       for name, model in event_models.items()]
+        context['event_models'] = [{'name': name, 'description': descr}
+                                   for descr, name in sorted(descr_names)]
+        return context
 
 
 class EventList(ListView):
@@ -15,7 +31,7 @@ class EventList(ListView):
     def get_context_data(self, **kwargs):
         # Call the base implementation first to get a context
         context = super(EventList, self).get_context_data(**kwargs)
-        # Add in a QuerySet of all the books
+
         context['field_names'] = [field.name for field in self.model._meta.fields]
         context['model_description'] = self.model.__doc__.strip().splitlines()[0]
         context['model_name'] = MODEL_NAMES[self.model.__name__]
