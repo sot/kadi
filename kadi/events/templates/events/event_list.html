@@ -12,7 +12,13 @@
   {% for event_row in event_rows %}
   <tr>
     {% for val in event_row %}
-    <td> {{ val }} </td>
+    <td>
+      {% if forloop.first %}
+        <a href="/kadi/events/{{ model_name }}/{{ val }}">{{ val }}</a>
+      {% else %}
+        {{ val }} 
+      {% endif %}
+    </td>
     {% endfor %}
   </tr>
   {% endfor %}

@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h2> {{ model_description }} </h2>
+<table class="srclist">
+  {% for name, val in names_vals %}
+  <tr>
+    <td> {{ name }} </td> <td> {{ val }} </td>
+  </tr>
+  {% endfor %}
+</table>
+
+{% endblock %}

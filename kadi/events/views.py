@@ -1,5 +1,5 @@
 # Create your views here.
-from django.views.generic import ListView, TemplateView
+from django.views.generic import ListView, TemplateView, DetailView
 from . import models
 
 # Provide translation from event model class names like DarkCal to the URL name like dark_cal
@@ -23,6 +23,22 @@ class IndexView(TemplateView):
         return context
 
 
+class EventDetail(DetailView):
+    template_name = 'events/event_detail.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(EventDetail, self).get_context_data(**kwargs)
+        event = context['object']
+        fields = self.model._meta.fields
+        names = [field.name for field in fields]
+        formats = {field.name: getattr(field, '_kadi_format', '{}')
+                   for field in fields}
+        context['names_vals'] = [(name, formats[name].format(getattr(event, name)))
+                                 for name in names]
+        context['model_description'] = self.model.__doc__.strip().splitlines()[0]
+        return context
+
+
 class EventList(ListView):
     paginate_by = 20
     context_object_name = 'event_list'
@@ -42,6 +58,7 @@ class EventList(ListView):
         context['event_rows'] = [[formats[name].format(getattr(event, name))
                                   for name in context['field_names']]
                                  for event in event_list]
+
         return context
 
 
@@ -125,4 +142,85 @@ class OrbitPointList(EventList):
 
 
 class RadZoneList(EventList):
+    model = models.RadZone
+
+####
+
+class ObsidDetail(EventDetail):
+    model = models.Obsid
+
+
+class TscMoveDetail(EventDetail):
+    model = models.TscMove
+
+
+class DarkCalReplicaDetail(EventDetail):
+    model = models.DarkCalReplica
+
+
+class DarkCalDetail(EventDetail):
+    model = models.DarkCal
+
+
+class Scs107Detail(EventDetail):
+    model = models.Scs107
+
+
+class FaMoveDetail(EventDetail):
+    model = models.FaMove
+
+
+class DumpDetail(EventDetail):
+    model = models.Dump
+
+
+class EclipseDetail(EventDetail):
+    model = models.Eclipse
+
+
+class ManvrDetail(EventDetail):
+    model = models.Manvr
+
+
+class DwellDetail(EventDetail):
+    model = models.Dwell
+
+
+class ManvrSeqDetail(EventDetail):
+    model = models.ManvrSeq
+
+
+class SafeSunDetail(EventDetail):
+    model = models.SafeSun
+
+
+class NormalSunDetail(EventDetail):
+    model = models.NormalSun
+
+
+class MajorEventDetail(EventDetail):
+    model = models.MajorEvent
+
+
+class IFotEventDetail(EventDetail):
+    model = models.IFotEvent
+
+
+class CAPDetail(EventDetail):
+    model = models.CAP
+
+
+class DsnCommDetail(EventDetail):
+    model = models.DsnComm
+
+
+class OrbitDetail(EventDetail):
+    model = models.Orbit
+
+
+class OrbitPointDetail(EventDetail):
+    model = models.OrbitPoint
+
+
+class RadZoneDetail(EventDetail):
     model = models.RadZone

@@ -18,6 +18,18 @@ for name, val in vars(views).items():
         except KeyError:
             pass
 
+for name, val in vars(views).items():
+    if inspect.isclass(val) and issubclass(val, views.EventDetail):
+        # val is an event DetailView class.  Chop off the "Detail" at end to get model class name
+        EventDetailView = val
+        model_class_name = EventDetailView.__name__[:-6]
+        try:
+            urls.append(url('^' + views.MODEL_NAMES[model_class_name]
+                            + r'/(?P<pk>[:.\w\d]+)/$'.format(),
+                            EventDetailView.as_view()))
+        except KeyError:
+            pass
+
 urlpatterns = patterns('',
                        url('^$', views.IndexView.as_view()),
                        *urls)
