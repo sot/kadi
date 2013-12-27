@@ -1,3 +1,5 @@
+import re
+
 # Create your views here.
 from django.views.generic import ListView, TemplateView, DetailView
 from . import models
@@ -37,10 +39,18 @@ class EventDetail(DetailView):
                                  for name in names]
         context['model_description'] = self.model.__doc__.strip().splitlines()[0]
         context['model_name'] = MODEL_NAMES[self.model.__name__]
-        context['next'] = event.get_next()
-        context['previous'] = event.get_previous()
+        context['next_event'] = event.get_next(**self.filter_kwargs)
+        context['previous_event'] = event.get_previous(**self.filter_kwargs)
+        if self.filter_kwargs:
+            context['filter_url'] = '&'.join('{}={}'.format(key, val)
+                                             for key, val in self.filter_kwargs.items())
 
         return context
+
+    def get_queryset(self):
+        self.filter_kwargs = {key: val for key, val in self.request.GET.items()
+                              if re.match(r'\w+__\w+$', key)}
+        return self.model.objects.filter(**self.filter_kwargs)
 
 
 class EventList(ListView):
@@ -62,8 +72,17 @@ class EventList(ListView):
         context['event_rows'] = [[formats[name].format(getattr(event, name))
                                   for name in context['field_names']]
                                  for event in event_list]
+        if self.filter_kwargs:
+            context['filter_url'] = '&'.join('{}={}'.format(key, val)
+                                             for key, val in self.filter_kwargs.items())
 
         return context
+
+    def get_queryset(self):
+        self.filter_kwargs = {key: val for key, val in self.request.GET.items()
+                              if re.match(r'\w+__\w+$', key)}
+        return self.model.objects.filter(**self.filter_kwargs)
+
 
 # Define list view classes for each event model
 # Should probably do this with code and metaclasses, but this works for now

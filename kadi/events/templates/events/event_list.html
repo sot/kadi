@@ -14,9 +14,9 @@
     {% for val in event_row %}
     <td>
       {% if forloop.first %}
-        <a href="/kadi/events/{{ model_name }}/{{ val }}">{{ val }}</a>
+        <a href="/kadi/events/{{ model_name }}/{{ val }}?{{ filter_url }}">{{ val }}</a>
       {% else %}
-        {{ val }} 
+        {{ val }}
       {% endif %}
     </td>
     {% endfor %}
@@ -27,19 +27,20 @@
 {% endblock %}
 
 {% block navbuttons %}
+  <br />
 
-    <a href="/kadi/events"><img src="/static/images/up.gif"></a>
-    <img src="/static/images/empty.gif">
+  <a href="/kadi/events"><img src="/static/images/up.gif"></a>
+  <img src="/static/images/empty.gif">
 
 {% if is_paginated %}
   {% if page_obj.has_previous %}
-    <a href="?page={{ page_obj.previous_page_number }}"><img src="/static/images/previous.gif"></a>
+    <a href="?page={{ page_obj.previous_page_number }}&{{ filter_url }}"><img src="/static/images/previous.gif"></a>
   {% else %}
     <img src="/static/images/empty.gif">
   {% endif %}
 
   {% if page_obj.has_next %}
-    <a href="?page={{ page_obj.next_page_number }}"><img src="/static/images/next.gif"></a>
+    <a href="?page={{ page_obj.next_page_number }}&{{ filter_url }}"><img src="/static/images/next.gif"></a>
   {% else %}
     <img src="/static/images/empty.gif">
   {% endif %}
