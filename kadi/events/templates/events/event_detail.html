@@ -11,4 +11,25 @@
   {% endfor %}
 </table>
 
+REQUEST: {{ request }}
+
+{% endblock %}
+
+{% block navbuttons %}
+
+    <a href="/kadi/events/{{ model_name }}/list"><img src="/static/images/up.gif"></a>
+    <img src="/static/images/empty.gif">
+
+  {% if previous %}
+    <a href="/kadi/events/{{ model_name }}/{{ previous.pk }}"><img src="/static/images/previous.gif"></a>
+  {% else %}
+    <img src="/static/images/empty.gif">
+  {% endif %}
+
+  {% if next %}
+    <a href="/kadi/events/{{ model_name }}/{{ next.pk }}"><img src="/static/images/next.gif"></a>
+  {% else %}
+    <img src="/static/images/empty.gif">
+  {% endif %}
+
 {% endblock %}

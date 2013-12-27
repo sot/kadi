@@ -36,6 +36,10 @@ class EventDetail(DetailView):
         context['names_vals'] = [(name, formats[name].format(getattr(event, name)))
                                  for name in names]
         context['model_description'] = self.model.__doc__.strip().splitlines()[0]
+        context['model_name'] = MODEL_NAMES[self.model.__name__]
+        context['next'] = event.get_next()
+        context['previous'] = event.get_previous()
+
         return context
 
 
@@ -60,7 +64,6 @@ class EventList(ListView):
                                  for event in event_list]
 
         return context
-
 
 # Define list view classes for each event model
 # Should probably do this with code and metaclasses, but this works for now
