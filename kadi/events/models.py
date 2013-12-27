@@ -1026,6 +1026,14 @@ class Manvr(TlmEvent):
     stop_roll = models.FloatField(help_text='Stop roll angle after manvr')
     angle = models.FloatField(help_text='Maneuver angle (deg)')
 
+    angle._kadi_format = '{:.2f}'
+    start_ra._kadi_format = '{:.5f}'
+    start_dec._kadi_format = '{:.5f}'
+    start_roll._kadi_format = '{:.5f}'
+    stop_ra._kadi_format = '{:.5f}'
+    stop_dec._kadi_format = '{:.5f}'
+    stop_roll._kadi_format = '{:.5f}'
+
     class Meta:
         ordering = ['start']
 

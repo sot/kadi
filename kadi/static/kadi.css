@@ -1,0 +1,90 @@
+h1,h2,h3,h4 { color:#990000; }
+table { /* color:#660033;  */
+  border-spacing:0;
+  border-width:0;
+  border-style:none;
+}
+img { padding:2; }
+td {  padding:1; }
+th {  padding:0;
+/*      color:#440022;*/
+      text-align:center;
+   }
+td.alignright {  text-align:right; }
+
+a img { border:black solid thin;
+        padding:1;  }
+a:hover img { border:blue solid thin;  }
+
+table.summary { 
+  border-spacing: 5px 0px;
+  border-width: 3px;
+  border-style: double;
+}
+table.style1 { 
+  border-spacing: 10px 0px;
+  border-width: 3px;
+  border-style: double;
+}
+table.uncertainty td { 
+  font-size:70%;
+  padding:0;
+}
+
+A:link {text-decoration: underline; color: blue}
+A:visited {text-decoration: underline; color: blue}
+A:hover {text-decoration: underline; color: red;}
+
+p.error { color: red; }
+
+table.srclist {
+	border-width: thin thin thin thin;
+	border-spacing: 1px;
+	border-style: outset outset outset outset;
+	border-color: gray gray gray gray;
+	border-collapse: separate;
+	background-color: white;
+}
+table.srclist th {
+	border-width: 1px 1px 1px 1px;
+	padding: 1px 3px 1px 3px;
+	border-style: inset inset inset inset;
+	border-color: gray gray gray gray;
+	background-color: white;
+}
+table.srclist td {
+	border-width: 1px 1px 1px 1px;
+	padding: 1px 3px 1px 3px;
+	border-style: inset inset inset inset;
+	border-color: gray gray gray gray;
+	background-color: white;
+        text-align: right;
+        
+}
+
+table.srclisthdr {
+	border-width:0px ;
+	border-spacing: 0px;
+	border-style: none;
+}
+table.srclisthdr th {
+	border-width: 0px;
+	padding: 0px;
+	border-style: none;
+}
+table.srclisthdr td {
+	border-width: 0px;
+	padding: 0px;
+	border-style: none;
+}
+
+input.sortbybutton
+{
+   font-family:Arial,sans-serif;
+   font-weight:bold;
+   text-decoration:underline;
+   color:#3333FF;
+   background-color:transparent;
+   border-style:none;
+   border-width:4px;
+}
