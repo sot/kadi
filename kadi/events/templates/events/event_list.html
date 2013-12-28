@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h2> {{ model_description }} </h2>
+
+<table class="srclist">
+  <tr>
+    {% for field_name in field_names %}
+    <th> {{ field_name }} </th>
+    {% endfor %}
+  </tr>
+  {% for event_row in event_rows %}
+  <tr>
+    {% for val in event_row %}
+    <td>
+      {% if forloop.first %}
+        <a href="/kadi/events/{{ model_name }}/{{ val }}?filter={{ filter }}">{{ val }}</a>
+      {% else %}
+        {{ val }}
+      {% endif %}
+    </td>
+    {% endfor %}
+  </tr>
+  {% endfor %}
+</table>
+
+{% endblock %}
+
+{% block navbuttons %}
+<br />
+<table>
+  <tr>
+    <td>
+      <a href="/kadi/events"><img src="/static/images/up.gif"></a>
+      <img src="/static/images/empty.gif">
+      {% if is_paginated %}
+        {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}&filter={{ filter }}">
+          <img src="/static/images/previous.gif"></a>
+        {% else %}
+          <img src="/static/images/empty.gif">
+        {% endif %}
+
+        {% if page_obj.has_next %}
+          <a href="?page={{ page_obj.next_page_number }}&filter={{ filter }}">
+            <img src="/static/images/next.gif"></a>
+        {% else %}
+          <img src="/static/images/empty.gif">
+        {% endif %}
+        <img src="/static/images/empty.gif">
+      {% endif %}
+    </td>
+    <td>
+      <form action="/kadi/events/{{model_name}}/list" method="get">
+        Filter: <input type="text" name="filter" value="{{ filter }}" size="70">
+      </form>
+    </td>
+  </tr>
+  {% if is_paginated %}
+  <tr>
+    <td>
+      <span class="page-current">
+        Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
+      </span>
+    </td>
+    <td></td>
+  </tr>
+  {% endif %}
+</table>
+
+{% endblock %}

@@ -25,7 +25,7 @@ DATABASES = {
     }
 }
 
-FORCE_SCRIPT_NAME = '/kadi'
+# FORCE_SCRIPT_NAME = '/kadi'
 APPEND_SLASH = True
 
 # Local time zone for this installation. Choices can be found here:
@@ -64,17 +64,28 @@ MEDIA_URL = ''
 # Don't put anything in this directory yourself; store your static files
 # in apps' "static/" subdirectories and in STATICFILES_DIRS.
 # Example: "/home/media/media.lawrence.com/static/"
-STATIC_ROOT = '/proj/web-ccosmos/htdocs/kadi/static/'
+STATIC_ROOT = ''
+
+# Following was an attempt to handle having the prefix 'kadi' in the
+# CXC web site.  But it didn't work.
+# STATIC_ROOT = '/proj/web-ccosmos/htdocs/kadi/static/'
 
 # URL prefix for static files.
 # Example: "http://media.lawrence.com/static/"
-STATIC_URL = 'https://icxc.cfa.harvard.edu/kadi/static/'
+STATIC_URL = '/static/'
+
+# Following was an attempt to handle having the prefix 'kadi' in the
+# CXC web site.  But it didn't work.
+# STATIC_URL = 'https://icxc.cfa.harvard.edu/kadi/static/'
+
+BASE_DIR = os.path.dirname(os.path.realpath(__file__)) 
 
 # Additional locations of static files
 STATICFILES_DIRS = (
     # Put strings here, like "/home/html/static" or "C:/www/django/static".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
+    os.path.join(BASE_DIR, 'static'),
 )
 
 # List of finder classes that know how to find static files in
@@ -114,7 +125,7 @@ TEMPLATE_DIRS = (
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
-    os.path.join(os.path.dirname(__file__), 'events/templates'),
+    os.path.join(BASE_DIR, 'events/templates'),
 )
 
 INSTALLED_APPS = (

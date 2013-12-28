@@ -383,6 +383,30 @@ class BaseEvent(BaseModel):
     def __unicode__(self):
         return ('start={}'.format(self.start))
 
+    def get_next(self, queryset=None):
+        """
+        Get the next object by primary key order
+        """
+        if queryset is None:
+            queryset = self.__class__.objects.all()
+        next = queryset.filter(pk__gt=self.pk)
+        try:
+            return next[0]
+        except IndexError:
+            return False
+
+    def get_previous(self, queryset=None):
+        """
+        Get the previous object by primary key order
+        """
+        if queryset is None:
+            queryset = self.__class__.objects.all()
+        prev = queryset.filter(pk__lt=self.pk).order_by('-pk')
+        try:
+            return prev[0]
+        except IndexError:
+            return False
+
 
 class Event(BaseEvent):
     start = models.CharField(max_length=21, primary_key=True,
@@ -391,6 +415,7 @@ class Event(BaseEvent):
     tstart = models.FloatField(db_index=True, help_text='Start time (CXC secs)')
     tstop = models.FloatField(help_text='Stop time (CXC secs)')
     dur = models.FloatField(help_text='Duration (secs)')
+    dur._kadi_format = '{:.1f}'
 
     class Meta:
         abstract = True
@@ -1021,6 +1046,14 @@ class Manvr(TlmEvent):
     stop_roll = models.FloatField(help_text='Stop roll angle after manvr')
     angle = models.FloatField(help_text='Maneuver angle (deg)')
 
+    angle._kadi_format = '{:.2f}'
+    start_ra._kadi_format = '{:.5f}'
+    start_dec._kadi_format = '{:.5f}'
+    start_roll._kadi_format = '{:.5f}'
+    stop_ra._kadi_format = '{:.5f}'
+    stop_dec._kadi_format = '{:.5f}'
+    stop_roll._kadi_format = '{:.5f}'
+
     class Meta:
         ordering = ['start']
 
@@ -1288,6 +1321,10 @@ class Dwell(Event):
     ra = models.FloatField(help_text='Right ascension (deg)')
     dec = models.FloatField(help_text='Declination (deg)')
     roll = models.FloatField(help_text='Roll angle (deg)')
+    rel_tstart._kadi_format = '{:.2f}'
+    ra._kadi_format = '{:.5f}'
+    dec._kadi_format = '{:.5f}'
+    roll._kadi_format = '{:.5f}'
 
     # To do: add ra dec roll quaternion
 
@@ -1483,6 +1520,7 @@ class IFotEvent(BaseEvent):
     tstart = models.FloatField(db_index=True, help_text='Start time (CXC secs)')
     tstop = models.FloatField(help_text='Stop time (CXC secs)')
     dur = models.FloatField(help_text='Duration (secs)')
+    dur._kadi_format = '{:.1f}'
 
     class Meta:
         abstract = True
@@ -1580,7 +1618,7 @@ class CAP(IFotEvent):
 
 class DsnComm(IFotEvent):
     """
-    Scheduled DSN comm period
+    DSN comm period
 
     **Event definition**: DSN comm pass beginning of support to end of support (not
       beginning / end of track).
@@ -1674,6 +1712,10 @@ class Orbit(BaseEvent):
                                          'to perigee (sec)')
     dt_stop_radzone = models.FloatField(help_text='Stop time of rad zone relative '
                                         'to perigee (sec)')
+    dur._kadi_format = '{:.1f}'
+    t_perigee._kadi_format = '{:.1f}'
+    dt_start_radzone._kadi_format = '{:.1f}'
+    dt_stop_radzone._kadi_format = '{:.1f}'
 
     @classmethod
     @import_ska
