@@ -1,3 +1,4 @@
+import shlex
 import re
 
 # Create your views here.
@@ -33,9 +34,7 @@ class EventView(object):
         context = super(EventView, self).get_context_data(**kwargs)
         context['model_description'] = self.model.__doc__.strip().splitlines()[0]
         context['model_name'] = MODEL_NAMES[self.model.__name__]
-        if self.filter_kwargs:
-            context['filter_url'] = '&'.join('{}={}'.format(key, val)
-                                             for key, val in self.filter_kwargs.items())
+        context['filter'] = self.filter
 
         self.formats = {field.name: getattr(field, '_kadi_format', '{}')
                         for field in self.model._meta.fields}
@@ -43,9 +42,24 @@ class EventView(object):
         return context
 
     def get_queryset(self):
-        self.filter_kwargs = {key: val for key, val in self.request.GET.items()
-                              if re.match(r'\w+__\w+$', key)}
-        return self.model.objects.filter(**self.filter_kwargs)
+        self.filter = str(self.request.GET.get('filter', ''))
+        queryset = self.model.objects.all()
+        tokens = shlex.split(self.filter)
+        for token in tokens:
+            token = token.encode('utf8')
+            match = re.match(r'(\w+)(=|>|<|>=|<=)(.+)$', token)
+            if match:
+                op = {'=': 'exact',
+                      '>=': 'gte',
+                      '<=': 'lte',
+                      '<': 'lt',
+                      '>': 'gt'}[match.group(2)]
+                key = '{}__{}'.format(match.group(1), op)
+                val = match.group(3)
+                queryset = queryset.filter(**{key: val})
+                continue
+        self.queryset = queryset
+        return queryset
 
 
 class EventDetail(EventView, DetailView):
@@ -59,8 +73,8 @@ class EventDetail(EventView, DetailView):
         formats = self.formats
         context['names_vals'] = [(name, formats[name].format(getattr(event, name)))
                                  for name in names]
-        context['next_event'] = event.get_next(**self.filter_kwargs)
-        context['previous_event'] = event.get_previous(**self.filter_kwargs)
+        context['next_event'] = event.get_next(self.queryset)
+        context['previous_event'] = event.get_previous(self.queryset)
 
         return context
 

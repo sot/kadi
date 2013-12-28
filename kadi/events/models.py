@@ -383,21 +383,25 @@ class BaseEvent(BaseModel):
     def __unicode__(self):
         return ('start={}'.format(self.start))
 
-    def get_next(self, **kwargs):
+    def get_next(self, queryset=None):
         """
         Get the next object by primary key order
         """
-        next = self.__class__.objects.filter(pk__gt=self.pk, **kwargs)
+        if queryset is None:
+            queryset = self.__class__.objects.all()
+        next = queryset.filter(pk__gt=self.pk)
         try:
             return next[0]
         except IndexError:
             return False
 
-    def get_previous(self, **kwargs):
+    def get_previous(self, queryset=None):
         """
         Get the previous object by primary key order
         """
-        prev = self.__class__.objects.filter(pk__lt=self.pk, **kwargs).order_by('-pk')
+        if queryset is None:
+            queryset = self.__class__.objects.all()
+        prev = queryset.filter(pk__lt=self.pk).order_by('-pk')
         try:
             return prev[0]
         except IndexError:

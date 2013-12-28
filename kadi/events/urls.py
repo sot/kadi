@@ -25,7 +25,7 @@ for name, val in vars(views).items():
         model_class_name = EventDetailView.__name__[:-6]
         try:
             urls.append(url('^' + views.MODEL_NAMES[model_class_name]
-                            + r'/(?P<pk>[:.\w\d]+)/$'.format(),
+                            + r'/(?P<pk>[:.\w\d]+)/'.format(),
                             EventDetailView.as_view()))
         except KeyError:
             pass
