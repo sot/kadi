@@ -4,10 +4,6 @@
 
 <h2> {{ model_description }} </h2>
 
-<form action="/kadi/events/{{model_name}}/{{object.pk}}" method="get">
-Filter: <input type="text" name="filter" value="{{ filter }}" size="80">
-</form>
-<br />
 
 
 <table class="srclist">
@@ -23,21 +19,32 @@ Filter: <input type="text" name="filter" value="{{ filter }}" size="80">
 {% block navbuttons %}
   <br />
 
-  <a href="/kadi/events/{{ model_name }}/list?filter={{ filter }}"><img src="/static/images/up.gif"></a>
-    <img src="/static/images/empty.gif">
+  <table>
+    <tr>
+      <td>
+        <a href="/kadi/events/{{ model_name }}/list?filter={{ filter }}"><img src="/static/images/up.gif"></a>
+        <img src="/static/images/empty.gif">
 
-  {% if previous_event %}
-    <a href="/kadi/events/{{ model_name }}/{{ previous_event.pk }}?filter={{ filter }}">
-      <img src="/static/images/previous.gif"></a>
-  {% else %}
-    <img src="/static/images/empty.gif">
-  {% endif %}
+        {% if previous_event %}
+        <a href="/kadi/events/{{ model_name }}/{{ previous_event.pk }}?filter={{ filter }}">
+          <img src="/static/images/previous.gif"></a>
+        {% else %}
+        <img src="/static/images/empty.gif">
+        {% endif %}
 
-  {% if next_event %}
-    <a href="/kadi/events/{{ model_name }}/{{ next_event.pk }}?filter={{ filter }}">
-      <img src="/static/images/next.gif"></a>
-  {% else %}
-    <img src="/static/images/empty.gif">
-  {% endif %}
-
+        {% if next_event %}
+        <a href="/kadi/events/{{ model_name }}/{{ next_event.pk }}?filter={{ filter }}">
+          <img src="/static/images/next.gif"></a>
+        {% else %}
+        <img src="/static/images/empty.gif">
+        {% endif %}
+        <img src="/static/images/empty.gif">
+      </td>
+      <td>
+        <form action="/kadi/events/{{model_name}}/{{object.pk}}" method="get">
+          Filter: <input type="text" name="filter" value="{{ filter }}" size="70">
+        </form>
+      </td>
+    </tr>
+  </table>
 {% endblock %}

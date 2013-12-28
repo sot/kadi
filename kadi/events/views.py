@@ -30,6 +30,23 @@ class EventView(object):
     """
     Mixin for common stuff between EventDetail and EventList
     """
+    filter_string_field = 'start'
+    filter_string_op = 'startswith'
+
+    def filter_bare_string(self, queryset, filter_string):
+        """
+        Filter the ``queryset`` using ``filter_string``.
+
+        If ``filter_string`` starts with 4 digits that looks like a date then use
+        start__startswith=``filter_string``.  Otherwise use the class attributes
+        (which default to the same thing).
+        """
+        if re.match(r'[12]\d{3}', filter_string):
+            key = 'start__startswith'
+        else:
+            key = '{}__{}'.format(self.filter_string_field, self.filter_string_op)
+        return queryset.filter(**{key: filter_string})
+
     def get_context_data(self, **kwargs):
         context = super(EventView, self).get_context_data(**kwargs)
         context['model_description'] = self.model.__doc__.strip().splitlines()[0]
@@ -46,7 +63,6 @@ class EventView(object):
         queryset = self.model.objects.all()
         tokens = shlex.split(self.filter)
         for token in tokens:
-            token = token.encode('utf8')
             match = re.match(r'(\w+)(=|>|<|>=|<=)(.+)$', token)
             if match:
                 op = {'=': 'exact',
@@ -57,7 +73,8 @@ class EventView(object):
                 key = '{}__{}'.format(match.group(1), op)
                 val = match.group(3)
                 queryset = queryset.filter(**{key: val})
-                continue
+            else:
+                queryset = self.filter_bare_string(queryset, token)
         self.queryset = queryset
         return queryset
 
@@ -83,6 +100,7 @@ class EventList(EventView, ListView):
     paginate_by = 30
     context_object_name = 'event_list'
     template_name = 'events/event_list.html'
+    ignore_fields = ['tstart', 'tstop']
 
     def get_context_data(self, **kwargs):
         # Call the base implementation first to get a context
@@ -90,7 +108,7 @@ class EventList(EventView, ListView):
 
         fields = self.model._meta.fields
         context['field_names'] = [field.name for field in fields
-                                  if not hasattr(field, '_kadi_no_list_view')]
+                                  if field.name not in self.ignore_fields]
         event_list = context['event_list']
         formats = self.formats
         context['event_rows'] = [[formats[name].format(getattr(event, name))
@@ -110,6 +128,7 @@ class ObsidList(EventList):
 
 class TscMoveList(EventList):
     model = models.TscMove
+    filter_string_field = 'start_det'
 
 
 class DarkCalReplicaList(EventList):
@@ -158,22 +177,26 @@ class NormalSunList(EventList):
 
 class MajorEventList(EventList):
     model = models.MajorEvent
-
-
-class IFotEventList(EventList):
-    model = models.IFotEvent
+    filter_string_field = 'descr'
+    filter_string_op = 'icontains'
 
 
 class CAPList(EventList):
     model = models.CAP
+    filter_string_field = 'title'
+    filter_string_op = 'icontains'
+    ignore_fields = EventList.ignore_fields + ['descr', 'notes', 'link']
 
 
 class DsnCommList(EventList):
     model = models.DsnComm
+    filter_string_field = 'activity'
+    filter_string_op = 'icontains'
 
 
 class OrbitList(EventList):
     model = models.Orbit
+    ignore_fields = EventList.ignore_fields + ['t_perigee']
 
 
 class OrbitPointList(EventList):
@@ -191,6 +214,7 @@ class ObsidDetail(EventDetail):
 
 class TscMoveDetail(EventDetail):
     model = models.TscMove
+    filter_string_field = 'start_det'
 
 
 class DarkCalReplicaDetail(EventDetail):
@@ -239,18 +263,20 @@ class NormalSunDetail(EventDetail):
 
 class MajorEventDetail(EventDetail):
     model = models.MajorEvent
-
-
-class IFotEventDetail(EventDetail):
-    model = models.IFotEvent
+    filter_string_field = 'descr'
+    filter_string_op = 'icontains'
 
 
 class CAPDetail(EventDetail):
     model = models.CAP
+    filter_string_field = 'title'
+    filter_string_op = 'icontains'
 
 
 class DsnCommDetail(EventDetail):
     model = models.DsnComm
+    filter_string_field = 'activity'
+    filter_string_op = 'icontains'
 
 
 class OrbitDetail(EventDetail):
