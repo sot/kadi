@@ -25,6 +25,18 @@ rm events.db3 cmds.h5 cmds.pkl
 % ./manage.py syncdb
 % ./update_events --start=2000:001 --model=CAP
 
+
+#################################################################
+# Reprocess a table from a starting date in a local version of
+# the flight events database
+#################################################################
+
+% sqlite3 events.db3
+> update events_update set date='2012:001:00:00:00.000' where name='Scs107';
+> delete from events_scs107 where start > '2012:001';
+
+% ./update_events --start=2012:001 --model=Scs107
+
 #################################################################
 # Add a new table to flight
 #################################################################
