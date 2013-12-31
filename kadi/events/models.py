@@ -765,8 +765,12 @@ class Scs107(TlmEvent):
     @import_ska
     def get_events(cls, start, stop=None):
         msidset = fetch.MSIDset(cls.event_msids, start, stop)
-        # Interpolate all MSIDs to a common time and make a common bads array
-        msidset.interpolate(16.4, filter_bad=False)
+        # Interpolate all MSIDs to a common time and make a common bads array.
+        # The adhoc addition of 20 below is a workaround for
+        # https://github.com/sot/eng_archive/issues/66
+        dt = 16.4
+        tstart = (DateTime(start).secs // dt + 20) * dt
+        msidset.interpolate(dt, filter_bad=False, start=tstart)
         common_bads = np.zeros(len(msidset.times), dtype=bool)
         for msid in msidset.values():
             common_bads |= msid.bads
