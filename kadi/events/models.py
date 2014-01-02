@@ -766,10 +766,9 @@ class Scs107(TlmEvent):
     def get_events(cls, start, stop=None):
         msidset = fetch.MSIDset(cls.event_msids, start, stop)
         # Interpolate all MSIDs to a common time and make a common bads array.
-        # The adhoc addition of 20 below is a workaround for
-        # https://github.com/sot/eng_archive/issues/66
-        dt = 16.4
-        tstart = (msidset.tstart // dt) * dt
+        # Sync to the start of 3tscmove which is sampled at 32.8 seconds
+        dt = 32.8
+        tstart = (msidset['3tscmove'].times[0] // dt) * dt
         times = np.arange((msidset.tstop - tstart) // dt) * dt + tstart
         msidset.interpolate(times=times, filter_bad=False)
         common_bads = np.zeros(len(msidset.times), dtype=bool)
