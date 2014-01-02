@@ -769,8 +769,9 @@ class Scs107(TlmEvent):
         # The adhoc addition of 20 below is a workaround for
         # https://github.com/sot/eng_archive/issues/66
         dt = 16.4
-        tstart = (DateTime(start).secs // dt + 20) * dt
-        msidset.interpolate(dt, filter_bad=False, start=tstart)
+        tstart = (msidset.tstart // dt) * dt
+        times = np.arange((msidset.tstop - tstart) // dt) * dt + tstart
+        msidset.interpolate(times=times, filter_bad=False)
         common_bads = np.zeros(len(msidset.times), dtype=bool)
         for msid in msidset.values():
             common_bads |= msid.bads
