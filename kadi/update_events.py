@@ -24,6 +24,9 @@ def get_opt(args=None):
                         default=None,
                         help=("Processing start date (loops by --loop-days "
                               "until --stop date if set)"))
+    parser.add_argument("--delete-from-start",
+                        action='store_true',
+                        help=("Delete events after --start and reset update time to --start"))
     parser.add_argument("--loop-days",
                         default=100,
                         type=int,
@@ -50,6 +53,22 @@ def get_opt(args=None):
 
     args = parser.parse_args(args)
     return args
+
+
+def delete_from_start(EventModel, start):
+    from .events import models
+
+    date_start = DateTime(start).date
+    cls_name = EventModel.__name__
+
+    update = models.Update.objects.get(name=cls_name)
+    logger.info('Updating {} date from {} to {}'.format(cls_name, update.date, date_start))
+    update.date = date_start
+    update.save()
+
+    events = EventModel.objects.filter(start__gte=date_start)
+    logger.info('Deleting {} {} events after {}'.format(events.count(), cls_name, date_start))
+    events.delete()
 
 
 def update(EventModel, date_stop):
@@ -162,6 +181,9 @@ def main():
                        if any(re.match(y, x.__name__) for y in opt.models)]
 
     for EventModel in EventModels:
+        if opt.delete_from_start and opt.start is not None:
+            delete_from_start(EventModel, opt.start)
+
         for date_stop in date_stops:
             update(EventModel, date_stop)
 
