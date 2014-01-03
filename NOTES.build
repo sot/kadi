@@ -31,6 +31,7 @@ rm events.db3 cmds.h5 cmds.pkl
 # the flight events database
 #################################################################
 
+% cp /proj/sot/ska/data/kadi/events.db3 ./
 % sqlite3 events.db3
 > update events_update set date='2012:001:00:00:00.000' where name='Scs107';
 > delete from events_scs107 where start > '2012:001';
