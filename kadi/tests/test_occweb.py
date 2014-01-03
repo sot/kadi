@@ -10,7 +10,7 @@ import pyyaks.logger
 logger = pyyaks.logger.get_logger()
 
 
-def test_put_get():
+def _test_put_get(user):
     filenames = ['test.dat', 'test2.dat']
 
     # Make a local temp dir and put files there
@@ -19,10 +19,6 @@ def test_put_get():
         for filename in filenames:
             open(filename, 'w').write(filename)
         local_filenames = [os.path.abspath(x) for x in os.listdir(local_tmpdir.name)]
-
-    # Get the remote user name for lucky
-    netrc = Ska.ftp.parse_netrc()
-    user = netrc['lucky']['login']
 
     remote_tmpdir = str(uuid.uuid4())  # random remote dir name
     occweb.ftp_put_to_lucky(remote_tmpdir, local_filenames, user=user)
@@ -34,6 +30,8 @@ def test_put_get():
 
     # Clean up remote temp dir
     lucky = Ska.ftp.SFTP('lucky')
+    if user is None:
+        user = lucky.ftp.get_channel().transport.get_username()
     lucky.rmdir('/home/{}/{}'.format(user, remote_tmpdir))
     lucky.close()
 
@@ -41,3 +39,16 @@ def test_put_get():
     with Ska.File.chdir(local_tmpdir2.name):
         for filename in filenames:
             assert open(filename).read() == filename
+
+
+def test_put_get_user_from_netrc():
+    # Get the remote user name for lucky
+    netrc = Ska.ftp.parse_netrc()
+    user = netrc['lucky']['login']
+    _test_put_get(user=user)
+
+
+def test_put_get_user_none():
+    # Test the user=None code branch (gets username back from SFTP object, which
+    # had previously gotten it from the netrc file).
+    _test_put_get(user=None)

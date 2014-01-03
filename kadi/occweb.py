@@ -89,7 +89,7 @@ def get_ifot(event_type, start=None, stop=None, props=[], columns=[], timeout=TI
     return dat
 
 
-def ftp_put_to_lucky(ftp_dirname, local_files, user='taldcroft', logger=None):
+def ftp_put_to_lucky(ftp_dirname, local_files, user=None, logger=None):
     """Put the ``local_files`` onto lucky in /``user``/``ftp_dirname``. First put it at the top
     level, then when complete move it into a subdir eng_archive.  This lets the OCC side
     just watch for fully-uploaded files in that directory.
@@ -101,7 +101,9 @@ def ftp_put_to_lucky(ftp_dirname, local_files, user='taldcroft', logger=None):
     import Ska.ftp
     import uuid
 
-    ftp = Ska.ftp.SFTP('lucky', logger=logger)
+    ftp = Ska.ftp.SFTP('lucky', logger=logger, user=user)
+    if user is None:
+        user = ftp.ftp.get_channel().transport.get_username()
     ftp.cd('/home/{}'.format(user))
     files = ftp.ls()
 
@@ -118,7 +120,7 @@ def ftp_put_to_lucky(ftp_dirname, local_files, user='taldcroft', logger=None):
     ftp.close()
 
 
-def ftp_get_from_lucky(ftp_dirname, local_files, user='taldcroft', logger=None):
+def ftp_get_from_lucky(ftp_dirname, local_files, user=None, logger=None):
     """
     Get files from lucky.  This looks in remote ``ftp_dirname`` for files that
     have basenames matching those of ``local_files``.  The remote files
@@ -128,7 +130,9 @@ def ftp_get_from_lucky(ftp_dirname, local_files, user='taldcroft', logger=None):
     import Ska.ftp
     import Ska.File
 
-    ftp = Ska.ftp.SFTP('lucky', logger=logger)
+    ftp = Ska.ftp.SFTP('lucky', logger=logger, user=user)
+    if user is None:
+        user = ftp.ftp.get_channel().transport.get_username()
     ftp.cd('/home/{}/{}'.format(user, ftp_dirname))
     for local_file in local_files:
         file_dir, file_base = os.path.split(os.path.abspath(local_file))
