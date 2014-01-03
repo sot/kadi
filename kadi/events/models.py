@@ -18,6 +18,7 @@ interpolate = None
 DateTime = None
 np = None
 Quat = None
+utils = None
 
 ZERO_DT = -1e-4
 
@@ -116,35 +117,16 @@ def import_ska(func):
         from Ska.Numpy import interpolate
         from Quaternion import Quat
         import Ska.engarchive.fetch_eng as fetch
+        from Ska.engarchive import utils
         import numpy as np
         globals()['interpolate'] = interpolate
         globals()['DateTime'] = DateTime
         globals()['fetch'] = fetch
+        globals()['utils'] = utils
         globals()['np'] = np
         globals()['Quat'] = Quat
         return func(*args, **kwargs)
     return wrapper
-
-
-@import_ska
-def _state_intervals(vals, times):
-    transitions = np.hstack([[True], vals[:-1] != vals[1:], [True]])
-    t0 = times[0] - (times[1] - times[0]) / 2
-    t1 = times[-1] + (times[-1] - times[-2]) / 2
-    midtimes = np.hstack([[t0], (times[:-1] + times[1:]) / 2, [t1]])
-
-    state_vals = vals[transitions[1:]]
-    state_times = midtimes[transitions]
-
-    intervals = {'datestart': DateTime(state_times[:-1]).date,
-                 'datestop': DateTime(state_times[1:]).date,
-                 'tstart': state_times[:-1],
-                 'tstop': state_times[1:],
-                 'duration': state_times[1:] - state_times[:-1],
-                 'val': state_vals}
-
-    import Ska.Numpy
-    return Ska.Numpy.structured_array(intervals)
 
 
 @import_ska
@@ -780,9 +762,10 @@ class Scs107(TlmEvent):
             msid.bads = common_bads
             msid.filter_bad()
 
-        scs107 = ((msidset['3tscmove'].vals == 'T') & (msidset['aorwbias'].vals == 'DISA')
+        scs107 = ((msidset['3tscmove'].vals == 'T')
+                  & (msidset['aorwbias'].vals == 'DISA')
                   & (msidset['coradmen'].vals == 'DISA'))
-        states = _state_intervals(scs107, msidset.times)
+        states = utils.state_intervals(msidset.times, scs107)
         if states[0]['val'] is True:
             states = states[1:]
         if states[-1]['val'] is True:
