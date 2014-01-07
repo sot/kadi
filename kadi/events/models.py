@@ -8,8 +8,9 @@ if 'DJANGO_SETTINGS_MODULE' not in os.environ:
 from django.db import models
 models.query.REPR_OUTPUT_SIZE = 1000  # Increase default number of rows printed
 
-
 import pyyaks.logger
+from astropy import table
+
 from .manvr_templates import get_manvr_templates
 
 # Fool pyflakes into thinking these are defined
@@ -21,6 +22,7 @@ Quat = None
 utils = None
 
 ZERO_DT = -1e-4
+MAX_GAP = 328.1  # Max gap (seconds) in telemetry for state intervals
 
 logger = pyyaks.logger.get_logger(name='events', level=pyyaks.logger.INFO,
                                   format="%(asctime)s %(message)s")
@@ -132,18 +134,28 @@ def import_ska(func):
 @import_ska
 def fuzz_states(states, t_fuzz):
     """
-    For a set of `states` (from fetch.MSID.state_intervals()), merge any that are
-    within `t_fuzz` seconds of each other.
+    For a set of `states` (from fetch.MSID.state_intervals()) or intervals (from
+    fetch.MSID.logical_intervals), merge any that are within `t_fuzz` seconds of each
+    other.  Logical intervals are just the subset of states with 'val' equal to a
+    particular value.
+
+    :param states: table of states or intervals
+    :param t_fuzz: fuzz time in seconds
+    :returns fuzzed_states: table
     """
     done = False
+    state_has_val = 'val' in states.dtype.names
     while not done:
         for i, state0, state1 in izip(count(), states, states[1:]):
-            if state1['tstart'] - state0['tstop'] < t_fuzz and state0['val'] == state1['val']:
+            # Logical intervals all have a 'val' of True by definition, while for state
+            # intervals we need to check that adjacent intervals have same value.
+            state_equal = (state0['val'] == state1['val'] if state_has_val else True)
+            if state1['tstart'] - state0['tstop'] < t_fuzz and state_equal:
                 # Merge state1 into state0 and delete state1
                 state0['tstop'] = state1['tstop']
                 state0['datestop'] = state1['datestop']
                 state0['duration'] = state0['tstop'] - state0['tstart']
-                states = np.concatenate([states[:i + 1], states[i + 2:]])
+                states = table.vstack([states[:i + 1], states[i + 2:]])
                 break
         else:
             done = True
@@ -452,8 +464,10 @@ class TlmEvent(Event):
         event_msidset = fetch.Msidset(cls.event_msids, tstart, tstop)
 
         try:
-            # Telemetry values for event_msids[0] define the states
-            states = event_msidset[cls.event_msids[0]].state_intervals()
+            # Telemetry values for event_msids[0] define the states.  Don't allow a logical
+            # interval that spans a telemetry gap of more than 10 major frames.
+            event_msid = event_msidset[cls.event_msids[0]]
+            states = event_msid.logical_intervals('==', cls.event_val, max_gap=MAX_GAP)
         except ValueError:
             if event_time_fuzz is None:
                 logger.warn('Warning: No telemetry available for {}'
@@ -467,24 +481,15 @@ class TlmEvent(Event):
         # the next search interval will step forward in time, it is sure that
         # eventually the event will be fully contained.
         if event_time_fuzz:
-            if (tstop - event_time_fuzz < states[-1]['tstop']
-                    and states[-1]['val'] == cls.event_val):
+            if tstop - event_time_fuzz < states[-1]['tstop']:
                 # Event tstop is within event_time_fuzz of the stop of states so
                 # bail out and don't return any states.
                 logger.warn('Warning: dropping {} states because of insufficent event time pad'
                             .format(cls.__name__))
                 return [], event_msidset
-        else:
-            # Require that the event states be flanked by a non-event state
-            # to ensure that the full event was seen in telemetry.
-            if states[0]['val'] == cls.event_val:
-                states = states[1:]
-            if states[-1]['val'] == cls.event_val:
-                states = states[:-1]
 
-        # Select event states that have the right value and are contained within interval
-        ok = ((states['val'] == cls.event_val) &
-              (states['tstart'] >= tstart) & (states['tstop'] <= tstop))
+        # Select event states that are contained within start/stop interval
+        ok = (states['tstart'] >= tstart) & (states['tstop'] <= tstop)
         states = states[ok]
 
         if event_time_fuzz:
@@ -765,15 +770,10 @@ class Scs107(TlmEvent):
         scs107 = ((msidset['3tscmove'].vals == 'T')
                   & (msidset['aorwbias'].vals == 'DISA')
                   & (msidset['coradmen'].vals == 'DISA'))
-        states = utils.state_intervals(msidset.times, scs107)
-        if states[0]['val'] is True:
-            states = states[1:]
-        if states[-1]['val'] is True:
-            states = states[:-1]
+        states = utils.logical_intervals(msidset.times, scs107, max_gap=MAX_GAP)
 
         # Select event states that are True (SCS107 in progress)
-        ok = (states['val']
-              & (states['tstart'] >= DateTime(start).secs)
+        ok = ((states['tstart'] >= DateTime(start).secs)
               & (states['tstop'] <= DateTime(stop).secs))
         states = states[ok]
 
