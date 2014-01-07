@@ -766,6 +766,7 @@ class Scs107(TlmEvent):
         for msid in msidset.values():
             msid.bads = common_bads
             msid.filter_bad()
+        msidset.times = msidset.times[~common_bads]
 
         scs107 = ((msidset['3tscmove'].vals == 'T')
                   & (msidset['aorwbias'].vals == 'DISA')
