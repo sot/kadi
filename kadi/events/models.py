@@ -835,6 +835,68 @@ class FaMove(TlmEvent):
                 .format(self.start, self.dur, self.start_3fapos, self.stop_3fapos))
 
 
+class HetgMove(TlmEvent):
+    """
+    HETG movement
+
+    **Event definition**: interval when 8 < 4HPOSARO < 78 degrees
+
+    This is an approximate definition but works for filtering telemetry with
+    an appropriately set interval_pad.
+
+    **Fields**
+
+    ======== ========== ================================
+     Field      Type              Description
+    ======== ========== ================================
+      start   Char(21)   Start time (YYYY:DDD:HH:MM:SS)
+       stop   Char(21)    Stop time (YYYY:DDD:HH:MM:SS)
+     tstart      Float            Start time (CXC secs)
+      tstop      Float             Stop time (CXC secs)
+        dur      Float                  Duration (secs)
+    ======== ========== ================================
+    """
+    event_msids = ['4hposaro']
+    event_time_fuzz = 600
+
+    @classmethod
+    def get_state_times_bools(cls, event_msidset):
+        event_msid = event_msidset[cls.event_msids[0]]
+        moving = (event_msid.vals > 8) & (event_msid.vals < 78)
+        return event_msid.times, moving
+
+
+class LetgMove(TlmEvent):
+    """
+    LETG movement
+
+    **Event definition**: interval when 8 < 4LPOSARO < 78 degrees
+
+    This is an approximate definition but works for filtering telemetry with
+    an appropriately set interval_pad.
+
+    **Fields**
+
+    ======== ========== ================================
+     Field      Type              Description
+    ======== ========== ================================
+      start   Char(21)   Start time (YYYY:DDD:HH:MM:SS)
+       stop   Char(21)    Stop time (YYYY:DDD:HH:MM:SS)
+     tstart      Float            Start time (CXC secs)
+      tstop      Float             Stop time (CXC secs)
+        dur      Float                  Duration (secs)
+    ======== ========== ================================
+    """
+    event_msids = ['4lposaro']
+    event_time_fuzz = 600
+
+    @classmethod
+    def get_state_times_bools(cls, event_msidset):
+        event_msid = event_msidset[cls.event_msids[0]]
+        moving = (event_msid.vals > 8) & (event_msid.vals < 76)
+        return event_msid.times, moving
+
+
 class Dump(TlmEvent):
     """
     Ground commanded momentum dump
