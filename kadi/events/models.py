@@ -450,6 +450,18 @@ class TlmEvent(Event):
         return {}
 
     @classmethod
+    def get_state_bools(cls, event_msid):
+        """
+        Get the boolean True/False array indicating when ``event_msid`` is in the
+        desired state for this event type.  The default is when
+        ``event_msid == cls.event_val``, but subclasses may override this method.
+
+        :param event_msid: fetch.MSID object
+        :returns: boolean ndarray
+        """
+        return event_msid.vals == cls.event_val
+
+    @classmethod
     @import_ska
     def get_msids_states(cls, start, stop):
         """
@@ -467,7 +479,8 @@ class TlmEvent(Event):
             # Telemetry values for event_msids[0] define the states.  Don't allow a logical
             # interval that spans a telemetry gap of more than 10 major frames.
             event_msid = event_msidset[cls.event_msids[0]]
-            states = event_msid.logical_intervals('==', cls.event_val, max_gap=MAX_GAP)
+            state_bools = cls.get_state_bools(event_msid)
+            states = utils.logical_intervals(event_msid.times, state_bools, max_gap=MAX_GAP)
         except ValueError:
             if event_time_fuzz is None:
                 logger.warn('Warning: No telemetry available for {}'
