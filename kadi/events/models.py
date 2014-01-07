@@ -422,6 +422,7 @@ class Event(BaseEvent):
 class TlmEvent(Event):
     event_msids = None  # must be overridden by derived class
     event_val = None
+    event_filter_bad = True  # Normally remove bad quality data immediately
 
     class Meta:
         abstract = True
@@ -450,7 +451,7 @@ class TlmEvent(Event):
         return {}
 
     @classmethod
-    def get_state_bools(cls, event_msid):
+    def get_state_times_bools(cls, event_msidset):
         """
         Get the boolean True/False array indicating when ``event_msid`` is in the
         desired state for this event type.  The default is when
@@ -459,7 +460,9 @@ class TlmEvent(Event):
         :param event_msid: fetch.MSID object
         :returns: boolean ndarray
         """
-        return event_msid.vals == cls.event_val
+        event_msid = event_msidset[cls.event_msids[0]]
+        bools = event_msid.vals == cls.event_val
+        return event_msid.times, bools
 
     @classmethod
     @import_ska
@@ -473,40 +476,43 @@ class TlmEvent(Event):
         event_time_fuzz = cls.event_time_fuzz if hasattr(cls, 'event_time_fuzz') else None
 
         # Get the event telemetry MSID objects
-        event_msidset = fetch.Msidset(cls.event_msids, tstart, tstop)
+        event_msidset = fetch.MSIDset(cls.event_msids, tstart, tstop,
+                                      filter_bad=cls.event_filter_bad)
 
         try:
             # Telemetry values for event_msids[0] define the states.  Don't allow a logical
             # interval that spans a telemetry gap of more than 10 major frames.
-            event_msid = event_msidset[cls.event_msids[0]]
-            state_bools = cls.get_state_bools(event_msid)
-            states = utils.logical_intervals(event_msid.times, state_bools, max_gap=MAX_GAP)
+            times, bools = cls.get_state_times_bools(event_msidset)
+            states = utils.logical_intervals(times, bools, max_gap=MAX_GAP)
         except ValueError:
             if event_time_fuzz is None:
                 logger.warn('Warning: No telemetry available for {}'
                             .format(cls.__name__))
             return [], event_msidset
 
-        # When `event_time_fuzz` is specified, e.g. for events like Safe Sun Mode
-        # or normal sun mode then ensure that the end of the event is at least
-        # event_time_fuzz from the end of the search interval.  If not the event
-        # might be split between the current search interval and the next.  Since
-        # the next search interval will step forward in time, it is sure that
-        # eventually the event will be fully contained.
-        if event_time_fuzz:
-            if tstop - event_time_fuzz < states[-1]['tstop']:
-                # Event tstop is within event_time_fuzz of the stop of states so
-                # bail out and don't return any states.
-                logger.warn('Warning: dropping {} states because of insufficent event time pad'
-                            .format(cls.__name__))
-                return [], event_msidset
+        if len(states) > 0:
+            # When `event_time_fuzz` is specified, e.g. for events like Safe Sun Mode
+            # or normal sun mode then ensure that the end of the event is at least
+            # event_time_fuzz from the end of the search interval.  If not the event
+            # might be split between the current search interval and the next.  Since
+            # the next search interval will step forward in time, it is sure that
+            # eventually the event will be fully contained.
+            if event_time_fuzz:
+                while tstop - event_time_fuzz < states[-1]['tstop']:
+                    # Event tstop is within event_time_fuzz of the stop of states so
+                    # bail out and don't return any states.
+                    logger.warn('Warning: dropping state because of '
+                                'insufficent event time pad:\n{}\n'.format(states[-1:]))
+                    states = states[:-1]
+                    if len(states) == 0:
+                        return [], event_msidset
 
-        # Select event states that are contained within start/stop interval
-        ok = (states['tstart'] >= tstart) & (states['tstop'] <= tstop)
-        states = states[ok]
+            # Select event states that are contained within start/stop interval
+            ok = (states['tstart'] >= tstart) & (states['tstop'] <= tstop)
+            states = states[ok]
 
-        if event_time_fuzz:
-            states = fuzz_states(states, event_time_fuzz)
+            if event_time_fuzz:
+                states = fuzz_states(states, event_time_fuzz)
 
         return states, event_msidset
 
@@ -760,11 +766,12 @@ class Scs107(TlmEvent):
     notes = models.TextField(help_text='Supplemental notes')
 
     event_msids = ['3tscmove', 'aorwbias', 'coradmen']
+    event_time_fuzz = 600  # Earlier in the mission SCS107 resulted in two SIM moves
+    event_filter_bad = False
 
     @classmethod
     @import_ska
-    def get_events(cls, start, stop=None):
-        msidset = fetch.MSIDset(cls.event_msids, start, stop)
+    def get_state_times_bools(cls, msidset):
         # Interpolate all MSIDs to a common time and make a common bads array.
         # Sync to the start of 3tscmove which is sampled at 32.8 seconds
         dt = 32.8
@@ -784,32 +791,8 @@ class Scs107(TlmEvent):
         scs107 = ((msidset['3tscmove'].vals == 'T')
                   & (msidset['aorwbias'].vals == 'DISA')
                   & (msidset['coradmen'].vals == 'DISA'))
-        states = utils.logical_intervals(msidset.times, scs107, max_gap=MAX_GAP)
 
-        # Select event states that are True (SCS107 in progress)
-        ok = ((states['tstart'] >= DateTime(start).secs)
-              & (states['tstop'] <= DateTime(stop).secs))
-        states = states[ok]
-
-        # Earlier in the mission there were two SIM translations, which generates
-        # two states here.  So fuzz them together.
-        states = fuzz_states(states, 600)
-
-        # Assemble a list of dicts corresponding to events in this tlm interval
-        events = []
-        for state in states:
-            tstart = state['tstart']
-            tstop = state['tstop']
-            event = dict(tstart=tstart,
-                         tstop=tstop,
-                         dur=tstop - tstart,
-                         start=DateTime(tstart).date,
-                         stop=DateTime(tstop).date,
-                         notes='')
-
-            events.append(event)
-
-        return events
+        return msidset.times, scs107
 
 
 class FaMove(TlmEvent):
