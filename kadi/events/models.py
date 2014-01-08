@@ -28,6 +28,26 @@ logger = pyyaks.logger.get_logger(name='events', level=pyyaks.logger.INFO,
                                   format="%(asctime)s %(message)s")
 
 
+def msidset_interpolate(msidset, dt, time0):
+    """
+    Interpolate the ``msidset`` in-place to a common time basis, starting at ``time0``
+    and stepping by ``dt``.  This assumes an unfiltered MSIDset, and returns
+    a filtered MSIDset.
+    """
+    tstart = (time0 // dt) * dt
+    times = np.arange((msidset.tstop - tstart) // dt) * dt + tstart
+    msidset.interpolate(times=times, filter_bad=False)
+    common_bads = np.zeros(len(msidset.times), dtype=bool)
+    for msid in msidset.values():
+        common_bads |= msid.bads
+
+    # Apply the common bads array and filter out these bad values
+    for msid in msidset.values():
+        msid.bads = common_bads
+        msid.filter_bad()
+    msidset.times = msidset.times[~common_bads]
+
+
 def _get_si(simpos):
     """
     Get SI corresponding to the given SIM position.
@@ -743,7 +763,7 @@ class Scs107(TlmEvent):
       AORWBIAS = DISA
       CORADMEN = DISA
 
-    These MSIDs are first sampled onto a common time sequence of 16.4 sec samples
+    These MSIDs are first sampled onto a common time sequence of 32.8 sec samples
     so the start / stop times are accurate only to that resolution.
 
     Early in the mission there were two SIM TSC translations during an SCS107 run.
@@ -772,21 +792,9 @@ class Scs107(TlmEvent):
     @classmethod
     @import_ska
     def get_state_times_bools(cls, msidset):
-        # Interpolate all MSIDs to a common time and make a common bads array.
-        # Sync to the start of 3tscmove which is sampled at 32.8 seconds
-        dt = 32.8
-        tstart = (msidset['3tscmove'].times[0] // dt) * dt
-        times = np.arange((msidset.tstop - tstart) // dt) * dt + tstart
-        msidset.interpolate(times=times, filter_bad=False)
-        common_bads = np.zeros(len(msidset.times), dtype=bool)
-        for msid in msidset.values():
-            common_bads |= msid.bads
-
-        # Apply the common bads array and filter out these bad values
-        for msid in msidset.values():
-            msid.bads = common_bads
-            msid.filter_bad()
-        msidset.times = msidset.times[~common_bads]
+        # Interpolate all MSIDs to a common time.  Sync to the start of 3tscmove which is
+        # sampled at 32.8 seconds
+        msidset_interpolate(msidset, 32.8, msidset['3tscmove'].times[0])
 
         scs107 = ((msidset['3tscmove'].vals == 'T')
                   & (msidset['aorwbias'].vals == 'DISA')
