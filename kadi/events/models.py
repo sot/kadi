@@ -849,24 +849,38 @@ class GratingMove(TlmEvent):
 
     **Event definition**: interval with 4MP28AV > 2.0 V  (MCE A + 28 VOLT MONITOR)
 
+    This event detects grating motion via the MCE-A 28 volt monitor.  Due to
+    changes in the on-board software over the years, this appears to be the
+    most reliable method.
+
+    Short movements of less than 4 seconds are classified with grating=BUMP.
+    In a handful of cases in 2000, there are intervals with 4MP28AV > 2.0
+    where no grating motion is seen.  These have grating=UNKN (unknown).
+
     **Fields**
 
-    ======== ========== ================================
-     Field      Type              Description
-    ======== ========== ================================
-      start   Char(21)   Start time (YYYY:DDD:HH:MM:SS)
-       stop   Char(21)    Stop time (YYYY:DDD:HH:MM:SS)
-     tstart      Float            Start time (CXC secs)
-      tstop      Float             Stop time (CXC secs)
-        dur      Float                  Duration (secs)
-    ======== ========== ================================
+    ================ ========== =========================================
+         Field          Type                   Description
+    ================ ========== =========================================
+              start   Char(21)            Start time (YYYY:DDD:HH:MM:SS)
+               stop   Char(21)             Stop time (YYYY:DDD:HH:MM:SS)
+             tstart      Float                     Start time (CXC secs)
+              tstop      Float                      Stop time (CXC secs)
+                dur      Float                           Duration (secs)
+     start_4lposaro      Float             Start LETG position (degrees)
+      stop_4lposaro      Float              Stop LETG position (degrees)
+     start_4hposaro      Float             Start HETG position (degrees)
+      stop_4hposaro      Float              Stop HETG position (degrees)
+            grating    Char(4)   Grating in motion (UNKN LETG HETG BUMP)
+          direction    Char(4)        Grating direction (UNKN INSR RETR)
+    ================ ========== =========================================
     """
     start_4lposaro = models.FloatField(help_text='Start LETG position (degrees)')
     stop_4lposaro = models.FloatField(help_text='Stop LETG position (degrees)')
     start_4hposaro = models.FloatField(help_text='Start HETG position (degrees)')
     stop_4hposaro = models.FloatField(help_text='Stop HETG position (degrees)')
     grating = models.CharField(max_length=4,
-                               help_text='Grating in motion (UNKN LETG HETG BOTH)')
+                               help_text='Grating in motion (UNKN LETG HETG BUMP)')
     direction = models.CharField(max_length=4,
                                  help_text='Grating direction (UNKN INSR RETR)')
 

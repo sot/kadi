@@ -72,8 +72,8 @@ CIUMACAC is the IU MODE ACA CALIBRATION INDICATOR.
 
 .. _event_dsn_comm:
 
-Scheduled DSN comm period
--------------------------
+DSN comm period
+---------------
 
 **Event definition**: DSN comm pass beginning of support to end of support (not
   beginning / end of track).
@@ -190,6 +190,39 @@ SIM FA translation
  start_3fapos    Integer        Start FA position (steps)
   stop_3fapos    Integer         Stop FA position (steps)
 ============== ========== ================================
+
+.. _event_grating_move:
+
+Grating movement (HETG or LETG)
+-------------------------------
+
+**Event definition**: interval with 4MP28AV > 2.0 V  (MCE A + 28 VOLT MONITOR)
+
+This event detects grating motion via the MCE-A 28 volt monitor.  Due to
+changes in the on-board software over the years, this appears to be the
+most reliable method.
+
+Short movements of less than 4 seconds are classified with grating=BUMP.
+In a handful of cases in 2000, there are intervals with 4MP28AV > 2.0
+where no grating motion is seen.  These have grating=UNKN (unknown).
+
+**Fields**
+
+================ ========== =========================================
+     Field          Type                   Description
+================ ========== =========================================
+          start   Char(21)            Start time (YYYY:DDD:HH:MM:SS)
+           stop   Char(21)             Stop time (YYYY:DDD:HH:MM:SS)
+         tstart      Float                     Start time (CXC secs)
+          tstop      Float                      Stop time (CXC secs)
+            dur      Float                           Duration (secs)
+ start_4lposaro      Float             Start LETG position (degrees)
+  stop_4lposaro      Float              Stop LETG position (degrees)
+ start_4hposaro      Float             Start HETG position (degrees)
+  stop_4hposaro      Float              Stop HETG position (degrees)
+        grating    Char(4)   Grating in motion (UNKN LETG HETG BUMP)
+      direction    Char(4)        Grating direction (UNKN INSR RETR)
+================ ========== =========================================
 
 .. _event_major_event:
 
@@ -484,7 +517,7 @@ SCS107 run
   AORWBIAS = DISA
   CORADMEN = DISA
 
-These MSIDs are first sampled onto a common time sequence of 16.4 sec samples
+These MSIDs are first sampled onto a common time sequence of 32.8 sec samples
 so the start / stop times are accurate only to that resolution.
 
 Early in the mission there were two SIM TSC translations during an SCS107 run.

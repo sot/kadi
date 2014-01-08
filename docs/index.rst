@@ -11,6 +11,7 @@
 .. |Dwell| replace:: :class:`~kadi.events.models.Dwell`
 .. |Eclipse| replace:: :class:`~kadi.events.models.Eclipse`
 .. |FaMove| replace:: :class:`~kadi.events.models.FaMove`
+.. |GratingMove| replace:: :class:`~kadi.events.models.GratingMove`
 .. |MajorEvent| replace:: :class:`~kadi.events.models.MajorEvent`
 .. |Manvr| replace:: :class:`~kadi.events.models.Manvr`
 .. |ManvrSeq| replace:: :class:`~kadi.events.models.ManvrSeq`
@@ -316,6 +317,7 @@ Starting from the top, you can list the available event types with the following
              dwells                  Dwell in Kalman mode           Dwell
            eclipses                               Eclipse         Eclipse
            fa_moves                    SIM FA translation          FaMove
+      grating_moves       Grating movement (HETG or LETG)     GratingMove
        major_events                           Major event      MajorEvent
              manvrs                              Maneuver           Manvr
          manvr_seqs               Maneuver sequence event        ManvrSeq
@@ -603,6 +605,7 @@ Event definitions
          |Dwell|            :ref:`event_dwell`            ``dwells``
        |Eclipse|          :ref:`event_eclipse`          ``eclipses``
         |FaMove|          :ref:`event_fa_move`          ``fa_moves``
+   |GratingMove|     :ref:`event_grating_move`     ``grating_moves``
     |MajorEvent|      :ref:`event_major_event`      ``major_events``
          |Manvr|            :ref:`event_manvr`            ``manvrs``
       |ManvrSeq|        :ref:`event_manvr_seq`        ``manvr_seqs``

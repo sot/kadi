@@ -134,7 +134,7 @@ def make_event_descriptions_section(outfile=None):
     write_lines(out_lines, outfile)
 
 
-def make_events_table(outfile=None):
+def make_events_tables(outfile=None):
     """
     Make the summary table of event classes and descriptions.
     """
@@ -152,4 +152,19 @@ def make_events_table(outfile=None):
     dat = Table(zip(*rows), names=('Event class', 'Description', 'Query name'))
     out_lines.append('')
     out_lines.extend(table_to_rst(dat))
+
+    rows = []
+    for model_name in sorted(models):
+        model = models[model_name]
+        docstring = textwrap.dedent(model.__doc__).strip()
+        lines = docstring.splitlines()
+        description = lines[0].strip()
+        query_name = model_name + 's'  # See query.py main
+        row = (query_name, description, model.__name__)
+        rows.append(row)
+
+    dat = Table(zip(*rows), names=['Query name', 'Description', 'Event class'])
+    out_lines.append('')
+    out_lines.extend(table_to_rst(dat))
+
     write_lines(out_lines, outfile)
