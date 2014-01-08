@@ -843,6 +843,77 @@ class FaMove(TlmEvent):
                 .format(self.start, self.dur, self.start_3fapos, self.stop_3fapos))
 
 
+class GratingMove(TlmEvent):
+    """
+    Grating movement (HETG or LETG)
+
+    **Event definition**: interval with 4MP28AV > 2.0 V  (MCE A + 28 VOLT MONITOR)
+
+    **Fields**
+
+    ======== ========== ================================
+     Field      Type              Description
+    ======== ========== ================================
+      start   Char(21)   Start time (YYYY:DDD:HH:MM:SS)
+       stop   Char(21)    Stop time (YYYY:DDD:HH:MM:SS)
+     tstart      Float            Start time (CXC secs)
+      tstop      Float             Stop time (CXC secs)
+        dur      Float                  Duration (secs)
+    ======== ========== ================================
+    """
+    start_4lposaro = models.FloatField(help_text='Start LETG position (degrees)')
+    stop_4lposaro = models.FloatField(help_text='Stop LETG position (degrees)')
+    start_4hposaro = models.FloatField(help_text='Start HETG position (degrees)')
+    stop_4hposaro = models.FloatField(help_text='Stop HETG position (degrees)')
+    grating = models.CharField(max_length=4,
+                               help_text='Grating in motion (UNKN LETG HETG BOTH)')
+    direction = models.CharField(max_length=4,
+                                 help_text='Grating direction (UNKN INSR RETR)')
+
+    event_msids = ['4mp28av', '4lposaro', '4hposaro']
+    event_time_fuzz = 10
+
+    @classmethod
+    def get_state_times_bools(cls, event_msidset):
+        event_msid = event_msidset['4mp28av']
+        moving = event_msid.vals > 2.0
+        return event_msid.times, moving
+
+    @classmethod
+    def get_extras(cls, event, event_msidset):
+        """
+        Define start/stop grating positions for HETG and LETG
+        """
+        out = _get_start_stop_vals(event['tstart'], event['tstop'],
+                                   event_msidset, msids=['4lposaro', '4hposaro'])
+
+        if event['dur'] < 4:
+            grating = 'BUMP'
+        else:
+            grating = 'UNKN'  # Should never stay as 'UNKN'
+            if abs(out['start_4lposaro'] - out['stop_4lposaro']) > 5:
+                grating = 'LETG'
+            if abs(out['start_4hposaro'] - out['stop_4hposaro']) > 5:
+                # If BOTH this is not good (maybe two moves fuzzed together)
+                grating = 'BOTH' if grating == 'LETG' else 'HETG'
+
+        if grating == 'LETG':
+            direction = 'INSR' if out['start_4lposaro'] > out['stop_4lposaro'] else 'RETR'
+        elif grating == 'HETG':
+            direction = 'INSR' if out['start_4hposaro'] > out['stop_4hposaro'] else 'RETR'
+        else:
+            direction = 'UNKN'
+
+        out['direction'] = direction
+        out['grating'] = grating
+
+        return out
+
+    def __unicode__(self):
+        return ('start={} dur={:.0f} grating={} direction={}'
+                .format(self.start, self.dur, self.grating, self.direction))
+
+
 class HetgAngle(TlmEvent):
     """
     HETG Angle is between the retract and insert position
