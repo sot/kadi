@@ -28,6 +28,26 @@ logger = pyyaks.logger.get_logger(name='events', level=pyyaks.logger.INFO,
                                   format="%(asctime)s %(message)s")
 
 
+def msidset_interpolate(msidset, dt, time0):
+    """
+    Interpolate the ``msidset`` in-place to a common time basis, starting at ``time0``
+    and stepping by ``dt``.  This assumes an unfiltered MSIDset, and returns
+    a filtered MSIDset.
+    """
+    tstart = (time0 // dt) * dt
+    times = np.arange((msidset.tstop - tstart) // dt) * dt + tstart
+    msidset.interpolate(times=times, filter_bad=False)
+    common_bads = np.zeros(len(msidset.times), dtype=bool)
+    for msid in msidset.values():
+        common_bads |= msid.bads
+
+    # Apply the common bads array and filter out these bad values
+    for msid in msidset.values():
+        msid.bads = common_bads
+        msid.filter_bad()
+    msidset.times = msidset.times[~common_bads]
+
+
 def _get_si(simpos):
     """
     Get SI corresponding to the given SIM position.
@@ -422,6 +442,7 @@ class Event(BaseEvent):
 class TlmEvent(Event):
     event_msids = None  # must be overridden by derived class
     event_val = None
+    event_filter_bad = True  # Normally remove bad quality data immediately
 
     class Meta:
         abstract = True
@@ -450,6 +471,20 @@ class TlmEvent(Event):
         return {}
 
     @classmethod
+    def get_state_times_bools(cls, event_msidset):
+        """
+        Get the boolean True/False array indicating when ``event_msid`` is in the
+        desired state for this event type.  The default is when
+        ``event_msid == cls.event_val``, but subclasses may override this method.
+
+        :param event_msid: fetch.MSID object
+        :returns: boolean ndarray
+        """
+        event_msid = event_msidset[cls.event_msids[0]]
+        bools = event_msid.vals == cls.event_val
+        return event_msid.times, bools
+
+    @classmethod
     @import_ska
     def get_msids_states(cls, start, stop):
         """
@@ -461,39 +496,43 @@ class TlmEvent(Event):
         event_time_fuzz = cls.event_time_fuzz if hasattr(cls, 'event_time_fuzz') else None
 
         # Get the event telemetry MSID objects
-        event_msidset = fetch.Msidset(cls.event_msids, tstart, tstop)
+        event_msidset = fetch.MSIDset(cls.event_msids, tstart, tstop,
+                                      filter_bad=cls.event_filter_bad)
 
         try:
             # Telemetry values for event_msids[0] define the states.  Don't allow a logical
             # interval that spans a telemetry gap of more than 10 major frames.
-            event_msid = event_msidset[cls.event_msids[0]]
-            states = event_msid.logical_intervals('==', cls.event_val, max_gap=MAX_GAP)
+            times, bools = cls.get_state_times_bools(event_msidset)
+            states = utils.logical_intervals(times, bools, max_gap=MAX_GAP)
         except ValueError:
             if event_time_fuzz is None:
                 logger.warn('Warning: No telemetry available for {}'
                             .format(cls.__name__))
             return [], event_msidset
 
-        # When `event_time_fuzz` is specified, e.g. for events like Safe Sun Mode
-        # or normal sun mode then ensure that the end of the event is at least
-        # event_time_fuzz from the end of the search interval.  If not the event
-        # might be split between the current search interval and the next.  Since
-        # the next search interval will step forward in time, it is sure that
-        # eventually the event will be fully contained.
-        if event_time_fuzz:
-            if tstop - event_time_fuzz < states[-1]['tstop']:
-                # Event tstop is within event_time_fuzz of the stop of states so
-                # bail out and don't return any states.
-                logger.warn('Warning: dropping {} states because of insufficent event time pad'
-                            .format(cls.__name__))
-                return [], event_msidset
+        if len(states) > 0:
+            # When `event_time_fuzz` is specified, e.g. for events like Safe Sun Mode
+            # or normal sun mode then ensure that the end of the event is at least
+            # event_time_fuzz from the end of the search interval.  If not the event
+            # might be split between the current search interval and the next.  Since
+            # the next search interval will step forward in time, it is sure that
+            # eventually the event will be fully contained.
+            if event_time_fuzz:
+                while tstop - event_time_fuzz < states[-1]['tstop']:
+                    # Event tstop is within event_time_fuzz of the stop of states so
+                    # bail out and don't return any states.
+                    logger.warn('Warning: dropping state because of '
+                                'insufficent event time pad:\n{}\n'.format(states[-1:]))
+                    states = states[:-1]
+                    if len(states) == 0:
+                        return [], event_msidset
 
-        # Select event states that are contained within start/stop interval
-        ok = (states['tstart'] >= tstart) & (states['tstop'] <= tstop)
-        states = states[ok]
+            # Select event states that are contained within start/stop interval
+            ok = (states['tstart'] >= tstart) & (states['tstop'] <= tstop)
+            states = states[ok]
 
-        if event_time_fuzz:
-            states = fuzz_states(states, event_time_fuzz)
+            if event_time_fuzz:
+                states = fuzz_states(states, event_time_fuzz)
 
         return states, event_msidset
 
@@ -724,7 +763,7 @@ class Scs107(TlmEvent):
       AORWBIAS = DISA
       CORADMEN = DISA
 
-    These MSIDs are first sampled onto a common time sequence of 16.4 sec samples
+    These MSIDs are first sampled onto a common time sequence of 32.8 sec samples
     so the start / stop times are accurate only to that resolution.
 
     Early in the mission there were two SIM TSC translations during an SCS107 run.
@@ -747,56 +786,21 @@ class Scs107(TlmEvent):
     notes = models.TextField(help_text='Supplemental notes')
 
     event_msids = ['3tscmove', 'aorwbias', 'coradmen']
+    event_time_fuzz = 600  # Earlier in the mission SCS107 resulted in two SIM moves
+    event_filter_bad = False
 
     @classmethod
     @import_ska
-    def get_events(cls, start, stop=None):
-        msidset = fetch.MSIDset(cls.event_msids, start, stop)
-        # Interpolate all MSIDs to a common time and make a common bads array.
-        # Sync to the start of 3tscmove which is sampled at 32.8 seconds
-        dt = 32.8
-        tstart = (msidset['3tscmove'].times[0] // dt) * dt
-        times = np.arange((msidset.tstop - tstart) // dt) * dt + tstart
-        msidset.interpolate(times=times, filter_bad=False)
-        common_bads = np.zeros(len(msidset.times), dtype=bool)
-        for msid in msidset.values():
-            common_bads |= msid.bads
-
-        # Apply the common bads array and filter out these bad values
-        for msid in msidset.values():
-            msid.bads = common_bads
-            msid.filter_bad()
-        msidset.times = msidset.times[~common_bads]
+    def get_state_times_bools(cls, msidset):
+        # Interpolate all MSIDs to a common time.  Sync to the start of 3tscmove which is
+        # sampled at 32.8 seconds
+        msidset_interpolate(msidset, 32.8, msidset['3tscmove'].times[0])
 
         scs107 = ((msidset['3tscmove'].vals == 'T')
                   & (msidset['aorwbias'].vals == 'DISA')
                   & (msidset['coradmen'].vals == 'DISA'))
-        states = utils.logical_intervals(msidset.times, scs107, max_gap=MAX_GAP)
 
-        # Select event states that are True (SCS107 in progress)
-        ok = ((states['tstart'] >= DateTime(start).secs)
-              & (states['tstop'] <= DateTime(stop).secs))
-        states = states[ok]
-
-        # Earlier in the mission there were two SIM translations, which generates
-        # two states here.  So fuzz them together.
-        states = fuzz_states(states, 600)
-
-        # Assemble a list of dicts corresponding to events in this tlm interval
-        events = []
-        for state in states:
-            tstart = state['tstart']
-            tstop = state['tstop']
-            event = dict(tstart=tstart,
-                         tstop=tstop,
-                         dur=tstop - tstart,
-                         start=DateTime(tstart).date,
-                         stop=DateTime(tstop).date,
-                         notes='')
-
-            events.append(event)
-
-        return events
+        return msidset.times, scs107
 
 
 class FaMove(TlmEvent):
@@ -837,6 +841,144 @@ class FaMove(TlmEvent):
     def __unicode__(self):
         return ('start={} dur={:.0f} start_3fapos={} stop_3fapos={}'
                 .format(self.start, self.dur, self.start_3fapos, self.stop_3fapos))
+
+
+class HetgAngle(TlmEvent):
+    """
+    HETG Angle is between the retract and insert position
+
+    **Event definition**: interval when 8 < 4HPOSARO < 78 degrees
+
+    This is an approximate definition but works for filtering telemetry with
+    an appropriately set interval_pad.
+
+    **Fields**
+
+    ======== ========== ================================
+     Field      Type              Description
+    ======== ========== ================================
+      start   Char(21)   Start time (YYYY:DDD:HH:MM:SS)
+       stop   Char(21)    Stop time (YYYY:DDD:HH:MM:SS)
+     tstart      Float            Start time (CXC secs)
+      tstop      Float             Stop time (CXC secs)
+        dur      Float                  Duration (secs)
+    ======== ========== ================================
+    """
+    event_msids = ['4hposaro']
+    event_time_fuzz = 300
+
+    @classmethod
+    def get_state_times_bools(cls, event_msidset):
+        event_msid = event_msidset[cls.event_msids[0]]
+        moving = (event_msid.vals > 8) & (event_msid.vals < 78)
+        return event_msid.times, moving
+
+
+class LetgAngle(TlmEvent):
+    """
+    HETG Angle is between the retract and insert position
+
+    **Event definition**: interval when 8 < 4LPOSARO < 78 degrees
+
+    This is an approximate definition but works for filtering telemetry with
+    an appropriately set interval_pad.
+
+    **Fields**
+
+    ======== ========== ================================
+     Field      Type              Description
+    ======== ========== ================================
+      start   Char(21)   Start time (YYYY:DDD:HH:MM:SS)
+       stop   Char(21)    Stop time (YYYY:DDD:HH:MM:SS)
+     tstart      Float            Start time (CXC secs)
+      tstop      Float             Stop time (CXC secs)
+        dur      Float                  Duration (secs)
+    ======== ========== ================================
+    """
+    event_msids = ['4lposaro']
+    event_time_fuzz = 300
+
+    @classmethod
+    def get_state_times_bools(cls, event_msidset):
+        event_msid = event_msidset[cls.event_msids[0]]
+        moving = (event_msid.vals > 8) & (event_msid.vals < 76)
+        return event_msid.times, moving
+
+
+class HetgMove(TlmEvent):
+    """
+    HETG movement
+
+    **Event definition**: interval with the following combination of state values::
+
+      4MP28AV > 3.0 V  # MCE A + 28 VOLT MONITOR
+      4OOTGMEF = ENAB  # OTG SW ENABLE MOTION
+      4OOTGSEL = HETG  # OTG SW GRATING SELECT
+
+    This is an approximate definition but works for filtering telemetry with
+    an appropriately set interval_pad.
+
+    **Fields**
+
+    ======== ========== ================================
+     Field      Type              Description
+    ======== ========== ================================
+      start   Char(21)   Start time (YYYY:DDD:HH:MM:SS)
+       stop   Char(21)    Stop time (YYYY:DDD:HH:MM:SS)
+     tstart      Float            Start time (CXC secs)
+      tstop      Float             Stop time (CXC secs)
+        dur      Float                  Duration (secs)
+    ======== ========== ================================
+    """
+    event_msids = ['4mp28av', '4ootgmef', '4ootgsel']
+    event_time_fuzz = 300
+    event_filter_bad = False
+
+    @classmethod
+    def get_state_times_bools(cls, event_msidset):
+        msidset_interpolate(event_msidset, 4.1, event_msidset['4ootgmef'].times[0])
+        moving = ((event_msidset['4mp28av'].vals > 3.0)
+                  & (event_msidset['4ootgmef'].vals == 'ENAB')
+                  & (event_msidset['4ootgsel'].vals == 'HETG'))
+        return event_msidset.times, moving
+
+
+class LetgMove(TlmEvent):
+    """
+    LETG movement
+
+    **Event definition**: interval with the following combination of state values::
+
+      4MP28AV > 3.0 V  # MCE A + 28 VOLT MONITOR
+      4OOTGMEF = ENAB  # OTG SW ENABLE MOTION
+      4OOTGSEL = LETG  # OTG SW GRATING SELECT
+
+    This is an approximate definition but works for filtering telemetry with
+    an appropriately set interval_pad.
+
+    **Fields**
+
+    ======== ========== ================================
+     Field      Type              Description
+    ======== ========== ================================
+      start   Char(21)   Start time (YYYY:DDD:HH:MM:SS)
+       stop   Char(21)    Stop time (YYYY:DDD:HH:MM:SS)
+     tstart      Float            Start time (CXC secs)
+      tstop      Float             Stop time (CXC secs)
+        dur      Float                  Duration (secs)
+    ======== ========== ================================
+    """
+    event_msids = ['4mp28av', '4ootgmef', '4ootgsel']
+    event_time_fuzz = 300
+    event_filter_bad = False
+
+    @classmethod
+    def get_state_times_bools(cls, event_msidset):
+        msidset_interpolate(event_msidset, 4.1, event_msidset['4ootgmef'].times[0])
+        moving = ((event_msidset['4mp28av'].vals > 3.0)
+                  & (event_msidset['4ootgmef'].vals == 'ENAB')
+                  & (event_msidset['4ootgsel'].vals == 'LETG'))
+        return event_msidset.times, moving
 
 
 class Dump(TlmEvent):
