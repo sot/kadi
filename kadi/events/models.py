@@ -843,142 +843,89 @@ class FaMove(TlmEvent):
                 .format(self.start, self.dur, self.start_3fapos, self.stop_3fapos))
 
 
-class HetgAngle(TlmEvent):
+class GratingMove(TlmEvent):
     """
-    HETG Angle is between the retract and insert position
+    Grating movement (HETG or LETG)
 
-    **Event definition**: interval when 8 < 4HPOSARO < 78 degrees
+    **Event definition**: interval with 4MP28AV > 2.0 V  (MCE A + 28 VOLT MONITOR)
 
-    This is an approximate definition but works for filtering telemetry with
-    an appropriately set interval_pad.
+    This event detects grating motion via the MCE-A 28 volt monitor.  Due to
+    changes in the on-board software over the years, this appears to be the
+    most reliable method.
+
+    Short movements of less than 4 seconds are classified with grating=BUMP.
+    In a handful of cases in 2000, there are intervals with 4MP28AV > 2.0
+    where no grating motion is seen.  These have grating=UNKN (unknown).
 
     **Fields**
 
-    ======== ========== ================================
-     Field      Type              Description
-    ======== ========== ================================
-      start   Char(21)   Start time (YYYY:DDD:HH:MM:SS)
-       stop   Char(21)    Stop time (YYYY:DDD:HH:MM:SS)
-     tstart      Float            Start time (CXC secs)
-      tstop      Float             Stop time (CXC secs)
-        dur      Float                  Duration (secs)
-    ======== ========== ================================
+    ================ ========== =========================================
+         Field          Type                   Description
+    ================ ========== =========================================
+              start   Char(21)            Start time (YYYY:DDD:HH:MM:SS)
+               stop   Char(21)             Stop time (YYYY:DDD:HH:MM:SS)
+             tstart      Float                     Start time (CXC secs)
+              tstop      Float                      Stop time (CXC secs)
+                dur      Float                           Duration (secs)
+     start_4lposaro      Float             Start LETG position (degrees)
+      stop_4lposaro      Float              Stop LETG position (degrees)
+     start_4hposaro      Float             Start HETG position (degrees)
+      stop_4hposaro      Float              Stop HETG position (degrees)
+            grating    Char(4)   Grating in motion (UNKN LETG HETG BUMP)
+          direction    Char(4)        Grating direction (UNKN INSR RETR)
+    ================ ========== =========================================
     """
-    event_msids = ['4hposaro']
-    event_time_fuzz = 300
+    start_4lposaro = models.FloatField(help_text='Start LETG position (degrees)')
+    stop_4lposaro = models.FloatField(help_text='Stop LETG position (degrees)')
+    start_4hposaro = models.FloatField(help_text='Start HETG position (degrees)')
+    stop_4hposaro = models.FloatField(help_text='Stop HETG position (degrees)')
+    grating = models.CharField(max_length=4,
+                               help_text='Grating in motion (UNKN LETG HETG BUMP)')
+    direction = models.CharField(max_length=4,
+                                 help_text='Grating direction (UNKN INSR RETR)')
+
+    event_msids = ['4mp28av', '4lposaro', '4hposaro']
+    event_time_fuzz = 10
 
     @classmethod
     def get_state_times_bools(cls, event_msidset):
-        event_msid = event_msidset[cls.event_msids[0]]
-        moving = (event_msid.vals > 8) & (event_msid.vals < 78)
+        event_msid = event_msidset['4mp28av']
+        moving = event_msid.vals > 2.0
         return event_msid.times, moving
 
-
-class LetgAngle(TlmEvent):
-    """
-    HETG Angle is between the retract and insert position
-
-    **Event definition**: interval when 8 < 4LPOSARO < 78 degrees
-
-    This is an approximate definition but works for filtering telemetry with
-    an appropriately set interval_pad.
-
-    **Fields**
-
-    ======== ========== ================================
-     Field      Type              Description
-    ======== ========== ================================
-      start   Char(21)   Start time (YYYY:DDD:HH:MM:SS)
-       stop   Char(21)    Stop time (YYYY:DDD:HH:MM:SS)
-     tstart      Float            Start time (CXC secs)
-      tstop      Float             Stop time (CXC secs)
-        dur      Float                  Duration (secs)
-    ======== ========== ================================
-    """
-    event_msids = ['4lposaro']
-    event_time_fuzz = 300
-
     @classmethod
-    def get_state_times_bools(cls, event_msidset):
-        event_msid = event_msidset[cls.event_msids[0]]
-        moving = (event_msid.vals > 8) & (event_msid.vals < 76)
-        return event_msid.times, moving
+    def get_extras(cls, event, event_msidset):
+        """
+        Define start/stop grating positions for HETG and LETG
+        """
+        out = _get_start_stop_vals(event['tstart'], event['tstop'],
+                                   event_msidset, msids=['4lposaro', '4hposaro'])
 
+        if event['dur'] < 4:
+            grating = 'BUMP'
+        else:
+            grating = 'UNKN'  # Should never stay as 'UNKN'
+            if abs(out['start_4lposaro'] - out['stop_4lposaro']) > 5:
+                grating = 'LETG'
+            if abs(out['start_4hposaro'] - out['stop_4hposaro']) > 5:
+                # If BOTH this is not good (maybe two moves fuzzed together)
+                grating = 'BOTH' if grating == 'LETG' else 'HETG'
 
-class HetgMove(TlmEvent):
-    """
-    HETG movement
+        if grating == 'LETG':
+            direction = 'INSR' if out['start_4lposaro'] > out['stop_4lposaro'] else 'RETR'
+        elif grating == 'HETG':
+            direction = 'INSR' if out['start_4hposaro'] > out['stop_4hposaro'] else 'RETR'
+        else:
+            direction = 'UNKN'
 
-    **Event definition**: interval with the following combination of state values::
+        out['direction'] = direction
+        out['grating'] = grating
 
-      4MP28AV > 3.0 V  # MCE A + 28 VOLT MONITOR
-      4OOTGMEF = ENAB  # OTG SW ENABLE MOTION
-      4OOTGSEL = HETG  # OTG SW GRATING SELECT
+        return out
 
-    This is an approximate definition but works for filtering telemetry with
-    an appropriately set interval_pad.
-
-    **Fields**
-
-    ======== ========== ================================
-     Field      Type              Description
-    ======== ========== ================================
-      start   Char(21)   Start time (YYYY:DDD:HH:MM:SS)
-       stop   Char(21)    Stop time (YYYY:DDD:HH:MM:SS)
-     tstart      Float            Start time (CXC secs)
-      tstop      Float             Stop time (CXC secs)
-        dur      Float                  Duration (secs)
-    ======== ========== ================================
-    """
-    event_msids = ['4mp28av', '4ootgmef', '4ootgsel']
-    event_time_fuzz = 300
-    event_filter_bad = False
-
-    @classmethod
-    def get_state_times_bools(cls, event_msidset):
-        msidset_interpolate(event_msidset, 4.1, event_msidset['4ootgmef'].times[0])
-        moving = ((event_msidset['4mp28av'].vals > 3.0)
-                  & (event_msidset['4ootgmef'].vals == 'ENAB')
-                  & (event_msidset['4ootgsel'].vals == 'HETG'))
-        return event_msidset.times, moving
-
-
-class LetgMove(TlmEvent):
-    """
-    LETG movement
-
-    **Event definition**: interval with the following combination of state values::
-
-      4MP28AV > 3.0 V  # MCE A + 28 VOLT MONITOR
-      4OOTGMEF = ENAB  # OTG SW ENABLE MOTION
-      4OOTGSEL = LETG  # OTG SW GRATING SELECT
-
-    This is an approximate definition but works for filtering telemetry with
-    an appropriately set interval_pad.
-
-    **Fields**
-
-    ======== ========== ================================
-     Field      Type              Description
-    ======== ========== ================================
-      start   Char(21)   Start time (YYYY:DDD:HH:MM:SS)
-       stop   Char(21)    Stop time (YYYY:DDD:HH:MM:SS)
-     tstart      Float            Start time (CXC secs)
-      tstop      Float             Stop time (CXC secs)
-        dur      Float                  Duration (secs)
-    ======== ========== ================================
-    """
-    event_msids = ['4mp28av', '4ootgmef', '4ootgsel']
-    event_time_fuzz = 300
-    event_filter_bad = False
-
-    @classmethod
-    def get_state_times_bools(cls, event_msidset):
-        msidset_interpolate(event_msidset, 4.1, event_msidset['4ootgmef'].times[0])
-        moving = ((event_msidset['4mp28av'].vals > 3.0)
-                  & (event_msidset['4ootgmef'].vals == 'ENAB')
-                  & (event_msidset['4ootgsel'].vals == 'LETG'))
-        return event_msidset.times, moving
+    def __unicode__(self):
+        return ('start={} dur={:.0f} grating={} direction={}'
+                .format(self.start, self.dur, self.grating, self.direction))
 
 
 class Dump(TlmEvent):

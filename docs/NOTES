@@ -1,0 +1,22 @@
+#################################################################
+# Add a new table to docs
+#################################################################
+
+From ~/git/kadi
+% skadev
+% python setup.py install
+% cd docs
+% ipython
+run make_field_tables
+
+>>> update_model_docstrings(outfile='models_test.py')
+% diff models_test.py ../kadi/events/models.py
+% mv models_test.py ../kadi/events/models.py
+# Or just set outfile to ../kadi/events/models.py straight away
+
+>>> make_event_descriptions_section('event_descriptions.rst')
+
+>>> make_events_table()
+
+- Copy the tables there to the appropriate sections in index.rst
+  and kadi/events/__init__.py

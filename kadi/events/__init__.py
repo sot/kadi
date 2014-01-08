@@ -14,6 +14,7 @@ dark_cal_replicas  ACA dark current calibration replica  DarkCalReplica
            dwells                  Dwell in Kalman mode           Dwell
          eclipses                               Eclipse         Eclipse
          fa_moves                    SIM FA translation          FaMove
+    grating_moves       Grating movement (HETG or LETG)     GratingMove
      major_events                           Major event      MajorEvent
            manvrs                              Maneuver           Manvr
        manvr_seqs               Maneuver sequence event        ManvrSeq
