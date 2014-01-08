@@ -843,9 +843,9 @@ class FaMove(TlmEvent):
                 .format(self.start, self.dur, self.start_3fapos, self.stop_3fapos))
 
 
-class HetgMove(TlmEvent):
+class HetgAngle(TlmEvent):
     """
-    HETG movement
+    HETG Angle is between the retract and insert position
 
     **Event definition**: interval when 8 < 4HPOSARO < 78 degrees
 
@@ -865,7 +865,7 @@ class HetgMove(TlmEvent):
     ======== ========== ================================
     """
     event_msids = ['4hposaro']
-    event_time_fuzz = 600
+    event_time_fuzz = 300
 
     @classmethod
     def get_state_times_bools(cls, event_msidset):
@@ -874,9 +874,9 @@ class HetgMove(TlmEvent):
         return event_msid.times, moving
 
 
-class LetgMove(TlmEvent):
+class LetgAngle(TlmEvent):
     """
-    LETG movement
+    HETG Angle is between the retract and insert position
 
     **Event definition**: interval when 8 < 4LPOSARO < 78 degrees
 
@@ -896,13 +896,89 @@ class LetgMove(TlmEvent):
     ======== ========== ================================
     """
     event_msids = ['4lposaro']
-    event_time_fuzz = 600
+    event_time_fuzz = 300
 
     @classmethod
     def get_state_times_bools(cls, event_msidset):
         event_msid = event_msidset[cls.event_msids[0]]
         moving = (event_msid.vals > 8) & (event_msid.vals < 76)
         return event_msid.times, moving
+
+
+class HetgMove(TlmEvent):
+    """
+    HETG movement
+
+    **Event definition**: interval with the following combination of state values::
+
+      4MP28AV > 3.0 V  # MCE A + 28 VOLT MONITOR
+      4OOTGMEF = ENAB  # OTG SW ENABLE MOTION
+      4OOTGSEL = HETG  # OTG SW GRATING SELECT
+
+    This is an approximate definition but works for filtering telemetry with
+    an appropriately set interval_pad.
+
+    **Fields**
+
+    ======== ========== ================================
+     Field      Type              Description
+    ======== ========== ================================
+      start   Char(21)   Start time (YYYY:DDD:HH:MM:SS)
+       stop   Char(21)    Stop time (YYYY:DDD:HH:MM:SS)
+     tstart      Float            Start time (CXC secs)
+      tstop      Float             Stop time (CXC secs)
+        dur      Float                  Duration (secs)
+    ======== ========== ================================
+    """
+    event_msids = ['4mp28av', '4ootgmef', '4ootgsel']
+    event_time_fuzz = 300
+    event_filter_bad = False
+
+    @classmethod
+    def get_state_times_bools(cls, event_msidset):
+        msidset_interpolate(event_msidset, 4.1, event_msidset['4ootgmef'].times[0])
+        moving = ((event_msidset['4mp28av'].vals > 3.0)
+                  & (event_msidset['4ootgmef'].vals == 'ENAB')
+                  & (event_msidset['4ootgsel'].vals == 'HETG'))
+        return event_msidset.times, moving
+
+
+class LetgMove(TlmEvent):
+    """
+    LETG movement
+
+    **Event definition**: interval with the following combination of state values::
+
+      4MP28AV > 3.0 V  # MCE A + 28 VOLT MONITOR
+      4OOTGMEF = ENAB  # OTG SW ENABLE MOTION
+      4OOTGSEL = LETG  # OTG SW GRATING SELECT
+
+    This is an approximate definition but works for filtering telemetry with
+    an appropriately set interval_pad.
+
+    **Fields**
+
+    ======== ========== ================================
+     Field      Type              Description
+    ======== ========== ================================
+      start   Char(21)   Start time (YYYY:DDD:HH:MM:SS)
+       stop   Char(21)    Stop time (YYYY:DDD:HH:MM:SS)
+     tstart      Float            Start time (CXC secs)
+      tstop      Float             Stop time (CXC secs)
+        dur      Float                  Duration (secs)
+    ======== ========== ================================
+    """
+    event_msids = ['4mp28av', '4ootgmef', '4ootgsel']
+    event_time_fuzz = 300
+    event_filter_bad = False
+
+    @classmethod
+    def get_state_times_bools(cls, event_msidset):
+        msidset_interpolate(event_msidset, 4.1, event_msidset['4ootgmef'].times[0])
+        moving = ((event_msidset['4mp28av'].vals > 3.0)
+                  & (event_msidset['4ootgmef'].vals == 'ENAB')
+                  & (event_msidset['4ootgsel'].vals == 'LETG'))
+        return event_msidset.times, moving
 
 
 class Dump(TlmEvent):
