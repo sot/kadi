@@ -143,6 +143,10 @@ class Scs107List(EventList):
     model = models.Scs107
 
 
+class GratingMoveList(EventList):
+    model = models.GratingMove
+
+
 class FaMoveList(EventList):
     model = models.FaMove
 
@@ -227,6 +231,10 @@ class DarkCalDetail(EventDetail):
 
 class Scs107Detail(EventDetail):
     model = models.Scs107
+
+
+class GratingMoveDetail(EventDetail):
+    model = models.GratingMove
 
 
 class FaMoveDetail(EventDetail):

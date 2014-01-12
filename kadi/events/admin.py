@@ -97,6 +97,12 @@ class ModelAdminBase(admin.ModelAdmin):
         return MyChangeList
 
 
+class GratingMoveAdmin(ModelAdminBase):
+    list_display = ('start', 'stop', 'dur', 'grating', 'direction',
+                    'start_4lposaro', 'stop_4lposaro',
+                    'start_4hposaro', 'stop_4hposaro')
+
+
 class TscMoveAdmin(ModelAdminBase):
     list_display = ('start', 'stop', 'start_3tscpos', 'stop_3tscpos',
                     'start_det', 'stop_det', 'max_pwm')
