@@ -50,3 +50,5 @@ cd
 export KADI=/proj/sot/ska/data/kadi
 ~/git/kadi/manage.py syncdb
 ./update_events --start=2000:001 --model=ModelClassName
+
+Remember that admin.py and views.py need to be updated!
