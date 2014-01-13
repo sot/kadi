@@ -1,5 +1,5 @@
 """
-Django settings for kadi16 project.
+Django settings for kadi project.
 
 For more information on this file, see
 https://docs.djangoproject.com/en/1.6/topics/settings/
@@ -12,6 +12,8 @@ https://docs.djangoproject.com/en/1.6/ref/settings/
 import os
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 
+# Data paths for kadi project
+from .paths import EVENTS_DB_PATH
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.6/howto/deployment/checklist/
@@ -31,11 +33,13 @@ ALLOWED_HOSTS = []
 
 INSTALLED_APPS = (
     'django.contrib.admin',
+    # 'django.contrib.admindocs',  # ?? needed?  Lost in 1.6
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'kadi.events',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -47,9 +51,9 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 )
 
-ROOT_URLCONF = 'kadi16.urls'
+ROOT_URLCONF = 'kadi.urls'
 
-WSGI_APPLICATION = 'kadi16.wsgi.application'
+WSGI_APPLICATION = 'kadi.wsgi.application'
 
 
 # Database
@@ -58,9 +62,12 @@ WSGI_APPLICATION = 'kadi16.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'NAME': EVENTS_DB_PATH(),
     }
 }
+
+# FORCE_SCRIPT_NAME = '/kadi'
+APPEND_SLASH = True
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.6/topics/i18n/
@@ -80,3 +87,23 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.6/howto/static-files/
 
 STATIC_URL = '/static/'
+
+# OTHER Kadi customizations
+
+# STATICFILES_DIRS = (
+#     # Put strings here, like "/home/html/static" or "C:/www/django/static".
+#     # Always use forward slashes, even on Windows.
+#     # Don't forget to use absolute paths, not relative paths.
+#     os.path.join(BASE_DIR, 'static'),
+# )
+
+# Make this unique, and don't share it with anybody.  Do I need this?
+# SECRET_KEY = 'd7m#*urgc4#1gg5pq)j@8a__$+=5@h82s_31une+$&amp;fy16#0no'
+
+# Is this needed?
+# TEMPLATE_DIRS = (
+#     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
+#     # Always use forward slashes, even on Windows.
+#     # Don't forget to use absolute paths, not relative paths.
+#     os.path.join(BASE_DIR, 'events/templates'),
+# )
