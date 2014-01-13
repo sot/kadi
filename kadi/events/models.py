@@ -271,13 +271,14 @@ class BaseModel(models.Model):
             import numpy as np
             from astropy.table import Table
 
-            names = [f.name for f in self.model._meta.fields]
+            model_fields = self.model.get_model_fields()
+            names = [f.name for f in model_fields]
             rows = [un_unicode(vals) for vals in self.values_list()]
             cols = (zip(*rows) if len(rows) > 0 else None)
             dat = Table(cols, names=names)
 
             drop_names = [name for name in dat.dtype.names if dat[name].dtype.kind == 'O']
-            drop_names.extend([f.name for f in self.model._meta.fields
+            drop_names.extend([f.name for f in model_fields
                                if getattr(f, '_kadi_hidden', False)])
             if drop_names:
                 dat.remove_columns(drop_names)
@@ -302,6 +303,13 @@ class BaseModel(models.Model):
                                  .format(model.model_name, key, val))
                 setattr(model, key, val)
         return model
+
+    @classmethod
+    def get_model_fields(cls):
+        """
+        Return a list of model fields (works from class or instance).
+        """
+        return cls._meta.fields
 
     @property
     def model_name(self):

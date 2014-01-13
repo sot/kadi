@@ -54,7 +54,7 @@ class EventView(object):
         context['filter'] = self.filter
 
         self.formats = {field.name: getattr(field, '_kadi_format', '{}')
-                        for field in self.model._meta.fields}
+                        for field in self.model.get_model_fields()}
 
         return context
 
@@ -85,7 +85,7 @@ class EventDetail(EventView, DetailView):
     def get_context_data(self, **kwargs):
         context = super(EventDetail, self).get_context_data(**kwargs)
         event = context['object']
-        fields = self.model._meta.fields
+        fields = self.model.get_model_fields()
         names = [field.name for field in fields]
         formats = self.formats
         context['names_vals'] = [(name, formats[name].format(getattr(event, name)))
@@ -106,7 +106,7 @@ class EventList(EventView, ListView):
         # Call the base implementation first to get a context
         context = super(EventList, self).get_context_data(**kwargs)
 
-        fields = self.model._meta.fields
+        fields = self.model.get_model_fields()
         context['field_names'] = [field.name for field in fields
                                   if field.name not in self.ignore_fields]
         event_list = context['event_list']
