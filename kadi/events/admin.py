@@ -90,6 +90,14 @@ class MyChangeList(main.ChangeList):
 class ModelAdminBase(admin.ModelAdmin):
     search_fields = ('start',)
 
+    def save_model(self, request, obj, form, change):
+        if change:
+            current_obj = obj.__class__.objects.get(pk=obj.pk)
+            print('Changing from {} to {}'.format(current_obj, obj))
+        else:
+            print('Adding {}'.format(obj))
+        super(ModelAdminBase, self).save_model(request, obj, form, change)
+
     def get_changelist(self, request, **kwargs):
         """
         Returns the ChangeList class for use on the changelist page.
