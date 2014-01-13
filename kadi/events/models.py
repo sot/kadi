@@ -1560,6 +1560,9 @@ class MajorEvent(BaseEvent):
     note = models.TextField(help_text='Note (comments or CAP # or FSW PR #)')
     source = models.CharField(max_length=3, help_text='Event source (FDB or FOT)')
 
+    class Meta:
+        ordering = ['key']
+
     def __unicode__(self):
         descr = self.descr
         if len(descr) > 30:
@@ -1590,7 +1593,7 @@ class MajorEvent(BaseEvent):
         # Manually generate a unique key for event since date is not unique
         for event in events:
             key = ''.join(event[x] for x in ('start', 'descr', 'note', 'source'))
-            event['key'] = hashlib.sha1(key).hexdigest()[:24]
+            event['key'] = event['start'] + ':' + hashlib.sha1(key).hexdigest()[:6]
 
         return events
 
