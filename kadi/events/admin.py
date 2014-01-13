@@ -91,11 +91,21 @@ class ModelAdminBase(admin.ModelAdmin):
     search_fields = ('start',)
 
     def save_model(self, request, obj, form, change):
+        """
+        Enhance the default admin interface method to save a model change.  For entry
+        updates this adds an admin log LogEntry (django_admin_log table) that provides the
+        specifics of which attribute(s) changed and the before/after values.
+        """
         if change:
             current_obj = obj.__class__.objects.get(pk=obj.pk)
-            print('Changing from {} to {}'.format(current_obj, obj))
-        else:
-            print('Adding {}'.format(obj))
+            names = [field.name for field in current_obj.get_model_fields()]
+            current_vals = [getattr(current_obj, name) for name in names]
+            new_vals = [getattr(obj, name) for name in names]
+            diff = {name: (current_val, new_val)
+                    for name, current_val, new_val in zip(names, current_vals, new_vals)
+                    if current_val != new_val}
+            message = ('Changing {} {} diff={!r}'.format(obj.__class__.__name__, obj.pk, diff))
+            self.log_change(request, obj, message)
         super(ModelAdminBase, self).save_model(request, obj, form, change)
 
     def get_changelist(self, request, **kwargs):
