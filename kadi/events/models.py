@@ -351,8 +351,16 @@ class BaseModel(models.Model):
             event_datestop = DateTime(event.tstop + pad.stop, format='secs').date
 
             if event_datestart <= datestop and event_datestop >= datestart:
-                intervals.append((max(event_datestart, datestart),
-                                  min(event_datestop, datestop)))
+                interval_datestart = max(event_datestart, datestart)
+                interval_datestop = min(event_datestop, datestop)
+
+                # If there is a previous interval and the end of the previous interval
+                # is after the start of this new interval, then merge the two intervals
+                if intervals and intervals[-1][1] >= interval_datestart:
+                    intervals[-1] = (intervals[-1][0], interval_datestop)
+                else:
+                    # Otherwise just create a new interval
+                    intervals.append((interval_datestart, interval_datestop))
 
         return intervals
 
