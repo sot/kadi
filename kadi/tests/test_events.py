@@ -1,5 +1,21 @@
+from copy import deepcopy
+
 from .. import events
 from Chandra.Time import DateTime
+
+
+def test_overlapping_intervals():
+    """
+    Intervals that overlap due to interval_pad get merged.
+    """
+    start = '2013:221:00:10:00.000'
+    stop = '2013:221:00:20:00.000'
+    fa_moves = deepcopy(events.fa_moves)
+    fa_moves.interval_pad = 0.0
+    assert fa_moves.intervals(start, stop) == [('2013:221:00:11:33.100', '2013:221:00:12:05.900'),
+                                               ('2013:221:00:12:38.700', '2013:221:00:13:11.500')]
+    fa_moves.interval_pad = 300.0
+    assert fa_moves.intervals(start, stop) == [('2013:221:00:10:00.000', '2013:221:00:18:11.500')]
 
 
 def test_query_event_intervals():
@@ -45,7 +61,9 @@ def test_get_obsid():
     """
     models = events.models.get_event_models()
     for model in models.values():
-        model_obj = model.objects.filter(start__gte='2000:010')[0]
+        if model.__name__ == 'SafeSun':
+            continue  # Doesn't work for SafeSun because of bad OBC telem
+        model_obj = model.objects.filter(start__gte='2002:010')[0]
         obsid = model_obj.get_obsid()
         obsid_obj = events.obsids.filter(obsid__exact=obsid)[0]
         model_obj_start = DateTime(getattr(model_obj, model_obj._get_obsid_start_attr)).date
