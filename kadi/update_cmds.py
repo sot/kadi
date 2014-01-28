@@ -26,6 +26,17 @@ CMDS_DTYPE = [('idx', np.uint16),
 logger = None  # This is set as a global in main.  Define here for pyflakes.
 
 
+class UpdatedDict(dict):
+    """
+    Dict with an ``n_updated`` attribute that gets incremented when any key value is set.
+    """
+    n_updated = 0
+
+    def __setitem__(self, *args, **kwargs):
+        self.n_updated += 1
+        super(UpdatedDict, self).__setitem__(*args, **kwargs)
+
+
 def get_opt(args=None):
     """
     Get options for command line interface to update_cmd_states.
@@ -253,13 +264,20 @@ def main(args=None):
                     .format(pars_dict_path))
         pars_dict = {}
 
+    # Recast as dict subclass that remembers if any element was updated
+    pars_dict = UpdatedDict(pars_dict)
+
     cmds = get_cmds(timeline_loads, opt.mp_dir)
     idx_cmds = get_idx_cmds(cmds, pars_dict)
     add_h5_cmds(idx_cmds_path, idx_cmds)
 
-    with open(pars_dict_path, 'w') as fh:
-        pickle.dump(pars_dict, fh, protocol=-1)
-        logger.info('Wrote {} pars_dict values to {}'.format(len(pars_dict), pars_dict_path))
+    if pars_dict.n_updated > 0:
+        with open(pars_dict_path, 'wb') as fh:
+            pickle.dump(pars_dict, fh, protocol=-1)
+            logger.info('Wrote {} pars_dict values ({} new) to {}'
+                        .format(len(pars_dict), pars_dict.n_updated, pars_dict_path))
+    else:
+        logger.info('pars_dict was unmodified, not writing')
 
     if opt.ftp:
         # Push cmds files to OCC via lucky ftp
