@@ -47,9 +47,9 @@ def get_opt(args=None):
                         default='/data/mpcrit1/mplogs',
                         help="MP load directory")
     parser.add_argument("--start",
-                        help="Start date for update (default=stop-21 days)")
+                        help="Start date for update (default=stop-42 days)")
     parser.add_argument("--stop",
-                        help="Stop date for update (default=Now)")
+                        help="Stop date for update (default=Now+21 days)")
     parser.add_argument("--log-level",
                         type=int,
                         default=10,
@@ -241,8 +241,8 @@ def main(args=None):
         occweb.ftp_get_from_lucky('kadi', [idx_cmds_path, pars_dict_path], logger=logger)
         return
 
-    stop = DateTime(opt.stop)
-    start = DateTime(opt.start) if opt.start else stop - 21
+    stop = DateTime(opt.stop) if opt.stop else DateTime() + 21
+    start = DateTime(opt.start) if opt.start else stop - 42
 
     # Get timeline_loads including and after start
     db = Ska.DBI.DBI(dbi='sybase', server='sybase', user='aca_read')
