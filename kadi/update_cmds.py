@@ -256,7 +256,7 @@ def main(args=None):
                 .format(len(timeline_loads), start.date, stop.date))
 
     try:
-        with open(pars_dict_path, 'r') as fh:
+        with open(pars_dict_path, 'rb') as fh:
             pars_dict = pickle.load(fh)
         logger.info('Read {} pars_dict values from {}'.format(len(pars_dict), pars_dict_path))
     except IOError:
