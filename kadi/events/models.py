@@ -184,13 +184,21 @@ def fuzz_states(states, t_fuzz):
 
 
 class Pad(object):
+    """
+    Time padding at the start and stop of an interval.
+
+    Positive values always make the interval *bigger* in each direction, so
+    a pad of 300 seconds makes the interval a total of 10 minutes longer (5 minutes
+    on each side).  A pad of -300 seconds makes the interval start 5 minutes
+    later and end 5 minutes earlier.
+    """
     def __init__(self, start=None, stop=None):
         self.start = start or 0.0
         self.stop = stop or 0.0
 
     def __repr__(self):
-        return '<{} start={} stop={} at 0x{:x}>'.format(
-            self.__class__.__name__, self.start, self.stop, id(self))
+        return '<{} start={} stop={} seconds>'.format(
+            self.__class__.__name__, self.start, self.stop)
 
 
 class IntervalPad(object):
@@ -207,19 +215,25 @@ class IntervalPad(object):
 
     def __set__(self, instance, val):
         if val is None:
-            instance._pad = Pad(0, 0)
+            val_start = val_stop = 0
         elif isinstance(val, Pad):
-            instance._pad = Pad(val.start, val.stop)
+            val_start, val_stop = val.start, val.stop
         else:
             try:
                 len_val = len(val)
             except TypeError:
-                instance._pad = Pad(float(val), float(val))
+                val_start = val_stop = val
             else:
-                if len_val == 2:
-                    instance._pad = Pad(val[0], val[1])
+                if len_val == 0:
+                    val_start = val_stop = 0
+                elif len_val == 1:
+                    val_start = val_stop = val[0]
+                elif len_val == 2:
+                    val_start, val_stop = val[0], val[1]
                 else:
-                    raise ValueError('interval_pad must be a float scalar or 2-element list')
+                    raise ValueError('interval_pad must be a float scalar, or 1 or 2-element list')
+
+        instance._pad = Pad(float(val_start), float(val_stop))
 
 
 class Update(models.Model):
