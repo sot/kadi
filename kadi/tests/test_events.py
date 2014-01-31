@@ -18,6 +18,35 @@ def test_overlapping_intervals():
     assert fa_moves.intervals(start, stop) == [('2013:221:00:10:00.000', '2013:221:00:18:11.500')]
 
 
+def test_interval_pads():
+    """
+    Intervals pads.
+    """
+    start = '2013:221:00:10:00.000'
+    stop = '2013:221:00:20:00.000'
+    intervals = [('2013:221:00:11:33.100', '2013:221:00:12:05.900'),
+                 ('2013:221:00:12:38.700', '2013:221:00:13:11.500')]
+
+    assert events.fa_moves.intervals(start, stop) == intervals
+
+    fa_moves = events.fa_moves()
+    assert fa_moves.intervals(start, stop) == intervals
+
+    fa_moves = events.fa_moves(pad=0)
+    assert fa_moves.intervals(start, stop) == intervals
+
+    fa_moves = events.fa_moves(pad=(0, 0))
+    assert fa_moves.intervals(start, stop) == intervals
+
+    # 5 seconds earlier and 10 seconds later
+    fa_moves = events.fa_moves(pad=(5, 10))
+    assert fa_moves.intervals(start, stop) == [('2013:221:00:11:28.100', '2013:221:00:12:15.900'),
+                                               ('2013:221:00:12:33.700', '2013:221:00:13:21.500')]
+
+    fa_moves = events.fa_moves(pad=300)
+    assert fa_moves.intervals(start, stop) == [('2013:221:00:10:00.000', '2013:221:00:18:11.500')]
+
+
 def test_query_event_intervals():
     intervals = (events.manvrs & events.tsc_moves).intervals('2012:001', '2012:002')
     assert intervals == [('2012:001:18:21:31.715', '2012:001:18:22:04.515'),

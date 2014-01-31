@@ -135,12 +135,18 @@ class EventQuery(object):
 
     interval_pad = IntervalPad()  # descriptor defining a Pad for intervals
 
-    def __init__(self, cls=None, left=None, right=None, op=None):
+    def __init__(self, cls=None, left=None, right=None, op=None, pad=None):
         self.cls = cls
         self.left = left
         self.right = right
         self.op = op
-        self.interval_pad = getattr(cls, 'interval_pad', None)
+        self.interval_pad = pad
+
+    def __call__(self, pad=None):
+        """
+        Generate new EventQuery event for the same model class but with different pad.
+        """
+        return EventQuery(cls=self.cls, pad=pad)
 
     @property
     def name(self):
