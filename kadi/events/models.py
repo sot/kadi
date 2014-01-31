@@ -364,6 +364,10 @@ class BaseModel(models.Model):
             event_datestart = DateTime(event.tstart - pad.start, format='secs').date
             event_datestop = DateTime(event.tstop + pad.stop, format='secs').date
 
+            # Negative padding might make an interval entirely disappear
+            if event_datestart >= event_datestop:
+                continue
+
             if event_datestart <= datestop and event_datestop >= datestart:
                 interval_datestart = max(event_datestart, datestart)
                 interval_datestop = min(event_datestop, datestop)
