@@ -474,9 +474,19 @@ data in red::
 
 The converse operation of *selecting* intervals is also available::
 
-  >>> e1300.remove_intervals(events.rad_zones)
+  >>> e1300.select_intervals(events.rad_zones)
 
-The event intervals within a particular time range can be accessed as a list of 
+Sometimes it is useful to select intervals in an MSID while retaining the
+original full dataset.  You can do this with the ``copy=True`` option, which
+returns a brand new MSID object and leaves the original untouched::
+
+  >>> e1300 = fetch.Msid("SCE1300", '2012:020', '2012:050')
+  >>> e1300_rad_zones = e1300.select_intervals(events.rad_zones, copy=True)
+
+More on intervals and padding
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The event intervals themselves within a particular time range can be accessed as a list of
 ``(start, stop)`` with the ``intervals()`` method::
 
   >>> events.rad_zones.intervals('2012:020', '2012:030')
@@ -485,26 +495,68 @@ The event intervals within a particular time range can be accessed as a list of
    ('2012:025:21:22:22.506', '2012:026:08:10:20.506'),
    ('2012:028:13:22:04.533', '2012:028:22:20:02.533')]
 
+Frequently you want to pad the intervals by a bit in each direction.  For instance if you
+want stable spacecraft attitudes you would want to filter out events that disturb the
+attitude, namely SIM motions, grating motions, and momentum dumps.  But the events cover
+just the exact interval of a motion or dump, and you'd like to chop out times for 5 or 10
+minutes afterward.  In addition, it's usually a good idea to cut out a bit before just to
+be safe.
+
+To pad the grating events out by 5 minutes in each direction, create a new EventQuery
+object like this::
+
+  >>> grating_moves = events.grating_moves(pad=300)  # pad time in seconds
+
+Positive values always make the interval *bigger* in each direction, so
+a pad of ``300`` seconds makes the interval a total of 10 minutes longer (5 minutes
+on each side).  A pad of ``-300`` seconds makes the interval start 5 minutes
+later and end 5 minutes earlier.
+
+You can be more precise and specify the padding at the event start and stop by
+providing two values, the start and stop pad time.  Again, the convention is that
+positive padding is always making the interval longer in each direction.
+::
+
+  >>> grating_moves = events.grating_moves(pad=(100, 300))  # pad time in seconds
+
+To finish the example, we would define similar padded events for the SIM moves and dumps::
+
+  >>> tsc_moves = events.tsc_moves(pad=(100, 300))
+  >>> dumps = events.dumps(pad=(100, 300))
+
+You can examine or set the padding using the ``interval_pad`` attribute::
+
+  >>> dumps.interval_pad
+  <Pad start=100.0 stop=300.0 seconds>
+  >>> dumps.interval_pad = 500
+  >>> dumps.interval_pad
+  <Pad start=500.0 stop=500.0 seconds>
+
+You can also set the interval pad for an event type directly.  *This method is
+discouraged*, but shown below for reference since this used to be the accepted method::
+
+  >>> events.grating_moves.interval_pad = -100
+
 Boolean combinations
 """""""""""""""""""""
 
-The real power of intervals is that they can be combined with boolean expressions and
-can be padded on either end to make it easy to create complex time filters.  The
-following example selects all Kalman mode dwells, but removes times that could
-be affected by a SIM TSC move or a momentum dump.
+The real power of intervals is that they can be combined with boolean expressions and can
+be padded on either end to make it easy to create complex time filters.  Using the results
+in the previous section, we can create a composite event which is when there is a grating
+move *OR* a momentum dump *OR* a SIM (TSC) move::
 
-  >>> dwells = events.dwells
-  >>> dwells.interval_pad = -100    # Negative pad means make the interval smaller
-  >>> tsc_moves = events.tsc_moves
-  >>> tsc_moves.interval_pad = 300  # Pad TSC moves by 300 seconds on each side
-  >>> dumps = events.dumps
-  >>> dumps.interval_pad = (10, 500)  # Pad dumps 10 secs before and 500 secs after
+  >>> disturbances = grating_moves | dumps | tsc_moves
 
-  >>> good_times = dwells & ~(tsc_moves | dumps)
+The following example selects all Kalman mode dwells, but removes times that could be
+affected by a SIM TSC move or a momentum dump.
+
+  >>> dwells = events.dwells(pad=-100)
+
+  >>> good_times = dwells & ~disturbances  # Dwells and NOT disturbances
   >>> dat = fetch.Msid('aoattqt1', '2012:001', '2012:002')
   >>> dat.plot()
-  >>> dat.select_intervals(good_times)
-  >>> dat.plot('.r')
+  >>> dat_good = dat.select_intervals(good_times, copy=True)
+  >>> dat_good.plot('.r')
   >>> grid()
 
 .. image:: complex_event_filter.png
