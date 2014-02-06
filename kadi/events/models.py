@@ -1730,6 +1730,42 @@ class CAP(IFotEvent):
                 .format(self.num, self.start[:17], self.title))
 
 
+class LoadSegment(IFotEvent):
+    """
+    Load segment
+
+    **Event definition**: Load segment from iFOT database
+
+    **Fields**
+
+    =========== ========== =======================
+       Field       Type          Description
+    =========== ========== =======================
+       ifot_id    Integer
+         start   Char(21)
+          stop   Char(21)
+        tstart      Float   Start time (CXC secs)
+         tstop      Float    Stop time (CXC secs)
+           dur      Float         Duration (secs)
+          name   Char(12)       Load segment name
+           scs    Integer                SCS slot
+     load_name   Char(10)               Load name
+       comment       Text                 Comment
+    =========== ========== =======================
+    """
+    name = models.CharField(max_length=12, help_text='Load segment name')
+    scs = models.IntegerField(help_text='SCS slot')
+    load_name = models.CharField(max_length=10, help_text='Load name')
+    comment = models.TextField(help_text='Comment')
+
+    ifot_type_desc = 'LOADSEG'
+    ifot_props = ['NAME', 'SCS', 'LOAD_NAME', 'COMMENT']
+
+    def __unicode__(self):
+        return ('{}: {} {} scs={}'
+                .format(self.name, self.start[:17], self.load_name, self.scs))
+
+
 class DsnComm(IFotEvent):
     """
     DSN comm period

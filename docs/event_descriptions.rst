@@ -224,6 +224,30 @@ where no grating motion is seen.  These have grating=UNKN (unknown).
       direction    Char(4)        Grating direction (UNKN INSR RETR)
 ================ ========== =========================================
 
+.. _event_load_segment:
+
+Load segment from iFOT database
+-------------------------------
+
+**Event definition**: Load segment from iFOT database
+
+**Fields**
+
+=========== ========== =======================
+   Field       Type          Description
+=========== ========== =======================
+   ifot_id    Integer
+     start   Char(21)
+      stop   Char(21)
+    tstart      Float   Start time (CXC secs)
+     tstop      Float    Stop time (CXC secs)
+       dur      Float         Duration (secs)
+      name   Char(12)       Load segment name
+       scs    Integer                SCS slot
+   comment       Text                 Comment
+ load_name   Char(10)               Load name
+=========== ========== =======================
+
 .. _event_major_event:
 
 Major event

@@ -12,6 +12,7 @@
 .. |Eclipse| replace:: :class:`~kadi.events.models.Eclipse`
 .. |FaMove| replace:: :class:`~kadi.events.models.FaMove`
 .. |GratingMove| replace:: :class:`~kadi.events.models.GratingMove`
+.. |LoadSegment| replace:: :class:`~kadi.events.models.LoadSegment`
 .. |MajorEvent| replace:: :class:`~kadi.events.models.MajorEvent`
 .. |Manvr| replace:: :class:`~kadi.events.models.Manvr`
 .. |ManvrSeq| replace:: :class:`~kadi.events.models.ManvrSeq`
@@ -312,12 +313,13 @@ Starting from the top, you can list the available event types with the following
                caps                CAP from iFOT database             CAP
           dark_cals    ACA dark current calibration event         DarkCal
   dark_cal_replicas  ACA dark current calibration replica  DarkCalReplica
-          dsn_comms             Scheduled DSN comm period         DsnComm
+          dsn_comms                       DSN comm period         DsnComm
               dumps        Ground commanded momentum dump            Dump
              dwells                  Dwell in Kalman mode           Dwell
            eclipses                               Eclipse         Eclipse
            fa_moves                    SIM FA translation          FaMove
       grating_moves       Grating movement (HETG or LETG)     GratingMove
+      load_segments       Load segment from iFOT database     LoadSegment
        major_events                           Major event      MajorEvent
              manvrs                              Maneuver           Manvr
          manvr_seqs               Maneuver sequence event        ManvrSeq
@@ -658,6 +660,7 @@ Event definitions
        |Eclipse|          :ref:`event_eclipse`          ``eclipses``
         |FaMove|          :ref:`event_fa_move`          ``fa_moves``
    |GratingMove|     :ref:`event_grating_move`     ``grating_moves``
+   |LoadSegment|     :ref:`event_load_segment`     ``load_segments``
     |MajorEvent|      :ref:`event_major_event`      ``major_events``
          |Manvr|            :ref:`event_manvr`            ``manvrs``
       |ManvrSeq|        :ref:`event_manvr_seq`        ``manvr_seqs``

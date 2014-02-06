@@ -147,6 +147,10 @@ class GratingMoveList(EventList):
     model = models.GratingMove
 
 
+class LoadSegmentList(EventList):
+    model = models.LoadSegment
+
+
 class FaMoveList(EventList):
     model = models.FaMove
 
@@ -235,6 +239,10 @@ class Scs107Detail(EventDetail):
 
 class GratingMoveDetail(EventDetail):
     model = models.GratingMove
+
+
+class LoadSegmentDetail(EventDetail):
+    model = models.LoadSegment
 
 
 class FaMoveDetail(EventDetail):
