@@ -1,0 +1,93 @@
+#################################################################
+# Add a new event type
+#################################################################
+
+#####  Add new model in kadi/events/models.py  #####
+
+%%
+ska
+cd ~/git/kadi
+emacs kadi/events/models.py
+%%
+
+##### Test ######
+
+%%
+export ModelClassName=<model_class_name>
+cp $ska/data/kadi/events.db3 ./
+export KADI=$PWD
+./manage.py syncdb
+./update_events --start=2000:001 --stop=2001:001 --model=${ModelClassName} [--delete-from-start]
+./update_events --start=2001:001 --model=${ModelClassName}
+%%
+
+###### Update web service files #########
+
+%%
+emacs kadi/events/admin.py kadi/events/views.py
+./manage.py runserver
+%%
+Confirm web access works as expected
+
+###### Update docs #########
+
+%%+
+cd docs
+env PYTHONPATH=$HOME/git/kadi ipython
+>>> import kadi.events
+>>> kadi.events.__file__
+
+>>> run make_field_tables
+
+>>> update_models_docstrings(outfile='models_test.py')
+>>> !diff models_test.py ../kadi/events/models.py
+>>> !mv models_test.py ../kadi/events/models.py
+
+>>> exit()
+
+env PYTHONPATH=$HOME/git/kadi ipython
+>>> run make_field_tables
+
+# Update event_descriptions.rst in place
+>>> make_event_descriptions_section('event_descriptions.rst')
+
+>>> make_events_tables()
+%%-
+
+- Copy the three tables there to the appropriate sections in index.rst
+  and kadi/events/__init__.py.
+
+NOTE: this makes tables that have one vertical space separating columns
+      while the baseline files have two.  Leave at two.  Need to fix code
+      or just do this manually.
+
+###### Install to flight #########
+
+[Running as aldcroft is fine]
+
+## Create pull request and merge
+%%
+git checkout master
+git pull origin master
+%%
+
+## As user aca:
+%%
+ska
+cd ~/git/kadi
+git checkout master
+git pull origin master
+
+python setup.py install
+
+cd docs
+make clean
+make html
+cd ..
+make install_doc
+
+## As user aldcroft
+cd
+export KADI=/proj/sot/ska/data/kadi
+~/git/kadi/manage.py syncdb
+./update_events --start=2000:001 --model=${ModelClassName}

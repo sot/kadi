@@ -10,6 +10,9 @@ rm events.db3 cmds.h5 cmds.pkl
 ./update_events --start=2000:001
 ./update_cmds --start=2000:001
 
+NOTE: could potentially get all the 1999 events using the 1999 eng
+      archive.
+
 #################################################################
 # Remove certain tables in a local version of the flight events database
 #################################################################
@@ -18,12 +21,9 @@ rm events.db3 cmds.h5 cmds.pkl
 % cp /proj/sot/ska/data/kadi/events.db3 ./
 % sqlite3 events.db3
 > drop table events_cap;
-> select * from events_update;
-> .schema events_update
-> delete from events_update where name="CAP";
 
 % ./manage.py syncdb
-% ./update_events --start=2000:001 --model=CAP
+% ./update_events --start=2000:001 --model=CAP --delete-from-start
 
 
 #################################################################
@@ -32,23 +32,5 @@ rm events.db3 cmds.h5 cmds.pkl
 #################################################################
 
 % cp /proj/sot/ska/data/kadi/events.db3 ./
-% sqlite3 events.db3
-> update events_update set date='2012:001:00:00:00.000' where name='Scs107';
-> delete from events_scs107 where start > '2012:001';
+% ./update_events --start=2012:001 --model=Scs107 --delete-from-start
 
-% ./update_events --start=2012:001 --model=Scs107
-
-#################################################################
-# Add a new table to flight
-#################################################################
-
-[Running as aldcroft is fine]
-This assumes checkout is complete and new code has been installed
-to flight ska.
-
-cd
-export KADI=/proj/sot/ska/data/kadi
-~/git/kadi/manage.py syncdb
-./update_events --start=2000:001 --model=ModelClassName
-
-Remember that admin.py and views.py need to be updated!
