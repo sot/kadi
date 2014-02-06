@@ -115,6 +115,11 @@ class ModelAdminBase(admin.ModelAdmin):
         return MyChangeList
 
 
+class LoadSegmentAdmin(ModelAdminBase):
+    list_display = ('start', 'stop', 'dur', 'name', 'scs',
+                    'load_name', 'comment')
+
+
 class GratingMoveAdmin(ModelAdminBase):
     list_display = ('start', 'stop', 'dur', 'grating', 'direction',
                     'start_4lposaro', 'stop_4lposaro',
