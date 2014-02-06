@@ -55,16 +55,17 @@ def get_opt(args=None):
     return args
 
 
-def delete_from_start(EventModel, start):
+def delete_from_date(EventModel, start, set_update_date=True):
     from .events import models
 
     date_start = DateTime(start).date
     cls_name = EventModel.__name__
 
-    update = models.Update.objects.get(name=cls_name)
-    logger.info('Updating {} date from {} to {}'.format(cls_name, update.date, date_start))
-    update.date = date_start
-    update.save()
+    if set_update_date:
+        update = models.Update.objects.get(name=cls_name)
+        logger.info('Updating {} date from {} to {}'.format(cls_name, update.date, date_start))
+        update.date = date_start
+        update.save()
 
     events = EventModel.objects.filter(start__gte=date_start)
     logger.info('Deleting {} {} events after {}'.format(events.count(), cls_name, date_start))
@@ -81,19 +82,34 @@ def update(EventModel, date_stop):
 
     try:
         update = models.Update.objects.get(name=cls_name)
-        duration = date_stop - DateTime(update.date)
-        date_start = DateTime(update.date) - EventModel.lookback
-        update.date = date_stop.date
     except ObjectDoesNotExist:
         logger.info('No previous update for {} found'.format(cls_name))
         duration = EventModel.lookback
         update = models.Update(name=cls_name, date=date_stop.date)
         date_start = date_stop - EventModel.lookback
+    else:
+        duration = date_stop - DateTime(update.date)
+        date_start = DateTime(update.date) - EventModel.lookback
+        update.date = date_stop.date
+
+        # Some events like LoadSegment or DsnComm might change in the database after
+        # having been ingested.  Use lookback_delete (less than lookback) to
+        # always remove events in that range and re-ingest.
+        if duration >= 0.5 and hasattr(EventModel, 'lookback_delete'):
+            delete_date = DateTime(update.date) - EventModel.lookback_delete
+            delete_from_date(EventModel, delete_date, set_update_date=False)
 
     if duration < 0.5:
         logger.info('Skipping {} events because update duration={:.1f} is < 0.5 day'
                     .format(cls_name, duration))
         return
+
+    # Some events like LoadSegment, DsnComm are defined into the future, so
+    # modify date_stop accordingly.  Note that update.date is set to the
+    # nominal date_stop (typically NOW), and this refers more to the last date
+    # of processing rather than the actual last date in the archive.
+    if hasattr(EventModel, 'lookforward'):
+        date_stop = date_stop + EventModel.lookforward
 
     logger.info('Updating {} events from {} to {}'
                 .format(cls_name, date_start.date[:-4], date_stop.date[:-4]))
@@ -182,7 +198,7 @@ def main():
 
     for EventModel in EventModels:
         if opt.delete_from_start and opt.start is not None:
-            delete_from_start(EventModel, opt.start)
+            delete_from_date(EventModel, opt.start)
 
         for date_stop in date_stops:
             update(EventModel, date_stop)
