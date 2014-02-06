@@ -9,12 +9,13 @@ Available events are:
              caps                CAP from iFOT database             CAP
         dark_cals    ACA dark current calibration event         DarkCal
 dark_cal_replicas  ACA dark current calibration replica  DarkCalReplica
-        dsn_comms             Scheduled DSN comm period         DsnComm
+        dsn_comms                       DSN comm period         DsnComm
             dumps        Ground commanded momentum dump            Dump
            dwells                  Dwell in Kalman mode           Dwell
          eclipses                               Eclipse         Eclipse
          fa_moves                    SIM FA translation          FaMove
     grating_moves       Grating movement (HETG or LETG)     GratingMove
+    load_segments       Load segment from iFOT database     LoadSegment
      major_events                           Major event      MajorEvent
            manvrs                              Maneuver           Manvr
        manvr_seqs               Maneuver sequence event        ManvrSeq
