@@ -1761,6 +1761,11 @@ class LoadSegment(IFotEvent):
     ifot_type_desc = 'LOADSEG'
     ifot_props = ['NAME', 'SCS', 'LOAD_NAME', 'COMMENT']
 
+    lookback = 40  # days of lookback
+    lookback_delete = 20  # Remove load segments in database prior to 20 days ago
+                          # to account for potential load changes.
+    lookforward = 90  # Accept load segments planned up to 90 days in advance
+
     def __unicode__(self):
         return ('{}: {} {} scs={}'
                 .format(self.name, self.start[:17], self.load_name, self.scs))
@@ -1806,6 +1811,11 @@ class DsnComm(IFotEvent):
     ifot_type_desc = 'DSN_COMM'
     ifot_props = ['bot', 'eot', 'activity', 'config', 'data_rate', 'site', 'soe', 'station']
     ifot_types = {'DSN_COMM.bot': 'str', 'DSN_COMM.eot': 'str'}
+
+    lookback = 21  # days of lookback
+    lookback_delete = 7  # Remove all comms in database prior to 7 days ago to account
+                         # for potential schedule changes.
+    lookforward = 90  # Accept comms scheduled up to 90 days in advance
 
     def __unicode__(self):
         return ('{}: {} {}-{} {}'
