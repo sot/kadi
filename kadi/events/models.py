@@ -1764,7 +1764,7 @@ class LoadSegment(IFotEvent):
     lookback = 40  # days of lookback
     lookback_delete = 20  # Remove load segments in database prior to 20 days ago
                           # to account for potential load changes.
-    lookforward = 90  # Accept load segments planned up to 90 days in advance
+    lookforward = 28  # Accept load segments planned up to 28 days in advance
 
     def __unicode__(self):
         return ('{}: {} {} scs={}'
@@ -1815,7 +1815,7 @@ class DsnComm(IFotEvent):
     lookback = 21  # days of lookback
     lookback_delete = 7  # Remove all comms in database prior to 7 days ago to account
                          # for potential schedule changes.
-    lookforward = 90  # Accept comms scheduled up to 90 days in advance
+    lookforward = 28  # Accept comms scheduled up to 28 days in advance
 
     def __unicode__(self):
         return ('{}: {} {}-{} {}'
@@ -1884,7 +1884,7 @@ class PassPlan(IFotEvent):
     lookback = 21  # days of lookback
     lookback_delete = 7  # Remove all comms in database prior to 7 days ago to account
                          # for potential schedule changes.
-    lookforward = 90  # Accept comms scheduled up to 90 days in advance
+    lookforward = 28  # Accept comms scheduled up to 28 days in advance
 
     def __unicode__(self):
         return ('{} {} {} OC:{} CC:{}'
