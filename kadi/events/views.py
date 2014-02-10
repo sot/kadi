@@ -305,3 +305,11 @@ class OrbitPointDetail(EventDetail):
 
 class RadZoneDetail(EventDetail):
     model = models.RadZone
+
+
+class PassPlanList(EventList):
+    model = models.PassPlan
+
+
+class PassPlanDetail(EventDetail):
+    model = models.PassPlan

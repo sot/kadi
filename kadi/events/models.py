@@ -1764,7 +1764,7 @@ class LoadSegment(IFotEvent):
     lookback = 40  # days of lookback
     lookback_delete = 20  # Remove load segments in database prior to 20 days ago
                           # to account for potential load changes.
-    lookforward = 90  # Accept load segments planned up to 90 days in advance
+    lookforward = 28  # Accept load segments planned up to 28 days in advance
 
     def __unicode__(self):
         return ('{}: {} {} scs={}'
@@ -1815,11 +1815,80 @@ class DsnComm(IFotEvent):
     lookback = 21  # days of lookback
     lookback_delete = 7  # Remove all comms in database prior to 7 days ago to account
                          # for potential schedule changes.
-    lookforward = 90  # Accept comms scheduled up to 90 days in advance
+    lookforward = 28  # Accept comms scheduled up to 28 days in advance
 
     def __unicode__(self):
         return ('{}: {} {}-{} {}'
                 .format(self.station, self.start[:17], self.bot, self.eot, self.activity))
+
+
+class PassPlan(IFotEvent):
+    """
+    Pass plan
+
+    **Event definition**: Pass plan from iFOT
+
+    **Fields**
+
+    ==================== ========== =======================
+           Field            Type          Description
+    ==================== ========== =======================
+                ifot_id    Integer
+                  start   Char(21)
+                   stop   Char(21)
+                 tstart      Float   Start time (CXC secs)
+                  tstop      Float    Stop time (CXC secs)
+                    dur      Float         Duration (secs)
+                     oc   Char(30)                 OC crew
+                     cc   Char(30)                 CC crew
+                    got   Char(30)                GOT crew
+                station    Char(6)             DSN station
+           est_datetime   Char(20)              Date local
+     sched_support_time   Char(13)            Support time
+               activity   Char(20)                Activity
+                    bot    Char(4)      Beginning of track
+                    eot    Char(4)            End of track
+              data_rate   Char(10)               Data rate
+                 config    Char(8)           Configuration
+                    lga    Char(1)                     LGA
+                  power    Char(6)                   Power
+                rxa_rsl   Char(10)                Rx-A RSL
+                rxb_rsl   Char(10)                Rx-B RSL
+                err_log   Char(10)               Error log
+              cmd_count   Char(15)           Command count
+    ==================== ========== =======================
+    """
+    oc = models.CharField(max_length=30, help_text='OC crew')
+    cc = models.CharField(max_length=30, help_text='CC crew')
+    got = models.CharField(max_length=30, help_text='GOT crew')
+    station = models.CharField(max_length=6, help_text='DSN station')
+    est_datetime = models.CharField(max_length=20, help_text='Date local')
+    sched_support_time = models.CharField(max_length=13, help_text='Support time')
+    activity = models.CharField(max_length=20, help_text='Activity')
+    bot = models.CharField(max_length=4, help_text='Beginning of track')
+    eot = models.CharField(max_length=4, help_text='End of track')
+    data_rate = models.CharField(max_length=10, help_text='Data rate')
+    config = models.CharField(max_length=8, help_text='Configuration')
+    lga = models.CharField(max_length=1, help_text='LGA')
+    power = models.CharField(max_length=6, help_text='Power')
+    rxa_rsl = models.CharField(max_length=10, help_text='Rx-A RSL')
+    rxb_rsl = models.CharField(max_length=10, help_text='Rx-B RSL')
+    err_log = models.CharField(max_length=10, help_text='Error log')
+    cmd_count = models.CharField(max_length=15, help_text='Command count')
+
+    ifot_type_desc = 'PASSPLAN'
+    ifot_props = ("oc cc got station EST_datetime sched_support_time activity bot eot "
+                  "data_rate config lga power rxa_rsl rxb_rsl "
+                  "err_log cmd_count").split()
+
+    lookback = 21  # days of lookback
+    lookback_delete = 7  # Remove all comms in database prior to 7 days ago to account
+                         # for potential schedule changes.
+    lookforward = 28  # Accept comms scheduled up to 28 days in advance
+
+    def __unicode__(self):
+        return ('{} {} {} OC:{} CC:{}'
+                .format(self.station, self.start[:17], self.est_datetime, self.oc, self.cc))
 
 
 class Orbit(BaseEvent):

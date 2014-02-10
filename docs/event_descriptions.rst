@@ -226,8 +226,8 @@ where no grating motion is seen.  These have grating=UNKN (unknown).
 
 .. _event_load_segment:
 
-Load segment from iFOT database
--------------------------------
+Load segment
+------------
 
 **Event definition**: Load segment from iFOT database
 
@@ -244,8 +244,8 @@ Load segment from iFOT database
        dur      Float         Duration (secs)
       name   Char(12)       Load segment name
        scs    Integer                SCS slot
-   comment       Text                 Comment
  load_name   Char(10)               Load name
+   comment       Text                 Comment
 =========== ========== =======================
 
 .. _event_major_event:
@@ -486,6 +486,43 @@ Orbit point
  orbit_num      Integer
      descr     Char(50)
 =========== ============ ===========
+
+.. _event_pass_plan:
+
+Pass plan
+---------
+
+**Event definition**: Pass plan from iFOT
+
+**Fields**
+
+==================== ========== =======================
+       Field            Type          Description
+==================== ========== =======================
+            ifot_id    Integer
+              start   Char(21)
+               stop   Char(21)
+             tstart      Float   Start time (CXC secs)
+              tstop      Float    Stop time (CXC secs)
+                dur      Float         Duration (secs)
+                 oc   Char(30)                 OC crew
+                 cc   Char(30)                 CC crew
+                got   Char(30)                GOT crew
+            station    Char(6)             DSN station
+       est_datetime   Char(20)              Date local
+ sched_support_time   Char(13)            Support time
+           activity   Char(20)                Activity
+                bot    Char(4)      Beginning of track
+                eot    Char(4)            End of track
+          data_rate   Char(10)               Data rate
+             config    Char(8)           Configuration
+                lga    Char(1)                     LGA
+              power    Char(6)                   Power
+            rxa_rsl   Char(10)                Rx-A RSL
+            rxb_rsl   Char(10)                Rx-B RSL
+            err_log   Char(10)               Error log
+          cmd_count   Char(15)           Command count
+==================== ========== =======================
 
 .. _event_rad_zone:
 

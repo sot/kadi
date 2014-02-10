@@ -20,6 +20,7 @@
 .. |Obsid| replace:: :class:`~kadi.events.models.Obsid`
 .. |Orbit| replace:: :class:`~kadi.events.models.Orbit`
 .. |OrbitPoint| replace:: :class:`~kadi.events.models.OrbitPoint`
+.. |PassPlan| replace:: :class:`~kadi.events.models.PassPlan`
 .. |RadZone| replace:: :class:`~kadi.events.models.RadZone`
 .. |SafeSun| replace:: :class:`~kadi.events.models.SafeSun`
 .. |Scs107| replace:: :class:`~kadi.events.models.Scs107`
@@ -327,6 +328,7 @@ Starting from the top, you can list the available event types with the following
              obsids                Observation identifier           Obsid
              orbits                                 Orbit           Orbit
        orbit_points                           Orbit point      OrbitPoint
+         pass_plans                             Pass plan        PassPlan
           rad_zones                        Radiation zone         RadZone
           safe_suns                        Safe sun event         SafeSun
             scs107s                            SCS107 run          Scs107
@@ -668,6 +670,7 @@ Event definitions
          |Obsid|            :ref:`event_obsid`            ``obsids``
          |Orbit|            :ref:`event_orbit`            ``orbits``
     |OrbitPoint|      :ref:`event_orbit_point`      ``orbit_points``
+      |PassPlan|        :ref:`event_pass_plan`        ``pass_plans``
        |RadZone|         :ref:`event_rad_zone`         ``rad_zones``
        |SafeSun|         :ref:`event_safe_sun`         ``safe_suns``
         |Scs107|           :ref:`event_scs107`           ``scs107s``

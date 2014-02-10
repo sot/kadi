@@ -23,6 +23,7 @@ dark_cal_replicas  ACA dark current calibration replica  DarkCalReplica
            obsids                Observation identifier           Obsid
            orbits                                 Orbit           Orbit
      orbit_points                           Orbit point      OrbitPoint
+       pass_plans                             Pass plan        PassPlan
         rad_zones                        Radiation zone         RadZone
         safe_suns                        Safe sun event         SafeSun
           scs107s                            SCS107 run          Scs107
