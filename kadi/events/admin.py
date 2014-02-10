@@ -171,6 +171,13 @@ class DsnCommAdmin(ModelAdminBase):
     list_display = ('start', 'stop', 'bot', 'eot', 'activity', 'site', 'soe', 'station')
 
 
+class PassPlanAdmin(ModelAdminBase):
+    list_display = tuple("start stop "
+                         "oc cc got station est_datetime sched_support_time activity bot eot "
+                         "data_rate config lga power rxa_rsl rxb_rsl "
+                         "err_log cmd_count".split())
+
+
 class OrbitAdmin(ModelAdminBase):
     list_display = ('start', 'stop', 'orbit_num', 'perigee', 'apogee',
                     'dt_start_radzone', 'dt_stop_radzone')
