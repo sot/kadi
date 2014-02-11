@@ -192,9 +192,13 @@ def main():
                        and hasattr(Model, 'get_events')  # can get events
                        )]
 
+    # Filter on ---model command line arg(s)
     if opt.models:
         EventModels = [x for x in EventModels
                        if any(re.match(y, x.__name__) for y in opt.models)]
+
+    # Update priority (higher priority value means earlier in processing)
+    EventModels = sorted(EventModels, key=lambda x: x.update_priority, reverse=True)
 
     for EventModel in EventModels:
         if opt.delete_from_start and opt.start is not None:
