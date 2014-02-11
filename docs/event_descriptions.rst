@@ -14,9 +14,9 @@ CAP from iFOT database
 ========= =========== =======================
   Field       Type          Description
 ========= =========== =======================
- ifot_id     Integer
-   start    Char(21)
-    stop    Char(21)
+ ifot_id     Integer         iFOT identifier
+   start    Char(21)       Start time (date)
+    stop    Char(21)        Stop time (date)
   tstart       Float   Start time (CXC secs)
    tstop       Float    Stop time (CXC secs)
      dur       Float         Duration (secs)
@@ -83,9 +83,9 @@ DSN comm period
 =========== ========== ========================
    Field       Type          Description
 =========== ========== ========================
-   ifot_id    Integer
-     start   Char(21)
-      stop   Char(21)
+   ifot_id    Integer          iFOT identifier
+     start   Char(21)        Start time (date)
+      stop   Char(21)         Stop time (date)
     tstart      Float    Start time (CXC secs)
      tstop      Float     Stop time (CXC secs)
        dur      Float          Duration (secs)
@@ -97,6 +97,9 @@ DSN comm period
       site   Char(12)                 DSN site
        soe    Char(4)   DSN Sequence Of Events
    station    Char(6)              DSN station
+        oc   Char(30)                  OC crew
+        cc   Char(30)                  CC crew
+ pass_plan   OneToOne                Pass plan
 =========== ========== ========================
 
 .. _event_dump:
@@ -236,9 +239,9 @@ Load segment
 =========== ========== =======================
    Field       Type          Description
 =========== ========== =======================
-   ifot_id    Integer
-     start   Char(21)
-      stop   Char(21)
+   ifot_id    Integer         iFOT identifier
+     start   Char(21)       Start time (date)
+      stop   Char(21)        Stop time (date)
     tstart      Float   Start time (CXC secs)
      tstop      Float    Stop time (CXC secs)
        dur      Float         Duration (secs)
@@ -499,9 +502,9 @@ Pass plan
 ==================== ========== =======================
        Field            Type          Description
 ==================== ========== =======================
-            ifot_id    Integer
-              start   Char(21)
-               stop   Char(21)
+            ifot_id    Integer         iFOT identifier
+              start   Char(21)       Start time (date)
+               stop   Char(21)        Stop time (date)
              tstart      Float   Start time (CXC secs)
               tstop      Float    Stop time (CXC secs)
                 dur      Float         Duration (secs)

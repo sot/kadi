@@ -1710,9 +1710,9 @@ class CAP(IFotEvent):
     ========= =========== =======================
       Field       Type          Description
     ========= =========== =======================
-     ifot_id     Integer
-       start    Char(21)
-        stop    Char(21)
+     ifot_id     Integer         iFOT identifier
+       start    Char(21)       Start time (date)
+        stop    Char(21)        Stop time (date)
       tstart       Float   Start time (CXC secs)
        tstop       Float    Stop time (CXC secs)
          dur       Float         Duration (secs)
@@ -1748,9 +1748,9 @@ class LoadSegment(IFotEvent):
     =========== ========== =======================
        Field       Type          Description
     =========== ========== =======================
-       ifot_id    Integer
-         start   Char(21)
-          stop   Char(21)
+       ifot_id    Integer         iFOT identifier
+         start   Char(21)       Start time (date)
+          stop   Char(21)        Stop time (date)
         tstart      Float   Start time (CXC secs)
          tstop      Float    Stop time (CXC secs)
            dur      Float         Duration (secs)
@@ -1789,9 +1789,9 @@ class PassPlan(IFotEvent):
     ==================== ========== =======================
            Field            Type          Description
     ==================== ========== =======================
-                ifot_id    Integer
-                  start   Char(21)
-                   stop   Char(21)
+                ifot_id    Integer         iFOT identifier
+                  start   Char(21)       Start time (date)
+                   stop   Char(21)        Stop time (date)
                  tstart      Float   Start time (CXC secs)
                   tstop      Float    Stop time (CXC secs)
                     dur      Float         Duration (secs)
@@ -1861,9 +1861,9 @@ class DsnComm(IFotEvent):
     =========== ========== ========================
        Field       Type          Description
     =========== ========== ========================
-       ifot_id    Integer
-         start   Char(21)
-          stop   Char(21)
+       ifot_id    Integer          iFOT identifier
+         start   Char(21)        Start time (date)
+          stop   Char(21)         Stop time (date)
         tstart      Float    Start time (CXC secs)
          tstop      Float     Stop time (CXC secs)
            dur      Float          Duration (secs)
@@ -1875,6 +1875,9 @@ class DsnComm(IFotEvent):
           site   Char(12)                 DSN site
            soe    Char(4)   DSN Sequence Of Events
        station    Char(6)              DSN station
+            oc   Char(30)                  OC crew
+            cc   Char(30)                  CC crew
+     pass_plan   OneToOne                Pass plan
     =========== ========== ========================
     """
     bot = models.CharField(max_length=4, help_text='Beginning of track')
