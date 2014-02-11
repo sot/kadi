@@ -1890,7 +1890,8 @@ class DsnComm(IFotEvent):
     station = models.CharField(max_length=6, help_text='DSN station')
     oc = models.CharField(max_length=30, help_text='OC crew')
     cc = models.CharField(max_length=30, help_text='CC crew')
-    pass_plan = models.OneToOneField(PassPlan, help_text='Pass plan', null=True)
+    pass_plan = models.OneToOneField(PassPlan, help_text='Pass plan', null=True,
+                                     related_name='dsn_comm')
 
     ifot_type_desc = 'DSN_COMM'
     ifot_props = ['bot', 'eot', 'activity', 'config', 'data_rate', 'site', 'soe', 'station']
