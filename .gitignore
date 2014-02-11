@@ -10,3 +10,5 @@ dist/
 *.db3
 *.h5
 MANIFEST
+validate/
+
