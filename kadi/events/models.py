@@ -1688,7 +1688,8 @@ class IFotEvent(BaseEvent):
             event['dur'] = event['tstop'] - event['tstart']
 
             # Custom processing defined by subclasses to add more attrs to event
-            event.update(cls.get_extras(event, None))
+            if hasattr(cls, 'get_extras'):
+                event.update(cls.get_extras(event, None))
 
             events.append(event)
 
