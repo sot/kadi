@@ -265,6 +265,7 @@ class BaseModel(models.Model):
     """
     _get_obsid_start_attr = 'date'  # Attribute to use for getting event obsid
     objects = MyManager()  # Custom manager to use custom QuerySet below
+    update_priority = 0  # Priority order in update processing (higher => earlier)
 
     class QuerySet(models.query.QuerySet):
         """
@@ -647,6 +648,8 @@ class Obsid(TlmEvent):
     event_msids = ['cobsrqid']
 
     obsid = models.IntegerField(help_text='Observation ID (COBSRQID)')
+
+    update_priority = 1000  # Process Obsid first
 
     @classmethod
     @import_ska
@@ -1628,9 +1631,9 @@ class IFotEvent(BaseEvent):
     """
     Base class for events from the iFOT database
     """
-    ifot_id = models.IntegerField(primary_key=True)
-    start = models.CharField(max_length=21)
-    stop = models.CharField(max_length=21)
+    ifot_id = models.IntegerField(primary_key=True, help_text='iFOT identifier')
+    start = models.CharField(max_length=21, db_index=True, help_text='Start time (date)')
+    stop = models.CharField(max_length=21, help_text='Stop time (date)')
     tstart = models.FloatField(db_index=True, help_text='Start time (CXC secs)')
     tstop = models.FloatField(help_text='Stop time (CXC secs)')
     dur = models.FloatField(help_text='Duration (secs)')
@@ -1683,6 +1686,10 @@ class IFotEvent(BaseEvent):
             event['tstart'] = DateTime(event['start']).secs
             event['tstop'] = DateTime(event['stop']).secs
             event['dur'] = event['tstop'] - event['tstart']
+
+            # Custom processing defined by subclasses to add more attrs to event
+            event.update(cls.get_extras(event, None))
+
             events.append(event)
 
         return events
@@ -1771,57 +1778,6 @@ class LoadSegment(IFotEvent):
                 .format(self.name, self.start[:17], self.load_name, self.scs))
 
 
-class DsnComm(IFotEvent):
-    """
-    DSN comm period
-
-    **Event definition**: DSN comm pass beginning of support to end of support (not
-      beginning / end of track).
-
-    **Fields**
-
-    =========== ========== ========================
-       Field       Type          Description
-    =========== ========== ========================
-       ifot_id    Integer
-         start   Char(21)
-          stop   Char(21)
-        tstart      Float    Start time (CXC secs)
-         tstop      Float     Stop time (CXC secs)
-           dur      Float          Duration (secs)
-           bot    Char(4)       Beginning of track
-           eot    Char(4)             End of track
-      activity   Char(30)     Activity description
-        config   Char(10)            Configuration
-     data_rate    Char(9)                Data rate
-          site   Char(12)                 DSN site
-           soe    Char(4)   DSN Sequence Of Events
-       station    Char(6)              DSN station
-    =========== ========== ========================
-    """
-    bot = models.CharField(max_length=4, help_text='Beginning of track')
-    eot = models.CharField(max_length=4, help_text='End of track')
-    activity = models.CharField(max_length=30, help_text='Activity description')
-    config = models.CharField(max_length=10, help_text='Configuration')
-    data_rate = models.CharField(max_length=9, help_text='Data rate')
-    site = models.CharField(max_length=12, help_text='DSN site')
-    soe = models.CharField(max_length=4, help_text='DSN Sequence Of Events')
-    station = models.CharField(max_length=6, help_text='DSN station')
-
-    ifot_type_desc = 'DSN_COMM'
-    ifot_props = ['bot', 'eot', 'activity', 'config', 'data_rate', 'site', 'soe', 'station']
-    ifot_types = {'DSN_COMM.bot': 'str', 'DSN_COMM.eot': 'str'}
-
-    lookback = 21  # days of lookback
-    lookback_delete = 7  # Remove all comms in database prior to 7 days ago to account
-                         # for potential schedule changes.
-    lookforward = 28  # Accept comms scheduled up to 28 days in advance
-
-    def __unicode__(self):
-        return ('{}: {} {}-{} {}'
-                .format(self.station, self.start[:17], self.bot, self.eot, self.activity))
-
-
 class PassPlan(IFotEvent):
     """
     Pass plan
@@ -1886,9 +1842,84 @@ class PassPlan(IFotEvent):
                          # for potential schedule changes.
     lookforward = 28  # Accept comms scheduled up to 28 days in advance
 
+    update_priority = 500  # Must be before DsnComm
+
     def __unicode__(self):
         return ('{} {} {} OC:{} CC:{}'
                 .format(self.station, self.start[:17], self.est_datetime, self.oc, self.cc))
+
+
+class DsnComm(IFotEvent):
+    """
+    DSN comm period
+
+    **Event definition**: DSN comm pass beginning of support to end of support (not
+      beginning / end of track).
+
+    **Fields**
+
+    =========== ========== ========================
+       Field       Type          Description
+    =========== ========== ========================
+       ifot_id    Integer
+         start   Char(21)
+          stop   Char(21)
+        tstart      Float    Start time (CXC secs)
+         tstop      Float     Stop time (CXC secs)
+           dur      Float          Duration (secs)
+           bot    Char(4)       Beginning of track
+           eot    Char(4)             End of track
+      activity   Char(30)     Activity description
+        config   Char(10)            Configuration
+     data_rate    Char(9)                Data rate
+          site   Char(12)                 DSN site
+           soe    Char(4)   DSN Sequence Of Events
+       station    Char(6)              DSN station
+    =========== ========== ========================
+    """
+    bot = models.CharField(max_length=4, help_text='Beginning of track')
+    eot = models.CharField(max_length=4, help_text='End of track')
+    activity = models.CharField(max_length=30, help_text='Activity description')
+    config = models.CharField(max_length=10, help_text='Configuration')
+    data_rate = models.CharField(max_length=9, help_text='Data rate')
+    site = models.CharField(max_length=12, help_text='DSN site')
+    soe = models.CharField(max_length=4, help_text='DSN Sequence Of Events')
+    station = models.CharField(max_length=6, help_text='DSN station')
+    oc = models.CharField(max_length=30, help_text='OC crew')
+    cc = models.CharField(max_length=30, help_text='CC crew')
+    pass_plan = models.OneToOneField(PassPlan, help_text='Pass plan', null=True)
+
+    ifot_type_desc = 'DSN_COMM'
+    ifot_props = ['bot', 'eot', 'activity', 'config', 'data_rate', 'site', 'soe', 'station']
+    ifot_types = {'DSN_COMM.bot': 'str', 'DSN_COMM.eot': 'str'}
+
+    lookback = 21  # days of lookback
+    lookback_delete = 7  # Remove all comms in database prior to 7 days ago to account
+                         # for potential schedule changes.
+    lookforward = 28  # Accept comms scheduled up to 28 days in advance
+
+    @classmethod
+    def get_extras(cls, event, event_msidset):
+        """
+        Define OC, CC and pass_plan if available
+        """
+        from django.core.exceptions import ObjectDoesNotExist
+
+        out = {}
+        try:
+            pass_plan = PassPlan.objects.get(start=event['start'])
+        except ObjectDoesNotExist:
+            pass
+        else:
+            out['oc'] = pass_plan.oc
+            out['cc'] = pass_plan.cc
+            out['pass_plan'] = pass_plan
+
+        return out
+
+    def __unicode__(self):
+        return ('{}: {} {}-{} {}'
+                .format(self.station, self.start[:17], self.bot, self.eot, self.activity))
 
 
 class Orbit(BaseEvent):
