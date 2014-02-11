@@ -1908,17 +1908,17 @@ class DsnComm(IFotEvent):
         """
         Define OC, CC and pass_plan if available
         """
-        from django.core.exceptions import ObjectDoesNotExist
-
         out = {}
-        try:
-            pass_plan = PassPlan.objects.get(start=event['start'])
-        except ObjectDoesNotExist:
-            pass
-        else:
+        pass_plans = PassPlan.objects.filter(start=event['start'])
+        if len(pass_plans) > 0:
+            # Multiple pass plans possible (e.g. two stations), just take first
+            pass_plan = pass_plans[0]
             out['oc'] = pass_plan.oc
             out['cc'] = pass_plan.cc
             out['pass_plan'] = pass_plan
+        if len(pass_plans) > 1:
+            logger.warn('Multiple pass plans found at {}: {}'
+                        .format(event['start'], pass_plans))
 
         return out
 
