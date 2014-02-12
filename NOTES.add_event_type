@@ -95,3 +95,19 @@ cd
 export KADI=/proj/sot/ska/data/kadi
 ~/git/kadi/manage.py syncdb
 $ska/share/kadi/update_events --start=2000:001 --model=${ModelClassName} --data-root=/proj/sot/ska/data/kadi
+
+###### Install to OCC ska test #########
+
+## As user SOT
+%%+
+ska
+cd ~/git/kadi
+git checkout master
+git fetch origin
+  <passwd>
+git merge origin/master
+python setup.py install
+
+scp {aldcroft@ccosmos:,}/proj/sot/ska/data/kadi/events.db3
+  <passwd>
+%%-
