@@ -10,7 +10,7 @@ https://docs.djangoproject.com/en/1.6/ref/settings/
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
-BASE_DIR = os.path.dirname(os.path.dirname(__file__))
+BASE_DIR = os.path.dirname(os.path.realpath(__file__))
 
 # Data paths for kadi project
 from .paths import EVENTS_DB_PATH
@@ -91,12 +91,19 @@ STATIC_URL = '/static/'
 
 # OTHER Kadi customizations
 
-# STATICFILES_DIRS = (
-#     # Put strings here, like "/home/html/static" or "C:/www/django/static".
-#     # Always use forward slashes, even on Windows.
-#     # Don't forget to use absolute paths, not relative paths.
-#     os.path.join(BASE_DIR, 'static'),
-# )
+STATICFILES_DIRS = (
+    #  Put strings here, like "/home/html/static" or "C:/www/django/static".
+    #  Always use forward slashes, even on Windows.
+    #  Don't forget to use absolute paths, not relative paths.
+    #
+    #  NOTE: It's possible to not define any STATICFILES_DIRS if the static
+    #        files are located in directories like kadi/events/static/.  Then
+    #        the staticfiles app will find them.  (E.g. /static/kadi.css would
+    #        be at kadi/events/static/kadi.css.)
+    #
+    #  The following is for project-wide static files in kadi/static/.
+    os.path.join(BASE_DIR, 'static'),
+    )
 
 # Make this unique, and don't share it with anybody.  Do I need this?
 # SECRET_KEY = 'd7m#*urgc4#1gg5pq)j@8a__$+=5@h82s_31une+$&amp;fy16#0no'
