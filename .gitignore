@@ -11,4 +11,6 @@ dist/
 *.h5
 MANIFEST
 validate/
+GIT_VERSION
+kadi.egg-info/
 

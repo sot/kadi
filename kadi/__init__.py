@@ -1,1 +1,1 @@
-from .version import version as __version__
+from .version import __version__, __git_version__
