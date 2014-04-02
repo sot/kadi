@@ -186,6 +186,9 @@ class CmdList(object):
             self._table.remove_column('idx')
         return self._table
 
+    def __len__(self):
+        return len(self.cmds)
+
     def __getitem__(self, item):
         cmds = self.cmds
         if isinstance(item, six.string_types):
