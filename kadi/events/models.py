@@ -1494,10 +1494,14 @@ class SafeSun(TlmEvent):
     """
     Safe sun event
 
-    **Event definition**: interval when CPE PCAD mode ``61PSTS02 = SSM``
+    **Event definition**: interval from safe mode entry to recovery to OBC control.
 
-    During a safing event and recovery this MSID can toggle to different values,
-    so SafeSun events within 24 hours of each other are merged.
+    Specifically, it is considered part of the safe mode condition if any of the
+    following are True::
+
+       CONLOFP != 'NRML'  # OFP state
+       CTUFMTSL = 'FMT5'  # CTU telemetry format
+       C1SQAX != 'ENAB'   # Sequencer A enable/disable
 
     **Fields**
 
@@ -1513,10 +1517,27 @@ class SafeSun(TlmEvent):
     ======== ========== ================================
     """
     notes = models.TextField()
-
-    event_msids = ['61psts02']
-    event_val = 'SSM'
+    event_msids = ['conlofp', 'ctufmtsl', 'c1sqax']
+    event_filter_bad = False
     event_time_fuzz = 86400  # One full day of fuzz / pad
+    event_min_dur = 3600
+
+    fetch_event_pad = 86400 / 2
+    fetch_event_msids = ['conlofp', 'ctufmtsl', 'c1sqax', 'aopcadmd']
+
+    @classmethod
+    @import_ska
+    def get_state_times_bools(cls, msidset):
+        # Interpolate all MSIDs to a common time.  Sync to the start of CTUFMTSL which is
+        # sampled at 32.8 seconds
+        msidset_interpolate(msidset, 32.8, msidset['ctufmtsl'].times[0])
+
+        # Define intervals when in safe mode ~(A & B & C) == (~A | ~B | ~C)
+        safe_mode = ((msidset['conlofp'].vals != 'NRML')
+                     | (msidset['ctufmtsl'].vals == 'FMT5')
+                     | (msidset['c1sqax'].vals != 'ENAB'))
+
+        return msidset.times, safe_mode
 
 
 class NormalSun(TlmEvent):
