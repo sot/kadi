@@ -1520,7 +1520,7 @@ class SafeSun(TlmEvent):
     event_msids = ['conlofp', 'ctufmtsl', 'c1sqax']
     event_filter_bad = False
     event_time_fuzz = 86400  # One full day of fuzz / pad
-    event_min_dur = 3600
+    event_min_dur = 36000
 
     fetch_event_pad = 86400 / 2
     fetch_event_msids = ['conlofp', 'ctufmtsl', 'c1sqax', 'aopcadmd']
