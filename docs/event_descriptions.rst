@@ -552,10 +552,14 @@ Radiation zone
 Safe sun event
 --------------
 
-**Event definition**: interval when CPE PCAD mode ``61PSTS02 = SSM``
+**Event definition**: interval from safe mode entry to recovery to OBC control.
 
-During a safing event and recovery this MSID can toggle to different values,
-so SafeSun events within 24 hours of each other are merged.
+Specifically, it is considered part of the safe mode condition if any of the
+following are True::
+
+   CONLOFP != 'NRML'  # OFP state
+   CTUFMTSL = 'FMT5'  # CTU telemetry format
+   C1SQAX != 'ENAB'   # Sequencer A enable/disable
 
 **Fields**
 
