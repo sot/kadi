@@ -18,6 +18,7 @@ def tlm_event(evt, figsize=None, fig=None):
     """
     Generic plot for a telemetry event
     """
+    plt.ioff()
     ms = evt.msidset
     n_axes = len(evt.fetch_event_msids)
     if fig is None:
@@ -46,6 +47,11 @@ def tlm_event(evt, figsize=None, fig=None):
         leg = ax.legend(loc='upper left', fontsize='small', fancybox=True)
         if leg is not None:
             leg.get_frame().set_alpha(0.7)
+
+    fig.tight_layout()
+    plt.draw()
+    plt.show()
+    plt.ion()
 
 
 def manvr(evt, figsize=(8, 10), fig=None):
