@@ -1494,10 +1494,14 @@ class SafeSun(TlmEvent):
     """
     Safe sun event
 
-    **Event definition**: interval when CPE PCAD mode ``61PSTS02 = SSM``
+    **Event definition**: interval from safe mode entry to recovery to OBC control.
 
-    During a safing event and recovery this MSID can toggle to different values,
-    so SafeSun events within 24 hours of each other are merged.
+    Specifically, it is considered part of the safe mode condition if any of the
+    following are True::
+
+       CONLOFP != 'NRML'  # OFP state
+       CTUFMTSL = 'FMT5'  # CTU telemetry format
+       C1SQAX != 'ENAB'   # Sequencer A enable/disable
 
     **Fields**
 
@@ -1513,10 +1517,45 @@ class SafeSun(TlmEvent):
     ======== ========== ================================
     """
     notes = models.TextField()
-
-    event_msids = ['61psts02']
-    event_val = 'SSM'
+    event_msids = ['conlofp', 'ctufmtsl', 'c1sqax']
+    event_filter_bad = False
     event_time_fuzz = 86400  # One full day of fuzz / pad
+    event_min_dur = 36000
+
+    fetch_event_pad = 86400 / 2
+    fetch_event_msids = ['conlofp', 'ctufmtsl', 'c1sqax', 'aopcadmd', '61psts02']
+
+    @classmethod
+    @import_ska
+    def get_state_times_bools(cls, msidset):
+        # Second safemode has bad telemetry for the entire event so the standard
+        # detection algorithm fails.  Just hardwire safemode #1 and fix up the
+        # telemetry within this range so that the standard detection works.
+        safemode2_tstart = DateTime('1999:269:20:22:45').secs
+        safemode2_tstop = DateTime('1999:270:08:22:30').secs
+        if msidset.tstart < safemode2_tstop and msidset.tstop > safemode2_tstart:
+            for msid in msidset.values():
+                ok = (msid.times > safemode2_tstart) & (msid.times < safemode2_tstop)
+                msid.bads[ok] = False
+                force_val = {'conlofp': 'NRML', 'ctufmtsl': 'FMT5', 'c1sqax': 'ENAB'}[msid.msid]
+                msid.vals[ok] = force_val
+
+        # Interpolate all MSIDs to a common time.  Sync to the start of CTUFMTSL which is
+        # sampled at 32.8 seconds
+        msidset_interpolate(msidset, 32.8, msidset['ctufmtsl'].times[0])
+
+        # Define intervals when in safe mode ~(A & B & C) == (~A | ~B | ~C)
+        safe_mode = ((msidset['conlofp'].vals != 'NRML')
+                     | (msidset['ctufmtsl'].vals == 'FMT5')
+                     | (msidset['c1sqax'].vals != 'ENAB'))
+
+        # Telemetry indicates a safemode around 1999:221 which isn't real
+        bogus_tstart = DateTime('1999:225').secs
+        if msidset.tstart < bogus_tstart:
+            ok = msidset.times < bogus_tstart
+            safe_mode[ok] = False
+
+        return msidset.times, safe_mode
 
 
 class NormalSun(TlmEvent):

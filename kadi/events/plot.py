@@ -18,6 +18,7 @@ def tlm_event(evt, figsize=None, fig=None):
     """
     Generic plot for a telemetry event
     """
+    plt.ioff()
     ms = evt.msidset
     n_axes = len(evt.fetch_event_msids)
     if fig is None:
@@ -32,12 +33,25 @@ def tlm_event(evt, figsize=None, fig=None):
         else:
             ax = fig.add_subplot(n_axes, 1, i + 1, sharex=ax1)
 
+        # Skip if no telemetry was found
+        if len(ms[msid].times) == 0:
+            continue
+
+        ax.set_ymargin(0.15)
         plot_cxctime(ms[msid].times, ms[msid].raw_vals, state_codes=ms[msid].state_codes,
                      label=msid, ax=ax)
+        ax.set_ymargin(0)
+        plot_cxctime([evt.tstart, evt.tstart], ax.get_ylim(), 'm--', ax=ax)
+        plot_cxctime([evt.tstop, evt.tstop], ax.get_ylim(), 'm--', ax=ax)
         ax.grid()
         leg = ax.legend(loc='upper left', fontsize='small', fancybox=True)
         if leg is not None:
             leg.get_frame().set_alpha(0.7)
+
+    fig.tight_layout()
+    plt.draw()
+    plt.show()
+    plt.ion()
 
 
 def manvr(evt, figsize=(8, 10), fig=None):
