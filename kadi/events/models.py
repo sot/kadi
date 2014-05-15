@@ -1523,11 +1523,23 @@ class SafeSun(TlmEvent):
     event_min_dur = 36000
 
     fetch_event_pad = 86400 / 2
-    fetch_event_msids = ['conlofp', 'ctufmtsl', 'c1sqax', 'aopcadmd']
+    fetch_event_msids = ['conlofp', 'ctufmtsl', 'c1sqax', 'aopcadmd', '61psts02']
 
     @classmethod
     @import_ska
     def get_state_times_bools(cls, msidset):
+        # Second safemode has bad telemetry for the entire event so the standard
+        # detection algorithm fails.  Just hardwire safemode #1 and fix up the
+        # telemetry within this range so that the standard detection works.
+        safemode2_tstart = DateTime('1999:269:20:22:45').secs
+        safemode2_tstop = DateTime('1999:270:08:22:30').secs
+        if msidset.tstart < safemode2_tstop and msidset.tstop > safemode2_tstart:
+            for msid in msidset.values():
+                ok = (msid.times > safemode2_tstart) & (msid.times < safemode2_tstop)
+                msid.bads[ok] = False
+                force_val = {'conlofp': 'NRML', 'ctufmtsl': 'FMT5', 'c1sqax': 'ENAB'}[msid.msid]
+                msid.vals[ok] = force_val
+
         # Interpolate all MSIDs to a common time.  Sync to the start of CTUFMTSL which is
         # sampled at 32.8 seconds
         msidset_interpolate(msidset, 32.8, msidset['ctufmtsl'].times[0])
@@ -1536,6 +1548,12 @@ class SafeSun(TlmEvent):
         safe_mode = ((msidset['conlofp'].vals != 'NRML')
                      | (msidset['ctufmtsl'].vals == 'FMT5')
                      | (msidset['c1sqax'].vals != 'ENAB'))
+
+        # Telemetry indicates a safemode around 1999:221 which isn't real
+        bogus_tstart = DateTime('1999:225').secs
+        if msidset.tstart < bogus_tstart:
+            ok = msidset.times < bogus_tstart
+            safe_mode[ok] = False
 
         return msidset.times, safe_mode
 
