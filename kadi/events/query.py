@@ -127,6 +127,11 @@ class EventQuery(object):
     - filter() : filter events matching criteria and return Django query set
     - intervals(): return time intervals between event start/stop times
 
+    An EventQuery object can be pre-filtered via any of the expressions
+    described in the ``filter()`` doc string.  In this way the corresponding
+    ``intervals()`` and fetch ``remove_intervals`` / ``select_intervals``
+    outputs can be likewise filtered.
+
     A key feature is that EventQuery objects can be combined with boolean
     and, or, and not logic to generate composite EventQuery objects.  From
     there the intervals() output can be used to select or remove the intervals
