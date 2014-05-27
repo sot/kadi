@@ -37,7 +37,8 @@ Confirm web access works as expected
 
 %%+
 cd docs
-env PYTHONPATH=$HOME/git/kadi ipython
+ipython
+>>> import sys; sys.path.insert(0, '/home/aldcroft/git/kadi')
 >>> import kadi.events
 >>> kadi.events.__file__
 
@@ -49,7 +50,8 @@ env PYTHONPATH=$HOME/git/kadi ipython
 
 >>> exit()
 
-env PYTHONPATH=$HOME/git/kadi ipython
+ipython
+>>> import sys; sys.path.insert(0, '/home/aldcroft/git/kadi')
 >>> run make_field_tables
 
 # Update event_descriptions.rst in place

@@ -2119,3 +2119,109 @@ class RadZone(Event):
         return ('{} {} {} dur={:.1f} ksec'
                 .format(self.orbit_num, self.start[:17], self.stop[:17],
                         self.dur / 1000))
+
+
+class AsciiTableEvent(Event):
+    """
+    Base class for events defined by a simple quasi-static text table file.
+    Subclasses need to define the file name (lives in DATA_DIR()/<filename>)
+    and the start and stop column names.
+    """
+    class Meta:
+        abstract = True
+        ordering = ['start']
+
+    @classmethod
+    def get_extras(cls, event, interval):
+        """
+        Get extra stuff for the event based on fields in the interval.  This is a hook
+        within get_events() that should be overridden in individual classes.
+        """
+        return {}
+
+    @classmethod
+    @import_ska
+    def get_events(cls, start, stop=None):
+        """
+        Get events from telemetry defined by a simple rule that the value of
+        `event_msids[0]` == `event_val`.
+        """
+        from ..paths import DATA_DIR
+
+        start = DateTime(start).date
+        stop = DateTime(stop).date
+
+        filename = os.path.join(DATA_DIR(), cls.intervals_file)
+        intervals = table.Table.read(filename, **cls.table_read_kwargs)
+
+        # Custom in-place processing of raw intervals
+        cls.process_intervals(intervals)
+
+        ok = ((DateTime(intervals[cls.start_column]).date > start)
+              & (DateTime(intervals[cls.stop_column]).date < stop))
+
+        # Assemble a list of dicts corresponding to events in this tlm interval
+        events = []
+        for interval in intervals[ok]:
+            tstart = DateTime(interval[cls.start_column]).secs
+            tstop = DateTime(interval[cls.stop_column]).secs
+            event = dict(tstart=tstart,
+                         tstop=tstop,
+                         dur=tstop - tstart,
+                         start=DateTime(tstart).date,
+                         stop=DateTime(tstop).date)
+
+            # Reject events that are shorter than the minimum duration
+            if hasattr(cls, 'event_min_dur') and event['dur'] < cls.event_min_dur:
+                continue
+
+            # Custom processing defined by subclasses to add more attrs to event
+            event.update(cls.get_extras(event, interval))
+
+            events.append(event)
+
+        return events
+
+
+class LttBad(AsciiTableEvent):
+    """
+    LTT bad intervals
+
+    **Fields**
+
+    ======== ========== ================================
+     Field      Type              Description
+    ======== ========== ================================
+      start   Char(21)   Start time (YYYY:DDD:HH:MM:SS)
+       stop   Char(21)    Stop time (YYYY:DDD:HH:MM:SS)
+     tstart      Float            Start time (CXC secs)
+      tstop      Float             Stop time (CXC secs)
+        dur      Float                  Duration (secs)
+       msid   Char(20)                             MSID
+       flag    Char(2)                             Flag
+    ======== ========== ================================
+    """
+    msid = models.CharField(max_length=20, help_text='MSID')
+    flag = models.CharField(max_length=2, help_text='Flag')
+
+    intervals_file = 'ltt_bads.dat'
+    # Table.read keyword args
+    table_read_kwargs = dict(format='ascii', data_start=2, delimiter='|', guess=False,
+                             fill_values=None)
+    start_column = 'start'
+    stop_column = 'stop'
+
+    @classmethod
+    def process_intervals(cls, intervals):
+        intervals['start'] = DateTime(intervals['tstart']).date
+        intervals['stop'] = (DateTime(intervals['tstart']) + 1).date
+
+    @classmethod
+    def get_extras(cls, event, interval):
+        out = {}
+        for key in ('msid', 'flag'):
+            out[key] = interval[key].tolist()
+        return out
+
+    def __unicode__(self):
+        return ('start={} msid={} flag={}'.format(self.start, self.msid, self.flag))

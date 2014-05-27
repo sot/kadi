@@ -12,7 +12,7 @@ WWW  = $(INSTALL)/www
 DOC = docs/_build/html/*
 
 # Installed data.  These are template RDB files, mostly relevant for testing
-DATA = task_schedule*.cfg
+DATA = task_schedule*.cfg ltt_bads.dat
 
 # telem_archive uses a number of dedicated perl and IDL scripts
 SHARE = update_events update_cmds

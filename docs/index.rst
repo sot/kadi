@@ -13,6 +13,7 @@
 .. |FaMove| replace:: :class:`~kadi.events.models.FaMove`
 .. |GratingMove| replace:: :class:`~kadi.events.models.GratingMove`
 .. |LoadSegment| replace:: :class:`~kadi.events.models.LoadSegment`
+.. |LttBad| replace:: :class:`~kadi.events.models.LttBad`
 .. |MajorEvent| replace:: :class:`~kadi.events.models.MajorEvent`
 .. |Manvr| replace:: :class:`~kadi.events.models.Manvr`
 .. |ManvrSeq| replace:: :class:`~kadi.events.models.ManvrSeq`
@@ -321,6 +322,7 @@ Starting from the top, you can list the available event types with the following
            fa_moves                    SIM FA translation          FaMove
       grating_moves       Grating movement (HETG or LETG)     GratingMove
       load_segments       Load segment from iFOT database     LoadSegment
+           ltt_bads                     LTT bad intervals          LttBad
        major_events                           Major event      MajorEvent
              manvrs                              Maneuver           Manvr
          manvr_seqs               Maneuver sequence event        ManvrSeq
@@ -663,6 +665,7 @@ Event definitions
         |FaMove|          :ref:`event_fa_move`          ``fa_moves``
    |GratingMove|     :ref:`event_grating_move`     ``grating_moves``
    |LoadSegment|     :ref:`event_load_segment`     ``load_segments``
+        |LttBad|          :ref:`event_ltt_bad`          ``ltt_bads``
     |MajorEvent|      :ref:`event_major_event`      ``major_events``
          |Manvr|            :ref:`event_manvr`            ``manvrs``
       |ManvrSeq|        :ref:`event_manvr_seq`        ``manvr_seqs``

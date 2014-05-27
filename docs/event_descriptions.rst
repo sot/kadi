@@ -251,6 +251,25 @@ Load segment
    comment       Text                 Comment
 =========== ========== =======================
 
+.. _event_ltt_bad:
+
+LTT bad intervals
+-----------------
+
+**Fields**
+
+======== ========== ================================
+ Field      Type              Description
+======== ========== ================================
+  start   Char(21)   Start time (YYYY:DDD:HH:MM:SS)
+   stop   Char(21)    Stop time (YYYY:DDD:HH:MM:SS)
+ tstart      Float            Start time (CXC secs)
+  tstop      Float             Stop time (CXC secs)
+    dur      Float                  Duration (secs)
+   msid   Char(20)                             MSID
+   flag    Char(2)                             Flag
+======== ========== ================================
+
 .. _event_major_event:
 
 Major event
