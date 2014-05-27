@@ -342,7 +342,7 @@ class BaseModel(models.Model):
 
     @classmethod
     @import_ska
-    def get_date_intervals(cls, start, stop, pad=None):
+    def get_date_intervals(cls, start, stop, pad=None, **filter_kwargs):
         # OPTIMIZE ME!
 
         # Initially get events within padded date range.  Filter on only
@@ -355,7 +355,7 @@ class BaseModel(models.Model):
 
         datestart = (DateTime(start) - cls.lookback).date
         datestop = (DateTime(stop) + cls.lookback).date
-        events = cls.objects.filter(start__gte=datestart, start__lte=datestop)
+        events = cls.objects.filter(start__gte=datestart, start__lte=datestop, **filter_kwargs)
 
         datestart = DateTime(start).date
         datestop = DateTime(stop).date

@@ -135,18 +135,19 @@ class EventQuery(object):
 
     interval_pad = IntervalPad()  # descriptor defining a Pad for intervals
 
-    def __init__(self, cls=None, left=None, right=None, op=None, pad=None):
+    def __init__(self, cls=None, left=None, right=None, op=None, pad=None, **filter_kwargs):
         self.cls = cls
         self.left = left
         self.right = right
         self.op = op
         self.interval_pad = pad
+        self.filter_kwargs = filter_kwargs
 
-    def __call__(self, pad=None):
+    def __call__(self, pad=None, **filter_kwargs):
         """
         Generate new EventQuery event for the same model class but with different pad.
         """
-        return EventQuery(cls=self.cls, pad=pad)
+        return EventQuery(cls=self.cls, pad=pad, **filter_kwargs)
 
     @property
     def name(self):
@@ -172,7 +173,8 @@ class EventQuery(object):
                 intervals1 = self.right.intervals(start, stop)
                 return combine_intervals(self.op, intervals0, intervals1, start, stop)
         else:
-            date_intervals = self.cls.get_date_intervals(start, stop, self.interval_pad)
+            date_intervals = self.cls.get_date_intervals(start, stop, self.interval_pad,
+                                                         **self.filter_kwargs)
             return date_intervals
 
     @property
@@ -223,6 +225,11 @@ class EventQuery(object):
         """
         cls = self.cls
         objs = cls.objects.all()
+
+        # Start from self.filter_kwargs as the default and update with kwargs
+        new_kwargs = self.filter_kwargs.copy()
+        new_kwargs.update(kwargs)
+        kwargs = new_kwargs
 
         if obsid is not None:
             if start or stop:
