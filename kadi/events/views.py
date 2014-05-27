@@ -214,6 +214,10 @@ class OrbitPointList(EventList):
 class RadZoneList(EventList):
     model = models.RadZone
 
+
+class LttBadList(EventList):
+    model = models.LttBad
+
 ####
 
 class ObsidDetail(EventDetail):
@@ -313,3 +317,7 @@ class PassPlanList(EventList):
 
 class PassPlanDetail(EventDetail):
     model = models.PassPlan
+
+
+class LttBadDetail(EventDetail):
+    model = models.LttBad
