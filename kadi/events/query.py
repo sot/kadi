@@ -148,6 +148,27 @@ class EventQuery(object):
         self.interval_pad = pad
         self.filter_kwargs = filter_kwargs
 
+    def __repr__(self):
+        if self.cls is None:
+            op_name = {'and_': 'AND',
+                       'or_': 'OR'}.get(self.op.__name__, 'UNKNOWN_OP')
+            if self.right is None:
+                return 'NOT {}'.format(self.left)
+            else:
+                return '({} {} {})'.format(self.left, op_name, self.right)
+        else:
+            bits = ['<EventQuery: ', self.cls.__name__]
+            if self.interval_pad.start != self.interval_pad.stop:
+                bits.append(' pad=({}, {})'.format(self.interval_pad.start, self.interval_pad.stop))
+            else:
+                if self.interval_pad.start != 0:
+                    bits.append(' pad={}'.format(self.interval_pad.start))
+            if self.filter_kwargs:
+                bits.append(' ' +
+                            ' '.join('{}={!r}'.format(k, v) for k, v in self.filter_kwargs.items()))
+            bits.append('>')
+            return ''.join(bits)
+
     def __call__(self, pad=None, **filter_kwargs):
         """
         Generate new EventQuery event for the same model class but with different pad.
