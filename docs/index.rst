@@ -557,8 +557,18 @@ The following example selects all Kalman mode dwells, but removes times that cou
 affected by a SIM TSC move or a momentum dump.
 
   >>> dwells = events.dwells(pad=-100)
-
   >>> good_times = dwells & ~disturbances  # Dwells and NOT disturbances
+
+You can examine the composite ``good_times`` event query and see how it is constructed of
+boolean combinations of the underlying base event query objects::
+
+  >>> good_times
+  (<EventQuery: Dwell pad=-100.0> AND NOT ((<EventQuery: GratingMove pad=(100.0, 300.0)>
+  OR <EventQuery: Dump pad=(100.0, 300.0)>) OR <EventQuery: TscMove pad=(100.0, 300.0)>))
+
+Finally you can you this composite event query to define times for selecting telemetry
+of interest::
+
   >>> dat = fetch.Msid('aoattqt1', '2012:001', '2012:002')
   >>> dat.plot()
   >>> dat_good = dat.select_intervals(good_times, copy=True)
