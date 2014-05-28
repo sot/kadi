@@ -153,6 +153,7 @@ class EventQuery(object):
             op_name = {'and_': 'AND',
                        'or_': 'OR'}.get(self.op.__name__, 'UNKNOWN_OP')
             if self.right is None:
+                # This assumes any unary operator is ~.  FIX ME!
                 return 'NOT {}'.format(self.left)
             else:
                 return '({} {} {})'.format(self.left, op_name, self.right)

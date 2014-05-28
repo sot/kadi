@@ -567,6 +567,42 @@ affected by a SIM TSC move or a momentum dump.
 
 .. image:: complex_event_filter.png
 
+Filtering the interval events
+""""""""""""""""""""""""""""""
+
+The examples shown above share the feature that the selected intervals were defined
+using *all* of the events for a particular type.  However, it is also possible to
+select only a subset of the available events based on other filter criteria.  For
+example, if you wanted to examine telemetry during HETG insertions.  This would be
+a snap with the following, which defines a new event query which is the subset
+of HETG insertion grating moves::
+
+  >>> hetg_insert = events.grating_moves(pad=50, grating='HETG', direction='INSR')
+
+This new event query object can be used just like the original ``events.grating_moves``
+except that now it only has HETG insertion events.
+::
+
+  >>> events.grating_moves
+  <EventQuery: GratingMove pad=0.0>
+  >>> hetg_insert
+  <EventQuery: GratingMove pad=0.0 direction='INSR' grating='HETG'>
+
+To overplot the grating angle as a function of time since the grating move start you might
+do::
+
+  >>> intervals = hetg_insert.intervals('2010:001', '2010:030')
+  >>> intervals
+  >>> print intervals  # This is a list of (start, stop) pairs
+  [('2010:002:15:25:39.725', '2010:002:15:28:15.013'),
+   ('2010:004:09:41:29.708', '2010:004:09:44:04.996'),
+               ...
+   ('2010:018:13:36:14.745', '2010:018:13:38:50.033'),
+   ('2010:021:04:47:00.207', '2010:021:04:49:35.494')]
+  >>> for start, stop in intervals:
+  ...     dat = fetch.Msid('4hposaro', start, stop)
+  ...     plot(dat.times - dat.times[0], dat.vals)
+
 Get commands
 ^^^^^^^^^^^^^^^^
 
