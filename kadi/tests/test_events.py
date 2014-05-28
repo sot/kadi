@@ -108,3 +108,30 @@ def test_get_obsid():
         assert len(query_events) >= 1
         for query_event in query_events:
             assert query_event.get_obsid() == obsid
+
+
+def test_intervals_filter():
+    """
+    Test setting filter keywords in the EventQuery object itself.
+    """
+    ltt_bads = events.ltt_bads
+    start, stop = '2011:295', '2011:305'
+
+    assert (str(ltt_bads().filter('2011:298', '2011:305')).splitlines() ==
+            ['<LttBad: start=2011:299:04:58:39.000 msid=1CBAT flag=M>',
+             '<LttBad: start=2011:300:00:00:00.000 msid=AACCCDPT flag=A>',
+             '<LttBad: start=2011:301:00:00:00.000 msid=AACCCDPT flag=A>',
+             '<LttBad: start=2011:302:00:00:00.000 msid=AACCCDPT flag=A>'])
+
+    # No filter
+    assert (ltt_bads.intervals(start, stop) ==
+            [('2011:299:04:58:39.000', '2011:303:00:00:00.000')])
+
+    assert (ltt_bads(flag='M').intervals(start, stop) ==
+            [('2011:299:04:58:39.000', '2011:300:04:58:39.000')])
+
+    assert (ltt_bads(msid='AACCCDPT', flag='A').intervals(start, stop) ==
+            [('2011:300:00:00:00.000', '2011:303:00:00:00.000')])
+
+    assert (ltt_bads(msid='AACCCDPT', flag='A', start__gt='2011:301:12').intervals(start, stop) ==
+            [('2011:302:00:00:00.000', '2011:303:00:00:00.000')])
