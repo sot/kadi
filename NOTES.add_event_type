@@ -21,7 +21,7 @@ export ModelClassName=<model_class_name>
 cp $ska/data/kadi/events.db3 ./
 export KADI=$PWD
 ./manage.py syncdb
-./update_events --start=2000:001 --stop=2001:001 --model=${ModelClassName} [--delete-from-start]
+./update_events --start=1999:200 --stop=2001:001 --model=${ModelClassName} [--delete-from-start]
 ./update_events --start=2001:001 --model=${ModelClassName}
 %%
 
