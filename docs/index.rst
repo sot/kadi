@@ -613,6 +613,66 @@ do::
   ...     dat = fetch.Msid('4hposaro', start, stop)
   ...     plot(dat.times - dat.times[0], dat.vals)
 
+LTT bad times
+@@@@@@@@@@@@@@
+
+Another example of practical interest is using the LTT bad times event to remove bad times
+for long-term trending plots by MSID.  Before explaining more about what is going on, here is
+an example of filtering out LTT bad times (for the impatient)::
+
+  >>> dat = fetch.Msid('AIRU2BT', '2011:001', '2013:001', stat='daily')
+  >>> dat_good = dat.remove_intervals(events.ltt_bads(msid='AIRU2BT'), copy=True)
+  >>> dat.plot('r', label='All')
+  >>> dat_good.plot(label='Good')
+  >>> plt.ylim(96, 103)
+  >>> plt.grid()
+  >>> plt.legend(fontsize='small')
+  >>> plt.title('AIRU2BT')
+
+.. image:: ltt_bads_airu2bt.png
+
+Now let's look more closely at the LTT bad times events, which are derived from a
+FOT-supplied file that has the dates when particular trending items (the ``msid`` column)
+are bad for some reason::
+
+  >>> print events.ltt_bads.filter('2000:001', '2001:001').table
+          start                  stop            tstart       tstop       dur         msid      flag
+  --------------------- --------------------- ------------ ------------ ------- --------------- ----
+  2000:001:00:00:00.000 2000:002:00:00:00.000 63072064.184 63158464.184 86400.0 PITCH_STAB_PERF    J
+  2000:001:00:00:00.000 2000:002:00:00:00.000 63072064.184 63158464.184 86400.0   YAW_STAB_PERF    J
+  2000:004:00:00:00.000 2000:005:00:00:00.000 63331264.184 63417664.184 86400.0      GCM_TSCACC    1
+                    ...                   ...          ...          ...     ...             ...  ...
+  2000:358:00:00:00.000 2000:359:00:00:00.000 93916864.184 94003264.184 86400.0         3SDM15V    1
+  2000:358:00:00:00.000 2000:359:00:00:00.000 93916864.184 94003264.184 86400.0          3SDP5V    1
+  2000:366:00:00:00.000 2001:001:00:00:00.000 94608064.184 94694464.184 86400.0         3SDM15V    1
+
+Some of the ``msid`` values correspond to like-named MSIDs in the engineering archive, but
+many (including all those shown here) do not.  You can find the non-matches with::
+
+  >>> print sorted(set(x.msid for x in events.ltt_bads.filter('1999:001')
+                   if not (x.msid in fetch.content or 'DP_' + x.msid in fetch.content)))
+  [u'*', u'3SDAGV', u'3SDFATSV', u'3SDM15V', u'3SDP15V', u'3SDP5V', u'3SDTSTSV', u'5EHSE300', u'ABIASZ',
+  ...
+  u'ROLL_BIAS_DIFF', u'SAMYTEMDEL', u'SAPYTEMDEL', u'TFCAG', u'TFCDG', u'VECANGLE_DIFF',
+  u'YAW_BIAS_DIFF', u'YAW_CTRL', u'YAW_STAB', u'YAW_STAB_PERF']
+
+There is a special ``msid`` value of ``'*'`` which corresponds to times that are bad for ALL
+MSIDs.  The bad intervals with ``msid == '*'`` are always included in query results::
+
+  >>> events.ltt_bads(msid='AACCCDPT').all()
+  <LttBad: start=1999:270:00:00:00.000 msid=* flag=*>
+  <LttBad: start=1999:291:00:00:00.000 msid=* flag=*>
+  <LttBad: start=1999:295:00:00:00.000 msid=* flag=*>
+  ...
+  <LttBad: start=2011:190:00:00:00.000 msid=* flag=*>
+  <LttBad: start=2011:191:00:00:00.000 msid=AACCCDPT flag=A>
+  <LttBad: start=2011:192:00:00:00.000 msid=AACCCDPT flag=A>
+  ...
+  <LttBad: start=2011:302:00:00:00.000 msid=AACCCDPT flag=A>
+  <LttBad: start=2012:150:00:00:00.000 msid=* flag=*>
+  <LttBad: start=2012:151:00:00:00.000 msid=* flag=*>
+
+
 Get commands
 ^^^^^^^^^^^^^^^^
 
