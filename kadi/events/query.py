@@ -322,11 +322,23 @@ class EventQuery(object):
         return self.filter()
 
 
+class LttBadEventQuery(EventQuery):
+    def __call__(self, pad=None, **filter_kwargs):
+        """
+        Generate new EventQuery event for the same model class but with different pad.
+        """
+        if 'msid' in filter_kwargs:
+            filter_kwargs['msid__in'] = ['*', filter_kwargs.pop('msid')]
+
+        return EventQuery(cls=self.cls, pad=pad, **filter_kwargs)
+
+
 # Put EventQuery objects for each query-able model class into module globals
 event_models = models.get_event_models()
 for model_name, model_class in event_models.items():
     query_name = model_name + 's'  # simple pluralization
-    query_instance = EventQuery(cls=model_class)
+    event_query_class = LttBadEventQuery if model_name == 'ltt_bad' else EventQuery
+    query_instance = event_query_class(cls=model_class)
     query_instance.__doc__ = model_class.__doc__
     globals()[query_name] = query_instance
     __all__.append(query_name)
