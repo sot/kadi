@@ -261,6 +261,7 @@ LTT bad intervals
 ======== ========== ================================
  Field      Type              Description
 ======== ========== ================================
+    key   Char(38)        Unique key for this event
   start   Char(21)   Start time (YYYY:DDD:HH:MM:SS)
    stop   Char(21)    Stop time (YYYY:DDD:HH:MM:SS)
  tstart      Float            Start time (CXC secs)

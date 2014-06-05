@@ -342,7 +342,7 @@ class BaseModel(models.Model):
 
     @classmethod
     @import_ska
-    def get_date_intervals(cls, start, stop, pad=None):
+    def get_date_intervals(cls, start, stop, pad=None, **filter_kwargs):
         # OPTIMIZE ME!
 
         # Initially get events within padded date range.  Filter on only
@@ -355,7 +355,7 @@ class BaseModel(models.Model):
 
         datestart = (DateTime(start) - cls.lookback).date
         datestop = (DateTime(stop) + cls.lookback).date
-        events = cls.objects.filter(start__gte=datestart, start__lte=datestop)
+        events = cls.objects.filter(start__gte=datestart, start__lte=datestop, **filter_kwargs)
 
         datestart = DateTime(start).date
         datestop = DateTime(stop).date
@@ -2121,7 +2121,7 @@ class RadZone(Event):
                         self.dur / 1000))
 
 
-class AsciiTableEvent(Event):
+class AsciiTableEvent(BaseEvent):
     """
     Base class for events defined by a simple quasi-static text table file.
     Subclasses need to define the file name (lives in DATA_DIR()/<filename>)
@@ -2192,6 +2192,7 @@ class LttBad(AsciiTableEvent):
     ======== ========== ================================
      Field      Type              Description
     ======== ========== ================================
+        key   Char(38)        Unique key for this event
       start   Char(21)   Start time (YYYY:DDD:HH:MM:SS)
        stop   Char(21)    Stop time (YYYY:DDD:HH:MM:SS)
      tstart      Float            Start time (CXC secs)
@@ -2201,8 +2202,18 @@ class LttBad(AsciiTableEvent):
        flag    Char(2)                             Flag
     ======== ========== ================================
     """
+    key = models.CharField(max_length=38, primary_key=True,
+                           help_text='Unique key for this event')
+    start = models.CharField(max_length=21, help_text='Start time (YYYY:DDD:HH:MM:SS)')
+    stop = models.CharField(max_length=21, help_text='Stop time (YYYY:DDD:HH:MM:SS)')
+    tstart = models.FloatField(db_index=True, help_text='Start time (CXC secs)')
+    tstop = models.FloatField(help_text='Stop time (CXC secs)')
+    dur = models.FloatField(help_text='Duration (secs)')
     msid = models.CharField(max_length=20, help_text='MSID')
     flag = models.CharField(max_length=2, help_text='Flag')
+
+    key._kadi_hidden = True
+    dur._kadi_format = '{:.1f}'
 
     intervals_file = 'ltt_bads.dat'
     # Table.read keyword args
@@ -2215,12 +2226,14 @@ class LttBad(AsciiTableEvent):
     def process_intervals(cls, intervals):
         intervals['start'] = DateTime(intervals['tstart']).date
         intervals['stop'] = (DateTime(intervals['tstart']) + 1).date
+        intervals.sort('start')
 
     @classmethod
     def get_extras(cls, event, interval):
         out = {}
         for key in ('msid', 'flag'):
             out[key] = interval[key].tolist()
+        out['key'] = event['start'][:17] + out['msid']
         return out
 
     def __unicode__(self):

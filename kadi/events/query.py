@@ -127,6 +127,11 @@ class EventQuery(object):
     - filter() : filter events matching criteria and return Django query set
     - intervals(): return time intervals between event start/stop times
 
+    An EventQuery object can be pre-filtered via any of the expressions
+    described in the ``filter()`` doc string.  In this way the corresponding
+    ``intervals()`` and fetch ``remove_intervals`` / ``select_intervals``
+    outputs can be likewise filtered.
+
     A key feature is that EventQuery objects can be combined with boolean
     and, or, and not logic to generate composite EventQuery objects.  From
     there the intervals() output can be used to select or remove the intervals
@@ -135,18 +140,41 @@ class EventQuery(object):
 
     interval_pad = IntervalPad()  # descriptor defining a Pad for intervals
 
-    def __init__(self, cls=None, left=None, right=None, op=None, pad=None):
+    def __init__(self, cls=None, left=None, right=None, op=None, pad=None, **filter_kwargs):
         self.cls = cls
         self.left = left
         self.right = right
         self.op = op
         self.interval_pad = pad
+        self.filter_kwargs = filter_kwargs
 
-    def __call__(self, pad=None):
+    def __repr__(self):
+        if self.cls is None:
+            op_name = {'and_': 'AND',
+                       'or_': 'OR'}.get(self.op.__name__, 'UNKNOWN_OP')
+            if self.right is None:
+                # This assumes any unary operator is ~.  FIX ME!
+                return 'NOT {}'.format(self.left)
+            else:
+                return '({} {} {})'.format(self.left, op_name, self.right)
+        else:
+            bits = ['<EventQuery: ', self.cls.__name__]
+            if self.interval_pad.start != self.interval_pad.stop:
+                bits.append(' pad=({}, {})'.format(self.interval_pad.start, self.interval_pad.stop))
+            else:
+                if self.interval_pad.start != 0:
+                    bits.append(' pad={}'.format(self.interval_pad.start))
+            if self.filter_kwargs:
+                bits.append(' ' +
+                            ' '.join('{}={!r}'.format(k, v) for k, v in self.filter_kwargs.items()))
+            bits.append('>')
+            return ''.join(bits)
+
+    def __call__(self, pad=None, **filter_kwargs):
         """
         Generate new EventQuery event for the same model class but with different pad.
         """
-        return EventQuery(cls=self.cls, pad=pad)
+        return EventQuery(cls=self.cls, pad=pad, **filter_kwargs)
 
     @property
     def name(self):
@@ -172,7 +200,8 @@ class EventQuery(object):
                 intervals1 = self.right.intervals(start, stop)
                 return combine_intervals(self.op, intervals0, intervals1, start, stop)
         else:
-            date_intervals = self.cls.get_date_intervals(start, stop, self.interval_pad)
+            date_intervals = self.cls.get_date_intervals(start, stop, self.interval_pad,
+                                                         **self.filter_kwargs)
             return date_intervals
 
     @property
@@ -224,6 +253,11 @@ class EventQuery(object):
         cls = self.cls
         objs = cls.objects.all()
 
+        # Start from self.filter_kwargs as the default and update with kwargs
+        new_kwargs = self.filter_kwargs.copy()
+        new_kwargs.update(kwargs)
+        kwargs = new_kwargs
+
         if obsid is not None:
             if start or stop:
                 raise ValueError('Cannot set both obsid and start or stop')
@@ -270,29 +304,41 @@ class EventQuery(object):
 
           >>> from kadi import events
           >>> print events.safe_suns.all()
-          <SafeSun: start=1999:229:20:18:22.688 dur=105043>
-          <SafeSun: start=1999:250:16:31:46.461 dur=1697905>
-          <SafeSun: start=2000:048:08:09:30.216 dur=68689>
-          <SafeSun: start=2011:187:12:29:22.579 dur=288496>
-          <SafeSun: start=2012:150:03:33:45.816 dur=118577>
+          <SafeSun: start=1999:229:20:17:50.616 dur=105091>
+          <SafeSun: start=1999:269:20:22:50.616 dur=43165>
+          <SafeSun: start=2000:048:08:08:54.216 dur=68798>
+          <SafeSun: start=2011:187:12:28:53.816 dur=288624>
+          <SafeSun: start=2012:150:03:33:09.816 dur=118720>
 
           >>> print events.safe_suns.all().table
-                  start                  stop             tstart        tstop          dur      notes
-          --------------------- --------------------- ------------- ------------- ------------- -----
-          1999:229:20:18:22.688 1999:231:01:29:05.885 51308366.8723  51413410.069 105043.196657
-          1999:250:16:31:46.461 1999:270:08:10:11.850 53109170.6451 54807076.0338 1697905.38868
-          2000:048:08:09:30.216 2000:049:03:14:19.260 67162234.4001 67230923.4436 68689.0435828
-          2011:187:12:29:22.579 2011:190:20:37:38.914 426342628.763 426631125.098 288496.334723
-          2012:150:03:33:45.816 2012:151:12:30:03.213   454649692.0 454768269.397 118577.396626
+                  start                  stop            tstart      tstop      dur    notes
+          --------------------- --------------------- ----------- ----------- -------- -----
+          1999:229:20:17:50.616 1999:231:01:29:21.816  51308334.8  51413426.0 105091.2
+          1999:269:20:22:50.616 1999:270:08:22:15.416  54764634.8  54807799.6  43164.8
+          2000:048:08:08:54.216 2000:049:03:15:32.216  67162198.4  67230996.4  68798.0
+          2011:187:12:28:53.816 2011:190:20:39:17.416 426342600.0 426631223.6 288623.6
+          2012:150:03:33:09.816 2012:151:12:31:49.416 454649656.0 454768375.6 118719.6
         """
         return self.filter()
+
+
+class LttBadEventQuery(EventQuery):
+    def __call__(self, pad=None, **filter_kwargs):
+        """
+        Generate new EventQuery event for the same model class but with different pad.
+        """
+        if 'msid' in filter_kwargs:
+            filter_kwargs['msid__in'] = ['*', filter_kwargs.pop('msid')]
+
+        return EventQuery(cls=self.cls, pad=pad, **filter_kwargs)
 
 
 # Put EventQuery objects for each query-able model class into module globals
 event_models = models.get_event_models()
 for model_name, model_class in event_models.items():
     query_name = model_name + 's'  # simple pluralization
-    query_instance = EventQuery(cls=model_class)
+    event_query_class = LttBadEventQuery if model_name == 'ltt_bad' else EventQuery
+    query_instance = event_query_class(cls=model_class)
     query_instance.__doc__ = model_class.__doc__
     globals()[query_name] = query_instance
     __all__.append(query_name)
