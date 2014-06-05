@@ -16,6 +16,7 @@ dark_cal_replicas  ACA dark current calibration replica  DarkCalReplica
          fa_moves                    SIM FA translation          FaMove
     grating_moves       Grating movement (HETG or LETG)     GratingMove
     load_segments       Load segment from iFOT database     LoadSegment
+         ltt_bads                     LTT bad intervals          LttBad
      major_events                           Major event      MajorEvent
            manvrs                              Maneuver           Manvr
        manvr_seqs               Maneuver sequence event        ManvrSeq
