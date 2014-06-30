@@ -334,6 +334,7 @@ class LttBadEventQuery(EventQuery):
 
 
 # Put EventQuery objects for each query-able model class into module globals
+obsids = None  # silence pyflakes
 event_models = models.get_event_models()
 for model_name, model_class in event_models.items():
     query_name = model_name + 's'  # simple pluralization
