@@ -315,8 +315,7 @@ class BaseModel(models.Model):
               >>> manvrs = events.manvrs.filter('2001:001:00:00:00', '2001:003:00:00:00')
               >>> non_rad_manvrs = manvrs.select_overlapping(~events.rad_zones)
               >>> rad_manvrs = manvrs.select_overlapping(events.rad_zones)
-              >>> fully_radzone_manvrs = manvrs.select_overlapping(events.rad_zones,
-                                                                   allow_partial=False)
+              >>> fully_radzone_manvrs = manvrs.select_overlapping(events.rad_zones, allow_partial=False)
 
             :param query_event: QueryEvent object (e.g. events.tsc_moves or a composite
                                 boolean expression)

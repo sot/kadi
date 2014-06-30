@@ -682,9 +682,9 @@ Frequently you are interested in getting events based on overlap with other even
 - Select SIM moves that occur during a maneuver.
 - Select maneuvers that have a SIM or Grating move.
 
-This is possible using the `~kadi.events.models.BaseModel.QuerySet.select_overlapping`
+This is possible using the :func:`~kadi.events.models.BaseModel.QuerySet.select_overlapping`
 method of a `QuerySet` object.  A `QuerySet` is the object that gets returned when you use
-the `~kadi.events.query.EventQuery.filter()`` or `~kadi.events.query.EventQuery.all()``
+the :func:`~kadi.events.query.EventQuery.filter()` or :func:`~kadi.events.query.EventQuery.all()`
 methods.
 
 This is all easiest to see by example.  Start by getting a subset of maneuvers that
