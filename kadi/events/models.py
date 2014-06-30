@@ -304,19 +304,19 @@ class BaseModel(models.Model):
             """
             Select events which overlap with the specified ``query_event``.
 
-            By default there must be complete overlap between the self events and the
-            ``query_event`` intervals.  For instance this would allow selecting maneuvers
-            that are entirely within the rad zone.  However, if ``partial=True``, then
-            partial overlaps are allowed.  As an example this would allow selecting
-            maneuvers that have a SIM TSC motion at any time during the actual maneuver.
+            By default partial overlap between the self events and the ``query_event``
+            intervals is sufficient.  However, if ``allow_partial=False``, then
+            complete overlap is required.  As an example this would be selecting
+            maneuvers that are *entirely* within the radiation zone.
 
             Examples::
 
               >>> from kadi import events
               >>> manvrs = events.manvrs.filter('2001:001:00:00:00', '2001:003:00:00:00')
-              >>> manvrs_outside_rad_zone = manvrs.select_overlapping(~events.rad_zones)
-              >>> manvrs_inside_rad_zone = manvrs.select_overlapping(events.rad_zones)
-              >>> manvrs_with_sim_move = manvrs.select_overlapping(events.tsc_moves, partial=True)
+              >>> non_rad_manvrs = manvrs.select_overlapping(~events.rad_zones)
+              >>> rad_manvrs = manvrs.select_overlapping(events.rad_zones)
+              >>> fully_radzone_manvrs = manvrs.select_overlapping(events.rad_zones,
+                                                                   allow_partial=False)
 
             :param query_event: QueryEvent object (e.g. events.tsc_moves or a composite
                                 boolean expression)
