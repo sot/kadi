@@ -673,6 +673,97 @@ MSIDs.  The bad intervals with ``msid == '*'`` are always included in query resu
   <LttBad: start=2012:151:00:00:00.000 msid=* flag=*>
 
 
+Selecting overlapping events
+""""""""""""""""""""""""""""""
+
+Frequently you are interested in getting events based on overlap with other events.  Examples include:
+
+- Select maneuver events either inside or outside the radiation zone.
+- Select SIM moves that occur during a maneuver.
+- Select maneuvers that have a SIM or Grating move.
+
+This is possible using the `~kadi.events.models.BaseModel.QuerySet.select_overlapping`
+method of a `QuerySet` object.  A `QuerySet` is the object that gets returned when you use
+the `~kadi.events.query.EventQuery.filter()`` or `~kadi.events.query.EventQuery.all()``
+methods.
+
+This is all easiest to see by example.  Start by getting a subset of maneuvers that
+occurred between 2001:001:00:00:00 and 2001:003:00:00:00:
+
+  >>> manvrs = events.manvrs.filter('2001:001:00:00:00', '2001:003:00:00:00')
+  >>> manvrs
+  <Manvr: start=2001:001:07:48:35.843 dur=2073 n_dwell=2 template=nman_dwell>
+  <Manvr: start=2001:002:05:20:14.046 dur=1184 n_dwell=1 template=normal>
+  <Manvr: start=2001:002:08:53:23.997 dur=241 n_dwell=1 template=normal>
+  <Manvr: start=2001:002:14:55:24.773 dur=240 n_dwell=1 template=normal>
+  <Manvr: start=2001:002:20:50:34.523 dur=1185 n_dwell=1 template=normal>
+  >>> type(manvrs)
+  <class 'kadi.events.models.QuerySet'>
+
+Now let's find which of those had at least some portion inside the rad zone::
+
+  >>> manvrs.select_overlapping(events.rad_zones)
+  [<Manvr: start=2001:002:05:20:14.046 dur=1184 n_dwell=1 template=normal>,
+   <Manvr: start=2001:002:08:53:23.997 dur=241 n_dwell=1 template=normal>,
+   <Manvr: start=2001:002:14:55:24.773 dur=240 n_dwell=1 template=normal>]
+
+This makes sense if you look at the rad zone times near then::
+
+  >>> events.rad_zones.filter('2001:001:00:00:00', '2001:003:00:00:00')
+  <RadZone: 194 2001:002:05:15:03 2001:002:20:50:23 dur=56.1 ksec>
+
+We can turn it around and ask which maneuvers had some part outside of the rad zone,
+remembering the boolean expression logic that is possible.  In fact any composite
+``QueryEvent`` expression can be used as the argument:
+
+  >>> manvrs.select_overlapping(~events.rad_zones)
+  [<Manvr: start=2001:001:07:48:35.843 dur=2073 n_dwell=2 template=nman_dwell>,
+   <Manvr: start=2001:002:20:50:34.523 dur=1185 n_dwell=1 template=normal>]
+
+One subtlety here is that the original `manvrs` object is a ``QuerySet`` while the result
+of ``select_overlapping`` is a **list** of event objects.  A ``QuerySet`` is more powerful
+because you could apply further filtering and so on, while the list is just a regular
+Python list.  In practice this is not a real limitation.
+
+Now on to the example of finding SIM moves that occur during a maneuver::
+
+  >>> tsc_moves = events.tsc_moves.filter('2010:191', '2010:192')
+  >>> tsc_moves
+  <TscMove: start=2010:191:18:34:00.978 dur=262 start_3tscpos=75623 stop_3tscpos=-99616>
+  <TscMove: start=2010:192:01:42:36.179 dur=230 start_3tscpos=-99616 stop_3tscpos=75623>
+  <TscMove: start=2010:192:03:27:33.779 dur=33 start_3tscpos=75623 stop_3tscpos=92903>
+  >>> tsc_moves.select_overlapping(events.manvrs)
+  [<TscMove: start=2010:191:18:34:00.978 dur=262 start_3tscpos=75623 stop_3tscpos=-99616>,
+   <TscMove: start=2010:192:01:42:36.179 dur=230 start_3tscpos=-99616 stop_3tscpos=75623>,
+   <TscMove: start=2010:192:03:27:33.779 dur=33 start_3tscpos=75623 stop_3tscpos=92903>]
+
+All of these moves overlapped with a maneuver, but what if we want the moves that occurred
+**entirely within** a maneuver.  To do this set the ``allow_partial=False`` to insist on
+complete overlaps::
+
+  >>> tsc_moves.select_overlapping(events.manvrs, allow_partial=False)
+  [<TscMove: start=2010:192:01:42:36.179 dur=230 start_3tscpos=-99616 stop_3tscpos=75623>,
+   <TscMove: start=2010:192:03:27:33.779 dur=33 start_3tscpos=75623 stop_3tscpos=92903>]
+
+This makes sense if you look at the maneuvers in that time interval.  The first of the
+three SIM moves started before the maneuver at ``191:18:36:37`` but lasted about two minutes
+into the maneuver.
+
+  >>> events.manvrs.filter('2010:191', '2010:192')
+  <Manvr: start=2010:191:12:39:40.939 dur=240 n_dwell=1 template=normal>
+  <Manvr: start=2010:191:18:36:37.290 dur=241 n_dwell=1 template=normal>
+  <Manvr: start=2010:192:01:41:47.492 dur=1020 n_dwell=1 template=normal>
+  <Manvr: start=2010:192:03:26:36.892 dur=2869 n_dwell=1 template=normal>
+
+To find every SIM-Z move in 2011 that didn't overlap at all with a maneuver you would do::
+
+  >>> tsc_moves = events.tsc_moves.filter('2011:001', '2012:001')
+  >>> tsc_moves.select_overlapping(~events.manvrs, allow_partial=False)
+  [<TscMove: start=2011:158:15:24:01.657 dur=262 start_3tscpos=92903 stop_3tscpos=-99616>,
+   <TscMove: start=2011:216:07:03:21.245 dur=230 start_3tscpos=75623 stop_3tscpos=-99616>,
+   <TscMove: start=2011:297:18:28:57.614 dur=262 start_3tscpos=92903 stop_3tscpos=-99616>,
+   <TscMove: start=2011:299:05:05:28.208 dur=230 start_3tscpos=75623 stop_3tscpos=-99616>]
+
 Get commands
 ^^^^^^^^^^^^^^^^
 
