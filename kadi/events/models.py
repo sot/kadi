@@ -313,10 +313,17 @@ class BaseModel(models.Model):
             Examples::
 
               >>> from kadi import events
-              >>> # Maneuvers with a SIM move
               >>> manvrs = events.manvrs.filter('2001:001:00:00:00', '2001:003:00:00:00')
-              >>> manvrs
-              >>> manvrs.select_overlap(~events.rad_zones)
+              >>> manvrs_outside_rad_zone = manvrs.select_overlapping(~events.rad_zones)
+              >>> manvrs_inside_rad_zone = manvrs.select_overlapping(events.rad_zones)
+              >>> manvrs_with_sim_move = manvrs.select_overlapping(events.tsc_moves, partial=True)
+
+            :param query_event: QueryEvent object (e.g. events.tsc_moves or a composite
+                                boolean expression)
+            :param partial: return events where there is at least partial overlap
+                            (default=False => full overlap is required).
+
+            :returns: list of overlapping events
             """
             from Chandra.Time import DateTime
             from .query import combine_intervals
@@ -353,18 +360,17 @@ class BaseModel(models.Model):
             Find which of the new overlap_intervals are the same as an original interval,
             indicating that there is a full overlap.
             """
-            # Find the indices of matching datestart/stops for the overlap start/stop times.
-            # The clip is because overlap_start can be > the last datestart.  In this case just
-            # clip to point at the last datestart.  This is guaranteed to produce a failed match
-            # and not end up in the list of full overlaps.
-            start_indices = np.searchsorted(datestarts, overlap_starts).clip(0, len(datestarts) - 1)
-            stop_indices = np.searchsorted(datestops, overlap_stops)
+            if len(datestops) == 0 or len(overlap_stops) == 0:
+                return np.array([])
 
-            match_datestarts = datestarts[start_indices]
-            match_datestops = datestops[stop_indices]
+            # Find the indices of matching datestart/stops for the overlap start/stop times.
+            indices = np.searchsorted(datestops, overlap_stops)
+
+            match_datestarts = datestarts[indices]
+            match_datestops = datestops[indices]
 
             ok = (overlap_starts == match_datestarts) & (overlap_stops == match_datestops)
-            return start_indices[ok]
+            return indices[ok]
 
         @staticmethod
         @import_ska
@@ -373,6 +379,9 @@ class BaseModel(models.Model):
             Find which of the new overlap_intervals are the same as an original interval,
             indicating that there is a full overlap.
             """
+            if len(datestops) == 0 or len(overlap_stops) == 0:
+                return np.array([])
+
             indices = np.searchsorted(datestops, overlap_starts)
             indices = np.unique(indices)
 
