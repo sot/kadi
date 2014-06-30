@@ -300,7 +300,7 @@ class BaseModel(models.Model):
 
             return dat
 
-        def select_overlapping(self, query_event, partial=False):
+        def select_overlapping(self, query_event, allow_partial=True):
             """
             Select events which overlap with the specified ``query_event``.
 
@@ -320,8 +320,8 @@ class BaseModel(models.Model):
 
             :param query_event: QueryEvent object (e.g. events.tsc_moves or a composite
                                 boolean expression)
-            :param partial: return events where there is at least partial overlap
-                            (default=False => full overlap is required).
+            :param allow_partial: return events where there is at least partial overlap
+                            (default=True)
 
             :returns: list of overlapping events
             """
@@ -349,7 +349,7 @@ class BaseModel(models.Model):
             overlap_starts = np.array(overlap_starts, dtype='S21')
             overlap_stops = np.array(overlap_stops, dtype='S21')
 
-            func = self._get_partial_overlaps if partial else self._get_full_overlaps
+            func = self._get_partial_overlaps if allow_partial else self._get_full_overlaps
             indices = func(overlap_starts, overlap_stops, datestarts, datestops)
             return [events[i] for i in indices]
 

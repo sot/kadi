@@ -203,9 +203,9 @@ def test_select_overlapping():
         '<Manvr: start=2001:002:08:53:23.997 dur=241 n_dwell=1 template=normal>',
         '<Manvr: start=2001:002:14:55:24.773 dur=240 n_dwell=1 template=normal>']
 
-    manvrs_sel = manvrs.select_overlapping(events.tsc_moves)
+    manvrs_sel = manvrs.select_overlapping(events.tsc_moves, allow_partial=False)
     assert [repr(x) for x in manvrs_sel] == []
 
-    manvrs_sel = manvrs.select_overlapping(events.tsc_moves, partial=True)
+    manvrs_sel = manvrs.select_overlapping(events.tsc_moves)
     assert [repr(x) for x in manvrs_sel] == [
         '<Manvr: start=2001:002:20:50:34.523 dur=1185 n_dwell=1 template=normal>']
