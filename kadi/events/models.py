@@ -1,4 +1,5 @@
 import os
+import operator
 
 from itertools import count, izip
 
@@ -283,7 +284,6 @@ class BaseModel(models.Model):
                 return tuple(val.encode('ascii') if isinstance(val, unicode) else val
                              for val in vals)
 
-            import numpy as np
             from astropy.table import Table
 
             model_fields = self.model.get_model_fields()
@@ -299,6 +299,93 @@ class BaseModel(models.Model):
                 dat.remove_columns(drop_names)
 
             return dat
+
+        def select_overlapping(self, query_event, allow_partial=True):
+            """
+            Select events which overlap with the specified ``query_event``.
+
+            By default there must be complete overlap between the self events and the
+            ``query_event`` intervals.  For instance this would allow selecting maneuvers
+            that are entirely within the rad zone.  However, if ``partial=True``, then
+            partial overlaps are allowed.  As an example this would allow selecting
+            maneuvers that have a SIM TSC motion at any time during the actual maneuver.
+
+            Examples::
+
+              >>> from kadi import events
+              >>> manvrs = events.manvrs.filter('2001:001:00:00:00', '2001:003:00:00:00')
+              >>> manvrs_outside_rad_zone = manvrs.select_overlapping(~events.rad_zones)
+              >>> manvrs_inside_rad_zone = manvrs.select_overlapping(events.rad_zones)
+              >>> manvrs_with_sim_move = manvrs.select_overlapping(events.tsc_moves, partial=True)
+
+            :param query_event: QueryEvent object (e.g. events.tsc_moves or a composite
+                                boolean expression)
+            :param allow_partial: return events where there is at least partial overlap
+                            (default=True)
+
+            :returns: list of overlapping events
+            """
+            from Chandra.Time import DateTime
+            from .query import combine_intervals
+
+            # First find the intervals corresponding to overlaps between self events and
+            # `query_event`.  Do this over an interval that covers an extra 30 days on
+            # either end, assuming that is the longest possible event.  (This padding might
+            # not actually be necessary, but it doesn't hurt too much).
+            events = list(self)
+            start = DateTime(events[0].tstart) - 30
+            stop = DateTime(events[-1].tstop) + 30
+            datestarts = [event.start for event in events]
+            datestops = [event.stop for event in events]
+            intervals = zip(datestarts, datestops)
+            qe_intervals = query_event.intervals(start, stop)
+            overlap_intervals = combine_intervals(operator.and_,
+                                                  intervals, qe_intervals, start, stop)
+
+            overlap_starts, overlap_stops = zip(*overlap_intervals)
+
+            datestarts = np.array(datestarts, dtype='S21')
+            datestops = np.array(datestops, dtype='S21')
+            overlap_starts = np.array(overlap_starts, dtype='S21')
+            overlap_stops = np.array(overlap_stops, dtype='S21')
+
+            func = self._get_partial_overlaps if allow_partial else self._get_full_overlaps
+            indices = func(overlap_starts, overlap_stops, datestarts, datestops)
+            return [events[i] for i in indices]
+
+        @staticmethod
+        @import_ska
+        def _get_full_overlaps(overlap_starts, overlap_stops, datestarts, datestops):
+            """
+            Find which of the new overlap_intervals are the same as an original interval,
+            indicating that there is a full overlap.
+            """
+            if len(datestops) == 0 or len(overlap_stops) == 0:
+                return np.array([])
+
+            # Find the indices of matching datestart/stops for the overlap start/stop times.
+            indices = np.searchsorted(datestops, overlap_stops)
+
+            match_datestarts = datestarts[indices]
+            match_datestops = datestops[indices]
+
+            ok = (overlap_starts == match_datestarts) & (overlap_stops == match_datestops)
+            return indices[ok]
+
+        @staticmethod
+        @import_ska
+        def _get_partial_overlaps(overlap_starts, overlap_stops, datestarts, datestops):
+            """
+            Find which of the new overlap_intervals are the same as an original interval,
+            indicating that there is a full overlap.
+            """
+            if len(datestops) == 0 or len(overlap_stops) == 0:
+                return np.array([])
+
+            indices = np.searchsorted(datestops, overlap_starts)
+            indices = np.unique(indices)
+
+            return indices
 
     class Meta:
         abstract = True

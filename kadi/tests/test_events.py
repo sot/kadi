@@ -1,5 +1,7 @@
 from copy import deepcopy
 
+import numpy as np
+
 from .. import events
 from Chandra.Time import DateTime
 
@@ -140,3 +142,70 @@ def test_intervals_filter():
             [('2000:121:12:00:00.000', '2000:122:00:00:00.000')])
 
     assert (ltt_bads(msid='ELBI_LOW', flag='1').intervals(start, stop) == [])
+
+
+def test_get_overlaps():
+    """
+    Unit test QuerySet._get_full_overlaps and QuerySet._get_partial_overlaps
+    """
+    dates = [('2000:001:00:00:00', '2000:002:00:00:00'),
+             ('2000:003:00:00:00', '2000:004:00:00:00'),
+             ('2000:005:00:00:00', '2000:006:00:00:00')]
+    datestarts, datestops = zip(*dates)
+    datestarts, datestops = np.array(datestarts), np.array(datestops)
+
+    overlaps = dates
+    overlap_starts, overlap_stops = zip(*overlaps)
+    overlap_starts, overlap_stops = np.array(overlap_starts), np.array(overlap_stops)
+
+    x = events.manvrs.filter('2000:001', '2000:002')
+    indices = x._get_full_overlaps(overlap_starts, overlap_stops, datestarts, datestops)
+    assert np.all(indices == [0, 1, 2])
+
+    indices = x._get_partial_overlaps(overlap_starts, overlap_stops, datestarts, datestops)
+    assert np.all(indices == [0, 1, 2])
+
+    overlaps = [('2000:001:00:00:00', '2000:001:12:00:00'),
+                ('2000:001:13:00:00', '2000:002:00:00:00'),
+                ('2000:005:00:00:01', '2000:006:00:00:00')]
+    overlap_starts, overlap_stops = zip(*overlaps)
+    overlap_starts, overlap_stops = np.array(overlap_starts), np.array(overlap_stops)
+    indices = x._get_full_overlaps(overlap_starts, overlap_stops, datestarts, datestops)
+    assert len(indices) == 0
+
+    indices = x._get_partial_overlaps(overlap_starts, overlap_stops, datestarts, datestops)
+    assert np.all(indices == [0, 2])
+
+    overlap_starts, overlap_stops = [], []
+    overlap_starts, overlap_stops = np.array(overlap_starts), np.array(overlap_stops)
+
+    indices = x._get_full_overlaps(overlap_starts, overlap_stops, datestarts, datestops)
+    assert len(indices) == 0
+
+    indices = x._get_partial_overlaps(overlap_starts, overlap_stops, datestarts, datestops)
+    assert len(indices) == 0
+
+
+def test_select_overlapping():
+    """
+    Functional test of selecting overlapping events
+    """
+    manvrs = events.manvrs.filter('2001:001:00:00:00', '2001:003:00:00:00')
+
+    manvrs_sel = manvrs.select_overlapping(~events.rad_zones)
+    assert [repr(x) for x in manvrs_sel] == [
+        '<Manvr: start=2001:001:07:48:35.843 dur=2073 n_dwell=2 template=nman_dwell>',
+        '<Manvr: start=2001:002:20:50:34.523 dur=1185 n_dwell=1 template=normal>']
+
+    manvrs_sel = manvrs.select_overlapping(events.rad_zones)
+    assert [repr(x) for x in manvrs_sel] == [
+        '<Manvr: start=2001:002:05:20:14.046 dur=1184 n_dwell=1 template=normal>',
+        '<Manvr: start=2001:002:08:53:23.997 dur=241 n_dwell=1 template=normal>',
+        '<Manvr: start=2001:002:14:55:24.773 dur=240 n_dwell=1 template=normal>']
+
+    manvrs_sel = manvrs.select_overlapping(events.tsc_moves, allow_partial=False)
+    assert [repr(x) for x in manvrs_sel] == []
+
+    manvrs_sel = manvrs.select_overlapping(events.tsc_moves)
+    assert [repr(x) for x in manvrs_sel] == [
+        '<Manvr: start=2001:002:20:50:34.523 dur=1185 n_dwell=1 template=normal>']
