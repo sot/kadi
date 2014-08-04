@@ -116,13 +116,9 @@ def ftp_put_to_lucky(ftp_dirname, local_files, user=None, logger=None):
         ftp_file = str(uuid.uuid4())  # random unique identifier
         with Ska.File.chdir(file_dir):
             ftp.put(file_base, ftp_file)
-            # If final destination of file already exists, do
-            # a rename and delete of that file.
+            # If final destination of file already exists, delete that file.
             if file_base in dir_files:
-                ftp_del_file = "del_{}".format(str(uuid.uuid4()))
-                ftp.rename("{}/{}".format(ftp_dirname, file_base),
-                           ftp_del_file)
-                ftp.delete(ftp_del_file)
+                ftp.delete("{}/{}".format(ftp_dirname, file_base))
             # Rename the temp/uniq-id file to the final destination
             ftp.rename(ftp_file, '{}/{}'.format(ftp_dirname, file_base))
 
