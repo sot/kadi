@@ -109,13 +109,19 @@ def ftp_put_to_lucky(ftp_dirname, local_files, user=None, logger=None):
 
     if ftp_dirname not in files:
         ftp.mkdir(ftp_dirname)
+    dir_files = ftp.ls(ftp_dirname)
 
     for local_file in local_files:
         file_dir, file_base = os.path.split(os.path.abspath(local_file))
         ftp_file = str(uuid.uuid4())  # random unique identifier
         with Ska.File.chdir(file_dir):
             ftp.put(file_base, ftp_file)
-            ftp.rename(ftp_file, '{}/{}'.format(ftp_dirname, file_base))
+            destination_file = "{}/{}".format(ftp_dirname, file_base)
+            # If final destination of file already exists, delete that file.
+            if file_base in dir_files:
+                ftp.delete(destination_file)
+            # Rename the temp/uniq-id file to the final destination
+            ftp.rename(ftp_file, destination_file)
 
     ftp.close()
 
