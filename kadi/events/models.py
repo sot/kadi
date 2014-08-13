@@ -1245,7 +1245,9 @@ class Manvr(TlmEvent):
     stop_dec = models.FloatField(help_text='Stop declination after manvr')
     stop_roll = models.FloatField(help_text='Stop roll angle after manvr')
     angle = models.FloatField(help_text='Maneuver angle (deg)')
+    one_shot = models.FloatField(help_text='One shot attitude update (arcsec)', null=True)
 
+    one_shot._kadi_format = '{:.1f}'
     angle._kadi_format = '{:.2f}'
     start_ra._kadi_format = '{:.5f}'
     start_dec._kadi_format = '{:.5f}'
@@ -1442,11 +1444,32 @@ class Manvr(TlmEvent):
 
     @classmethod
     @import_ska
+    def get_one_shot(cls, guide_start, one_shot_msid):
+        """
+        Define one_shot attribute (one-shot attitude update following maneuver)
+        """
+        # No acq => guide transition so no one-shot defined.  Use 0.0 as a convenience.
+        if guide_start is None:
+            return 0.0
+
+        t0 = DateTime(guide_start).secs
+        n_times = len(one_shot_msid.times)
+        i0, i1 = np.searchsorted(one_shot_msid.times, [t0 - 10, t0 + 10])
+        if i0 == 0 or i1 == 0 or i0 == n_times or i1 == n_times:
+            raise ValueError('Unable to find complete data for one-shot attitude value'
+                             ' {} {} {} {} {}'
+                             .format(i0, i1, t0, np.min(one_shot_msid.times),
+                                     np.max(one_shot_msid.times)))
+        return np.max(one_shot_msid.vals[i0:i1])
+
+    @classmethod
+    @import_ska
     def get_events(cls, start, stop=None):
         """
         Get maneuver events from telemetry.
         """
-        tarqt_msidset = fetch.Msidset(['aotarqt1', 'aotarqt2', 'aotarqt3'], start, stop)
+        # Auxiliary information
+        aux_msidset = fetch.Msidset(['aotarqt1', 'aotarqt2', 'aotarqt3', 'one_shot'], start, stop)
         states, event_msidset = cls.get_msids_states(start, stop)
         changes = _get_msid_changes(event_msidset.values(),
                                     sortmsids={'aofattmd': 1, 'aopcadmd': 2,
@@ -1473,7 +1496,9 @@ class Manvr(TlmEvent):
                          foreign={'ManvrSeq': sequence},
                          )
             event.update(manvr_attrs)
-            event.update(cls.get_target_attitudes(event, tarqt_msidset))
+            event.update(cls.get_target_attitudes(event, aux_msidset))
+            event['one_shot'] = cls.get_one_shot(manvr_attrs['guide_start'],
+                                                 aux_msidset['one_shot'])
 
             dwells = cls.get_dwells(event, sequence)
             event['foreign']['Dwell'] = dwells
