@@ -1451,7 +1451,7 @@ class Manvr(TlmEvent):
         """
         # No acq => guide transition so no one-shot defined.  Use 0.0 as a convenience.
         if guide_start is None:
-            return 0.0
+            return -99.0
 
         t0 = DateTime(guide_start).secs
         n_times = len(one_shot_msid.times)
