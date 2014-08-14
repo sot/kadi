@@ -1164,6 +1164,7 @@ class Manvr(TlmEvent):
                stop_dec      Float                                 Stop declination after manvr
               stop_roll      Float                                  Stop roll angle after manvr
                   angle      Float                                         Maneuver angle (deg)
+               one_shot      Float                            One shot attitude update (arcsec)
     ==================== ========== ============================================================
 
     ``n_acq``, ``n_guide``, and ``n_kalman``: these provide a count of the number of times
