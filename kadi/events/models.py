@@ -1246,7 +1246,7 @@ class Manvr(TlmEvent):
     stop_dec = models.FloatField(help_text='Stop declination after manvr')
     stop_roll = models.FloatField(help_text='Stop roll angle after manvr')
     angle = models.FloatField(help_text='Maneuver angle (deg)')
-    one_shot = models.FloatField(help_text='One shot attitude update (arcsec)', null=True)
+    one_shot = models.FloatField(help_text='One shot attitude update (arcsec)')
 
     one_shot._kadi_format = '{:.1f}'
     angle._kadi_format = '{:.2f}'
