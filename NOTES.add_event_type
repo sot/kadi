@@ -14,16 +14,40 @@ cd ~/git/kadi
 emacs kadi/events/models.py
 %%
 
-##### Test ######
+##### Create data ######
 
 %%
 export ModelClassName=<model_class_name>
 cp $ska/data/kadi/events.db3 ./
 export KADI=$PWD
+
+  ## To update the format of an existing event type, drop table(s)
+  sqlite3 events.db3
+  .tables  # to get table names
+  drop table events_<model_class_name>
+  # Note possibility of coupled tables like (manvr, manvrseq),
+  # (orbit, orbitpoint), (darkcal, darkcalreplica).  In these cases
+  # drop both.
+  select * from table_events;
+  delete from events_update where name='Manvr'  # for example
+  delete from events_update where name='ManvrSeq'  # if needed
+
 ./manage.py syncdb
-./update_events --start=1999:200 --stop=2001:001 --model=${ModelClassName} [--delete-from-start]
+
+./update_events --start=1999:200 --stop=2001:001 --model=${ModelClassName}
+# The start date might need to be a bit later, e.g. for Manvr use 1999:230 + 21 days (lookback
+# time) so that all the event_msids are fully sampled.  Probably not needed for events
+# that rely on only one event MSID.
+
 ./update_events --start=2001:001 --model=${ModelClassName}
 %%
+
+##### Test #########
+
+ipython --pylab
+from kadi import events
+events.__file__
+# etc
 
 ###### Update web service files #########
 
