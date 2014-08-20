@@ -1186,6 +1186,9 @@ class Manvr(TlmEvent):
 
     ``template``: this indicates which of the pre-defined maneuver sequence templates were
         matched by this maneuver.  For details see :ref:`maneuver_templates`.
+
+    ``one_shot``: one shot attitude update following maneuver.  This is -99.0 for maneuvers
+        with no corresponding transition to NPM.
     """
     _get_obsid_start_attr = 'stop'  # Attribute to use for getting event obsid
     event_msids = ['aofattmd', 'aopcadmd', 'aoacaseq', 'aopsacpr']
