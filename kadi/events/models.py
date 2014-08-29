@@ -10,7 +10,6 @@ from django.db import models
 models.query.REPR_OUTPUT_SIZE = 1000  # Increase default number of rows printed
 
 import pyyaks.logger
-from astropy import table
 
 from .manvr_templates import get_manvr_templates
 
@@ -142,12 +141,14 @@ def import_ska(func):
         import Ska.engarchive.fetch_eng as fetch
         from Ska.engarchive import utils
         import numpy as np
+        from astropy import table
         globals()['interpolate'] = interpolate
         globals()['DateTime'] = DateTime
         globals()['fetch'] = fetch
         globals()['utils'] = utils
         globals()['np'] = np
         globals()['Quat'] = Quat
+        globals()['table'] = table
         return func(*args, **kwargs)
     return wrapper
 
