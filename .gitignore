@@ -14,3 +14,5 @@ validate/
 GIT_VERSION
 kadi.egg-info/
 ltt_bads.dat
+*.pyc
+*~
