@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block title %}
+Kadi web site home
+{% endblock %}
+
+  {% block titlebar %}
+  <table>
+    <tr>
+      <td>
+        <a href="/kadi/events">
+          <img style="border:none; padding: 2px 30px 0px 0px" width=75px
+               src="/static/images/ska.png">
+        </a>
+      </td>
+      <td>  <span style="font-size:200%">Kadi Web Site Home</span> </td>
+    </tr>
+  </table>
+  {% endblock %}
+
+{% block content %}
+
+<ul>
+  <li> <a href='kadi/events'>Kadi Event browser</a> </li>
+  <li> Commands browser (coming...)</a> </li>
+</ul>
+
+{% endblock %}
+
+{% block navbuttons %}
+{% endblock %}
