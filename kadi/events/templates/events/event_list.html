@@ -56,7 +56,8 @@
     </td>
     <td>
       <form action="/kadi/events/{{model_name}}/list" method="get">
-        Filter: <input type="text" name="filter" value="{{ filter }}" size="70">
+      <span data-tooltip aria-haspopup="true" class="has-tip" title="Tooltips are awesome, you should totally use them!">Filter:</span>
+        <input type="text" name="filter" value="{{ filter }}" size="70">
       </form>
     </td>
   </tr>
