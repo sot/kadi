@@ -3,40 +3,38 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 
   <head>
-    <link rel="stylesheet" HREF="/static/kadi.css" TYPE="text/css" MEDIA="screen">
-      <title>{% block title %}Kadi Browse{% endblock %}</title>
-
-      <style type="text/css">
-      #header {
-      }
-      #leftcolumn {
-        position: absolute;
-        margin-left: 0px;
-        padding: 0px;
-        margin-right: 10px;
-      }
-      #content {
-        margin-left: 8em;
-        padding: 0px;
-        margin-right: 0px;
-      }
-      </style>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="/static/foundation/css/normalize.css" />
+    <link rel="stylesheet" href="/static/foundation/css/foundation.css" />
+    <link rel="stylesheet" href="/static/kadi.css" />
+    <script src="/static/foundation/js/vendor/modernizr.js"></script>
+    <title>{% block title %}Kadi Browse{% endblock %}</title>
   </head>
 
 <body>
 <div id="header">
   {% block titlebar %}
-  <table>
-    <tr>
-      <td>
-        <a href="/kadi/events">
-          <img style="border:none; padding: 2px 30px 0px 0px" width=75px
-               src="/static/images/ska.png">
-        </a>
-      </td>
-      <td>  <span style="font-size:200%">Kadi Event Browser</span> </td>
-    </tr>
-  </table>
+  <div class="row">
+    <div class="large-12 medium-12 columns">
+      <div class="panel">
+        <div class="row">
+
+          <div class="large-2 medium-2 columns">
+            <a href="/kadi/events">
+              <img style="border:none; padding: 2px 30px 0px 0px" width=150px
+                   src="/static/images/ska.png"></img>
+            </a>
+          </div>
+          <div class="large-6 medium-6 columns">
+            <h2>Kadi Event Browser</h2>
+          </div>
+          <div class="large-4 medium-4 columns">
+          </div>
+        </div> <!-- row -->
+      </div>
+    </div>
+  </div>
   {% endblock %}
 
   {% block navbuttons %}
