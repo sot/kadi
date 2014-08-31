@@ -22,18 +22,18 @@
   <table>
     <tr>
       <td>
-        <a href="/kadi/events/{{ model_name }}/list?filter={{ filter }}"><img src="/static/images/up.gif"></a>
+        <a href="/kadi/events/{{ model_name }}/list?filter={{filter}}&sort={{sort}}"><img src="/static/images/up.gif"></a>
         <img src="/static/images/empty.gif">
 
         {% if previous_event %}
-        <a href="/kadi/events/{{ model_name }}/{{ previous_event.pk }}?filter={{ filter }}">
+        <a href="/kadi/events/{{ model_name }}/{{ previous_event.pk }}?filter={{filter}}&sort={{sort}}">
           <img src="/static/images/previous.gif"></a>
         {% else %}
         <img src="/static/images/empty.gif">
         {% endif %}
 
         {% if next_event %}
-        <a href="/kadi/events/{{ model_name }}/{{ next_event.pk }}?filter={{ filter }}">
+        <a href="/kadi/events/{{ model_name }}/{{ next_event.pk }}?filter={{ filter }}&sort={{sort}}">
           <img src="/static/images/next.gif"></a>
         {% else %}
         <img src="/static/images/empty.gif">

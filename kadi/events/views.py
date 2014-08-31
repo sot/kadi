@@ -1,3 +1,4 @@
+import urllib
 import shlex
 import re
 
@@ -52,6 +53,7 @@ class EventView(object):
         context['model_description'] = self.model.__doc__.strip().splitlines()[0]
         context['model_name'] = MODEL_NAMES[self.model.__name__]
         context['filter'] = self.filter
+        context['sort'] = self.request.GET.get('sort', '')
 
         self.formats = {field.name: getattr(field, '_kadi_format', '{}')
                         for field in self.model.get_model_fields()}
@@ -75,6 +77,11 @@ class EventView(object):
                 queryset = queryset.filter(**{key: val})
             else:
                 queryset = self.filter_bare_string(queryset, token)
+
+        sort = self.request.GET.get('sort')
+        if sort:
+            queryset = queryset.order_by(sort)
+
         self.queryset = queryset
         return queryset
 
@@ -106,15 +113,39 @@ class EventList(EventView, ListView):
         # Call the base implementation first to get a context
         context = super(EventList, self).get_context_data(**kwargs)
 
-        fields = self.model.get_model_fields()
-        context['field_names'] = [field.name for field in fields
-                                  if field.name not in self.ignore_fields]
+        root_url = '/kadi/events/{}/list'.format(context['model_name'])
+        filter_ = self.request.GET.get('filter', '')
+        sort = context['sort']  # self.request.GET.get('sort', '')
+
+        fields = [field for field in self.model.get_model_fields()
+                  if field.name not in self.ignore_fields]
+        field_names = [field.name for field in fields]
+
+        sort_icons = []
+        for field_name in field_names:
+            sort_name = sort.lstrip('-')
+            get_params = self.request.GET.copy()
+            if field_name == sort_name:
+                if sort.startswith('-'):
+                    icon = 'v'
+                    get_params['sort'] = field_name
+                else:
+                    icon = '^'
+                    get_params['sort'] = '-' + field_name
+            else:
+                icon = 'o'
+                get_params['sort'] = field_name
+            sort_icons.append('<a href="{root_url}?{get_params}">{icon}</a>'
+                              .format(root_url=root_url,
+                                      get_params=urllib.urlencode(get_params),
+                                      icon=icon))
+
+        context['zip_field_names_sort_icons'] = zip(field_names, sort_icons)
         event_list = context['event_list']
-        formats = self.formats
-        context['event_rows'] = [[formats[name].format(getattr(event, name))
-                                  for name in context['field_names']]
+        context['event_rows'] = [[self.formats[name].format(getattr(event, name))
+                                  for name in field_names]
                                  for event in event_list]
-        context['filter'] = self.request.GET.get('filter', '')
+        context['filter'] = filter_
 
         return context
 
