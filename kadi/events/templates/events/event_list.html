@@ -8,8 +8,8 @@
   <div class="large-12 columns">
     <table class="srclist">
       <tr>
-        {% for field_name in field_names %}
-        <th> {{ field_name }} </th>
+        {% for field_name, sort_icon in zip_field_names_sort_icons %}
+        <th> {{ sort_icon|safe }} {{ field_name }} </th>
         {% endfor %}
       </tr>
       {% for event_row in event_rows %}
@@ -17,7 +17,7 @@
         {% for val in event_row %}
         <td>
           {% if forloop.first %}
-          <a href="/kadi/events/{{ model_name }}/{{ val }}?filter={{ filter }}">{{ val }}</a>
+          <a href="/kadi/events/{{ model_name }}/{{ val }}?filter={{filter}}&sort={{sort}}">{{ val }}</a>
           {% else %}
           {{ val }}
           {% endif %}
@@ -39,14 +39,14 @@
       <img src="/static/images/empty.gif">
       {% if is_paginated %}
         {% if page_obj.has_previous %}
-        <a href="?page={{ page_obj.previous_page_number }}&filter={{ filter }}">
+        <a href="?page={{ page_obj.previous_page_number }}&filter={{filter}}&sort={{sort}}">
           <img src="/static/images/previous.gif"></a>
         {% else %}
           <img src="/static/images/empty.gif">
         {% endif %}
 
         {% if page_obj.has_next %}
-          <a href="?page={{ page_obj.next_page_number }}&filter={{ filter }}">
+          <a href="?page={{ page_obj.next_page_number }}&filter={{filter}}&sort={{sort}}">
             <img src="/static/images/next.gif"></a>
         {% else %}
           <img src="/static/images/empty.gif">
@@ -57,7 +57,7 @@
     <td>
       <form action="/kadi/events/{{model_name}}/list" method="get">
       <span data-tooltip aria-haspopup="true" class="has-tip" title="Tooltips are awesome, you should totally use them!">Filter:</span>
-        <input type="text" name="filter" value="{{ filter }}" size="70">
+        <input type="text" name="filter" value="{{filter}}" size="70">
       </form>
     </td>
   </tr>
