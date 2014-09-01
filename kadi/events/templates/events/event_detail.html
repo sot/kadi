@@ -1,11 +1,10 @@
 {% extends "base.html" %}
 
+{% block moreheader %}
+<h2> {{ model_description }} detail </h2>
+{% endblock %}
+
 {% block content %}
-
-<h2> {{ model_description }} </h2>
-
-
-
 <table class="srclist">
   {% for name, val in names_vals %}
   <tr>
@@ -13,7 +12,6 @@
   </tr>
   {% endfor %}
 </table>
-
 {% endblock %}
 
 {% block navbuttons %}
@@ -22,27 +20,26 @@
   <table>
     <tr>
       <td>
-        <a href="/kadi/events/{{ model_name }}/list?filter={{filter}}&sort={{sort}}"><img src="/static/images/up.gif"></a>
-        <img src="/static/images/empty.gif">
+        <a href="/kadi/events/{{ model_name }}/list?filter={{filter}}&sort={{sort}}"><img src="/static/images/list_32.png"></a>
 
         {% if previous_event %}
         <a href="/kadi/events/{{ model_name }}/{{ previous_event.pk }}{{ previous_get_params }}">
-          <img src="/static/images/previous.gif"></a>
+          <img src="/static/images/left_grey_32.png"></a>
         {% else %}
-        <img src="/static/images/empty.gif">
+        <img src="/static/images/empty_32.gif">
         {% endif %}
 
         {% if next_event %}
         <a href="/kadi/events/{{ model_name }}/{{ next_event.pk }}{{ next_get_params }}">
-          <img src="/static/images/next.gif"></a>
+          <img src="/static/images/right_grey_32.png"></a>
         {% else %}
-        <img src="/static/images/empty.gif">
+        <img src="/static/images/empty_32.gif">
         {% endif %}
-        <img src="/static/images/empty.gif">
+        <img src="/static/images/empty_32.gif">
       </td>
       <td>
         <form action="/kadi/events/{{model_name}}/{{object.pk}}" method="get">
-          Filter: <input type="text" name="filter" value="{{ filter }}" size="70">
+          Filter: <input type="text" name="filter" value="{{ filter }}" size="70" readonly>
         </form>
       </td>
     </tr>

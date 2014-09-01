@@ -1,6 +1,7 @@
 import urllib
 import shlex
 import re
+from itertools import izip
 
 # Create your views here.
 from django.views.generic import ListView, TemplateView, DetailView
@@ -145,17 +146,20 @@ class EventList(EventView, ListView):
         # Call the base implementation first to get a context
         context = super(EventList, self).get_context_data(**kwargs)
 
-        root_url = '/kadi/events/{}/list'.format(context['model_name'])
-        filter_ = context['filter']  # self.request.GET.get('filter', '')
-        sort = context['sort']  # self.request.GET.get('sort', '')
-
         fields = [field for field in self.model.get_model_fields()
                   if field.name not in self.ignore_fields]
         field_names = [field.name for field in fields]
 
+        root_url = '/kadi/events/{}/list'.format(context['model_name'])
+        filter_ = context['filter']  # self.request.GET.get('filter', '')
+        sort = context['sort']  # self.request.GET.get('sort', '')
+        if not sort:
+            sort = field_names[0]
+
         sort_icons = []
+        header_classes = []
+        sort_name = sort.lstrip('-')
         for field_name in field_names:
-            sort_name = sort.lstrip('-')
             get_params = self.request.GET.copy()
             if field_name == sort_name:
                 if sort.startswith('-'):
@@ -164,15 +168,19 @@ class EventList(EventView, ListView):
                 else:
                     icon = '<img src="/static/images/asc.gif">'
                     get_params['sort'] = '-' + field_name
+                header_class = 'class="SortBy"'
             else:
                 icon = '<img src="/static/images/asc-desc.gif">'
                 get_params['sort'] = field_name
+                header_class = ''
             sort_icons.append('<a href="{root_url}?{get_params}">{icon}</a>'
                               .format(root_url=root_url,
                                       get_params=urllib.urlencode(get_params),
                                       icon=icon))
+            header_classes.append(header_class)
 
-        context['zip_field_names_sort_icons'] = zip(field_names, sort_icons)
+        context['headers'] = [dict(header_class=x[0], field_name=x[1], sort_icon=x[2])
+                              for x in izip(header_classes, field_names, sort_icons)]
         event_list = context['event_list']
         page_obj = context['page_obj']
         indices = xrange(page_obj.start_index() - 1, page_obj.end_index())

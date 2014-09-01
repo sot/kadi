@@ -4,6 +4,16 @@ table {
 .row {
     max-width: 100%;
 }
+
+
+table.srclist th {
+    white-space: nowrap
+}
+
+table.srclist thead tr .SortBy {
+    background-color: #8dbdd8;
+}
+
 /* 
 img { padding:2; }
 td {  padding:1; }
