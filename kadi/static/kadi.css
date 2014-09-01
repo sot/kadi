@@ -14,6 +14,42 @@ table.srclist thead tr .SortBy {
     background-color: #8dbdd8;
 }
 
+.tooltip {
+  display: none;
+  position: absolute;
+  z-index: 999;
+  font-weight: normal;
+  font-size: 0.77778rem;
+  line-height: 1.3;
+  padding: 0.66667rem;
+  max-width: 85%;
+  left: 50%;
+  width: 100%;
+  color: #fff;
+  background: #333; }
+
+.tooltip > .nub {
+    display: block;
+    left: 5px;
+    position: absolute;
+    width: 0;
+    height: 0;
+    border: solid 5px;
+    border-color: transparent transparent #333 transparent;
+    top: -10px; }
+.tooltip > .nub.rtl {
+      left: auto;
+      right: 5px; }
+.tooltip.radius {
+    border-radius: 3px; }
+.tooltip.round {
+    border-radius: 1000px; }
+.tooltip.round > .nub {
+      left: 2rem; }
+.tooltip.opened {
+    color: #008CBA !important;
+    border-bottom: dotted 1px #004054 !important; }
+    
 /* 
 img { padding:2; }
 td {  padding:1; }
