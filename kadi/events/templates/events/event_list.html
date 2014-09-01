@@ -12,12 +12,12 @@
         <th> {{ sort_icon|safe }} {{ field_name }} </th>
         {% endfor %}
       </tr>
-      {% for event_row in event_rows %}
+      {% for index, event_row in event_rows %}
       <tr>
         {% for val in event_row %}
         <td>
           {% if forloop.first %}
-          <a href="/kadi/events/{{ model_name }}/{{ val }}?filter={{filter}}&sort={{sort}}">{{ val }}</a>
+          <a href="/kadi/events/{{ model_name }}/{{val}}?filter={{filter}}&sort={{sort}}&index={{index}}">{{ val }}</a>
           {% else %}
           {{ val }}
           {% endif %}

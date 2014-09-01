@@ -26,14 +26,14 @@
         <img src="/static/images/empty.gif">
 
         {% if previous_event %}
-        <a href="/kadi/events/{{ model_name }}/{{ previous_event.pk }}?filter={{filter}}&sort={{sort}}">
+        <a href="/kadi/events/{{ model_name }}/{{ previous_event.pk }}{{ previous_get_params }}">
           <img src="/static/images/previous.gif"></a>
         {% else %}
         <img src="/static/images/empty.gif">
         {% endif %}
 
         {% if next_event %}
-        <a href="/kadi/events/{{ model_name }}/{{ next_event.pk }}?filter={{ filter }}&sort={{sort}}">
+        <a href="/kadi/events/{{ model_name }}/{{ next_event.pk }}{{ next_get_params }}">
           <img src="/static/images/next.gif"></a>
         {% else %}
         <img src="/static/images/empty.gif">
