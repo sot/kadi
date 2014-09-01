@@ -52,7 +52,7 @@ class EventView(object):
         context = super(EventView, self).get_context_data(**kwargs)
         context['model_description'] = self.model.__doc__.strip().splitlines()[0]
         context['model_name'] = MODEL_NAMES[self.model.__name__]
-        context['filter'] = self.filter
+        context['filter'] = self.request.GET.get('filter', '')  # self.filter
         context['sort'] = self.request.GET.get('sort', '')
 
         self.formats = {field.name: getattr(field, '_kadi_format', '{}')
@@ -65,7 +65,7 @@ class EventView(object):
         queryset = self.model.objects.all()
         tokens = shlex.split(self.filter)
         for token in tokens:
-            match = re.match(r'(\w+)(=|>|<|>=|<=)(.+)$', token)
+            match = re.match(r'(\w+)(=|>|<|>=|<=)([^=><]+)$', token)
             if match:
                 op = {'=': 'exact',
                       '>=': 'gte',
@@ -97,8 +97,32 @@ class EventDetail(EventView, DetailView):
         formats = self.formats
         context['names_vals'] = [(name, formats[name].format(getattr(event, name)))
                                  for name in names]
-        context['next_event'] = event.get_next(self.queryset)
-        context['previous_event'] = event.get_previous(self.queryset)
+        # Copy list definition properties
+        next_get_params = {}
+        previous_get_params = {}
+        for key in ('filter', 'sort'):
+            val = self.request.GET.get(key)
+            if val is not None:
+                next_get_params[key] = val
+                previous_get_params[key] = val
+            
+        # If this came from a sorted list view there can be an index into the queryset.
+        index = self.request.GET.get('index')
+        if index is not None:
+            index = int(index)
+            if index > 0:
+                context['previous_event'] = self.queryset[index - 1]
+                previous_get_params['index'] = index - 1
+            if index + 1 < self.queryset.count():
+                context['next_event'] = self.queryset[index + 1]
+                next_get_params['index'] = index + 1
+        else:
+            # Else just use primary-key based navigation
+            context['next_event'] = event.get_next(self.queryset)
+            context['previous_event'] = event.get_previous(self.queryset)
+
+        context['next_get_params'] = '?' + urllib.urlencode(next_get_params)
+        context['previous_get_params'] = '?' + urllib.urlencode(previous_get_params)
 
         return context
 
@@ -114,7 +138,7 @@ class EventList(EventView, ListView):
         context = super(EventList, self).get_context_data(**kwargs)
 
         root_url = '/kadi/events/{}/list'.format(context['model_name'])
-        filter_ = self.request.GET.get('filter', '')
+        filter_ = context['filter']  # self.request.GET.get('filter', '')
         sort = context['sort']  # self.request.GET.get('sort', '')
 
         fields = [field for field in self.model.get_model_fields()
@@ -142,10 +166,13 @@ class EventList(EventView, ListView):
 
         context['zip_field_names_sort_icons'] = zip(field_names, sort_icons)
         event_list = context['event_list']
-        context['event_rows'] = [[self.formats[name].format(getattr(event, name))
-                                  for name in field_names]
-                                 for event in event_list]
+        page_obj = context['page_obj']
+        indices = xrange(page_obj.start_index() - 1, page_obj.end_index())
+        context['event_rows'] = [(index, [self.formats[name].format(getattr(event, name))
+                                          for name in field_names])
+                                 for index, event in zip(indices, event_list)]
         context['filter'] = filter_
+        print('page_obj:{}'.format((page_obj.start_index(), page_obj.end_index())))
 
         return context
 
