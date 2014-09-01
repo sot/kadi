@@ -141,6 +141,32 @@ class EventList(EventView, ListView):
     context_object_name = 'event_list'
     template_name = 'events/event_list.html'
     ignore_fields = ['tstart', 'tstop']
+    filter_help = """
+<strong>Filtering help</strong>
+<p><p>
+Enter one or more filter criteria in the form <tt>column-name operator value</tt>,
+with NO SPACE between the <tt>column-name</tt> and the <tt>value</tt>.
+
+<p>
+Examples:
+<pre>
+  start>2013
+  start>2013:001 stop<2014:001
+  start<2001 dur<=1800 n_dwell=2   [Maneuver]
+</pre>
+
+<p><p>
+For some event types like <tt>MajorEvent</tt> which have one or more key
+text fields, you can just enter a single word to search on.
+
+<p>
+Examples:
+<pre>
+  safe                            [MajorEvent]
+  start>2013 eclipse              [MajorEvent]
+  sequencer start>2010 stop<2011  [CAP from iFOT]
+</pre>
+"""
 
     def get_context_data(self, **kwargs):
         # Call the base implementation first to get a context
@@ -188,6 +214,7 @@ class EventList(EventView, ListView):
                                           for name in field_names])
                                  for index, event in zip(indices, event_list)]
         context['filter'] = filter_
+        context['filter_help'] = self.filter_help
 
         return context
 
