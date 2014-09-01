@@ -1,7 +1,9 @@
 from django.views.generic import TemplateView
 
+from .events.views import BaseView
 
-class IndexView(TemplateView):
+
+class IndexView(BaseView, TemplateView):
     template_name = 'top_index.html'
 
     def get_context_data(self, **kwargs):

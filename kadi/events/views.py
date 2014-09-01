@@ -11,12 +11,11 @@ MODEL_NAMES = {m_class.__name__: m_name
                for m_name, m_class in models.get_event_models().items()}
 
 
-class IndexView(TemplateView):
-    template_name = 'events/index.html'
+class BaseView(object):
 
     def get_context_data(self, **kwargs):
         # Call the base implementation first to get a context
-        context = super(IndexView, self).get_context_data(**kwargs)
+        context = super(BaseView, self).get_context_data(**kwargs)
 
         event_models = models.get_event_models()
         # Make a list of tuples [(description1, name1), (description2, name2), ...]
@@ -27,7 +26,16 @@ class IndexView(TemplateView):
         return context
 
 
-class EventView(object):
+class IndexView(BaseView, TemplateView):
+    template_name = 'events/index.html'
+
+    def get_context_data(self, **kwargs):
+        # Call the base implementation first to get a context
+        context = super(IndexView, self).get_context_data(**kwargs)
+        return context
+
+
+class EventView(BaseView):
     """
     Mixin for common stuff between EventDetail and EventList
     """
@@ -172,7 +180,6 @@ class EventList(EventView, ListView):
                                           for name in field_names])
                                  for index, event in zip(indices, event_list)]
         context['filter'] = filter_
-        print('page_obj:{}'.format((page_obj.start_index(), page_obj.end_index())))
 
         return context
 
