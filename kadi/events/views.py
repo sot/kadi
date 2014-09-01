@@ -159,13 +159,13 @@ class EventList(EventView, ListView):
             get_params = self.request.GET.copy()
             if field_name == sort_name:
                 if sort.startswith('-'):
-                    icon = 'v'
+                    icon = '<img src="/static/images/desc.gif">'
                     get_params['sort'] = field_name
                 else:
-                    icon = '^'
+                    icon = '<img src="/static/images/asc.gif">'
                     get_params['sort'] = '-' + field_name
             else:
-                icon = 'o'
+                icon = '<img src="/static/images/asc-desc.gif">'
                 get_params['sort'] = field_name
             sort_icons.append('<a href="{root_url}?{get_params}">{icon}</a>'
                               .format(root_url=root_url,

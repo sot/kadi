@@ -7,24 +7,28 @@
 <div class="row">
   <div class="large-12 columns">
     <table class="srclist">
-      <tr>
-        {% for field_name, sort_icon in zip_field_names_sort_icons %}
-        <th> {{ sort_icon|safe }} {{ field_name }} </th>
+      <thead>
+        <tr>
+          {% for field_name, sort_icon in zip_field_names_sort_icons %}
+          <th> {{ sort_icon|safe }} {{ field_name }} </th>
+          {% endfor %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for index, event_row in event_rows %}
+        <tr>
+          {% for val in event_row %}
+          <td>
+            {% if forloop.first %}
+            <a href="/kadi/events/{{ model_name }}/{{val}}?filter={{filter}}&sort={{sort}}&index={{index}}">{{ val }}</a>
+            {% else %}
+            {{ val }}
+            {% endif %}
+          </td>
+          {% endfor %}
+        </tr>
         {% endfor %}
-      </tr>
-      {% for index, event_row in event_rows %}
-      <tr>
-        {% for val in event_row %}
-        <td>
-          {% if forloop.first %}
-          <a href="/kadi/events/{{ model_name }}/{{val}}?filter={{filter}}&sort={{sort}}&index={{index}}">{{ val }}</a>
-          {% else %}
-          {{ val }}
-          {% endif %}
-        </td>
-        {% endfor %}
-      </tr>
-      {% endfor %}
+      </tbody>
     </table>
   </div>
 </div>
