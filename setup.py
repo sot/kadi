@@ -1,4 +1,4 @@
-from setuptools import setup
+from distutils.core import setup
 
 # from this_package.version import package_version object
 from kadi.version import package_version
