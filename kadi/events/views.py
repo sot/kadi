@@ -13,6 +13,17 @@ MODEL_NAMES = {m_class.__name__: m_name
 
 
 class BaseView(object):
+    reverse_sort = False  # Reverse the default sort by model primary key (e.g. CAPs)
+
+    def get_sort(self):
+        sort = self.request.GET.get('sort')
+        if not sort:  # No sort explicitly set in request
+            sort = self.model._meta.ordering[0]
+            print('model name {} meta ordering {}'.format(self.model.__name__,
+                                                          self.model._meta.ordering))
+            if self.reverse_sort:
+                sort = '-' + sort
+        return sort
 
     def get_context_data(self, **kwargs):
         # Call the base implementation first to get a context
@@ -61,8 +72,8 @@ class EventView(BaseView):
         context = super(EventView, self).get_context_data(**kwargs)
         context['model_description'] = self.model.__doc__.strip().splitlines()[0]
         context['model_name'] = MODEL_NAMES[self.model.__name__]
-        context['filter'] = self.request.GET.get('filter', '')  # self.filter
-        context['sort'] = self.request.GET.get('sort', '')
+        context['filter'] = self.request.GET.get('filter', '')
+        context['sort'] = self.get_sort()
 
         self.formats = {field.name: getattr(field, '_kadi_format', '{}')
                         for field in self.model.get_model_fields()}
@@ -87,8 +98,8 @@ class EventView(BaseView):
             else:
                 queryset = self.filter_bare_string(queryset, token)
 
-        sort = self.request.GET.get('sort')
-        if sort:
+        sort = self.get_sort()
+        if sort and sort != self.model._meta.ordering[0]:
             queryset = queryset.order_by(sort)
 
         self.queryset = queryset
@@ -110,8 +121,8 @@ class EventDetail(EventView, DetailView):
         next_get_params = {}
         previous_get_params = {}
         for key in ('filter', 'sort'):
-            val = self.request.GET.get(key)
-            if val is not None:
+            val = context[key]
+            if val:
                 next_get_params[key] = val
                 previous_get_params[key] = val
             
@@ -177,10 +188,8 @@ Examples:
         field_names = [field.name for field in fields]
 
         root_url = '/kadi/events/{}/list'.format(context['model_name'])
-        filter_ = context['filter']  # self.request.GET.get('filter', '')
-        sort = context['sort']  # self.request.GET.get('sort', '')
-        if not sort:
-            sort = field_names[0]
+        filter_ = context['filter']
+        sort = context['sort']
 
         sort_icons = []
         header_classes = []
@@ -189,10 +198,10 @@ Examples:
             get_params = self.request.GET.copy()
             if field_name == sort_name:
                 if sort.startswith('-'):
-                    icon = '<img src="/static/images/desc.gif">'
+                    icon = '<img src="/static/images/asc.gif">'
                     get_params['sort'] = field_name
                 else:
-                    icon = '<img src="/static/images/asc.gif">'
+                    icon = '<img src="/static/images/desc.gif">'
                     get_params['sort'] = '-' + field_name
                 header_class = 'class="SortBy"'
             else:
@@ -233,14 +242,17 @@ class TscMoveList(EventList):
 
 class DarkCalReplicaList(EventList):
     model = models.DarkCalReplica
+    reverse_sort = True
 
 
 class DarkCalList(EventList):
     model = models.DarkCal
+    reverse_sort = True
 
 
 class Scs107List(EventList):
     model = models.Scs107
+    reverse_sort = True
 
 
 class GratingMoveList(EventList):
@@ -249,6 +261,7 @@ class GratingMoveList(EventList):
 
 class LoadSegmentList(EventList):
     model = models.LoadSegment
+    reverse_sort = True
 
 
 class FaMoveList(EventList):
@@ -287,6 +300,7 @@ class MajorEventList(EventList):
     model = models.MajorEvent
     filter_string_field = 'descr'
     filter_string_op = 'icontains'
+    reverse_sort = True
 
 
 class CAPList(EventList):
@@ -294,12 +308,14 @@ class CAPList(EventList):
     filter_string_field = 'title'
     filter_string_op = 'icontains'
     ignore_fields = EventList.ignore_fields + ['descr', 'notes', 'link']
+    reverse_sort = True
 
 
 class DsnCommList(EventList):
     model = models.DsnComm
     filter_string_field = 'activity'
     filter_string_op = 'icontains'
+    reverse_sort = True
 
 
 class OrbitList(EventList):
@@ -318,8 +334,8 @@ class RadZoneList(EventList):
 class LttBadList(EventList):
     model = models.LttBad
 
-####
 
+####
 class ObsidDetail(EventDetail):
     model = models.Obsid
 
@@ -413,6 +429,7 @@ class RadZoneDetail(EventDetail):
 
 class PassPlanList(EventList):
     model = models.PassPlan
+    reverse_sort = True
 
 
 class PassPlanDetail(EventDetail):
