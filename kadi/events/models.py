@@ -1483,6 +1483,18 @@ class Manvr(TlmEvent):
         for manvr_prev, manvr, manvr_next in izip(states, states[1:], states[2:]):
             tstart = manvr['tstart']
             tstop = manvr['tstop']
+
+            # Make sure the aux_msidset (used for stop/stop target attitudes and one shot)
+            # is complete through the end of maneuver + one hour.  Finish event processing
+            # if that is not the case.
+            min_aux_tstop = min(aux_msid.times[-1] for aux_msid in aux_msidset.values())
+            if min_aux_tstop < tstop + 3600:
+                logger.info('Breaking out of maneuver processing at manvr start={} because '
+                            'min_aux_stop={} < manvr stop + 1hr={}'
+                            .format(DateTime(tstart).date, DateTime(min_aux_tstop).date,
+                                    DateTime(tstop + 3600).date))
+                break
+
             i0 = np.searchsorted(changes['time'], manvr_prev['tstop'])
             i1 = np.searchsorted(changes['time'], manvr_next['tstart'])
             sequence = changes[i0:i1 + 1]
