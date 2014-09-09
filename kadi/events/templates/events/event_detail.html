@@ -6,6 +6,9 @@
 
 {% block content %}
 <table class="srclist">
+  <tr>
+    <th> Mica obsid </th> <td> {{ mica_link | safe }} </td>
+  </tr>
   {% for name, val in names_vals %}
   <tr>
     <th> {{ name }} </th> <td> {{ val }} </td>

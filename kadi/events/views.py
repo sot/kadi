@@ -117,8 +117,19 @@ class EventDetail(EventView, DetailView):
         fields = self.model.get_model_fields()
         names = [field.name for field in fields]
         formats = self.formats
+
         context['names_vals'] = [(name, formats[name].format(getattr(event, name)))
                                  for name in names]
+
+        try:
+            obsid = format(event.get_obsid(), '05d')
+            url = ('https://icxc.harvard.edu/aspect/mica_reports/{}/{}/index.html'
+                   .format(obsid[:2], obsid))
+            mica_link = '<a href="{}" target="_blank">{}</a>'.format(url, obsid)
+        except:
+            mica_link = 'Unknown'
+        context['mica_link'] = mica_link
+
         # Copy list definition properties
         next_get_params = {}
         previous_get_params = {}
@@ -127,7 +138,7 @@ class EventDetail(EventView, DetailView):
             if val:
                 next_get_params[key] = val
                 previous_get_params[key] = val
-            
+
         # If this came from a sorted list view there can be an index into the queryset.
         index = self.request.GET.get('index')
         if index is not None:
