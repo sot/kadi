@@ -51,13 +51,24 @@
   {% block content %}
   {% endblock %}
 
-    <script src="/static/foundation/js/vendor/jquery.js"></script>
-    <script src="/static/foundation/js/vendor/fastclick.js"></script>
-    <script src="/static/foundation/js/foundation.min.js"></script>
-    <script src="/static/foundation/js/foundation/foundation.tooltip.js"></script>
-    <script>
-      $(document).foundation();
-    </script>
-<!--  -->
+<footer class="row">
+  <div class="large-12 columns">
+    <hr/>
+    <div class="row">
+      <div class="large-12 columns">
+        <p> Kadi version {{kadi_version}}</p>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script src="/static/foundation/js/vendor/jquery.js"></script>
+<script src="/static/foundation/js/vendor/fastclick.js"></script>
+<script src="/static/foundation/js/foundation.min.js"></script>
+<script src="/static/foundation/js/foundation/foundation.tooltip.js"></script>
+<script>
+  $(document).foundation();
+</script>
+
 </body>
 </html>
