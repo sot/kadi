@@ -28,13 +28,14 @@
       <!-- Left Nav Section -->
       <ul class="left">
         <li class="has-dropdown">
-          <a href="#">Events</a>
+          <a href="/kadi/events"> Events </a>
           <ul class="dropdown">
             {% for event_model in event_models %}
             <li> <a href="/kadi/events/{{ event_model.name }}/list">{{ event_model.description }}</a> </li>
             {% endfor %}
           </ul>
         </li>
+        <li> <a href="/mica">Mica</a> </li>
       </ul>
 
     </section>

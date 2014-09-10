@@ -122,9 +122,8 @@ class EventDetail(EventView, DetailView):
                                  for name in names]
 
         try:
-            obsid = format(event.get_obsid(), '05d')
-            url = ('https://icxc.harvard.edu/aspect/mica_reports/{}/{}/index.html'
-                   .format(obsid[:2], obsid))
+            obsid = event.get_obsid()
+            url = '/mica/?obsid={}'.format(obsid)
             mica_link = '<a href="{}" target="_blank">{}</a>'.format(url, obsid)
         except:
             mica_link = 'Unknown'
