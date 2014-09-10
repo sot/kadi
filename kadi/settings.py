@@ -56,6 +56,7 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'kadi.events',
+    'mica.web',
 )
 
 MIDDLEWARE_CLASSES = (

@@ -3,6 +3,7 @@ from django.conf.urls import patterns, include, url
 # Uncomment the next two lines to enable the admin:
 from django.contrib import admin
 import kadi.views
+import mica.web.views
 admin.autodiscover()
 
 urlpatterns = patterns('',
@@ -15,4 +16,5 @@ urlpatterns = patterns('',
                        url(r'^admin/', include(admin.site.urls)),
                        url(r'^kadi/events/', include('kadi.events.urls')),
                        url(r'^$', kadi.views.IndexView.as_view()),
+                       url(r'^mica/$', mica.web.views.IndexView.as_view()),
                        )
