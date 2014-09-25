@@ -8,9 +8,10 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/1.6/ref/settings/
 """
 
-# Build paths inside the project like this: os.path.join(BASE_DIR, ...)
-import os
-BASE_DIR = os.path.dirname(os.path.realpath(__file__))
+# Build paths inside the project like this: join(BASE_DIR, ...)
+from import join, abspath, dirname, realpath
+
+BASE_DIR = dirname(dirname(realpath(__file__)))
 
 # Data paths for kadi project
 from .paths import EVENTS_DB_PATH, DATA_DIR
@@ -18,7 +19,7 @@ from .paths import EVENTS_DB_PATH, DATA_DIR
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.6/howto/deployment/checklist/
 
-_secret_file = os.path.join(DATA_DIR(), 'secret_key.txt')
+_secret_file = join(DATA_DIR(), 'secret_key.txt')
 try:
     with open(_secret_file) as fh:
         SECRET_KEY = fh.read().strip()
@@ -119,7 +120,7 @@ STATICFILES_DIRS = (
     #        be at kadi/events/static/kadi.css.)
     #
     #  The following is for project-wide static files in kadi/static/.
-    os.path.join(BASE_DIR, 'static'),
+    join(BASE_DIR, 'static'),
 )
 
 # Is this needed?
@@ -127,5 +128,5 @@ STATICFILES_DIRS = (
 #     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
 #     # Always use forward slashes, even on Windows.
 #     # Don't forget to use absolute paths, not relative paths.
-#     os.path.join(BASE_DIR, 'events/templates'),
+#     join(BASE_DIR, 'events/templates'),
 # )
