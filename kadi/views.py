@@ -1,22 +1,12 @@
-# from django.views.generic import TemplateView
-from django.template import RequestContext
-from django.shortcuts import render_to_response
+from django.views.generic import TemplateView
 
-# from .events.views import BaseView
+from .events.views import BaseView
 
 
-# class IndexView(BaseView, TemplateView):
-#     template_name = 'top_index.html'
+class IndexView(BaseView, TemplateView):
+    template_name = 'top_index.html'
 
-#     def get_context_data(self, **kwargs):
-#         # Call the base implementation first to get a context
-#         context = super(IndexView, self).get_context_data(**kwargs)
-#         return context
-
-
-def index(request):
-    context = RequestContext(request)
-
-    context_dict = {}
-
-    return render_to_response('kadi/top_index.html', context_dict, context)
+    def get_context_data(self, **kwargs):
+        # Call the base implementation first to get a context
+        context = super(IndexView, self).get_context_data(**kwargs)
+        return context
