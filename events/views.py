@@ -6,7 +6,7 @@ from itertools import izip
 # Create your views here.
 from django.views.generic import ListView, TemplateView, DetailView
 from . import models
-from ..version import __git_version__
+from kadi.version import __git_version__
 
 # Provide translation from event model class names like DarkCal to the URL name like dark_cal
 MODEL_NAMES = {m_class.__name__: m_name

@@ -9,7 +9,7 @@ https://docs.djangoproject.com/en/1.6/ref/settings/
 """
 
 # Build paths inside the project like this: join(BASE_DIR, ...)
-from import join, abspath, dirname, realpath
+from os.path import join, abspath, dirname, realpath
 
 BASE_DIR = dirname(dirname(realpath(__file__)))
 
@@ -56,7 +56,8 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'kadi.events',
+    'kadi',
+    'events',
     'mica.web',
 )
 
@@ -123,10 +124,9 @@ STATICFILES_DIRS = (
     join(BASE_DIR, 'static'),
 )
 
-# Is this needed?
-# TEMPLATE_DIRS = (
-#     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
-#     # Always use forward slashes, even on Windows.
-#     # Don't forget to use absolute paths, not relative paths.
-#     join(BASE_DIR, 'events/templates'),
-# )
+TEMPLATE_DIRS = (
+    # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
+    # Always use forward slashes, even on Windows.
+    # Don't forget to use absolute paths, not relative paths.
+    join(BASE_DIR, 'templates'),
+)
