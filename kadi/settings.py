@@ -109,6 +109,9 @@ STATIC_URL = '/static/'
 
 # OTHER Kadi customizations
 
+# Django admin static files are installed directly from the web-kadi repo via
+#   make install_admin_static
+
 STATICFILES_DIRS = (
     #  Put strings here, like "/home/html/static" or "C:/www/django/static".
     #  Always use forward slashes, even on Windows.
