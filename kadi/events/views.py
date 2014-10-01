@@ -41,7 +41,7 @@ class BaseView(object):
 
 
 class IndexView(BaseView, TemplateView):
-    template_name = 'events/index.html'
+    template_name = 'kadi/events/index.html'
 
     def get_context_data(self, **kwargs):
         # Call the base implementation first to get a context
@@ -109,7 +109,7 @@ class EventView(BaseView):
 
 
 class EventDetail(EventView, DetailView):
-    template_name = 'events/event_detail.html'
+    template_name = 'kadi/events/event_detail.html'
 
     def get_context_data(self, **kwargs):
         context = super(EventDetail, self).get_context_data(**kwargs)
@@ -162,7 +162,7 @@ class EventDetail(EventView, DetailView):
 class EventList(EventView, ListView):
     paginate_by = 30
     context_object_name = 'event_list'
-    template_name = 'events/event_list.html'
+    template_name = 'kadi/events/event_list.html'
     ignore_fields = ['tstart', 'tstop']
     filter_help = """
 <strong>Filtering help</strong>
