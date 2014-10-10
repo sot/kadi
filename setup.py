@@ -24,5 +24,7 @@ setup(name='kadi',
       packages=['kadi', 'kadi.events', 'kadi.cmds'],
       # Temporarily install static data into site-packages
       package_data={'kadi.events': ['templates/*/*.html', 'templates/*.html'],
-                    'kadi': foundation_files + ['static/images/*', 'static/*.css', 'GIT_VERSION']}
+                    'kadi': foundation_files + ['templates/*/*.html', 'templates/*.html', 
+                                                'static/images/*', 'static/*.css', 
+                                                'GIT_VERSION']}
 )
