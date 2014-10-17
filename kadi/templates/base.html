@@ -15,7 +15,8 @@
  {% block body %}
 <body>
  {% endblock %}
-<div id="header">
+<div class="row" id="header">
+
   {% block titlebar %}
   <nav class="top-bar" data-topbar role="navigation">
     <ul class="title-area">
@@ -40,26 +41,34 @@
 
     </section>
   </nav>
-    {% endblock %}
-
-  {% block moreheader %}
-  {% endblock %}
-
-  {% block navbuttons %}
   {% endblock %}
 </div>
 
-  {% block content %}
-  {% endblock %}
+<div class="row" id="header">
+  <div class="small-12 large-12 columns">
+    {% block moreheader %}
+    {% endblock %}
+  </div>
+</div>
+
+<div class="row" id="navinput">
+  <div class="small-12 large-12 columns">
+    {% block navbuttons %}
+    {% endblock %}
+  </div>
+</div>
+
+<div class="row" id="maincontent">
+  <div class="small-12 large-12 columns">
+    {% block content %}
+    {% endblock %}
+  </div>
+</div>
 
 <footer class="row">
   <div class="large-12 columns">
     <hr/>
-    <div class="row">
-      <div class="large-12 columns">
-        <p> Kadi version {{kadi_version}}</p>
-      </div>
-    </div>
+    <p> Kadi version {{kadi_version}}</p>
   </div>
 </footer>
 
