@@ -21,7 +21,7 @@ Kadi
   git branch  # confirm correct web branch
   git status  # confirm no stray modifications
   rm -rf build
-  rm -rf $prefix/lib/python2.7/site-packages/kadi*
+  rm -rf $PREFIX/lib/python2.7/site-packages/kadi*
   python setup.py install
 
 Mica
@@ -32,7 +32,7 @@ Mica
   git branch  # confirm correct web branch
   git status  # confirm no stray modifications
   rm -rf build
-  rm -rf $prefix/lib/python2.7/site-packages/mica*
+  rm -rf $PREFIX/lib/python2.7/site-packages/mica*
   python setup.py install
 
 Run server and test
