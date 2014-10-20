@@ -18,7 +18,7 @@ Kadi
 ::
 
   cd ~/git/kadi
-  git branch  # confirm correct web branch
+  git checkout web
   git status  # confirm no stray modifications
   rm -rf build
   rm -rf $PREFIX/lib/python2.7/site-packages/kadi*
@@ -29,7 +29,7 @@ Mica
 ::
 
   cd ~/git/mica
-  git branch  # confirm correct web branch
+  git checkout web
   git status  # confirm no stray modifications
   rm -rf build
   rm -rf $PREFIX/lib/python2.7/site-packages/mica*
@@ -66,7 +66,7 @@ As needed::
   # Remove project and kadi.events app if needed
   ls -ld $PYTHONPATH/kadi*
   rm -rf $PYTHONPATH/kadi*.egg-info
-  rf -rf $PYTHONPATH/kadi-bak
+  rm -rf $PYTHONPATH/kadi-bak
 
   # fast
   mv $PYTHONPATH/kadi{,-bak}
