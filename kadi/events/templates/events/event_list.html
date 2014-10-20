@@ -1,59 +1,66 @@
 {% extends "base.html" %}
 
+{% block moreheader %}
+<h2> {{ model_description }} list </h2>
+{% endblock %}
+
 {% block content %}
-
-<h2> {{ model_description }} </h2>
-
-<table class="srclist">
-  <tr>
-    {% for field_name in field_names %}
-    <th> {{ field_name }} </th>
-    {% endfor %}
-  </tr>
-  {% for event_row in event_rows %}
-  <tr>
-    {% for val in event_row %}
-    <td>
-      {% if forloop.first %}
-        <a href="/kadi/events/{{ model_name }}/{{ val }}?filter={{ filter }}">{{ val }}</a>
-      {% else %}
-        {{ val }}
-      {% endif %}
-    </td>
-    {% endfor %}
-  </tr>
-  {% endfor %}
-</table>
-
+<div class="row">
+  <div class="large-12 columns">
+    <table class="srclist">
+      <thead>
+        <tr>
+          {% for header in headers %}
+          <th {{header.header_class|safe}}> {{ header.sort_icon|safe }} {{ header.field_name }} </th>
+          {% endfor %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for index, event_row in event_rows %}
+        <tr>
+          {% for val in event_row %}
+          <td>
+            {% if forloop.first %}
+            <a href="/kadi/events/{{ model_name }}/{{val}}?filter={{filter}}&sort={{sort}}&index={{index}}">{{ val }}</a>
+            {% else %}
+            {{ val }}
+            {% endif %}
+          </td>
+          {% endfor %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
 {% endblock %}
 
 {% block navbuttons %}
-<br />
 <table>
   <tr>
     <td>
-      <a href="/kadi/events"><img src="/static/images/up.gif"></a>
-      <img src="/static/images/empty.gif">
+      <img src="/static/images/empty_32.gif">
       {% if is_paginated %}
         {% if page_obj.has_previous %}
-        <a href="?page={{ page_obj.previous_page_number }}&filter={{ filter }}">
-          <img src="/static/images/previous.gif"></a>
+        <a href="?page={{ page_obj.previous_page_number }}&filter={{filter}}&sort={{sort}}">
+          <img src="/static/images/left_grey_32.png"></a>
         {% else %}
-          <img src="/static/images/empty.gif">
+          <img src="/static/images/empty_32.gif">
         {% endif %}
 
         {% if page_obj.has_next %}
-          <a href="?page={{ page_obj.next_page_number }}&filter={{ filter }}">
-            <img src="/static/images/next.gif"></a>
+          <a href="?page={{ page_obj.next_page_number }}&filter={{filter}}&sort={{sort}}">
+            <img src="/static/images/right_grey_32.png"></a>
         {% else %}
-          <img src="/static/images/empty.gif">
+          <img src="/static/images/empty_32.gif">
         {% endif %}
-        <img src="/static/images/empty.gif">
+        <img src="/static/images/empty_32.gif">
       {% endif %}
     </td>
     <td>
       <form action="/kadi/events/{{model_name}}/list" method="get">
-        Filter: <input type="text" name="filter" value="{{ filter }}" size="70">
+      <span data-tooltip data-max-width="600" data-width="600" class="has-tip" title="{{filter_help|safe}}">Filter: ?</span>
+        <input type="text" name="filter" value="{{filter}}" size="70">
       </form>
     </td>
   </tr>

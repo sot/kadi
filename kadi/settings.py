@@ -8,18 +8,35 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/1.6/ref/settings/
 """
 
-# Build paths inside the project like this: os.path.join(BASE_DIR, ...)
-import os
-BASE_DIR = os.path.dirname(os.path.realpath(__file__))
+# Build paths inside the project like this: join(BASE_DIR, ...)
+from os.path import join, abspath, dirname, realpath
+
+BASE_DIR = dirname(dirname(realpath(__file__)))
 
 # Data paths for kadi project
-from .paths import EVENTS_DB_PATH
+from .paths import EVENTS_DB_PATH, DATA_DIR
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.6/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'q8&0dj7olx+p)#2#$xe@jwrz$ds8=im$a815t67oce_z14rted'
+_secret_file = join(DATA_DIR(), 'secret_key.txt')
+try:
+    with open(_secret_file) as fh:
+        SECRET_KEY = fh.read().strip()
+except IOError:
+    import random
+    print('Creating secret key file {}'.format(_secret_file))
+    chars = 'abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*(-_=+)'
+    SECRET_KEY = ''.join([random.SystemRandom().choice(chars) for i in range(50)])
+    with open(_secret_file, 'w') as fh:
+        fh.write(SECRET_KEY)
+    try:
+        import stat
+        os.chmod(_secret_file, stat.S_IRUSR)
+        print('Changed file mode to owner read-only')
+    except:
+        import warnings
+        warnings.warn('Unable to change file mode permission!')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -40,6 +57,7 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'kadi.events',
+    'mica.web',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -91,6 +109,9 @@ STATIC_URL = '/static/'
 
 # OTHER Kadi customizations
 
+# Django admin static files are installed directly from the web-kadi repo via
+#   make install_admin_static
+
 STATICFILES_DIRS = (
     #  Put strings here, like "/home/html/static" or "C:/www/django/static".
     #  Always use forward slashes, even on Windows.
@@ -102,16 +123,12 @@ STATICFILES_DIRS = (
     #        be at kadi/events/static/kadi.css.)
     #
     #  The following is for project-wide static files in kadi/static/.
-    os.path.join(BASE_DIR, 'static'),
-    )
+    join(BASE_DIR, 'kadi/static'),
+)
 
-# Make this unique, and don't share it with anybody.  Do I need this?
-# SECRET_KEY = 'd7m#*urgc4#1gg5pq)j@8a__$+=5@h82s_31une+$&amp;fy16#0no'
-
-# Is this needed?
-# TEMPLATE_DIRS = (
-#     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
-#     # Always use forward slashes, even on Windows.
-#     # Don't forget to use absolute paths, not relative paths.
-#     os.path.join(BASE_DIR, 'events/templates'),
-# )
+TEMPLATE_DIRS = (
+    # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
+    # Always use forward slashes, even on Windows.
+    # Don't forget to use absolute paths, not relative paths.
+    join(BASE_DIR, 'kadi/templates'),
+)

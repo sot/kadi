@@ -165,6 +165,16 @@ def main():
     os.environ['KADI'] = os.path.abspath(opt.data_root)
     from .paths import EVENTS_DB_PATH
 
+    from . import version
+    from pprint import pformat
+    logger.info('Kadi version   : {}'.format(version.__version__))
+    logger.info('Kadi path      : {}'.format(os.path.dirname(os.path.abspath(version.__file__))))
+    logger.info('Event database : {}'.format(EVENTS_DB_PATH()))
+    logger.info('')
+    logger.info('Options:')
+    for line in pformat(vars(opt)).splitlines():
+        logger.info('  {}'.format(line))
+
     if opt.occ:
         # Get events database file from HEAD via lucky ftp
         occweb.ftp_get_from_lucky('kadi', [EVENTS_DB_PATH()], logger=logger)

@@ -1,3 +1,4 @@
+test/
 djangotutorial
 kadi/events/cache
 *.log
@@ -14,3 +15,5 @@ validate/
 GIT_VERSION
 kadi.egg-info/
 ltt_bads.dat
+*.pyc
+*~
