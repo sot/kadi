@@ -12,6 +12,7 @@ urlpatterns = patterns('',
                        url(r'^kadi/events/', include('kadi.events.urls')),
                        url(r'^$', kadi.views.IndexView.as_view()),
                        url(r'^mica/$', mica.web.views.IndexView.as_view()),
+                       url(r'^pcad_acq/$', mica.web.views.AcqView.as_view()),
                        )
 
 # Another way to do this, corresponds to commented code in kadi/views.py
