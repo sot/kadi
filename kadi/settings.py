@@ -9,7 +9,12 @@ https://docs.djangoproject.com/en/1.6/ref/settings/
 """
 
 # Build paths inside the project like this: join(BASE_DIR, ...)
-from os.path import join, abspath, dirname, realpath
+import os
+from os.path import join, dirname, realpath
+os.environ.setdefault('SKA', '/proj/sot/ska')
+os.environ.setdefault('XDG_CONFIG_HOME',
+                      join(os.environ['SKA'], 'data', 'config'))
+os.environ.setdefault('XDG_CACHE_HOME', os.environ['XDG_CONFIG_HOME'])
 
 BASE_DIR = dirname(dirname(realpath(__file__)))
 
