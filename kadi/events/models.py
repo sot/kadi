@@ -1845,8 +1845,8 @@ class IFotEvent(BaseEvent):
                     DateTime(event[st]).date
                 except:
                     # Fail, roll back to the tstart/tstop version
-                    logger.info('WARNING: Bad value of ifot_evt[{}.{}] = {}'
-                                .format(cls.ifot_type_desc, st, event[st]))
+                    logger.info('WARNING: Bad value of ifot_evt[{}.{}] = "{}" at {}'
+                                .format(cls.ifot_type_desc, st, event[st], ifot_evt['tstart']))
                     event[st] = ifot_evt[tst]
 
             event['ifot_id'] = ifot_evt['id']
