@@ -134,6 +134,9 @@ def update(EventModel, date_stop):
                 continue
 
             logger.info('Added {} {}'.format(cls_name, event_model))
+            if 'dur' in event and event['dur'] < 0:
+                logger.info('WARNING: negative event duration for {} {}'
+                            .format(cls_name, event_model))
 
             # Add any foreign rows (many to one)
             for foreign_cls_name, rows in event.get('foreign', {}).items():
