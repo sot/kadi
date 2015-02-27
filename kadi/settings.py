@@ -63,6 +63,7 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'kadi.events',
     'mica.web',
+    'find_attitude.web',
 )
 
 MIDDLEWARE_CLASSES = (

@@ -3,6 +3,7 @@ from django.contrib import admin
 
 import kadi.views
 import mica.web.views
+import find_attitude.web.views
 
 admin.autodiscover()
 
@@ -13,6 +14,7 @@ urlpatterns = patterns('',
                        url(r'^$', kadi.views.IndexView.as_view()),
                        url(r'^mica/$', mica.web.views.IndexView.as_view()),
                        url(r'^pcad_acq/$', mica.web.views.AcqView.as_view()),
+                       url(r'^find_attitude/$', find_attitude.web.views.index),
                        )
 
 # Another way to do this, corresponds to commented code in kadi/views.py
