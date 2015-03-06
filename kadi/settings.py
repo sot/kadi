@@ -43,20 +43,27 @@ _secret_file = join(DATA_DIR(), 'secret_key.txt')
 try:
     with open(_secret_file) as fh:
         SECRET_KEY = fh.read().strip()
+
 except IOError:
     import random
-    print('Creating secret key file {}'.format(_secret_file))
     chars = 'abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*(-_=+)'
     SECRET_KEY = ''.join([random.SystemRandom().choice(chars) for i in range(50)])
-    with open(_secret_file, 'w') as fh:
-        fh.write(SECRET_KEY)
     try:
-        import stat
-        os.chmod(_secret_file, stat.S_IRUSR)
-        print('Changed file mode to owner read-only')
-    except:
-        import warnings
-        warnings.warn('Unable to change file mode permission!')
+        with open(_secret_file, 'w') as fh:
+            fh.write(SECRET_KEY)
+        print('Created secret key file {}'.format(_secret_file))
+
+    except IOError:
+        pass  # Running as a non-production instance, don't worry about secret key
+
+    else:
+        try:
+            import stat
+            os.chmod(_secret_file, stat.S_IRUSR)
+            print('Changed file mode to owner read-only')
+        except:
+            import warnings
+            warnings.warn('Unable to change file mode permission!')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
