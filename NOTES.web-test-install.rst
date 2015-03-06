@@ -6,34 +6,58 @@ Initial setup
 ^^^^^^^^^^^^^^
 ::
 
-  conda create -n test-web-kadi python django=1.6 numpy astropy pyyaks jinja2
+  WEB_KADI=/proj/web-kadi
+
+Option 1
+~~~~~~~~~
+This is a bit higher-fidelity than option 2::
+
+  ska # get into Ska environment
+
+  TEST_PREFIX=$HOME/tmp/web-kadi  # or wherever
+  mkdir -p $TEST_PREFIX/lib/python2.7/site-packages
+  export PYTHONPATH=$TEST_PREFIX/lib/python2.7/site-packages:$WEB_KADI/lib/python2.7/site-packages
+
+  cd ~/git/kadi
+  cp ./manage.py ~/tmp
+
+
+Option 2
+~~~~~~~~~
+::
+
+  conda create -n test-web-kadi python django=1.6 numpy pyyaks jinja2
   source activate test-web-kadi
-  PREFIX=`python -c 'import sys; print(sys.prefix)'`
+  TEST_PREFIX=`python -c 'import sys; print(sys.prefix)'`
+  export PYTHONPATH=$WEB_KADI/lib/python2.7/site-packages
+
   cd ~/git/kadi
   cp ./manage.py ~/tmp
 
 
 Kadi
 ^^^^
+The ``--prefix`` is not strictly required for option 2, but it should not hurt anything.
+
 ::
 
   cd ~/git/kadi
-  git checkout web
+  git branch  # confirm correct web branch
   git status  # confirm no stray modifications
   rm -rf build
-  rm -rf $PREFIX/lib/python2.7/site-packages/kadi*
-  python setup.py install
+  rm -rf $TEST_PREFIX/lib/python2.7/site-packages/kadi*
+  python setup.py install --prefix=$TEST_PREFIX
 
 Mica
 ^^^^^
 ::
 
   cd ~/git/mica
-  git checkout web
+  git branch  # confirm correct web branch
   git status  # confirm no stray modifications
   rm -rf build
-  rm -rf $PREFIX/lib/python2.7/site-packages/mica*
-  python setup.py install
+  rm -rf $TEST_PREFIX/lib/python2.7/site-packages/mica*
+  python setup.py install --prefix=$TEST_PREFIX
 
 Run server and test
 ^^^^^^^^^^^^^^^^^^^^
@@ -52,8 +76,7 @@ Basic setup::
 
   # Local (Apache) PREFIX and PYTHONPATH for web application packages.
   # Note that there is no Python installed at PREFIX.
-  PREFIX=/proj/web-kadi
-  export PYTHONPATH=${PREFIX}/lib/python2.7/site-packages
+  export PYTHONPATH=${WEB_KADI}/lib/python2.7/site-packages
 
 Kadi
 ^^^^^
@@ -66,11 +89,11 @@ As needed::
   # Remove project and kadi.events app if needed
   ls -ld $PYTHONPATH/kadi*
   rm -rf $PYTHONPATH/kadi*.egg-info
-  rm -rf $PYTHONPATH/kadi-bak
+  rf -rf $PYTHONPATH/kadi-bak
 
   # fast
   mv $PYTHONPATH/kadi{,-bak}
-  python setup.py install --prefix=$PREFIX
+  python setup.py install --prefix=$WEB_KADI
 
   ls -ld $PYTHONPATH/kadi*
 
@@ -90,7 +113,7 @@ As needed::
 
   ls -ld $PYTHONPATH/mica*
   rm -rf $PYTHONPATH/mica*
-  python setup.py install --prefix=$PREFIX
+  python setup.py install --prefix=$WEB_KADI
 
 
 
