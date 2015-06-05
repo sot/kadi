@@ -67,14 +67,17 @@ class SemanticVersion(object):
 
         except:
             from subprocess import Popen, PIPE
-            p = Popen(['git', 'rev-list', 'HEAD'], cwd=self.version_dir,
-                      stdout=PIPE, stderr=PIPE, stdin=PIPE)
-            stdout, stderr = p.communicate()
+            try:
+                p = Popen(['git', 'rev-list', 'HEAD'], cwd=self.version_dir,
+                          stdout=PIPE, stderr=PIPE, stdin=PIPE)
+                stdout, stderr = p.communicate()
 
-            if p.returncode == 0:
-                revs = stdout.split('\n')
-                git_revs, git_sha = len(revs), revs[0][:7]
-            else:
+                if p.returncode == 0:
+                    revs = stdout.split('\n')
+                    git_revs, git_sha = len(revs), revs[0][:7]
+                else:
+                    git_revs, git_sha = None, None
+            except:
                 git_revs, git_sha = None, None
 
         return git_revs, git_sha
