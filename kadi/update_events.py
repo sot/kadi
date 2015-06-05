@@ -127,7 +127,7 @@ def update(EventModel, date_stop):
                 event_model = EventModel.from_dict(event, logger)
                 event_model.save(force_insert=True)
             except django.db.utils.IntegrityError as err:
-                if 'unique' not in str(err):
+                if not re.search('unique', str(err), re.IGNORECASE):
                     raise
                 logger.verbose('Skipping {} at {}: already in database ({})'
                                .format(cls_name, event['start'], err))
