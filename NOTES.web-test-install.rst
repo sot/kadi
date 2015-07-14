@@ -10,7 +10,7 @@ Initial setup
 
 Option 1
 ~~~~~~~~~
-This is a bit higher-fidelity than option 2::
+This is preferred over option 2::
 
   ska # get into Ska environment
 
@@ -21,13 +21,20 @@ This is a bit higher-fidelity than option 2::
   cd ~/git/kadi
   cp ./manage.py ~/tmp
 
+Then install local test versions of kadi and/or mica as shown below.
 
 Option 2
 ~~~~~~~~~
-::
+This has not been tested::
 
-  conda create -n test-web-kadi python django=1.6 numpy pyyaks jinja2
+  # Activate and update a root dev ska to be synced with flight
+  conda install --file=pkgs.conda
+  make python_modules
+
+  # Clone it into a new environment.  This also clones pip-installed packages.
+  conda create -n test-web-kadi --clone root
   source activate test-web-kadi
+
   TEST_PREFIX=`python -c 'import sys; print(sys.prefix)'`
   export PYTHONPATH=$WEB_KADI/lib/python2.7/site-packages
 
