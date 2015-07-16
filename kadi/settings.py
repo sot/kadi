@@ -64,6 +64,7 @@ INSTALLED_APPS = (
     'kadi.events',
     'mica.web',
     'find_attitude.web',
+    'timelines.load_seg_changes.web',
 )
 
 MIDDLEWARE_CLASSES = (
