@@ -4,7 +4,7 @@ from django.contrib import admin
 import kadi.views
 import mica.web.views
 import find_attitude.web.views
-import load_seg_changes.web.views
+import timelines.load_seg_changes.web.views
 
 admin.autodiscover()
 
@@ -16,7 +16,8 @@ urlpatterns = patterns('',
                        url(r'^mica/$', mica.web.views.IndexView.as_view()),
                        url(r'^pcad_acq/$', mica.web.views.AcqView.as_view()),
                        url(r'^find_attitude/$', find_attitude.web.views.index),
-                       url(r'^load_seg_changes/$', load_seg_changes.web.views.LoadSegView.as_view()),
+                       url(r'^load_seg_changes/$',
+                           timelines.load_seg_changes.web.views.LoadSegView.as_view()),
                        )
 
 # Another way to do this, corresponds to commented code in kadi/views.py
