@@ -158,9 +158,8 @@ def _find(start=None, stop=None, **kwargs):
 class Cmd(OrderedDict):
     def __init__(self, cmd):
         # Create ordered dict from field values in idx_cmd structured array row.
-        # Skip the first field "idx" because that is not relevant here.
         super(Cmd, self).__init__()
-        self.update(OrderedDict((name, cmd[name].tolist()) for name in cmd.dtype.names[1:]))
+        self.update(OrderedDict((name, cmd[name].tolist()) for name in cmd.dtype.names))
         self.update(OrderedDict(rev_pars_dict[cmd['idx']]))
         if self['tlmsid'] is None:
             del self['tlmsid']
