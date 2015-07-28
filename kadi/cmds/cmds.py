@@ -1,6 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import tables
-from collections import OrderedDict
 
 import numpy as np
 
@@ -152,21 +151,29 @@ def _find(start=None, stop=None, **kwargs):
                     par_ok |= (idx_cmds['idx'] == idx)
             ok &= par_ok
     cmds = idx_cmds[ok]
-    return Table(cmds)
+    return cmds
 
 
-class Cmd(OrderedDict):
+class Cmd(dict):
     def __init__(self, cmd):
         # Create ordered dict from field values in idx_cmd structured array row.
         super(Cmd, self).__init__()
-        self.update(OrderedDict((name, cmd[name].tolist()) for name in cmd.dtype.names))
-        self.update(OrderedDict(rev_pars_dict[cmd['idx']]))
+        self.update((name, cmd[name].item()) for name in cmd.dtype.names)
+        self.update(rev_pars_dict[cmd['idx']])
         if self['tlmsid'] is None:
             del self['tlmsid']
+        self.cmd = cmd
+
+    @property
+    def ordered_keys(self):
+        if not hasattr(self, '_keys'):
+            self._keys = (self.cmd.dtype.names +
+                          tuple(par[0] for par in rev_pars_dict[self.cmd['idx']]))
+        return self._keys
 
     def __repr__(self):
         out = ('{} {:11s} '.format(self['date'], self['type']) +
-               ' '.join('{}={}'.format(key, val) for key, val in self.items()
+               ' '.join('{}={}'.format(key, self[key]) for key in self.ordered_keys
                         if key not in ('type', 'date')))
         return out
 
@@ -191,20 +198,18 @@ class CmdList(object):
     def __getitem__(self, item):
         cmds = self.cmds
         if isinstance(item, six.string_types):
+            if item in cmds.dtype.names:
+                return cmds[item]
+
             out = []
-            for cmd in cmds:
-                if item in cmds.dtype.names:
-                    out.append(cmd[item].tolist())
-                else:
-                    # Find the parameters tuple for this command from the reverse
-                    # lookup table which maps index to the params tuple.
-                    pars_tuple = rev_pars_dict[cmd['idx']]
-                    pars = dict(pars_tuple)
-                    out.append(pars.get(item))
+            for idx in cmds['idx']:
+                # Find the parameters dict for this command from the reverse
+                # lookup table which maps index to the params tuple.
+                out.append(rev_pars_dict[idx].get(item))
         elif isinstance(item, int):
             out = Cmd(cmds[item])
         elif isinstance(item, (slice, np.ndarray)):
-            out = [Cmd(cmd) for cmd in cmds[item]]
+            out = CmdList(cmds[item])
         return out
 
     def __repr__(self):

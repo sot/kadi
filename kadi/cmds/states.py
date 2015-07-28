@@ -318,7 +318,7 @@ def get_transition_classes(trans_types='all'):
 
     trans_classes = []
     for name, cls in TRANSITIONS.items():
-        if trans_types == 'all' or cls.transition_name in trans_types:
+        if trans_types == ['all'] or cls.transition_name in trans_types:
             trans_classes.append(cls)
 
     return trans_classes
