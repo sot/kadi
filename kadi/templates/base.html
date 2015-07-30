@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="/static/foundation/css/foundation.css" />
     <link rel="stylesheet" href="/static/kadi.css" />
     <script src="/static/foundation/js/vendor/modernizr.js"></script>
+    {% block extra_css %}{% endblock %}
    <title>{% block title %}Kadi{% endblock %}</title>
   </head>
 
@@ -37,6 +38,12 @@
           </ul>
         </li>
         <li> <a href="/mica">Mica</a> </li>
+        <li class="has-dropdown"> <a href="/"> Utilities</a>
+          <ul class="dropdown">
+            <li> <a href="/pcad_acq">PCAD Acquisition Table</a> </li>
+            <li> <a href="/find_attitude">Find attitude in BSH</a> </li>
+          </ul>
+        </li>
       </ul>
 
     </section>
