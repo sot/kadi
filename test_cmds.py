@@ -38,7 +38,7 @@ def test_ingest():
     if hasattr(cmds.pars_dict, '_val'):
         del cmds.pars_dict._val
 
-    cmds_at_once = cmds.find('2012:010', '2012:090')
+    cmds_at_once = cmds.filter('2012:010', '2012:090')
     pars_at_once = {v: k for k, v in cmds.pars_dict.items()}
 
     # Second part of funkiness to be able to use two different data root values
@@ -57,7 +57,7 @@ def test_ingest():
         update_cmds.main(['--stop', (stop0 + dt).date,
                           '--data-root', data_root])
 
-    cmds_per_day = cmds.find('2012:010', '2012:090')
+    cmds_per_day = cmds.filter('2012:010', '2012:090')
     pars_per_day = {v: k for k, v in cmds.pars_dict.items()}
 
     for name in ('date', 'type', 'tlmsid', 'scs', 'step', 'timeline_id'):
