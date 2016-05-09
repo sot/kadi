@@ -14,6 +14,7 @@ urlpatterns = patterns('',
                        url(r'^$', kadi.views.IndexView.as_view()),
                        url(r'^mica/$', mica.web.views.IndexView.as_view()),
                        url(r'^pcad_acq/$', mica.web.views.AcqView.as_view()),
+                       url(r'^star_hist/$', mica.web.views.StarHistView.as_view()),
                        url(r'^find_attitude/$', find_attitude.web.views.index),
                        )
 
