@@ -112,15 +112,7 @@ Restart::
 
 Mica
 ^^^^^
-As needed::
-
-  cd ~/git/mica
-  git branch  # confirm correct web branch
-  git status  # confirm no stray modifications
-
-  ls -ld $PYTHONPATH/mica*
-  rm -rf $PYTHONPATH/mica*
-  python setup.py install --prefix=$WEB_KADI
-
+The production kadi web server uses flight Ska for mica and all other packages,
+so just install to flight as normal and restart the server.
 
 
