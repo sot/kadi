@@ -15,16 +15,25 @@ foundation_files = ['static/foundation/css/*',
                     'static/foundation/humans.txt',
                     'static/foundation/robots.txt']
 
+try:
+    from testr.setup_helper import cmdclass
+    import testr
+    print(testr.__file__)
+except ImportError:
+    cmdclass = {}
+
 setup(name='kadi',
       version=package_version.version,
       description='Kadi events archive',
       author='Tom Aldcroft',
       author_email='aldcroft@head.cfa.harvard.edu',
       url='http://cxc.harvard.edu/mta/ASPECT/tool_doc/kadi/',
-      packages=['kadi', 'kadi.events', 'kadi.cmds'],
+      packages=['kadi', 'kadi.events', 'kadi.cmds', 'kadi.tests'],
       # Temporarily install static data into site-packages
       package_data={'kadi.events': ['templates/*/*.html', 'templates/*.html'],
-                    'kadi': foundation_files + ['templates/*/*.html', 'templates/*.html', 
-                                                'static/images/*', 'static/*.css', 
-                                                'GIT_VERSION']}
+                    'kadi': foundation_files + ['templates/*/*.html', 'templates/*.html',
+                                                'static/images/*', 'static/*.css',
+                                                'GIT_VERSION']},
+      tests_require=['pytest'],
+      cmdclass=cmdclass,
 )
