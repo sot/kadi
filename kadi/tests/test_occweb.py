@@ -1,13 +1,31 @@
 import os
 import uuid
 
+# See https://github.com/paramiko/paramiko/issues/735.  Without this
+# hack the module-level call to Ska.ftp.SFTP('lucky') hangs during
+# test collection by pytest.  Note that this does not work with
+# paramiko 2.0.0.
+from paramiko import py3compat
+py3compat.u('dirty hack')
+
 import Ska.ftp
 import Ska.File
+import pytest
 
 from kadi import occweb
 import pyyaks.logger
 
 logger = pyyaks.logger.get_logger()
+
+
+try:
+    Ska.ftp.parse_netrc()['lucky']['user']
+    lucky = Ska.ftp.SFTP('lucky')
+except Exception:
+    HAS_LUCKY = False
+else:
+    HAS_LUCKY = True
+    lucky.close()
 
 
 def _test_put_get(user):
@@ -41,6 +59,7 @@ def _test_put_get(user):
             assert open(filename).read() == filename
 
 
+@pytest.mark.skipif('not HAS_LUCKY')
 def test_put_get_user_from_netrc():
     # Get the remote user name for lucky
     netrc = Ska.ftp.parse_netrc()
@@ -48,6 +67,7 @@ def test_put_get_user_from_netrc():
     _test_put_get(user=user)
 
 
+@pytest.mark.skipif('not HAS_LUCKY')
 def test_put_get_user_none():
     # Test the user=None code branch (gets username back from SFTP object, which
     # had previously gotten it from the netrc file).
