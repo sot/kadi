@@ -47,8 +47,7 @@ def _test_put_get(user):
     occweb.ftp_get_from_lucky(remote_tmpdir, local_filenames, user=user)
 
     # Clean up remote temp dir
-    print('connecting to lucky')
-    lucky = Ska.ftp.SFTP('lucky', logger=logger)
+    lucky = Ska.ftp.SFTP('lucky')
     if user is None:
         user = lucky.ftp.get_channel().transport.get_username()
     lucky.rmdir('/home/{}/{}'.format(user, remote_tmpdir))
