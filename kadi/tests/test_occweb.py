@@ -19,6 +19,7 @@ logger = pyyaks.logger.get_logger()
 
 
 try:
+    Ska.ftp.parse_netrc()['lucky']['user']
     lucky = Ska.ftp.SFTP('lucky')
 except Exception:
     HAS_LUCKY = False
