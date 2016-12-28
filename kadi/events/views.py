@@ -1,7 +1,7 @@
-import urllib
+from six.moves import urllib, range
 import shlex
 import re
-from itertools import izip
+
 
 # Create your views here.
 from django.views.generic import ListView, TemplateView, DetailView
@@ -20,8 +20,8 @@ class BaseView(object):
         sort = self.request.GET.get('sort')
         if not sort:  # No sort explicitly set in request
             sort = self.model._meta.ordering[0]
-            print('model name {} meta ordering {}'.format(self.model.__name__,
-                                                          self.model._meta.ordering))
+            print(('model name {} meta ordering {}'.format(self.model.__name__,
+                                                          self.model._meta.ordering)))
             if self.reverse_sort:
                 sort = '-' + sort
         return sort
@@ -153,8 +153,8 @@ class EventDetail(EventView, DetailView):
             context['next_event'] = event.get_next(self.queryset)
             context['previous_event'] = event.get_previous(self.queryset)
 
-        context['next_get_params'] = '?' + urllib.urlencode(next_get_params)
-        context['previous_get_params'] = '?' + urllib.urlencode(previous_get_params)
+        context['next_get_params'] = '?' + urllib.parse.urlencode(next_get_params)
+        context['previous_get_params'] = '?' + urllib.parse.urlencode(previous_get_params)
 
         return context
 
@@ -222,15 +222,15 @@ Examples:
                 header_class = ''
             sort_icons.append('<a href="{root_url}?{get_params}">{icon}</a>'
                               .format(root_url=root_url,
-                                      get_params=urllib.urlencode(get_params),
+                                      get_params=urllib.parse.urlencode(get_params),
                                       icon=icon))
             header_classes.append(header_class)
 
         context['headers'] = [dict(header_class=x[0], field_name=x[1], sort_icon=x[2])
-                              for x in izip(header_classes, field_names, sort_icons)]
+                              for x in zip(header_classes, field_names, sort_icons)]
         event_list = context['event_list']
         page_obj = context['page_obj']
-        indices = xrange(page_obj.start_index() - 1, page_obj.end_index())
+        indices = range(page_obj.start_index() - 1, page_obj.end_index())
         context['event_rows'] = [(index, [self.formats[name].format(getattr(event, name))
                                           for name in field_names])
                                  for index, event in zip(indices, event_list)]

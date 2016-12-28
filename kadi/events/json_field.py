@@ -20,6 +20,8 @@ from django.db import models
 from django.conf import settings
 from django.utils import simplejson
 
+import six
+
 
 class JSONEncoder(simplejson.JSONEncoder):
     def default(self, obj):
@@ -61,12 +63,10 @@ class JSONList(list):
         return dumps(self)
 
 
+@six.add_metaclass(models.SubfieldBase)
 class JSONField(models.TextField):
     """JSONField is a generic textfield that neatly serializes/unserializes
     JSON objects seamlessly.  Main thingy must be a dict object."""
-
-    # Used so to_python() is called
-    __metaclass__ = models.SubfieldBase
 
     def __init__(self, *args, **kwargs):
         default = kwargs.get('default')
@@ -80,7 +80,7 @@ class JSONField(models.TextField):
         """Convert our string value to JSON after we load it from the DB"""
         if value is None or value == '':
             return {}
-        elif isinstance(value, basestring):
+        elif isinstance(value, six.string_types):
             res = loads(value)
             if isinstance(res, dict):
                 return JSONDict(**res)

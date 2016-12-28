@@ -14,7 +14,7 @@ import numpy as np
 import requests
 
 from Chandra.Time import DateTime
-import asciitable
+from astropy.io import ascii
 
 CACHE_DIR = 'cache'
 CACHE_TIME = 86000
@@ -83,9 +83,9 @@ def get_ifot(event_type, start=None, stop=None, props=[], columns=[], timeout=TI
     text = re.sub(r'\r\n', ' ', text)
     lines = [x for x in text.split('\t\n') if x.strip()]
 
-    converters = {key: [asciitable.convert_numpy(getattr(np, type_))]
+    converters = {key: [ascii.convert_numpy(getattr(np, type_))]
                   for key, type_ in types.items()}
-    dat = asciitable.read(lines, Reader=asciitable.Tab, guess=False, converters=converters)
+    dat = ascii.read(lines, format='tab', guess=False, converters=converters)
     return dat
 
 
