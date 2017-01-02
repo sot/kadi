@@ -40,5 +40,19 @@ More help available at:
     http://cxc.cfa.harvard.edu/mta/ASPECT/tool_doc/kadi/#details
 """
 
+import os
+import django
+
+if 'DJANGO_SETTINGS_MODULE' not in os.environ:
+    os.environ['DJANGO_SETTINGS_MODULE'] = 'kadi.settings'
+
+# In django >= 1.8 an explicit call to setup is required for standalone.
+# This attribute does not exist in 1.6.
+# https://docs.djangoproject.com/en/1.10/topics/settings/#calling-django-setup-is-required-for-standalone-django-usage
+try:
+    django.setup()
+except AttributeError:
+    pass
+
 # from .models import *
 from .query import *

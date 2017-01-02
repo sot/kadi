@@ -5,9 +5,6 @@ from itertools import count
 from six.moves import zip
 import six
 
-if 'DJANGO_SETTINGS_MODULE' not in os.environ:
-    os.environ['DJANGO_SETTINGS_MODULE'] = 'kadi.settings'
-
 from django.db import models
 models.query.REPR_OUTPUT_SIZE = 1000  # Increase default number of rows printed
 
@@ -268,7 +265,6 @@ class BaseModel(models.Model):
     Base class for for all models.
     """
     _get_obsid_start_attr = 'date'  # Attribute to use for getting event obsid
-    objects = MyManager()  # Custom manager to use custom QuerySet below
     update_priority = 0  # Priority order in update processing (higher => earlier)
 
     class QuerySet(models.query.QuerySet):
@@ -390,6 +386,13 @@ class BaseModel(models.Model):
             indices = np.unique(indices)
 
             return indices
+
+    try:
+        # Django >= 1.8 (which is req'd for Py3)
+        # https://docs.djangoproject.com/en/1.10/topics/db/managers/#creating-a-manager-with-queryset-methods
+        objects = QuerySet.as_manager()  # Custom manager to use custom QuerySet below
+    except AttributeError:
+        objects = MyManager()
 
     class Meta:
         abstract = True

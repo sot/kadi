@@ -199,7 +199,7 @@ class LttBadAdmin(ModelAdminBase):
     list_display = ('start', 'dur', 'msid', 'flag')
 
 
-for name, obj in vars().items():
+for name, obj in list(vars().items()):
     if name.endswith('Admin') and inspect.isclass(obj) and issubclass(obj, ModelAdminBase):
         mdl_cls_name = name[:-5]
         admin.site.register(getattr(mdl, mdl_cls_name), obj)
