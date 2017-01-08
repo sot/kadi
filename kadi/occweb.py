@@ -85,7 +85,8 @@ def get_ifot(event_type, start=None, stop=None, props=[], columns=[], timeout=TI
 
     converters = {key: [ascii.convert_numpy(getattr(np, type_))]
                   for key, type_ in types.items()}
-    dat = ascii.read(lines, format='tab', guess=False, converters=converters)
+    dat = ascii.read(lines, format='tab', guess=False, converters=converters,
+                     fill_values=None)
     return dat
 
 
