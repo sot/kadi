@@ -1,10 +1,9 @@
 import os
 import operator
 
-from itertools import count, izip
-
-if 'DJANGO_SETTINGS_MODULE' not in os.environ:
-    os.environ['DJANGO_SETTINGS_MODULE'] = 'kadi.settings'
+from itertools import count
+from six.moves import zip
+import six
 
 from django.db import models
 models.query.REPR_OUTPUT_SIZE = 1000  # Increase default number of rows printed
@@ -168,7 +167,7 @@ def fuzz_states(states, t_fuzz):
     done = False
     state_has_val = 'val' in states.dtype.names
     while not done:
-        for i, state0, state1 in izip(count(), states, states[1:]):
+        for i, state0, state1 in zip(count(), states, states[1:]):
             # Logical intervals all have a 'val' of True by definition, while for state
             # intervals we need to check that adjacent intervals have same value.
             state_equal = (state0['val'] == state1['val'] if state_has_val else True)
@@ -266,7 +265,6 @@ class BaseModel(models.Model):
     Base class for for all models.
     """
     _get_obsid_start_attr = 'date'  # Attribute to use for getting event obsid
-    objects = MyManager()  # Custom manager to use custom QuerySet below
     update_priority = 0  # Priority order in update processing (higher => earlier)
 
     class QuerySet(models.query.QuerySet):
@@ -282,15 +280,17 @@ class BaseModel(models.Model):
         @property
         def table(self):
             def un_unicode(vals):
-                return tuple(val.encode('ascii') if isinstance(val, unicode) else val
+                return tuple(val.encode('ascii') if isinstance(val, six.text_type) else val
                              for val in vals)
 
             from astropy.table import Table
 
             model_fields = self.model.get_model_fields()
             names = [f.name for f in model_fields]
-            rows = [un_unicode(vals) for vals in self.values_list()]
-            cols = (zip(*rows) if len(rows) > 0 else None)
+            rows = self.values_list()
+            if six.PY2:
+                rows = [un_unicode(vals) for vals in rows]
+            cols = (list(zip(*rows)) if len(rows) > 0 else None)
             dat = Table(cols, names=names)
 
             drop_names = [name for name in dat.dtype.names if dat[name].dtype.kind == 'O']
@@ -337,12 +337,12 @@ class BaseModel(models.Model):
             stop = DateTime(events[-1].tstop) + 30
             datestarts = [event.start for event in events]
             datestops = [event.stop for event in events]
-            intervals = zip(datestarts, datestops)
+            intervals = list(zip(datestarts, datestops))
             qe_intervals = query_event.intervals(start, stop)
             overlap_intervals = combine_intervals(operator.and_,
                                                   intervals, qe_intervals, start, stop)
 
-            overlap_starts, overlap_stops = zip(*overlap_intervals)
+            overlap_starts, overlap_stops = list(zip(*overlap_intervals))
 
             datestarts = np.array(datestarts, dtype='S21')
             datestops = np.array(datestops, dtype='S21')
@@ -387,6 +387,13 @@ class BaseModel(models.Model):
 
             return indices
 
+    try:
+        # Django >= 1.8 (which is req'd for Py3)
+        # https://docs.djangoproject.com/en/1.10/topics/db/managers/#creating-a-manager-with-queryset-methods
+        objects = QuerySet.as_manager()  # Custom manager to use custom QuerySet below
+    except AttributeError:
+        objects = MyManager()
+
     class Meta:
         abstract = True
         ordering = ['start']
@@ -418,7 +425,7 @@ class BaseModel(models.Model):
         if not hasattr(self, '_model_name'):
             cc_name = self.__class__.__name__
             chars = []
-            for c0, c1 in izip(cc_name[:-1], cc_name[1:]):
+            for c0, c1 in zip(cc_name[:-1], cc_name[1:]):
                 # Lower case followed by Upper case then insert "_"
                 chars.append(c0.lower())
                 if c0.lower() == c0 and c1.lower() != c1:
@@ -490,6 +497,16 @@ class BaseModel(models.Model):
             raise ValueError('Expected one obsid at {} but got {}'
                              .format(start, obsids))
         return obsids[0].obsid
+
+    def __bytes__(self):
+        return six.text_type(self).encode('utf-8')
+
+    if six.PY2:
+        def __str__(self):
+            return self.__bytes__()
+    else:
+        def __str__(self):
+            return self.__unicode__()
 
 
 class BaseEvent(BaseModel):
@@ -1476,12 +1493,12 @@ class Manvr(TlmEvent):
         # Auxiliary information
         aux_msidset = fetch.Msidset(['aotarqt1', 'aotarqt2', 'aotarqt3', 'one_shot'], start, stop)
         states, event_msidset = cls.get_msids_states(start, stop)
-        changes = _get_msid_changes(event_msidset.values(),
+        changes = _get_msid_changes(list(event_msidset.values()),
                                     sortmsids={'aofattmd': 1, 'aopcadmd': 2,
                                                'aoacaseq': 3, 'aopsacpr': 4})
 
         events = []
-        for manvr_prev, manvr, manvr_next in izip(states, states[1:], states[2:]):
+        for manvr_prev, manvr, manvr_next in zip(states, states[1:], states[2:]):
             tstart = manvr['tstart']
             tstop = manvr['tstop']
 

@@ -1,10 +1,10 @@
 import os
 import argparse
-import cPickle as pickle
 import difflib
 
 import numpy as np
 import tables
+from six.moves import cPickle as pickle
 
 import pyyaks.logger
 import Ska.DBI

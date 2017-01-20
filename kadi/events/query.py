@@ -1,7 +1,9 @@
 import operator
-from itertools import izip
+import warnings
 
 import numpy as np
+from six.moves import zip
+import six
 
 from Chandra.Time import DateTime
 
@@ -13,8 +15,15 @@ __all__ = ['get_dates_vals', 'EventQuery']
 
 
 def un_unicode(vals):
-    return tuple(val.encode('ascii') if isinstance(val, unicode) else val
-                 for val in vals)
+    # I think this code is orphaned and should never be called.
+    warnings.warn('unexpected call to query.un_unicode', stacklevel=2)
+    if six.PY2:
+        out = tuple(val.encode('ascii') if isinstance(val, six.text_type) else val
+                    for val in vals)
+    else:
+        out = tuple(vals)
+
+    return out
 
 
 def get_true_intervals(dates, vals):
@@ -37,7 +46,7 @@ def get_true_intervals(dates, vals):
     datestarts = dates[transitions[:-1]]
     datestops = dates[transitions[1:]]
 
-    intervals_iter = izip(state_vals, datestarts, datestops)
+    intervals_iter = zip(state_vals, datestarts, datestops)
     intervals = [(date0, date1)
                  for state_val, date0, date1 in intervals_iter
                  if state_val]
@@ -54,7 +63,7 @@ def merge_dates_vals(vals0, dates0, dates1):
     idxs = np.searchsorted(dates0, dates1)
     out_dates = dates0[:]
     out_vals = vals0[:]
-    for idx, date1 in izip(idxs[::-1], dates1[::-1]):
+    for idx, date1 in zip(idxs[::-1], dates1[::-1]):
         if dates0[idx] != date1:
             out_dates.insert(idx, date1)
             out_vals.insert(idx, vals0[idx])
@@ -84,7 +93,7 @@ def get_dates_vals(intervals, start, stop):
         dates.extend([datestart, intervals[0][0]])
         vals.extend([False, False])
 
-    for interval0, interval1 in izip(intervals[:-1], intervals[1:]):
+    for interval0, interval1 in zip(intervals[:-1], intervals[1:]):
         dates.extend(list(interval0))
         vals.extend([True, True])
 

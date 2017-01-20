@@ -2,10 +2,10 @@
 
 import os
 import re
-import types
 import argparse
 
 import numpy as np
+import six
 
 from . import occweb
 import pyyaks.logger
@@ -199,7 +199,7 @@ def main():
 
     # Get the event classes in models module
     EventModels = [Model for name, Model in vars(models).items()
-                   if (isinstance(Model, (type, types.ClassType))  # is a class
+                   if (isinstance(Model, six.class_types)  # is a class
                        and issubclass(Model, models.BaseEvent)  # is a BaseEvent subclass
                        and 'Meta' not in Model.__dict__  # is not a base class
                        and hasattr(Model, 'get_events')  # can get events

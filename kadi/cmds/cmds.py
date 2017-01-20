@@ -1,4 +1,3 @@
-import cPickle as pickle
 import tables
 from collections import OrderedDict
 
@@ -6,6 +5,8 @@ import numpy as np
 
 from astropy.table import Table
 from Chandra.Time import DateTime
+import six
+from six.moves import cPickle as pickle
 
 from ..paths import IDX_CMDS_PATH, PARS_DICT_PATH
 
@@ -77,7 +78,7 @@ def filter(start=None, stop=None, **kwargs):
       >>> cs = cmds.filter('2012:001', '2012:030', type='simtrans')
       >>> cs = cmds.filter(type='acispkt', tlmsid='wsvidalldn')
       >>> cs = cmds.filter(msid='aflcrset')
-      >>> print cs.table
+      >>> print(cs.table)
 
     Parameters
     ----------
@@ -138,7 +139,7 @@ def _find(start=None, stop=None, **kwargs):
         ok &= idx_cmds['date'] <= DateTime(stop).date
     for key, val in kwargs.items():
         key = key.lower()
-        if isinstance(val, basestring):
+        if isinstance(val, six.string_types):
             val = val.upper()
         if key in idx_cmds.dtype.names:
             ok &= idx_cmds[key] == val
@@ -186,7 +187,7 @@ class CmdList(object):
 
     def __getitem__(self, item):
         cmds = self.cmds
-        if isinstance(item, basestring):
+        if isinstance(item, six.string_types):
             out = []
             for cmd in cmds:
                 if item in cmds.dtype.names:
