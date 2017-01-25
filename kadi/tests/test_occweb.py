@@ -72,3 +72,30 @@ def test_put_get_user_none():
     # Test the user=None code branch (gets username back from SFTP object, which
     # had previously gotten it from the netrc file).
     _test_put_get(user=None)
+
+
+# The occweb login information should also be in the netrc (for maude) but kadi.occweb.get_auth
+# uses the /proj/sot/ska/data/aspect_authorization area, so existence of the right file
+# in there can just be checked by the get_auth routine
+user, passwd = occweb.get_auth()
+HAS_OCCWEB = True if user is not None else False
+
+@pytest.mark.skipif('not HAS_OCCWEB')
+def test_ifot_fetch():
+    events = occweb.get_ifot('LOADSEG', start='2008:001', stop='2008:003')
+    assert len(events) == 1
+    assert events[0]['tstart'] == '2008:002:21:00:00.000'
+
+
+# Looks like there isn't a way to check status (HTTP codes), but these
+# items should stay on these event pages
+@pytest.mark.skipif('not HAS_OCCWEB')
+def test_get_fdb_major_events():
+    page = occweb.get_url('fdb_major_events')
+    assert 'Aspect Camera First Star Solution' in page
+
+
+@pytest.mark.skipif('not HAS_OCCWEB')
+def test_get_fot_major_events():
+    page = occweb.get_url('fot_major_events')
+    assert 'ACA Dark Current Calibration' in page
