@@ -22,6 +22,7 @@ utils = None
 
 ZERO_DT = -1e-4
 MAX_GAP = 328.1  # Max gap (seconds) in telemetry for state intervals
+R2A = 206264.8  # radians to arcsec
 
 logger = pyyaks.logger.get_logger(name='events', level=pyyaks.logger.INFO,
                                   format="%(asctime)s %(message)s")
@@ -701,6 +702,8 @@ class TlmEvent(Event):
 
             # Custom processing defined by subclasses to add more attrs to event
             event.update(cls.get_extras(event, event_msidset))
+            if hasattr(cls, 'get_alerts'):
+                event.update(cls.get_alerts(event, event_msidset))
 
             events.append(event)
 
@@ -1112,6 +1115,112 @@ class Eclipse(TlmEvent):
     event_msids = ['aoeclips']
     event_val = 'ECL '
     fetch_event_msids = ['aoeclips', 'eb1k5', 'eb2k5', 'eb3k5']
+
+
+class StarAcq(TlmEvent):
+    """
+    ACA star acquisition
+
+    **Event definition**: interval where ``AOACASEQ == 'AQXN'``
+
+    **Fields**
+
+    ======== ========== ================================
+     Field      Type              Description
+    ======== ========== ================================
+      start   Char(21)   Start time (YYYY:DDD:HH:MM:SS)
+       stop   Char(21)    Stop time (YYYY:DDD:HH:MM:SS)
+     tstart      Float            Start time (CXC secs)
+      tstop      Float             Stop time (CXC secs)
+        dur      Float                  Duration (secs)
+    ======== ========== ================================
+    """
+    event_msids = ['aoacaseq']
+    event_val = 'AQXN'
+    event_min_dur = 20
+    lookback = 3
+
+    n_id = models.IntegerField(help_text='Number of identified acquisition stars', null=True)
+    id_status = models.CharField(max_length=8, null=True,
+                                 help_text='Identification status of catalog entries (T or F)')
+    one_shot_roll = models.FloatField(help_text='One shot update in roll (arcsec)', null=True)
+    one_shot_pitch = models.FloatField(help_text='One shot update in pitch (arcsec)', null=True)
+    one_shot_yaw = models.FloatField(help_text='One shot update in yaw (arcsec)', null=True)
+
+    @classmethod
+    def get_alerts(cls, event, event_msidset):
+        """
+        Check for large one-shot in pitch or yaw, or a small number of identified acq
+        stars.
+        """
+        def get_obsid():
+            dat = fetch.Msid('cobsrqid', event['tstop'] - 10, event['tstop'] + 300)
+            return int(dat.vals[0])
+
+        alerts = []
+
+        if abs(event['one_shot_pitch']) > 60 or abs(event['one_shot_yaw']) > 60:
+            obsid = get_obsid()
+            message = ('One shot at {}\n'
+                       'Roll  : {:.2f}\n'
+                       'Pitch : {:.2f}\n'
+                       'Yaw   : {:.2f}\n'
+                       '\n'
+                       'See http://kadi.cfa.harvard.edu/mica/?obsid_or_date={}\n'
+                       .format(event['stop'],
+                               event['one_shot_roll'],
+                               event['one_shot_pitch'],
+                               event['one_shot_yaw'],
+                               obsid))
+            alerts.append({'subject': 'Large one-shot update at {} (obsid {})'
+                           .format(event['stop'], obsid),
+                           'message': message})
+
+        if event['n_id'] <= 5:
+            obsid = get_obsid()
+            message = ('Number identified stars: {}\n'
+                       'Acquisition ID status: {}\n'
+                       'See http://kadi.cfa.harvard.edu/mica/?obsid_or_date={}\n'
+                       .format(event['n_id'], event['id_status'], obsid))
+            alerts.append({'subject': 'Only {} identified acq stars at {} (obsid {})'
+                           .format(event['n_id'], event['stop'], obsid),
+                           'message': message})
+
+        return {'event-alerts': alerts} if alerts else {}
+
+    @classmethod
+    def get_extras(cls, event, event_msidset):
+        """
+        Get acquisition ID status and one-shot update for event.
+        """
+        id_msids = ['aoacqid{}'.format(entry) for entry in range(8)]
+        att_msids = ['aoatter{}'.format(axis) for axis in range(1, 4)]
+        msids = ['aoacaseq'] + id_msids + att_msids
+
+        print('Getting extras for StarAcq at {}'.format(event['start']))
+        dat = fetch.MSIDset(msids, event['tstop'] - 10, event['tstop'] + 30)
+        if len(dat['aoacaseq']) > 0:
+            dat.interpolate(times=dat['aoacaseq'].times, bad_union=True)
+
+        # Select first complete telemetry sample in GUID phase.
+        idxs = np.where(dat['aoacaseq'].vals == 'GUID')[0]
+        if len(idxs) > 0:
+            i0 = idxs[0]
+            ids = ['F' if dat[msid].vals[i0] == 'NOID' else 'T' for msid in id_msids]
+            out = {'n_id': ids.count('T'),
+                   'id_status': ''.join(ids),
+                   'one_shot_roll': dat['aoatter1'].vals[i0] * R2A,
+                   'one_shot_pitch': dat['aoatter2'].vals[i0] * R2A,
+                   'one_shot_yaw': dat['aoatter3'].vals[i0] * R2A}
+
+        else:
+            out = {'n_id': -1,
+                   'id_status': '',
+                   'one_shot_roll': -999,
+                   'one_shot_pitch': -999,
+                   'one_shot_yaw': -999}
+
+        return out
 
 
 class Manvr(TlmEvent):
