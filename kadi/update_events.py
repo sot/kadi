@@ -173,7 +173,7 @@ def send_alerts_mail(alerts):
 
     for alert in alerts:
         sender = os.environ['USER'] + '@head.cfa.harvard.edu'
-        recipients = ['taldcroft@cfa.harvard.edu']
+        recipients = ['aca_alert@cfa.harvard.edu']
         msg = MIMEText(alert['message'])
         msg['Subject'] = alert['subject']
         msg['From'] = sender
