@@ -103,7 +103,7 @@ def update(EventModel, date_stop):
             delete_date = DateTime(update.date) - EventModel.lookback_delete
             delete_from_date(EventModel, delete_date, set_update_date=False)
 
-    if duration < 0.5:
+    if duration < 0.0:
         logger.info('Skipping {} events because update duration={:.1f} is < 0.5 day'
                     .format(cls_name, duration))
         return
