@@ -10,6 +10,7 @@ import six
 from . import occweb
 import pyyaks.logger
 from Chandra.Time import DateTime
+from Ska.engarchive import fetch_eng as fetch
 
 logger = None  # for pyflakes
 
@@ -42,6 +43,9 @@ def get_opt(args=None):
     parser.add_argument("--data-root",
                         default=".",
                         help="Root data directory (default='.')")
+    parser.add_argument("--data-source",
+                        default="cxc",
+                        help="Telemetry data source (cxc|maude) (default='cxc')")
     parser.add_argument("--occ",
                         default=OCC_SOT_ACCOUNT,
                         action='store_true',
@@ -99,7 +103,7 @@ def update(EventModel, date_stop):
             delete_date = DateTime(update.date) - EventModel.lookback_delete
             delete_from_date(EventModel, delete_date, set_update_date=False)
 
-    if duration < 0.5:
+    if duration < 0.0:
         logger.info('Skipping {} events because update duration={:.1f} is < 0.5 day'
                     .format(cls_name, duration))
         return
@@ -132,6 +136,10 @@ def update(EventModel, date_stop):
                 logger.verbose('Skipping {} at {}: already in database ({})'
                                .format(cls_name, event['start'], err))
                 continue
+            else:
+                alerts = event.get('event-alerts')  # List of alert dicts
+                if alerts:
+                    send_alerts_mail(alerts)
 
             logger.info('Added {} {}'.format(cls_name, event_model))
             if 'dur' in event and event['dur'] < 0:
@@ -155,6 +163,26 @@ def update(EventModel, date_stop):
     update.save()
 
 
+def send_alerts_mail(alerts):
+    """
+    Send an email for each alert in the list.  An alert is a dict with
+    keys for ``subject`` and ``message``.
+    """
+    import smtplib
+    from email.mime.text import MIMEText
+
+    for alert in alerts:
+        sender = os.environ['USER'] + '@head.cfa.harvard.edu'
+        recipients = ['aca_alert@cfa.harvard.edu']
+        msg = MIMEText(alert['message'])
+        msg['Subject'] = alert['subject']
+        msg['From'] = sender
+        msg['To'] = ','.join(recipients)
+        s = smtplib.SMTP('localhost')
+        s.sendmail(sender, recipients, msg.as_string())
+        s.quit()
+
+
 def main():
     global logger
 
@@ -173,10 +201,13 @@ def main():
     logger.info('Kadi version   : {}'.format(version.__version__))
     logger.info('Kadi path      : {}'.format(os.path.dirname(os.path.abspath(version.__file__))))
     logger.info('Event database : {}'.format(EVENTS_DB_PATH()))
+    logger.info('Telemetry source: {}'.format(opt.data_source.upper()))
     logger.info('')
     logger.info('Options:')
     for line in pformat(vars(opt)).splitlines():
         logger.info('  {}'.format(line))
+
+    fetch.data_source.set(opt.data_source)
 
     if opt.occ:
         # Get events database file from HEAD via lucky ftp
