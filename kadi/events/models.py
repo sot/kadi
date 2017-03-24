@@ -1183,6 +1183,9 @@ class Manvr(TlmEvent):
               stop_roll      Float                                  Stop roll angle after manvr
                   angle      Float                                         Maneuver angle (deg)
                one_shot      Float                            One shot attitude update (arcsec)
+          one_shot_roll      Float                       One shot attitude update roll (arcsec)
+         one_shot_pitch      Float                      One shot attitude update pitch (arcsec)
+           one_shot_yaw      Float                        One shot attitude update yaw (arcsec)
     ==================== ========== ============================================================
 
     ``n_acq``, ``n_guide``, and ``n_kalman``: these provide a count of the number of times
@@ -1207,6 +1210,9 @@ class Manvr(TlmEvent):
 
     ``one_shot``: one shot attitude update following maneuver.  This is -99.0 for maneuvers
         with no corresponding transition to NPM.
+
+    ``one_shot_roll``, ``one_shot_pitch``, and ``one_shot_yaw`` are the values of AOATTER1, 2, and 3
+        from samples after the guide transition.
     """
     _get_obsid_start_attr = 'stop'  # Attribute to use for getting event obsid
     event_msids = ['aofattmd', 'aopcadmd', 'aoacaseq', 'aopsacpr']
@@ -1268,8 +1274,14 @@ class Manvr(TlmEvent):
     stop_roll = models.FloatField(help_text='Stop roll angle after manvr')
     angle = models.FloatField(help_text='Maneuver angle (deg)')
     one_shot = models.FloatField(help_text='One shot attitude update (arcsec)')
+    one_shot_roll = models.FloatField(help_text='One shot attitude update roll (arcsec)')
+    one_shot_pitch = models.FloatField(help_text='One shot attitude update pitch (arcsec)')
+    one_shot_yaw = models.FloatField(help_text='One shot attitude update yaw (arcsec)')
 
     one_shot._kadi_format = '{:.1f}'
+    one_shot_roll._kadi_format = '{:.1f}'
+    one_shot_pitch._kadi_format = '{:.1f}'
+    one_shot_yaw._kadi_format = '{:.1f}'
     angle._kadi_format = '{:.2f}'
     start_ra._kadi_format = '{:.5f}'
     start_dec._kadi_format = '{:.5f}'
