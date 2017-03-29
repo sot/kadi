@@ -1470,7 +1470,7 @@ class Manvr(TlmEvent):
         """
         Define one_shot attribute (one-shot attitude update following maneuver)
         """
-        # No acq => guide transition so no one-shot defined.  Use 0.0 as a convenience.
+        # No acq => guide transition so no one-shot defined.  Use -99.0 as a convenience.
         if guide_start is None:
             return -99.0
 
