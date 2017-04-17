@@ -1198,7 +1198,16 @@ class StarAcq(TlmEvent):
         msids = ['aoacaseq'] + id_msids + att_msids
 
         print('Getting extras for StarAcq at {}'.format(event['start']))
-        dat = fetch.MSIDset(msids, event['tstop'] - 10, event['tstop'] + 30)
+        for ii in range(3):
+            try:
+                dat = fetch.MSIDset(msids, event['tstop'] - 10, event['tstop'] + 30)
+            except Exception as err:
+                import time
+                print('  Failed: {}'.format(err))
+                time.sleep(5)
+            else:
+                break
+
         if len(dat['aoacaseq']) > 0:
             dat.interpolate(times=dat['aoacaseq'].times, bad_union=True)
 
