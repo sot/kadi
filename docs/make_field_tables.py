@@ -33,7 +33,7 @@ models = get_event_models(baseclass=BaseModel)
 
 
 def table_to_rst(dat):
-    out_lines = dat.pformat()
+    out_lines = dat.pformat(max_lines=-1, max_width=-1)
     sep = out_lines[1].replace('-', '=')
     out_lines[1] = sep
     out_lines.append(sep)
