@@ -22,6 +22,7 @@ utils = None
 
 ZERO_DT = -1e-4
 MAX_GAP = 328.1  # Max gap (seconds) in telemetry for state intervals
+R2A = 206264.8  # Convert from radians to arcsec
 
 logger = pyyaks.logger.get_logger(name='events', level=pyyaks.logger.INFO,
                                   format="%(asctime)s %(message)s")
@@ -1183,6 +1184,9 @@ class Manvr(TlmEvent):
               stop_roll      Float                                  Stop roll angle after manvr
                   angle      Float                                         Maneuver angle (deg)
                one_shot      Float                            One shot attitude update (arcsec)
+          one_shot_roll      Float                       One shot attitude update roll (arcsec)
+         one_shot_pitch      Float                      One shot attitude update pitch (arcsec)
+           one_shot_yaw      Float                        One shot attitude update yaw (arcsec)
     ==================== ========== ============================================================
 
     ``n_acq``, ``n_guide``, and ``n_kalman``: these provide a count of the number of times
@@ -1207,6 +1211,9 @@ class Manvr(TlmEvent):
 
     ``one_shot``: one shot attitude update following maneuver.  This is -99.0 for maneuvers
         with no corresponding transition to NPM.
+
+    ``one_shot_roll``, ``one_shot_pitch``, and ``one_shot_yaw`` are the values of AOATTER1, 2, and 3
+        from samples after the guide transition.
     """
     _get_obsid_start_attr = 'stop'  # Attribute to use for getting event obsid
     event_msids = ['aofattmd', 'aopcadmd', 'aoacaseq', 'aopsacpr']
@@ -1268,8 +1275,14 @@ class Manvr(TlmEvent):
     stop_roll = models.FloatField(help_text='Stop roll angle after manvr')
     angle = models.FloatField(help_text='Maneuver angle (deg)')
     one_shot = models.FloatField(help_text='One shot attitude update (arcsec)')
+    one_shot_roll = models.FloatField(help_text='One shot attitude update roll (arcsec)')
+    one_shot_pitch = models.FloatField(help_text='One shot attitude update pitch (arcsec)')
+    one_shot_yaw = models.FloatField(help_text='One shot attitude update yaw (arcsec)')
 
     one_shot._kadi_format = '{:.1f}'
+    one_shot_roll._kadi_format = '{:.1f}'
+    one_shot_pitch._kadi_format = '{:.1f}'
+    one_shot_yaw._kadi_format = '{:.1f}'
     angle._kadi_format = '{:.2f}'
     start_ra._kadi_format = '{:.5f}'
     start_dec._kadi_format = '{:.5f}'
@@ -1466,23 +1479,30 @@ class Manvr(TlmEvent):
 
     @classmethod
     @import_ska
-    def get_one_shot(cls, guide_start, one_shot_msid):
+    def get_one_shot(cls, guide_start, aux_msidset):
         """
         Define one_shot attribute (one-shot attitude update following maneuver)
         """
-        # No acq => guide transition so no one-shot defined.  Use 0.0 as a convenience.
+        # No acq => guide transition so no one-shot defined.  Use -99.0 as a convenience for
+        # the one shot length, -999.0 for the axis values.
         if guide_start is None:
-            return -99.0
-
-        t0 = DateTime(guide_start).secs
-        n_times = len(one_shot_msid.times)
-        i0, i1 = np.searchsorted(one_shot_msid.times, [t0 - 10, t0 + 10])
-        if i0 == 0 or i1 == 0 or i0 == n_times or i1 == n_times:
-            raise ValueError('Unable to find complete data for one-shot attitude value'
-                             ' {} {} {} {} {}'
-                             .format(i0, i1, t0, np.min(one_shot_msid.times),
-                                     np.max(one_shot_msid.times)))
-        return np.max(one_shot_msid.vals[i0:i1])
+            return {'one_shot': -99.0,
+                    'one_shot_roll': -999.0, 'one_shot_pitch': -999.0, 'one_shot_yaw': -999.0}
+        # Save the first post maneuver / post ACQ attitude error sample for each AOATTER axis
+        pm_att_err = {}
+        for ax in [1, 2, 3]:
+            msid = aux_msidset['aoatter{}'.format(ax)]
+            ok = ((msid.times >= DateTime(guide_start).secs + 1.1)
+                  & (msid.times < DateTime(guide_start).secs + 30))
+            if not np.any(ok):
+                raise ValueError("No AOATTER{} times for guide transition at {} for one shot".format(
+                        ax, guide_start))
+            pm_att_err[ax] = msid.vals[ok][0] * R2A
+        return {'one_shot':  np.sqrt(pm_att_err[2] ** 2
+                                     + pm_att_err[3] ** 2),
+                'one_shot_roll': pm_att_err[1],
+                'one_shot_pitch': pm_att_err[2],
+                'one_shot_yaw': pm_att_err[3]}
 
     @classmethod
     @import_ska
@@ -1491,7 +1511,9 @@ class Manvr(TlmEvent):
         Get maneuver events from telemetry.
         """
         # Auxiliary information
-        aux_msidset = fetch.Msidset(['aotarqt1', 'aotarqt2', 'aotarqt3', 'one_shot'], start, stop)
+        aux_msidset = fetch.Msidset(['aotarqt1', 'aotarqt2', 'aotarqt3',
+                                     'aoatter1', 'aoatter2', 'aoatter3'],
+                                    start, stop)
         states, event_msidset = cls.get_msids_states(start, stop)
         changes = _get_msid_changes(list(event_msidset.values()),
                                     sortmsids={'aofattmd': 1, 'aopcadmd': 2,
@@ -1531,9 +1553,8 @@ class Manvr(TlmEvent):
                          )
             event.update(manvr_attrs)
             event.update(cls.get_target_attitudes(event, aux_msidset))
-            event['one_shot'] = cls.get_one_shot(manvr_attrs['guide_start'],
-                                                 aux_msidset['one_shot'])
-
+            one_shot = cls.get_one_shot(manvr_attrs['guide_start'], aux_msidset)
+            event.update(one_shot)
             dwells = cls.get_dwells(event, sequence)
             event['foreign']['Dwell'] = dwells
             event['n_dwell'] = len(dwells)
