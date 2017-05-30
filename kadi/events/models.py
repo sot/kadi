@@ -1468,7 +1468,7 @@ class Manvr(TlmEvent):
             out[label + '_dec'] = float(quat.dec)
             out[label + '_roll'] = float(quat.roll)
 
-        dq = quats['stop'] / quats['start']  # = (wx * sa2, wy * sa2, wz * sa2, ca2)
+        dq = quats['start'].dq(quats['stop'])  # = (wx * sa2, wy * sa2, wz * sa2, ca2)
         q3 = np.abs(dq.q[3])
         if q3 >= 1.0:  # Floating point error possible
             out['angle'] = 0.0
