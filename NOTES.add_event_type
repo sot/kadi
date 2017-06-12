@@ -28,19 +28,22 @@ export KADI=$PWD
   # Note possibility of coupled tables like (manvr, manvrseq),
   # (orbit, orbitpoint), (darkcal, darkcalreplica).  In these cases
   # drop both.
-  select * from table_events;
+  select * from events_update;
   delete from events_update where name='Manvr'  # for example
   delete from events_update where name='ManvrSeq'  # if needed
 
 ./manage.py syncdb
 
 ./update_events --start=1999:200 --stop=2001:001 --model=${ModelClassName}
-# The start date might need to be a bit later, e.g. for Manvr use 1999:230 + 21 days (lookback
-# time) so that all the event_msids are fully sampled.  Probably not needed for events
-# that rely on only one event MSID.
+# Update early events first and look for warnings.  Also confirm that the first event
+# matches what is in the current database unless a change is intended.
+# Some events may need a later start data to be fully sampled.  Manvr, for example,
+# should use a start of "1999:251"  (1999:230 + 21 days lookback).
+# Probably not needed for events that rely on only one event MSID.
 
 ./update_events --start=2001:001 --model=${ModelClassName}
-%%
+# Update the rest of the time range for the updated model/event
+
 
 ##### Test #########
 
@@ -90,6 +93,24 @@ ipython
 NOTE: this makes tables that have one vertical space separating columns
       while the baseline files have two.  Leave at two.  Need to fix code
       or just do this manually.
+
+
+###### Confirm that new database is backward compatible with old kadi code for reading
+
+Use the current flight kadi code and the test database and confirm that kadi tests pass
+
+  In [5]: paths.EVENTS_DB_PATH()
+  Out[5]: '/home/jeanconn/git/kadi/events.db3'
+  In [9]: kadi.test()
+  ============================= test session starts ==============================
+  platform linux2 -- Python 2.7.9 -- py-1.4.26 -- pytest-2.6.4
+  collected 15 items 
+
+  kadi/tests/test_events.py ..........
+  kadi/tests/test_occweb.py .....
+
+  ========================== 15 passed in 46.69 seconds ==========================
+  Out[9]: 0
 
 ###### Install to flight #########
 
