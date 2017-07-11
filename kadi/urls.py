@@ -4,6 +4,7 @@ from django.contrib import admin
 import kadi.views
 import mica.web.views
 import find_attitude.web.views
+import Ska.engarchive.web
 
 admin.autodiscover()
 
@@ -16,6 +17,7 @@ urlpatterns = patterns('',
                        url(r'^pcad_acq/$', mica.web.views.AcqView.as_view()),
                        url(r'^star_hist/$', mica.web.views.StarHistView.as_view()),
                        url(r'^find_attitude/$', find_attitude.web.views.index),
+                       url(r'^eng_archive/remote_func/$', Ska.engarchive.web.remote_func),
                        )
 
 # Another way to do this, corresponds to commented code in kadi/views.py

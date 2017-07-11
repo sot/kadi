@@ -87,7 +87,7 @@ INSTALLED_APPS = (
     'kadi.events',
 )
 
-OPTIONAL_APPS = ('mica.web', 'find_attitude.web')
+OPTIONAL_APPS = ('mica.web', 'find_attitude.web', 'Ska.engarchive.web')
 for app in OPTIONAL_APPS:
     try:
         __import__(app)
