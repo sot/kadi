@@ -12,6 +12,7 @@ from collections import OrderedDict as odict
 
 import numpy as np
 import requests
+import six
 
 from Chandra.Time import DateTime
 from astropy.io import ascii
@@ -43,7 +44,7 @@ def get_url(page, timeout=TIMEOUT):
     testing, in production the cron job runs once a day.
     """
     url = ROOTURL + URLS[page]
-    cachefile = os.path.join(CACHE_DIR, hashlib.sha1(url).hexdigest())
+    cachefile = os.path.join(CACHE_DIR, hashlib.sha1(url.encode('utf8')).hexdigest())
     now = time.time()
     if os.path.exists(cachefile) and now - os.stat(cachefile).st_mtime < CACHE_TIME:
         with open(cachefile, 'r') as f:
@@ -79,7 +80,12 @@ def get_ifot(event_type, start=None, stop=None, props=[], columns=[], timeout=TI
     url = ROOTURL + URLS['ifot']
     response = requests.get(url, auth=get_auth(), params=params, timeout=timeout)
 
+    # Clean any non-ASCII chars and make sure ``text`` is a str object
+    # in both Py2 and Py3+.
     text = response.text.encode('ascii', 'ignore')
+    if not six.PY2:
+        text = text.decode('ascii')
+
     text = re.sub(r'\r\n', ' ', text)
     lines = [x for x in text.split('\t\n') if x.strip()]
 
