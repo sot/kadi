@@ -1,3 +1,4 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
 JSONField automatically serializes most Python terms to JSON data.
 Creates a TEXT field with a default value of "{}".  See test_json.py for

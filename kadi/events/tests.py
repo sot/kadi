@@ -1,3 +1,4 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
 This file demonstrates writing tests using the unittest module. These will pass
 when you run "manage.py test".

@@ -1,3 +1,4 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 from django.views.generic import TemplateView
 # from django.template import RequestContext
 # from django.shortcuts import render_to_response
