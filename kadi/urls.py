@@ -1,3 +1,4 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 from django.conf.urls import patterns, include, url
 from django.contrib import admin
 

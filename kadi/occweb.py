@@ -1,3 +1,4 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
 Provide an interface for getting pages from the OCCweb.  For good measure leave
 this off of github.

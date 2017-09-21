@@ -1,3 +1,4 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
 Auto-generate event class documenation based on sphinx model definitions.
 

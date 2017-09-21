@@ -1,3 +1,4 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 from six.moves import urllib, range
 import shlex
 import re

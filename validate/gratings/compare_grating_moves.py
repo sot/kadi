@@ -1,3 +1,4 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
 Compare kadi grating_moves events to those derived by MTA circa Jan. 8, 2014.
 http://asc.harvard.edu/mta_days/mta_otg/OTG_filtered.html

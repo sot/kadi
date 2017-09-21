@@ -1,3 +1,4 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 from distutils.core import setup
 
 # from this_package.version import package_version object

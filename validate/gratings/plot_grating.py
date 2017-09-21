@@ -1,3 +1,4 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 msid_defs = """
 4M5IRAX			ENAB		MCE A +5 VOLT CONV INH RELAY MONITOR
 4MP5AV			~5		MCE A +5 VOLT MONITOR

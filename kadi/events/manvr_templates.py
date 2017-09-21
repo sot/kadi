@@ -1,3 +1,4 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
 Define templates of previously seen maneuver sequences.  These cover
 sequences seen at least twice as of ~Mar 2012.  See:
