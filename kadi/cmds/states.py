@@ -4,10 +4,10 @@ the Chandra commanded states database.
 """
 
 import collections
+import itertools
 
 import numpy as np
 import six
-import itertools
 
 from astropy.table import Table, Column
 
@@ -19,8 +19,9 @@ from Quaternion import Quat
 
 REV_PARS_DICT = commands.rev_pars_dict
 
-# Registry of Transition classes with class name as key
-TRANSITIONS = {}
+# Registry of Transition classes with state transition name(s) as key
+TRANSITIONS = collections.defaultdict(list)
+STATE_KEYS = []
 
 
 def decode_power(mnem):
@@ -89,10 +90,13 @@ class TransitionMeta(type):
 
         # Register transition classes that have a `transition_name`.
         if 'transition_name' in members:
-            TRANSITIONS[cls.__name__] = cls
-
             if 'state_keys' not in members:
                 cls.state_keys = [cls.transition_name]
+
+            for state_key in cls.state_keys:
+                if state_key not in STATE_KEYS:
+                    STATE_KEYS.append(state_key)
+                TRANSITIONS[state_key].append(cls)
 
         return cls
 
@@ -279,38 +283,38 @@ class ACISTransition(BaseTransition):
                 transitions[date].update(si_mode='TE_' + tlmsid[2:7])
 
 
-def get_transition_classes(trans_types='all'):
+def get_transition_classes(state_keys=None):
     """
-    Get all BaseTransition subclasses in this module
+    Get all BaseTransition subclasses in this module corresponding to
+    state keys ``state_keys``.
     """
-    if isinstance(trans_types, six.string_types):
-        trans_types = [trans_types]
+    if isinstance(state_keys, six.string_types):
+        state_keys = [state_keys]
 
-    trans_classes = []
-    for name, cls in TRANSITIONS.items():
-        if trans_types == ['all'] or cls.transition_name in trans_types:
-            trans_classes.append(cls)
-
+    if state_keys is None:
+        # itertools.chain => concat list of lists
+        trans_classes = set(itertools.chain.from_iterable(TRANSITIONS.values()))
+    else:
+        trans_classes = set(itertools.chain.from_iterable(
+                classes for state_key, classes in TRANSITIONS.items()
+                if state_key in state_keys))
     return trans_classes
 
 
-def get_transitions(cmds, trans_types='all'):
+def get_transitions(cmds, state_keys=None):
     transitions = collections.defaultdict(dict)
 
-    for transition_class in get_transition_classes(trans_types):
+    for transition_class in get_transition_classes(state_keys):
         transition_class.set_transitions(transitions, cmds)
 
     return transitions
 
 
-def get_states_for_cmds(cmds, trans_types='all'):
+def get_states_for_cmds(cmds, state_keys=None):
     # Define complete list of column names for output table corresponding to
     # each state key.  Maintain original order and uniqueness of keys.
-    state_keys = []
-    for transition_class in get_transition_classes(trans_types):
-        for state_key in transition_class.state_keys:
-            if state_key not in state_keys:
-                state_keys.append(state_key)
+    if state_keys is None:
+        state_keys = tuple(TRANSITIONS.keys())
 
     indexes = {key: index for index, key in enumerate(state_keys)}
 
@@ -319,7 +323,7 @@ def get_states_for_cmds(cmds, trans_types='all'):
     # states['datestart'][0] = [None]
     states = [list(None for key in state_keys)]
 
-    transitions = get_transitions(cmds, trans_types)
+    transitions = get_transitions(cmds, state_keys)
     transition_dates = sorted(transitions.keys())
 
     i_complete = 0

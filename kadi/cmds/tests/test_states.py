@@ -1,18 +1,20 @@
 import numpy as np
 
 from ... import cmds as commands
+from ...cmds import states
+
 import Chandra.cmd_states as cmd_states
 
 
 def test_states_acis_simple():
-    colnames = ['obsid', 'clocking', 'power_cmd',  'vid_board', 'fep_count',
-                'si_mode',  'ccd_count']
+    state_keys = ['obsid', 'clocking', 'power_cmd',  'vid_board', 'fep_count',
+                  'si_mode',  'ccd_count']
     cmds = commands.filter('2014:028', '2014:030:11:00:00')
-    kstates = commands.states.get_states_for_cmds(cmds, ['obsid', 'acis'])
+    kstates = states.get_states_for_cmds(cmds, state_keys)
 
     cstates = cmd_states.fetch_states('2014:030:02:50:00', '2014:030:11:00:00')
-    rstates = cmd_states.reduce_states(cstates, colnames, allow_identical=False)
+    rstates = cmd_states.reduce_states(cstates, state_keys, allow_identical=False)
 
     lenr = len(rstates)
-    for colname in ['datestart'] + colnames:
+    for colname in ['datestart'] + state_keys:
         assert np.all(kstates[-lenr:][colname] == rstates[colname])
