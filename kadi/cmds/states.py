@@ -22,36 +22,6 @@ REV_PARS_DICT = commands.rev_pars_dict
 # Registry of Transition classes with class name as key
 TRANSITIONS = {}
 
-# Canonical state0 giving spacecraft state at beginning of timelines
-# 2002:007:13 fetch --start 2002:007:13:00:00 --stop 2002:007:13:02:00 aoattqt1
-# aoattqt2 aoattqt3 aoattqt4 cobsrqid aopcadmd tscpos
-STATE0 = {'ccd_count': 5,
-          'clocking': 0,
-          'datestart': '2002:007:13:00:00.000',
-          'datestop': '2099:001:00:00:00.000',
-          'dec': -11.500,
-          'fep_count': 0,
-          'hetg': 'RETR',
-          'letg': 'RETR',
-          'obsid': 61358,
-          'pcad_mode': 'NPNT',
-          'pitch': 61.37,
-          'power_cmd': 'AA00000000',
-          'q1': -0.568062,
-          'q2': 0.121674,
-          'q3': 0.00114141,
-          'q4': 0.813941,
-          'ra': 352.000,
-          'roll': 289.37,
-          'si_mode': 'undef',
-          'simfa_pos': -468,
-          'simpos': -99616,
-          'trans_keys': 'undef',
-          'tstart': 127020624.552,
-          'tstop': 3187296066.184,
-          'vid_board': 0,
-          'dither': 'None'}
-
 
 def decode_power(mnem):
     """
@@ -241,8 +211,8 @@ class ParamTransition(BaseTransition):
     def set_transitions(cls, transitions, cmds):
         """
         Set transitions for a Table of commands ``cmds``.  This is the simplest
-        case where there is a single fixed attribute that gets set to a fixed
-        value, e.g. pcad_mode='NMAN' for NMM.
+        case where there is an attribute that gets set to a specified
+        value in the command, e.g. MP_OBSID or SIMTRANS
         """
         state_cmds = cls.get_state_changing_commands(cmds)
         param_key = cls.transition_param_key
@@ -374,7 +344,7 @@ def get_states_for_cmds(cmds, trans_types='all'):
             i_complete = i + 1
 
     if i_complete == 0:
-        raise ValueError('Not all state keys defined')
+        raise ValueError('not all state keys defined')
 
     states = Table(rows=states[i_complete:], names=state_keys)
     states.add_column(Column(datestarts[i_complete:], name='datestart'), 0)
