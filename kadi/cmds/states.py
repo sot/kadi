@@ -307,22 +307,27 @@ class ManeuverTransition(BaseTransition):
 
     @staticmethod
     def add_manvr_transitions(transitions, state, cmd):
-        targ_att = [state['targ_q1'], state['targ_q2'], state['targ_q3'], state['targ_q4']]
+        qcs = ('q1', 'q2', 'q3', 'q4')
+
+        targ_att = [state['targ_' + qc] for qc in qcs]
         if state['q1'] is None:
-            curr_att = targ_att
-        else:
-            curr_att = [state['q1'], state['q2'], state['q3'], state['q4']]
+            for qc in qcs:
+                state[qc] = state['targ_' + qc]
+        curr_att = [state[qc] for qc in qcs]
 
         # add pitch/attitude commands
+        print(curr_att)
+        print(targ_att)
+        print(cmd['date'])
         atts = Chandra.Maneuver.attitudes(curr_att, targ_att,
                                           tstart=DateTime(cmd['date']).secs)
 
         pitches = np.hstack([(atts[:-1].pitch + atts[1:].pitch) / 2,
                              atts[-1].pitch])
-        qcs = ('q1', 'q2', 'q3', 'q4')
         for att, pitch in zip(atts, pitches):
             # q_att = Quat([att[x] for x in qcs])
             date = DateTime(att.time).date
+            print(date, att['q1'])
             for qc in qcs:
                 transitions[date][qc] = att[qc]
             # TODO: ra, dec, roll
@@ -334,7 +339,11 @@ class ManeuverTransition(BaseTransition):
 
         # Now that the actual maneuver transitions have been added, remove the
         # 'maneuver' transition so the next pass will ignore it.
+        print(transitions[cmd['date']]['maneuver'])
         del transitions[cmd['date']]['maneuver']
+
+        for qc in qcs:
+            state[qc] = state['targ_' + qc]
 
 
 class ACISTransition(BaseTransition):
@@ -423,13 +432,6 @@ def get_states_for_cmds(cmds, state_keys=None):
                     state_keys.extend(cls.state_keys)
         state_keys = unique(state_keys)
 
-    indexes = {key: index for index, key in enumerate(state_keys)}
-
-    # Make a dict of lists to hold state values
-    # states = {key: [None] for key in state_keys}
-    # states['datestart'][0] = [None]
-    states = [list(None for key in state_keys)]
-
     # Get transitions, which is a dict (keyed by date) of dict (state key
     # and new state value at that date).  This goes through each active
     # transition class and accumulates transitions.
@@ -437,28 +439,30 @@ def get_states_for_cmds(cmds, state_keys=None):
 
     # Iterate through transitions.  Some transitions may be function callbacks
     # that generate new transitions based on the current state.  The 'maneuver'
-    # transition is the canonical example.  If there are any function callbacks
+    # transition is the canonical example.  If there are any function callbacks,
     # these will update the `transitions` dict and delete themselves, in which
     # case another iteration through the transitions is required.
     while True:
         transition_dates = sorted(transitions.keys())
 
+        # List of dict to hold state values
+        states = [{key: None for key in state_keys}]
         datestarts = [None]
-        states = [[None] * len(state_keys)]
 
         contained_funcs = False
-        for i, date in enumerate(transition_dates):
+        print('RUNNING transitions')
+        for date in transition_dates:
             transition = transitions[date]
 
-            state = list(states[-1])
+            state = states[-1].copy()
             for key, value in transition.items():
                 if isinstance(value, dict):
                     func = value.pop('func')
-                    curr_state = {key: val for key, val in zip(state_keys, state)}
-                    func(state=curr_state, transitions=transitions, **value)
+                    func(state=state, transitions=transitions, **value)
                     contained_funcs = True
                 else:
-                    state[indexes[key]] = value
+                    state[key] = value
+                    print('{} state[{}] = {}'.format(date, key, value))
 
             if state == states[-1]:
                 continue
@@ -472,7 +476,7 @@ def get_states_for_cmds(cmds, state_keys=None):
     states = Table(rows=states, names=state_keys)
     states.add_column(Column(datestarts, name='datestart'), 0)
 
-    return states
+    return states, transitions
 
 
 def unique(seq):

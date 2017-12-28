@@ -1,5 +1,6 @@
 import numpy as np
 
+from astropy.table import Table
 from ... import cmds as commands
 from ...cmds import states
 
@@ -25,8 +26,8 @@ def test_states_manvr():
     cmds = commands.filter('2014:028', '2014:030:11:00:00')
     kstates = states.get_states_for_cmds(cmds, state_keys)
 
-    cstates = cmd_states.fetch_states('2014:030:02:50:00', '2014:030:11:00:00')
-    rstates = cmd_states.reduce_states(cstates, state_keys, allow_identical=False)
+    cstates = cmd_states.fetch_states('2014:030:07:15:00', '2014:030:11:00:00')
+    rstates = Table(cmd_states.reduce_states(cstates, state_keys, allow_identical=False))
 
     lenr = len(rstates)
     for colname in ['datestart'] + state_keys:
