@@ -326,7 +326,6 @@ def get_states_for_cmds(cmds, state_keys=None):
     transitions = get_transitions(cmds, state_keys)
     transition_dates = sorted(transitions.keys())
 
-    i_complete = 0
     datestarts = [None]
     states = [[None] * len(state_keys)]
 
@@ -342,13 +341,6 @@ def get_states_for_cmds(cmds, state_keys=None):
 
         datestarts.append(date)
         states.append(state)
-
-        # Find the first row where all state keys are defined
-        if i_complete == 0 and all(x is not None for x in state):
-            i_complete = i + 1
-
-    if i_complete == 0:
-        raise ValueError('not all state keys defined')
 
     states = Table(rows=states[i_complete:], names=state_keys)
     states.add_column(Column(datestarts[i_complete:], name='datestart'), 0)
