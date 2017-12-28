@@ -15,7 +15,6 @@ from . import cmds as commands
 
 from Chandra.Time import DateTime
 import Chandra.Maneuver
-from Quaternion import Quat
 
 REV_PARS_DICT = commands.rev_pars_dict
 
@@ -82,14 +81,6 @@ def decode_power(mnem):
                 fep_info['ccds'] = fep_info['ccds'] + 'S' + str(bit - 4) + ' '
 
     return fep_info
-
-
-def _make_add_trans(transitions, date, exclude):
-    def add_trans(date=date, **kwargs):
-        # if no key in kwargs is in the exclude set then update transition
-        if not (exclude and set(exclude).intersection(kwargs)):
-            transitions.setdefault(date, {}).update(kwargs)
-    return add_trans
 
 
 class TransitionMeta(type):
@@ -306,7 +297,7 @@ class ManeuverTransition(BaseTransition):
                                                     'cmd': cmd}
 
     @staticmethod
-    def add_manvr_transitions(transitions, state, cmd):
+    def add_manvr_transitions(transitions, state, idx, cmd):
         qcs = ('q1', 'q2', 'q3', 'q4')
 
         targ_att = [state['targ_' + qc] for qc in qcs]
@@ -316,9 +307,6 @@ class ManeuverTransition(BaseTransition):
         curr_att = [state[qc] for qc in qcs]
 
         # add pitch/attitude commands
-        print(curr_att)
-        print(targ_att)
-        print(cmd['date'])
         atts = Chandra.Maneuver.attitudes(curr_att, targ_att,
                                           tstart=DateTime(cmd['date']).secs)
 
@@ -327,23 +315,18 @@ class ManeuverTransition(BaseTransition):
         for att, pitch in zip(atts, pitches):
             # q_att = Quat([att[x] for x in qcs])
             date = DateTime(att.time).date
-            print(date, att['q1'])
+            transition = {'date': date}
             for qc in qcs:
-                transitions[date][qc] = att[qc]
+                transition[qc] = att[qc]
+            add_transition(transitions, idx, transition)
+
             # TODO: ra, dec, roll
 
         # If auto-transition to NPM after manvr is enabled (this is
         # normally the case) then back to NPNT at end of maneuver
         if state['auto_npnt']:
-            transitions[date]['pcad_mode'] = 'NPNT'
-
-        # Now that the actual maneuver transitions have been added, remove the
-        # 'maneuver' transition so the next pass will ignore it.
-        print(transitions[cmd['date']]['maneuver'])
-        del transitions[cmd['date']]['maneuver']
-
-        for qc in qcs:
-            state[qc] = state['targ_' + qc]
+            transition = {'date': date, 'pcad_mode': 'NPNT'}
+            add_transition(transitions, idx, transition)
 
 
 class ACISTransition(BaseTransition):
@@ -410,7 +393,32 @@ def get_transitions(cmds, state_keys=None):
     for transition_class in get_transition_classes(state_keys):
         transition_class.set_transitions(transitions, cmds)
 
-    return transitions
+    transitions_list = []
+    for date in sorted(transitions):
+        transition = transitions[date]
+        transition['date'] = date
+        transitions_list.append(transition)
+
+    return transitions_list
+
+
+def add_transition(transitions, idx, transition):
+    # Prevent adding command before current command since the command
+    # interpreter is a one-pass process.
+    date = transition['date']
+    if date < transitions[idx]['date']:
+        raise ValueError('cannot insert transition prior to current command')
+
+    # Insert transition at first place where new transition date is strictly
+    # less than existing transition date.  This implementation is linear, and
+    # could be improved, though in practice transitions are often inserted
+    # close to the original.
+    for ii in xrange(idx + 1, len(transitions)):
+        if date < transitions[ii]['date']:
+            transitions.insert(ii, transition)
+            break
+    else:
+        transitions.append(transition)
 
 
 def get_states_for_cmds(cmds, state_keys=None):
@@ -432,51 +440,55 @@ def get_states_for_cmds(cmds, state_keys=None):
                     state_keys.extend(cls.state_keys)
         state_keys = unique(state_keys)
 
-    # Get transitions, which is a dict (keyed by date) of dict (state key
+    # Get transitions, which is a list of dict (state key
     # and new state value at that date).  This goes through each active
     # transition class and accumulates transitions.
     transitions = get_transitions(cmds, state_keys)
 
-    # Iterate through transitions.  Some transitions may be function callbacks
-    # that generate new transitions based on the current state.  The 'maneuver'
-    # transition is the canonical example.  If there are any function callbacks,
-    # these will update the `transitions` dict and delete themselves, in which
-    # case another iteration through the transitions is required.
-    while True:
-        transition_dates = sorted(transitions.keys())
+    # List of dict to hold state values
+    states = [{key: None for key in state_keys}]
+    datestarts = [transitions[0]['date']]
+    state = states[0]
 
-        # List of dict to hold state values
-        states = [{key: None for key in state_keys}]
-        datestarts = [None]
+    for idx, transition in enumerate(transitions):
+        date = transition['date']
 
-        contained_funcs = False
-        print('RUNNING transitions')
-        for date in transition_dates:
-            transition = transitions[date]
-
-            state = states[-1].copy()
-            for key, value in transition.items():
-                if isinstance(value, dict):
-                    func = value.pop('func')
-                    func(state=state, transitions=transitions, **value)
-                    contained_funcs = True
-                else:
-                    state[key] = value
-                    print('{} state[{}] = {}'.format(date, key, value))
-
-            if state == states[-1]:
-                continue
-
-            datestarts.append(date)
+        if date != datestarts[-1]:
+            state = state.copy()
             states.append(state)
+            datestarts.append(date)
 
-        if not contained_funcs:
-            break
+        for key, value in transition.items():
+            if isinstance(value, dict):
+                func = value.pop('func')
+                func(state=state, transitions=transitions, idx=idx, **value)
+            elif key != 'date':
+                state[key] = value
 
+    # Make into an astropy Table and set up datestart/stop columns
     states = Table(rows=states, names=state_keys)
     states.add_column(Column(datestarts, name='datestart'), 0)
+    datestop = states['datestart'].copy()
+    datestop[:-1] = states['datestart'][1:]
+    datestop[-1] = '2099:365:00:00:00.000'
+    states.add_column(Column(datestop, name='datestop'), 1)
 
-    return states, transitions
+    return states
+
+
+def reduce_states(states, state_keys):
+    if not isinstance(states, Table):
+        states = Table(states)
+
+    different = np.zeros(len(states), dtype=bool)
+    for key in state_keys:
+        col = states[key]
+        different[1:] |= (col[:-1] != col[1:])
+
+    out = states[['datestart', 'datestop'] + state_keys][different]
+    out['datestop'][:-1] = out['datestart'][1:]
+
+    return out
 
 
 def unique(seq):

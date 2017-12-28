@@ -1,6 +1,5 @@
 import numpy as np
 
-from astropy.table import Table
 from ... import cmds as commands
 from ...cmds import states
 
@@ -22,13 +21,14 @@ def test_states_acis_simple():
 
 
 def test_states_manvr():
-    state_keys = ['q1', 'q2', 'q3', 'q4']
+    state_keys = ['q1', 'q2', 'q3', 'q4', 'pcad_mode', 'obsid']
     cmds = commands.filter('2014:028', '2014:030:11:00:00')
     kstates = states.get_states_for_cmds(cmds, state_keys)
+    rkstates = states.reduce_states(kstates, state_keys)
 
     cstates = cmd_states.fetch_states('2014:030:07:15:00', '2014:030:11:00:00')
-    rstates = Table(cmd_states.reduce_states(cstates, state_keys, allow_identical=False))
+    rcstates = states.reduce_states(cstates, state_keys)
 
-    lenr = len(rstates)
+    lenr = len(rcstates)
     for colname in ['datestart'] + state_keys:
-        assert np.all(kstates[-lenr:][colname] == rstates[colname])
+        assert np.all(rkstates[-lenr:][colname] == rcstates[colname])
