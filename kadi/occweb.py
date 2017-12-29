@@ -11,6 +11,7 @@ import hashlib
 import time
 from collections import OrderedDict as odict
 
+import six
 import numpy as np
 import requests
 
@@ -44,17 +45,17 @@ def get_url(page, timeout=TIMEOUT):
     testing, in production the cron job runs once a day.
     """
     url = ROOTURL + URLS[page]
-    cachefile = os.path.join(CACHE_DIR, hashlib.sha1(url).hexdigest())
+    cachefile = os.path.join(CACHE_DIR, hashlib.sha1(url.encode('utf-8')).hexdigest())
     now = time.time()
     if os.path.exists(cachefile) and now - os.stat(cachefile).st_mtime < CACHE_TIME:
-        with open(cachefile, 'r') as f:
+        with open(cachefile, 'rb') as f:
             html = f.read().decode('utf8')
     else:
         response = requests.get(url, auth=get_auth(), timeout=timeout)
         html = response.text
 
         if os.path.exists(CACHE_DIR):
-            with open(cachefile, 'w') as f:
+            with open(cachefile, 'wb') as f:
                 f.write(html.encode('utf8'))
 
     return html
@@ -80,7 +81,8 @@ def get_ifot(event_type, start=None, stop=None, props=[], columns=[], timeout=TI
     url = ROOTURL + URLS['ifot']
     response = requests.get(url, auth=get_auth(), params=params, timeout=timeout)
 
-    text = response.text.encode('ascii', 'ignore')
+    # For Py2 convert from unicode to ASCII str
+    text = response.text.encode('ascii', 'ignore') if six.PY2 else response.text
     text = re.sub(r'\r\n', ' ', text)
     lines = [x for x in text.split('\t\n') if x.strip()]
 
