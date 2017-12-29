@@ -1,5 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import tables
+import tables3_api
 
 import numpy as np
 
@@ -43,15 +44,16 @@ class LazyVal(object):
 
 
 def load_idx_cmds():
-    h5 = tables.openFile(IDX_CMDS_PATH(), mode='r')
-    idx_cmds = h5.root.data[:]
+    h5 = tables.open_file(IDX_CMDS_PATH(), mode='r')
+    idx_cmds = Table(h5.root.data[:])
     h5.close()
     return idx_cmds
 
 
 def load_pars_dict():
-    with open(PARS_DICT_PATH(), 'r') as fh:
-        pars_dict = pickle.load(fh)
+    with open(PARS_DICT_PATH(), 'rb') as fh:
+        kwargs = {} if six.PY2 else {'encoding': 'ascii'}
+        pars_dict = pickle.load(fh, **kwargs)
     return pars_dict
 
 # Globals that contain the entire commands table and the parameters index
@@ -128,7 +130,7 @@ def _find(start=None, stop=None, **kwargs):
 
     Returns
     -------
-    cmds : numpy structured array of commands
+    cmds : astropy Table of commands
     """
     ok = np.ones(len(idx_cmds), dtype=bool)
     par_ok = np.zeros(len(idx_cmds), dtype=bool)
@@ -156,29 +158,34 @@ def _find(start=None, stop=None, **kwargs):
 
 class Cmd(dict):
     def __init__(self, cmd):
-        # Create ordered dict from field values in idx_cmd structured array row.
+        # Create dict from field values in idx_cmd structured array row.
         super(Cmd, self).__init__()
-        self.update((name, cmd[name].item()) for name in cmd.dtype.names)
-        self.update(rev_pars_dict[cmd['idx']])
-        if self['tlmsid'] is None:
-            del self['tlmsid']
-        self.cmd = cmd
 
-    @property
-    def ordered_keys(self):
-        if not hasattr(self, '_keys'):
-            self._keys = (self.cmd.dtype.names +
-                          tuple(par[0] for par in rev_pars_dict[self.cmd['idx']]))
-        return self._keys
+        for name in cmd.colnames:
+            value = cmd[name]
+            try:
+                self[name] = value.item()
+            except AttributeError:
+                self[name] = value
+        self.update(rev_pars_dict[cmd['idx']])
+
+        colnames = cmd.colnames
+        if self['tlmsid'] == 'None':
+            del self['tlmsid']
+            colnames.remove('tlmsid')
+
+        self._ordered_keys = (colnames +
+                              [par[0] for par in rev_pars_dict[cmd['idx']]])
 
     def __repr__(self):
-        out = ('{} {:11s} '.format(self['date'], self['type']) +
-               ' '.join('{}={}'.format(key, self[key]) for key in self.ordered_keys
-                        if key not in ('type', 'date')))
+        out = ('<{} '.format(self.__class__.__name__) + str(self) + '>')
         return out
 
     def __str__(self):
-        return repr(self)
+        out = ('{} {:11s} '.format(self['date'], self['type']) +
+               ' '.join('{}={}'.format(key, self[key]) for key in self._ordered_keys
+                        if key not in ('type', 'date')))
+        return out
 
 
 class CmdList(object):
@@ -188,7 +195,7 @@ class CmdList(object):
     @property
     def table(self):
         if not hasattr(self, '_table'):
-            self._table = Table(self.cmds)
+            self._table = Table(self.cmds, copy=False)
             self._table.remove_column('idx')
         return self._table
 
@@ -198,22 +205,26 @@ class CmdList(object):
     def __getitem__(self, item):
         cmds = self.cmds
         if isinstance(item, six.string_types):
-            if item in cmds.dtype.names:
+            if item in cmds.colnames:
                 return cmds[item]
 
             out = []
             for idx in cmds['idx']:
                 # Find the parameters dict for this command from the reverse
                 # lookup table which maps index to the params tuple.
-                out.append(rev_pars_dict[idx].get(item))
+                out.append(dict(rev_pars_dict[idx]).get(item))
+            out = np.array(out)
+
         elif isinstance(item, int):
             out = Cmd(cmds[item])
+
         elif isinstance(item, (slice, np.ndarray)):
             out = CmdList(cmds[item])
+
         return out
 
     def __repr__(self):
-        return '\n'.join(repr(Cmd(cmd)) for cmd in self.cmds)
+        return '\n'.join(str(Cmd(cmd)) for cmd in self.cmds)
 
     def __str__(self):
         return repr(self)

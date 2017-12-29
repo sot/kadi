@@ -8,6 +8,7 @@ import itertools
 
 import numpy as np
 import six
+from six.moves import range
 
 from astropy.table import Table, Column
 
@@ -62,7 +63,7 @@ def decode_power(mnem):
                 'feps': '',
                 'ccds': ''}
     # count the true binary bits
-    for bit in xrange(0, 6):
+    for bit in range(0, 6):
         if (fepkey & (1 << bit)):
             fep_info['fep_count'] = fep_info['fep_count'] + 1
             fep_info['feps'] = fep_info['feps'] + str(bit) + ' '
@@ -71,7 +72,7 @@ def decode_power(mnem):
     vidkey = int(powstr, 16) >> 8
 
     # count the true bits
-    for bit in xrange(0, 10):
+    for bit in range(0, 10):
         if (vidkey & (1 << bit)):
             fep_info['ccd_count'] = fep_info['ccd_count'] + 1
             # position indicates I or S chip
@@ -114,7 +115,7 @@ class BaseTransition(object):
         """
         ok = np.ones(len(cmds), dtype=bool)
         for attr, val in cls.command_attributes.items():
-            ok = ok & (np.asarray(cmds[attr]) == val)
+            ok = ok & (cmds[attr] == val)
         return cmds[ok]
 
 
@@ -413,7 +414,7 @@ def add_transition(transitions, idx, transition):
     # less than existing transition date.  This implementation is linear, and
     # could be improved, though in practice transitions are often inserted
     # close to the original.
-    for ii in xrange(idx + 1, len(transitions)):
+    for ii in range(idx + 1, len(transitions)):
         if date < transitions[ii]['date']:
             transitions.insert(ii, transition)
             break
