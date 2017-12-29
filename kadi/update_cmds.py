@@ -11,6 +11,7 @@ import pyyaks.logger
 import Ska.DBI
 import Ska.File
 from Chandra.Time import DateTime
+from Chandra.cmd_states.cmd_states import _tl_to_bs_cmds
 from . import occweb
 from .paths import IDX_CMDS_PATH, PARS_DICT_PATH
 
@@ -71,13 +72,34 @@ def get_opt(args=None):
     return args
 
 
-def get_cmds(timeline_loads, mp_dir='/data/mpcrit1/mplogs'):
+def get_cmds(start, stop, mp_dir='/data/mpcrit1/mplogs'):
     """
     Get backstop commands corresponding to the supplied timeline load segments.
     The timeline load segments must be ordered by 'id'.
 
     Return cmds in the format defined by Ska.ParseCM.read_backstop().
     """
+    # Get timeline_loads including and after start
+    server = os.path.join(os.environ['SKA'], 'data', 'cmd_states', 'cmd_states.db3')
+    db = Ska.DBI.DBI(dbi='sqlite', server=server)
+    timeline_loads = db.fetchall("""SELECT * from timeline_loads
+                                    WHERE datestop > '{}' AND datestart < '{}'
+                                    ORDER BY id"""
+                                 .format(start.date, stop.date))
+
+    # Get non-load commands (from autonomous or ground SCS107, NSM, etc) in the
+    # time range that the timelines span.
+    tl_datestart = np.min(timeline_loads['datestart'])
+    tl_datestop = np.max(timeline_loads['datestop'])
+    nl_cmds = db.fetchall('SELECT * from cmds where timeline_id IS NULL and '
+                          'date >= {} and date <= {}'
+                          .format(tl_datestart, tl_datestop))
+    nl_cmds = _tl_to_bs_cmds(nl_cmds, None, db)
+    db.conn.close()
+
+    logger.info('Found {} timelines included within {} to {}'
+                .format(len(timeline_loads), start.date, stop.date))
+
     if np.min(np.diff(timeline_loads['id'])) < 1:
         raise ValueError('Timeline loads id not monotonically increasing')
 
@@ -242,20 +264,6 @@ def main(args=None):
         occweb.ftp_get_from_lucky('kadi', [idx_cmds_path, pars_dict_path], logger=logger)
         return
 
-    stop = DateTime(opt.stop) if opt.stop else DateTime() + 21
-    start = DateTime(opt.start) if opt.start else stop - 42
-
-    # Get timeline_loads including and after start
-    db = Ska.DBI.DBI(dbi='sybase', server='sybase', user='aca_read')
-    timeline_loads = db.fetchall("""SELECT * from timeline_loads
-                                    WHERE datestop > '{}' AND datestart < '{}'
-                                    ORDER BY id"""
-                                 .format(start.date, stop.date))
-    db.conn.close()
-
-    logger.info('Found {} timelines included within {} to {}'
-                .format(len(timeline_loads), start.date, stop.date))
-
     try:
         with open(pars_dict_path, 'rb') as fh:
             pars_dict = pickle.load(fh)
@@ -268,7 +276,10 @@ def main(args=None):
     # Recast as dict subclass that remembers if any element was updated
     pars_dict = UpdatedDict(pars_dict)
 
-    cmds = get_cmds(timeline_loads, opt.mp_dir)
+    stop = DateTime(opt.stop) if opt.stop else DateTime() + 21
+    start = DateTime(opt.start) if opt.start else stop - 42
+
+    cmds = get_cmds(start, stop, opt.mp_dir)
     idx_cmds = get_idx_cmds(cmds, pars_dict)
     add_h5_cmds(idx_cmds_path, idx_cmds)
 
