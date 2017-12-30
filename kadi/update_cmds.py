@@ -72,6 +72,34 @@ def get_opt(args=None):
     return args
 
 
+def fix_nonload_cmds(nl_cmds):
+    """
+    Convert non-load commands commands dict format from Chandra.cmd_states
+    to the values/structure needed here.  A typical value is shown below:
+    {'cmd': u'SIMTRANS',               # Needs to be 'type'
+    'date': u'2017:066:00:24:22.025',
+    'id': 371228,                      # Store as params['nonload_id'] for provenence
+    'msid': None,                      # Goes into params
+    'params': {u'POS': -99616},
+    'scs': None,                       # Set to 0
+    'step': None,                      # Set to 0
+    'time': 605233531.20899999,        # Ignored
+    'timeline_id': None,               # Set to 0
+    'tlmsid': None,                    # 'None' if None
+    'vcdu': None},                     # Ignored
+    """
+    for cmd in nl_cmds:
+        cmd['type'] = cmd['cmd']
+        cmd.setdefault('params', {})
+        cmd['params']['nonload_id'] = cmd['id']
+        if cmd['msid'] is not None:
+            cmd['params']['msid'] = cmd['msid']
+        if cmd['tlmsid'] is None:
+            cmd['tlmsid'] = 'None'
+        for key in ('scs', 'step', 'timeline_id'):
+            cmd[key] = 0
+
+
 def get_cmds(start, stop, mp_dir='/data/mpcrit1/mplogs'):
     """
     Get backstop commands corresponding to the supplied timeline load segments.
@@ -79,23 +107,27 @@ def get_cmds(start, stop, mp_dir='/data/mpcrit1/mplogs'):
 
     Return cmds in the format defined by Ska.ParseCM.read_backstop().
     """
-    # Get timeline_loads including and after start
+    # Get timeline_loads within date range.  Also get non-load commands
+    # within the date range covered by the timelines.
     server = os.path.join(os.environ['SKA'], 'data', 'cmd_states', 'cmd_states.db3')
-    db = Ska.DBI.DBI(dbi='sqlite', server=server)
-    timeline_loads = db.fetchall("""SELECT * from timeline_loads
-                                    WHERE datestop > '{}' AND datestart < '{}'
-                                    ORDER BY id"""
-                                 .format(start.date, stop.date))
+    with Ska.DBI.DBI(dbi='sqlite', server=server) as db:
+        timeline_loads = db.fetchall("""SELECT * from timeline_loads
+                                        WHERE datestop > '{}' AND datestart < '{}'
+                                        ORDER BY id"""
+                                     .format(start.date, stop.date))
 
-    # Get non-load commands (from autonomous or ground SCS107, NSM, etc) in the
-    # time range that the timelines span.
-    tl_datestart = np.min(timeline_loads['datestart'])
-    tl_datestop = np.max(timeline_loads['datestop'])
-    nl_cmds = db.fetchall('SELECT * from cmds where timeline_id IS NULL and '
-                          'date >= {} and date <= {}'
-                          .format(tl_datestart, tl_datestop))
-    nl_cmds = _tl_to_bs_cmds(nl_cmds, None, db)
-    db.conn.close()
+        # Get non-load commands (from autonomous or ground SCS107, NSM, etc) in the
+        # time range that the timelines span.
+        tl_datestart = min(timeline_loads['datestart'])
+        tl_datestop = max(timeline_loads['datestop'])
+        nl_cmds = db.fetchall('SELECT * from cmds where timeline_id IS NULL and '
+                              'date >= "{}" and date <= "{}"'
+                              .format(tl_datestart, tl_datestop))
+
+        # Private method from cmd_states.py fetches the actual int/float param values
+        # and returns list of dict.
+        nl_cmds = _tl_to_bs_cmds(nl_cmds, None, db)
+        fix_nonload_cmds(nl_cmds)
 
     logger.info('Found {} timelines included within {} to {}'
                 .format(len(timeline_loads), start.date, stop.date))
@@ -116,8 +148,8 @@ def get_cmds(start, stop, mp_dir='/data/mpcrit1/mplogs'):
 
         # Only store commands for this timeline (match SCS and date)
         bs_cmds = [x for x in bs_cmds
-                   if tl['datestart'] <= x['date'] <= tl['datestop']
-                   and x['scs'] == tl['scs']]
+                   if tl['datestart'] <= x['date'] <= tl['datestop'] and
+                   x['scs'] == tl['scs']]
 
         for bs_cmd in bs_cmds:
             bs_cmd['timeline_id'] = tl['id']
@@ -126,9 +158,12 @@ def get_cmds(start, stop, mp_dir='/data/mpcrit1/mplogs'):
                     .format(len(bs_cmds), tl['id'], tl['scs']))
         cmds.extend(bs_cmds)
 
+    cmds.extend(nl_cmds)
+
     # Sort by date and SCS step number.
     cmds = sorted(cmds, key=lambda y: (y['date'], y['step']))
-    logger.debug('Read total of {} commands'.format(len(cmds)))
+    logger.debug('Read total of {} commands ({} non-load commands)'
+                 .format(len(cmds), len(nl_cmds)))
 
     return cmds
 
@@ -182,6 +217,8 @@ def add_h5_cmds(h5file, idx_cmds):
     # Convert cmds (list of tuples) to numpy structured array.  This also works for an
     # existing structured array.
     cmds = np.array(idx_cmds, dtype=CMDS_DTYPE)
+
+    # TODO : make sure that changes in non-load commands triggers an update
 
     try:
         h5d = h5.root.data
