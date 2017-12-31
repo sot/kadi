@@ -29,10 +29,12 @@ TRANSITION_CLASSES = set()
 # Ordered list of all state keys
 STATE_KEYS = []
 
+# Quaternion componenent names
+QCS = ['q1', 'q2', 'q3', 'q4']
+
 # State keys that are required to handle maneuvers.  If any of these keys are requested
 # then all of these must be included in state processing.
-MANVR_STATE_KEYS = ['q1', 'q2', 'q3', 'q4', 'targ_q1', 'targ_q2', 'targ_q3', 'targ_q4',
-                    'auto_npnt', 'pcad_mode']
+MANVR_STATE_KEYS = QCS + ['targ_' + qc for qc in QCS] + ['auto_npnt', 'pcad_mode']
 
 
 def decode_power(mnem):
@@ -294,18 +296,26 @@ class ManeuverTransition(BaseTransition):
         state_cmds = cls.get_state_changing_commands(cmds)
 
         for cmd in state_cmds:
-            transitions[cmd['date']]['maneuver'] = {'func': cls.add_manvr_transitions,
+            transitions[cmd['date']]['maneuver'] = {'func': cls.add_transitions,
                                                     'cmd': cmd}
 
-    @staticmethod
-    def add_manvr_transitions(transitions, state, idx, cmd):
-        qcs = ('q1', 'q2', 'q3', 'q4')
+    @classmethod
+    def add_transitions(cls, transitions, state, idx, cmd):
+        end_manvr_date = cls.add_manvr_transitions(transitions, state, idx, cmd)
 
-        targ_att = [state['targ_' + qc] for qc in qcs]
+        # If auto-transition to NPM after manvr is enabled (this is
+        # normally the case) then back to NPNT at end of maneuver
+        if state['auto_npnt'] == 'ENAB':
+            transition = {'date': end_manvr_date, 'pcad_mode': 'NPNT'}
+            add_transition(transitions, idx, transition)
+
+    @classmethod
+    def add_manvr_transitions(cls, transitions, state, idx, cmd):
+        targ_att = [state['targ_' + qc] for qc in QCS]
         if state['q1'] is None:
-            for qc in qcs:
+            for qc in QCS:
                 state[qc] = state['targ_' + qc]
-        curr_att = [state[qc] for qc in qcs]
+        curr_att = [state[qc] for qc in QCS]
 
         # add pitch/attitude commands
         atts = Chandra.Maneuver.attitudes(curr_att, targ_att,
@@ -314,20 +324,37 @@ class ManeuverTransition(BaseTransition):
         pitches = np.hstack([(atts[:-1].pitch + atts[1:].pitch) / 2,
                              atts[-1].pitch])
         for att, pitch in zip(atts, pitches):
-            # q_att = Quat([att[x] for x in qcs])
+            # q_att = Quat([att[x] for x in QCS])
             date = DateTime(att.time).date
             transition = {'date': date}
-            for qc in qcs:
+            for qc in QCS:
                 transition[qc] = att[qc]
             add_transition(transitions, idx, transition)
 
             # TODO: ra, dec, roll
 
-        # If auto-transition to NPM after manvr is enabled (this is
-        # normally the case) then back to NPNT at end of maneuver
-        if state['auto_npnt'] == 'ENAB':
-            transition = {'date': date, 'pcad_mode': 'NPNT'}
-            add_transition(transitions, idx, transition)
+        return date  # date of end of maneuver
+
+
+class NormalSunTransition(ManeuverTransition):
+    command_attributes = {'type': 'COMMAND_SW',
+                          'tlmsid': 'AONSMSAF'}
+    transition_name = 'normal_sun'
+    state_keys = MANVR_STATE_KEYS
+
+    @classmethod
+    def add_transitions(cls, transitions, state, idx, cmd):
+        # Transition to NSUN
+        state['pcad_mode'] = 'NSUN'
+
+        # Setup for maneuver to sun-pointed attitude from current att
+        curr_att = [state[qc] for qc in QCS]
+        targ_att = Chandra.Maneuver.NSM_attitude(curr_att, cmd['date'])
+        for qc, targ_q in zip(QCS, targ_att.q):
+            state['targ_' + qc] = targ_q
+
+        # Do the maneuver
+        cls.add_manvr_transitions(transitions, state, idx, cmd)
 
 
 class ACISTransition(BaseTransition):
