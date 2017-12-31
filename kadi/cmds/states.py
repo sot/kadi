@@ -325,7 +325,7 @@ class ManeuverTransition(BaseTransition):
 
         # If auto-transition to NPM after manvr is enabled (this is
         # normally the case) then back to NPNT at end of maneuver
-        if state['auto_npnt']:
+        if state['auto_npnt'] == 'ENAB':
             transition = {'date': date, 'pcad_mode': 'NPNT'}
             add_transition(transitions, idx, transition)
 
