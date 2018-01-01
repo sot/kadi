@@ -14,6 +14,7 @@ from astropy.table import Table, Column
 
 from . import cmds as commands
 
+from Chandra.cmd_states import decode_power
 from Chandra.Time import DateTime
 import Chandra.Maneuver
 
@@ -35,55 +36,6 @@ QCS = ['q1', 'q2', 'q3', 'q4']
 # State keys that are required to handle maneuvers.  If any of these keys are requested
 # then all of these must be included in state processing.
 MANVR_STATE_KEYS = QCS + ['targ_' + qc for qc in QCS] + ['auto_npnt', 'pcad_mode']
-
-
-def decode_power(mnem):
-    """
-    Decode number of chips and feps from a ACIS power command
-    Return a dictionary with the number of chips and their identifiers
-
-    Example::
-
-     >>> decode_power("WSPOW08F3E")
-     {'ccd_count': 5,
-      'ccds': 'I0 I1 I2 I3 S3 ',
-      'fep_count': 5,
-      'feps': '1 2 3 4 5 '}
-
-    :param mnem: power command string
-
-    """
-    # the hex for the commanding is after the WSPOW
-    powstr = mnem[5:]
-    if (len(powstr) != 5):
-        raise ValueError("%s in unexpected format" % mnem)
-
-    # convert the hex to decimal and "&" it with 63 (binary 111111)
-    fepkey = int(powstr, 16) & 63
-    fep_info = {'fep_count': 0,
-                'ccd_count': 0,
-                'feps': '',
-                'ccds': ''}
-    # count the true binary bits
-    for bit in range(0, 6):
-        if (fepkey & (1 << bit)):
-            fep_info['fep_count'] = fep_info['fep_count'] + 1
-            fep_info['feps'] = fep_info['feps'] + str(bit) + ' '
-
-    # convert the hex to decimal and right shift by 8 places
-    vidkey = int(powstr, 16) >> 8
-
-    # count the true bits
-    for bit in range(0, 10):
-        if (vidkey & (1 << bit)):
-            fep_info['ccd_count'] = fep_info['ccd_count'] + 1
-            # position indicates I or S chip
-            if (bit < 4):
-                fep_info['ccds'] = fep_info['ccds'] + 'I' + str(bit) + ' '
-            else:
-                fep_info['ccds'] = fep_info['ccds'] + 'S' + str(bit - 4) + ' '
-
-    return fep_info
 
 
 class TransitionMeta(type):
@@ -375,7 +327,8 @@ class ACISTransition(BaseTransition):
                 pwr = decode_power(tlmsid)
                 transitions[date].update(fep_count=pwr['fep_count'],
                                          ccd_count=pwr['ccd_count'],
-                                         vid_board=1, clocking=0,
+                                         vid_board=pwr['vid_board'],
+                                         clocking=pwr['clocking'],
                                          power_cmd=tlmsid)
 
             elif tlmsid in ('XCZ0000005', 'XTZ0000005'):
