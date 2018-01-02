@@ -46,7 +46,7 @@ def test_states_2017():
     """
     state_keys = (['obsid', 'clocking', 'power_cmd',  'fep_count',
                    'si_mode',  'ccd_count'] +
-                  ['q1', 'q2', 'q3', 'q4', 'pcad_mode'])
+                  ['q1', 'q2', 'q3', 'q4', 'pcad_mode', 'pitch'])
     rcstates, rkstates = compare_states('2017:060', '2017:260', state_keys)
 
     # Check state datestart.  There are 4 known discrepancies of 0.001 sec

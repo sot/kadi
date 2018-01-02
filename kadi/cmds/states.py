@@ -17,6 +17,8 @@ from . import cmds as commands
 from Chandra.cmd_states import decode_power
 from Chandra.Time import DateTime
 import Chandra.Maneuver
+from Quaternion import Quat
+import Ska.Sun
 
 REV_PARS_DICT = commands.rev_pars_dict
 
@@ -35,7 +37,7 @@ QCS = ['q1', 'q2', 'q3', 'q4']
 
 # State keys that are required to handle maneuvers.  If any of these keys are requested
 # then all of these must be included in state processing.
-MANVR_STATE_KEYS = QCS + ['targ_' + qc for qc in QCS] + ['auto_npnt', 'pcad_mode']
+MANVR_STATE_KEYS = QCS + ['targ_' + qc for qc in QCS] + ['auto_npnt', 'pcad_mode', 'pitch']
 
 
 class TransitionMeta(type):
@@ -248,12 +250,14 @@ class ManeuverTransition(BaseTransition):
         state_cmds = cls.get_state_changing_commands(cmds)
 
         for cmd in state_cmds:
+            # Note that the transition key 'maneuver' doesn't really matter here
+            # as long as it is different from the other state keys.
             transitions[cmd['date']]['maneuver'] = {'func': cls.add_transitions,
                                                     'cmd': cmd}
 
     @classmethod
-    def add_transitions(cls, transitions, state, idx, cmd):
-        end_manvr_date = cls.add_manvr_transitions(transitions, state, idx, cmd)
+    def add_transitions(cls, date, transitions, state, idx, cmd):
+        end_manvr_date = cls.add_manvr_transitions(date, transitions, state, idx, cmd)
 
         # If auto-transition to NPM after manvr is enabled (this is
         # normally the case) then back to NPNT at end of maneuver
@@ -262,7 +266,7 @@ class ManeuverTransition(BaseTransition):
             add_transition(transitions, idx, transition)
 
     @classmethod
-    def add_manvr_transitions(cls, transitions, state, idx, cmd):
+    def add_manvr_transitions(cls, date, transitions, state, idx, cmd):
         targ_att = [state['targ_' + qc] for qc in QCS]
         if state['q1'] is None:
             for qc in QCS:
@@ -281,6 +285,7 @@ class ManeuverTransition(BaseTransition):
             transition = {'date': date}
             for qc in QCS:
                 transition[qc] = att[qc]
+            transition['pitch'] = pitch
             add_transition(transitions, idx, transition)
 
             # TODO: ra, dec, roll
@@ -295,7 +300,7 @@ class NormalSunTransition(ManeuverTransition):
     state_keys = MANVR_STATE_KEYS
 
     @classmethod
-    def add_transitions(cls, transitions, state, idx, cmd):
+    def add_transitions(cls, date, transitions, state, idx, cmd):
         # Transition to NSUN
         state['pcad_mode'] = 'NSUN'
 
@@ -306,7 +311,7 @@ class NormalSunTransition(ManeuverTransition):
             state['targ_' + qc] = targ_q
 
         # Do the maneuver
-        cls.add_manvr_transitions(transitions, state, idx, cmd)
+        cls.add_manvr_transitions(date, transitions, state, idx, cmd)
 
 
 class ACISTransition(BaseTransition):
@@ -368,7 +373,7 @@ def get_transition_classes(state_keys=None):
     return trans_classes
 
 
-def get_transitions(cmds, state_keys=None):
+def get_transitions_list(cmds, state_keys=None):
     transitions = collections.defaultdict(dict)
 
     for transition_class in get_transition_classes(state_keys):
@@ -381,6 +386,46 @@ def get_transitions(cmds, state_keys=None):
         transitions_list.append(transition)
 
     return transitions_list
+
+
+def update_pitch_state(date, transitions, state, idx):
+    """
+    This function gets called during state processing to potentially update the
+    `pitch` state if pcad_mode is NPNT.
+    """
+    if state['pcad_mode'] == 'NPNT':
+        q_att = Quat([state[qc] for qc in QCS])
+        pitch = Ska.Sun.pitch(q_att.ra, q_att.dec, date)
+        state['pitch'] = pitch
+
+
+def add_pitch_transitions(start, stop, transitions):
+    """
+    Add transitions between start/stop every 10ksec to sample the pitch during NPNT.
+    These are function transitions which check to see that pcad_mode == 'NPNT'
+    before changing the pitch.
+
+    This function gets called after assembling the initial list of transitions
+    that are generated from Transition classes.
+    """
+    # np.floor is used here to get 'times' at even increments of "sample_time"
+    # so that the commands will be at the same times in an interval even
+    # if a different time range is being updated.
+    sample_time = 10000
+    tstart = np.floor(DateTime(start).secs / sample_time) * sample_time
+    tstop = DateTime(stop).secs
+    times = np.arange(tstart, tstop, sample_time)
+    dates = DateTime(times).date
+
+    # Now with the dates, finally make all the transition dicts which will
+    # call `update_pitch_state` during state processing.
+    pitch_transitions = [{'date': date,
+                          'update_pitch': {'func': update_pitch_state}}
+                         for date in dates]
+
+    # Add to the transitions list and sort by date
+    transitions.extend(pitch_transitions)
+    transitions.sort(key=lambda x: x['date'])
 
 
 def add_transition(transitions, idx, transition):
@@ -424,7 +469,9 @@ def get_states_for_cmds(cmds, state_keys=None):
     # Get transitions, which is a list of dict (state key
     # and new state value at that date).  This goes through each active
     # transition class and accumulates transitions.
-    transitions = get_transitions(cmds, state_keys)
+    transitions = get_transitions_list(cmds, state_keys)
+
+    add_pitch_transitions(cmds[0]['date'], cmds[-1]['date'], transitions)
 
     # List of dict to hold state values
     states = [{key: None for key in state_keys}]
@@ -442,7 +489,7 @@ def get_states_for_cmds(cmds, state_keys=None):
         for key, value in transition.items():
             if isinstance(value, dict):
                 func = value.pop('func')
-                func(state=state, transitions=transitions, idx=idx, **value)
+                func(date, transitions, state, idx, **value)
             elif key != 'date':
                 state[key] = value
 
