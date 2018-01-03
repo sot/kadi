@@ -471,7 +471,9 @@ def get_states_for_cmds(cmds, state_keys=None):
     # transition class and accumulates transitions.
     transitions = get_transitions_list(cmds, state_keys)
 
-    add_pitch_transitions(cmds[0]['date'], cmds[-1]['date'], transitions)
+    # See add_pitch_transitions for explanation
+    if 'pitch' in state_keys:
+        add_pitch_transitions(cmds[0]['date'], cmds[-1]['date'], transitions)
 
     # List of dict to hold state values
     states = [{key: None for key in state_keys}]
