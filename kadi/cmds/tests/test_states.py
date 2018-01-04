@@ -5,6 +5,7 @@ from ...cmds import states
 
 import Chandra.cmd_states as cmd_states
 from Chandra.Time import DateTime
+from Ska.engarchive import fetch
 
 
 def get_states(start, stop, state_keys):
@@ -93,3 +94,37 @@ def test_pitch_2017():
     assert np.all(rci['pcad_mode'] == rki['pcad_mode'])
     ok = rci['pcad_mode'] == 'NPNT'
     assert np.all(dp[ok] < 0.05)
+
+
+def test_sun_vec_versus_telemetry():
+    """
+    Test sun vector values `pitch` and `off_nominal_roll` versus flight telem.  Include
+    Load maneuver at 2017:349:20:52:37.719 in DEC1117 with large pitch and
+    off_nominal_roll change (from around zero to -17 deg).
+
+    State values are within 1.5 degrees of telemetry.
+    """
+
+    state_keys = ['pitch', 'off_nom_roll']
+    start, stop = '2017:349:10:00:00', '2017:350:10:00:00'
+    cmds = commands.filter(start, stop)
+    kstates = states.get_states_for_cmds(cmds, state_keys)[-20:-1]
+    rk = states.reduce_states(kstates, state_keys)
+
+    tstart = DateTime(rk['datestart']).secs
+    tstop = DateTime(rk['datestop']).secs
+    tmid = (tstart + tstop) / 2
+
+    # Pitch from telemetry
+    dat = fetch.Msid('pitch', tstart[0] - 100, tstop[-1] + 100)
+    dat.interpolate(times=tmid)
+    delta = np.abs(dat.vals - rk['pitch'])
+    assert np.max(rk['pitch']) - np.min(rk['pitch']) > 75  # Big maneuver
+    assert np.all(delta < 1.5)
+
+    # Off nominal roll (not roll from ra,dec,roll) from telemetry
+    dat = fetch.Msid('roll', tstart[0] - 100, tstop[-1] + 100)
+    dat.interpolate(times=tmid)
+    delta = np.abs(dat.vals - rk['off_nom_roll'])
+    assert np.max(rk['off_nom_roll']) - np.min(rk['off_nom_roll']) > 20  # Large range
+    assert np.all(delta < 1.5)

@@ -37,7 +37,8 @@ QCS = ['q1', 'q2', 'q3', 'q4']
 
 # State keys that are required to handle maneuvers.  If any of these keys are requested
 # then all of these must be included in state processing.
-MANVR_STATE_KEYS = QCS + ['targ_' + qc for qc in QCS] + ['auto_npnt', 'pcad_mode', 'pitch']
+MANVR_STATE_KEYS = (QCS + ['targ_' + qc for qc in QCS] + ['ra', 'dec', 'roll'] +
+                    ['auto_npnt', 'pcad_mode', 'pitch', 'off_nom_roll'])
 
 
 class TransitionMeta(type):
@@ -279,16 +280,22 @@ class ManeuverTransition(BaseTransition):
 
         pitches = np.hstack([(atts[:-1].pitch + atts[1:].pitch) / 2,
                              atts[-1].pitch])
-        for att, pitch in zip(atts, pitches):
-            # q_att = Quat([att[x] for x in QCS])
+        off_nom_rolls = np.hstack([(atts[:-1].off_nom_roll + atts[1:].off_nom_roll) / 2,
+                                   atts[-1].off_nom_roll])
+        for att, pitch, off_nom_roll in zip(atts, pitches, off_nom_rolls):
             date = DateTime(att.time).date
             transition = {'date': date}
             for qc in QCS:
                 transition[qc] = att[qc]
             transition['pitch'] = pitch
-            add_transition(transitions, idx, transition)
+            transition['off_nom_roll'] = off_nom_roll
 
-            # TODO: ra, dec, roll
+            q_att = Quat([att[x] for x in QCS])
+            transition['ra'] = q_att.ra
+            transition['dec'] = q_att.dec
+            transition['roll'] = q_att.roll
+
+            add_transition(transitions, idx, transition)
 
         return date  # date of end of maneuver
 
@@ -388,22 +395,22 @@ def get_transitions_list(cmds, state_keys=None):
     return transitions_list
 
 
-def update_pitch_state(date, transitions, state, idx):
+def update_sun_vector_state(date, transitions, state, idx):
     """
     This function gets called during state processing to potentially update the
     `pitch` state if pcad_mode is NPNT.
     """
     if state['pcad_mode'] == 'NPNT':
         q_att = Quat([state[qc] for qc in QCS])
-        pitch = Ska.Sun.pitch(q_att.ra, q_att.dec, date)
-        state['pitch'] = pitch
+        state['pitch'] = Ska.Sun.pitch(q_att.ra, q_att.dec, date)
+        state['off_nom_roll'] = Ska.Sun.off_nominal_roll(q_att, date)
 
 
-def add_pitch_transitions(start, stop, transitions):
+def add_sun_vector_transitions(start, stop, transitions):
     """
-    Add transitions between start/stop every 10ksec to sample the pitch during NPNT.
-    These are function transitions which check to see that pcad_mode == 'NPNT'
-    before changing the pitch.
+    Add transitions between start/stop every 10ksec to sample the pitch and off_nominal
+    roll during NPNT.  These are function transitions which check to see that
+    pcad_mode == 'NPNT' before changing the pitch / off_nominal_roll.
 
     This function gets called after assembling the initial list of transitions
     that are generated from Transition classes.
@@ -420,7 +427,7 @@ def add_pitch_transitions(start, stop, transitions):
     # Now with the dates, finally make all the transition dicts which will
     # call `update_pitch_state` during state processing.
     pitch_transitions = [{'date': date,
-                          'update_pitch': {'func': update_pitch_state}}
+                          'update_pitch': {'func': update_sun_vector_state}}
                          for date in dates]
 
     # Add to the transitions list and sort by date
@@ -472,8 +479,8 @@ def get_states_for_cmds(cmds, state_keys=None):
     transitions = get_transitions_list(cmds, state_keys)
 
     # See add_pitch_transitions for explanation
-    if 'pitch' in state_keys:
-        add_pitch_transitions(cmds[0]['date'], cmds[-1]['date'], transitions)
+    if 'pitch' in state_keys or 'off_nominal_roll' in state_keys:
+        add_sun_vector_transitions(cmds[0]['date'], cmds[-1]['date'], transitions)
 
     # List of dict to hold state values
     states = [{key: None for key in state_keys}]
