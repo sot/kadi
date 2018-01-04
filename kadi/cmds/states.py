@@ -33,12 +33,7 @@ TRANSITION_CLASSES = set()
 STATE_KEYS = []
 
 # Quaternion componenent names
-QCS = ['q1', 'q2', 'q3', 'q4']
-
-# State keys that are required to handle maneuvers.  If any of these keys are requested
-# then all of these must be included in state processing.
-MANVR_STATE_KEYS = (QCS + ['targ_' + qc for qc in QCS] + ['ra', 'dec', 'roll'] +
-                    ['auto_npnt', 'pcad_mode', 'pitch', 'off_nom_roll'])
+QUAT_COMPS = ['q1', 'q2', 'q3', 'q4']
 
 
 class TransitionMeta(type):
@@ -48,11 +43,8 @@ class TransitionMeta(type):
     def __new__(mcls, name, bases, members):
         cls = super(TransitionMeta, mcls).__new__(mcls, name, bases, members)
 
-        # Register transition classes that have a `transition_name`.
-        if 'transition_name' in members:
-            if 'state_keys' not in members:
-                cls.state_keys = [cls.transition_name]
-
+        # Register transition classes that have a `state_keys`.
+        if hasattr(cls, 'state_keys'):
             for state_key in cls.state_keys:
                 if state_key not in STATE_KEYS:
                     STATE_KEYS.append(state_key)
@@ -92,50 +84,37 @@ class SingleFixedTransition(BaseTransition):
             transitions[cmd['date']][attr] = val
 
 
-class NMM_Transition(SingleFixedTransition):
+class PCAD_States(object):
+    """
+    Mixin class to provide uniform set of state keys that are required to handle
+    maneuvers.  If any of these keys are requested then all of these must be included in
+    state processing.
+    """
+    state_keys = (QUAT_COMPS +
+                  ['targ_' + qc for qc in QUAT_COMPS] +
+                  ['ra', 'dec', 'roll'] +
+                  ['auto_npnt', 'pcad_mode', 'pitch', 'off_nom_roll'])
+
+
+class NMM_Transition(SingleFixedTransition, PCAD_States):
     command_attributes = {'type': 'COMMAND_SW',
                           'tlmsid': 'AONMMODE'}
     transition_name = 'pcad_mode'
     transition_val = 'NMAN'
-    state_keys = MANVR_STATE_KEYS
 
 
-class NPM_Transition(SingleFixedTransition):
+class NPM_Transition(SingleFixedTransition, PCAD_States):
     command_attributes = {'type': 'COMMAND_SW',
                           'tlmsid': 'AONPMODE'}
     transition_name = 'pcad_mode'
     transition_val = 'NPNT'
-    state_keys = MANVR_STATE_KEYS
-
-
-# class ACISTransition(BaseTransition):
-#     command_attributes = {'type': 'ACISPKT'}
-#     transition_name = 'acis'
-
-#     @classmethod
-#     def set_transitions(cls, transitions, cmds):
-#         state_cmds = cls.get_state_changing_commands(cmds)
-#         for cmd in state_cmds:
-#             tlmsid = cmd['tlmsid']
-#             date = cmd['date']
-
-# class NPM_AutoEnableTransition(BaseTransition):
-#     command_attributes = {'type': 'COMMAND_SW',
-#                           'tlmsid': 'AONM2NPE'}
-#     transition_name = 'pcad_mode'
-
-#     @classmethod
-#     def set_transitions(cls, transitions, cmds):
-#         state_cmds = cls.get_state_changing_commands(cmds)
-#         for cmd in state_cmds:
-#             date = cmd['date']
-#             transitions[date].update({'auto_npnt': True})
 
 
 class HETG_INSR_Transition(SingleFixedTransition):
     command_attributes = {'type': 'COMMAND_SW',
                           'tlmsid': '4OHETGIN'}
     transition_name = 'hetg'
+    state_keys = ['hetg']
     transition_val = 'INSR'
 
 
@@ -143,6 +122,7 @@ class HETG_RETR_Transition(SingleFixedTransition):
     command_attributes = {'type': 'COMMAND_SW',
                           'tlmsid': '4OHETGRE'}
     transition_name = 'hetg'
+    state_keys = ['hetg']
     transition_val = 'RETR'
 
 
@@ -150,6 +130,7 @@ class LETG_INSR_Transition(SingleFixedTransition):
     command_attributes = {'type': 'COMMAND_SW',
                           'tlmsid': '4OLETGIN'}
     transition_name = 'letg'
+    state_keys = ['letg']
     transition_val = 'INSR'
 
 
@@ -157,6 +138,7 @@ class LETG_RETR_Transition(SingleFixedTransition):
     command_attributes = {'type': 'COMMAND_SW',
                           'tlmsid': '4OLETGRE'}
     transition_name = 'letg'
+    state_keys = ['letg']
     transition_val = 'RETR'
 
 
@@ -164,6 +146,7 @@ class DitherEnableTransition(SingleFixedTransition):
     command_attributes = {'type': 'COMMAND_SW',
                           'tlmsid': 'AOENDITH'}
     transition_name = 'dither'
+    state_keys = ['dither']
     transition_val = 'ENAB'
 
 
@@ -171,6 +154,7 @@ class DitherDisableTransition(SingleFixedTransition):
     command_attributes = {'type': 'COMMAND_SW',
                           'tlmsid': 'AODSDITH'}
     transition_name = 'dither'
+    state_keys = ['dither']
     transition_val = 'DISA'
 
 
@@ -194,6 +178,7 @@ class ParamTransition(BaseTransition):
 class ObsidTransition(ParamTransition):
     command_attributes = {'type': 'MP_OBSID'}
     transition_name = 'obsid'
+    state_keys = ['obsid']
     transition_param_key = 'id'
 
 
@@ -201,34 +186,33 @@ class SimTscTransition(ParamTransition):
     command_attributes = {'type': 'SIMTRANS'}
     transition_param_key = 'pos'
     transition_name = 'simpos'
+    state_keys = ['simpos']
 
 
 class SimFocusTransition(ParamTransition):
     command_attributes = {'type': 'SIMFOCUS'}
     transition_param_key = 'pos'
     transition_name = 'simfa_pos'
+    state_keys = ['simfa_pos']
 
 
-class AutoNPMEnableTransition(SingleFixedTransition):
+class AutoNPMEnableTransition(SingleFixedTransition, PCAD_States):
     command_attributes = {'type': 'COMMAND_SW',
                           'tlmsid': 'AONM2NPE'}
     transition_name = 'auto_npnt'
     transition_val = 'ENAB'
-    state_keys = MANVR_STATE_KEYS
 
 
-class AutoNPMDisableTransition(SingleFixedTransition):
+class AutoNPMDisableTransition(SingleFixedTransition, PCAD_States):
     command_attributes = {'type': 'COMMAND_SW',
                           'tlmsid': 'AONM2NPD'}
     transition_name = 'auto_npnt'
     transition_val = 'DISA'
-    state_keys = MANVR_STATE_KEYS
 
 
-class TargQuatTransition(BaseTransition):
+class TargQuatTransition(BaseTransition, PCAD_States):
     command_attributes = {'type': 'MP_TARGQUAT'}
     transition_name = 'targ_quat'
-    state_keys = MANVR_STATE_KEYS
 
     @classmethod
     def set_transitions(cls, transitions, cmds):
@@ -240,11 +224,10 @@ class TargQuatTransition(BaseTransition):
                 transition['targ_' + qc] = cmd[qc]
 
 
-class ManeuverTransition(BaseTransition):
+class ManeuverTransition(BaseTransition, PCAD_States):
     command_attributes = {'type': 'COMMAND_SW',
                           'tlmsid': 'AOMANUVR'}
     transition_name = 'maneuver'
-    state_keys = MANVR_STATE_KEYS
 
     @classmethod
     def set_transitions(cls, transitions, cmds):
@@ -268,11 +251,11 @@ class ManeuverTransition(BaseTransition):
 
     @classmethod
     def add_manvr_transitions(cls, date, transitions, state, idx, cmd):
-        targ_att = [state['targ_' + qc] for qc in QCS]
+        targ_att = [state['targ_' + qc] for qc in QUAT_COMPS]
         if state['q1'] is None:
-            for qc in QCS:
+            for qc in QUAT_COMPS:
                 state[qc] = state['targ_' + qc]
-        curr_att = [state[qc] for qc in QCS]
+        curr_att = [state[qc] for qc in QUAT_COMPS]
 
         # add pitch/attitude commands
         atts = Chandra.Maneuver.attitudes(curr_att, targ_att,
@@ -285,12 +268,12 @@ class ManeuverTransition(BaseTransition):
         for att, pitch, off_nom_roll in zip(atts, pitches, off_nom_rolls):
             date = DateTime(att.time).date
             transition = {'date': date}
-            for qc in QCS:
+            for qc in QUAT_COMPS:
                 transition[qc] = att[qc]
             transition['pitch'] = pitch
             transition['off_nom_roll'] = off_nom_roll
 
-            q_att = Quat([att[x] for x in QCS])
+            q_att = Quat([att[x] for x in QUAT_COMPS])
             transition['ra'] = q_att.ra
             transition['dec'] = q_att.dec
             transition['roll'] = q_att.roll
@@ -304,7 +287,6 @@ class NormalSunTransition(ManeuverTransition):
     command_attributes = {'type': 'COMMAND_SW',
                           'tlmsid': 'AONSMSAF'}
     transition_name = 'normal_sun'
-    state_keys = MANVR_STATE_KEYS
 
     @classmethod
     def add_transitions(cls, date, transitions, state, idx, cmd):
@@ -312,9 +294,9 @@ class NormalSunTransition(ManeuverTransition):
         state['pcad_mode'] = 'NSUN'
 
         # Setup for maneuver to sun-pointed attitude from current att
-        curr_att = [state[qc] for qc in QCS]
+        curr_att = [state[qc] for qc in QUAT_COMPS]
         targ_att = Chandra.Maneuver.NSM_attitude(curr_att, cmd['date'])
-        for qc, targ_q in zip(QCS, targ_att.q):
+        for qc, targ_q in zip(QUAT_COMPS, targ_att.q):
             state['targ_' + qc] = targ_q
 
         # Do the maneuver
@@ -332,8 +314,6 @@ class ACISTransition(BaseTransition):
         for cmd in state_cmds:
             tlmsid = cmd['tlmsid']
             date = cmd['date']
-
-            # TODO: fix bug in ACIS commanding: https://github.com/sot/cmd_states/pull/31/files
 
             if tlmsid.startswith('WSPOW'):
                 pwr = decode_power(tlmsid)
@@ -401,7 +381,7 @@ def update_sun_vector_state(date, transitions, state, idx):
     `pitch` state if pcad_mode is NPNT.
     """
     if state['pcad_mode'] == 'NPNT':
-        q_att = Quat([state[qc] for qc in QCS])
+        q_att = Quat([state[qc] for qc in QUAT_COMPS])
         state['pitch'] = Ska.Sun.pitch(q_att.ra, q_att.dec, date)
         state['off_nom_roll'] = Ska.Sun.off_nominal_roll(q_att, date)
 
@@ -463,7 +443,7 @@ def get_states_for_cmds(cmds, state_keys=None):
     else:
         # Go through each transition class which impacts desired state keys and accumulate
         # all the state keys that the classes touch.  For instance if user requests
-        # state_keys=['q1'] then we actually need to process all the MANVR_STATE_KEYS
+        # state_keys=['q1'] then we actually need to process all the PCAD_states state keys
         # and then at the end reduce down to the requested keys.
         orig_state_keys = state_keys
         state_keys = []
