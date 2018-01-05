@@ -1,10 +1,13 @@
 """
-This module provides the core functions for creating, manipulating and updating
-the Chandra commanded states database.
+kadi.cmds.states
+
+This module provides the functions for dynamically determining Chandra commanded states
+based entirely on known history of commands.
 """
 
 import collections
 import itertools
+import warnings
 
 import numpy as np
 import six
@@ -20,6 +23,8 @@ import Chandra.Maneuver
 from Quaternion import Quat
 import Ska.Sun
 
+# Dict that allows determining command params (e.g. obsid 'ID' or SIM focus 'POS')
+# for a particular command.
 REV_PARS_DICT = commands.rev_pars_dict
 
 # Registry of Transition classes with state transition name as key.  A state transition
@@ -54,7 +59,8 @@ class TransitionMeta(type):
     def __new__(mcls, name, bases, members):
         cls = super(TransitionMeta, mcls).__new__(mcls, name, bases, members)
 
-        # Register transition classes that have a `state_keys`.
+        # Register transition classes that have a `state_keys` (base classes do
+        # not have this attribute set).
         if hasattr(cls, 'state_keys'):
             for state_key in cls.state_keys:
                 if state_key not in STATE_KEYS:
@@ -72,6 +78,10 @@ class BaseTransition(object):
     def get_state_changing_commands(cls, cmds):
         """
         Get commands that match the required attributes for state changing commands.
+
+        :param cmds: commands (CmdList)
+
+        :returns: subset of ``cmds`` relevant for this Transition class (CmdList)
         """
         ok = np.ones(len(cmds), dtype=bool)
         for attr, val in cls.command_attributes.items():
@@ -81,27 +91,37 @@ class BaseTransition(object):
 
 class SingleFixedTransition(BaseTransition):
     @classmethod
-    def set_transitions(cls, transitions, cmds):
+    def set_transitions(cls, transitions_dict, cmds):
         """
         Set transitions for a Table of commands ``cmds``.  This is the simplest
         case where there is a single fixed attribute that gets set to a fixed
         value, e.g. pcad_mode='NMAN' for NMM.
+
+        :param transitions_dict: global dict of transitions (updated in-place)
+        :param cmds: commands (CmdList)
+
+        :returns: None
         """
         state_cmds = cls.get_state_changing_commands(cmds)
         val = cls.transition_val
         attr = cls.transition_key
 
         for cmd in state_cmds:
-            transitions[cmd['date']][attr] = val
+            transitions_dict[cmd['date']][attr] = val
 
 
 class ParamTransition(BaseTransition):
     @classmethod
-    def set_transitions(cls, transitions, cmds):
+    def set_transitions(cls, transitions_dict, cmds):
         """
         Set transitions for a Table of commands ``cmds``.  This is the simplest
         case where there is an attribute that gets set to a specified
         value in the command, e.g. MP_OBSID or SIMTRANS
+
+        :param transitions_dict: global dict of transitions (updated in-place)
+        :param cmds: commands (CmdList)
+
+        :returns: None
         """
         state_cmds = cls.get_state_changing_commands(cmds)
         param_key = cls.transition_param_key
@@ -109,7 +129,7 @@ class ParamTransition(BaseTransition):
 
         for cmd in state_cmds:
             val = dict(REV_PARS_DICT[cmd['idx']])[param_key]
-            transitions[cmd['date']][name] = val
+            transitions_dict[cmd['date']][name] = val
 
 
 ###################################################################
@@ -266,20 +286,34 @@ class ManeuverTransition(BaseTransition):
 
     @classmethod
     def add_manvr_transitions(cls, date, transitions, state, idx, cmd):
+        # Get the current target attitude state
         targ_att = [state['targ_' + qc] for qc in QUAT_COMPS]
+
+        # Deal with startup transient where spacecraft attitude is not known.
+        # In this case first maneuver is a bogus null maneuver.
         if state['q1'] is None:
             for qc in QUAT_COMPS:
                 state[qc] = state['targ_' + qc]
+
+        # Get current spacecraft attitude
         curr_att = [state[qc] for qc in QUAT_COMPS]
 
-        # add pitch/attitude commands
+        # Get attitudes for the maneuver at about 5-minute intervals.
         atts = Chandra.Maneuver.attitudes(curr_att, targ_att,
                                           tstart=DateTime(cmd['date']).secs)
 
+        # Compute pitch and off-nominal roll at the midpoint of each interval, except
+        # also include the exact last attitude.
         pitches = np.hstack([(atts[:-1].pitch + atts[1:].pitch) / 2,
                              atts[-1].pitch])
         off_nom_rolls = np.hstack([(atts[:-1].off_nom_roll + atts[1:].off_nom_roll) / 2,
                                    atts[-1].off_nom_roll])
+
+        # Add transitions for each bit of the maneuver.  Note that this sets the attitude
+        # (q1..q4) at the *beginning* of each state, while setting pitch and
+        # off_nominal_roll at the *midpoint* of each state.  This is for legacy
+        # compatibility with Chandra.cmd_states but might be something to change since it
+        # would probably be better to have the midpoint attitude.
         for att, pitch, off_nom_roll in zip(atts, pitches, off_nom_rolls):
             date = DateTime(att.time).date
             transition = {'date': date}
@@ -295,7 +329,7 @@ class ManeuverTransition(BaseTransition):
 
             add_transition(transitions, idx, transition)
 
-        return date  # date of end of maneuver
+        return date  # Date of end of maneuver.
 
 
 class NormalSunTransition(ManeuverTransition):
@@ -383,29 +417,43 @@ def get_transition_classes(state_keys=None):
 
 
 def get_transitions_list(cmds, state_keys=None):
-    transitions = collections.defaultdict(dict)
+    """
+    For given set of commands ``cmds`` and ``state_keys``, return a list of
+    transitions.
 
+    A ``transition`` here defines a state transition.  It is a dict with a ``date`` key
+    (date of transition) and key/value pairs corresponding to the state keys that change.
+
+    If ``state_keys`` is None then all known state keys are included.
+
+    :param cmds: CmdList with spacecraft commands
+    :param state_keys: desired state keys (None, str, or list)
+
+    :returns: list of dict (transitions)
+    """
+    # To start, collect transitions in a dict keyed by date.  This auto-initializes
+    # a dict whenever a new date is used, allowing (e.g.) a single step of::
+    #
+    #   transitions_dict['2017:002:01:02:03.456']['obsid'] = 23456.
+    transitions_dict = collections.defaultdict(dict)
+
+    # Iterate through Transition classes which depend on or affect ``state_keys``
+    # and ask each one to update ``transitions_dict`` in-place to include
+    # transitions from that class.
     for transition_class in get_transition_classes(state_keys):
-        transition_class.set_transitions(transitions, cmds)
+        transition_class.set_transitions(transitions_dict, cmds)
 
+    # Convert the dict of transitions (keyed by date) into an ordered list of transitions
+    # sorted by date.  A *list* of transitions is needed to allow a transition to
+    # dynamically generate additional (later) transitions, e.g. in the case of a maneuver.
     transitions_list = []
-    for date in sorted(transitions):
-        transition = transitions[date]
+    for date in sorted(transitions_dict):
+        transition = transitions_dict[date]
         transition['date'] = date
         transitions_list.append(transition)
 
+    # In the rest of this module ``transitions`` is always this *list* of transitions.
     return transitions_list
-
-
-def update_sun_vector_state(date, transitions, state, idx):
-    """
-    This function gets called during state processing to potentially update the
-    `pitch` state if pcad_mode is NPNT.
-    """
-    if state['pcad_mode'] == 'NPNT':
-        q_att = Quat([state[qc] for qc in QUAT_COMPS])
-        state['pitch'] = Ska.Sun.pitch(q_att.ra, q_att.dec, date)
-        state['off_nom_roll'] = Ska.Sun.off_nominal_roll(q_att, date)
 
 
 def add_sun_vector_transitions(start, stop, transitions):
@@ -414,8 +462,14 @@ def add_sun_vector_transitions(start, stop, transitions):
     roll during NPNT.  These are function transitions which check to see that
     pcad_mode == 'NPNT' before changing the pitch / off_nominal_roll.
 
-    This function gets called after assembling the initial list of transitions
-    that are generated from Transition classes.
+    This function gets as a special-case within get_states_for_cmds() after assembling the
+    initial list of transitions that are generated from Transition classes.
+
+    :param start: start date for sun vector transitions (DateTime compatible)
+    :param stop: stop date for sun vector transitions (DateTime compatible)
+    :param transitions: global list of transitions (updated in-place)
+
+    :returns: None
     """
     # np.floor is used here to get 'times' at even increments of "sample_time"
     # so that the commands will be at the same times in an interval even
@@ -432,12 +486,44 @@ def add_sun_vector_transitions(start, stop, transitions):
                           'update_pitch': {'func': update_sun_vector_state}}
                          for date in dates]
 
-    # Add to the transitions list and sort by date
+    # Add to the transitions list and sort by date.  Normally one would use the
+    # add_transition() function, but in this case there are enough transitions
+    # that just tossing them on the end and re-sorting is better.
     transitions.extend(pitch_transitions)
     transitions.sort(key=lambda x: x['date'])
 
 
+def update_sun_vector_state(date, transitions, state, idx):
+    """
+    This function gets called during state processing to potentially update the
+    ``pitch`` and ``off_nominal`` states if pcad_mode is NPNT.
+
+    :param date: date (str)
+    :param transitions: global list of transitions
+    :param state: current state (dict)
+    :param idx: current index into transitions
+    """
+    if state['pcad_mode'] == 'NPNT':
+        q_att = Quat([state[qc] for qc in QUAT_COMPS])
+        state['pitch'] = Ska.Sun.pitch(q_att.ra, q_att.dec, date)
+        state['off_nom_roll'] = Ska.Sun.off_nominal_roll(q_att, date)
+
+
 def add_transition(transitions, idx, transition):
+    """
+    Add ``transition`` to the ``transitions`` list at the first appropriate
+    place after the ``idx`` entry.
+
+    This is typically used by dynamic transitions that are actually calling a function to
+    generate downstream transitions.  The ManeuverTransition class is the canonical
+    example.
+
+    :param transitions: global list of transition dicts
+    :param idx: current index into transitions in state processing
+    :param transition: transition to add (dict)
+
+    :returns: None
+    """
     # Prevent adding command before current command since the command
     # interpreter is a one-pass process.
     date = transition['date']
@@ -456,7 +542,26 @@ def add_transition(transitions, idx, transition):
         transitions.append(transition)
 
 
-def get_states_for_cmds(cmds, state_keys=None):
+def get_states_for_cmds(cmds, state_keys=None, state0=None):
+    """
+    Get table of states corresponding to intervals when ``state_keys`` parameters
+    are unchanged given the input commands ``cmds``.
+
+    If ``state_keys`` is None then all known state keys are included.
+
+    The output table will contain columns for ``state_keys`` along with ``datestart`` and
+    ``datestop`` columns.  It may also include additional columns for corresponding
+    dependent states.  For instance in order to compute the attitude quaternion state
+    ``q1`` it is necessary to collect a number of other states such as ``pcad_mode`` and
+    target quaternions ``targ_q1`` through ``targ_q4``.  This function returns all these.
+    One can call the ``reduce_states()`` function to reduce to only the desired state
+    keys.
+
+    :param cmds: input commands (CmdList)
+    :param state_keys: state keys of interest
+
+    :returns: astropy Table of states
+    """
     # Define complete list of column names for output table corresponding to
     # each state key.  Maintain original order and uniqueness of keys.
     if state_keys is None:
@@ -473,42 +578,65 @@ def get_states_for_cmds(cmds, state_keys=None):
             for cls in TRANSITION_CLASSES:
                 if state_key in cls.state_keys:
                     state_keys.extend(cls.state_keys)
-        state_keys = unique(state_keys)
+        state_keys = _unique(state_keys)
 
     # Get transitions, which is a list of dict (state key
     # and new state value at that date).  This goes through each active
     # transition class and accumulates transitions.
     transitions = get_transitions_list(cmds, state_keys)
 
-    # See add_pitch_transitions for explanation
+    # See add_sun_vec_transitions() for explanation.
     if 'pitch' in state_keys or 'off_nominal_roll' in state_keys:
         add_sun_vector_transitions(cmds[0]['date'], cmds[-1]['date'], transitions)
 
-    # List of dict to hold state values
+    # List of dict to hold state values.  Datestarts is the corresponding list of
+    # start dates for each state.
     states = [{key: None for key in state_keys}]
     datestarts = [transitions[0]['date']]
+
+    # Apply initial ``state0`` values if available
+    if state0:
+        for key, val in state0:
+            if key in state_keys:
+                states[0][key] = val
+            else:
+                warnings.warn('state0 key {} is not in state_keys, ignoring it'.format(key))
+
+    # Do main state transition processing.  Start by making current ``state`` which is a
+    # reference the last state in the list.
     state = states[0]
 
     for idx, transition in enumerate(transitions):
         date = transition['date']
 
+        # If transition is at a new date from current state then break the current state
+        # and make a new one (as a copy of current).  Note that multiple transitions can
+        # be at the same date (from commanding at same date), though that is not the usual
+        # case.
         if date != datestarts[-1]:
             state = state.copy()
             states.append(state)
             datestarts.append(date)
 
+        # Process the transition.
         for key, value in transition.items():
             if isinstance(value, dict):
+                # Special case of a functional transition that calls a function
+                # instead of directly updating the state.  The function might itself
+                # update the state or it might generate downstream transitions.
                 func = value.pop('func')
                 func(date, transitions, state, idx, **value)
             elif key != 'date':
+                # Normal case of just updating current state
                 state[key] = value
 
     # Make into an astropy Table and set up datestart/stop columns
     states = Table(rows=states, names=state_keys)
     states.add_column(Column(datestarts, name='datestart'), 0)
+    # Add datestop which is just the previous datestart.
     datestop = states['datestart'].copy()
     datestop[:-1] = states['datestart'][1:]
+    # Final datestop far in the future
     datestop[-1] = '2099:365:00:00:00.000'
     states.add_column(Column(datestop, name='datestop'), 1)
 
@@ -516,6 +644,14 @@ def get_states_for_cmds(cmds, state_keys=None):
 
 
 def reduce_states(states, state_keys):
+    """
+    Reduce ``states`` table to have transitions *only* in the ``state_keys`` list.
+
+    :param states: states Table or numpy recarray
+    :param state_keys: list of desired state keys
+
+    :returns: reduced states (astropy Table)
+    """
     if not isinstance(states, Table):
         states = Table(states)
 
@@ -530,8 +666,8 @@ def reduce_states(states, state_keys):
     return out
 
 
-def unique(seq):
-    """Return unique elements of seq in order"""
+def _unique(seq):
+    """Return unique elements of ``seq`` in order"""
     seen = set()
     seen_add = seen.add
     return [x for x in seq if not (x in seen or seen_add(x))]
