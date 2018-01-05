@@ -48,6 +48,11 @@ PCAD_STATE_KEYS = (QUAT_COMPS +
                    ['auto_npnt', 'pcad_mode', 'pitch', 'off_nom_roll'])
 
 
+class NoTransitionsError(ValueError):
+    """No transitions found within commands"""
+    pass
+
+
 ###################################################################
 # Transition base classes
 ###################################################################
@@ -606,14 +611,20 @@ def get_states_for_cmds(cmds, state_keys=None, state0=None):
     # transition class and accumulates transitions.
     transitions = get_transitions_list(cmds, state_keys)
 
-    # See add_sun_vec_transitions() for explanation.
+    # See add_sun_vec_transitions() for explanation.  IDEALLY: make this happen
+    # more naturally within Transitions class machinery.
     if 'pitch' in state_keys or 'off_nominal_roll' in state_keys:
         add_sun_vector_transitions(cmds[0]['date'], cmds[-1]['date'], transitions)
 
     # List of dict to hold state values.  Datestarts is the corresponding list of
     # start dates for each state.
     states = [{key: None for key in state_keys}]
-    datestarts = [transitions[0]['date']]
+
+    try:
+        datestarts = [transitions[0]['date']]
+    except IndexError:
+        raise NoTransitionsError('no transitions for state keys {} in cmds'
+                                 .format(state_keys))
 
     # Apply initial ``state0`` values if available
     if state0:
@@ -673,6 +684,9 @@ def reduce_states(states, state_keys):
 
     :returns: reduced states (astropy Table)
     """
+
+    # TODO: this fails for a states column with no transitions
+
     if not isinstance(states, Table):
         states = Table(states)
 
@@ -685,6 +699,76 @@ def reduce_states(states, state_keys):
     out['datestop'][:-1] = out['datestart'][1:]
 
     return out
+
+
+def get_state0(date=None, state_keys=None, lookbacks=(7, 30, 180, 1000)):
+    """
+    Get the state at ``date`` for ``state_keys``.
+
+    This function finds the state at a particular date by fetching commands
+    prior to that date and determine the states.  Since some state keys
+    like ``pitch`` change often (many times per day) while others like ``letg``
+    may not change for weeks, this function does dynamic lookbacks from ``date``
+    to find transitions for each key.  By default it will try looking back
+    7 days, then 30 days, then 180 days, and finally 1000 days.  This lookback
+    sequence can be controlled with the ``lookbacks`` argument.
+
+    If ``state_keys`` is None then all available states are returned.
+
+    :param date: date (DateTime compatible, default=NOW)
+    :param state_keys: list of state keys or None
+    :param lookbacks: list of lookback times in days (default=[7, 30, 180, 1000])
+
+    :returns: dict of state key/value pairs
+    """
+    lookbacks = sorted(lookbacks)
+    stop = DateTime(date)
+    if state_keys is None:
+        state_keys = STATE_KEYS
+
+    state0 = {}
+
+    for lookback in lookbacks:
+        print('Trying lookback {}'.format(lookback))
+        cmds = commands.filter(stop - lookback, stop)
+
+        for state_key in state_keys:
+            print('  State key {}'.format(state_key))
+            # Don't bother if we already have a value for this key.
+            if state_key in state0:
+                print('   .. skipping, already done')
+                continue
+
+            # Get available commanded states for this particular state_key.  This may
+            # return state values for many more keys (e.g. PCAD-related), and some or all
+            # of these might be None if the relevant command never happened.  Fill in
+            # state0 as possible from last state (corresponding to the state after the
+            # last command in cmds).
+            try:
+                states = get_states_for_cmds(cmds, [state_key])
+            except NoTransitionsError:
+                # No transitions within `cmds` for state_key, continue with other keys
+                continue
+
+            colnames = set(states.colnames) - set(['datestart', 'datestop'])
+            for colname in colnames:
+                if states[colname][-1] is not None:
+                    state0[colname] = states[colname][-1]
+
+        # If we have filled in state0 for every key then we're done.
+        # Otherwise bump the lookback and try again.
+        if all(state_key in state0 for state_key in state_keys):
+            print('Done at lookback = {}'.format(lookback))
+            break
+    else:
+        # Didn't find all state keys
+        missing = [state_key for state_key in state_keys
+                   if state_key not in state0]
+        raise ValueError('did not find transitions for state key(s)'
+                         ' {} within {} days of {}.  Maybe adjust the `lookbacks` argument?'
+                         .format(missing, lookbacks[-1], stop.date))
+
+    return state0
 
 
 def _unique(seq):

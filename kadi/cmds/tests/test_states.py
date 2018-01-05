@@ -2,6 +2,7 @@ import numpy as np
 
 from ... import cmds as commands
 from ...cmds import states
+import pytest
 
 import Chandra.cmd_states as cmd_states
 from Chandra.Time import DateTime
@@ -9,6 +10,9 @@ from Ska.engarchive import fetch
 
 
 def get_states(start, stop, state_keys, state0=None):
+    """
+    Helper for getting states from kadi and cmd_states
+    """
     start = DateTime(start)
     stop = DateTime(stop)
 
@@ -24,6 +28,9 @@ def get_states(start, stop, state_keys, state0=None):
 
 
 def compare_states(start, stop, state_keys, compare_state_keys=None, state0=None):
+    """
+    Helper for comparing states from kadi and cmd_states
+    """
     rcstates, rkstates = get_states(start, stop, state_keys, state0=state0)
 
     if compare_state_keys is None:
@@ -187,3 +194,86 @@ def test_dither():
                                                  1086.9567572759399,
                                                  999.99938521341483,
                                                  1086.9567572759399], atol=1e-6, rtol=0)
+
+
+def test_get_state0_regress():
+    """Regression test against values produced by get_state0 during development.
+    Correctness not validated
+    """
+    expected = {'auto_npnt': 'ENAB',
+                'ccd_count': 4,
+                'clocking': 1,
+                'dec': 1.5846264168595519,
+                'dither': 'ENAB',
+                'dither_ampl_pitch': 7.9989482580707696,
+                'dither_ampl_yaw': 7.9989482580707696,
+                'dither_period_pitch': 707.13038356352104,
+                'dither_period_yaw': 999.99938521341483,
+                'dither_phase_pitch': 0.0,
+                'dither_phase_yaw': 0.0,
+                'fep_count': 4,
+                'hetg': 'RETR',
+                'letg': 'RETR',
+                'obsid': 18926,
+                'off_nom_roll': 0.29420229587100266,
+                'pcad_mode': 'NPNT',
+                'pitch': 140.65601594364458,
+                'power_cmd': 'XTZ0000005',
+                'q1': -0.35509348299999999,
+                'q2': -0.32069040199999999,
+                'q3': 0.56677623399999999,
+                'q4': 0.67069440499999999,
+                'ra': 81.262785800648018,
+                'roll': 302.84307361651355,
+                'si_mode': 'TE_006C8',
+                'simfa_pos': -468,
+                'simpos': 75624,
+                'targ_q1': -0.355093483,
+                'targ_q2': -0.320690402,
+                'targ_q3': 0.566776234,
+                'targ_q4': 0.670694405,
+                'vid_board': 1}
+
+    state0 = states.get_state0('2017:014')
+
+    for key, val in expected.items():
+        if isinstance(val, (int, str)):
+            assert state0[key] == val
+        else:
+            assert np.isclose(state0[key], val, rtol=0, atol=1e-7)
+
+
+def test_get_state0_vs_states():
+    """
+    Functional test: state0 for a certain date should be the same as the last states
+    when fed in cmds up through that date.
+    """
+    date0 = '2017:014'
+    # Get last state up through `date0`.  Hardwire the lookback here to 21 days.
+    cmds = commands.filter('2016:360', date0)
+    sts = states.get_states_for_cmds(cmds)
+    sts0 = sts[-1]
+
+    state0 = states.get_state0(date0)
+
+    for key, val in state0.items():
+        if isinstance(val, (int, str)):
+            assert sts0[key] == val
+        else:
+            assert np.isclose(sts0[key], val, rtol=0, atol=1e-7)
+
+
+def test_get_state0_fail():
+    with pytest.raises(ValueError) as err:
+        states.get_state0('2017:014', ['letg'], lookbacks=[3])
+    assert 'did not find transitions' in str(err)
+
+
+def test_transition_error():
+    """Raise exception if there are no state transitions within supplied commands"""
+    cmds = commands.filter('2016:360', '2016:361')
+    with pytest.raises(states.NoTransitionsError):
+        states.get_states_for_cmds(cmds, ['letg'])
+
+
+# TODO: test reduce_states.
