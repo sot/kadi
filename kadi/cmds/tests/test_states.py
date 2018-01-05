@@ -43,6 +43,17 @@ def test_acis():
     compare_states('2017:280', '2017:360', state_keys, state_keys + ['datestart'])
 
 
+def test_quick():
+    """
+    Test for a few days in 2017.  Sanity check for refactoring etc.
+    """
+    state_keys = (['obsid', 'clocking', 'power_cmd',  'fep_count', 'vid_board',
+                   'si_mode',  'ccd_count'] +
+                  ['q1', 'q2', 'q3', 'q4', 'pcad_mode'])
+    rc, rk = compare_states('2017:300', '2017:310', state_keys)
+    assert np.all(rc['datestart'] == rk['datestart'])
+
+
 def test_states_2017():
     """
     Test for 200 days in 2017.  Includes 2017:066, 068, 090 anomalies and
