@@ -729,14 +729,11 @@ def get_state0(date=None, state_keys=None, lookbacks=(7, 30, 180, 1000)):
     state0 = {}
 
     for lookback in lookbacks:
-        print('Trying lookback {}'.format(lookback))
         cmds = commands.filter(stop - lookback, stop)
 
         for state_key in state_keys:
-            print('  State key {}'.format(state_key))
             # Don't bother if we already have a value for this key.
             if state_key in state0:
-                print('   .. skipping, already done')
                 continue
 
             # Get available commanded states for this particular state_key.  This may
@@ -758,7 +755,6 @@ def get_state0(date=None, state_keys=None, lookbacks=(7, 30, 180, 1000)):
         # If we have filled in state0 for every key then we're done.
         # Otherwise bump the lookback and try again.
         if all(state_key in state0 for state_key in state_keys):
-            print('Done at lookback = {}'.format(lookback))
             break
     else:
         # Didn't find all state keys
