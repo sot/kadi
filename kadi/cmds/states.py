@@ -617,7 +617,7 @@ def get_states_for_cmds(cmds, state_keys=None, state0=None):
 
     # Apply initial ``state0`` values if available
     if state0:
-        for key, val in state0:
+        for key, val in state0.items():
             if key in state_keys:
                 states[0][key] = val
             else:
