@@ -8,7 +8,7 @@ from Chandra.Time import DateTime
 from Ska.engarchive import fetch
 
 
-def get_states(start, stop, state_keys):
+def get_states(start, stop, state_keys, state0=None):
     start = DateTime(start)
     stop = DateTime(stop)
 
@@ -17,14 +17,14 @@ def get_states(start, stop, state_keys):
     lenr = len(rcstates)
 
     cmds = commands.filter(start - 7, stop)
-    kstates = states.get_states_for_cmds(cmds, state_keys)
+    kstates = states.get_states_for_cmds(cmds, state_keys, state0=state0)
     rkstates = states.reduce_states(kstates, state_keys)[-lenr:]
 
     return rcstates, rkstates
 
 
-def compare_states(start, stop, state_keys, compare_state_keys=None):
-    rcstates, rkstates = get_states(start, stop, state_keys)
+def compare_states(start, stop, state_keys, compare_state_keys=None, state0=None):
+    rcstates, rkstates = get_states(start, stop, state_keys, state0=state0)
 
     if compare_state_keys is None:
         compare_state_keys = state_keys
@@ -49,8 +49,10 @@ def test_quick():
     """
     state_keys = (['obsid', 'clocking', 'power_cmd',  'fep_count', 'vid_board',
                    'si_mode',  'ccd_count'] +
-                  ['q1', 'q2', 'q3', 'q4', 'pcad_mode', 'dither'])
-    rc, rk = compare_states('2017:300', '2017:310', state_keys)
+                  ['q1', 'q2', 'q3', 'q4', 'pcad_mode', 'dither'] +
+                  ['letg', 'hetg'])
+    state0 = {'letg': 'RETR', 'hetg': 'RETR'}  # Not necessarily set within 7 days
+    rc, rk = compare_states('2017:300', '2017:310', state_keys, state0=state0)
     assert np.all(rc['datestart'] == rk['datestart'])
 
 
@@ -68,8 +70,10 @@ def test_states_2017():
     """
     state_keys = (['obsid', 'clocking', 'power_cmd',  'fep_count',
                    'si_mode',  'ccd_count'] +
-                  ['q1', 'q2', 'q3', 'q4', 'pcad_mode', 'dither'])
-    rcstates, rkstates = compare_states('2017:060', '2017:260', state_keys)
+                  ['q1', 'q2', 'q3', 'q4', 'pcad_mode', 'dither'] +
+                  ['letg', 'hetg'])
+    state0 = {'letg': 'RETR', 'hetg': 'RETR'}  # Not necessarily set within 7 days
+    rcstates, rkstates = compare_states('2017:060', '2017:260', state_keys, state0=state0)
 
     # Check state datestart.  There are 4 known discrepancies of 0.001 sec
     # due to a slight difference in the start time for NSUN maneuvers.  Cmd_states
