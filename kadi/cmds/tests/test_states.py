@@ -49,7 +49,7 @@ def test_quick():
     """
     state_keys = (['obsid', 'clocking', 'power_cmd',  'fep_count', 'vid_board',
                    'si_mode',  'ccd_count'] +
-                  ['q1', 'q2', 'q3', 'q4', 'pcad_mode'])
+                  ['q1', 'q2', 'q3', 'q4', 'pcad_mode', 'dither'])
     rc, rk = compare_states('2017:300', '2017:310', state_keys)
     assert np.all(rc['datestart'] == rk['datestart'])
 
@@ -68,7 +68,7 @@ def test_states_2017():
     """
     state_keys = (['obsid', 'clocking', 'power_cmd',  'fep_count',
                    'si_mode',  'ccd_count'] +
-                  ['q1', 'q2', 'q3', 'q4', 'pcad_mode'])
+                  ['q1', 'q2', 'q3', 'q4', 'pcad_mode', 'dither'])
     rcstates, rkstates = compare_states('2017:060', '2017:260', state_keys)
 
     # Check state datestart.  There are 4 known discrepancies of 0.001 sec
@@ -139,3 +139,45 @@ def test_sun_vec_versus_telemetry():
     delta = np.abs(dat.vals - rk['off_nom_roll'])
     assert np.max(rk['off_nom_roll']) - np.min(rk['off_nom_roll']) > 20  # Large range
     assert np.all(delta < 1.5)
+
+
+def test_dither():
+    """Values look reasonable given load commands"""
+    cs = commands.filter('2017:340:00:00:00', '2017:350:00:00:00')
+    rk = states.get_states_for_cmds(cs, ['dither_phase_pitch', 'dither_phase_yaw',
+                                         'dither_ampl_pitch', 'dither_ampl_yaw',
+                                         'dither_period_pitch', 'dither_period_yaw'])
+
+    assert np.all(rk['datestart'] == ['2017:341:21:40:05.265',
+                                      '2017:342:08:26:34.023',
+                                      '2017:345:02:45:50.318',
+                                      '2017:345:09:02:21.704',
+                                      '2017:345:17:18:08.893',
+                                      '2017:346:04:35:44.546',
+                                      '2017:349:21:28:42.426'])
+    assert np.all(rk['dither_phase_pitch'] == 0.0)
+    assert np.all(rk['dither_phase_yaw'] == 0.0)
+    ampls = [20.00149628163879,
+             7.9989482580707696,
+             20.00149628163879,
+             7.9989482580707696,
+             20.00149628163879,
+             7.9989482580707696,
+             20.00149628163879]
+    assert np.allclose(rk['dither_ampl_pitch'], ampls, atol=1e-6, rtol=0)
+    assert np.allclose(rk['dither_ampl_yaw'], ampls, atol=1e-6, rtol=0)
+    assert np.allclose(rk['dither_period_pitch'], [768.5740994184024,
+                                                   707.13038356352104,
+                                                   768.5740994184024,
+                                                   707.13038356352104,
+                                                   768.5740994184024,
+                                                   707.13038356352104,
+                                                   768.5740994184024], atol=1e-6, rtol=0)
+
+    assert np.allclose(rk['dither_period_yaw'], [1086.9567572759399,
+                                                 999.99938521341483,
+                                                 1086.9567572759399,
+                                                 999.99938521341483,
+                                                 1086.9567572759399,
+                                                 999.99938521341483,
+                                                 1086.9567572759399], atol=1e-6, rtol=0)

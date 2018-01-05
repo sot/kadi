@@ -213,6 +213,27 @@ class DitherDisableTransition(SingleFixedTransition):
     transition_val = 'DISA'
 
 
+class DitherParamsTransition(BaseTransition):
+    command_attributes = {'type': 'MP_DITHER',
+                          'tlmsid': 'AODITPAR'}
+    state_keys = ['dither_phase_pitch', 'dither_phase_yaw',
+                  'dither_ampl_pitch', 'dither_ampl_yaw',
+                  'dither_period_pitch', 'dither_period_yaw']
+
+    @classmethod
+    def set_transitions(cls, transitions_dict, cmds):
+        state_cmds = cls.get_state_changing_commands(cmds)
+
+        for cmd in state_cmds:
+            dither = {'dither_phase_pitch': np.degrees(cmd['angp']),
+                      'dither_phase_yaw': np.degrees(cmd['angy']),
+                      'dither_ampl_pitch': np.degrees(cmd['coefp']) * 3600,
+                      'dither_ampl_yaw': np.degrees(cmd['coefy']) * 3600,
+                      'dither_period_pitch': 2 * np.pi / cmd['ratep'],
+                      'dither_period_yaw': 2 * np.pi / cmd['ratey']}
+            transitions_dict[cmd['date']].update(dither)
+
+
 class NMM_Transition(SingleFixedTransition):
     command_attributes = {'type': 'COMMAND_SW',
                           'tlmsid': 'AONMMODE'}
