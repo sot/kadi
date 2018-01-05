@@ -49,8 +49,9 @@ def test_quick():
     """
     state_keys = (['obsid', 'clocking', 'power_cmd',  'fep_count', 'vid_board',
                    'si_mode',  'ccd_count'] +
-                  ['q1', 'q2', 'q3', 'q4', 'pcad_mode', 'dither'] +
-                  ['letg', 'hetg'])
+                  ['q1', 'q2', 'q3', 'q4', 'pcad_mode', 'dither', 'ra', 'dec', 'roll'] +
+                  ['letg', 'hetg'] +
+                  ['simpos', 'simfa_pos'])
     state0 = {'letg': 'RETR', 'hetg': 'RETR'}  # Not necessarily set within 7 days
     rc, rk = compare_states('2017:300', '2017:310', state_keys, state0=state0)
     assert np.all(rc['datestart'] == rk['datestart'])
@@ -62,16 +63,17 @@ def test_states_2017():
     2017:250-254 SCS107 + 251 CTI.
 
     Skip 'vid_board' because https://github.com/sot/cmd_states/pull/31 was put
-    in place around 2017:276 and so the behavior of this changed then.
+    in place around 2017:276 and so the behavior of this changed then. (Tested later).
 
     Skip 'pitch' because Chandra.cmd_states only avoids pitch breaks within actual
     maneuver commanding (so the NMAN period before maneuver starts is OK) while kadi
-    will insert pitch breaks only in NPNT.
+    will insert pitch breaks only in NPNT.  (Tested later).
     """
     state_keys = (['obsid', 'clocking', 'power_cmd',  'fep_count',
                    'si_mode',  'ccd_count'] +
-                  ['q1', 'q2', 'q3', 'q4', 'pcad_mode', 'dither'] +
-                  ['letg', 'hetg'])
+                  ['q1', 'q2', 'q3', 'q4', 'pcad_mode', 'dither', 'ra', 'dec', 'roll'] +
+                  ['letg', 'hetg'] +
+                  ['simpos', 'simfa_pos'])
     state0 = {'letg': 'RETR', 'hetg': 'RETR'}  # Not necessarily set within 7 days
     rcstates, rkstates = compare_states('2017:060', '2017:260', state_keys, state0=state0)
 
