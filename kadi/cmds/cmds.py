@@ -161,7 +161,8 @@ class Cmd(dict):
         # Create dict from field values in idx_cmd structured array row.
         super(Cmd, self).__init__()
 
-        for name in cmd.colnames:
+        colnames = cmd.colnames
+        for name in colnames:
             value = cmd[name]
             try:
                 self[name] = value.item()
@@ -169,12 +170,11 @@ class Cmd(dict):
                 self[name] = value
         self.update(rev_pars_dict[cmd['idx']])
 
-        colnames = cmd.colnames
         if self['tlmsid'] == 'None':
             del self['tlmsid']
             colnames.remove('tlmsid')
 
-        self._ordered_keys = (colnames +
+        self._ordered_keys = (colnames[1:] +
                               [par[0] for par in rev_pars_dict[cmd['idx']]])
 
     def __repr__(self):
