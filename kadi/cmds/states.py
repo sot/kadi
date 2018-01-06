@@ -88,10 +88,25 @@ class BaseTransition(object):
 
         :returns: subset of ``cmds`` relevant for this Transition class (CmdList)
         """
+        # First filter on command attributes.  These
         ok = np.ones(len(cmds), dtype=bool)
         for attr, val in cls.command_attributes.items():
             ok = ok & (cmds[attr] == val)
-        return cmds[ok]
+
+        out_cmds = cmds[ok]
+
+        # Second do command_params.  Note could use `cmds[attr] == val`for "vectorized"
+        # compare, but unrolling the loop here is more efficient since the CmdList class
+        # would internally assemble a pure-Python version of the column first.
+        if hasattr(cls, 'command_params'):
+            ok = np.ones(len(out_cmds), dtype=bool)
+            for idx, cmd in enumerate(out_cmds):
+                for attr, val in cls.command_params.items():
+                    ok[idx] = ok[idx] & (cmd[attr] == val)
+
+            out_cmds = out_cmds[ok]
+
+        return out_cmds
 
 
 class SingleFixedTransition(BaseTransition):
@@ -188,7 +203,7 @@ class SimFocusTransition(ParamTransition):
 
 
 ###################################################################
-# Misc transitions
+# OBC etc transitions
 ###################################################################
 
 class ObsidTransition(ParamTransition):
@@ -196,6 +211,26 @@ class ObsidTransition(ParamTransition):
     transition_key = 'obsid'
     state_keys = ['obsid']
     transition_param_key = 'id'
+
+
+class SPMEnableTransition(SingleFixedTransition):
+    command_attributes = {'type': 'COMMAND_SW',
+                          'tlmsid': 'AOFUNCEN'}
+    command_params = {'aopcadse': 30}
+
+    state_keys = ['sun_pos_mon']
+    transition_key = 'sun_pos_mon'
+    transition_val = 'ENAB'
+
+
+class SPMDisableTransition(SingleFixedTransition):
+    command_attributes = {'type': 'COMMAND_SW',
+                          'tlmsid': 'AOFUNCDS'}
+    command_params = {'aopcadsd': 30}
+
+    state_keys = ['sun_pos_mon']
+    transition_key = 'sun_pos_mon'
+    transition_val = 'DISA'
 
 
 ###################################################################
