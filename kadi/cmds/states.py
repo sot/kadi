@@ -602,7 +602,7 @@ def add_sun_vector_transitions(start, stop, transitions):
     roll during NPNT.  These are function transitions which check to see that
     pcad_mode == 'NPNT' before changing the pitch / off_nominal_roll.
 
-    This function gets as a special-case within get_states_for_cmds() after assembling the
+    This function gets as a special-case within get_states() after assembling the
     initial list of transitions that are generated from Transition classes.
 
     :param start: start date for sun vector transitions (DateTime compatible)
@@ -682,23 +682,31 @@ def add_transition(transitions, idx, transition):
         transitions.append(transition)
 
 
-def get_states_for_cmds(cmds, state_keys=None, state0=None):
+def get_states(state_keys=None, cmds=None, start=None, stop=None, state0=None):
     """
     Get table of states corresponding to intervals when ``state_keys`` parameters
-    are unchanged given the input commands ``cmds``.
+    are unchanged given the input commands ``cmds`` or ``start`` date.
 
     If ``state_keys`` is None then all known state keys are included.
 
-    The output table will contain columns for ``state_keys`` along with ``datestart`` and
-    ``datestop`` columns.  It may also include additional columns for corresponding
-    dependent states.  For instance in order to compute the attitude quaternion state
-    ``q1`` it is necessary to collect a number of other states such as ``pcad_mode`` and
-    target quaternions ``targ_q1`` through ``targ_q4``.  This function returns all these.
-    One can call the ``reduce_states()`` function to reduce to only the desired state
-    keys.
+    One can provide *either* the ``cmds`` argument with the ``CmdList`` of commands (via
+    ``cmds.filter()``), *OR* the ``start`` (and optionally ``stop``) date.  In the latter
+    case this function will automatically fetch the commands internally.  If the ``stop``
+    date is not provided then all known commands (including those from approved loads)
+    will be included.
 
-    :param cmds: input commands (CmdList)
-    :param state_keys: state keys of interest
+    The output table will contain columns for ``state_keys`` along with ``datestart`` and
+    ``datestop`` columns.  The output may also include additional columns for related
+    states.  For instance in order to compute the attitude quaternion state ``q1`` it is
+    necessary to collect a number of other states such as ``pcad_mode`` and target
+    quaternions ``targ_q1`` through ``targ_q4``.  This function returns all these.  One
+    can call the ``reduce_states()`` function to reduce to only the desired state keys.
+
+    :param state_keys: state keys of interest (optional, list)
+    :param cmds: input commands (optional, CmdList)
+    :param start: start of states (optional, DateTime compatible)
+    :param stop: stop of states (optional, DateTime compatible)
+    :param state0: initial state (optional, dict)
 
     :returns: astropy Table of states
     """
@@ -720,6 +728,20 @@ def get_states_for_cmds(cmds, state_keys=None, state0=None):
                     state_keys.extend(cls.state_keys)
         state_keys = _unique(state_keys)
 
+    # Get commands, either from `cmds` arg or from `start` / `stop`
+    if cmds is None:
+        if start is None:
+            raise ValueError("must supply either 'cmds' argument or 'start' argument")
+        cmds = commands.filter(start, stop)
+    else:
+        if start is not None or stop is not None:
+            raise ValueError("cannot supply both 'cmds' and 'start' / 'stop' arguments")
+        start = cmds[0]['date']
+
+    # Get initial state at start of commands
+    if state0 is None:
+        state0 = get_state0(start, state_keys)
+
     # Get transitions, which is a list of dict (state key
     # and new state value at that date).  This goes through each active
     # transition class and accumulates transitions.
@@ -740,13 +762,12 @@ def get_states_for_cmds(cmds, state_keys=None, state0=None):
         raise NoTransitionsError('no transitions for state keys {} in cmds'
                                  .format(state_keys))
 
-    # Apply initial ``state0`` values if available
-    if state0:
-        for key, val in state0.items():
-            if key in state_keys:
-                states[0][key] = val
-            else:
-                warnings.warn('state0 key {} is not in state_keys, ignoring it'.format(key))
+    # Apply initial ``state0`` values
+    for key, val in state0.items():
+        if key in state_keys:
+            states[0][key] = val
+        else:
+            warnings.warn('state0 key {} is not in state_keys, ignoring it'.format(key))
 
     # Do main state transition processing.  Start by making current ``state`` which is a
     # reference the last state in the list.
@@ -856,7 +877,7 @@ def get_state0(date=None, state_keys=None, lookbacks=(7, 30, 180, 1000)):
             # state0 as possible from last state (corresponding to the state after the
             # last command in cmds).
             try:
-                states = get_states_for_cmds(cmds, [state_key])
+                states = get_states([state_key], cmds, state0={})
             except NoTransitionsError:
                 # No transitions within `cmds` for state_key, continue with other keys
                 continue

@@ -22,7 +22,7 @@ def get_states(start, stop, state_keys, state0=None):
     lenr = len(rcstates)
 
     cmds = commands.filter(start - 7, stop)
-    kstates = states.get_states_for_cmds(cmds, state_keys, state0=state0)
+    kstates = states.get_states(state_keys, cmds, state0=state0)
     rkstates = states.reduce_states(kstates, state_keys)[-lenr:]
 
     return rcstates, rkstates
@@ -133,7 +133,7 @@ def test_sun_vec_versus_telemetry():
     state_keys = ['pitch', 'off_nom_roll']
     start, stop = '2017:349:10:00:00', '2017:350:10:00:00'
     cmds = commands.filter(start, stop)
-    kstates = states.get_states_for_cmds(cmds, state_keys)[-20:-1]
+    kstates = states.get_states(state_keys, cmds)[-20:-1]
     rk = states.reduce_states(kstates, state_keys)
 
     tstart = DateTime(rk['datestart']).secs
@@ -158,9 +158,9 @@ def test_sun_vec_versus_telemetry():
 def test_dither():
     """Values look reasonable given load commands"""
     cs = commands.filter('2017:340:00:00:00', '2017:350:00:00:00')
-    rk = states.get_states_for_cmds(cs, ['dither_phase_pitch', 'dither_phase_yaw',
-                                         'dither_ampl_pitch', 'dither_ampl_yaw',
-                                         'dither_period_pitch', 'dither_period_yaw'])
+    rk = states.get_states(['dither_phase_pitch', 'dither_phase_yaw',
+                                     'dither_ampl_pitch', 'dither_ampl_yaw',
+                                     'dither_period_pitch', 'dither_period_yaw'], cs)
 
     assert np.all(rk['datestart'] == ['2017:341:21:40:05.265',
                                       '2017:342:08:26:34.023',
@@ -252,7 +252,7 @@ def test_get_state0_vs_states():
     date0 = '2017:014'
     # Get last state up through `date0`.  Hardwire the lookback here to 21 days.
     cmds = commands.filter('2016:360', date0)
-    sts = states.get_states_for_cmds(cmds)
+    sts = states.get_states(cmds=cmds)
     sts0 = sts[-1]
 
     state0 = states.get_state0(date0)
@@ -274,7 +274,7 @@ def test_transition_error():
     """Raise exception if there are no state transitions within supplied commands"""
     cmds = commands.filter('2016:360', '2016:361')
     with pytest.raises(states.NoTransitionsError):
-        states.get_states_for_cmds(cmds, ['letg'])
+        states.get_states(['letg'], cmds)
 
 
 def test_sun_pos_mon():
@@ -345,7 +345,7 @@ date sep value
     spm = ascii.read(spm_history, guess=False,
                      converters={'date': [ascii.convert_numpy(np.str)]})
     cmds = commands.filter('2017:358:21:33:00', '2018:007:02:45:00')
-    sts = states.get_states_for_cmds(cmds, ['sun_pos_mon'])
+    sts = states.get_states(['sun_pos_mon'], cmds)
 
     assert len(sts) == len(spm)
     assert np.all(DateTime(sts['datestart']).greta == spm['date'])
@@ -374,7 +374,7 @@ def test_sun_pos_mon_lunar():
 """
     spm = ascii.read(spm_history, guess=False)
     cmds = commands.filter('2017:087:00:00:00', '2017:088:00:00:00')
-    sts = states.get_states_for_cmds(cmds, ['sun_pos_mon'])
+    sts = states.get_states(['sun_pos_mon'], cmds)
 
     assert len(sts) == len(spm)
     assert np.all(sts['datestart'] == spm['datestart'])
