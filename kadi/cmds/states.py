@@ -279,6 +279,39 @@ class SPMEclipseEnableTransition(BaseTransition):
                     connect_flag = False
 
 
+class SCS84EnableTransition(SingleFixedTransition):
+    command_attributes = {'tlmsid': 'COENASX'}
+    command_params = {'coenas1': 84}
+    state_keys = ['scs84']
+    transition_key = 'scs84'
+    transition_val = 'ENAB'
+    default_value = 'DISA'
+
+
+class SCS84DisableTransition(SingleFixedTransition):
+    command_attributes = {'tlmsid': 'CODISASX'}
+    command_params = {'codisas1': 84}
+    state_keys = ['scs84']
+    transition_key = 'scs84'
+    transition_val = 'ENAB'
+
+
+class SCS98EnableTransition(SingleFixedTransition):
+    command_attributes = {'tlmsid': 'COENASX'}
+    command_params = {'coenas1': 98}
+    state_keys = ['scs98']
+    transition_key = 'scs98'
+    transition_val = 'ENAB'
+
+
+class SCS98DisableTransition(SingleFixedTransition):
+    command_attributes = {'tlmsid': 'CODISASX'}
+    command_params = {'codisas1': 98}
+    state_keys = ['scs98']
+    transition_key = 'scs98'
+    transition_val = 'ENAB'
+
+
 ###################################################################
 # PCAD transitions
 ###################################################################
