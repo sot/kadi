@@ -8,7 +8,7 @@ from .. import cmds
 def test_find():
     cs = cmds._find('2012:029', '2012:030')
     assert isinstance(cs, Table)
-    assert len(cs) == 146
+    assert len(cs) == 147
     assert np.all(cs['timeline_id'][:10] == 426098447)
     assert np.all(cs['timeline_id'][-10:] == 426098448)
     assert cs['date'][0] == '2012:029:13:00:00.000'
@@ -31,7 +31,7 @@ def test_find():
 def test_filter():
     cs = cmds.filter('2012:029', '2012:030')
     assert isinstance(cs, cmds.CmdList)
-    assert len(cs) == 146
+    assert len(cs) == 147
     assert np.all(cs['timeline_id'][:10] == 426098447)
     assert np.all(cs['timeline_id'][-10:] == 426098448)
     assert cs['date'][0] == '2012:029:13:00:00.000'

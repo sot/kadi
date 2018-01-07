@@ -65,7 +65,7 @@ rev_pars_dict = LazyVal(lambda: {v: k for k, v in pars_dict.items()})
 
 def filter(start=None, stop=None, **kwargs):
     """
-    Get commands between ``start`` and ``stop``.  Additional ``key=val`` pairs
+    Get commands with ``start`` <= date < ``stop``.  Additional ``key=val`` pairs
     can be supplied to further filter the results.  Both ``key`` and ``val``
     are case insensitive.  In addition to the any of the command parameters
     such as TLMSID, MSID, SCS, STEP, or POS, the ``key`` can be:
@@ -102,7 +102,7 @@ def filter(start=None, stop=None, **kwargs):
 
 def _find(start=None, stop=None, **kwargs):
     """
-    Get commands between ``start`` and ``stop``.  Additional ``key=val`` pairs
+    Get commands ``start`` <= date < ``stop``.  Additional ``key=val`` pairs
     can be supplied to further filter the results.  Both ``key`` and ``val``
     are case insensitive.  In addition to the any of the command parameters
     such as TLMSID, MSID, SCS, STEP, or POS, the ``key`` can be:
@@ -138,7 +138,7 @@ def _find(start=None, stop=None, **kwargs):
     if start:
         ok &= idx_cmds['date'] >= DateTime(start).date
     if stop:
-        ok &= idx_cmds['date'] <= DateTime(stop).date
+        ok &= idx_cmds['date'] < DateTime(stop).date
     for key, val in kwargs.items():
         key = key.lower()
         if isinstance(val, six.string_types):
