@@ -2,6 +2,7 @@
 import os
 import argparse
 import difflib
+from copy import deepcopy
 
 import numpy as np
 import tables
@@ -136,6 +137,9 @@ def get_cmds(start, stop, mp_dir='/data/mpcrit1/mplogs'):
         raise ValueError('Timeline loads id not monotonically increasing')
 
     cmds = []
+    orbit_cmds = []
+    orbit_cmd_files = set()
+
     for tl in timeline_loads:
         bs_file = Ska.File.get_globfiles(os.path.join(mp_dir + tl.mp_dir,
                                                       '*.backstop'))[0]
@@ -145,6 +149,20 @@ def get_cmds(start, stop, mp_dir='/data/mpcrit1/mplogs'):
             BACKSTOP_CACHE[bs_file] = bs_cmds
         else:
             bs_cmds = BACKSTOP_CACHE[bs_file]
+
+        # Process ORBPOINT (orbit event) pseudo-commands in backstop.  These
+        # have scs=0 and need to be treated separately since during a replan
+        # or shutdown we still want these ORBPOINT to be in the cmds archive
+        # and not be excluded by timeline intervals.
+        if bs_file not in orbit_cmd_files:
+            bs_orbit_cmds = [x for x in bs_cmds if x['type'] == 'ORBPOINT']
+            for orbit_cmd in bs_orbit_cmds:
+                orbit_cmd['timeline_id'] = tl['id']
+                if 'EVENT_TYPE' not in orbit_cmd['params']:
+                    orbit_cmd['params']['EVENT_TYPE'] = orbit_cmd['params']['TYPE']
+                    del orbit_cmd['params']['TYPE']
+            orbit_cmds.extend(bs_orbit_cmds)
+            orbit_cmd_files.add(bs_file)
 
         # Only store commands for this timeline (match SCS and date)
         bs_cmds = [x for x in bs_cmds
@@ -158,7 +176,12 @@ def get_cmds(start, stop, mp_dir='/data/mpcrit1/mplogs'):
                     .format(len(bs_cmds), tl['id'], tl['scs']))
         cmds.extend(bs_cmds)
 
+    orbit_cmds = get_unique_orbit_cmds(orbit_cmds)
+    logger.debug('Read total of {} orbit commands'
+                 .format(len(orbit_cmds)))
+
     cmds.extend(nl_cmds)
+    cmds.extend(orbit_cmds)
 
     # Sort by date and SCS step number.
     cmds = sorted(cmds, key=lambda y: (y['date'], y['step']))
@@ -166,6 +189,39 @@ def get_cmds(start, stop, mp_dir='/data/mpcrit1/mplogs'):
                  .format(len(cmds), len(nl_cmds)))
 
     return cmds
+
+
+def get_unique_orbit_cmds(orbit_cmds):
+    """
+    Given list of ``orbit_cmds`` find the quasi-unique set.  In the event of a
+    replan/reopen or other schedule oddity, it can happen that there are multiple cmds
+    that describe the same orbit event.  Since the detailed timing might change between
+    schedule runs, cmds are considered the same if the date is within 3 minutes.
+    """
+    if len(orbit_cmds) == 0:
+        return []
+
+    # Sort by (event_type, date)
+    orbit_cmds.sort(key=lambda y: (y['params']['EVENT_TYPE'], y['date']))
+
+    uniq_cmds = [orbit_cmds[0]]
+    # Step through one at a time and add to uniq_cmds only if the candidate is
+    # "different" from uniq_cmds[-1].
+    for cmd in orbit_cmds:
+        last_cmd = uniq_cmds[-1]
+        if (cmd['params']['EVENT_TYPE'] == last_cmd['params']['EVENT_TYPE'] and
+                abs(DateTime(cmd['date']).secs - DateTime(last_cmd['date']).secs) < 180):
+            # Same event as last (even if date is a bit different).  Now if this one
+            # has a larger timeline_id that means it is from a more recent schedule, so
+            # use that one.
+            if cmd['timeline_id'] > last_cmd['timeline_id']:
+                uniq_cmds[-1] = cmd
+        else:
+            uniq_cmds.append(cmd)
+
+    uniq_cmds.sort(key=lambda y: y['date'])
+
+    return uniq_cmds
 
 
 def get_idx_cmds(cmds, pars_dict):
