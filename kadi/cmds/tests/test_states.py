@@ -352,4 +352,33 @@ date sep value
     assert np.all(sts['sun_pos_mon'] == spm['value'])
 
 
+def test_sun_pos_mon_lunar():
+    """
+    Test that sun_pos_mon is correct for a lunar eclipse:
+    2017:087:07:49:55.838 ORBPOINT    scs=0 step=0 timeline_id=426102503 event_type=LSPENTRY
+    2017:087:08:10:35.838 ORBPOINT    scs=0 step=0 timeline_id=426102503 event_type=LSPEXIT
+
+    We expect SPM enable at the LSPEXIT time + 11 minutes = 2017:087:08:21:35.838
+    """
+    spm_history = """
+      datestart              datestop       sun_pos_mon
+2017:087:03:04:02.242 2017:087:07:21:40.189        DISA
+2017:087:07:21:40.189 2017:087:07:44:55.838        ENAB
+2017:087:07:44:55.838 2017:087:08:21:35.838        DISA
+# Here is the relevant entry:
+2017:087:08:21:35.838 2017:087:08:30:50.891        ENAB
+#
+2017:087:08:30:50.891 2017:087:17:18:18.571        DISA
+2017:087:17:18:18.571 2017:087:23:59:21.087        ENAB
+2017:087:23:59:21.087 2099:365:00:00:00.000        DISA
+"""
+    spm = ascii.read(spm_history, guess=False)
+    cmds = commands.filter('2017:087:00:00:00', '2017:088:00:00:00')
+    sts = states.get_states_for_cmds(cmds, ['sun_pos_mon'])
+
+    assert len(sts) == len(spm)
+    assert np.all(sts['datestart'] == spm['datestart'])
+    assert np.all(sts['sun_pos_mon'] == spm['sun_pos_mon'])
+
+
 # TODO: test reduce_states.
