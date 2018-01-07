@@ -8,6 +8,7 @@ import Chandra.cmd_states as cmd_states
 from Chandra.Time import DateTime
 from Ska.engarchive import fetch
 from astropy.io import ascii
+from astropy.table import Table
 
 
 def get_states(start, stop, state_keys, state0=None):
@@ -399,4 +400,31 @@ def test_sun_pos_mon_lunar():
     assert np.all(sts['sun_pos_mon'] == spm['sun_pos_mon'])
 
 
-# TODO: test reduce_states.
+def test_reduce_states():
+    datestart = DateTime(np.arange(0, 5)).date
+    datestop = DateTime(np.arange(1, 6)).date
+
+    # Table with something that changes every time
+    vals = np.arange(5)
+    dat = Table([datestart, datestop, vals], names=['datestart', 'datestop', 'vals'])
+    dat['val1'] = 1
+    dr = states.reduce_states(dat, ['vals', 'val1'])
+    assert np.all(dr == dat)
+
+    # Table with nothing that changes
+    vals = np.ones(5)
+    dat = Table([datestart, datestop, vals], names=['datestart', 'datestop', 'vals'])
+    dat['val1'] = 1
+    dr = states.reduce_states(dat, ['vals', 'val1'])
+    assert len(dr) == 1
+    assert dr['datestart'][0] == dat['datestart'][0]
+    assert dr['datestop'][0] == dat['datestop'][-1]
+
+    # Table with edge changes
+    vals = [1, 0, 0, 0, 1]
+    dat = Table([datestart, datestop, vals], names=['datestart', 'datestop', 'vals'])
+    dr = states.reduce_states(dat, ['vals'])
+    assert len(dr) == 3
+    assert np.all(dr['datestart'] == dat['datestart'][[0, 1, 4]])
+    assert np.all(dr['datestop'] == dat['datestop'][[0, 3, 4]])
+    assert np.all(dr['vals'] == [1, 0, 1])
