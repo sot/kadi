@@ -28,7 +28,8 @@ def get_states(start, stop, state_keys, state0=None):
     return rcstates, rkstates
 
 
-def compare_states(start, stop, state_keys, compare_state_keys=None, state0=None):
+def compare_states(start, stop, state_keys, compare_state_keys=None, state0=None,
+                   compare_dates=True):
     """
     Helper for comparing states from kadi and cmd_states
     """
@@ -40,6 +41,10 @@ def compare_states(start, stop, state_keys, compare_state_keys=None, state0=None
     for colname in compare_state_keys:
         assert np.all(rkstates[colname] == rcstates[colname])
 
+    if compare_dates:
+        assert np.all(rcstates['datestart'][1:] == rkstates['datestart'][1:])
+        assert np.all(rcstates['datestop'][:-1] == rkstates['datestop'][:-1])
+
     return rcstates, rkstates
 
 
@@ -48,7 +53,7 @@ def test_acis():
     Test all ACIS states include vid_board for late-2017
     """
     state_keys = ['clocking', 'power_cmd',  'fep_count', 'si_mode',  'ccd_count', 'vid_board']
-    compare_states('2017:280', '2017:360', state_keys, state_keys + ['datestart'])
+    rc, rk = compare_states('2017:280', '2017:360', state_keys, state_keys)
 
 
 def test_quick():
@@ -62,7 +67,15 @@ def test_quick():
                   ['simpos', 'simfa_pos'])
     state0 = {'letg': 'RETR', 'hetg': 'RETR'}  # Not necessarily set within 7 days
     rc, rk = compare_states('2017:300', '2017:310', state_keys, state0=state0)
-    assert np.all(rc['datestart'] == rk['datestart'])
+
+    # Now test using start/stop pair with start/stop and no supplied cmds or state0.
+    sts = states.get_states(state_keys, start='2017:300', stop='2017:310')
+    rk = states.reduce_states(sts, state_keys)
+    assert len(rc) == len(rk)
+    for key in state_keys:
+        assert np.all(rk[key] == rc[key])
+    assert np.all(rc['datestart'][1:] == rk['datestart'][1:])
+    assert np.all(rc['datestop'][:-1] == rk['datestop'][:-1])
 
 
 def test_states_2017():
@@ -83,12 +96,17 @@ def test_states_2017():
                   ['letg', 'hetg'] +
                   ['simpos', 'simfa_pos'])
     state0 = {'letg': 'RETR', 'hetg': 'RETR'}  # Not necessarily set within 7 days
-    rcstates, rkstates = compare_states('2017:060', '2017:260', state_keys, state0=state0)
+    rcstates, rkstates = compare_states('2017:060', '2017:260', state_keys, state0=state0,
+                                        compare_dates=False)
 
     # Check state datestart.  There are 4 known discrepancies of 0.001 sec
     # due to a slight difference in the start time for NSUN maneuvers.  Cmd_states
     # uses the exact floating point time to start while kadi uses the string time
     # rounded to the nearest msec.  The float command time is not stored in kadi.
+    # For this test drop the first state, which has a datestart mismatch because
+    # of the difference in startup between Chandra.cmd_states and kadi.states.
+    rkstates = rkstates[1:]
+    rcstates = rcstates[1:]
     bad = np.flatnonzero(rkstates['datestart'] != rcstates['datestart'])
     assert len(bad) == 4
     tk = DateTime(rkstates['datestart'][bad]).secs

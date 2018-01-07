@@ -611,11 +611,11 @@ def add_sun_vector_transitions(start, stop, transitions):
 
     :returns: None
     """
-    # np.floor is used here to get 'times' at even increments of "sample_time"
-    # so that the commands will be at the same times in an interval even
-    # if a different time range is being updated.
+    # np.ceil is used here to get 'times' between start/stop at even increments of
+    # "sample_time" so that the commands will be at the same times in an interval even if
+    # a different time range is being updated.
     sample_time = 10000
-    tstart = np.floor(DateTime(start).secs / sample_time) * sample_time
+    tstart = np.ceil(DateTime(start).secs / sample_time) * sample_time
     tstop = DateTime(stop).secs
     times = np.arange(tstart, tstop, sample_time)
     dates = DateTime(times).date
@@ -826,12 +826,14 @@ def reduce_states(states, state_keys):
         states = Table(states)
 
     different = np.zeros(len(states), dtype=bool)
+    different[0] = True
     for key in state_keys:
         col = states[key]
         different[1:] |= (col[:-1] != col[1:])
 
     out = states[['datestart', 'datestop'] + state_keys][different]
     out['datestop'][:-1] = out['datestart'][1:]
+    out['datestop'][-1] = states['datestop'][-1]
 
     return out
 
