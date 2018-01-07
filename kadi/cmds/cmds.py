@@ -171,7 +171,6 @@ class Cmd(dict):
         self.update(rev_pars_dict[cmd['idx']])
 
         if self['tlmsid'] == 'None':
-            del self['tlmsid']
             colnames.remove('tlmsid')
 
         self._ordered_keys = (colnames[1:] +
