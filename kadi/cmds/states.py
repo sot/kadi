@@ -839,11 +839,20 @@ def get_state0(date=None, state_keys=None, lookbacks=(7, 30, 180, 1000)):
             break
     else:
         # Didn't find all state keys
-        missing = [state_key for state_key in state_keys
-                   if state_key not in state0]
-        raise ValueError('did not find transitions for state key(s)'
-                         ' {} within {} days of {}.  Maybe adjust the `lookbacks` argument?'
-                         .format(missing, lookbacks[-1], stop.date))
+        missing_keys = set(state_keys) - set(state0)
+
+        # Try to get defaults from transition classes
+        for missing_key in missing_keys:
+            for cls in get_transition_classes(missing_key):
+                if hasattr(cls, 'default_value'):
+                    state0[missing_key] = cls.default_value
+
+        # Try again...
+        missing_keys = set(state_keys) - set(state0)
+        if missing_keys:
+            raise ValueError('did not find transitions for state key(s)'
+                             ' {} within {} days of {}.  Maybe adjust the `lookbacks` argument?'
+                             .format(missing_keys, lookbacks[-1], stop.date))
 
     return state0
 
