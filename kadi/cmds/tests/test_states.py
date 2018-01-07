@@ -7,6 +7,7 @@ import pytest
 import Chandra.cmd_states as cmd_states
 from Chandra.Time import DateTime
 from Ska.engarchive import fetch
+from astropy.io import ascii
 
 
 def get_states(start, stop, state_keys, state0=None):
@@ -274,6 +275,81 @@ def test_transition_error():
     cmds = commands.filter('2016:360', '2016:361')
     with pytest.raises(states.NoTransitionsError):
         states.get_states_for_cmds(cmds, ['letg'])
+
+
+def test_sun_pos_mon():
+    """
+    Check sun_pos_mon state against backstop history for a period including
+    eclipses (DEC2517 loads).
+    """
+    spm_history = """
+date sep value
+2017358.213409495 | DISA
+2017359.070917145 | ENAB
+2017359.110537952 | DISA
+2017359.133903984 | ENAB
+2017359.135819633 | DISA
+2017359.152229633 | ENAB
+2017359.163011934 | DISA
+2017359.182223865 | ENAB
+2017359.204011816 | DISA
+2017360.031705497 | ENAB
+2017360.153229134 | DISA
+2017361.002600047 | ENAB
+2017361.133347996 | DISA
+2017362.050738157 | ENAB
+2017362.052653806 | DISA
+2017362.065643806 | ENAB
+2017362.072949107 | DISA
+2017362.093438150 | ENAB
+2017362.102906100 | DISA
+2017362.150855879 | ENAB
+2017363.030442589 | DISA
+2017363.123151176 | ENAB
+2017363.180119126 | DISA
+2017364.030554007 | ENAB
+2017364.105021957 | DISA
+2017364.184204432 | ENAB
+2017364.205923508 | DISA
+2017364.222743508 | ENAB
+2017364.223855809 | DISA
+2017365.041756837 | ENAB
+2017365.071023324 | DISA
+2017365.100753744 | ENAB
+2018001.115218119 | DISA
+2018001.204528158 | ENAB
+2018001.215636109 | DISA
+2018002.010801542 | ENAB
+2018002.123611436 | DISA
+2018002.135651436 | ENAB
+2018002.140743737 | DISA
+2018002.161832404 | ENAB
+2018002.165620354 | DISA
+2018003.000920504 | ENAB
+2018003.005818020 | DISA
+2018003.044025204 | ENAB
+2018004.053611930 | DISA
+2018004.095807597 | ENAB
+2018004.110915547 | DISA
+2018005.020152908 | ENAB
+2018005.041826278 | DISA
+2018005.052326278 | ENAB
+2018005.053238579 | DISA
+2018005.072207093 | ENAB
+2018005.123435064 | DISA
+2018005.153821753 | ENAB
+2018006.072924150 | DISA
+2018006.222954700 | ENAB
+2018007.024422649 | DISA
+"""
+    spm = ascii.read(spm_history, guess=False,
+                     converters={'date': [ascii.convert_numpy(np.str)]})
+    cmds = commands.filter('2017:358:21:33:00', '2018:007:02:45:00')
+    sts = states.get_states_for_cmds(cmds, ['sun_pos_mon'])
+
+    assert len(sts) == len(spm)
+    assert np.all(DateTime(sts['datestart']).greta == spm['date'])
+    assert np.all(sts['sun_pos_mon'] == spm['value'])
 
 
 # TODO: test reduce_states.

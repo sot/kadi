@@ -4,6 +4,7 @@ kadi.cmds.states
 This module provides the functions for dynamically determining Chandra commanded states
 based entirely on known history of commands.
 """
+from __future__ import division, print_function, absolute_import
 
 import collections
 import itertools
@@ -231,6 +232,51 @@ class SPMDisableTransition(SingleFixedTransition):
     state_keys = ['sun_pos_mon']
     transition_key = 'sun_pos_mon'
     transition_val = 'DISA'
+
+
+class SPMEclipseEnableTransition(BaseTransition):
+    """
+    Automatic enable of sun position monitor which occurs 11 minutes after eclipse exit,
+    but only if the battery-connect command occurs within 2:05 minutes of eclipse entry.
+
+    Connect batteries is an event type COMMAND_SW and TLMSID= EOESTECN
+    Eclipse entry is event type ORBPOINT with TYPE=PENTRY or TYPE=LSPENTRY
+    Eclipse exit is event type ORBPOINT with TYPE=PEXIT or TYPE=LSPEXIT
+    """
+    state_keys = ['sun_pos_mon']
+
+    @classmethod
+    def set_transitions(cls, transitions_dict, cmds):
+        """
+        Set transitions for a Table of commands ``cmds``.  This is the simplest
+        case where there is an attribute that gets set to a specified
+        value in the command, e.g. MP_OBSID or SIMTRANS
+
+        :param transitions_dict: global dict of transitions (updated in-place)
+        :param cmds: commands (CmdList)
+
+        :returns: None
+        """
+        # Preselect only commands that might have an impact here.
+        ok = (cmds['tlmsid'] == 'EOESTECN') | (cmds['type'] == 'ORBPOINT')
+        cmds = cmds[ok]
+
+        connect_time = 0
+        connect_flag = False
+
+        for cmd in cmds:
+            if cmd['tlmsid'] == 'EOESTECN':
+                connect_time = DateTime(cmd['date']).secs
+
+            elif cmd['type'] == 'ORBPOINT':
+                if cmd['event_type'] in ('PENTRY', 'LSPENTRY'):
+                    entry_time = DateTime(cmd['date']).secs
+                    connect_flag = (entry_time - connect_time < 125)
+
+                elif cmd['event_type'] in ('PEXIT', 'LSPEXIT') and connect_flag:
+                    scs33 = DateTime(cmd['date']) + 11 * 60 / 86400  # 11 minutes in days
+                    transitions_dict[scs33.date]['sun_pos_mon'] = 'ENAB'
+                    connect_flag = False
 
 
 ###################################################################
