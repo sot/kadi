@@ -90,6 +90,30 @@ class NoTransitionsError(ValueError):
     pass
 
 
+class TransKeysSet(set):
+    """Like set() but with more compact str output for table printing"""
+    def __str__(self):
+        return ','.join(sorted(self))
+
+
+class StateDict(dict):
+    """
+    Dict for state key/val pairs.  When a key value is set the key is stored
+    in the trans_keys attribute.
+    """
+    def __init__(self, *args, **kwargs):
+        super(StateDict, self).__init__(*args, **kwargs)
+        self.trans_keys = TransKeysSet()
+
+    def __setitem__(self, key, val):
+        super(StateDict, self).__setitem__(key, val)
+        self.trans_keys.add(key)
+
+    def copy(self):
+        """Copy without trans_keys"""
+        return StateDict(self)
+
+
 ###################################################################
 # Transition base classes
 ###################################################################
@@ -806,7 +830,7 @@ def get_states(state_keys=None, cmds=None, start=None, stop=None, state0=None):
 
     # List of dict to hold state values.  Datestarts is the corresponding list of
     # start dates for each state.
-    states = [{key: None for key in state_keys}]
+    states = [StateDict({key: None for key in state_keys})]
 
     try:
         datestarts = [transitions[0]['date']]
@@ -814,12 +838,14 @@ def get_states(state_keys=None, cmds=None, start=None, stop=None, state0=None):
         raise NoTransitionsError('no transitions for state keys {} in cmds'
                                  .format(state_keys))
 
-    # Apply initial ``state0`` values
+    # Apply initial ``state0`` values.  Clear the trans_keys set after setting
+    # first state.
     for key, val in state0.items():
         if key in state_keys:
             states[0][key] = val
         else:
             warnings.warn('state0 key {} is not in state_keys, ignoring it'.format(key))
+    states[0].trans_keys.clear()
 
     # Do main state transition processing.  Start by making current ``state`` which is a
     # reference the last state in the list.
@@ -850,16 +876,17 @@ def get_states(state_keys=None, cmds=None, start=None, stop=None, state0=None):
                 state[key] = value
 
     # Make into an astropy Table and set up datestart/stop columns
-    states = Table(rows=states, names=state_keys)
-    states.add_column(Column(datestarts, name='datestart'), 0)
+    out = Table(rows=states, names=state_keys)
+    out.add_column(Column(datestarts, name='datestart'), 0)
     # Add datestop which is just the previous datestart.
-    datestop = states['datestart'].copy()
-    datestop[:-1] = states['datestart'][1:]
+    datestop = out['datestart'].copy()
+    datestop[:-1] = out['datestart'][1:]
     # Final datestop far in the future
     datestop[-1] = '2099:365:00:00:00.000'
-    states.add_column(Column(datestop, name='datestop'), 1)
+    out.add_column(Column(datestop, name='datestop'), 1)
+    out['trans_keys'] = [st.trans_keys for st in states]
 
-    return states
+    return out
 
 
 def reduce_states(states, state_keys):
@@ -936,7 +963,7 @@ def get_state0(date=None, state_keys=None, lookbacks=(7, 30, 180, 1000)):
                 # No transitions within `cmds` for state_key, continue with other keys
                 continue
 
-            colnames = set(states.colnames) - set(['datestart', 'datestop'])
+            colnames = set(states.colnames) - set(['datestart', 'datestop', 'trans_keys'])
             for colname in colnames:
                 if states[colname][-1] is not None:
                     state0[colname] = states[colname][-1]
