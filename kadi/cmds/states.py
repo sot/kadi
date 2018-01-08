@@ -3,6 +3,42 @@ kadi.cmds.states
 
 This module provides the functions for dynamically determining Chandra commanded states
 based entirely on known history of commands.
+
+Basic design concepts.
+
+- Transition class has information about:
+  - Command that generates state change
+  - State key(s) that require this transition
+
+- Simple cases are handled using sub-classes that need only define class
+  attributes.
+
+- Transition classes are never instantiated, they contain only class methods.
+
+- Transition class can quickly get a list of applicable commands using (usually)
+  numpy filtering instead of looping and if/elif through every command.  This
+  allows for getting a year of states in < 10 seconds.  This requirement drives
+  some other code complexity, in particular transition function callbacks, where
+  a transition is specified as a function that gets called during state
+  evaluation.
+
+- Once all transitions have been collected into a time-ordered list they are
+  evaluated in order to accumulate discrete states.  Transition callback
+  functions can dynamically add downstream transitions during this process to
+  handle events like a maneuver, where the current state is required to generate
+  mid-maneuver attitudes and the NPM transition.
+
+- The signature of a transition function callback is::
+
+    def callback(cls, date, transitions, state, idx, **kwargs):
+
+  It has access to the current state date, the complete list of transitions,
+  the current state, the current index into the transitions list, and
+  any other keyword args in the transition that were inserted when transitions
+  were set.  This function can add downstream transitions or directly update
+  the current state.
+  TODO: change actual methods to be called "callback" for easier visibility?
+
 """
 from __future__ import division, print_function, absolute_import
 
@@ -413,9 +449,16 @@ class ManeuverTransition(BaseTransition):
             # as long as it is different from the other state keys.
             transitions[cmd['date']]['maneuver'] = {'func': cls.add_transitions,
                                                     'cmd': cmd}
+            # TODO: I think this cmd arg is not required, only cmd['date'] is used
+            # and this should be the same as the `date` arg.
 
     @classmethod
     def add_transitions(cls, date, transitions, state, idx, cmd):
+        """
+        This is a transition function callback.  It generates downstream
+        transitions to perform the actual maneuver and (usually) transition
+        to NPM at the end of maneuver.
+        """
         end_manvr_date = cls.add_manvr_transitions(date, transitions, state, idx, cmd)
 
         # If auto-transition to NPM after manvr is enabled (this is
@@ -426,6 +469,10 @@ class ManeuverTransition(BaseTransition):
 
     @classmethod
     def add_manvr_transitions(cls, date, transitions, state, idx, cmd):
+        """
+        This does the main work of adding transitions for a maneuver.  It is
+        called by the ManeuverTransition and NormalSunTransition classes.
+        """
         # Get the current target attitude state
         targ_att = [state['targ_' + qc] for qc in QUAT_COMPS]
 
@@ -479,6 +526,11 @@ class NormalSunTransition(ManeuverTransition):
 
     @classmethod
     def add_transitions(cls, date, transitions, state, idx, cmd):
+        """
+        This is a transition function callback.  It directly sets the state
+        pcad_mode to NSUN and target quaternion to the expected sun pointed
+        attitude.  It then calls the parent method to add the actual maneuver.
+        """
         # Transition to NSUN
         state['pcad_mode'] = 'NSUN'
 
