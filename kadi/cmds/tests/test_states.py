@@ -18,13 +18,16 @@ def get_states(start, stop, state_keys, state0=None):
     start = DateTime(start)
     stop = DateTime(stop)
 
-    cstates = cmd_states.fetch_states(start, stop)
-    rcstates = states.reduce_states(cstates, state_keys)
+    cstates = Table(cmd_states.fetch_states(start, stop))
+    trans_keys = [set(val.split(',')) for val in cstates['trans_keys']]
+    cstates.remove_column('trans_keys')  # Necessary for older astropy
+    cstates['trans_keys'] = trans_keys
+    rcstates = states.reduce_states(cstates, state_keys, merge_identical=True)
     lenr = len(rcstates)
 
     cmds = commands.filter(start - 7, stop)
     kstates = states.get_states(state_keys, cmds, state0=state0)
-    rkstates = states.reduce_states(kstates, state_keys)[-lenr:]
+    rkstates = states.reduce_states(kstates, state_keys, merge_identical=True)[-lenr:]
 
     return rcstates, rkstates
 
@@ -71,7 +74,7 @@ def test_quick():
 
     # Now test using start/stop pair with start/stop and no supplied cmds or state0.
     sts = states.get_states(state_keys, start='2017:300', stop='2017:310')
-    rk = states.reduce_states(sts, state_keys)
+    rk = states.reduce_states(sts, state_keys, merge_identical=True)
     assert len(rc) == len(rk)
     for key in state_keys:
         assert np.all(rk[key] == rc[key])
@@ -153,7 +156,7 @@ def test_sun_vec_versus_telemetry():
     start, stop = '2017:349:10:00:00', '2017:350:10:00:00'
     cmds = commands.filter(start, stop)
     kstates = states.get_states(state_keys, cmds)[-20:-1]
-    rk = states.reduce_states(kstates, state_keys)
+    rk = states.reduce_states(kstates, state_keys, merge_identical=True)
 
     tstart = DateTime(rk['datestart']).secs
     tstop = DateTime(rk['datestop']).secs
@@ -400,7 +403,7 @@ def test_sun_pos_mon_lunar():
     assert np.all(sts['sun_pos_mon'] == spm['sun_pos_mon'])
 
 
-def test_reduce_states():
+def test_reduce_states_merge_identical():
     datestart = DateTime(np.arange(0, 5)).date
     datestop = DateTime(np.arange(1, 6)).date
 
@@ -408,14 +411,14 @@ def test_reduce_states():
     vals = np.arange(5)
     dat = Table([datestart, datestop, vals], names=['datestart', 'datestop', 'vals'])
     dat['val1'] = 1
-    dr = states.reduce_states(dat, ['vals', 'val1'])
-    assert np.all(dr == dat)
+    dr = states.reduce_states(dat, ['vals', 'val1'], merge_identical=True)
+    assert np.all(dr[dat.colnames] == dat)
 
     # Table with nothing that changes
     vals = np.ones(5)
     dat = Table([datestart, datestop, vals], names=['datestart', 'datestop', 'vals'])
     dat['val1'] = 1
-    dr = states.reduce_states(dat, ['vals', 'val1'])
+    dr = states.reduce_states(dat, ['vals', 'val1'], merge_identical=True)
     assert len(dr) == 1
     assert dr['datestart'][0] == dat['datestart'][0]
     assert dr['datestop'][0] == dat['datestop'][-1]
@@ -423,8 +426,24 @@ def test_reduce_states():
     # Table with edge changes
     vals = [1, 0, 0, 0, 1]
     dat = Table([datestart, datestop, vals], names=['datestart', 'datestop', 'vals'])
-    dr = states.reduce_states(dat, ['vals'])
+    dr = states.reduce_states(dat, ['vals'], merge_identical=True)
     assert len(dr) == 3
     assert np.all(dr['datestart'] == dat['datestart'][[0, 1, 4]])
     assert np.all(dr['datestop'] == dat['datestop'][[0, 3, 4]])
     assert np.all(dr['vals'] == [1, 0, 1])
+
+    # Table with multiple changes
+    val1 = [1, 0, 1, 1, 1]
+    val2 = [1, 1, 1, 1, 0]
+    dat = Table([datestart, datestop, val1, val2], names=['datestart', 'datestop', 'val1', 'val2'])
+    dr = states.reduce_states(dat, ['val1', 'val2'], merge_identical=True)
+    assert len(dr) == 4
+    assert np.all(dr['datestart'] == dat['datestart'][[0, 1, 2, 4]])
+    assert np.all(dr['datestop'] == dat['datestop'][[0, 1, 3, 4]])
+    assert np.all(dr['val1'] == [1, 0, 1, 1])
+    assert np.all(dr['val2'] == [1, 1, 1, 0])
+    assert str(dr['trans_keys'][0]) == 'val1,val2'
+    assert dr['trans_keys'][0] == set(['val1', 'val2'])
+    assert dr['trans_keys'][1] == set(['val1'])
+    assert dr['trans_keys'][2] == set(['val1'])
+    assert dr['trans_keys'][3] == set(['val2'])
