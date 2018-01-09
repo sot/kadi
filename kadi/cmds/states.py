@@ -220,6 +220,35 @@ class ParamTransition(BaseTransition):
             transitions_dict[cmd['date']][name] = val
 
 
+class ParamKeysTransition(BaseTransition):
+    @classmethod
+    def set_transitions(cls, transitions_dict, cmds):
+        """
+        Set transitions for a Table of commands ``cmds``.  This is the
+        case where a specified set of param key names are exactly
+        the state keys.  E.g.:
+
+        2017:363:17:17:22.056 | 6346904 0 | MP_EPHEMERIS | TLMSID= AOEPHUPS, CMDS= 17,
+        AOEPHEM1= 8133401, AOEPHEM2= 8A3001A, AORATIO= 2.28440428e+00, AOARGPER=
+        4.30623627e+00, AOECCENT= 6.78379178e-01, AO1MINUS= 3.51485908e-01, AO1PLUS=
+        6.48514032e-01, AOMOTION= 2.75003586e-05, AOITERAT= 10, AOORBANG=
+        1.31834656e+05, AOPERIGE= 5.6799728328906e+08, AOASCEND= 4.99094200e+00, AOSINI=
+        9.54868674e-01, AOSLR= 4.36034844e+04, AOSQRTMU= 1.21726469e+05, SCS= 130, STEP=135
+
+        :param transitions_dict: global dict of transitions (updated in-place)
+        :param cmds: commands (CmdList)
+
+        :returns: None
+        """
+        state_cmds = cls.get_state_changing_commands(cmds)
+
+        for cmd in state_cmds:
+            params = dict(REV_PARS_DICT[cmd['idx']])
+            transition = transitions_dict[cmd['date']]
+            for key in cls.state_keys:
+                transition[key] = params[key]
+
+
 ###################################################################
 # Mech transitions
 ###################################################################
@@ -379,8 +408,20 @@ class SCS98DisableTransition(SingleFixedTransition):
     transition_val = 'ENAB'
 
 
-###################################################################
-# PCAD transitions
+class OrbitPointTransition(ParamTransition):
+    command_attributes = {'type': 'ORBPOINT'}
+    state_keys = ['orbit_point']
+    transition_key = 'orbit_point'
+    transition_param_key = 'event_type'
+
+
+class EphemerisTransition(ParamKeysTransition):
+    command_attributes = {'tlmsid': 'AOEPHUPS'}
+    state_keys = ['aoephem1', 'aoephem2', 'aoratio', 'aoargper', 'aoeccent',
+                  'ao1minus', 'ao1plus', 'aomotion', 'aoiterat', 'aoorbang',
+                  'aoperige', 'aoascend', 'aosini', 'aoslr', 'aosqrtmu']
+
+
 ###################################################################
 
 class DitherEnableTransition(SingleFixedTransition):
