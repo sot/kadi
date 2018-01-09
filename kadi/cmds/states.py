@@ -254,32 +254,28 @@ class ParamKeysTransition(BaseTransition):
 ###################################################################
 
 class HETG_INSR_Transition(SingleFixedTransition):
-    command_attributes = {'type': 'COMMAND_SW',
-                          'tlmsid': '4OHETGIN'}
+    command_attributes = {'tlmsid': '4OHETGIN'}
     state_keys = ['hetg']
     transition_key = 'hetg'
     transition_val = 'INSR'
 
 
 class HETG_RETR_Transition(SingleFixedTransition):
-    command_attributes = {'type': 'COMMAND_SW',
-                          'tlmsid': '4OHETGRE'}
+    command_attributes = {'tlmsid': '4OHETGRE'}
     state_keys = ['hetg']
     transition_key = 'hetg'
     transition_val = 'RETR'
 
 
 class LETG_INSR_Transition(SingleFixedTransition):
-    command_attributes = {'type': 'COMMAND_SW',
-                          'tlmsid': '4OLETGIN'}
+    command_attributes = {'tlmsid': '4OLETGIN'}
     state_keys = ['letg']
     transition_key = 'letg'
     transition_val = 'INSR'
 
 
 class LETG_RETR_Transition(SingleFixedTransition):
-    command_attributes = {'type': 'COMMAND_SW',
-                          'tlmsid': '4OLETGRE'}
+    command_attributes = {'tlmsid': '4OLETGRE'}
     state_keys = ['letg']
     transition_key = 'letg'
     transition_val = 'RETR'
@@ -311,8 +307,7 @@ class ObsidTransition(ParamTransition):
 
 
 class SPMEnableTransition(SingleFixedTransition):
-    command_attributes = {'type': 'COMMAND_SW',
-                          'tlmsid': 'AOFUNCEN'}
+    command_attributes = {'tlmsid': 'AOFUNCEN'}
     command_params = {'aopcadse': 30}
 
     state_keys = ['sun_pos_mon']
@@ -321,8 +316,7 @@ class SPMEnableTransition(SingleFixedTransition):
 
 
 class SPMDisableTransition(SingleFixedTransition):
-    command_attributes = {'type': 'COMMAND_SW',
-                          'tlmsid': 'AOFUNCDS'}
+    command_attributes = {'tlmsid': 'AOFUNCDS'}
     command_params = {'aopcadsd': 30}
 
     state_keys = ['sun_pos_mon']
@@ -425,24 +419,21 @@ class EphemerisTransition(ParamKeysTransition):
 ###################################################################
 
 class DitherEnableTransition(SingleFixedTransition):
-    command_attributes = {'type': 'COMMAND_SW',
-                          'tlmsid': 'AOENDITH'}
+    command_attributes = {'tlmsid': 'AOENDITH'}
     state_keys = ['dither']
     transition_key = 'dither'
     transition_val = 'ENAB'
 
 
 class DitherDisableTransition(SingleFixedTransition):
-    command_attributes = {'type': 'COMMAND_SW',
-                          'tlmsid': 'AODSDITH'}
+    command_attributes = {'tlmsid': 'AODSDITH'}
     state_keys = ['dither']
     transition_key = 'dither'
     transition_val = 'DISA'
 
 
 class DitherParamsTransition(BaseTransition):
-    command_attributes = {'type': 'MP_DITHER',
-                          'tlmsid': 'AODITPAR'}
+    command_attributes = {'tlmsid': 'AODITPAR'}
     state_keys = ['dither_phase_pitch', 'dither_phase_yaw',
                   'dither_ampl_pitch', 'dither_ampl_yaw',
                   'dither_period_pitch', 'dither_period_yaw']
@@ -462,32 +453,28 @@ class DitherParamsTransition(BaseTransition):
 
 
 class NMM_Transition(SingleFixedTransition):
-    command_attributes = {'type': 'COMMAND_SW',
-                          'tlmsid': 'AONMMODE'}
+    command_attributes = {'tlmsid': 'AONMMODE'}
     state_keys = PCAD_STATE_KEYS
     transition_key = 'pcad_mode'
     transition_val = 'NMAN'
 
 
 class NPM_Transition(SingleFixedTransition):
-    command_attributes = {'type': 'COMMAND_SW',
-                          'tlmsid': 'AONPMODE'}
+    command_attributes = {'tlmsid': 'AONPMODE'}
     state_keys = PCAD_STATE_KEYS
     transition_key = 'pcad_mode'
     transition_val = 'NPNT'
 
 
 class AutoNPMEnableTransition(SingleFixedTransition):
-    command_attributes = {'type': 'COMMAND_SW',
-                          'tlmsid': 'AONM2NPE'}
+    command_attributes = {'tlmsid': 'AONM2NPE'}
     state_keys = PCAD_STATE_KEYS
     transition_key = 'auto_npnt'
     transition_val = 'ENAB'
 
 
 class AutoNPMDisableTransition(SingleFixedTransition):
-    command_attributes = {'type': 'COMMAND_SW',
-                          'tlmsid': 'AONM2NPD'}
+    command_attributes = {'tlmsid': 'AONM2NPD'}
     state_keys = PCAD_STATE_KEYS
     transition_key = 'auto_npnt'
     transition_val = 'DISA'
@@ -508,8 +495,7 @@ class TargQuatTransition(BaseTransition):
 
 
 class ManeuverTransition(BaseTransition):
-    command_attributes = {'type': 'COMMAND_SW',
-                          'tlmsid': 'AOMANUVR'}
+    command_attributes = {'tlmsid': 'AOMANUVR'}
     state_keys = PCAD_STATE_KEYS
 
     @classmethod
@@ -592,8 +578,7 @@ class ManeuverTransition(BaseTransition):
 
 
 class NormalSunTransition(ManeuverTransition):
-    command_attributes = {'type': 'COMMAND_SW',
-                          'tlmsid': 'AONSMSAF'}
+    command_attributes = {'tlmsid': 'AONSMSAF'}
     state_keys = PCAD_STATE_KEYS
 
     @classmethod
