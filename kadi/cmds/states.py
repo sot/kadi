@@ -85,11 +85,11 @@ PCAD_STATE_KEYS = (QUAT_COMPS +
                    ['auto_npnt', 'pcad_mode', 'pitch', 'off_nom_roll'])
 
 # Default state keys (mostly matches classic command states list)
-DEFAULT_STATE_KEYS = ('auto_npnt', 'ccd_count', 'clocking', 'dec', 'fep_count',
+DEFAULT_STATE_KEYS = ('ccd_count', 'clocking', 'dec', 'dither', 'fep_count',
                       'hetg', 'letg', 'obsid', 'off_nom_roll', 'pcad_mode', 'pitch', 'power_cmd',
                       'q1', 'q2', 'q3', 'q4', 'ra', 'roll', 'si_mode', 'simfa_pos', 'simpos',
                       'targ_q1', 'targ_q2', 'targ_q3', 'targ_q4',
-                      'vid_board', 'dither')
+                      'vid_board')
 
 
 class NoTransitionsError(ValueError):
@@ -822,19 +822,18 @@ def get_states(state_keys=None, cmds=None, start=None, stop=None, state0=None):
     # each state key.  Maintain original order and uniqueness of keys.
     if state_keys is None:
         state_keys = DEFAULT_STATE_KEYS
-        orig_state_keys = state_keys
-    else:
-        # Go through each transition class which impacts desired state keys and accumulate
-        # all the state keys that the classes touch.  For instance if user requests
-        # state_keys=['q1'] then we actually need to process all the PCAD_states state keys
-        # and then at the end reduce down to the requested keys.
-        orig_state_keys = state_keys
-        state_keys = []
-        for state_key in orig_state_keys:
-            for cls in TRANSITION_CLASSES:
-                if state_key in cls.state_keys:
-                    state_keys.extend(cls.state_keys)
-        state_keys = _unique(state_keys)
+
+    # Go through each transition class which impacts desired state keys and accumulate
+    # all the state keys that the classes touch.  For instance if user requests
+    # state_keys=['q1'] then we actually need to process all the PCAD_states state keys
+    # and then at the end reduce down to the requested keys.
+    orig_state_keys = state_keys
+    state_keys = []
+    for state_key in orig_state_keys:
+        for cls in TRANSITION_CLASSES:
+            if state_key in cls.state_keys:
+                state_keys.extend(cls.state_keys)
+    state_keys = _unique(state_keys)
 
     # Get commands, either from `cmds` arg or from `start` / `stop`
     if cmds is None:
