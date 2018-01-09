@@ -84,6 +84,13 @@ PCAD_STATE_KEYS = (QUAT_COMPS +
                    ['ra', 'dec', 'roll'] +
                    ['auto_npnt', 'pcad_mode', 'pitch', 'off_nom_roll'])
 
+# Default state keys (mostly matches classic command states list)
+DEFAULT_STATE_KEYS = ('auto_npnt', 'ccd_count', 'clocking', 'dec', 'fep_count',
+                      'hetg', 'letg', 'obsid', 'off_nom_roll', 'pcad_mode', 'pitch', 'power_cmd',
+                      'q1', 'q2', 'q3', 'q4', 'ra', 'roll', 'si_mode', 'simfa_pos', 'simpos',
+                      'targ_q1', 'targ_q2', 'targ_q3', 'targ_q4',
+                      'vid_board', 'dither')
+
 
 class NoTransitionsError(ValueError):
     """No transitions found within commands"""
@@ -621,14 +628,13 @@ def get_transition_classes(state_keys=None):
     """
     if isinstance(state_keys, six.string_types):
         state_keys = [state_keys]
+    elif state_keys is None:
+        state_keys = DEFAULT_STATE_KEYS
 
-    if state_keys is None:
-        # itertools.chain => concat list of lists
-        trans_classes = set(itertools.chain.from_iterable(TRANSITIONS.values()))
-    else:
-        trans_classes = set(itertools.chain.from_iterable(
-                classes for state_key, classes in TRANSITIONS.items()
-                if state_key in state_keys))
+    trans_classes = set(itertools.chain.from_iterable(
+            classes for state_key, classes in TRANSITIONS.items()
+            if state_key in state_keys))
+
     return trans_classes
 
 
@@ -789,7 +795,7 @@ def get_states(state_keys=None, cmds=None, start=None, stop=None, state0=None):
     # Define complete list of column names for output table corresponding to
     # each state key.  Maintain original order and uniqueness of keys.
     if state_keys is None:
-        state_keys = STATE_KEYS
+        state_keys = DEFAULT_STATE_KEYS
         orig_state_keys = state_keys
     else:
         # Go through each transition class which impacts desired state keys and accumulate
@@ -940,7 +946,7 @@ def get_state0(date=None, state_keys=None, lookbacks=(7, 30, 180, 1000)):
     lookbacks = sorted(lookbacks)
     stop = DateTime(date)
     if state_keys is None:
-        state_keys = STATE_KEYS
+        state_keys = DEFAULT_STATE_KEYS
 
     state0 = {}
 

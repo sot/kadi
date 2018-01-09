@@ -254,7 +254,7 @@ def test_get_state0_regress():
                 'targ_q4': 0.670694405,
                 'vid_board': 1}
 
-    state0 = states.get_state0('2017:014')
+    state0 = states.get_state0('2017:014', state_keys=list(expected))
 
     for key, val in expected.items():
         if isinstance(val, (int, str)):
