@@ -867,7 +867,7 @@ def get_states(state_keys=None, cmds=None, start=None, stop=None, state0=None):
             raise ValueError("must supply either 'cmds' argument or 'start' argument")
         cmds = commands.filter(start, stop)
         start = DateTime(start).date
-        stop = DateTime(stop).date
+        stop = DateTime(stop or cmds[-1]['date']).date  # User-supplied stop or last command
     else:
         if start is not None or stop is not None:
             raise ValueError("cannot supply both 'cmds' and 'start' / 'stop' arguments")
@@ -937,7 +937,7 @@ def get_states(state_keys=None, cmds=None, start=None, stop=None, state0=None):
     datestop = out['datestart'].copy()
     datestop[:-1] = out['datestart'][1:]
     # Final datestop far in the future
-    datestop[-1] = '2099:365:00:00:00.000'
+    datestop[-1] = stop
     out.add_column(Column(datestop, name='datestop'), 1)
     out['trans_keys'] = [st.trans_keys for st in states]
 
