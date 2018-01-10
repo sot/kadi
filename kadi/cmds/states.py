@@ -201,6 +201,35 @@ class SingleFixedTransition(BaseTransition):
             transitions_dict[cmd['date']][attr] = val
 
 
+class MultiFixedTransition(BaseTransition):
+    """
+    This is like SingleFixedTransition except that the transition keys and vals
+    are a matched list.
+
+    Class attributes:
+
+    :param transition_keys: list of transition keys
+    :param transition_vals: list of transition values corresponding to keys
+    """
+    @classmethod
+    def set_transitions(cls, transitions_dict, cmds):
+        """
+        Set transitions for a Table of commands ``cmds``.
+
+        :param transitions_dict: global dict of transitions (updated in-place)
+        :param cmds: commands (CmdList)
+
+        :returns: None
+        """
+        state_cmds = cls.get_state_changing_commands(cmds)
+        vals = cls.transition_vals
+        attrs = cls.transition_keys
+
+        for cmd in state_cmds:
+            for val, attr in zip(vals, attrs):
+                transitions_dict[cmd['date']][attr] = val
+
+
 class ParamTransition(BaseTransition):
     @classmethod
     def set_transitions(cls, transitions_dict, cmds):
@@ -256,32 +285,32 @@ class ParamKeysTransition(BaseTransition):
 # Mech transitions
 ###################################################################
 
-class HETG_INSR_Transition(SingleFixedTransition):
+class HETG_INSR_Transition(MultiFixedTransition):
     command_attributes = {'tlmsid': '4OHETGIN'}
-    state_keys = ['hetg']
-    transition_key = 'hetg'
-    transition_val = 'INSR'
+    state_keys = ['letg', 'hetg', 'grating']
+    transition_keys = ['hetg', 'grating']
+    transition_vals = ['INSR', 'HETG']
 
 
-class HETG_RETR_Transition(SingleFixedTransition):
+class HETG_RETR_Transition(MultiFixedTransition):
     command_attributes = {'tlmsid': '4OHETGRE'}
-    state_keys = ['hetg']
-    transition_key = 'hetg'
-    transition_val = 'RETR'
+    state_keys = ['letg', 'hetg', 'grating']
+    transition_keys = ['hetg', 'grating']
+    transition_vals = ['RETR', 'NONE']
 
 
-class LETG_INSR_Transition(SingleFixedTransition):
+class LETG_INSR_Transition(MultiFixedTransition):
     command_attributes = {'tlmsid': '4OLETGIN'}
-    state_keys = ['letg']
-    transition_key = 'letg'
-    transition_val = 'INSR'
+    state_keys = ['letg', 'hetg', 'grating']
+    transition_keys = ['letg', 'grating']
+    transition_vals = ['INSR', 'LETG']
 
 
-class LETG_RETR_Transition(SingleFixedTransition):
+class LETG_RETR_Transition(MultiFixedTransition):
     command_attributes = {'tlmsid': '4OLETGRE'}
-    state_keys = ['letg']
-    transition_key = 'letg'
-    transition_val = 'RETR'
+    state_keys = ['letg', 'hetg', 'grating']
+    transition_keys = ['letg', 'grating']
+    transition_vals = ['RETR', 'NONE']
 
 
 class SimTscTransition(ParamTransition):
