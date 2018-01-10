@@ -2,11 +2,11 @@
 import os
 import argparse
 import difflib
-from copy import deepcopy
 
 import numpy as np
 import tables
 from six.moves import cPickle as pickle
+import six
 
 import pyyaks.logger
 import Ska.DBI
@@ -89,16 +89,37 @@ def fix_nonload_cmds(nl_cmds):
     'tlmsid': None,                    # 'None' if None
     'vcdu': None},                     # Ignored
     """
+    new_cmds = []
     for cmd in nl_cmds:
-        cmd['type'] = cmd['cmd']
-        cmd.setdefault('params', {})
-        cmd['params']['nonload_id'] = cmd['id']
-        if cmd['msid'] is not None:
-            cmd['params']['msid'] = cmd['msid']
-        if cmd['tlmsid'] is None:
-            cmd['tlmsid'] = 'None'
+        new_cmd = {}
+        new_cmd['date'] = str(cmd['date'])
+        new_cmd['type'] = str(cmd['cmd'])
+        new_cmd['tlmsid'] = str(cmd['tlmsid'])
         for key in ('scs', 'step', 'timeline_id'):
-            cmd[key] = 0
+            new_cmd[key] = 0
+
+        new_cmd['params'] = {}
+        new_cmd['params']['nonload_id'] = int(cmd['id'])
+        if cmd['msid'] is not None:
+            new_cmd['params']['msid'] = str(cmd['msid'])
+
+        # De-unicode and de-numpy (otherwise unpickling on PY3 has problems).
+        if six.PY2 and 'params' in cmd:
+            params = new_cmd['params']
+            for key, val in cmd['params'].items():
+                key = str(key)
+                if isinstance(val, (str, unicode)):
+                    val = str(val)
+                else:
+                    try:
+                        val = val.item()
+                    except:
+                        pass
+                params[key] = val
+
+        new_cmds.append(new_cmd)
+
+    return new_cmds
 
 
 def get_cmds(start, stop, mp_dir='/data/mpcrit1/mplogs'):
@@ -128,7 +149,7 @@ def get_cmds(start, stop, mp_dir='/data/mpcrit1/mplogs'):
         # Private method from cmd_states.py fetches the actual int/float param values
         # and returns list of dict.
         nl_cmds = _tl_to_bs_cmds(nl_cmds, None, db)
-        fix_nonload_cmds(nl_cmds)
+        nl_cmds = fix_nonload_cmds(nl_cmds)
 
     logger.info('Found {} timelines included within {} to {}'
                 .format(len(timeline_loads), start.date, stop.date))
