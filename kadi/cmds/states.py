@@ -415,7 +415,7 @@ class SCS84DisableTransition(SingleFixedTransition):
     command_params = {'codisas1': 84}
     state_keys = ['scs84']
     transition_key = 'scs84'
-    transition_val = 'ENAB'
+    transition_val = 'DISA'
 
 
 class SCS98EnableTransition(SingleFixedTransition):
@@ -431,7 +431,21 @@ class SCS98DisableTransition(SingleFixedTransition):
     command_params = {'codisas1': 98}
     state_keys = ['scs98']
     transition_key = 'scs98'
+    transition_val = 'DISA'
+
+
+class RadmonEnableTransition(SingleFixedTransition):
+    command_attributes = {'tlmsid': 'OORMPEN'}
+    state_keys = ['radmon']
+    transition_key = 'radmon'
     transition_val = 'ENAB'
+
+
+class RadmonDisableTransition(SingleFixedTransition):
+    command_attributes = {'tlmsid': 'OORMPDS'}
+    state_keys = ['radmon']
+    transition_key = 'radmon'
+    transition_val = 'DISA'
 
 
 class OrbitPointTransition(ParamTransition):
