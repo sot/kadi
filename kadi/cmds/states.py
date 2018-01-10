@@ -333,9 +333,16 @@ class SimFocusTransition(ParamTransition):
 
 class ObsidTransition(ParamTransition):
     command_attributes = {'type': 'MP_OBSID'}
-    transition_key = 'obsid'
     state_keys = ['obsid']
+    transition_key = 'obsid'
     transition_param_key = 'id'
+
+
+class EclipseEntryTimerTransition(ParamTransition):
+    command_attributes = {'tlmsid': 'EOECLETO'}
+    state_keys = ['eclipse_timer']
+    transition_key = 'eclipse_timer'
+    transition_param_key = 'timecnt'
 
 
 class SPMEnableTransition(SingleFixedTransition):

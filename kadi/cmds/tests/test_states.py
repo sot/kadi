@@ -733,3 +733,17 @@ def test_backstop_grating():
 2017191.063255527 | NONE HETGRE
 """
     compare_backstop_history(history, 'grating')
+
+
+def test_backstop_eclipse_entry():
+    history = """
+2017172.170405996 | 1639 EOECLETO
+2017175.082556900 | 1171 EOECLETO
+2017191.064050486 | 1873 EOECLETO
+2017193.083930486 | 1171 EOECLETO
+2017354.160001000 | 1639 EOECLETO
+2017357.080001000 | 1171 EOECLETO
+2018003.040001000 | 1405 EOECLETO
+2018005.071227278 | 1171 EOECLETO
+"""
+    compare_backstop_history(history, 'eclipse_timer')
