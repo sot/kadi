@@ -419,6 +419,29 @@ class EphemerisTransition(ParamKeysTransition):
                   'aoperige', 'aoascend', 'aosini', 'aoslr', 'aosqrtmu']
 
 
+class EphemerisUpdateTransition(BaseTransition):
+    """
+    Ephemeris update. Mostly useful for the FOT to assist in backstop
+    processing.
+    """
+    command_attributes = {'tlmsid': 'AOEPHUPS'}
+    state_keys = ['ephem_update']
+
+    @classmethod
+    def set_transitions(cls, transitions_dict, cmds):
+        """
+        :param transitions_dict: global dict of transitions (updated in-place)
+        :param cmds: commands (CmdList)
+
+        :returns: None
+        """
+        state_cmds = cls.get_state_changing_commands(cmds)
+
+        for cmd in state_cmds:
+            date = cmd['date']
+            transitions_dict[date]['ephem_update'] = date[:8]
+
+
 ###################################################################
 
 class DitherEnableTransition(SingleFixedTransition):

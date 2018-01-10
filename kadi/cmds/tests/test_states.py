@@ -465,3 +465,21 @@ def test_reduce_states_cmd_states():
     # Transition keys after first should match.  cmd_states is a comma-delimited string.
     for k_trans_keys, c_trans_keys in zip(ksr['trans_keys'][1:], cs['trans_keys'][1:]):
         assert k_trans_keys == set(c_trans_keys.split(','))
+
+
+def test_ephem_update_states():
+    ephem_history = """
+date sep val
+2017107.051708675 | EPHEMERIS
+2017109.204526240 | EPHEMERIS
+2017112.121320933 | EPHEMERIS
+2017115.034040060 | EPHEMERIS
+2017117.190746809 | EPHEMERIS
+"""
+    ephem = ascii.read(ephem_history, guess=False,
+                       converters={'date': [ascii.convert_numpy(np.str)]})
+    sts = states.get_states(start='2017:107:00:00:00', stop='2017:117:20:00:00',
+                            state_keys=['ephem_update'])
+    sts = sts[1:]  # Drop the first state (which is state0 at 2017:107:00:00:00)
+    assert len(sts) == len(ephem)
+    assert np.all(DateTime(sts['datestart']).greta == ephem['date'])
