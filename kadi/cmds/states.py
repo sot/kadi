@@ -102,6 +102,9 @@ class TransKeysSet(set):
     def __str__(self):
         return ','.join(sorted(self))
 
+    def __and__(self, other):
+        return TransKeysSet(super(TransKeysSet, self).__and__(other))
+
 
 class StateDict(dict):
     """
@@ -840,10 +843,13 @@ def get_states(state_keys=None, cmds=None, start=None, stop=None, state0=None):
         if start is None:
             raise ValueError("must supply either 'cmds' argument or 'start' argument")
         cmds = commands.filter(start, stop)
+        start = DateTime(start).date
+        stop = DateTime(stop).date
     else:
         if start is not None or stop is not None:
             raise ValueError("cannot supply both 'cmds' and 'start' / 'stop' arguments")
         start = cmds[0]['date']
+        stop = cmds[-1]['date']
 
     # Get initial state at start of commands
     if state0 is None:
@@ -857,17 +863,12 @@ def get_states(state_keys=None, cmds=None, start=None, stop=None, state0=None):
     # See add_sun_vec_transitions() for explanation.  IDEALLY: make this happen
     # more naturally within Transitions class machinery.
     if 'pitch' in state_keys or 'off_nominal_roll' in state_keys:
-        add_sun_vector_transitions(cmds[0]['date'], cmds[-1]['date'], transitions)
+        add_sun_vector_transitions(start, stop, transitions)
 
     # List of dict to hold state values.  Datestarts is the corresponding list of
     # start dates for each state.
     states = [StateDict({key: None for key in state_keys})]
-
-    try:
-        datestarts = [transitions[0]['date']]
-    except IndexError:
-        raise NoTransitionsError('no transitions for state keys {} in cmds'
-                                 .format(state_keys))
+    datestarts = [start]
 
     # Apply initial ``state0`` values.  Clear the trans_keys set after setting
     # first state.

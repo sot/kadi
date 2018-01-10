@@ -179,7 +179,7 @@ def test_sun_vec_versus_telemetry():
 
 def test_dither():
     """Values look reasonable given load commands"""
-    cs = commands.filter('2017:340:00:00:00', '2017:350:00:00:00')
+    cs = commands.filter('2017:341:21:40:05', '2017:350:00:00:00')
     rk = states.get_states(['dither_phase_pitch', 'dither_phase_yaw',
                                      'dither_ampl_pitch', 'dither_ampl_yaw',
                                      'dither_period_pitch', 'dither_period_yaw'], cs)
@@ -292,13 +292,6 @@ def test_get_state0_fail():
     assert 'did not find transitions' in str(err)
 
 
-def test_transition_error():
-    """Raise exception if there are no state transitions within supplied commands"""
-    cmds = commands.filter('2016:360', '2016:361')
-    with pytest.raises(states.NoTransitionsError):
-        states.get_states(['letg'], cmds)
-
-
 def test_sun_pos_mon():
     """
     Check sun_pos_mon state against backstop history for a period including
@@ -366,7 +359,7 @@ date sep value
 """
     spm = ascii.read(spm_history, guess=False,
                      converters={'date': [ascii.convert_numpy(np.str)]})
-    cmds = commands.filter('2017:358:21:33:00', '2018:007:02:45:00')
+    cmds = commands.filter('2017:358:21:34:09', '2018:007:02:45:00')
     sts = states.get_states(['sun_pos_mon'], cmds)
 
     assert len(sts) == len(spm)
@@ -395,7 +388,7 @@ def test_sun_pos_mon_lunar():
 2017:087:23:59:21.087 2099:365:00:00:00.000        DISA
 """
     spm = ascii.read(spm_history, guess=False)
-    cmds = commands.filter('2017:087:00:00:00', '2017:088:00:00:00')
+    cmds = commands.filter('2017:087:03:04:02', '2017:088:00:00:00')
     sts = states.get_states(['sun_pos_mon'], cmds)
 
     assert len(sts) == len(spm)
@@ -447,3 +440,28 @@ def test_reduce_states_merge_identical():
     assert dr['trans_keys'][1] == set(['val1'])
     assert dr['trans_keys'][2] == set(['val1'])
     assert dr['trans_keys'][3] == set(['val2'])
+
+
+def test_reduce_states_cmd_states():
+    cs = cmd_states.fetch_states('2017:300', '2017:310', allow_identical=True)
+    cs = Table(cs)
+
+    state_keys = (set(cmd_states.STATE0) -
+                  set(['datestart', 'datestop', 'trans_keys', 'tstart', 'tstop']))
+    ks = states.get_states(start='2017:300', stop='2017:310')
+    ksr = states.reduce_states(ks, state_keys=state_keys)
+
+    assert len(ksr) == len(cs)
+
+    for key in state_keys:
+        if key == 'trans_keys':
+            pass
+        else:
+            assert np.all(ksr[key] == cs[key])
+
+    assert np.all(ksr['datestart'][1:] == cs['datestart'][1:])
+    assert np.all(ksr['datestop'][:-1] == cs['datestop'][:-1])
+
+    # Transition keys after first should match.  cmd_states is a comma-delimited string.
+    for k_trans_keys, c_trans_keys in zip(ksr['trans_keys'][1:], cs['trans_keys'][1:]):
+        assert k_trans_keys == set(c_trans_keys.split(','))
