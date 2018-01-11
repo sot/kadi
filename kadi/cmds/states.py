@@ -866,7 +866,7 @@ def add_transition(transitions, idx, transition):
         transitions.append(transition)
 
 
-def get_states(state_keys=None, cmds=None, start=None, stop=None, state0=None):
+def get_states(start=None, stop=None, state_keys=None, cmds=None, state0=None):
     """
     Get table of states corresponding to intervals when ``state_keys`` parameters
     are unchanged given the input commands ``cmds`` or ``start`` date.
@@ -1085,11 +1085,14 @@ def get_state0(date=None, state_keys=None, lookbacks=(7, 30, 180, 1000)):
     ACIS, PCAD, and mechanisms).
 
     :param date: date (DateTime compatible, default=NOW)
-    :param state_keys: list of state keys or None
+    :param state_keys: list of state keys or str (one state key) or None
     :param lookbacks: list of lookback times in days (default=[7, 30, 180, 1000])
 
     :returns state0: dict of state values
     """
+    if isinstance(state_keys, str):
+        state_keys = [state_keys]
+
     lookbacks = sorted(lookbacks)
     stop = DateTime(date)
     if state_keys is None:
@@ -1112,7 +1115,7 @@ def get_state0(date=None, state_keys=None, lookbacks=(7, 30, 180, 1000)):
             # state0 as possible from last state (corresponding to the state after the
             # last command in cmds).
             try:
-                states = get_states([state_key], cmds, state0={})
+                states = get_states(state_keys=[state_key], cmds=cmds, state0={})
             except NoTransitionsError:
                 # No transitions within `cmds` for state_key, continue with other keys
                 continue

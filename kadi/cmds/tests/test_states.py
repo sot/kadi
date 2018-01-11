@@ -11,7 +11,7 @@ from astropy.io import ascii
 from astropy.table import Table
 
 
-def get_states(start, stop, state_keys, state0=None):
+def get_states_test(start, stop, state_keys, state0=None):
     """
     Helper for getting states from kadi and cmd_states
     """
@@ -26,7 +26,7 @@ def get_states(start, stop, state_keys, state0=None):
     lenr = len(rcstates)
 
     cmds = commands.filter(start - 7, stop)
-    kstates = states.get_states(state_keys, cmds, state0=state0)
+    kstates = states.get_states(state_keys=state_keys, cmds=cmds, state0=state0)
     rkstates = states.reduce_states(kstates, state_keys, merge_identical=True)[-lenr:]
 
     return rcstates, rkstates
@@ -37,7 +37,7 @@ def compare_states(start, stop, state_keys, compare_state_keys=None, state0=None
     """
     Helper for comparing states from kadi and cmd_states
     """
-    rcstates, rkstates = get_states(start, stop, state_keys, state0=state0)
+    rcstates, rkstates = get_states_test(start, stop, state_keys, state0=state0)
 
     if compare_state_keys is None:
         compare_state_keys = state_keys
@@ -73,7 +73,8 @@ def test_quick():
     rc, rk = compare_states('2017:300', '2017:310', state_keys, state0=state0)
 
     # Now test using start/stop pair with start/stop and no supplied cmds or state0.
-    sts = states.get_states(state_keys, start='2017:300', stop='2017:310')
+    # This also tests the API kwarg order: datestart, datestop, state_keys, ..)
+    sts = states.get_states('2017:300', '2017:310', state_keys)
     rk = states.reduce_states(sts, state_keys, merge_identical=True)
     assert len(rc) == len(rk)
     for key in state_keys:
@@ -125,7 +126,7 @@ def test_pitch_2017():
     Make sure that pitch matches to within 0.5 deg in all samples, and 0.05 deg during
     NPNT.
     """
-    rcstates, rkstates = get_states('2017:060', '2017:160', ['pcad_mode', 'pitch'])
+    rcstates, rkstates = get_states_test('2017:060', '2017:160', ['pcad_mode', 'pitch'])
 
     rcstates['tstop'] = DateTime(rcstates['datestop']).secs
     rkstates['tstop'] = DateTime(rkstates['datestop']).secs
@@ -153,7 +154,7 @@ def test_sun_vec_versus_telemetry():
     state_keys = ['pitch', 'off_nom_roll']
     start, stop = '2017:349:10:00:00', '2017:350:10:00:00'
     cmds = commands.filter(start, stop)
-    kstates = states.get_states(state_keys, cmds)[-20:-1]
+    kstates = states.get_states(state_keys=state_keys, cmds=cmds)[-20:-1]
     rk = states.reduce_states(kstates, state_keys, merge_identical=True)
 
     tstart = DateTime(rk['datestart']).secs
@@ -177,10 +178,11 @@ def test_sun_vec_versus_telemetry():
 
 def test_dither():
     """Values look reasonable given load commands"""
-    cs = commands.filter('2017:341:21:40:05', '2017:350:00:00:00')
-    rk = states.get_states(['dither_phase_pitch', 'dither_phase_yaw',
-                                     'dither_ampl_pitch', 'dither_ampl_yaw',
-                                     'dither_period_pitch', 'dither_period_yaw'], cs)
+    cmds = commands.filter('2017:341:21:40:05', '2017:350:00:00:00')
+    rk = states.get_states(state_keys=['dither_phase_pitch', 'dither_phase_yaw',
+                                       'dither_ampl_pitch', 'dither_ampl_yaw',
+                                       'dither_period_pitch', 'dither_period_yaw'],
+                           cmds=cmds)
 
     assert np.all(rk['datestart'] == ['2017:341:21:40:05.265',
                                       '2017:342:08:26:34.023',
@@ -285,9 +287,16 @@ def test_get_state0_vs_states():
             assert np.isclose(sts0[key], val, rtol=0, atol=1e-7)
 
 
+def test_get_state0_keys():
+    """Test that output has only the desired state keys. Also test that one can
+    provide a string instead of list of state keys"""
+    state0 = states.get_state0('2017:014', 'clocking')
+    assert set(state0) == set(['clocking', '__dates__'])
+
+
 def test_get_state0_fail():
     with pytest.raises(ValueError) as err:
-        states.get_state0('2017:014', ['letg'], lookbacks=[3])
+        states.get_state0('2017:014', 'letg', lookbacks=[3])
     assert 'did not find transitions' in str(err)
 
 
@@ -468,7 +477,7 @@ def test_backstop_sun_pos_mon_lunar():
 """
     spm = ascii.read(history, guess=False)
     cmds = commands.filter('2017:087:03:04:02', '2017:088:00:00:00')
-    sts = states.get_states(['sun_pos_mon'], cmds)
+    sts = states.get_states(state_keys=['sun_pos_mon'], cmds=cmds)
 
     assert len(sts) == len(spm)
     assert np.all(sts['datestart'] == spm['datestart'])
