@@ -1005,7 +1005,7 @@ def get_states(start=None, stop=None, state_keys=None, cmds=None, state0=None,
     out.add_column(Column(datestop, name='datestop'), 1)
     out['trans_keys'] = [st.trans_keys for st in states]
 
-    if reduce_states:
+    if reduce:
         out = reduce_states(out, orig_state_keys, merge_identical)
 
     return out
@@ -1130,7 +1130,7 @@ def get_state0(date=None, state_keys=None, lookbacks=(7, 30, 180, 1000)):
             # state0 as possible from last state (corresponding to the state after the
             # last command in cmds).
             try:
-                states = get_states(state_keys=state_key, cmds=cmds, state0={})
+                states = get_states(state_keys=state_key, cmds=cmds, state0={}, reduce=False)
             except NoTransitionsError:
                 # No transitions within `cmds` for state_key, continue with other keys
                 continue
