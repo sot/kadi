@@ -23,6 +23,8 @@ try:
 except ImportError:
     cmdclass = {}
 
+entry_points = {'console_scripts': 'get_chandra_states = kadi.cmds.states:get_chandra_states'}
+
 setup(name='kadi',
       version=package_version.version,
       description='Kadi events archive',
@@ -37,4 +39,5 @@ setup(name='kadi',
                                                 'GIT_VERSION']},
       tests_require=['pytest'],
       cmdclass=cmdclass,
+      entry_points=entry_points,
 )

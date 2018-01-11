@@ -1,3 +1,4 @@
+import os
 import numpy as np
 
 from ... import cmds as commands
@@ -58,6 +59,29 @@ def test_acis():
     """
     state_keys = ['clocking', 'power_cmd',  'fep_count', 'si_mode',  'ccd_count', 'vid_board']
     rc, rk = compare_states('2017:280', '2017:360', state_keys, state_keys)
+
+
+def test_cmd_line_interface(tmpdir):
+    """
+    Test command line interface
+    """
+    filename = os.path.join(tmpdir, 'out.txt')
+    states.cmd_line_interface(['--outfile', filename,
+                               '--start', '2017:001:21:00:00',
+                               '--stop', '2017:002:11:30:00',
+                               '--state-keys', 'obsid,si_mode,pcad_mode'])
+    with open(filename, 'r') as fh:
+        out = fh.read()
+    assert out.splitlines() == [
+        '             datestart               datestop  obsid   si_mode  pcad_mode ',
+        ' 2017:001:21:00:00.000  2017:001:21:02:06.467  18140  TE_008FC       NPNT ',
+        ' 2017:001:21:02:06.467  2017:001:21:05:06.467  18140  TE_008FC       NMAN ',
+        ' 2017:001:21:05:06.467  2017:001:21:06:41.467  19973  TE_008FC       NMAN ',
+        ' 2017:001:21:06:41.467  2017:001:21:23:02.282  19973  TE_00A58       NMAN ',
+        ' 2017:001:21:23:02.282  2017:002:11:23:43.185  19973  TE_00A58       NPNT ',
+        ' 2017:002:11:23:43.185  2017:002:11:26:43.185  19973  TE_00A58       NMAN ',
+        ' 2017:002:11:26:43.185  2017:002:11:29:29.870  50432  TE_00A58       NMAN ',
+        ' 2017:002:11:29:29.870  2017:002:11:30:00.000  50432  TE_00A58       NPNT ']
 
 
 def test_quick():

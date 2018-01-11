@@ -53,13 +53,12 @@ from six.moves import range
 
 from astropy.table import Table, Column
 
-from . import cmds as commands
-
 from Chandra.cmd_states import decode_power
 from Chandra.Time import DateTime
 import Chandra.Maneuver
 from Quaternion import Quat
 import Ska.Sun
+from . import cmds as commands
 
 # Dict that allows determining command params (e.g. obsid 'ID' or SIM focus 'POS')
 # for a particular command.
@@ -1119,3 +1118,39 @@ def _unique(seq):
     seen = set()
     seen_add = seen.add
     return [x for x in seq if not (x in seen or seen_add(x))]
+
+
+def get_chandra_states(main_args=None):
+    """
+    Command line interface to output commanded states over a date range in tabular form
+    to stdout or a file.
+    """
+    import argparse
+    from astropy.io import ascii
+
+    descr = ('Ouput the Chandra commanded states over a date range '
+             'as a space-delimited ASCII table.')
+    parser = argparse.ArgumentParser(description=descr)
+    parser.add_argument("--start",
+                        help="Start date (default=Now-10 days)")
+    parser.add_argument("--stop",
+                        help="Stop date (default=None)")
+    parser.add_argument("--state-keys",
+                        help="Comma-separated list of state keys")
+    parser.add_argument("--merge-identical",
+                        default=False,
+                        action='store_true',
+                        help="Merge adjacent states that have identical values "
+                        "(default=False)")
+    parser.add_argument("--outfile",
+                        help="Output file (default=stdout)")
+
+    opt = parser.parse_args(main_args)
+
+    start = DateTime() - 10 if opt.start is None else DateTime(opt.start)
+    stop = DateTime(opt.stop)
+    state_keys = opt.state_keys.split(',') if opt.state_keys else None
+    states = get_states(start, stop, state_keys, merge_identical=opt.merge_identical)
+    del states['trans_keys']
+
+    ascii.write(states, output=opt.outfile, format='fixed_width', delimiter='', overwrite=True)
