@@ -180,36 +180,15 @@ class BaseTransition(object):
         return out_cmds
 
 
-class SingleFixedTransition(BaseTransition):
-    @classmethod
-    def set_transitions(cls, transitions_dict, cmds):
-        """
-        Set transitions for a Table of commands ``cmds``.  This is the simplest
-        case where there is a single fixed attribute that gets set to a fixed
-        value, e.g. pcad_mode='NMAN' for NMM.
-
-        :param transitions_dict: global dict of transitions (updated in-place)
-        :param cmds: commands (CmdList)
-
-        :returns: None
-        """
-        state_cmds = cls.get_state_changing_commands(cmds)
-        val = cls.transition_val
-        attr = cls.transition_key
-
-        for cmd in state_cmds:
-            transitions_dict[cmd['date']][attr] = val
-
-
-class MultiFixedTransition(BaseTransition):
+class FixedTransition(BaseTransition):
     """
-    This is like SingleFixedTransition except that the transition keys and vals
-    are a matched list.
+    This is the simple case where there is a fixed attribute that gets set to a fixed
+    value, e.g. pcad_mode='NMAN' for NMM.
 
     Class attributes:
 
-    :param transition_keys: list of transition keys
-    :param transition_vals: list of transition values corresponding to keys
+    :param transition_key: single transition key or list of transition keys
+    :param transition_val: single transition value or list of values
     """
     @classmethod
     def set_transitions(cls, transitions_dict, cmds):
@@ -222,12 +201,18 @@ class MultiFixedTransition(BaseTransition):
         :returns: None
         """
         state_cmds = cls.get_state_changing_commands(cmds)
-        vals = cls.transition_vals
-        attrs = cls.transition_keys
+        vals = cls.transition_val
+        attrs = cls.transition_key
+
+        if not isinstance(vals, list):
+            vals = [vals]
+        if not isinstance(attrs, list):
+            attrs = [attrs]
 
         for cmd in state_cmds:
+            date = cmd['date']
             for val, attr in zip(vals, attrs):
-                transitions_dict[cmd['date']][attr] = val
+                transitions_dict[date][attr] = val
 
 
 class ParamTransition(BaseTransition):
@@ -244,87 +229,65 @@ class ParamTransition(BaseTransition):
         :returns: None
         """
         state_cmds = cls.get_state_changing_commands(cmds)
-        param_key = cls.transition_param_key
-        name = cls.transition_key
+        param_keys = cls.cmd_param_key
+        names = cls.transition_key
+
+        if not isinstance(param_keys, list):
+            param_keys = [param_keys]
+        if not isinstance(names, list):
+            names = [names]
 
         for cmd in state_cmds:
-            val = dict(REV_PARS_DICT[cmd['idx']])[param_key]
-            transitions_dict[cmd['date']][name] = val
-
-
-class ParamKeysTransition(BaseTransition):
-    @classmethod
-    def set_transitions(cls, transitions_dict, cmds):
-        """
-        Set transitions for a Table of commands ``cmds``.  This is the
-        case where a specified set of param key names are exactly
-        the state keys.  E.g.:
-
-        2017:363:17:17:22.056 | 6346904 0 | MP_EPHEMERIS | TLMSID= AOEPHUPS, CMDS= 17,
-        AOEPHEM1= 8133401, AOEPHEM2= 8A3001A, AORATIO= 2.28440428e+00, AOARGPER=
-        4.30623627e+00, AOECCENT= 6.78379178e-01, AO1MINUS= 3.51485908e-01, AO1PLUS=
-        6.48514032e-01, AOMOTION= 2.75003586e-05, AOITERAT= 10, AOORBANG=
-        1.31834656e+05, AOPERIGE= 5.6799728328906e+08, AOASCEND= 4.99094200e+00, AOSINI=
-        9.54868674e-01, AOSLR= 4.36034844e+04, AOSQRTMU= 1.21726469e+05, SCS= 130, STEP=135
-
-        :param transitions_dict: global dict of transitions (updated in-place)
-        :param cmds: commands (CmdList)
-
-        :returns: None
-        """
-        state_cmds = cls.get_state_changing_commands(cmds)
-
-        for cmd in state_cmds:
+            date = cmd['date']
             params = dict(REV_PARS_DICT[cmd['idx']])
-            transition = transitions_dict[cmd['date']]
-            for key in cls.state_keys:
-                transition[key] = params[key]
+            for name, param_key in zip(names, param_keys):
+                transitions_dict[date][name] = params[param_key]
 
 
 ###################################################################
 # Mech transitions
 ###################################################################
 
-class HETG_INSR_Transition(MultiFixedTransition):
+class HETG_INSR_Transition(FixedTransition):
     command_attributes = {'tlmsid': '4OHETGIN'}
     state_keys = ['letg', 'hetg', 'grating']
-    transition_keys = ['hetg', 'grating']
-    transition_vals = ['INSR', 'HETG']
+    transition_key = ['hetg', 'grating']
+    transition_val = ['INSR', 'HETG']
 
 
-class HETG_RETR_Transition(MultiFixedTransition):
+class HETG_RETR_Transition(FixedTransition):
     command_attributes = {'tlmsid': '4OHETGRE'}
     state_keys = ['letg', 'hetg', 'grating']
-    transition_keys = ['hetg', 'grating']
-    transition_vals = ['RETR', 'NONE']
+    transition_key = ['hetg', 'grating']
+    transition_val = ['RETR', 'NONE']
 
 
-class LETG_INSR_Transition(MultiFixedTransition):
+class LETG_INSR_Transition(FixedTransition):
     command_attributes = {'tlmsid': '4OLETGIN'}
     state_keys = ['letg', 'hetg', 'grating']
-    transition_keys = ['letg', 'grating']
-    transition_vals = ['INSR', 'LETG']
+    transition_key = ['letg', 'grating']
+    transition_val = ['INSR', 'LETG']
 
 
-class LETG_RETR_Transition(MultiFixedTransition):
+class LETG_RETR_Transition(FixedTransition):
     command_attributes = {'tlmsid': '4OLETGRE'}
     state_keys = ['letg', 'hetg', 'grating']
-    transition_keys = ['letg', 'grating']
-    transition_vals = ['RETR', 'NONE']
+    transition_key = ['letg', 'grating']
+    transition_val = ['RETR', 'NONE']
 
 
 class SimTscTransition(ParamTransition):
     command_attributes = {'type': 'SIMTRANS'}
     state_keys = ['simpos']
     transition_key = 'simpos'
-    transition_param_key = 'pos'
+    cmd_param_key = 'pos'
 
 
 class SimFocusTransition(ParamTransition):
     command_attributes = {'type': 'SIMFOCUS'}
     state_keys = ['simfa_pos']
     transition_key = 'simfa_pos'
-    transition_param_key = 'pos'
+    cmd_param_key = 'pos'
 
 
 ###################################################################
@@ -335,17 +298,17 @@ class ObsidTransition(ParamTransition):
     command_attributes = {'type': 'MP_OBSID'}
     state_keys = ['obsid']
     transition_key = 'obsid'
-    transition_param_key = 'id'
+    cmd_param_key = 'id'
 
 
 class EclipseEntryTimerTransition(ParamTransition):
     command_attributes = {'tlmsid': 'EOECLETO'}
     state_keys = ['eclipse_timer']
     transition_key = 'eclipse_timer'
-    transition_param_key = 'timecnt'
+    cmd_param_key = 'timecnt'
 
 
-class SPMEnableTransition(SingleFixedTransition):
+class SPMEnableTransition(FixedTransition):
     command_attributes = {'tlmsid': 'AOFUNCEN'}
     command_params = {'aopcadse': 30}
 
@@ -354,7 +317,7 @@ class SPMEnableTransition(SingleFixedTransition):
     transition_val = 'ENAB'
 
 
-class SPMDisableTransition(SingleFixedTransition):
+class SPMDisableTransition(FixedTransition):
     command_attributes = {'tlmsid': 'AOFUNCDS'}
     command_params = {'aopcadsd': 30}
 
@@ -408,7 +371,7 @@ class SPMEclipseEnableTransition(BaseTransition):
                     connect_flag = False
 
 
-class SCS84EnableTransition(SingleFixedTransition):
+class SCS84EnableTransition(FixedTransition):
     command_attributes = {'tlmsid': 'COENASX'}
     command_params = {'coenas1': 84}
     state_keys = ['scs84']
@@ -417,7 +380,7 @@ class SCS84EnableTransition(SingleFixedTransition):
     default_value = 'DISA'
 
 
-class SCS84DisableTransition(SingleFixedTransition):
+class SCS84DisableTransition(FixedTransition):
     command_attributes = {'tlmsid': 'CODISASX'}
     command_params = {'codisas1': 84}
     state_keys = ['scs84']
@@ -425,7 +388,7 @@ class SCS84DisableTransition(SingleFixedTransition):
     transition_val = 'DISA'
 
 
-class SCS98EnableTransition(SingleFixedTransition):
+class SCS98EnableTransition(FixedTransition):
     command_attributes = {'tlmsid': 'COENASX'}
     command_params = {'coenas1': 98}
     state_keys = ['scs98']
@@ -433,7 +396,7 @@ class SCS98EnableTransition(SingleFixedTransition):
     transition_val = 'ENAB'
 
 
-class SCS98DisableTransition(SingleFixedTransition):
+class SCS98DisableTransition(FixedTransition):
     command_attributes = {'tlmsid': 'CODISASX'}
     command_params = {'codisas1': 98}
     state_keys = ['scs98']
@@ -441,14 +404,14 @@ class SCS98DisableTransition(SingleFixedTransition):
     transition_val = 'DISA'
 
 
-class RadmonEnableTransition(SingleFixedTransition):
+class RadmonEnableTransition(FixedTransition):
     command_attributes = {'tlmsid': 'OORMPEN'}
     state_keys = ['radmon']
     transition_key = 'radmon'
     transition_val = 'ENAB'
 
 
-class RadmonDisableTransition(SingleFixedTransition):
+class RadmonDisableTransition(FixedTransition):
     command_attributes = {'tlmsid': 'OORMPDS'}
     state_keys = ['radmon']
     transition_key = 'radmon'
@@ -459,14 +422,16 @@ class OrbitPointTransition(ParamTransition):
     command_attributes = {'type': 'ORBPOINT'}
     state_keys = ['orbit_point']
     transition_key = 'orbit_point'
-    transition_param_key = 'event_type'
+    cmd_param_key = 'event_type'
 
 
-class EphemerisTransition(ParamKeysTransition):
+class EphemerisTransition(ParamTransition):
     command_attributes = {'tlmsid': 'AOEPHUPS'}
     state_keys = ['aoephem1', 'aoephem2', 'aoratio', 'aoargper', 'aoeccent',
                   'ao1minus', 'ao1plus', 'aomotion', 'aoiterat', 'aoorbang',
                   'aoperige', 'aoascend', 'aosini', 'aoslr', 'aosqrtmu']
+    transition_key = state_keys
+    cmd_param_key = state_keys
 
 
 class EphemerisUpdateTransition(BaseTransition):
@@ -494,14 +459,14 @@ class EphemerisUpdateTransition(BaseTransition):
 
 ###################################################################
 
-class DitherEnableTransition(SingleFixedTransition):
+class DitherEnableTransition(FixedTransition):
     command_attributes = {'tlmsid': 'AOENDITH'}
     state_keys = ['dither']
     transition_key = 'dither'
     transition_val = 'ENAB'
 
 
-class DitherDisableTransition(SingleFixedTransition):
+class DitherDisableTransition(FixedTransition):
     command_attributes = {'tlmsid': 'AODSDITH'}
     state_keys = ['dither']
     transition_key = 'dither'
@@ -528,28 +493,28 @@ class DitherParamsTransition(BaseTransition):
             transitions_dict[cmd['date']].update(dither)
 
 
-class NMM_Transition(SingleFixedTransition):
+class NMM_Transition(FixedTransition):
     command_attributes = {'tlmsid': 'AONMMODE'}
     state_keys = PCAD_STATE_KEYS
     transition_key = 'pcad_mode'
     transition_val = 'NMAN'
 
 
-class NPM_Transition(SingleFixedTransition):
+class NPM_Transition(FixedTransition):
     command_attributes = {'tlmsid': 'AONPMODE'}
     state_keys = PCAD_STATE_KEYS
     transition_key = 'pcad_mode'
     transition_val = 'NPNT'
 
 
-class AutoNPMEnableTransition(SingleFixedTransition):
+class AutoNPMEnableTransition(FixedTransition):
     command_attributes = {'tlmsid': 'AONM2NPE'}
     state_keys = PCAD_STATE_KEYS
     transition_key = 'auto_npnt'
     transition_val = 'ENAB'
 
 
-class AutoNPMDisableTransition(SingleFixedTransition):
+class AutoNPMDisableTransition(FixedTransition):
     command_attributes = {'tlmsid': 'AONM2NPD'}
     state_keys = PCAD_STATE_KEYS
     transition_key = 'auto_npnt'
