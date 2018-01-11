@@ -26,7 +26,7 @@ def get_states_test(start, stop, state_keys, state0=None):
     lenr = len(rcstates)
 
     cmds = commands.filter(start - 7, stop)
-    kstates = states.get_states(state_keys=state_keys, cmds=cmds, state0=state0)
+    kstates = states.get_states(state_keys=state_keys, cmds=cmds, state0=state0, reduce=False)
     rkstates = states.reduce_states(kstates, state_keys, merge_identical=True)[-lenr:]
 
     return rcstates, rkstates
@@ -74,7 +74,7 @@ def test_quick():
 
     # Now test using start/stop pair with start/stop and no supplied cmds or state0.
     # This also tests the API kwarg order: datestart, datestop, state_keys, ..)
-    sts = states.get_states('2017:300', '2017:310', state_keys)
+    sts = states.get_states('2017:300', '2017:310', state_keys, reduce=False)
     rk = states.reduce_states(sts, state_keys, merge_identical=True)
     assert len(rc) == len(rk)
     for key in state_keys:
@@ -154,8 +154,7 @@ def test_sun_vec_versus_telemetry():
     state_keys = ['pitch', 'off_nom_roll']
     start, stop = '2017:349:10:00:00', '2017:350:10:00:00'
     cmds = commands.filter(start, stop)
-    kstates = states.get_states(state_keys=state_keys, cmds=cmds)[-20:-1]
-    rk = states.reduce_states(kstates, state_keys, merge_identical=True)
+    rk = states.get_states(state_keys=state_keys, cmds=cmds, merge_identical=True)[-20:-1]
 
     tstart = DateTime(rk['datestart']).secs
     tstop = DateTime(rk['datestop']).secs
@@ -347,13 +346,19 @@ def test_reduce_states_merge_identical():
 
 
 def test_reduce_states_cmd_states():
+    """
+    Test that simple get_states() call with defaults gives the same results
+    as calling cmd_states.fetch_states().
+    """
     cs = cmd_states.fetch_states('2017:300', '2017:310', allow_identical=True)
     cs = Table(cs)
 
     state_keys = (set(cmd_states.STATE0) -
                   set(['datestart', 'datestop', 'trans_keys', 'tstart', 'tstop']))
-    ks = states.get_states(start='2017:300', stop='2017:310')
-    ksr = states.reduce_states(ks, state_keys=state_keys)
+
+    # Default setting is reduce states with merge_identical=False, which is the same
+    # as cmd_states.
+    ksr = states.get_states('2017:300', '2017:310', state_keys)
 
     assert len(ksr) == len(cs)
 
@@ -380,7 +385,7 @@ def compare_backstop_history(history, state_key, compare_val=True):
                       converters={'col1': [ascii.convert_numpy(np.str)]})
     start = DateTime(hist['col1'][0], format='greta') - 1 / 86400.
     stop = DateTime(hist['col1'][-1], format='greta') + 1 / 86400.
-    sts = states.get_states(start=start, stop=stop, state_keys=[state_key])
+    sts = states.get_states(start=start, stop=stop, state_keys=state_key)
     sts = sts[1:]  # Drop the first state (which is state0 at start time)
     assert len(sts) == len(hist)
     assert np.all(DateTime(sts['datestart']).greta == hist['col1'])

@@ -866,34 +866,43 @@ def add_transition(transitions, idx, transition):
         transitions.append(transition)
 
 
-def get_states(start=None, stop=None, state_keys=None, cmds=None, state0=None):
+def get_states(start=None, stop=None, state_keys=None, cmds=None, state0=None,
+               reduce=True, merge_identical=False):
     """
     Get table of states corresponding to intervals when ``state_keys`` parameters
     are unchanged given the input commands ``cmds`` or ``start`` date.
 
-    If ``state_keys`` is None then the default keys ``states.DEFAULT_STATE_KEYS``
-    is used.  This corresponds to the "classic" Chandra commanded states (obsid,
-    ACIS, PCAD, and mechanisms).  One can also provide a single state key as a
-    a string, e.g. ``state_keys='obsid'``.
+    If ``state_keys`` is None then the default keys
+    ``states.DEFAULT_STATE_KEYS`` is used.  This corresponds to the "classic"
+    Chandra commanded states (obsid, ACIS, PCAD, and mechanisms).  One can also
+    provide a single state key as a a string, e.g. ``state_keys='obsid'``.
 
-    One can provide *either* the ``cmds`` argument with the ``CmdList`` of commands (via
-    ``cmds.filter()``), *OR* the ``start`` (and optionally ``stop``) date.  In the latter
-    case this function will automatically fetch the commands internally.  If the ``stop``
-    date is not provided then all known commands (including those from approved loads)
-    will be included.
+    One can provide *either* the ``cmds`` argument with the ``CmdList`` of
+    commands (via ``cmds.filter()``), *OR* the ``start`` (and optionally
+    ``stop``) date.  In the latter case this function will automatically fetch
+    the commands internally.  If the ``stop`` date is not provided then all
+    known commands (including those from approved loads) will be included.
 
-    The output table will contain columns for ``state_keys`` along with ``datestart`` and
-    ``datestop`` columns.  The output may also include additional columns for related
-    states.  For instance in order to compute the attitude quaternion state ``q1`` it is
-    necessary to collect a number of other states such as ``pcad_mode`` and target
-    quaternions ``targ_q1`` through ``targ_q4``.  This function returns all these.  One
-    can call the ``reduce_states()`` function to reduce to only the desired state keys.
+    The output table will contain columns for ``state_keys`` along with
+    ``datestart`` and ``datestop`` columns.  By default the ``reduce_states``
+    function is called (with the supplied value of ``merge_identical``) in order
+    to reduce down to the specified ``state_keys``.
+
+    If ``reduce`` is ``False`` then ``reduce_states`` is not called and output
+    table may include additional columns for related states.  For instance in
+    order to compute the attitude quaternion state ``q1`` it is necessary to
+    collect a number of other states such as ``pcad_mode`` and target
+    quaternions ``targ_q1`` through ``targ_q4``.  One can call the
+    ``reduce_states()`` function separately to reduce to only the desired state
+    keys.
 
     :param start: start of states (optional, DateTime compatible)
     :param stop: stop of states (optional, DateTime compatible)
     :param state_keys: state keys of interest (optional, list or str or None)
     :param cmds: input commands (optional, CmdList)
     :param state0: initial state (optional, dict)
+    :param reduce: call reduce_states() on output
+    :param merge_identical: merge identical states (see reduce_states() docs)
 
     :returns: astropy Table of states
     """
@@ -953,7 +962,7 @@ def get_states(start=None, stop=None, state_keys=None, cmds=None, state0=None):
     for key, val in state0.items():
         if key in state_keys:
             states[0][key] = val
-        else:
+        elif key != '__dates__':
             warnings.warn('state0 key {} is not in state_keys, ignoring it'.format(key))
     states[0].trans_keys.clear()
 
@@ -995,6 +1004,9 @@ def get_states(start=None, stop=None, state_keys=None, cmds=None, state0=None):
     datestop[-1] = stop
     out.add_column(Column(datestop, name='datestop'), 1)
     out['trans_keys'] = [st.trans_keys for st in states]
+
+    if reduce_states:
+        out = reduce_states(out, orig_state_keys, merge_identical)
 
     return out
 
