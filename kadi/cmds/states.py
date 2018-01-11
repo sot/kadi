@@ -30,7 +30,7 @@ Basic design concepts.
 
 - The signature of a transition function callback is::
 
-    def callback(cls, date, transitions, state, idx, **kwargs):
+    def callback(cls, date, transitions, state, idx):
 
   It has access to the current state date, the complete list of transitions,
   the current state, the current index into the transitions list, and
@@ -45,6 +45,7 @@ from __future__ import division, print_function, absolute_import
 import collections
 import itertools
 import warnings
+import inspect
 
 import numpy as np
 import six
@@ -544,21 +545,16 @@ class ManeuverTransition(BaseTransition):
         state_cmds = cls.get_state_changing_commands(cmds)
 
         for cmd in state_cmds:
-            # Note that the transition key 'maneuver' doesn't really matter here
-            # as long as it is different from the other state keys.
-            transitions[cmd['date']]['maneuver'] = {'func': cls.add_transitions,
-                                                    'cmd': cmd}
-            # TODO: I think this cmd arg is not required, only cmd['date'] is used
-            # and this should be the same as the `date` arg.
+            transitions[cmd['date']]['maneuver_transition'] = cls.callback
 
     @classmethod
-    def add_transitions(cls, date, transitions, state, idx, cmd):
+    def callback(cls, date, transitions, state, idx):
         """
         This is a transition function callback.  It generates downstream
         transitions to perform the actual maneuver and (usually) transition
         to NPM at the end of maneuver.
         """
-        end_manvr_date = cls.add_manvr_transitions(date, transitions, state, idx, cmd)
+        end_manvr_date = cls.add_manvr_transitions(date, transitions, state, idx)
 
         # If auto-transition to NPM after manvr is enabled (this is
         # normally the case) then back to NPNT at end of maneuver
@@ -567,7 +563,7 @@ class ManeuverTransition(BaseTransition):
             add_transition(transitions, idx, transition)
 
     @classmethod
-    def add_manvr_transitions(cls, date, transitions, state, idx, cmd):
+    def add_manvr_transitions(cls, date, transitions, state, idx):
         """
         This does the main work of adding transitions for a maneuver.  It is
         called by the ManeuverTransition and NormalSunTransition classes.
@@ -586,7 +582,7 @@ class ManeuverTransition(BaseTransition):
 
         # Get attitudes for the maneuver at about 5-minute intervals.
         atts = Chandra.Maneuver.attitudes(curr_att, targ_att,
-                                          tstart=DateTime(cmd['date']).secs)
+                                          tstart=DateTime(date).secs)
 
         # Compute pitch and off-nominal roll at the midpoint of each interval, except
         # also include the exact last attitude.
@@ -623,7 +619,7 @@ class NormalSunTransition(ManeuverTransition):
     state_keys = PCAD_STATE_KEYS
 
     @classmethod
-    def add_transitions(cls, date, transitions, state, idx, cmd):
+    def callback(cls, date, transitions, state, idx):
         """
         This is a transition function callback.  It directly sets the state
         pcad_mode to NSUN and target quaternion to the expected sun pointed
@@ -634,12 +630,12 @@ class NormalSunTransition(ManeuverTransition):
 
         # Setup for maneuver to sun-pointed attitude from current att
         curr_att = [state[qc] for qc in QUAT_COMPS]
-        targ_att = Chandra.Maneuver.NSM_attitude(curr_att, cmd['date'])
+        targ_att = Chandra.Maneuver.NSM_attitude(curr_att, date)
         for qc, targ_q in zip(QUAT_COMPS, targ_att.q):
             state['targ_' + qc] = targ_q
 
         # Do the maneuver
-        cls.add_manvr_transitions(date, transitions, state, idx, cmd)
+        cls.add_manvr_transitions(date, transitions, state, idx)
 
 
 ###################################################################
@@ -772,7 +768,7 @@ def add_sun_vector_transitions(start, stop, transitions):
     # Now with the dates, finally make all the transition dicts which will
     # call `update_pitch_state` during state processing.
     pitch_transitions = [{'date': date,
-                          'update_pitch': {'func': update_sun_vector_state}}
+                          'update_sun_vector': update_sun_vector_state}
                          for date in dates]
 
     # Add to the transitions list and sort by date.  Normally one would use the
@@ -949,12 +945,11 @@ def get_states(start=None, stop=None, state_keys=None, cmds=None, state0=None,
 
         # Process the transition.
         for key, value in transition.items():
-            if isinstance(value, dict):
+            if inspect.ismethod(value) or inspect.isfunction(value):
                 # Special case of a functional transition that calls a function
                 # instead of directly updating the state.  The function might itself
                 # update the state or it might generate downstream transitions.
-                func = value.pop('func')
-                func(date, transitions, state, idx, **value)
+                value(date, transitions, state, idx)
             elif key != 'date':
                 # Normal case of just updating current state
                 state[key] = value
