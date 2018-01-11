@@ -192,7 +192,7 @@ class FixedTransition(BaseTransition):
     :param transition_val: single transition value or list of values
     """
     @classmethod
-    def set_transitions(cls, transitions_dict, cmds):
+    def set_transitions(cls, transitions_dict, cmds, start, stop):
         """
         Set transitions for a Table of commands ``cmds``.
 
@@ -218,7 +218,7 @@ class FixedTransition(BaseTransition):
 
 class ParamTransition(BaseTransition):
     @classmethod
-    def set_transitions(cls, transitions_dict, cmds):
+    def set_transitions(cls, transitions_dict, cmds, start, stop):
         """
         Set transitions for a Table of commands ``cmds``.  This is the simplest
         case where there is an attribute that gets set to a specified
@@ -339,7 +339,7 @@ class SPMEclipseEnableTransition(BaseTransition):
     state_keys = ['sun_pos_mon']
 
     @classmethod
-    def set_transitions(cls, transitions_dict, cmds):
+    def set_transitions(cls, transitions_dict, cmds, start, stop):
         """
         Set transitions for a Table of commands ``cmds``.  This is the simplest
         case where there is an attribute that gets set to a specified
@@ -444,7 +444,7 @@ class EphemerisUpdateTransition(BaseTransition):
     state_keys = ['ephem_update']
 
     @classmethod
-    def set_transitions(cls, transitions_dict, cmds):
+    def set_transitions(cls, transitions_dict, cmds, start, stop):
         """
         :param transitions_dict: global dict of transitions (updated in-place)
         :param cmds: commands (CmdList)
@@ -459,6 +459,47 @@ class EphemerisUpdateTransition(BaseTransition):
 
 
 ###################################################################
+
+class SunVectorTransition(BaseTransition):
+    """
+    Add transitions between start/stop every 10ksec to sample the pitch and off_nominal
+    roll during NPNT.  These are function transitions which check to see that
+    pcad_mode == 'NPNT' before changing the pitch / off_nominal_roll.
+    """
+    state_keys = PCAD_STATE_KEYS
+
+    @classmethod
+    def set_transitions(cls, transitions_dict, cmds, start, stop):
+        # np.ceil is used here to get 'times' between start/stop at even increments of
+        # "sample_time" so that the commands will be at the same times in an interval even if
+        # a different time range is being updated.
+        sample_time = 10000
+        tstart = np.ceil(DateTime(start).secs / sample_time) * sample_time
+        tstop = DateTime(stop).secs
+        times = np.arange(tstart, tstop, sample_time)
+        dates = DateTime(times).date
+
+        # Now with the dates, finally make all the transition dicts which will
+        # call `update_pitch_state` during state processing.
+        for date in dates:
+            transitions_dict[date]['update_sun_vector'] = cls.update_sun_vector_state
+
+    @classmethod
+    def update_sun_vector_state(cls, date, transitions, state, idx):
+        """
+        This is a transition callback method to potentially update the ``pitch`` and
+        ``off_nominal`` states if pcad_mode is NPNT.
+
+        :param date: date (str)
+        :param transitions: global list of transitions
+        :param state: current state (dict)
+        :param idx: current index into transitions
+        """
+        if state['pcad_mode'] == 'NPNT':
+            q_att = Quat([state[qc] for qc in QUAT_COMPS])
+            state['pitch'] = Ska.Sun.pitch(q_att.ra, q_att.dec, date)
+            state['off_nom_roll'] = Ska.Sun.off_nominal_roll(q_att, date)
+
 
 class DitherEnableTransition(FixedTransition):
     command_attributes = {'tlmsid': 'AOENDITH'}
@@ -481,7 +522,7 @@ class DitherParamsTransition(BaseTransition):
                   'dither_period_pitch', 'dither_period_yaw']
 
     @classmethod
-    def set_transitions(cls, transitions_dict, cmds):
+    def set_transitions(cls, transitions_dict, cmds, start, stop):
         state_cmds = cls.get_state_changing_commands(cmds)
 
         for cmd in state_cmds:
@@ -527,7 +568,7 @@ class TargQuatTransition(BaseTransition):
     state_keys = PCAD_STATE_KEYS
 
     @classmethod
-    def set_transitions(cls, transitions, cmds):
+    def set_transitions(cls, transitions, cmds, start, stop):
         state_cmds = cls.get_state_changing_commands(cmds)
 
         for cmd in state_cmds:
@@ -541,7 +582,7 @@ class ManeuverTransition(BaseTransition):
     state_keys = PCAD_STATE_KEYS
 
     @classmethod
-    def set_transitions(cls, transitions, cmds):
+    def set_transitions(cls, transitions, cmds, start, stop):
         state_cmds = cls.get_state_changing_commands(cmds)
 
         for cmd in state_cmds:
@@ -647,7 +688,7 @@ class ACISTransition(BaseTransition):
     state_keys = ['clocking', 'power_cmd', 'vid_board', 'fep_count', 'si_mode', 'ccd_count']
 
     @classmethod
-    def set_transitions(cls, transitions, cmds):
+    def set_transitions(cls, transitions, cmds, start, stop):
         state_cmds = cls.get_state_changing_commands(cmds)
         for cmd in state_cmds:
             tlmsid = cmd['tlmsid']
@@ -701,7 +742,7 @@ def get_transition_classes(state_keys=None):
     return trans_classes
 
 
-def get_transitions_list(cmds, state_keys=None):
+def get_transitions_list(cmds, state_keys, start, stop):
     """
     For given set of commands ``cmds`` and ``state_keys``, return a list of
     transitions.
@@ -714,7 +755,7 @@ def get_transitions_list(cmds, state_keys=None):
     :param cmds: CmdList with spacecraft commands
     :param state_keys: desired state keys (None, str, or list)
 
-    :returns: list of dict (transitions)
+    :returns: list of dict (transitions), set of transition classes
     """
     # To start, collect transitions in a dict keyed by date.  This auto-initializes
     # a dict whenever a new date is used, allowing (e.g.) a single step of::
@@ -726,7 +767,7 @@ def get_transitions_list(cmds, state_keys=None):
     # and ask each one to update ``transitions_dict`` in-place to include
     # transitions from that class.
     for transition_class in get_transition_classes(state_keys):
-        transition_class.set_transitions(transitions_dict, cmds)
+        transition_class.set_transitions(transitions_dict, cmds, start, stop)
 
     # Convert the dict of transitions (keyed by date) into an ordered list of transitions
     # sorted by date.  A *list* of transitions is needed to allow a transition to
@@ -739,59 +780,6 @@ def get_transitions_list(cmds, state_keys=None):
 
     # In the rest of this module ``transitions`` is always this *list* of transitions.
     return transitions_list
-
-
-def add_sun_vector_transitions(start, stop, transitions):
-    """
-    Add transitions between start/stop every 10ksec to sample the pitch and off_nominal
-    roll during NPNT.  These are function transitions which check to see that
-    pcad_mode == 'NPNT' before changing the pitch / off_nominal_roll.
-
-    This function gets as a special-case within get_states() after assembling the
-    initial list of transitions that are generated from Transition classes.
-
-    :param start: start date for sun vector transitions (DateTime compatible)
-    :param stop: stop date for sun vector transitions (DateTime compatible)
-    :param transitions: global list of transitions (updated in-place)
-
-    :returns: None
-    """
-    # np.ceil is used here to get 'times' between start/stop at even increments of
-    # "sample_time" so that the commands will be at the same times in an interval even if
-    # a different time range is being updated.
-    sample_time = 10000
-    tstart = np.ceil(DateTime(start).secs / sample_time) * sample_time
-    tstop = DateTime(stop).secs
-    times = np.arange(tstart, tstop, sample_time)
-    dates = DateTime(times).date
-
-    # Now with the dates, finally make all the transition dicts which will
-    # call `update_pitch_state` during state processing.
-    pitch_transitions = [{'date': date,
-                          'update_sun_vector': update_sun_vector_state}
-                         for date in dates]
-
-    # Add to the transitions list and sort by date.  Normally one would use the
-    # add_transition() function, but in this case there are enough transitions
-    # that just tossing them on the end and re-sorting is better.
-    transitions.extend(pitch_transitions)
-    transitions.sort(key=lambda x: x['date'])
-
-
-def update_sun_vector_state(date, transitions, state, idx):
-    """
-    This function gets called during state processing to potentially update the
-    ``pitch`` and ``off_nominal`` states if pcad_mode is NPNT.
-
-    :param date: date (str)
-    :param transitions: global list of transitions
-    :param state: current state (dict)
-    :param idx: current index into transitions
-    """
-    if state['pcad_mode'] == 'NPNT':
-        q_att = Quat([state[qc] for qc in QUAT_COMPS])
-        state['pitch'] = Ska.Sun.pitch(q_att.ra, q_att.dec, date)
-        state['off_nom_roll'] = Ska.Sun.off_nominal_roll(q_att, date)
 
 
 def add_transition(transitions, idx, transition):
@@ -906,12 +894,7 @@ def get_states(start=None, stop=None, state_keys=None, cmds=None, state0=None,
     # Get transitions, which is a list of dict (state key
     # and new state value at that date).  This goes through each active
     # transition class and accumulates transitions.
-    transitions = get_transitions_list(cmds, state_keys)
-
-    # See add_sun_vec_transitions() for explanation.  IDEALLY: make this happen
-    # more naturally within Transitions class machinery.
-    if 'pitch' in state_keys or 'off_nominal_roll' in state_keys:
-        add_sun_vector_transitions(start, stop, transitions)
+    transitions = get_transitions_list(cmds, state_keys, start, stop)
 
     # List of dict to hold state values.  Datestarts is the corresponding list of
     # start dates for each state.
@@ -945,7 +928,7 @@ def get_states(start=None, stop=None, state_keys=None, cmds=None, state0=None,
 
         # Process the transition.
         for key, value in transition.items():
-            if inspect.ismethod(value) or inspect.isfunction(value):
+            if inspect.ismethod(value):
                 # Special case of a functional transition that calls a function
                 # instead of directly updating the state.  The function might itself
                 # update the state or it might generate downstream transitions.
