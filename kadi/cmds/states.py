@@ -873,7 +873,8 @@ def get_states(start=None, stop=None, state_keys=None, cmds=None, state0=None):
 
     If ``state_keys`` is None then the default keys ``states.DEFAULT_STATE_KEYS``
     is used.  This corresponds to the "classic" Chandra commanded states (obsid,
-    ACIS, PCAD, and mechanisms).
+    ACIS, PCAD, and mechanisms).  One can also provide a single state key as a
+    a string, e.g. ``state_keys='obsid'``.
 
     One can provide *either* the ``cmds`` argument with the ``CmdList`` of commands (via
     ``cmds.filter()``), *OR* the ``start`` (and optionally ``stop``) date.  In the latter
@@ -888,10 +889,10 @@ def get_states(start=None, stop=None, state_keys=None, cmds=None, state0=None):
     quaternions ``targ_q1`` through ``targ_q4``.  This function returns all these.  One
     can call the ``reduce_states()`` function to reduce to only the desired state keys.
 
-    :param state_keys: state keys of interest (optional, list)
-    :param cmds: input commands (optional, CmdList)
     :param start: start of states (optional, DateTime compatible)
     :param stop: stop of states (optional, DateTime compatible)
+    :param state_keys: state keys of interest (optional, list or str or None)
+    :param cmds: input commands (optional, CmdList)
     :param state0: initial state (optional, dict)
 
     :returns: astropy Table of states
@@ -900,6 +901,8 @@ def get_states(start=None, stop=None, state_keys=None, cmds=None, state0=None):
     # each state key.  Maintain original order and uniqueness of keys.
     if state_keys is None:
         state_keys = DEFAULT_STATE_KEYS
+    elif isinstance(state_keys, str):
+        state_keys = [state_keys]
 
     # Go through each transition class which impacts desired state keys and accumulate
     # all the state keys that the classes touch.  For instance if user requests
@@ -1115,7 +1118,7 @@ def get_state0(date=None, state_keys=None, lookbacks=(7, 30, 180, 1000)):
             # state0 as possible from last state (corresponding to the state after the
             # last command in cmds).
             try:
-                states = get_states(state_keys=[state_key], cmds=cmds, state0={})
+                states = get_states(state_keys=state_key, cmds=cmds, state0={})
             except NoTransitionsError:
                 # No transitions within `cmds` for state_key, continue with other keys
                 continue
