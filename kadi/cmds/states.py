@@ -871,7 +871,9 @@ def get_states(state_keys=None, cmds=None, start=None, stop=None, state0=None):
     Get table of states corresponding to intervals when ``state_keys`` parameters
     are unchanged given the input commands ``cmds`` or ``start`` date.
 
-    If ``state_keys`` is None then all known state keys are included.
+    If ``state_keys`` is None then the default keys ``states.DEFAULT_STATE_KEYS``
+    is used.  This corresponds to the "classic" Chandra commanded states (obsid,
+    ACIS, PCAD, and mechanisms).
 
     One can provide *either* the ``cmds`` argument with the ``CmdList`` of commands (via
     ``cmds.filter()``), *OR* the ``start`` (and optionally ``stop``) date.  In the latter
@@ -1063,23 +1065,30 @@ def reduce_states(states, state_keys, merge_identical=False):
 
 def get_state0(date=None, state_keys=None, lookbacks=(7, 30, 180, 1000)):
     """
-    Get the state at ``date`` for ``state_keys``.
+    Get the state and transition dates at ``date`` for ``state_keys``.
 
     This function finds the state at a particular date by fetching commands
-    prior to that date and determine the states.  Since some state keys
-    like ``pitch`` change often (many times per day) while others like ``letg``
-    may not change for weeks, this function does dynamic lookbacks from ``date``
-    to find transitions for each key.  By default it will try looking back
-    7 days, then 30 days, then 180 days, and finally 1000 days.  This lookback
-    sequence can be controlled with the ``lookbacks`` argument.
+    prior to that date and determine the states.  It returns dictionary
+    ``state0`` provides the state values. Included in this dict is a special
+    key ``__dates__`` which provides the corresponding date at which the
+    state-changing command occurred.
 
-    If ``state_keys`` is None then all available states are returned.
+    Since some state keys like ``pitch`` change often (many times per day) while
+    others like ``letg`` may not change for weeks, this function does dynamic
+    lookbacks from ``date`` to find transitions for each key.  By default it
+    will try looking back 7 days, then 30 days, then 180 days, and finally 1000
+    days.  This lookback sequence can be controlled with the ``lookbacks``
+    argument.
+
+    If ``state_keys`` is None then the default keys ``states.DEFAULT_STATE_KEYS``
+    is used.  This corresponds to the "classic" Chandra commanded states (obsid,
+    ACIS, PCAD, and mechanisms).
 
     :param date: date (DateTime compatible, default=NOW)
     :param state_keys: list of state keys or None
     :param lookbacks: list of lookback times in days (default=[7, 30, 180, 1000])
 
-    :returns: dict of state key/value pairs
+    :returns state0: dict of state values
     """
     lookbacks = sorted(lookbacks)
     stop = DateTime(date)
@@ -1087,6 +1096,7 @@ def get_state0(date=None, state_keys=None, lookbacks=(7, 30, 180, 1000)):
         state_keys = DEFAULT_STATE_KEYS
 
     state0 = {}
+    dates = {}
 
     for lookback in lookbacks:
         cmds = commands.filter(stop - lookback, stop)
@@ -1111,6 +1121,7 @@ def get_state0(date=None, state_keys=None, lookbacks=(7, 30, 180, 1000)):
             for colname in colnames:
                 if states[colname][-1] is not None:
                     state0[colname] = states[colname][-1]
+                    dates[colname] = states['datestart'][-1]
 
         # If we have filled in state0 for every key then we're done.
         # Otherwise bump the lookback and try again.
@@ -1125,6 +1136,7 @@ def get_state0(date=None, state_keys=None, lookbacks=(7, 30, 180, 1000)):
             for cls in get_transition_classes(missing_key):
                 if hasattr(cls, 'default_value'):
                     state0[missing_key] = cls.default_value
+                    dates[missing_key] = 'DEFAULT'
 
         # Try again...
         missing_keys = set(state_keys) - set(state0)
@@ -1132,6 +1144,11 @@ def get_state0(date=None, state_keys=None, lookbacks=(7, 30, 180, 1000)):
             raise ValueError('did not find transitions for state key(s)'
                              ' {} within {} days of {}.  Maybe adjust the `lookbacks` argument?'
                              .format(missing_keys, lookbacks[-1], stop.date))
+
+    # Finally reduce down to the state_keys the user requested
+    state0 = {key: state0[key] for key in state_keys}
+    dates = {key: dates[key] for key in state_keys}
+    state0['__dates__'] = dates
 
     return state0
 

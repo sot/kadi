@@ -99,9 +99,7 @@ def test_states_2017():
                   ['q1', 'q2', 'q3', 'q4', 'pcad_mode', 'dither', 'ra', 'dec', 'roll'] +
                   ['letg', 'hetg'] +
                   ['simpos', 'simfa_pos'])
-    state0 = {'letg': 'RETR', 'hetg': 'RETR'}  # Not necessarily set within 7 days
-    rcstates, rkstates = compare_states('2017:060', '2017:260', state_keys, state0=state0,
-                                        compare_dates=False)
+    rcstates, rkstates = compare_states('2017:060', '2017:260', state_keys, compare_dates=False)
 
     # Check state datestart.  There are 4 known discrepancies of 0.001 sec
     # due to a slight difference in the start time for NSUN maneuvers.  Cmd_states
@@ -278,6 +276,7 @@ def test_get_state0_vs_states():
     sts0 = sts[-1]
 
     state0 = states.get_state0(date0)
+    del state0['__dates__']
 
     for key, val in state0.items():
         if isinstance(val, (int, str)):
