@@ -4,7 +4,7 @@ import tables3_api
 
 import numpy as np
 
-from astropy.table import Table, Row
+from astropy.table import Table, Row, Column
 from Chandra.Time import DateTime
 import six
 from six.moves import cPickle as pickle
@@ -210,7 +210,7 @@ class CommandTable(Table):
             if item in self.colnames:
                 return self.columns[item]
             else:
-                return np.array([cmd['params'].get(item) for cmd in self])
+                return Column([cmd['params'].get(item) for cmd in self], name=item)
 
         elif isinstance(item, int):
             return CommandRow(self, item)
@@ -241,11 +241,29 @@ class CommandTable(Table):
     def __unicode__(self):
         # Cut out params column for printing
         colnames = self.colnames
-        colnames.remove('params')
         if 'idx' in colnames:
             colnames.remove('idx')
-        lines = self[colnames].pformat()
+
+        # Nice repr of parameters.  This forces all cmd params to get resolved.
+        tmp_params = None
+        if 'params' in colnames:
+            params_list = []
+            for params in self['params']:
+                if params is None:
+                    params_list.append('N/A')
+                else:
+                    param_strs = ['{}={}'.format(key, val) for key, val in params.items()]
+                    params_list.append(' '.join(param_strs))
+            tmp_params = params_list
+            colnames.remove('params')
+
+        tmp = self[colnames]
+        if tmp_params:
+            tmp['params'] = tmp_params
+
+        lines = tmp.pformat(max_width=-1)
         return '\n'.join(lines)
+
     if not six.PY2:
         __str__ = __unicode__
 
@@ -253,3 +271,12 @@ class CommandTable(Table):
         return six.text_type(self).encode('utf-8')
     if six.PY2:
         __str__ = __bytes__
+
+    def fetch_params(self):
+        """
+        Fetch all ``params`` for every row and force resolution of actual values.
+
+        This is handy for printing a command table and seeing all the parameters at once.
+        """
+        for cmd in self:
+            cmd['params']
