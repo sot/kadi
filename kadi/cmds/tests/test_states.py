@@ -66,7 +66,7 @@ def test_cmd_line_interface(tmpdir):
     Test command line interface
     """
     filename = os.path.join(tmpdir, 'out.txt')
-    states.cmd_line_interface(['--outfile', filename,
+    states.get_chandra_states(['--outfile', filename,
                                '--start', '2017:001:21:00:00',
                                '--stop', '2017:002:11:30:00',
                                '--state-keys', 'obsid,si_mode,pcad_mode'])
