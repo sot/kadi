@@ -11,7 +11,7 @@ from six.moves import cPickle as pickle
 
 from ..paths import IDX_CMDS_PATH, PARS_DICT_PATH
 
-__all__ = ['filter']
+__all__ = ['filter', 'CommandTable']
 
 
 class LazyVal(object):
@@ -75,26 +75,20 @@ def filter(start=None, stop=None, **kwargs):
 
     Examples::
 
-      >>> from kadi import cmds
-      >>> cs = cmds.filter('2012:001', '2012:030')
-      >>> cs = cmds.filter('2012:001', '2012:030', type='simtrans')
-      >>> cs = cmds.filter(type='acispkt', tlmsid='wsvidalldn')
-      >>> cs = cmds.filter(msid='aflcrset')
-      >>> print(cs)
+      >>> from kadi import commands
+      >>> cmds = commands.filter('2012:001', '2012:030')
+      >>> cmds = commands.filter('2012:001', '2012:030', type='simtrans')
+      >>> cmds = commands.filter(type='acispkt', tlmsid='wsvidalldn')
+      >>> cmds = commands.filter(msid='aflcrset')
+      >>> print(cmds)
 
-    Parameters
-    ----------
-    start : DateTime format (optional)
+    :param start: DateTime format (optional)
         Start time, defaults to beginning of available commands (2002:001)
-
-    stop : DateTime format (optional)
+    :param stop: DateTime format (optional)
         Stop time, defaults to end of available commands
+    :param kwargs: key=val keyword argument pairs
 
-    **kwargs : any key=val keyword argument pairs
-
-    Returns
-    -------
-    cmds : CmdList object (list of commands)
+    :returns: :class:`~kadi.commands.commands.CommandTable` of commands
     """
     cmds = _find(start, stop, **kwargs)
     out = CommandTable(cmds)
@@ -115,25 +109,19 @@ def _find(start=None, stop=None, **kwargs):
 
     Examples::
 
-      >>> from kadi import cmds
-      >>> cs = cmds._find('2012:001', '2012:030')
-      >>> cs = cmds._find('2012:001', '2012:030', type='simtrans')
-      >>> cs = cmds._find(type='acispkt', tlmsid='wsvidalldn')
-      >>> cs = cmds._find(msid='aflcrset')
+      >>> from kadi import commands
+      >>> cmds = commands._find('2012:001', '2012:030')
+      >>> cmds = commands._find('2012:001', '2012:030', type='simtrans')
+      >>> cmds = commands._find(type='acispkt', tlmsid='wsvidalldn')
+      >>> cmds = commands._find(msid='aflcrset')
 
-    Parameters
-    ----------
-    start : DateTime format (optional)
+    :param start: DateTime format (optional)
         Start time, defaults to beginning of available commands (2002:001)
-
-    stop : DateTime format (optional)
+    :param stop: DateTime format (optional)
         Stop time, defaults to end of available commands
+    :param kwargs: key=val keyword argument pairs
 
-    **kwargs : any key=val keyword argument pairs
-
-    Returns
-    -------
-    cmds : astropy Table of commands
+    :returns: astropy Table of commands
     """
     ok = np.ones(len(idx_cmds), dtype=bool)
     par_ok = np.zeros(len(idx_cmds), dtype=bool)
@@ -205,6 +193,10 @@ class CommandRow(Row):
 
 
 class CommandTable(Table):
+    """
+    Astropy Table subclass that is specialized to handle commands via a
+    ``params`` column that is expected to be ``None`` or a dict of params.
+    """
     def __getitem__(self, item):
         if isinstance(item, six.string_types):
             if item in self.colnames:

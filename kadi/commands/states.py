@@ -1,12 +1,11 @@
 """
-kadi.cmds.states
-
 This module provides the functions for dynamically determining Chandra commanded states
 based entirely on known history of commands.
 
 Basic design concepts.
 
 - Transition class has information about:
+
   - Command that generates state change
   - State key(s) that require this transition
 
@@ -37,8 +36,6 @@ Basic design concepts.
   any other keyword args in the transition that were inserted when transitions
   were set.  This function can add downstream transitions or directly update
   the current state.
-  TODO: change actual methods to be called "callback" for easier visibility?
-
 """
 from __future__ import division, print_function, absolute_import
 
@@ -349,7 +346,6 @@ class EclipseUmbraExitTransition(FixedTransition):
 class SPMEnableTransition(FixedTransition):
     command_attributes = {'tlmsid': 'AOFUNCEN'}
     command_params = {'aopcadse': 30}
-
     state_keys = ['sun_pos_mon']
     transition_key = 'sun_pos_mon'
     transition_val = 'ENAB'
@@ -358,7 +354,6 @@ class SPMEnableTransition(FixedTransition):
 class SPMDisableTransition(FixedTransition):
     command_attributes = {'tlmsid': 'AOFUNCDS'}
     command_params = {'aopcadsd': 30}
-
     state_keys = ['sun_pos_mon']
     transition_key = 'sun_pos_mon'
     transition_val = 'DISA'
@@ -858,7 +853,7 @@ def get_states(start=None, stop=None, state_keys=None, cmds=None, state0=None,
     Get table of states corresponding to intervals when ``state_keys`` parameters
     are unchanged given the input commands ``cmds`` or ``start`` date.
 
-    If ``state_keys`` is None then the default keys
+    If ``state_keys`` is ``None`` then the default keys
     ``states.DEFAULT_STATE_KEYS`` is used.  This corresponds to the "classic"
     Chandra commanded states (obsid, ACIS, PCAD, and mechanisms).  One can also
     provide a single state key as a a string, e.g. ``state_keys='obsid'``.
@@ -1075,7 +1070,7 @@ def get_state0(date=None, state_keys=None, lookbacks=(7, 30, 180, 1000)):
     days.  This lookback sequence can be controlled with the ``lookbacks``
     argument.
 
-    If ``state_keys`` is None then the default keys ``states.DEFAULT_STATE_KEYS``
+    If ``state_keys`` is ``None`` then the default keys ``states.DEFAULT_STATE_KEYS``
     is used.  This corresponds to the "classic" Chandra commanded states (obsid,
     ACIS, PCAD, and mechanisms).
 
@@ -1083,7 +1078,7 @@ def get_state0(date=None, state_keys=None, lookbacks=(7, 30, 180, 1000)):
     :param state_keys: list of state keys or str (one state key) or None
     :param lookbacks: list of lookback times in days (default=[7, 30, 180, 1000])
 
-    :returns state0: dict of state values
+    :returns: dict of state values
     """
     if isinstance(state_keys, str):
         state_keys = [state_keys]
