@@ -58,7 +58,7 @@ from Chandra.Time import DateTime
 import Chandra.Maneuver
 from Quaternion import Quat
 import Ska.Sun
-from . import cmds as commands
+from . import commands
 
 # Dict that allows determining command params (e.g. obsid 'ID' or SIM focus 'POS')
 # for a particular command.

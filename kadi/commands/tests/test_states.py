@@ -1,8 +1,7 @@
 import os
 import numpy as np
 
-from ... import cmds as commands
-from ...cmds import states
+from .. import commands, states
 import pytest
 
 import Chandra.cmd_states as cmd_states
