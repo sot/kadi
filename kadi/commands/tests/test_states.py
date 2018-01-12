@@ -400,7 +400,7 @@ def test_reduce_states_cmd_states():
 
 
 ###########################################################################
-# Comparing to backstop history files
+# Comparing to backstop history files or regression outputs
 ###########################################################################
 
 def compare_backstop_history(history, state_key, compare_val=True):
@@ -783,3 +783,91 @@ def test_backstop_eclipse_entry():
 2018005.071227278 | 1171 EOECLETO
 """
     compare_backstop_history(history, 'eclipse_timer')
+
+
+def compare_regress_output(regress, state_key):
+    regr = ascii.read(regress, format='fixed_width_two_line', fill_values=None)
+    start = regr['datestart'][0]
+    stop = regr['datestop'][-1]
+    sts = states.get_states(start, stop, state_keys=[state_key])
+    for colname in ('datestart', 'datestop', state_key):
+        assert np.all(regr[colname] == sts[colname])
+
+
+def test_regress_eclipse():
+    """
+    Regression check for day 2017:087 lunar eclipse and the 2017 winter
+    eclipse season.  Values match fairly closely (within 20 seconds) the backstop values
+    (presumably those were produced before loads?)
+
+    Start Time (UTCJFOUR)    Stop Time (UTCJFOUR)    Duration (sec)    Current Condition
+    ---------------------    --------------------    --------------    -----------------
+     356/2017 22:40:24.71    356/2017 22:44:31.35           246.636    Penumbra
+     356/2017 22:44:31.35    356/2017 23:28:03.07          2611.725    Umbra
+     356/2017 23:28:03.07    356/2017 23:31:39.57           216.503    Penumbra
+
+     359/2017 14:03:19.99    359/2017 14:06:17.01           177.018    Penumbra
+     359/2017 14:06:17.01    359/2017 15:08:46.48          3749.467    Umbra
+     359/2017 15:08:46.48    359/2017 15:11:14.26           147.781    Penumbra
+
+     362/2017 05:31:49.63    362/2017 05:34:27.02           157.393    Penumbra
+     362/2017 05:34:27.02    362/2017 06:43:19.69          4132.669    Umbra
+     362/2017 06:43:19.69    362/2017 06:45:28.73           129.045    Penumbra
+
+     364/2017 21:04:13.31    364/2017 21:06:47.45           154.137    Penumbra
+     364/2017 21:06:47.45    364/2017 22:14:19.84          4052.392    Umbra
+     364/2017 22:14:19.84    364/2017 22:16:26.52           126.682    Penumbra
+
+     002/2018 12:40:55.68    002/2018 12:43:40.19           164.507    Penumbra
+     002/2018 12:43:40.19    002/2018 13:43:08.52          3568.326    Umbra
+     002/2018 13:43:08.52    002/2018 13:45:26.46           137.942    Penumbra
+
+     005/2018 04:23:10.67    005/2018 04:26:38.91           208.237    Penumbra
+     005/2018 04:26:38.91    005/2018 05:09:03.73          2544.820    Umbra
+     005/2018 05:09:03.73    005/2018 05:12:06.26           182.528    Penumbra
+
+    """
+    regress = """
+      datestart              datestop       eclipse  trans_keys
+--------------------- --------------------- -------- ----------
+2017:080:12:00:00.000 2017:087:07:49:55.838      DAY
+2017:087:07:49:55.838 2017:087:08:10:35.838 PENUMBRA    eclipse
+2017:087:08:10:35.838 2017:090:12:00:00.000      DAY    eclipse
+"""
+    compare_regress_output(regress, 'eclipse')
+
+    regress = """
+      datestart              datestop       eclipse  trans_keys
+--------------------- --------------------- -------- ----------
+2017:355:12:00:00.000 2017:356:22:40:15.030      DAY
+2017:356:22:40:15.030 2017:356:22:44:25.030 PENUMBRA    eclipse
+2017:356:22:44:25.030 2017:356:23:28:15.030    UMBRA    eclipse
+2017:356:23:28:15.030 2017:356:23:31:45.030 PENUMBRA    eclipse
+
+2017:356:23:31:45.030 2017:359:14:03:19.633      DAY    eclipse
+2017:359:14:03:19.633 2017:359:14:06:19.633 PENUMBRA    eclipse
+2017:359:14:06:19.633 2017:359:15:08:59.633    UMBRA    eclipse
+2017:359:15:08:59.633 2017:359:15:11:29.633 PENUMBRA    eclipse
+
+2017:359:15:11:29.633 2017:362:05:31:53.806      DAY    eclipse
+2017:362:05:31:53.806 2017:362:05:34:33.806 PENUMBRA    eclipse
+2017:362:05:34:33.806 2017:362:06:43:33.806    UMBRA    eclipse
+2017:362:06:43:33.806 2017:362:06:45:43.806 PENUMBRA    eclipse
+
+2017:362:06:45:43.806 2017:364:21:04:23.508      DAY    eclipse
+2017:364:21:04:23.508 2017:364:21:06:53.508 PENUMBRA    eclipse
+2017:364:21:06:53.508 2017:364:22:14:43.508    UMBRA    eclipse
+2017:364:22:14:43.508 2017:364:22:16:43.508 PENUMBRA    eclipse
+
+2017:364:22:16:43.508 2018:002:12:41:11.436      DAY    eclipse
+2018:002:12:41:11.436 2018:002:12:43:51.436 PENUMBRA    eclipse
+2018:002:12:43:51.436 2018:002:13:43:31.436    UMBRA    eclipse
+2018:002:13:43:31.436 2018:002:13:45:51.436 PENUMBRA    eclipse
+
+2018:002:13:45:51.436 2018:005:04:23:26.278      DAY    eclipse
+2018:005:04:23:26.278 2018:005:04:26:56.278 PENUMBRA    eclipse
+2018:005:04:26:56.278 2018:005:05:09:26.278    UMBRA    eclipse
+2018:005:05:09:26.278 2018:005:05:12:26.278 PENUMBRA    eclipse
+2018:005:05:12:26.278 2018:006:12:00:00.000      DAY    eclipse
+"""
+    compare_regress_output(regress, 'eclipse')

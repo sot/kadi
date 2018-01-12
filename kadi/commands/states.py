@@ -170,10 +170,16 @@ class BaseTransition(object):
         # compare, but unrolling the loop here is more efficient since the CmdList class
         # would internally assemble a pure-Python version of the column first.
         if hasattr(cls, 'command_params'):
+            attrs_list = list(cls.command_params.keys())
+            vals_list = [val if isinstance(val, list) else [val]
+                         for val in cls.command_params.values()]
             ok = np.ones(len(out_cmds), dtype=bool)
             for idx, cmd in enumerate(out_cmds):
-                for attr, val in cls.command_params.items():
-                    ok[idx] = ok[idx] & (cmd[attr] == val)
+                for attr, vals in zip(attrs_list, vals_list):
+                    ok_idx = False
+                    for val in vals:
+                        ok_idx |= (cmd[attr] == val)
+                    ok[idx] = ok[idx] & ok_idx
 
             out_cmds = out_cmds[ok]
 
@@ -306,6 +312,38 @@ class EclipseEntryTimerTransition(ParamTransition):
     state_keys = ['eclipse_timer']
     transition_key = 'eclipse_timer'
     cmd_param_key = 'timecnt'
+
+
+class EclipsePenumbraEntryTransition(FixedTransition):
+    command_attributes = {'type': 'ORBPOINT'}
+    command_params = {'event_type': ['PENTRY', 'LSPENTRY']}
+    state_keys = ['eclipse']
+    transition_key = 'eclipse'
+    transition_val = 'PENUMBRA'
+
+
+class EclipsePenumbraExitTransition(FixedTransition):
+    command_attributes = {'type': 'ORBPOINT'}
+    command_params = {'event_type': ['PEXIT', 'LSPEXIT']}
+    state_keys = ['eclipse']
+    transition_key = 'eclipse'
+    transition_val = 'DAY'
+
+
+class EclipseUmbraEntryTransition(FixedTransition):
+    command_attributes = {'type': 'ORBPOINT'}
+    command_params = {'event_type': 'EONIGHT'}
+    state_keys = ['eclipse']
+    transition_key = 'eclipse'
+    transition_val = 'UMBRA'
+
+
+class EclipseUmbraExitTransition(FixedTransition):
+    command_attributes = {'type': 'ORBPOINT'}
+    command_params = {'event_type': 'EODAY'}
+    state_keys = ['eclipse']
+    transition_key = 'eclipse'
+    transition_val = 'PENUMBRA'
 
 
 class SPMEnableTransition(FixedTransition):
