@@ -976,7 +976,7 @@ def add_transition(transitions, idx, transition):
         transitions.append(transition)
 
 
-def get_states(start=None, stop=None, state_keys=None, cmds=None, state0=None,
+def get_states(start=None, stop=None, state_keys=None, cmds=None, continuity=None,
                reduce=True, merge_identical=False):
     """
     Get table of states corresponding to intervals when ``state_keys`` parameters
@@ -1010,7 +1010,7 @@ def get_states(start=None, stop=None, state_keys=None, cmds=None, state0=None,
     :param stop: stop of states (optional, DateTime compatible)
     :param state_keys: state keys of interest (optional, list or str or None)
     :param cmds: input commands (optional, CmdList)
-    :param state0: initial state (optional, dict)
+    :param continuity: initial state (optional, dict)
     :param reduce: call reduce_states() on output
     :param merge_identical: merge identical states (see reduce_states() docs)
 
@@ -1049,8 +1049,8 @@ def get_states(start=None, stop=None, state_keys=None, cmds=None, state0=None,
         stop = cmds[-1]['date']
 
     # Get initial state at start of commands
-    if state0 is None:
-        state0 = get_state0(start, state_keys)
+    if continuity is None:
+        continuity = get_continuity(start, state_keys)
 
     # Get transitions, which is a list of dict (state key
     # and new state value at that date).  This goes through each active
@@ -1062,9 +1062,9 @@ def get_states(start=None, stop=None, state_keys=None, cmds=None, state0=None,
     states = [StateDict({key: None for key in state_keys})]
     datestarts = [start]
 
-    # Apply initial ``state0`` values.  Clear the trans_keys set after setting
+    # Apply initial ``continuity`` values.  Clear the trans_keys set after setting
     # first state.
-    for key, val in state0.items():
+    for key, val in continuity.items():
         if key in state_keys:
             states[0][key] = val
     states[0].trans_keys.clear()
@@ -1170,7 +1170,7 @@ def reduce_states(states, state_keys, merge_identical=False):
         for idx in idxs:
             trans_keys_list[idx].add(key)
 
-    # First state trans_keys is the transition keys from state0.  Reduce
+    # First state trans_keys is the transition keys from continuity.  Reduce
     # this by set intersection to the output state_keys.
     if 'trans_keys' in states.colnames:
         trans_keys_list[0] = states['trans_keys'][0] & set(state_keys)
@@ -1180,13 +1180,13 @@ def reduce_states(states, state_keys, merge_identical=False):
     return out
 
 
-def get_state0(date=None, state_keys=None, lookbacks=(7, 30, 180, 1000)):
+def get_continuity(date=None, state_keys=None, lookbacks=(7, 30, 180, 1000)):
     """
     Get the state and transition dates at ``date`` for ``state_keys``.
 
     This function finds the state at a particular date by fetching commands
     prior to that date and determine the states.  It returns dictionary
-    ``state0`` provides the state values. Included in this dict is a special
+    ``continuity`` provides the state values. Included in this dict is a special
     key ``__dates__`` which provides the corresponding date at which the
     state-changing command occurred.
 
@@ -1215,7 +1215,7 @@ def get_state0(date=None, state_keys=None, lookbacks=(7, 30, 180, 1000)):
     if state_keys is None:
         state_keys = DEFAULT_STATE_KEYS
 
-    state0 = {}
+    continuity = {}
     dates = {}
 
     for lookback in lookbacks:
@@ -1223,16 +1223,16 @@ def get_state0(date=None, state_keys=None, lookbacks=(7, 30, 180, 1000)):
 
         for state_key in state_keys:
             # Don't bother if we already have a value for this key.
-            if state_key in state0:
+            if state_key in continuity:
                 continue
 
             # Get available commanded states for this particular state_key.  This may
             # return state values for many more keys (e.g. PCAD-related), and some or all
             # of these might be None if the relevant command never happened.  Fill in
-            # state0 as possible from last state (corresponding to the state after the
+            # continuity as possible from last state (corresponding to the state after the
             # last command in cmds).
             try:
-                states = get_states(state_keys=state_key, cmds=cmds, state0={}, reduce=False)
+                states = get_states(state_keys=state_key, cmds=cmds, continuity={}, reduce=False)
             except NoTransitionsError:
                 # No transitions within `cmds` for state_key, continue with other keys
                 continue
@@ -1240,37 +1240,37 @@ def get_state0(date=None, state_keys=None, lookbacks=(7, 30, 180, 1000)):
             colnames = set(states.colnames) - set(['datestart', 'datestop', 'trans_keys'])
             for colname in colnames:
                 if states[colname][-1] is not None:
-                    state0[colname] = states[colname][-1]
+                    continuity[colname] = states[colname][-1]
                     dates[colname] = states['datestart'][-1]
 
-        # If we have filled in state0 for every key then we're done.
+        # If we have filled in continuity for every key then we're done.
         # Otherwise bump the lookback and try again.
-        if all(state_key in state0 for state_key in state_keys):
+        if all(state_key in continuity for state_key in state_keys):
             break
     else:
         # Didn't find all state keys
-        missing_keys = set(state_keys) - set(state0)
+        missing_keys = set(state_keys) - set(continuity)
 
         # Try to get defaults from transition classes
         for missing_key in missing_keys:
             for cls in get_transition_classes(missing_key):
                 if hasattr(cls, 'default_value'):
-                    state0[missing_key] = cls.default_value
+                    continuity[missing_key] = cls.default_value
                     dates[missing_key] = 'DEFAULT'
 
         # Try again...
-        missing_keys = set(state_keys) - set(state0)
+        missing_keys = set(state_keys) - set(continuity)
         if missing_keys:
             raise ValueError('did not find transitions for state key(s)'
                              ' {} within {} days of {}.  Maybe adjust the `lookbacks` argument?'
                              .format(missing_keys, lookbacks[-1], stop.date))
 
     # Finally reduce down to the state_keys the user requested
-    state0 = {key: state0[key] for key in state_keys}
+    continuity = {key: continuity[key] for key in state_keys}
     dates = {key: dates[key] for key in state_keys}
-    state0['__dates__'] = dates
+    continuity['__dates__'] = dates
 
-    return state0
+    return continuity
 
 
 def _unique(seq):

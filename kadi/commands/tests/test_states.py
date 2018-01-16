@@ -11,7 +11,7 @@ from astropy.io import ascii
 from astropy.table import Table
 
 
-def get_states_test(start, stop, state_keys, state0=None):
+def get_states_test(start, stop, state_keys, continuity=None):
     """
     Helper for getting states from kadi and cmd_states
     """
@@ -26,18 +26,18 @@ def get_states_test(start, stop, state_keys, state0=None):
     lenr = len(rcstates)
 
     cmds = commands.get_cmds(start - 7, stop)
-    kstates = states.get_states(state_keys=state_keys, cmds=cmds, state0=state0, reduce=False)
+    kstates = states.get_states(state_keys=state_keys, cmds=cmds, continuity=continuity, reduce=False)
     rkstates = states.reduce_states(kstates, state_keys, merge_identical=True)[-lenr:]
 
     return rcstates, rkstates
 
 
-def compare_states(start, stop, state_keys, compare_state_keys=None, state0=None,
+def compare_states(start, stop, state_keys, compare_state_keys=None, continuity=None,
                    compare_dates=True):
     """
     Helper for comparing states from kadi and cmd_states
     """
-    rcstates, rkstates = get_states_test(start, stop, state_keys, state0=state0)
+    rcstates, rkstates = get_states_test(start, stop, state_keys, continuity=continuity)
 
     if compare_state_keys is None:
         compare_state_keys = state_keys
@@ -92,10 +92,10 @@ def test_quick():
                   ['q1', 'q2', 'q3', 'q4', 'pcad_mode', 'dither', 'ra', 'dec', 'roll'] +
                   ['letg', 'hetg'] +
                   ['simpos', 'simfa_pos'])
-    state0 = {'letg': 'RETR', 'hetg': 'RETR'}  # Not necessarily set within 7 days
-    rc, rk = compare_states('2017:300', '2017:310', state_keys, state0=state0)
+    continuity = {'letg': 'RETR', 'hetg': 'RETR'}  # Not necessarily set within 7 days
+    rc, rk = compare_states('2017:300', '2017:310', state_keys, continuity=continuity)
 
-    # Now test using start/stop pair with start/stop and no supplied cmds or state0.
+    # Now test using start/stop pair with start/stop and no supplied cmds or continuity.
     # This also tests the API kwarg order: datestart, datestop, state_keys, ..)
     sts = states.get_states('2017:300', '2017:310', state_keys, reduce=False)
     rk = states.reduce_states(sts, state_keys, merge_identical=True)
@@ -241,8 +241,8 @@ def test_dither():
                                                  1086.9567572759399], atol=1e-6, rtol=0)
 
 
-def test_get_state0_regress():
-    """Regression test against values produced by get_state0 during development.
+def test_get_continuity_regress():
+    """Regression test against values produced by get_continuity during development.
     Correctness not validated
     """
     expected = {'auto_npnt': 'ENAB',
@@ -279,18 +279,18 @@ def test_get_state0_regress():
                 'targ_q4': 0.670694405,
                 'vid_board': 1}
 
-    state0 = states.get_state0('2017:014', state_keys=list(expected))
+    continuity = states.get_continuity('2017:014', state_keys=list(expected))
 
     for key, val in expected.items():
         if isinstance(val, (int, str)):
-            assert state0[key] == val
+            assert continuity[key] == val
         else:
-            assert np.isclose(state0[key], val, rtol=0, atol=1e-7)
+            assert np.isclose(continuity[key], val, rtol=0, atol=1e-7)
 
 
-def test_get_state0_vs_states():
+def test_get_continuity_vs_states():
     """
-    Functional test: state0 for a certain date should be the same as the last states
+    Functional test: continuity for a certain date should be the same as the last states
     when fed in cmds up through that date.
     """
     date0 = '2017:014'
@@ -299,26 +299,26 @@ def test_get_state0_vs_states():
     sts = states.get_states(cmds=cmds)
     sts0 = sts[-1]
 
-    state0 = states.get_state0(date0)
-    del state0['__dates__']
+    continuity = states.get_continuity(date0)
+    del continuity['__dates__']
 
-    for key, val in state0.items():
+    for key, val in continuity.items():
         if isinstance(val, (int, str)):
             assert sts0[key] == val
         else:
             assert np.isclose(sts0[key], val, rtol=0, atol=1e-7)
 
 
-def test_get_state0_keys():
+def test_get_continuity_keys():
     """Test that output has only the desired state keys. Also test that one can
     provide a string instead of list of state keys"""
-    state0 = states.get_state0('2017:014', 'clocking')
-    assert set(state0) == set(['clocking', '__dates__'])
+    continuity = states.get_continuity('2017:014', 'clocking')
+    assert set(continuity) == set(['clocking', '__dates__'])
 
 
-def test_get_state0_fail():
+def test_get_continuity_fail():
     with pytest.raises(ValueError) as err:
-        states.get_state0('2017:014', 'letg', lookbacks=[3])
+        states.get_continuity('2017:014', 'letg', lookbacks=[3])
     assert 'did not find transitions' in str(err)
 
 
@@ -409,7 +409,7 @@ def compare_backstop_history(history, state_key, compare_val=True):
     start = DateTime(hist['col1'][0], format='greta') - 1 / 86400.
     stop = DateTime(hist['col1'][-1], format='greta') + 1 / 86400.
     sts = states.get_states(start=start, stop=stop, state_keys=state_key)
-    sts = sts[1:]  # Drop the first state (which is state0 at start time)
+    sts = sts[1:]  # Drop the first state (which is continuity at start time)
     assert len(sts) == len(hist)
     assert np.all(DateTime(sts['datestart']).greta == hist['col1'])
     if compare_val:

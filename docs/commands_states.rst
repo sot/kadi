@@ -1,5 +1,5 @@
 .. |get_cmds| replace:: :func:`~kadi.commands.commands.get_cmds`
-.. |get_state0| replace:: :func:`~kadi.commands.states.get_state0`
+.. |get_continuity| replace:: :func:`~kadi.commands.states.get_continuity`
 .. |get_states| replace:: :func:`~kadi.commands.states.get_states`
 .. |CommandTable| replace:: :class:`~kadi.commands.commands.CommandTable`
 
@@ -279,8 +279,8 @@ manually.  For example::
   >>> start, stop = ('2017:001:21:00:00', '2017:002:11:29:00')
   >>> state_keys=['obsid', 'simpos', 'clocking']
   >>> cmds = commands.get_cmds(start, stop)
-  >>> state0 = states.get_state0(start, state_keys)
-  >>> states.get_states(cmds=cmds, state0=state0,
+  >>> continuity = states.get_continuity(start, state_keys)
+  >>> states.get_states(cmds=cmds, continuity=continuity,
   ...                   state_keys=state_keys,
   ...                   merge_identical=True)
   <Table length=5>
@@ -293,7 +293,7 @@ manually.  For example::
   2017:002:11:23:43.185 2017:002:11:26:43.185 19973 -99616        0 clocking,simpos
   2017:002:11:26:43.185 2017:002:11:26:43.185 50432 -99616        0           obsid
 
-In the call to |get_states|, if you omit the ``state0`` argument it will be determined
+In the call to |get_states|, if you omit the ``continuity`` argument it will be determined
 internally using the first command date.
 
 This manual process is normally what would be done in a load review code where one needs
@@ -316,18 +316,18 @@ Continuity
 ^^^^^^^^^^
 
 To get the continuity state for a desired set of state keys at a certain time, use
-|get_state0|.  Before doing this, recall that in IPython one can always get
+|get_continuity|.  Before doing this, recall that in IPython one can always get
 help on a function, class, or method with ``<something>?`` or ``help(<something>)``.
-So here is how to get help on the |get_state0|::
+So here is how to get help on the |get_continuity|::
 
-  >>> states.get_state0?
-  Signature: states.get_state0(date=None, state_keys=None, lookbacks=(7, 30, 180, 1000))
+  >>> states.get_continuity?
+  Signature: states.get_continuity(date=None, state_keys=None, lookbacks=(7, 30, 180, 1000))
   Docstring:
   Get the state and transition dates at ``date`` for ``state_keys``.
 
   This function finds the state at a particular date by fetching commands
   prior to that date and determine the states.  It returns dictionary
-  ``state0`` provides the state values. Included in this dict is a special
+  ``continuity`` provides the state values. Included in this dict is a special
   key ``__dates__`` which provides the corresponding date at which the
   state-changing command occurred.
 
@@ -350,8 +350,8 @@ So here is how to get help on the |get_state0|::
 
 So let's get the state of ``obsid`` and ``si_mode`` at ``2017:300:00:00:00``::
 
-  >>> state0 = states.get_state0('2017:300:00:00:00', ['obsid', 'si_mode'])
-  >>> state0
+  >>> continuity = states.get_continuity('2017:300:00:00:00', ['obsid', 'si_mode'])
+  >>> continuity
   {'__dates__': {'obsid': '2017:299:21:50:34.193',
                  'si_mode': '2017:299:22:02:41.439'},
    'obsid': 19385,
@@ -363,7 +363,7 @@ corresponding date when state key changed value because of a command.
 To prove this, let's look at the commands exactly at the state transition time::
 
   >>> from Chandra.Time import DateTime
-  >>> date0 = DateTime(state0['__dates__']['obsid'])
+  >>> date0 = DateTime(continuity['__dates__']['obsid'])
   >>> cmds = commands.get_cmds(date0, date0 + 0.001 / 86400)  # 1 msec later
   >>> cmds.fetch_params()
   >>> print(cmds)
@@ -593,7 +593,7 @@ Notes:
 So now with our new ``IUModeSelectTransition`` class defined, we can use it!
 ::
 
-  >>> states.get_state0('2018:001', state_keys='iu_mode_select')
+  >>> states.get_continuity('2018:001', state_keys='iu_mode_select')
   {'__dates__': {'iu_mode_select': '2018:001:02:30:00.000'},
    'iu_mode_select': 'CIU1024T'}
 
