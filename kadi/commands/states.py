@@ -1,41 +1,6 @@
 """
 This module provides the functions for dynamically determining Chandra commanded states
 based entirely on known history of commands.
-
-Basic design concepts.
-
-- Transition class has information about:
-
-  - Command that generates state change
-  - State key(s) that require this transition
-
-- Simple cases are handled using sub-classes that need only define class
-  attributes.
-
-- Transition classes are never instantiated, they contain only class methods.
-
-- Transition class can quickly get a list of applicable commands using (usually)
-  numpy filtering instead of looping and if/elif through every command.  This
-  allows for getting a year of states in < 10 seconds.  This requirement drives
-  some other code complexity, in particular transition function callbacks, where
-  a transition is specified as a function that gets called during state
-  evaluation.
-
-- Once all transitions have been collected into a time-ordered list they are
-  evaluated in order to accumulate discrete states.  Transition callback
-  functions can dynamically add downstream transitions during this process to
-  handle events like a maneuver, where the current state is required to generate
-  mid-maneuver attitudes and the NPM transition.
-
-- The signature of a transition function callback is::
-
-    def callback(cls, date, transitions, state, idx):
-
-  It has access to the current state date, the complete list of transitions,
-  the current state, the current index into the transitions list, and
-  any other keyword args in the transition that were inserted when transitions
-  were set.  This function can add downstream transitions or directly update
-  the current state.
 """
 from __future__ import division, print_function, absolute_import
 
@@ -127,7 +92,8 @@ class StateDict(dict):
 
 class TransitionMeta(type):
     """
-    Metaclass that adds the class to the TRANSITIONS registry.
+    Metaclass that adds the class to the TRANSITIONS dict (keyed by state_key),
+    the TRANSITIONS_CLASSES set, and makes the complete list of STATE_KEYS.
     """
     def __new__(mcls, name, bases, members):
         cls = super(TransitionMeta, mcls).__new__(mcls, name, bases, members)
@@ -142,17 +108,34 @@ class TransitionMeta(type):
 
             TRANSITION_CLASSES.add(cls)
 
+            cls._auto_update_docstring()
+
         return cls
 
 
 @six.add_metaclass(TransitionMeta)
 class BaseTransition(object):
+    """
+    Base transition class from which all actual transition classes are derived.
+    """
+
     @classmethod
     def get_state_changing_commands(cls, cmds):
         """
         Get commands that match the required attributes for state changing commands.
 
-        :param cmds: commands (CmdList)
+        This depends on two class attributes that are defined in derived classes:
+
+        ``command_attributes`` (required)
+          dict of {cmd_attr: match_value, ..}, where ``cmd_attr`` is either ``type``
+          or ``tlmsid``, and ``match_value`` is the required value.
+
+        ``command_params`` (optional)
+          dict of {cmd_attr: match_value, ..}, where ``cmd_attr`` is one of the
+          available command parameters, and ``match_value`` is either the required value
+          or a list of required values (where at least one must match).
+
+        :param cmds: commands (:class:`~kadi.commands.commands.CommandTable`)
 
         :returns: subset of ``cmds`` relevant for this Transition class (CmdList)
         """
@@ -182,11 +165,55 @@ class BaseTransition(object):
 
         return out_cmds
 
+    @classmethod
+    def _auto_update_docstring(cls):
+        """
+        Put some useful information at the top of docstring.
+        """
+        docs = []
+        docs.append('*State keys*: ' + ', '.join(cls.state_keys))
+
+        if hasattr(cls, 'command_attributes'):
+            cmd_attrs = []
+            for key, val in cls.command_attributes.items():
+                cmd_attrs.append('{}={}'.format(key, val))
+
+            if hasattr(cls, 'command_params'):
+                keys_list = list(cls.command_params.keys())
+                vals_list = [val if isinstance(val, list) else [val]
+                             for val in cls.command_params.values()]
+                for key, vals in zip(keys_list, vals_list):
+                    valstr = ' or '.join(str(val) for val in vals)
+                    cmd_attrs.append('{}={}'.format(key, valstr))
+
+            docs.append('')
+            docs.append('*Commands*: ' + ', '.join(cmd_attrs))
+
+        others = []
+        for attr, val in cls.__dict__.items():
+            if (attr.startswith('_') or inspect.ismethod(val) or
+                    attr in ('state_keys', 'command_attributes', 'command_params')):
+                continue
+            others.append('{}={}'.format(attr, val))
+        if others:
+            docs.append('')
+            docs.append('*Others*: ' + ', '.join(others))
+
+        # Common 4-space indent
+        docs = ['    ' + doc for doc in docs]
+
+        if cls.__doc__:
+            # Get rid of initial new line and any trailing whitespace/newlines
+            docs.insert(0, cls.__doc__.lstrip('\n').rstrip())
+            docs.insert(1, '    ')
+
+        cls.__doc__ = '\n'.join(docs)
+
 
 class FixedTransition(BaseTransition):
     """
-    This is the simple case where there is a fixed attribute that gets set to a fixed
-    value, e.g. pcad_mode='NMAN' for NMM.
+    Transitions for the case of an attribute that gets set to a fixed
+    value when the command occurs, e.g. pcad_mode='NMAN' for AONMMODE.
 
     Class attributes:
 
@@ -200,6 +227,8 @@ class FixedTransition(BaseTransition):
 
         :param transitions_dict: global dict of transitions (updated in-place)
         :param cmds: commands (CmdList)
+        :param start: start time for states
+        :param stop: stop time for states
 
         :returns: None
         """
@@ -219,15 +248,25 @@ class FixedTransition(BaseTransition):
 
 
 class ParamTransition(BaseTransition):
+    """
+    Transitions for the case of an attribute that gets set to a value defined by
+    a command parameter key, e.g. ``obsid`` = ``ID`` parameter of ``COBRQID``
+    command.
+
+    Class attributes:
+
+    :param transition_key: single transition key or list of transition keys
+    :param cmd_param_key: command parameter name (str or list of str)
+    """
     @classmethod
     def set_transitions(cls, transitions_dict, cmds, start, stop):
         """
-        Set transitions for a Table of commands ``cmds``.  This is the simplest
-        case where there is an attribute that gets set to a specified
-        value in the command, e.g. MP_OBSID or SIMTRANS
+        Set transitions for a Table of commands ``cmds``.
 
         :param transitions_dict: global dict of transitions (updated in-place)
         :param cmds: commands (CmdList)
+        :param start: start time for states
+        :param stop: stop time for states
 
         :returns: None
         """
@@ -252,6 +291,7 @@ class ParamTransition(BaseTransition):
 ###################################################################
 
 class HETG_INSR_Transition(FixedTransition):
+    """HETG insertion"""
     command_attributes = {'tlmsid': '4OHETGIN'}
     state_keys = ['letg', 'hetg', 'grating']
     transition_key = ['hetg', 'grating']
@@ -259,6 +299,7 @@ class HETG_INSR_Transition(FixedTransition):
 
 
 class HETG_RETR_Transition(FixedTransition):
+    """HETG retraction"""
     command_attributes = {'tlmsid': '4OHETGRE'}
     state_keys = ['letg', 'hetg', 'grating']
     transition_key = ['hetg', 'grating']
@@ -266,6 +307,7 @@ class HETG_RETR_Transition(FixedTransition):
 
 
 class LETG_INSR_Transition(FixedTransition):
+    """LETG insertion"""
     command_attributes = {'tlmsid': '4OLETGIN'}
     state_keys = ['letg', 'hetg', 'grating']
     transition_key = ['letg', 'grating']
@@ -273,6 +315,7 @@ class LETG_INSR_Transition(FixedTransition):
 
 
 class LETG_RETR_Transition(FixedTransition):
+    """LETG retraction"""
     command_attributes = {'tlmsid': '4OLETGRE'}
     state_keys = ['letg', 'hetg', 'grating']
     transition_key = ['letg', 'grating']
@@ -280,6 +323,7 @@ class LETG_RETR_Transition(FixedTransition):
 
 
 class SimTscTransition(ParamTransition):
+    """SIM translating science compartment translation"""
     command_attributes = {'type': 'SIMTRANS'}
     state_keys = ['simpos']
     transition_key = 'simpos'
@@ -287,6 +331,7 @@ class SimTscTransition(ParamTransition):
 
 
 class SimFocusTransition(ParamTransition):
+    """SIM focus assembly translation"""
     command_attributes = {'type': 'SIMFOCUS'}
     state_keys = ['simfa_pos']
     transition_key = 'simfa_pos'
@@ -298,6 +343,7 @@ class SimFocusTransition(ParamTransition):
 ###################################################################
 
 class ObsidTransition(ParamTransition):
+    """Obsid update"""
     command_attributes = {'type': 'MP_OBSID'}
     state_keys = ['obsid']
     transition_key = 'obsid'
@@ -305,6 +351,7 @@ class ObsidTransition(ParamTransition):
 
 
 class EclipseEntryTimerTransition(ParamTransition):
+    """Eclipse entry timer update"""
     command_attributes = {'tlmsid': 'EOECLETO'}
     state_keys = ['eclipse_timer']
     transition_key = 'eclipse_timer'
@@ -312,6 +359,7 @@ class EclipseEntryTimerTransition(ParamTransition):
 
 
 class EclipsePenumbraEntryTransition(FixedTransition):
+    """Eclipse penumbra entry"""
     command_attributes = {'type': 'ORBPOINT'}
     command_params = {'event_type': ['PENTRY', 'LSPENTRY']}
     state_keys = ['eclipse']
@@ -320,6 +368,7 @@ class EclipsePenumbraEntryTransition(FixedTransition):
 
 
 class EclipsePenumbraExitTransition(FixedTransition):
+    """Eclipse penumbra exit"""
     command_attributes = {'type': 'ORBPOINT'}
     command_params = {'event_type': ['PEXIT', 'LSPEXIT']}
     state_keys = ['eclipse']
@@ -328,6 +377,7 @@ class EclipsePenumbraExitTransition(FixedTransition):
 
 
 class EclipseUmbraEntryTransition(FixedTransition):
+    """Eclipse umbra entry"""
     command_attributes = {'type': 'ORBPOINT'}
     command_params = {'event_type': 'EONIGHT'}
     state_keys = ['eclipse']
@@ -336,6 +386,7 @@ class EclipseUmbraEntryTransition(FixedTransition):
 
 
 class EclipseUmbraExitTransition(FixedTransition):
+    """Eclipse umbra exit"""
     command_attributes = {'type': 'ORBPOINT'}
     command_params = {'event_type': 'EODAY'}
     state_keys = ['eclipse']
@@ -344,6 +395,7 @@ class EclipseUmbraExitTransition(FixedTransition):
 
 
 class SPMEnableTransition(FixedTransition):
+    """Sun position monitor enable"""
     command_attributes = {'tlmsid': 'AOFUNCEN'}
     command_params = {'aopcadse': 30}
     state_keys = ['sun_pos_mon']
@@ -352,6 +404,7 @@ class SPMEnableTransition(FixedTransition):
 
 
 class SPMDisableTransition(FixedTransition):
+    """Sun position monitor disable"""
     command_attributes = {'tlmsid': 'AOFUNCDS'}
     command_params = {'aopcadsd': 30}
     state_keys = ['sun_pos_mon']
@@ -368,17 +421,21 @@ class SPMEclipseEnableTransition(BaseTransition):
     Eclipse entry is event type ORBPOINT with TYPE=PENTRY or TYPE=LSPENTRY
     Eclipse exit is event type ORBPOINT with TYPE=PEXIT or TYPE=LSPEXIT
     """
+    # Command attributes and params are just for docstring, but actual transition
+    # command filtering in set_transitions is more complicated.
+    command_attributes = {'type': 'ORBPOINT'}
+    command_params = {'event_type': ['PEXIT', 'LSPEXIT']}
     state_keys = ['sun_pos_mon']
 
     @classmethod
     def set_transitions(cls, transitions_dict, cmds, start, stop):
         """
-        Set transitions for a Table of commands ``cmds``.  This is the simplest
-        case where there is an attribute that gets set to a specified
-        value in the command, e.g. MP_OBSID or SIMTRANS
+        Set transitions for a Table of commands ``cmds``.
 
         :param transitions_dict: global dict of transitions (updated in-place)
         :param cmds: commands (CmdList)
+        :param start: start time for states
+        :param stop: stop time for states
 
         :returns: None
         """
@@ -405,6 +462,7 @@ class SPMEclipseEnableTransition(BaseTransition):
 
 
 class SCS84EnableTransition(FixedTransition):
+    """SCS-84 enable"""
     command_attributes = {'tlmsid': 'COENASX'}
     command_params = {'coenas1': 84}
     state_keys = ['scs84']
@@ -414,6 +472,7 @@ class SCS84EnableTransition(FixedTransition):
 
 
 class SCS84DisableTransition(FixedTransition):
+    """SCS-84 disable"""
     command_attributes = {'tlmsid': 'CODISASX'}
     command_params = {'codisas1': 84}
     state_keys = ['scs84']
@@ -422,6 +481,7 @@ class SCS84DisableTransition(FixedTransition):
 
 
 class SCS98EnableTransition(FixedTransition):
+    """SCS-98 enable"""
     command_attributes = {'tlmsid': 'COENASX'}
     command_params = {'coenas1': 98}
     state_keys = ['scs98']
@@ -430,6 +490,7 @@ class SCS98EnableTransition(FixedTransition):
 
 
 class SCS98DisableTransition(FixedTransition):
+    """SCS-98 disable"""
     command_attributes = {'tlmsid': 'CODISASX'}
     command_params = {'codisas1': 98}
     state_keys = ['scs98']
@@ -438,6 +499,7 @@ class SCS98DisableTransition(FixedTransition):
 
 
 class RadmonEnableTransition(FixedTransition):
+    """RADMON enable"""
     command_attributes = {'tlmsid': 'OORMPEN'}
     state_keys = ['radmon']
     transition_key = 'radmon'
@@ -445,6 +507,7 @@ class RadmonEnableTransition(FixedTransition):
 
 
 class RadmonDisableTransition(FixedTransition):
+    """RADMON disable"""
     command_attributes = {'tlmsid': 'OORMPDS'}
     state_keys = ['radmon']
     transition_key = 'radmon'
@@ -452,6 +515,7 @@ class RadmonDisableTransition(FixedTransition):
 
 
 class OrbitPointTransition(ParamTransition):
+    """Orbit point state based on backstop ephemeris entries"""
     command_attributes = {'type': 'ORBPOINT'}
     state_keys = ['orbit_point']
     transition_key = 'orbit_point'
@@ -459,6 +523,7 @@ class OrbitPointTransition(ParamTransition):
 
 
 class EphemerisTransition(ParamTransition):
+    """On-board ephemeris update values"""
     command_attributes = {'tlmsid': 'AOEPHUPS'}
     state_keys = ['aoephem1', 'aoephem2', 'aoratio', 'aoargper', 'aoeccent',
                   'ao1minus', 'ao1plus', 'aomotion', 'aoiterat', 'aoorbang',
@@ -469,7 +534,7 @@ class EphemerisTransition(ParamTransition):
 
 class EphemerisUpdateTransition(BaseTransition):
     """
-    Ephemeris update. Mostly useful for the FOT to assist in backstop
+    On-board ephemeris update date.  Mostly useful for the FOT to assist in backstop
     processing.
     """
     command_attributes = {'tlmsid': 'AOEPHUPS'}
@@ -478,8 +543,12 @@ class EphemerisUpdateTransition(BaseTransition):
     @classmethod
     def set_transitions(cls, transitions_dict, cmds, start, stop):
         """
+        Set transitions for a Table of commands ``cmds``.
+
         :param transitions_dict: global dict of transitions (updated in-place)
         :param cmds: commands (CmdList)
+        :param start: start time for states
+        :param stop: stop time for states
 
         :returns: None
         """
@@ -494,14 +563,24 @@ class EphemerisUpdateTransition(BaseTransition):
 
 class SunVectorTransition(BaseTransition):
     """
-    Add transitions between start/stop every 10ksec to sample the pitch and off_nominal
+    Add transitions between start/stop every 10 ksec to sample the pitch and off_nominal
     roll during NPNT.  These are function transitions which check to see that
-    pcad_mode == 'NPNT' before changing the pitch / off_nominal_roll.
+    ``pcad_mode == 'NPNT'`` before changing the pitch / off_nominal_roll.
     """
     state_keys = PCAD_STATE_KEYS
 
     @classmethod
     def set_transitions(cls, transitions_dict, cmds, start, stop):
+        """
+        Set transitions for a Table of commands ``cmds``.
+
+        :param transitions_dict: global dict of transitions (updated in-place)
+        :param cmds: commands (CmdList)
+        :param start: start time for states
+        :param stop: stop time for states
+
+        :returns: None
+        """
         # np.ceil is used here to get 'times' between start/stop at even increments of
         # "sample_time" so that the commands will be at the same times in an interval even if
         # a different time range is being updated.
@@ -519,7 +598,7 @@ class SunVectorTransition(BaseTransition):
     @classmethod
     def update_sun_vector_state(cls, date, transitions, state, idx):
         """
-        This is a transition callback method to potentially update the ``pitch`` and
+        Transition callback method to potentially update the ``pitch`` and
         ``off_nominal`` states if pcad_mode is NPNT.
 
         :param date: date (str)
@@ -534,6 +613,7 @@ class SunVectorTransition(BaseTransition):
 
 
 class DitherEnableTransition(FixedTransition):
+    """Dither enable"""
     command_attributes = {'tlmsid': 'AOENDITH'}
     state_keys = ['dither']
     transition_key = 'dither'
@@ -541,6 +621,7 @@ class DitherEnableTransition(FixedTransition):
 
 
 class DitherDisableTransition(FixedTransition):
+    """Dither disable"""
     command_attributes = {'tlmsid': 'AODSDITH'}
     state_keys = ['dither']
     transition_key = 'dither'
@@ -548,6 +629,7 @@ class DitherDisableTransition(FixedTransition):
 
 
 class DitherParamsTransition(BaseTransition):
+    """Dither parameters"""
     command_attributes = {'tlmsid': 'AODITPAR'}
     state_keys = ['dither_phase_pitch', 'dither_phase_yaw',
                   'dither_ampl_pitch', 'dither_ampl_yaw',
@@ -555,6 +637,16 @@ class DitherParamsTransition(BaseTransition):
 
     @classmethod
     def set_transitions(cls, transitions_dict, cmds, start, stop):
+        """
+        Set transitions for a Table of commands ``cmds``.
+
+        :param transitions_dict: global dict of transitions (updated in-place)
+        :param cmds: commands (CmdList)
+        :param start: start time for states
+        :param stop: stop time for states
+
+        :returns: None
+        """
         state_cmds = cls.get_state_changing_commands(cmds)
 
         for cmd in state_cmds:
@@ -568,6 +660,7 @@ class DitherParamsTransition(BaseTransition):
 
 
 class NMM_Transition(FixedTransition):
+    """Transition to Normal Maneuver Mode"""
     command_attributes = {'tlmsid': 'AONMMODE'}
     state_keys = PCAD_STATE_KEYS
     transition_key = 'pcad_mode'
@@ -575,6 +668,7 @@ class NMM_Transition(FixedTransition):
 
 
 class NPM_Transition(FixedTransition):
+    """Transition to Normal Point Mode"""
     command_attributes = {'tlmsid': 'AONPMODE'}
     state_keys = PCAD_STATE_KEYS
     transition_key = 'pcad_mode'
@@ -582,6 +676,7 @@ class NPM_Transition(FixedTransition):
 
 
 class AutoNPMEnableTransition(FixedTransition):
+    """Enable automatic transition to Normal Point Mode"""
     command_attributes = {'tlmsid': 'AONM2NPE'}
     state_keys = PCAD_STATE_KEYS
     transition_key = 'auto_npnt'
@@ -589,6 +684,7 @@ class AutoNPMEnableTransition(FixedTransition):
 
 
 class AutoNPMDisableTransition(FixedTransition):
+    """Disable automatic transition to Normal Point Mode"""
     command_attributes = {'tlmsid': 'AONM2NPD'}
     state_keys = PCAD_STATE_KEYS
     transition_key = 'auto_npnt'
@@ -596,11 +692,22 @@ class AutoNPMDisableTransition(FixedTransition):
 
 
 class TargQuatTransition(BaseTransition):
+    """Commanded target quaternion"""
     command_attributes = {'type': 'MP_TARGQUAT'}
     state_keys = PCAD_STATE_KEYS
 
     @classmethod
     def set_transitions(cls, transitions, cmds, start, stop):
+        """
+        Set transitions for a Table of commands ``cmds``.
+
+        :param transitions_dict: global dict of transitions (updated in-place)
+        :param cmds: commands (CmdList)
+        :param start: start time for states
+        :param stop: stop time for states
+
+        :returns: None
+        """
         state_cmds = cls.get_state_changing_commands(cmds)
 
         for cmd in state_cmds:
@@ -610,6 +717,12 @@ class TargQuatTransition(BaseTransition):
 
 
 class ManeuverTransition(BaseTransition):
+    """
+    Execute maneuver.  This is a relatively complex transition that computes the
+    intermediate quaternion values for the maneuver and inserts downstream transitions to
+    perform attitude quaternion updated accordingly.  At the end of the maneuver it
+    schedules a NPM transition if ``auto_npnt`` is enabled.
+    """
     command_attributes = {'tlmsid': 'AOMANUVR'}
     state_keys = PCAD_STATE_KEYS
 
@@ -623,9 +736,8 @@ class ManeuverTransition(BaseTransition):
     @classmethod
     def callback(cls, date, transitions, state, idx):
         """
-        This is a transition function callback.  It generates downstream
-        transitions to perform the actual maneuver and (usually) transition
-        to NPM at the end of maneuver.
+        Transition function callback to generate downstream transitions to perform the
+        actual maneuver and (usually) transition to NPM at the end of maneuver.
         """
         end_manvr_date = cls.add_manvr_transitions(date, transitions, state, idx)
 
@@ -688,6 +800,11 @@ class ManeuverTransition(BaseTransition):
 
 
 class NormalSunTransition(ManeuverTransition):
+    """
+    Same as ``ManeuverTransition`` except that it performs a maneuver
+    to a normal sun pointed attitude (based on a pure-pitch maneuver from
+    current attitude).  It also changes ``pcad_mode`` to NSUN.
+    """
     command_attributes = {'tlmsid': 'AONSMSAF'}
     state_keys = PCAD_STATE_KEYS
 
@@ -716,11 +833,24 @@ class NormalSunTransition(ManeuverTransition):
 ###################################################################
 
 class ACISTransition(BaseTransition):
+    """
+    Implement transitions for ACIS states.
+    """
     command_attributes = {'type': 'ACISPKT'}
     state_keys = ['clocking', 'power_cmd', 'vid_board', 'fep_count', 'si_mode', 'ccd_count']
 
     @classmethod
     def set_transitions(cls, transitions, cmds, start, stop):
+        """
+        Set transitions for a Table of commands ``cmds``.
+
+        :param transitions_dict: global dict of transitions (updated in-place)
+        :param cmds: commands (CmdList)
+        :param start: start time for states
+        :param stop: stop time for states
+
+        :returns: None
+        """
         state_cmds = cls.get_state_changing_commands(cmds)
         for cmd in state_cmds:
             tlmsid = cmd['tlmsid']
@@ -938,8 +1068,6 @@ def get_states(start=None, stop=None, state_keys=None, cmds=None, state0=None,
     for key, val in state0.items():
         if key in state_keys:
             states[0][key] = val
-        elif key != '__dates__':
-            warnings.warn('state0 key {} is not in state_keys, ignoring it'.format(key))
     states[0].trans_keys.clear()
 
     # Do main state transition processing.  Start by making current ``state`` which is a
@@ -1153,6 +1281,22 @@ def _unique(seq):
     return [x for x in seq if not (x in seen or seen_add(x))]
 
 
+def print_state_keys_transition_classes_docs():
+    """
+    Sort transition classes into a data structure keyed by state_keys
+    """
+    state_keys_classes = collections.defaultdict(list)
+    for cls in TRANSITION_CLASSES:
+        keys = tuple(cls.state_keys)
+        state_keys_classes[keys].append(cls)
+
+    for keys in sorted(state_keys_classes):
+        print(', '.join('``{}``'.format(key) for key in keys))
+        for cls in sorted(state_keys_classes[keys], key=lambda cls: cls.__name__):
+            print('  - :class:`~{}.{}`'.format(cls.__module__, cls.__name__))
+        print()
+
+
 def get_chandra_states(main_args=None):
     """
     Command line interface to output commanded states over a date range in tabular form
@@ -1186,4 +1330,4 @@ def get_chandra_states(main_args=None):
     states = get_states(start, stop, state_keys, merge_identical=opt.merge_identical)
     del states['trans_keys']
 
-    ascii.write(states, output=opt.outfile, format='fixed_width', delimiter='', overwrite=True)
+    ascii.write(states, output=opt.outfile, format='fixed_width', delimiter='')
