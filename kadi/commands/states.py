@@ -6,7 +6,6 @@ from __future__ import division, print_function, absolute_import
 
 import collections
 import itertools
-import warnings
 import inspect
 
 import numpy as np
@@ -989,7 +988,7 @@ def get_states(start=None, stop=None, state_keys=None, cmds=None, state0=None,
     provide a single state key as a a string, e.g. ``state_keys='obsid'``.
 
     One can provide *either* the ``cmds`` argument with the ``CmdList`` of
-    commands (via ``cmds.filter()``), *OR* the ``start`` (and optionally
+    commands (via ``commands.get_cmds()``), *OR* the ``start`` (and optionally
     ``stop``) date.  In the latter case this function will automatically fetch
     the commands internally.  If the ``stop`` date is not provided then all
     known commands (including those from approved loads) will be included.
@@ -1040,7 +1039,7 @@ def get_states(start=None, stop=None, state_keys=None, cmds=None, state0=None,
     if cmds is None:
         if start is None:
             raise ValueError("must supply either 'cmds' argument or 'start' argument")
-        cmds = commands.filter(start, stop)
+        cmds = commands.get_cmds(start, stop)
         start = DateTime(start).date
         stop = DateTime(stop or cmds[-1]['date']).date  # User-supplied stop or last command
     else:
@@ -1220,7 +1219,7 @@ def get_state0(date=None, state_keys=None, lookbacks=(7, 30, 180, 1000)):
     dates = {}
 
     for lookback in lookbacks:
-        cmds = commands.filter(stop - lookback, stop)
+        cmds = commands.get_cmds(stop - lookback, stop)
 
         for state_key in state_keys:
             # Don't bother if we already have a value for this key.

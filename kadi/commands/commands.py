@@ -11,7 +11,7 @@ from six.moves import cPickle as pickle
 
 from ..paths import IDX_CMDS_PATH, PARS_DICT_PATH
 
-__all__ = ['filter', 'CommandTable']
+__all__ = ['get_cmds', 'CommandTable']
 
 
 class LazyVal(object):
@@ -63,7 +63,7 @@ pars_dict = LazyVal(load_pars_dict)
 rev_pars_dict = LazyVal(lambda: {v: k for k, v in pars_dict.items()})
 
 
-def filter(start=None, stop=None, **kwargs):
+def get_cmds(start=None, stop=None, **kwargs):
     """
     Get commands with ``start`` <= date < ``stop``.  Additional ``key=val`` pairs
     can be supplied to further filter the results.  Both ``key`` and ``val``
@@ -76,10 +76,10 @@ def filter(start=None, stop=None, **kwargs):
     Examples::
 
       >>> from kadi import commands
-      >>> cmds = commands.filter('2012:001', '2012:030')
-      >>> cmds = commands.filter('2012:001', '2012:030', type='simtrans')
-      >>> cmds = commands.filter(type='acispkt', tlmsid='wsvidalldn')
-      >>> cmds = commands.filter(msid='aflcrset')
+      >>> cmds = commands.get_cmds('2012:001', '2012:030')
+      >>> cmds = commands.get_cmds('2012:001', '2012:030', type='simtrans')
+      >>> cmds = commands.get_cmds(type='acispkt', tlmsid='wsvidalldn')
+      >>> cmds = commands.get_cmds(msid='aflcrset')
       >>> print(cmds)
 
     :param start: DateTime format (optional)

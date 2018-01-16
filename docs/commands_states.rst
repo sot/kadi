@@ -1,4 +1,4 @@
-.. |filter| replace:: :func:`~kadi.commands.commands.filter`
+.. |get_cmds| replace:: :func:`~kadi.commands.commands.get_cmds`
 .. |get_state0| replace:: :func:`~kadi.commands.states.get_state0`
 .. |get_states| replace:: :func:`~kadi.commands.states.get_states`
 .. |CommandTable| replace:: :class:`~kadi.commands.commands.CommandTable`
@@ -35,11 +35,11 @@ section for details.
 Commands archive
 ----------------
 
-The basic way to select commands is with the |filter| method.  For example you can find
+The basic way to select commands is with the |get_cmds| method.  For example you can find
 load commands from early in 2013 with::
 
   >>> from kadi import commands
-  >>> cmds = commands.filter('2013:001:00:00:00', '2013:001:00:56:10')
+  >>> cmds = commands.get_cmds('2013:001:00:00:00', '2013:001:00:56:10')
   >>> print(cmds)
            date            type      tlmsid   scs step timeline_id params
   --------------------- ---------- ---------- --- ---- ----------- ------
@@ -52,7 +52,7 @@ load commands from early in 2013 with::
   2013:001:00:56:07.181   SIMTRANS       None 132 1623   426098991    N/A
   2013:001:00:56:07.438 COMMAND_SW   AONM2NPE 129 1532   426098990    N/A
 
-.. note:: In the |filter| method, commands are selected with ``start <= date < stop``,
+.. note:: In the |get_cmds| method, commands are selected with ``start <= date < stop``,
    where each of these are evaluated as a date string with millisec precision.  In order
    to get commands at exactly a certain time step you need to make ``stop`` be 1 msec
    after ``start``.  See the example in `Chandra states and continuity`_.
@@ -200,7 +200,7 @@ States over date range
 """"""""""""""""""""""
 
 To get the commanded states over a date range you can do the following, which internally
-does a call to |filter| in order to get commands over the ``start`` / ``stop`` date
+does a call to |get_cmds| in order to get commands over the ``start`` / ``stop`` date
 range::
 
   >>> states.get_states('2017:001:21:00:00', '2017:002:11:29:00',
@@ -236,7 +236,7 @@ by default, |get_states| breaks the state if the value was *commanded*, regardle
 whether the value actually changed.  So let's dig in to the commands at exactly the state
 transition time of the 3rd row::
 
-  >>> print(commands.filter('2017:001:21:05:06.467', '2017:001:21:05:06.468'))
+  >>> print(commands.get_cmds('2017:001:21:05:06.467', '2017:001:21:05:06.468'))
            date           type     tlmsid   scs step timeline_id params
   --------------------- -------- ---------- --- ---- ----------- ------
   2017:001:21:05:06.467 MP_OBSID   COAOSQID 131  400   426102266    N/A
@@ -278,7 +278,7 @@ manually.  For example::
 
   >>> start, stop = ('2017:001:21:00:00', '2017:002:11:29:00')
   >>> state_keys=['obsid', 'simpos', 'clocking']
-  >>> cmds = commands.filter(start, stop)
+  >>> cmds = commands.get_cmds(start, stop)
   >>> state0 = states.get_state0(start, state_keys)
   >>> states.get_states(cmds=cmds, state0=state0,
   ...                   state_keys=state_keys,
@@ -364,7 +364,7 @@ To prove this, let's look at the commands exactly at the state transition time::
 
   >>> from Chandra.Time import DateTime
   >>> date0 = DateTime(state0['__dates__']['obsid'])
-  >>> cmds = commands.filter(date0, date0 + 0.001 / 86400)  # 1 msec later
+  >>> cmds = commands.get_cmds(date0, date0 + 0.001 / 86400)  # 1 msec later
   >>> cmds.fetch_params()
   >>> print(cmds)
            date           type    tlmsid  scs step timeline_id      params
@@ -539,7 +539,7 @@ and in particular :class:`~kadi.commands.states.FixedTransition` and
 For example, if we were interested in the state of the IU mode select, we look at examples
 of the relevant command, which in this case is ``CIMODESL``.
 
-  >>> cmds = commands.filter('2017:360', '2018:001', tlmsid='CIMODESL')
+  >>> cmds = commands.get_cmds('2017:360', '2018:001', tlmsid='CIMODESL')
   >>> cmds[0]
   <Cmd 2017:360:14:05:00.000 COMMAND_HW tlmsid=CIMODESL scs=128 step=2 timeline_id=426102971 hex=7C063C0 msid=CIU1024T>
 

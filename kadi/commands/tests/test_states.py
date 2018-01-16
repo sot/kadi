@@ -25,7 +25,7 @@ def get_states_test(start, stop, state_keys, state0=None):
     rcstates = states.reduce_states(cstates, state_keys, merge_identical=True)
     lenr = len(rcstates)
 
-    cmds = commands.filter(start - 7, stop)
+    cmds = commands.get_cmds(start - 7, stop)
     kstates = states.get_states(state_keys=state_keys, cmds=cmds, state0=state0, reduce=False)
     rkstates = states.reduce_states(kstates, state_keys, merge_identical=True)[-lenr:]
 
@@ -176,7 +176,7 @@ def test_sun_vec_versus_telemetry():
 
     state_keys = ['pitch', 'off_nom_roll']
     start, stop = '2017:349:10:00:00', '2017:350:10:00:00'
-    cmds = commands.filter(start, stop)
+    cmds = commands.get_cmds(start, stop)
     rk = states.get_states(state_keys=state_keys, cmds=cmds, merge_identical=True)[-20:-1]
 
     tstart = DateTime(rk['datestart']).secs
@@ -200,7 +200,7 @@ def test_sun_vec_versus_telemetry():
 
 def test_dither():
     """Values look reasonable given load commands"""
-    cmds = commands.filter('2017:341:21:40:05', '2017:350:00:00:00')
+    cmds = commands.get_cmds('2017:341:21:40:05', '2017:350:00:00:00')
     rk = states.get_states(state_keys=['dither_phase_pitch', 'dither_phase_yaw',
                                        'dither_ampl_pitch', 'dither_ampl_yaw',
                                        'dither_period_pitch', 'dither_period_yaw'],
@@ -295,7 +295,7 @@ def test_get_state0_vs_states():
     """
     date0 = '2017:014'
     # Get last state up through `date0`.  Hardwire the lookback here to 21 days.
-    cmds = commands.filter('2016:360', date0)
+    cmds = commands.get_cmds('2016:360', date0)
     sts = states.get_states(cmds=cmds)
     sts0 = sts[-1]
 
@@ -504,7 +504,7 @@ def test_backstop_sun_pos_mon_lunar():
 2017:087:23:59:21.087 2099:365:00:00:00.000        DISA
 """
     spm = ascii.read(history, guess=False)
-    cmds = commands.filter('2017:087:03:04:02', '2017:088:00:00:00')
+    cmds = commands.get_cmds('2017:087:03:04:02', '2017:088:00:00:00')
     sts = states.get_states(state_keys=['sun_pos_mon'], cmds=cmds)
 
     assert len(sts) == len(spm)
