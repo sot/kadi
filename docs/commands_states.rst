@@ -3,8 +3,8 @@
 .. |get_states| replace:: :func:`~kadi.commands.states.get_states`
 .. |CommandTable| replace:: :class:`~kadi.commands.commands.CommandTable`
 
-Chandra commands and states
-============================
+Commands and states
+===================
 
 **Commands**
 
@@ -52,10 +52,16 @@ load commands from early in 2013 with::
   2013:001:00:56:07.181   SIMTRANS       None 132 1623   426098991    N/A
   2013:001:00:56:07.438 COMMAND_SW   AONM2NPE 129 1532   426098990    N/A
 
-.. note:: In the |get_cmds| method, commands are selected with ``start <= date < stop``,
-   where each of these are evaluated as a date string with millisec precision.  In order
-   to get commands at exactly a certain time step you need to make ``stop`` be 1 msec
-   after ``start``.  See the example in `Chandra states and continuity`_.
+In the |get_cmds| method, commands are selected with ``start <= date < stop``, where each
+of these are evaluated as a date string with millisec precision.  In order to get commands
+at exactly a certain date you need to select with the ``date`` argument::
+
+  >>> print(commands.get_cmds(date='2013:001:00:56:07.181'))
+           date            type      tlmsid   scs step timeline_id params
+  --------------------- ---------- ---------- --- ---- ----------- ------
+  2013:001:00:56:07.181 COMMAND_SW   AONMMODE 129 1530   426098990    N/A
+  2013:001:00:56:07.181    ACISPKT AA00000000 132 1620   426098991    N/A
+  2013:001:00:56:07.181   SIMTRANS       None 132 1623   426098991    N/A
 
 The output ``cmds`` is based on the astropy `Table
 <http://docs.astropy.org/en/stable/table/index.html>`_ object with many powerful and handy
@@ -237,7 +243,7 @@ by default, |get_states| breaks the state if the value was *commanded*, regardle
 whether the value actually changed.  So let's dig in to the commands at exactly the state
 transition time of the 3rd row::
 
-  >>> print(commands.get_cmds('2017:001:21:05:06.467', '2017:001:21:05:06.468'))
+  >>> print(commands.get_cmds(date='2017:001:21:05:06.467'))
            date           type     tlmsid   scs step timeline_id params
   --------------------- -------- ---------- --- ---- ----------- ------
   2017:001:21:05:06.467 MP_OBSID   COAOSQID 131  400   426102266    N/A
@@ -457,9 +463,7 @@ desired state keys.  It also has a ``__dates__`` item which has the
 corresponding date when state key changed value because of a command.
 To prove this, let's look at the commands exactly at the state transition time::
 
-  >>> from Chandra.Time import DateTime
-  >>> date0 = DateTime(continuity['__dates__']['obsid'])
-  >>> cmds = commands.get_cmds(date0, date0 + 0.001 / 86400)  # 1 msec later
+  >>> cmds = commands.get_cmds(date=continuity['__dates__']['obsid'])
   >>> cmds.fetch_params()
   >>> print(cmds)
            date           type    tlmsid  scs step timeline_id      params

@@ -70,8 +70,12 @@ def get_cmds(start=None, stop=None, **kwargs):
     are case insensitive.  In addition to the any of the command parameters
     such as TLMSID, MSID, SCS, STEP, or POS, the ``key`` can be:
 
-    date : Exact date of command e.g. '2013:003:22:11:45.530'
-    type : Command type e.g. COMMAND_SW, COMMAND_HW, ACISPKT, SIMTRANS
+    type
+      Command type e.g. COMMAND_SW, COMMAND_HW, ACISPKT, SIMTRANS
+    date
+      Exact date of command e.g. '2013:003:22:11:45.530'
+
+    If ``date`` is provided then ``start`` and ``stop`` values are ignored.
 
     Examples::
 
@@ -123,6 +127,11 @@ def _find(start=None, stop=None, **kwargs):
 
     :returns: astropy Table of commands
     """
+    date = kwargs.pop('date', None)
+    if date:
+        start = DateTime(date).date  # clip resolution to nearest msec
+        stop = DateTime(start) + 0.001 / 86400  # exactly 1 msec later
+
     ok = np.ones(len(idx_cmds), dtype=bool)
     par_ok = np.zeros(len(idx_cmds), dtype=bool)
 
