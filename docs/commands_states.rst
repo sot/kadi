@@ -171,6 +171,7 @@ Notes and caveats
   dictionary-based index file of unique command parameters.  As of 2018-Jan, the commands
   archive is stored in two files with a total size about 52 Mb.
 
+.. note:: Would a command-line interface be useful?
 
 Chandra states and continuity
 ------------------------------
@@ -270,6 +271,76 @@ above query you could do::
   >>> ['obsid' in row['trans_keys'] for row in sts]
   [False, False, True, False, False, True]
 
+Command line interface
+""""""""""""""""""""""
+
+One can do the same thing as above from the command-line using the ``get_chandra_states``
+command.  This outputs the table (sans trans_keys) in a space-delimited format
+to the console or a specified file.
+::
+
+  $ get_chandra_states --start 2017:001:21:00:00 --stop 2017:002:11:29:00 \
+                       --state-keys=obsid,simpos,clocking \
+                       --merge-identical
+
+               datestart               datestop  obsid  simpos  clocking
+   2017:001:21:00:00.000  2017:001:21:02:06.467  18140   75624         1
+   2017:001:21:02:06.467  2017:001:21:05:06.467  18140   75624         0
+   2017:001:21:05:06.467  2017:001:21:06:45.467  19973   75624         0
+   2017:001:21:06:45.467  2017:002:11:23:43.185  19973   75624         1
+   2017:002:11:23:43.185  2017:002:11:26:43.185  19973  -99616         0
+   2017:002:11:26:43.185  2017:002:11:29:00.000  50432  -99616         0
+
+The available options are::
+
+  $ get_chandra_states --help
+
+  usage: get_chandra_states [-h] [--start START] [--stop STOP]
+                            [--state-keys STATE_KEYS] [--merge-identical]
+                            [--outfile OUTFILE]
+
+  Ouput the Chandra commanded states over a date range as a space-delimited
+  ASCII table.
+
+  optional arguments:
+    -h, --help            show this help message and exit
+    --start START         Start date (default=Now-10 days)
+    --stop STOP           Stop date (default=None)
+    --state-keys STATE_KEYS
+                          Comma-separated list of state keys
+    --merge-identical     Merge adjacent states that have identical values
+                          (default=False)
+    --outfile OUTFILE     Output file (default=stdout)
+
+Using the command line interface and a single state key, or a related set that change
+due to a single command, one can replicate the information in a backstop history
+file.  For instance here ::
+
+  $ tail <...>/JAN0818/ofls/History/ATTITUDE.txt
+
+  2018006.072916206 | -5.27899874e-01 -6.92042461e-01 -4.90427812e-01  4.33533892e-02
+  2018006.103533882 |  4.51367966e-01  6.45077701e-01  6.14710906e-01  4.76678196e-02
+  2018006.130755248 | -4.28324009e-01 -4.40000915e-01  3.57368959e-01  7.03722364e-01
+  2018006.214420159 | -3.23403971e-01 -6.11564724e-01 -7.15954877e-01  9.38460120e-02
+  2018007.024414705 | -4.16664564e-01 -6.83613678e-01 -5.86236582e-01  1.24055031e-01
+  2018007.164807705 | -5.04030078e-01 -7.09485195e-01 -4.78304550e-01  1.17512532e-01
+
+  $ get_chandra_states --start 2018:006:07:29:16.206 --stop 2018:007:16:50:00 \
+                       --state-keys=targ_q1,targ_q2,targ_q3,targ_q4
+
+               datestart               datestop       targ_q1       targ_q2       targ_q3       targ_q4
+   2018:006:07:29:16.206  2018:006:10:35:33.882  -0.527899874  -0.692042461  -0.490427812  0.0433533892
+   2018:006:10:35:33.882  2018:006:13:07:55.248   0.451367966   0.645077701   0.614710906  0.0476678196
+   2018:006:13:07:55.248  2018:006:21:44:20.159  -0.428324009  -0.440000915   0.357368959   0.703722364
+   2018:006:21:44:20.159  2018:007:02:44:14.705  -0.323403971  -0.611564724  -0.715954877   0.093846012
+   2018:007:02:44:14.705  2018:007:16:48:07.705  -0.416664564  -0.683613678  -0.586236582   0.124055031
+   2018:007:16:48:07.705  2018:007:16:50:00.000  -0.504030078  -0.709485195   -0.47830455   0.117512532
+
+To see more examples of this look at the backstop history section of the testing file
+`kadi/commands/tests/test_states.py
+<https://github.com/sot/kadi/blob/6cc8d7a241/kadi/commands/tests/test_states.py#L402>`_.
+All of the supported state keys that reproduce backstop history files are tested here.
+
 States from commands
 """"""""""""""""""""
 
@@ -309,8 +380,32 @@ In this case the calling code is responsible for logic to assemble a single comm
 for the ``cmds`` argument as a :class:`~kadi.commands.commands.CommandTable` object.
 
 .. note:: The plan is to provide convenience methods and documentation to make this
-   process more straightforward.
+   process more straightforward.  E.g.::
 
+     # Get commands for new loads
+     bs_cmds = parse_cm.read_backstop(backstop_file)
+     load_start = bs_cmds[0]['date']
+
+     # Get last telem from Ska archive.  NOTE: we can and should allow for use
+     # of MAUDE here to reduce propagation!
+     last_tlm_date = fetch.get_time_range('1dpamzt', format='date')[1]
+
+     # Get approved commands from available telemetry through start of new loads
+     cmds = commands.get_cmds(last_tlm_date, load_start)
+
+     # Get pseudo-node values by running thermal model between
+     # last_tlm_date - 3 days to last_tlm_date, using estimate or
+     # fixed value of pseudo-node.
+
+     # Add backstop commands.  The ``add_commands`` method will sort, but up to
+     # user to make sure there is no overlap.
+     cmds.add_commands(bs_cmds)  # not yet implemented
+
+     # Optionally insert any non-load commands, e.g. for a CTI that may or may not happen
+     non_load_cmds = ...
+     cmds.add_commands(non_load_cmds)
+
+     sts = states.get_states(cmds=cmds, state_keys=[...])
 
 Continuity
 ^^^^^^^^^^
