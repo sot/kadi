@@ -243,49 +243,79 @@ def test_dither():
 
 def test_get_continuity_regress():
     """Regression test against values produced by get_continuity during development.
-    Correctness not validated
+    Correctness not validated for all values.
+    The particular time of 2018:001:12:00:00 happens during a maneuver, so this
+    tests a bug fix where maneuver transitions were leaking past the stop time.
+    It also tests that all continuity times are before the stop time.
     """
-    expected = {'auto_npnt': 'ENAB',
-                'ccd_count': 4,
+    expected = {'ccd_count': 3,
                 'clocking': 1,
-                'dec': 1.5846264168595519,
+                'dec': 32.166641023063612,
                 'dither': 'ENAB',
-                'dither_ampl_pitch': 7.9989482580707696,
-                'dither_ampl_yaw': 7.9989482580707696,
-                'dither_period_pitch': 707.13038356352104,
-                'dither_period_yaw': 999.99938521341483,
-                'dither_phase_pitch': 0.0,
-                'dither_phase_yaw': 0.0,
-                'fep_count': 4,
+                'fep_count': 3,
                 'hetg': 'RETR',
                 'letg': 'RETR',
-                'obsid': 18926,
-                'off_nom_roll': 0.29420229587100266,
-                'pcad_mode': 'NPNT',
-                'pitch': 140.65601594364458,
+                'obsid': 20392,
+                'off_nom_roll': -2.0300858116326026,
+                'pcad_mode': 'NMAN',
+                'pitch': 134.5392571808533,
                 'power_cmd': 'XTZ0000005',
-                'q1': -0.35509348299999999,
-                'q2': -0.32069040199999999,
-                'q3': 0.56677623399999999,
-                'q4': 0.67069440499999999,
-                'ra': 81.262785800648018,
-                'roll': 302.84307361651355,
-                'si_mode': 'TE_006C8',
+                'q1': -0.32430877626423488,
+                'q2': -0.59794754520454407,
+                'q3': -0.73138983148061287,
+                'q4': 0.048491903554710794,
+                'ra': 158.0145560201608,
+                'roll': 84.946493470873875,
+                'si_mode': 'TE_005C6',
                 'simfa_pos': -468,
                 'simpos': 75624,
-                'targ_q1': -0.355093483,
-                'targ_q2': -0.320690402,
-                'targ_q3': 0.566776234,
-                'targ_q4': 0.670694405,
+                'targ_q1': 0.304190361,
+                'targ_q2': 0.445053899,
+                'targ_q3': 0.787398757,
+                'targ_q4': 0.298995734,
                 'vid_board': 1}
 
-    continuity = states.get_continuity('2017:014', state_keys=list(expected))
+    dates = {'ccd_count': '2018:001:11:58:21.735',
+             'clocking': '2018:001:11:59:28.735',
+             'dec': '2018:001:11:57:47.798',
+             'dither': '2017:364:11:51:48.955',
+             'fep_count': '2018:001:11:58:21.735',
+             'hetg': '2018:001:02:58:48.143',
+             'letg': '2017:364:10:50:43.995',
+             'obsid': '2018:001:11:55:05.818',
+             'off_nom_roll': '2018:001:11:57:47.798',
+             'pcad_mode': '2018:001:11:52:05.818',
+             'pitch': '2018:001:11:57:47.798',
+             'power_cmd': '2018:001:11:59:28.735',
+             'q1': '2018:001:11:57:47.798',
+             'q2': '2018:001:11:57:47.798',
+             'q3': '2018:001:11:57:47.798',
+             'q4': '2018:001:11:57:47.798',
+             'ra': '2018:001:11:57:47.798',
+             'roll': '2018:001:11:57:47.798',
+             'si_mode': '2018:001:11:59:24.735',
+             'simfa_pos': '2017:364:11:39:00.159',
+             'simpos': '2018:001:02:55:13.804',
+             'targ_q1': '2018:001:11:52:10.175',
+             'targ_q2': '2018:001:11:52:10.175',
+             'targ_q3': '2018:001:11:52:10.175',
+             'targ_q4': '2018:001:11:52:10.175',
+             'vid_board': '2018:001:11:58:21.735'}
+
+    continuity = states.get_continuity('2018:001:12:00:00')
 
     for key, val in expected.items():
         if isinstance(val, (int, str)):
             assert continuity[key] == val
         else:
             assert np.isclose(continuity[key], val, rtol=0, atol=1e-7)
+        assert continuity['__dates__'][key] == dates[key]
+        assert continuity['__dates__'][key] < '2018:001:12:00:00.000'
+        # Transitions with no spacecraft command (instead from injected maneuver state breaks)
+        manvr_keys = ('pitch', 'off_nom_roll', 'ra', 'dec', 'roll', 'q1', 'q2', 'q3', 'q4')
+        if key not in manvr_keys:
+            cmds = commands.get_cmds(date=continuity['__dates__'][key])
+            assert len(cmds) > 0
 
 
 def test_get_continuity_vs_states():

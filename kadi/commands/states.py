@@ -1076,6 +1076,11 @@ def get_states(start=None, stop=None, state_keys=None, cmds=None, continuity=Non
     for idx, transition in enumerate(transitions):
         date = transition['date']
 
+        # Some transition classes (e.g. Maneuver) might put in transitions that
+        # extend past the stop time.  Break out of loop on the first one.
+        if date >= stop:
+            break
+
         # If transition is at a new date from current state then break the current state
         # and make a new one (as a copy of current).  Note that multiple transitions can
         # be at the same date (from commanding at same date), though that is not the usual
@@ -1240,8 +1245,10 @@ def get_continuity(date=None, state_keys=None, lookbacks=(7, 30, 180, 1000)):
             colnames = set(states.colnames) - set(['datestart', 'datestop', 'trans_keys'])
             for colname in colnames:
                 if states[colname][-1] is not None:
-                    continuity[colname] = states[colname][-1]
-                    dates[colname] = states['datestart'][-1]
+                    # Reduce states to only the desired state_key
+                    red_states = reduce_states(states, [colname])
+                    continuity[colname] = red_states[colname][-1]
+                    dates[colname] = red_states['datestart'][-1]
 
         # If we have filled in continuity for every key then we're done.
         # Otherwise bump the lookback and try again.

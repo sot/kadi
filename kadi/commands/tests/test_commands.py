@@ -52,3 +52,10 @@ def test_get_cmds():
 
     assert cmd['pos'] == 73176
     assert cmd['step'] == 161
+
+
+def test_get_cmds_zero_length_result():
+    cmds = commands.get_cmds(date='2017:001')
+    assert len(cmds) == 0
+    assert cmds.colnames == ['idx', 'date', 'type', 'tlmsid', 'scs',
+                             'step', 'timeline_id', 'params']

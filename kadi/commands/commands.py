@@ -96,7 +96,7 @@ def get_cmds(start=None, stop=None, **kwargs):
     """
     cmds = _find(start, stop, **kwargs)
     out = CommandTable(cmds)
-    out['params'] = None
+    out['params'] = None if len(out) > 0 else Column([], dtype=object)
 
     return out
 
