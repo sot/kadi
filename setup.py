@@ -23,13 +23,16 @@ try:
 except ImportError:
     cmdclass = {}
 
+entry_points = {'console_scripts': 'get_chandra_states = kadi.commands.states:get_chandra_states'}
+
 setup(name='kadi',
       version=package_version.version,
       description='Kadi events archive',
       author='Tom Aldcroft',
       author_email='aldcroft@head.cfa.harvard.edu',
       url='http://cxc.harvard.edu/mta/ASPECT/tool_doc/kadi/',
-      packages=['kadi', 'kadi.events', 'kadi.cmds', 'kadi.tests'],
+      packages=['kadi', 'kadi.events', 'kadi.cmds', 'kadi.tests',
+                'kadi.commands', 'kadi.commands.tests'],
       # Temporarily install static data into site-packages
       package_data={'kadi.events': ['templates/*/*.html', 'templates/*.html'],
                     'kadi': foundation_files + ['templates/*/*.html', 'templates/*.html',
@@ -37,4 +40,5 @@ setup(name='kadi',
                                                 'GIT_VERSION']},
       tests_require=['pytest'],
       cmdclass=cmdclass,
+      entry_points=entry_points,
 )

@@ -1,6 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import tables
-from collections import OrderedDict
+import tables3_api
 
 import numpy as np
 
@@ -44,15 +44,16 @@ class LazyVal(object):
 
 
 def load_idx_cmds():
-    h5 = tables.openFile(IDX_CMDS_PATH(), mode='r')
-    idx_cmds = h5.root.data[:]
+    h5 = tables.open_file(IDX_CMDS_PATH(), mode='r')
+    idx_cmds = Table(h5.root.data[:])
     h5.close()
     return idx_cmds
 
 
 def load_pars_dict():
-    with open(PARS_DICT_PATH(), 'r') as fh:
-        pars_dict = pickle.load(fh)
+    with open(PARS_DICT_PATH(), 'rb') as fh:
+        kwargs = {} if six.PY2 else {'encoding': 'ascii'}
+        pars_dict = pickle.load(fh, **kwargs)
     return pars_dict
 
 # Globals that contain the entire commands table and the parameters index
@@ -64,7 +65,7 @@ rev_pars_dict = LazyVal(lambda: {v: k for k, v in pars_dict.items()})
 
 def filter(start=None, stop=None, **kwargs):
     """
-    Get commands between ``start`` and ``stop``.  Additional ``key=val`` pairs
+    Get commands with ``start`` <= date < ``stop``.  Additional ``key=val`` pairs
     can be supplied to further filter the results.  Both ``key`` and ``val``
     are case insensitive.  In addition to the any of the command parameters
     such as TLMSID, MSID, SCS, STEP, or POS, the ``key`` can be:
@@ -101,7 +102,7 @@ def filter(start=None, stop=None, **kwargs):
 
 def _find(start=None, stop=None, **kwargs):
     """
-    Get commands between ``start`` and ``stop``.  Additional ``key=val`` pairs
+    Get commands ``start`` <= date < ``stop``.  Additional ``key=val`` pairs
     can be supplied to further filter the results.  Both ``key`` and ``val``
     are case insensitive.  In addition to the any of the command parameters
     such as TLMSID, MSID, SCS, STEP, or POS, the ``key`` can be:
@@ -129,7 +130,7 @@ def _find(start=None, stop=None, **kwargs):
 
     Returns
     -------
-    cmds : numpy structured array of commands
+    cmds : astropy Table of commands
     """
     ok = np.ones(len(idx_cmds), dtype=bool)
     par_ok = np.zeros(len(idx_cmds), dtype=bool)
@@ -137,7 +138,7 @@ def _find(start=None, stop=None, **kwargs):
     if start:
         ok &= idx_cmds['date'] >= DateTime(start).date
     if stop:
-        ok &= idx_cmds['date'] <= DateTime(stop).date
+        ok &= idx_cmds['date'] < DateTime(stop).date
     for key, val in kwargs.items():
         key = key.lower()
         if isinstance(val, six.string_types):
@@ -152,27 +153,38 @@ def _find(start=None, stop=None, **kwargs):
                     par_ok |= (idx_cmds['idx'] == idx)
             ok &= par_ok
     cmds = idx_cmds[ok]
-    return Table(cmds)
+    return cmds
 
 
-class Cmd(OrderedDict):
+class Cmd(dict):
     def __init__(self, cmd):
-        # Create ordered dict from field values in idx_cmd structured array row.
-        # Skip the first field "idx" because that is not relevant here.
+        # Create dict from field values in idx_cmd structured array row.
         super(Cmd, self).__init__()
-        self.update(OrderedDict((name, cmd[name].tolist()) for name in cmd.dtype.names[1:]))
-        self.update(OrderedDict(rev_pars_dict[cmd['idx']]))
-        if self['tlmsid'] is None:
-            del self['tlmsid']
+
+        colnames = cmd.colnames
+        for name in colnames:
+            value = cmd[name]
+            try:
+                self[name] = value.item()
+            except AttributeError:
+                self[name] = value
+        self.update(rev_pars_dict[cmd['idx']])
+
+        if self['tlmsid'] == 'None':
+            colnames.remove('tlmsid')
+
+        self._ordered_keys = (colnames[1:] +
+                              [par[0] for par in rev_pars_dict[cmd['idx']]])
 
     def __repr__(self):
-        out = ('{} {:11s} '.format(self['date'], self['type']) +
-               ' '.join('{}={}'.format(key, val) for key, val in self.items()
-                        if key not in ('type', 'date')))
+        out = ('<{} '.format(self.__class__.__name__) + str(self) + '>')
         return out
 
     def __str__(self):
-        return repr(self)
+        out = ('{} {:11s} '.format(self['date'], self['type']) +
+               ' '.join('{}={}'.format(key, self[key]) for key in self._ordered_keys
+                        if key not in ('type', 'date')))
+        return out
 
 
 class CmdList(object):
@@ -182,31 +194,36 @@ class CmdList(object):
     @property
     def table(self):
         if not hasattr(self, '_table'):
-            self._table = Table(self.cmds)
+            self._table = Table(self.cmds, copy=False)
             self._table.remove_column('idx')
         return self._table
+
+    def __len__(self):
+        return len(self.cmds)
 
     def __getitem__(self, item):
         cmds = self.cmds
         if isinstance(item, six.string_types):
+            if item in cmds.colnames:
+                return cmds[item]
+
             out = []
-            for cmd in cmds:
-                if item in cmds.dtype.names:
-                    out.append(cmd[item].tolist())
-                else:
-                    # Find the parameters tuple for this command from the reverse
-                    # lookup table which maps index to the params tuple.
-                    pars_tuple = rev_pars_dict[cmd['idx']]
-                    pars = dict(pars_tuple)
-                    out.append(pars.get(item))
+            for idx in cmds['idx']:
+                # Find the parameters dict for this command from the reverse
+                # lookup table which maps index to the params tuple.
+                out.append(dict(rev_pars_dict[idx]).get(item))
+            out = np.array(out)
+
         elif isinstance(item, int):
             out = Cmd(cmds[item])
+
         elif isinstance(item, (slice, np.ndarray)):
-            out = [Cmd(cmd) for cmd in cmds[item]]
+            out = CmdList(cmds[item])
+
         return out
 
     def __repr__(self):
-        return '\n'.join(repr(Cmd(cmd)) for cmd in self.cmds)
+        return '\n'.join(str(Cmd(cmd)) for cmd in self.cmds)
 
     def __str__(self):
         return repr(self)

@@ -6,11 +6,13 @@ import difflib
 import numpy as np
 import tables
 from six.moves import cPickle as pickle
+import six
 
 import pyyaks.logger
 import Ska.DBI
 import Ska.File
 from Chandra.Time import DateTime
+from Chandra.cmd_states.cmd_states import _tl_to_bs_cmds
 from . import occweb
 from .paths import IDX_CMDS_PATH, PARS_DICT_PATH
 
@@ -71,17 +73,94 @@ def get_opt(args=None):
     return args
 
 
-def get_cmds(timeline_loads, mp_dir='/data/mpcrit1/mplogs'):
+def fix_nonload_cmds(nl_cmds):
+    """
+    Convert non-load commands commands dict format from Chandra.cmd_states
+    to the values/structure needed here.  A typical value is shown below:
+    {'cmd': u'SIMTRANS',               # Needs to be 'type'
+    'date': u'2017:066:00:24:22.025',
+    'id': 371228,                      # Store as params['nonload_id'] for provenence
+    'msid': None,                      # Goes into params
+    'params': {u'POS': -99616},
+    'scs': None,                       # Set to 0
+    'step': None,                      # Set to 0
+    'time': 605233531.20899999,        # Ignored
+    'timeline_id': None,               # Set to 0
+    'tlmsid': None,                    # 'None' if None
+    'vcdu': None},                     # Ignored
+    """
+    new_cmds = []
+    for cmd in nl_cmds:
+        new_cmd = {}
+        new_cmd['date'] = str(cmd['date'])
+        new_cmd['type'] = str(cmd['cmd'])
+        new_cmd['tlmsid'] = str(cmd['tlmsid'])
+        for key in ('scs', 'step', 'timeline_id'):
+            new_cmd[key] = 0
+
+        new_cmd['params'] = {}
+        new_cmd['params']['nonload_id'] = int(cmd['id'])
+        if cmd['msid'] is not None:
+            new_cmd['params']['msid'] = str(cmd['msid'])
+
+        # De-unicode and de-numpy (otherwise unpickling on PY3 has problems).
+        if six.PY2 and 'params' in cmd:
+            params = new_cmd['params']
+            for key, val in cmd['params'].items():
+                key = str(key)
+                if isinstance(val, (str, unicode)):
+                    val = str(val)
+                else:
+                    try:
+                        val = val.item()
+                    except:
+                        pass
+                params[key] = val
+
+        new_cmds.append(new_cmd)
+
+    return new_cmds
+
+
+def get_cmds(start, stop, mp_dir='/data/mpcrit1/mplogs'):
     """
     Get backstop commands corresponding to the supplied timeline load segments.
     The timeline load segments must be ordered by 'id'.
 
     Return cmds in the format defined by Ska.ParseCM.read_backstop().
     """
+    # Get timeline_loads within date range.  Also get non-load commands
+    # within the date range covered by the timelines.
+    server = os.path.join(os.environ['SKA'], 'data', 'cmd_states', 'cmd_states.db3')
+    with Ska.DBI.DBI(dbi='sqlite', server=server) as db:
+        timeline_loads = db.fetchall("""SELECT * from timeline_loads
+                                        WHERE datestop > '{}' AND datestart < '{}'
+                                        ORDER BY id"""
+                                     .format(start.date, stop.date))
+
+        # Get non-load commands (from autonomous or ground SCS107, NSM, etc) in the
+        # time range that the timelines span.
+        tl_datestart = min(timeline_loads['datestart'])
+        tl_datestop = max(timeline_loads['datestop'])
+        nl_cmds = db.fetchall('SELECT * from cmds where timeline_id IS NULL and '
+                              'date >= "{}" and date <= "{}"'
+                              .format(tl_datestart, tl_datestop))
+
+        # Private method from cmd_states.py fetches the actual int/float param values
+        # and returns list of dict.
+        nl_cmds = _tl_to_bs_cmds(nl_cmds, None, db)
+        nl_cmds = fix_nonload_cmds(nl_cmds)
+
+    logger.info('Found {} timelines included within {} to {}'
+                .format(len(timeline_loads), start.date, stop.date))
+
     if np.min(np.diff(timeline_loads['id'])) < 1:
         raise ValueError('Timeline loads id not monotonically increasing')
 
     cmds = []
+    orbit_cmds = []
+    orbit_cmd_files = set()
+
     for tl in timeline_loads:
         bs_file = Ska.File.get_globfiles(os.path.join(mp_dir + tl.mp_dir,
                                                       '*.backstop'))[0]
@@ -92,10 +171,24 @@ def get_cmds(timeline_loads, mp_dir='/data/mpcrit1/mplogs'):
         else:
             bs_cmds = BACKSTOP_CACHE[bs_file]
 
+        # Process ORBPOINT (orbit event) pseudo-commands in backstop.  These
+        # have scs=0 and need to be treated separately since during a replan
+        # or shutdown we still want these ORBPOINT to be in the cmds archive
+        # and not be excluded by timeline intervals.
+        if bs_file not in orbit_cmd_files:
+            bs_orbit_cmds = [x for x in bs_cmds if x['type'] == 'ORBPOINT']
+            for orbit_cmd in bs_orbit_cmds:
+                orbit_cmd['timeline_id'] = tl['id']
+                if 'EVENT_TYPE' not in orbit_cmd['params']:
+                    orbit_cmd['params']['EVENT_TYPE'] = orbit_cmd['params']['TYPE']
+                    del orbit_cmd['params']['TYPE']
+            orbit_cmds.extend(bs_orbit_cmds)
+            orbit_cmd_files.add(bs_file)
+
         # Only store commands for this timeline (match SCS and date)
         bs_cmds = [x for x in bs_cmds
-                   if tl['datestart'] <= x['date'] <= tl['datestop']
-                   and x['scs'] == tl['scs']]
+                   if tl['datestart'] <= x['date'] <= tl['datestop'] and
+                   x['scs'] == tl['scs']]
 
         for bs_cmd in bs_cmds:
             bs_cmd['timeline_id'] = tl['id']
@@ -104,11 +197,52 @@ def get_cmds(timeline_loads, mp_dir='/data/mpcrit1/mplogs'):
                     .format(len(bs_cmds), tl['id'], tl['scs']))
         cmds.extend(bs_cmds)
 
+    orbit_cmds = get_unique_orbit_cmds(orbit_cmds)
+    logger.debug('Read total of {} orbit commands'
+                 .format(len(orbit_cmds)))
+
+    cmds.extend(nl_cmds)
+    cmds.extend(orbit_cmds)
+
     # Sort by date and SCS step number.
     cmds = sorted(cmds, key=lambda y: (y['date'], y['step']))
-    logger.debug('Read total of {} commands'.format(len(cmds)))
+    logger.debug('Read total of {} commands ({} non-load commands)'
+                 .format(len(cmds), len(nl_cmds)))
 
     return cmds
+
+
+def get_unique_orbit_cmds(orbit_cmds):
+    """
+    Given list of ``orbit_cmds`` find the quasi-unique set.  In the event of a
+    replan/reopen or other schedule oddity, it can happen that there are multiple cmds
+    that describe the same orbit event.  Since the detailed timing might change between
+    schedule runs, cmds are considered the same if the date is within 3 minutes.
+    """
+    if len(orbit_cmds) == 0:
+        return []
+
+    # Sort by (event_type, date)
+    orbit_cmds.sort(key=lambda y: (y['params']['EVENT_TYPE'], y['date']))
+
+    uniq_cmds = [orbit_cmds[0]]
+    # Step through one at a time and add to uniq_cmds only if the candidate is
+    # "different" from uniq_cmds[-1].
+    for cmd in orbit_cmds:
+        last_cmd = uniq_cmds[-1]
+        if (cmd['params']['EVENT_TYPE'] == last_cmd['params']['EVENT_TYPE'] and
+                abs(DateTime(cmd['date']).secs - DateTime(last_cmd['date']).secs) < 180):
+            # Same event as last (even if date is a bit different).  Now if this one
+            # has a larger timeline_id that means it is from a more recent schedule, so
+            # use that one.
+            if cmd['timeline_id'] > last_cmd['timeline_id']:
+                uniq_cmds[-1] = cmd
+        else:
+            uniq_cmds.append(cmd)
+
+    uniq_cmds.sort(key=lambda y: y['date'])
+
+    return uniq_cmds
 
 
 def get_idx_cmds(cmds, pars_dict):
@@ -160,6 +294,8 @@ def add_h5_cmds(h5file, idx_cmds):
     # Convert cmds (list of tuples) to numpy structured array.  This also works for an
     # existing structured array.
     cmds = np.array(idx_cmds, dtype=CMDS_DTYPE)
+
+    # TODO : make sure that changes in non-load commands triggers an update
 
     try:
         h5d = h5.root.data
@@ -242,20 +378,6 @@ def main(args=None):
         occweb.ftp_get_from_lucky('kadi', [idx_cmds_path, pars_dict_path], logger=logger)
         return
 
-    stop = DateTime(opt.stop) if opt.stop else DateTime() + 21
-    start = DateTime(opt.start) if opt.start else stop - 42
-
-    # Get timeline_loads including and after start
-    db = Ska.DBI.DBI(dbi='sybase', server='sybase', user='aca_read')
-    timeline_loads = db.fetchall("""SELECT * from timeline_loads
-                                    WHERE datestop > '{}' AND datestart < '{}'
-                                    ORDER BY id"""
-                                 .format(start.date, stop.date))
-    db.conn.close()
-
-    logger.info('Found {} timelines included within {} to {}'
-                .format(len(timeline_loads), start.date, stop.date))
-
     try:
         with open(pars_dict_path, 'rb') as fh:
             pars_dict = pickle.load(fh)
@@ -268,7 +390,10 @@ def main(args=None):
     # Recast as dict subclass that remembers if any element was updated
     pars_dict = UpdatedDict(pars_dict)
 
-    cmds = get_cmds(timeline_loads, opt.mp_dir)
+    stop = DateTime(opt.stop) if opt.stop else DateTime() + 21
+    start = DateTime(opt.start) if opt.start else stop - 42
+
+    cmds = get_cmds(start, stop, opt.mp_dir)
     idx_cmds = get_idx_cmds(cmds, pars_dict)
     add_h5_cmds(idx_cmds_path, idx_cmds)
 
