@@ -4,6 +4,7 @@
 import os
 import re
 import argparse
+import time
 
 import numpy as np
 import six
@@ -56,6 +57,39 @@ def get_opt(args=None):
     return args
 
 
+def try4times(func, *arg, **kwarg):
+    """
+    Work around problems with sqlite3 database getting locked out from writing,
+    presumably due to read activity.  Not completely understood.
+
+    This function will try to run func(*arg, **kwarg) a total of 4 times with an
+    increasing sequence of wait times between tries.  It catches only a database
+    locked error.
+    """
+    from django.db.utils import OperationalError
+
+    for delay in 0, 5, 10, 60:
+        if delay > 0:
+            time.sleep(delay)
+
+        try:
+            func(*arg, **kwarg)
+        except OperationalError as err:
+            if 'database is locked' in str(err):
+                # Locked DB, issue informational warning
+                logger.info('Warning: locked database, waiting {} seconds'.format(delay))
+            else:
+                # Something else so just re-raise
+                raise
+        else:
+            # Success, jump out of loop
+            break
+
+    else:
+        # After 4 tries bail out with an exception
+        raise OperationalError('database is locked')
+
+
 def delete_from_date(EventModel, start, set_update_date=True):
     from .events import models
 
@@ -66,11 +100,11 @@ def delete_from_date(EventModel, start, set_update_date=True):
         update = models.Update.objects.get(name=cls_name)
         logger.info('Updating {} date from {} to {}'.format(cls_name, update.date, date_start))
         update.date = date_start
-        update.save()
+        try4times(update.save)
 
     events = EventModel.objects.filter(start__gte=date_start)
     logger.info('Deleting {} {} events after {}'.format(events.count(), cls_name, date_start))
-    events.delete()
+    try4times(events.delete)
 
 
 def update(EventModel, date_stop):
@@ -126,7 +160,7 @@ def update(EventModel, date_stop):
             # force an exception and move on to the next event.
             try:
                 event_model = EventModel.from_dict(event, logger)
-                event_model.save(force_insert=True)
+                try4times(event_model.save, force_insert=True)
             except django.db.utils.IntegrityError as err:
                 if not re.search('unique', str(err), re.IGNORECASE):
                     raise
@@ -149,11 +183,11 @@ def update(EventModel, date_stop):
                     foreign_model = ForeignModel.from_dict(row, logger)
                     setattr(foreign_model, event_model.model_name, event_model)
                     logger.verbose('Adding {}'.format(foreign_model))
-                    foreign_model.save()
+                    try4times(foreign_model.save)
 
-    # If processing got here with no exceptions then save the event update
-    # information to database
-    update.save()
+        # If processing got here with no exceptions then save the event update
+        # information to database
+        update.save()
 
 
 def main():
