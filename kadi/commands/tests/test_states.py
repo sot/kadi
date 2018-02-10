@@ -901,3 +901,16 @@ def test_regress_eclipse():
 2018:005:05:12:26.278 2018:006:12:00:00.000      DAY    eclipse
 """
     compare_regress_output(regress, 'eclipse')
+
+
+def test_continuity_just_after_command():
+    """
+    Fix issue where continuity required having at least one other
+    command after the relevant continuity command.
+    """
+    cont = states.get_continuity('2018:001:12:00:00', 'targ_q1')
+    assert cont['__dates__']['targ_q1'] == '2018:001:11:52:10.175'
+
+    # 1 msec later
+    cont = states.get_continuity('2018:001:11:52:10.176', 'targ_q1')
+    assert cont['__dates__']['targ_q1'] == '2018:001:11:52:10.175'
