@@ -914,3 +914,16 @@ def test_continuity_just_after_command():
     # 1 msec later
     cont = states.get_continuity('2018:001:11:52:10.176', 'targ_q1')
     assert cont['__dates__']['targ_q1'] == '2018:001:11:52:10.175'
+
+
+def test_continuity_far_future():
+    """
+    Test that using a continuity date in the future (well past commamds)
+    works.
+    """
+    # Now + 150 days.  Don't know the answer but just make sure this
+    # runs to completion.  The lookbacks of 7 and 30 days should fail
+    # but 180 days will get something.
+    cont = states.get_continuity(DateTime() + 150, 'obsid')
+    assert 'obsid' in cont
+    assert 'obsid' in cont['__dates__']

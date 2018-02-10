@@ -1225,6 +1225,8 @@ def get_continuity(date=None, state_keys=None, lookbacks=(7, 30, 180, 1000)):
 
     for lookback in lookbacks:
         cmds = commands.get_cmds(stop - lookback, stop)
+        if len(cmds) == 0:
+            continue
 
         for state_key in state_keys:
             # Don't bother if we already have a value for this key.
