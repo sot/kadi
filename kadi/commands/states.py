@@ -1078,7 +1078,7 @@ def get_states(start=None, stop=None, state_keys=None, cmds=None, continuity=Non
 
         # Some transition classes (e.g. Maneuver) might put in transitions that
         # extend past the stop time.  Break out of loop on the first one.
-        if date >= stop:
+        if date > stop:
             break
 
         # If transition is at a new date from current state then break the current state
@@ -1225,6 +1225,8 @@ def get_continuity(date=None, state_keys=None, lookbacks=(7, 30, 180, 1000)):
 
     for lookback in lookbacks:
         cmds = commands.get_cmds(stop - lookback, stop)
+        if len(cmds) == 0:
+            continue
 
         for state_key in state_keys:
             # Don't bother if we already have a value for this key.
