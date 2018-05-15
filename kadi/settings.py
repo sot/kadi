@@ -11,12 +11,29 @@ https://docs.djangoproject.com/en/1.6/ref/settings/
 from __future__ import print_function
 
 # Build paths inside the project like this: join(BASE_DIR, ...)
+import sys
 import os
 from os.path import join, dirname, realpath
 os.environ.setdefault('SKA', '/proj/sot/ska')
-os.environ.setdefault('XDG_CONFIG_HOME',
-                      join(os.environ['SKA'], 'data', 'config'))
-os.environ.setdefault('XDG_CACHE_HOME', os.environ['XDG_CONFIG_HOME'])
+
+# Check if this instance is running in the production Apache kadi web server.
+# If so set XDG_CONFIG_HOME and friend to make sure that the astropy config is
+# stable for production and is not coming from the config in the user home dir.
+# This will put the config file in $SKA/data/kadi/config.
+#
+# This code relies on the fact that currently in this case (production) kadi is
+# installed into /proj/web-kadi and conf/httpd.conf contains: WSGIPythonPath
+# /proj/web-kadi/lib/python2.7/site-packages.
+#
+# See also
+# https://stackoverflow.com/questions/26979579/django-mod-wsgi-set-os-environment-variable-from-apaches-setenv
+# for useful commentary on problems just using SetEnv in the conf file.  Also
+# search email for XDG_CONFIG_HOME for more discussion and motivation.
+
+if any(pth.startswith('/proj/web-kadi') for pth in sys.path):
+    os.environ.setdefault('XDG_CONFIG_HOME',
+                          join(os.environ['SKA'], 'data', 'config'))
+    os.environ.setdefault('XDG_CACHE_HOME', os.environ['XDG_CONFIG_HOME'])
 
 BASE_DIR = dirname(dirname(realpath(__file__)))
 
