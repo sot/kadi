@@ -1,10 +1,35 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 from copy import deepcopy
+import os
+import sys
 
 import numpy as np
 
 from .. import events
 from Chandra.Time import DateTime
+
+
+def test_xdg_config_home_env_var():
+    """
+    Test that code near top of settings.py which optionally sets XDG_CONFIG_HOME does the
+    right thing of NOT setting in a non-production environment, and setting in a web
+    production environment.
+
+    Test this both ways by setting PYTHONPATH=/proj/web-kadi, or not.  Use -v -s flags in
+    pytest to confirm expect path.
+    """
+    ska_data_config = os.path.join(os.environ['SKA'], 'data', 'config')
+    if any(pth.startswith('/proj/web-kadi') for pth in sys.path):
+        # Apache WSGI config sets local PYTHONPATH to include /proj/web-kadi (regardless
+        # of where kadi is actually getting imported).
+        print('Checking production web path')
+        assert os.environ['XDG_CONFIG_HOME'] == ska_data_config
+        assert os.environ['XDG_CACHE_HOME'] == os.environ['XDG_CONFIG_HOME']
+    else:
+        # Normal import, not part of web server
+        print('Checking normal import path')
+        assert not os.environ.get('XDG_CONFIG_HOME', '').startswith(ska_data_config)
+        assert not os.environ.get('XDG_CACHE_HOME', '').startswith(ska_data_config)
 
 
 def test_overlapping_intervals():
