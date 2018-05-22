@@ -31,6 +31,9 @@ Test install
   # Install into TEST_PREFIX with flat kadi/ dir (without using egg)
   python setup.py install --prefix=$TEST_PREFIX --old-and-unmanageable
 
+  # Run self tests (in particular note that the xdg_config test gives expected results)
+  python setup.py test --args='-k test_events -s -v'
+
 Install other packages (e.g. mica) to TEST_PREFIX if necessary
 
 Run server and test
@@ -66,6 +69,9 @@ Production installation
   python setup.py install --prefix=$WEB_KADI --old-and-unmanageable
 
   ls -ld $PYTHONPATH/kadi*
+
+  # Run self tests (in particular note that the xdg_config test gives expected results)
+  python setup.py test --args='-k test_events -s -v'
 
 Restart::
 
