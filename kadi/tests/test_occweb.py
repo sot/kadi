@@ -61,17 +61,13 @@ def _test_put_get(user):
 
 
 @pytest.mark.skipif('not HAS_LUCKY')
-def test_put_get_user_from_netrc():
-    # Get the remote user name for lucky
-    netrc = Ska.ftp.parse_netrc()
-    user = netrc['lucky']['login']
-    _test_put_get(user=user)
-
-
-@pytest.mark.skipif('not HAS_LUCKY')
 def test_put_get_user_none():
     # Test the user=None code branch (gets username back from SFTP object, which
     # had previously gotten it from the netrc file).
+    #
+    # NOTE: this test CANNOT be run within 60 seconds of a previously run test
+    # that accesses lucky.  This is due to a network security restriction for
+    # the OCC.  If this fails unexpectedly then wait for at least 60 seconds.
     _test_put_get(user=None)
 
 

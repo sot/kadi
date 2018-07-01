@@ -10,6 +10,25 @@ from Ska.engarchive import fetch
 from astropy.io import ascii
 from astropy.table import Table
 
+try:
+    fetch.get_time_range('pitch')
+    HAS_PITCH = True
+except:
+    HAS_PITCH = False
+
+
+def assert_all_close_states(rc, rk, keys):
+    """
+    Compare all ``key`` columns of the commanded states table ``rc`` and
+    the kadi states table ``rk``.
+    """
+    for key in keys:
+        rcdtype = rc[key].dtype
+        if rcdtype.kind == 'f':
+            assert np.allclose(rk[key].astype(rcdtype), rc[key])
+        else:
+            assert np.all(rk[key] == rc[key])
+
 
 def get_states_test(start, stop, state_keys, continuity=None):
     """
@@ -42,8 +61,7 @@ def compare_states(start, stop, state_keys, compare_state_keys=None, continuity=
     if compare_state_keys is None:
         compare_state_keys = state_keys
 
-    for colname in compare_state_keys:
-        assert np.all(rkstates[colname] == rcstates[colname])
+    assert_all_close_states(rcstates, rkstates, compare_state_keys)
 
     if compare_dates:
         assert np.all(rcstates['datestart'][1:] == rkstates['datestart'][1:])
@@ -100,8 +118,9 @@ def test_quick():
     sts = states.get_states('2017:300', '2017:310', state_keys, reduce=False)
     rk = states.reduce_states(sts, state_keys, merge_identical=True)
     assert len(rc) == len(rk)
-    for key in state_keys:
-        assert np.all(rk[key] == rc[key])
+
+    assert_all_close_states(rc, rk, state_keys)
+
     assert np.all(rc['datestart'][1:] == rk['datestart'][1:])
     assert np.all(rc['datestop'][:-1] == rk['datestop'][:-1])
 
@@ -165,6 +184,7 @@ def test_pitch_2017():
     assert np.all(dp[ok] < 0.05)
 
 
+@pytest.mark.skipif('not HAS_PITCH')
 def test_sun_vec_versus_telemetry():
     """
     Test sun vector values `pitch` and `off_nominal_roll` versus flight telem.  Include
@@ -415,11 +435,7 @@ def test_reduce_states_cmd_states():
 
     assert len(ksr) == len(cs)
 
-    for key in state_keys:
-        if key == 'trans_keys':
-            pass
-        else:
-            assert np.all(ksr[key] == cs[key])
+    assert_all_close_states(cs, ksr, set(state_keys) - set(['trans_keys']))
 
     assert np.all(ksr['datestart'][1:] == cs['datestart'][1:])
     assert np.all(ksr['datestop'][:-1] == cs['datestop'][:-1])
