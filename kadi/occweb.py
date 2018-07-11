@@ -35,6 +35,16 @@ def get_auth():
     username = config.get('username')
     password = config.get('password')
 
+    # If /proj/sot/ska doesn't have occweb credentials try .netrc.
+    if username is None:
+        try:
+            import Ska.ftp
+            # Do this as a tuple so the operation is atomic
+            username, password = (Ska.ftp.parse_netrc()['occweb']['login'],
+                                  Ska.ftp.parse_netrc()['occweb']['password'])
+        except:
+            pass
+
     return (username, password)
 
 
