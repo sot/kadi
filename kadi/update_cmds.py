@@ -5,6 +5,7 @@ import difflib
 
 import numpy as np
 import tables
+import tables3_api
 from six.moves import cPickle as pickle
 import six
 
@@ -106,7 +107,7 @@ def fix_nonload_cmds(nl_cmds):
             new_cmd['params']['msid'] = str(cmd['msid'])
 
         # De-unicode and de-numpy (otherwise unpickling on PY3 has problems).
-        if six.PY2 and 'params' in cmd:
+        if 'params' in cmd:
             params = new_cmd['params']
             for key, val in cmd['params'].items():
                 key = str(key)
@@ -291,7 +292,7 @@ def add_h5_cmds(h5file, idx_cmds):
     """
     # Note: reading this file uncompressed is about 5 times faster, so sacrifice file size
     # for read speed and do not use compression.
-    h5 = tables.openFile(h5file, mode='a')
+    h5 = tables.open_file(h5file, mode='a')
 
     # Convert cmds (list of tuples) to numpy structured array.  This also works for an
     # existing structured array.
@@ -303,7 +304,7 @@ def add_h5_cmds(h5file, idx_cmds):
         h5d = h5.root.data
         logger.info('Opened h5 cmds table {}'.format(h5file))
     except tables.NoSuchNodeError:
-        h5.createTable(h5.root, 'data', cmds, "cmds", expectedrows=2e6)
+        h5.create_table(h5.root, 'data', cmds, "cmds", expectedrows=2e6)
         logger.info('Created h5 cmds table {}'.format(h5file))
     else:
         date0 = min(idx_cmd[1] for idx_cmd in idx_cmds)
