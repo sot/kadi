@@ -53,9 +53,9 @@ def test_filter():
     cmd = cs[1]
 
     assert repr(cmd).startswith('<Cmd 2012:030:08:27:02.000 SIMTRANS')
-    assert repr(cmd).endswith('scs=133 step=161 timeline_id=426098449 pos=73176>')
+    assert repr(cmd).endswith('scs=133 step=161 timeline_id=426098449 vcdu=15639968 pos=73176>')
     assert str(cmd).startswith('2012:030:08:27:02.000 SIMTRANS')
-    assert str(cmd).endswith('scs=133 step=161 timeline_id=426098449 pos=73176')
+    assert str(cmd).endswith('scs=133 step=161 timeline_id=426098449 vcdu=15639968 pos=73176')
 
     assert cmd['pos'] == 73176
     assert cmd['step'] == 161
