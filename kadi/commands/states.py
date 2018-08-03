@@ -286,6 +286,91 @@ class ParamTransition(BaseTransition):
 
 
 ###################################################################
+# CCDM format and subformat transitions
+###################################################################
+
+class Format1_Transition(FixedTransition):
+    """Transition to telemetry format 1"""
+    command_attributes = {'tlmsid': 'CSELFMT1'}
+    state_keys = ['format']
+    transition_key = 'format'
+    transition_val = 'FMT1'
+
+
+class Format2_Transition(FixedTransition):
+    """Transition to telemetry format 2"""
+    command_attributes = {'tlmsid': 'CSELFMT2'}
+    state_keys = ['format']
+    transition_key = 'format'
+    transition_val = 'FMT2'
+
+
+class Format3_Transition(FixedTransition):
+    """Transition to telemetry format 3"""
+    command_attributes = {'tlmsid': 'CSELFMT3'}
+    state_keys = ['format']
+    transition_key = 'format'
+    transition_val = 'FMT3'
+
+
+class Format4_Transition(FixedTransition):
+    """Transition to telemetry format 4"""
+    command_attributes = {'tlmsid': 'CSELFMT4'}
+    state_keys = ['format']
+    transition_key = 'format'
+    transition_val = 'FMT4'
+
+
+class Format5_Transition(FixedTransition):
+    """Transition to telemetry format 5"""
+    command_attributes = {'tlmsid': 'CSELFMT5'}
+    state_keys = ['format']
+    transition_key = 'format'
+    transition_val = 'FMT5'
+
+
+class Format6_Transition(FixedTransition):
+    """Transition to telemetry format 6"""
+    command_attributes = {'tlmsid': 'CSELFMT6'}
+    state_keys = ['format']
+    transition_key = 'format'
+    transition_val = 'FMT6'
+
+
+class SubFormatEPS_Transition(FixedTransition):
+    """Transition to telemetry EPS subformat"""
+    command_attributes = {'tlmsid': 'OFMTSEPS'}
+    state_keys = ['subformat']
+    transition_key = 'subformat'
+    transition_val = 'EPS'
+
+
+class SubFormatNRM_Transition(FixedTransition):
+    """Transition to telemetry NRM subformat"""
+    command_attributes = {'tlmsid': 'OFMTSNRM'}
+    state_keys = ['subformat']
+    transition_key = 'subformat'
+    transition_val = 'NRM'
+
+
+class SubFormatPDG_Transition(FixedTransition):
+    """Transition to telemetry PDG subformat"""
+    command_attributes = {'tlmsid': 'OFMTSPDG'}
+    state_keys = ['subformat']
+    transition_key = 'subformat'
+    transition_val = 'PDG'
+
+
+class SubFormatSSR_Transition(FixedTransition):
+    """Transition to telemetry SSR subformat"""
+    command_attributes = {'tlmsid': 'OFMTSSSR'}
+    state_keys = ['subformat']
+    transition_key = 'subformat'
+    transition_val = 'SSR'
+
+
+
+###################################################################
 # Mech transitions
 ###################################################################
 

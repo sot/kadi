@@ -446,6 +446,36 @@ def compare_backstop_history(history, state_key, compare_val=True):
         assert np.all(sts[state_key] == hist['col3'])
 
 
+def test_backstop_format():
+    """
+    Check format state against backstop history for a period including
+    formats 1, 2, 4, 6.  Note: the backstop history file uses values
+    like CSELFMT6 while kadi uses FMT6.  So this history file data has
+    been modified by hand.
+    """
+    history = """
+2018188.084459620 | FMT4
+2018188.084917420 | FMT2
+2018189.020632813 | FMT4
+2018189.021050613 | FMT2
+2018189.145628609 | FMT4
+2018189.150046409 | FMT2
+2018191.084412307 | FMT1
+2018191.121427923 | FMT4
+2018191.121845723 | FMT2
+2018191.204552786 | FMT4
+2018191.205010586 | FMT2
+2018192.070720386 | FMT4
+2018192.071138186 | FMT2
+2018194.021855327 | FMT4
+2018194.022658127 | FMT2
+2018194.053425927 | FMT1
+2018194.082940727 | FMT2
+2018194.113213927 | FMT1
+"""
+    compare_backstop_history(history, 'format')
+
+
 def test_backstop_sun_pos_mon():
     """
     Check sun_pos_mon state against backstop history for a period including
