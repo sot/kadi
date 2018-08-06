@@ -350,7 +350,7 @@ class SubFormatNRM_Transition(FixedTransition):
     command_attributes = {'tlmsid': 'OFMTSNRM'}
     state_keys = ['subformat']
     transition_key = 'subformat'
-    transition_val = 'NRM'
+    transition_val = 'NORM'
 
 
 class SubFormatPDG_Transition(FixedTransition):
