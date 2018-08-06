@@ -402,7 +402,7 @@ def main(args=None):
 
     if pars_dict.n_updated > 0:
         with open(pars_dict_path, 'wb') as fh:
-            pickle.dump(pars_dict, fh, protocol=-1)
+            pickle.dump(pars_dict, fh, protocol=2)
             logger.info('Wrote {} pars_dict values ({} new) to {}'
                         .format(len(pars_dict), pars_dict.n_updated, pars_dict_path))
     else:
