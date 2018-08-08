@@ -46,9 +46,9 @@ def test_get_cmds():
     cmd = cs[1]
 
     assert repr(cmd).startswith('<Cmd 2012:030:08:27:02.000 SIMTRANS')
-    assert repr(cmd).endswith('scs=133 step=161 timeline_id=426098449 pos=73176>')
+    assert repr(cmd).endswith('scs=133 step=161 timeline_id=426098449 vcdu=15639968 pos=73176>')
     assert str(cmd).startswith('2012:030:08:27:02.000 SIMTRANS')
-    assert str(cmd).endswith('scs=133 step=161 timeline_id=426098449 pos=73176')
+    assert str(cmd).endswith('scs=133 step=161 timeline_id=426098449 vcdu=15639968 pos=73176')
 
     assert cmd['pos'] == 73176
     assert cmd['step'] == 161
@@ -58,4 +58,4 @@ def test_get_cmds_zero_length_result():
     cmds = commands.get_cmds(date='2017:001')
     assert len(cmds) == 0
     assert cmds.colnames == ['idx', 'date', 'type', 'tlmsid', 'scs',
-                             'step', 'timeline_id', 'params']
+                             'step', 'timeline_id', 'vcdu', 'params']

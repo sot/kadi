@@ -5,6 +5,7 @@ import difflib
 
 import numpy as np
 import tables
+import tables3_api
 from six.moves import cPickle as pickle
 import six
 
@@ -24,7 +25,8 @@ CMDS_DTYPE = [('idx', np.uint16),
               ('tlmsid', '|S10'),
               ('scs', np.uint8),
               ('step', np.uint16),
-              ('timeline_id', np.uint32)]
+              ('timeline_id', np.uint32),
+              ('vcdu', np.int32)]
 
 logger = None  # This is set as a global in main.  Define here for pyflakes.
 
@@ -87,7 +89,7 @@ def fix_nonload_cmds(nl_cmds):
     'time': 605233531.20899999,        # Ignored
     'timeline_id': None,               # Set to 0
     'tlmsid': None,                    # 'None' if None
-    'vcdu': None},                     # Ignored
+    'vcdu': None},                     # Set to -1
     """
     new_cmds = []
     for cmd in nl_cmds:
@@ -97,6 +99,7 @@ def fix_nonload_cmds(nl_cmds):
         new_cmd['tlmsid'] = str(cmd['tlmsid'])
         for key in ('scs', 'step', 'timeline_id'):
             new_cmd[key] = 0
+        new_cmd['vcdu'] = -1
 
         new_cmd['params'] = {}
         new_cmd['params']['nonload_id'] = int(cmd['id'])
@@ -104,11 +107,11 @@ def fix_nonload_cmds(nl_cmds):
             new_cmd['params']['msid'] = str(cmd['msid'])
 
         # De-unicode and de-numpy (otherwise unpickling on PY3 has problems).
-        if six.PY2 and 'params' in cmd:
+        if 'params' in cmd:
             params = new_cmd['params']
             for key, val in cmd['params'].items():
                 key = str(key)
-                if isinstance(val, (str, unicode)):
+                if isinstance(val, six.string_types):
                     val = str(val)
                 else:
                     try:
@@ -252,7 +255,7 @@ def get_idx_cmds(cmds, pars_dict):
     values.
 
     Returns `idx_cmds` as a list of tuples:
-       (par_idx, date, time, cmd, tlmsid, scs, step)
+       (par_idx, date, time, cmd, tlmsid, scs, step, timeline_id, vcdu)
     """
     idx_cmds = []
 
@@ -277,7 +280,7 @@ def get_idx_cmds(cmds, pars_dict):
             pars_dict[pars_tup] = par_idx
 
         idx_cmds.append((par_idx, cmd['date'], cmd['type'], cmd.get('tlmsid'),
-                         cmd['scs'], cmd['step'], cmd['timeline_id']))
+                         cmd['scs'], cmd['step'], cmd['timeline_id'], cmd['vcdu']))
 
     return idx_cmds
 
@@ -289,7 +292,7 @@ def add_h5_cmds(h5file, idx_cmds):
     """
     # Note: reading this file uncompressed is about 5 times faster, so sacrifice file size
     # for read speed and do not use compression.
-    h5 = tables.openFile(h5file, mode='a')
+    h5 = tables.open_file(h5file, mode='a')
 
     # Convert cmds (list of tuples) to numpy structured array.  This also works for an
     # existing structured array.
@@ -301,7 +304,7 @@ def add_h5_cmds(h5file, idx_cmds):
         h5d = h5.root.data
         logger.info('Opened h5 cmds table {}'.format(h5file))
     except tables.NoSuchNodeError:
-        h5.createTable(h5.root, 'data', cmds, "cmds", expectedrows=2e6)
+        h5.create_table(h5.root, 'data', cmds, "cmds", expectedrows=2e6)
         logger.info('Created h5 cmds table {}'.format(h5file))
     else:
         date0 = min(idx_cmd[1] for idx_cmd in idx_cmds)
@@ -312,7 +315,7 @@ def add_h5_cmds(h5file, idx_cmds):
         h5d_recent = h5d[idx_recent:]  # recent h5d entries
 
         # Define the column names that specify a complete and unique row
-        key_names = ('date', 'type', 'tlmsid', 'scs', 'step', 'timeline_id')
+        key_names = ('date', 'type', 'tlmsid', 'scs', 'step', 'timeline_id', 'vcdu')
 
         h5d_recent_vals = [tuple(str(row[x]) for x in key_names) for row in h5d_recent]
         idx_cmds_vals = [tuple(str(x) for x in row[1:]) for row in idx_cmds]
@@ -399,7 +402,7 @@ def main(args=None):
 
     if pars_dict.n_updated > 0:
         with open(pars_dict_path, 'wb') as fh:
-            pickle.dump(pars_dict, fh, protocol=-1)
+            pickle.dump(pars_dict, fh, protocol=2)
             logger.info('Wrote {} pars_dict values ({} new) to {}'
                         .format(len(pars_dict), pars_dict.n_updated, pars_dict_path))
     else:
@@ -460,6 +463,7 @@ def read_backstop(filename):
     for bs_line in open(filename):
         bs_line = bs_line.replace(' ', '')
         date, vcdu, cmd_type, paramstr = [x for x in bs_line.split('|')]
+        vcdu = int(vcdu[:-1])  # Get rid of final '0' from '8023268 0' (where space was stripped)
         params = parse_params(paramstr)
         bs.append({'date': date,
                    'type': cmd_type,
@@ -467,6 +471,7 @@ def read_backstop(filename):
                    'tlmsid': params.get('TLMSID'),
                    'scs': params.get('SCS'),
                    'step': params.get('STEP'),
+                   'vcdu': vcdu
                    })
     return bs
 
