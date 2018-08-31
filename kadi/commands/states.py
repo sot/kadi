@@ -952,7 +952,8 @@ class ACISTransition(BaseTransition):
                 transitions[date].update(clocking=1, power_cmd=tlmsid)
 
             elif tlmsid == 'WSVIDALLDN':
-                transitions[date].update(vid_board=0, power_cmd=tlmsid)
+                transitions[date].update(vid_board=0, ccd_count=0, 
+                                         power_cmd=tlmsid)
 
             elif tlmsid == 'AA00000000':
                 transitions[date].update(clocking=0, power_cmd=tlmsid)
