@@ -111,11 +111,11 @@ def test_quick():
                   ['letg', 'hetg'] +
                   ['simpos', 'simfa_pos'])
     continuity = {'letg': 'RETR', 'hetg': 'RETR'}  # Not necessarily set within 7 days
-    rc, rk = compare_states('2017:300', '2017:310', state_keys, continuity=continuity)
+    rc, rk = compare_states('2018:235', '2018:245', state_keys, continuity=continuity)
 
     # Now test using start/stop pair with start/stop and no supplied cmds or continuity.
     # This also tests the API kwarg order: datestart, datestop, state_keys, ..)
-    sts = states.get_states('2017:300', '2017:310', state_keys, reduce=False)
+    sts = states.get_states('2018:235', '2018:245', state_keys, reduce=False)
     rk = states.reduce_states(sts, state_keys, merge_identical=True)
     assert len(rc) == len(rk)
 
@@ -426,7 +426,7 @@ def test_reduce_states_cmd_states():
     Test that simple get_states() call with defaults gives the same results
     as calling cmd_states.fetch_states().
     """
-    cs = cmd_states.fetch_states('2017:300', '2017:310', allow_identical=True)
+    cs = cmd_states.fetch_states('2018:235', '2018:245', allow_identical=True)
     cs = Table(cs)
 
     state_keys = (set(cmd_states.STATE0) -
@@ -434,7 +434,7 @@ def test_reduce_states_cmd_states():
 
     # Default setting is reduce states with merge_identical=False, which is the same
     # as cmd_states.
-    ksr = states.get_states('2017:300', '2017:310', state_keys)
+    ksr = states.get_states('2018:235', '2018:245', state_keys)
 
     assert len(ksr) == len(cs)
 
