@@ -74,7 +74,7 @@ def test_acis():
     """
     Test all ACIS states include vid_board for late-2017
     """
-    state_keys = ['clocking', 'power_cmd',  'fep_count', 'si_mode',  'ccd_count', 'vid_board']
+    state_keys = ['clocking', 'power_cmd',  'fep_count', 'si_mode',  'vid_board']
     rc, rk = compare_states('2017:280', '2017:360', state_keys, state_keys)
 
 
@@ -133,12 +133,15 @@ def test_states_2017():
     Skip 'vid_board' because https://github.com/sot/cmd_states/pull/31 was put
     in place around 2017:276 and so the behavior of this changed then. (Tested later).
 
+    Skip 'ccd_count' because https://github.com/sot/cmd_states/pull/39 changed
+    that behavior.
+
     Skip 'pitch' because Chandra.cmd_states only avoids pitch breaks within actual
     maneuver commanding (so the NMAN period before maneuver starts is OK) while kadi
     will insert pitch breaks only in NPNT.  (Tested later).
     """
     state_keys = (['obsid', 'clocking', 'power_cmd',  'fep_count',
-                   'si_mode',  'ccd_count'] +
+                   'si_mode'] +
                   ['q1', 'q2', 'q3', 'q4', 'pcad_mode', 'dither', 'ra', 'dec', 'roll'] +
                   ['letg', 'hetg'] +
                   ['simpos', 'simfa_pos'])
