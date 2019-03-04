@@ -989,7 +989,7 @@ def get_transition_classes(state_keys=None):
     return trans_classes
 
 
-def get_transitions_list(cmds, state_keys, start, stop):
+def get_transitions_list(cmds, state_keys, start, stop, continuity=None):
     """
     For given set of commands ``cmds`` and ``state_keys``, return a list of
     transitions.
@@ -1009,6 +1009,10 @@ def get_transitions_list(cmds, state_keys, start, stop):
     #
     #   transitions_dict['2017:002:01:02:03.456']['obsid'] = 23456.
     transitions_dict = collections.defaultdict(dict)
+
+    if continuity is not None and '__transitions__' in continuity:
+        for transition in continuity['__transitions__']:
+            transitions_dict[transition['date']].update(transition)
 
     # Iterate through Transition classes which depend on or affect ``state_keys``
     # and ask each one to update ``transitions_dict`` in-place to include
@@ -1141,7 +1145,7 @@ def get_states(start=None, stop=None, state_keys=None, cmds=None, continuity=Non
     # Get transitions, which is a list of dict (state key
     # and new state value at that date).  This goes through each active
     # transition class and accumulates transitions.
-    transitions = get_transitions_list(cmds, state_keys, start, stop)
+    transitions = get_transitions_list(cmds, state_keys, start, stop, continuity)
 
     # List of dict to hold state values.  Datestarts is the corresponding list of
     # start dates for each state.
@@ -1159,13 +1163,22 @@ def get_states(start=None, stop=None, state_keys=None, cmds=None, continuity=Non
     # reference the last state in the list.
     state = states[0]
 
+    # List of transitions that occur *after* the ``stop`` date but are needed for
+    # continuity.  Classic example is for maneuvers if starting in the middle of a
+    # maneuver, but this also occurs for SPMEnableTransition which puts commands
+    # into the future.  Collect all these transitions and put into
+    # states.meta['continuity_transitions'].  This is mostly only needed for
+    # get_continuity().
+    continuity_transitions = []
+
     for idx, transition in enumerate(transitions):
         date = transition['date']
 
         # Some transition classes (e.g. Maneuver) might put in transitions that
-        # extend past the stop time.  Break out of loop on the first one.
+        # extend past the stop time.  Add to a list for potential use in continuity.
         if date > stop:
-            break
+            continuity_transitions.append(transition)
+            continue
 
         # If transition is at a new date from current state then break the current state
         # and make a new one (as a copy of current).  Note that multiple transitions can
@@ -1200,6 +1213,9 @@ def get_states(start=None, stop=None, state_keys=None, cmds=None, continuity=Non
 
     if reduce:
         out = reduce_states(out, orig_state_keys, merge_identical)
+
+    # See long comment where continuity_transitions is defined
+    out.meta['continuity_transitions'] = continuity_transitions
 
     return out
 
@@ -1309,6 +1325,13 @@ def get_continuity(date=None, state_keys=None, lookbacks=(7, 30, 180, 1000)):
     continuity = {}
     dates = {}
 
+    # List of transitions that occur *after* the ``stop`` date but are still needed
+    # to compute states.  Classic example is for maneuvers, but this also occurs for
+    # SPMEnableTransition which puts commands into the future.  Collect all these
+    # transitions and eventually add to the output continuity dict as the
+    # __transitions__ key.  Then ``get_states`` uses this to initialize transitions.
+    continuity_transitions = []
+
     for lookback in lookbacks:
         cmds = commands.get_cmds(stop - lookback, stop)
         if len(cmds) == 0:
@@ -1329,6 +1352,10 @@ def get_continuity(date=None, state_keys=None, lookbacks=(7, 30, 180, 1000)):
             except NoTransitionsError:
                 # No transitions within `cmds` for state_key, continue with other keys
                 continue
+            else:
+                # get_states() sets this meta value with a list of transitions that were beyond
+                # the stop time and did not get processed.
+                continuity_transitions.extend(states.meta['continuity_transitions'])
 
             colnames = set(states.colnames) - set(['datestart', 'datestop', 'trans_keys'])
             for colname in colnames:
@@ -1364,6 +1391,10 @@ def get_continuity(date=None, state_keys=None, lookbacks=(7, 30, 180, 1000)):
     continuity = {key: continuity[key] for key in state_keys}
     dates = {key: dates[key] for key in state_keys}
     continuity['__dates__'] = dates
+
+    # List of transitions needed to fully express continuity.  See long comment above.
+    if continuity_transitions:
+        continuity['__transitions__'] = continuity_transitions
 
     return continuity
 
