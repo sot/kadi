@@ -11,7 +11,7 @@ from astropy.io import ascii
 from astropy.table import Table
 
 try:
-    fetch.get_time_range('pitch')
+    fetch.get_time_range('dp_pitch')
     HAS_PITCH = True
 except:
     HAS_PITCH = False
