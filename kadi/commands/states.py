@@ -1010,6 +1010,10 @@ def get_transitions_list(cmds, state_keys, start, stop, continuity=None):
     #   transitions_dict['2017:002:01:02:03.456']['obsid'] = 23456.
     transitions_dict = collections.defaultdict(dict)
 
+    # If an initial list of transitions is provided in the continuity dict
+    # then apply those.  These would be transitions that occur after the the
+    # continuity time, e.g. in the case continuity in the middle of a maneuver
+    # where we need the remaining attitude and pcad_mode transitions.
     if continuity is not None and '__transitions__' in continuity:
         for transition in continuity['__transitions__']:
             transitions_dict[transition['date']].update(transition)
