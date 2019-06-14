@@ -129,12 +129,14 @@ def get_cmds_from_backstop(backstop, remove_starcat=True):
 
     n_bs = len(bs)
     out = {}
-    out['idx'] = np.zeros(n_bs, dtype=np.uint16)
+    # Set idx to max (2**16 -1) so it does not match any real idx
+    out['idx'] = np.full(n_bs, fill_value=65535, dtype=np.uint16)
     out['date'] = np.chararray.encode(bs['date'])
     out['type'] = np.chararray.encode(bs['type'])
     out['tlmsid'] = np.chararray.encode(bs['tlmsid'])
     out['scs'] = bs['scs'].astype(np.uint8)
     out['step'] = bs['step'].astype(np.uint16)
+    # Set timeline_id to 0, does not match any real timeline id
     out['timeline_id'] = np.zeros(n_bs, dtype=np.uint32)
     out['vcdu'] = bs['vcdu'].astype(np.int32)
     out['params'] = bs['params']
@@ -143,6 +145,12 @@ def get_cmds_from_backstop(backstop, remove_starcat=True):
     for params in out['params']:
         for key in ('tlmsid', 'step', 'scs'):
             params.pop(key, None)
+
+        # Match the hack in update_commands which swaps in "event_type" for "type"
+        # for orbit event commands
+        if 'type' in params:
+            params['event_type'] = params['type']
+            del params['type']
 
     return CommandTable(out)
 
