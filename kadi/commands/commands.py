@@ -1,17 +1,18 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import tables
 import tables3_api
+from pathlib import Path
 
 import numpy as np
 
-from astropy.table import Table, Row, Column
+from astropy.table import Table, Row, Column, vstack
 from Chandra.Time import DateTime
 import six
 from six.moves import cPickle as pickle
 
 from ..paths import IDX_CMDS_PATH, PARS_DICT_PATH
 
-__all__ = ['get_cmds', 'CommandTable']
+__all__ = ['get_cmds', 'get_cmds_from_backstop', 'CommandTable']
 
 
 class LazyVal(object):
@@ -99,6 +100,59 @@ def get_cmds(start=None, stop=None, **kwargs):
     out['params'] = None if len(out) > 0 else Column([], dtype=object)
 
     return out
+
+
+def get_cmds_from_backstop(backstop, remove_starcat=True):
+    """
+    Initialize a ``CommandTable`` from ``backstop``, which can either
+    be a string file name or a backstop table from ``parse_cm.read_backstop``.
+
+    :param backstop: str or Table
+    :param remove_starcat: remove star catalog commands (default=True)
+    :returns: :class:`~kadi.commands.commands.CommandTable` of commands
+    """
+    if isinstance(backstop, Path):
+        backstop = str(backstop)
+
+    if isinstance(backstop, str):
+        from parse_cm import read_backstop
+        bs = read_backstop(backstop)
+    elif isinstance(backstop, Table):
+        bs = backstop
+    else:
+        raise ValueError(f'`backstop` arg must be a string filename or '
+                         f'a backstop Table')
+
+    if remove_starcat:
+        ok = bs['type'] != 'MP_STARCAT'
+        bs = bs[ok]
+
+    n_bs = len(bs)
+    out = {}
+    # Set idx to max (2**16 -1) so it does not match any real idx
+    out['idx'] = np.full(n_bs, fill_value=65535, dtype=np.uint16)
+    out['date'] = np.chararray.encode(bs['date'])
+    out['type'] = np.chararray.encode(bs['type'])
+    out['tlmsid'] = np.chararray.encode(bs['tlmsid'])
+    out['scs'] = bs['scs'].astype(np.uint8)
+    out['step'] = bs['step'].astype(np.uint16)
+    # Set timeline_id to 0, does not match any real timeline id
+    out['timeline_id'] = np.zeros(n_bs, dtype=np.uint32)
+    out['vcdu'] = bs['vcdu'].astype(np.int32)
+    out['params'] = bs['params']
+
+    # Backstop has redundant param keys, get rid of them here
+    for params in out['params']:
+        for key in ('tlmsid', 'step', 'scs'):
+            params.pop(key, None)
+
+        # Match the hack in update_commands which swaps in "event_type" for "type"
+        # for orbit event commands
+        if 'type' in params:
+            params['event_type'] = params['type']
+            del params['type']
+
+    return CommandTable(out)
 
 
 def _find(start=None, stop=None, **kwargs):
@@ -281,3 +335,16 @@ class CommandTable(Table):
         """
         for cmd in self:
             cmd['params']
+
+    def add_cmds(self, cmds):
+        """
+        Add CommandTable ``cmds`` to self and return the new CommandTable. The
+        commands table is maintained in order (date, step, scs).
+
+        :param cmds: :class:`~kadi.commands.commands.CommandTable` of commands
+        :returns: :class:`~kadi.commands.commands.CommandTable` of commands
+        """
+        out = vstack([self, cmds])
+        out.sort(['date', 'step', 'scs'])
+
+        return out
