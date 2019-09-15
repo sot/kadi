@@ -42,7 +42,7 @@ def get_auth():
             # Do this as a tuple so the operation is atomic
             username, password = (Ska.ftp.parse_netrc()['occweb']['login'],
                                   Ska.ftp.parse_netrc()['occweb']['password'])
-        except:
+        except Exception:
             pass
 
     return (username, password)

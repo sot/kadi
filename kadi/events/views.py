@@ -126,7 +126,7 @@ class EventDetail(EventView, DetailView):
             obsid = event.get_obsid()
             url = '/mica/?obsid_or_date={}'.format(obsid)
             mica_link = '<a href="{}" target="_blank">{}</a>'.format(url, obsid)
-        except:
+        except Exception:
             mica_link = 'Unknown'
         context['mica_link'] = mica_link
 

@@ -13,7 +13,7 @@ from astropy.table import Table
 try:
     fetch.get_time_range('dp_pitch')
     HAS_PITCH = True
-except:
+except Exception:
     HAS_PITCH = False
 
 

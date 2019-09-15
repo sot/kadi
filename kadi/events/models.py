@@ -1885,7 +1885,7 @@ class IFotEvent(BaseEvent):
                 # <prop>.START/STOP values is not a valid date.
                 try:
                     DateTime(event[st]).date
-                except:
+                except Exception:
                     # Fail, roll back to the tstart/tstop version
                     logger.info('WARNING: Bad value of ifot_evt[{}.{}] = "{}" at {}'
                                 .format(cls.ifot_type_desc, st, event[st], ifot_evt['tstart']))

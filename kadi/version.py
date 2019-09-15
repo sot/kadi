@@ -66,7 +66,7 @@ class SemanticVersion(object):
                 git_revs, git_sha = fh.read().strip().split()
                 git_revs = int(git_revs)
 
-        except:
+        except Exception:
             from subprocess import Popen, PIPE
             try:
                 p = Popen(['git', 'rev-list', 'HEAD'], cwd=self.version_dir,
@@ -78,7 +78,7 @@ class SemanticVersion(object):
                     git_revs, git_sha = len(revs), revs[0][:7]
                 else:
                     git_revs, git_sha = None, None
-            except:
+            except Exception:
                 git_revs, git_sha = None, None
 
         return git_revs, git_sha
