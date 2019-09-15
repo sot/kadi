@@ -5,7 +5,6 @@ import difflib
 
 import numpy as np
 import tables
-import tables3_api
 from six.moves import cPickle as pickle
 import six
 

@@ -178,7 +178,7 @@ def fuzz_states(states, t_fuzz):
                 state0['tstop'] = state1['tstop']
                 state0['datestop'] = state1['datestop']
                 state0['duration'] = state0['tstop'] - state0['tstart']
-                states = table.vstack([states[:i + 1], states[i + 2:]])
+                states = table.vstack([states[:i + 1], states[i + 2:]])  # noqa
                 break
         else:
             done = True
@@ -321,7 +321,8 @@ class BaseModel(models.Model):
               >>> manvrs = events.manvrs.filter('2001:001:00:00:00', '2001:003:00:00:00')
               >>> non_rad_manvrs = manvrs.select_overlapping(~events.rad_zones)
               >>> rad_manvrs = manvrs.select_overlapping(events.rad_zones)
-              >>> fully_radzone_manvrs = manvrs.select_overlapping(events.rad_zones, allow_partial=False)
+              >>> fully_radzone_manvrs = manvrs.select_overlapping(events.rad_zones,
+              ...                                                  allow_partial=False)
 
             :param query_event: QueryEvent object (e.g. events.tsc_moves or a composite
                                 boolean expression)
@@ -1499,8 +1500,8 @@ class Manvr(TlmEvent):
             ok = ((msid.times >= DateTime(guide_start).secs + 1.1)
                   & (msid.times < DateTime(guide_start).secs + 30))
             if not np.any(ok):
-                raise ValueError("No AOATTER{} times for guide transition at {} for one shot".format(
-                    ax, guide_start))
+                raise ValueError("No AOATTER{} times for guide transition at {} for one shot"
+                                 .format(ax, guide_start))
             pm_att_err[ax] = msid.vals[ok][0] * R2A
         return {'one_shot': np.sqrt(pm_att_err[2] ** 2
                                     + pm_att_err[3] ** 2),
@@ -2322,7 +2323,7 @@ class AsciiTableEvent(BaseEvent):
         stop = DateTime(stop).date
 
         filename = os.path.join(DATA_DIR(), cls.intervals_file)
-        intervals = table.Table.read(filename, **cls.table_read_kwargs)
+        intervals = table.Table.read(filename, **cls.table_read_kwargs)  # noqa
 
         # Custom in-place processing of raw intervals
         cls.process_intervals(intervals)
