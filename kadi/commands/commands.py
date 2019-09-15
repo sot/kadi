@@ -57,6 +57,7 @@ def load_pars_dict():
         pars_dict = pickle.load(fh, **kwargs)
     return pars_dict
 
+
 # Globals that contain the entire commands table and the parameters index
 # dictionary.
 idx_cmds = LazyVal(load_idx_cmds)
@@ -260,6 +261,7 @@ class CommandTable(Table):
     Astropy Table subclass that is specialized to handle commands via a
     ``params`` column that is expected to be ``None`` or a dict of params.
     """
+
     def __getitem__(self, item):
         if isinstance(item, six.string_types):
             if item in self.colnames:

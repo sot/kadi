@@ -77,6 +77,7 @@ def test_put_get_user_none():
 user, passwd = occweb.get_auth()
 HAS_OCCWEB = True if user is not None else False
 
+
 @pytest.mark.skipif('not HAS_OCCWEB')
 def test_ifot_fetch():
     events = occweb.get_ifot('LOADSEG', start='2008:001', stop='2008:003')

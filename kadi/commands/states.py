@@ -60,6 +60,7 @@ class NoTransitionsError(ValueError):
 
 class TransKeysSet(set):
     """Like set() but with more compact str output for table printing"""
+
     def __str__(self):
         return ','.join(sorted(self))
 
@@ -72,6 +73,7 @@ class StateDict(dict):
     Dict for state key/val pairs.  When a key value is set the key is stored
     in the trans_keys attribute.
     """
+
     def __init__(self, *args, **kwargs):
         super(StateDict, self).__init__(*args, **kwargs)
         self.trans_keys = TransKeysSet()
@@ -374,7 +376,6 @@ class SubFormatSSR_Transition(FixedTransition):
     state_keys = ['subformat']
     transition_key = 'subformat'
     transition_val = 'SSR'
-
 
 
 ###################################################################
@@ -959,7 +960,7 @@ class ACISTransition(BaseTransition):
                 transitions[date].update(clocking=1, power_cmd=tlmsid)
 
             elif tlmsid == 'WSVIDALLDN':
-                transitions[date].update(vid_board=0, ccd_count=0, 
+                transitions[date].update(vid_board=0, ccd_count=0,
                                          power_cmd=tlmsid)
 
             elif tlmsid == 'AA00000000':
@@ -990,8 +991,8 @@ def get_transition_classes(state_keys=None):
         state_keys = DEFAULT_STATE_KEYS
 
     trans_classes = set(itertools.chain.from_iterable(
-            classes for state_key, classes in TRANSITIONS.items()
-            if state_key in state_keys))
+        classes for state_key, classes in TRANSITIONS.items()
+        if state_key in state_keys))
 
     return trans_classes
 

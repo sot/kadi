@@ -56,6 +56,7 @@ def load_pars_dict():
         pars_dict = pickle.load(fh, **kwargs)
     return pars_dict
 
+
 # Globals that contain the entire commands table and the parameters index
 # dictionary.
 idx_cmds = LazyVal(load_idx_cmds)

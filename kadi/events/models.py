@@ -195,6 +195,7 @@ class Pad(object):
     on each side).  A pad of -300 seconds makes the interval start 5 minutes
     later and end 5 minutes earlier.
     """
+
     def __init__(self, start=None, stop=None):
         self.start = start or 0.0
         self.stop = stop or 0.0
@@ -258,6 +259,7 @@ class MyManager(models.Manager):
     http://stackoverflow.com/questions/2163151/custom-queryset-and-manager-without-breaking-dry
     https://docs.djangoproject.com/en/1.5/topics/db/managers/#custom-managers
     """
+
     def get_query_set(self):
         return self.model.QuerySet(self.model)
 
@@ -273,6 +275,7 @@ class BaseModel(models.Model):
         """
         More user-friendly output from event queries.
         """
+
         def __repr__(self):
             data = list(self[:models.query.REPR_OUTPUT_SIZE + 1])
             if len(data) > models.query.REPR_OUTPUT_SIZE:
@@ -1258,8 +1261,8 @@ class Manvr(TlmEvent):
                                        help_text='Start time of next AOPCADMD=NMAN after manvr')
     next_manvr_start = models.CharField(max_length=21, null=True,
                                         help_text='Start time of next AOFATTMD=MNVR after manvr')
-    n_dwell = models.IntegerField(help_text=
-                                  'Number of kalman dwells after manvr and before next manvr')
+    n_dwell = models.IntegerField(
+        help_text='Number of kalman dwells after manvr and before next manvr')
     n_acq = models.IntegerField(help_text='Number of AQXN intervals after '
                                 'manvr and before next manvr')
     n_guide = models.IntegerField(help_text='Number of GUID intervals after '
@@ -1436,7 +1439,7 @@ class Manvr(TlmEvent):
             n_kalman=len(match('aoacaseq', 'KALM', None, 'after')),
             anomalous=anomalous,
             template=template,
-            )
+        )
 
         return manvr_attrs
 
@@ -1497,10 +1500,10 @@ class Manvr(TlmEvent):
                   & (msid.times < DateTime(guide_start).secs + 30))
             if not np.any(ok):
                 raise ValueError("No AOATTER{} times for guide transition at {} for one shot".format(
-                        ax, guide_start))
+                    ax, guide_start))
             pm_att_err[ax] = msid.vals[ok][0] * R2A
-        return {'one_shot':  np.sqrt(pm_att_err[2] ** 2
-                                     + pm_att_err[3] ** 2),
+        return {'one_shot': np.sqrt(pm_att_err[2] ** 2
+                                    + pm_att_err[3] ** 2),
                 'one_shot_roll': pm_att_err[1],
                 'one_shot_pitch': pm_att_err[2],
                 'one_shot_yaw': pm_att_err[3]}
@@ -1977,7 +1980,7 @@ class LoadSegment(IFotEvent):
 
     lookback = 40  # days of lookback
     lookback_delete = 20  # Remove load segments in database prior to 20 days ago
-                          # to account for potential load changes.
+    # to account for potential load changes.
     lookforward = 28  # Accept load segments planned up to 28 days in advance
 
     def __unicode__(self):
@@ -2046,7 +2049,7 @@ class PassPlan(IFotEvent):
 
     lookback = 21  # days of lookback
     lookback_delete = 7  # Remove all comms in database prior to 7 days ago to account
-                         # for potential schedule changes.
+    # for potential schedule changes.
     lookforward = 28  # Accept comms scheduled up to 28 days in advance
 
     update_priority = 500  # Must be before DsnComm
@@ -2106,7 +2109,7 @@ class DsnComm(IFotEvent):
 
     lookback = 21  # days of lookback
     lookback_delete = 7  # Remove all comms in database prior to 7 days ago to account
-                         # for potential schedule changes.
+    # for potential schedule changes.
     lookforward = 28  # Accept comms scheduled up to 28 days in advance
 
     @classmethod

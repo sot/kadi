@@ -22,7 +22,7 @@ class BaseView(object):
         if not sort:  # No sort explicitly set in request
             sort = self.model._meta.ordering[0]
             print(('model name {} meta ordering {}'.format(self.model.__name__,
-                                                          self.model._meta.ordering)))
+                                                           self.model._meta.ordering)))
             if self.reverse_sort:
                 sort = '-' + sort
         return sort

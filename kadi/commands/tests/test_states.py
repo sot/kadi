@@ -45,7 +45,8 @@ def get_states_test(start, stop, state_keys, continuity=None):
     lenr = len(rcstates)
 
     cmds = commands.get_cmds(start - 7, stop)
-    kstates = states.get_states(state_keys=state_keys, cmds=cmds, continuity=continuity, reduce=False)
+    kstates = states.get_states(state_keys=state_keys, cmds=cmds,
+                                continuity=continuity, reduce=False)
     rkstates = states.reduce_states(kstates, state_keys, merge_identical=True)[-lenr:]
 
     return rcstates, rkstates
@@ -74,7 +75,7 @@ def test_acis():
     """
     Test all ACIS states include vid_board for late-2017
     """
-    state_keys = ['clocking', 'power_cmd',  'fep_count', 'si_mode',  'vid_board']
+    state_keys = ['clocking', 'power_cmd', 'fep_count', 'si_mode', 'vid_board']
     rc, rk = compare_states('2017:280', '2017:360', state_keys, state_keys)
 
 
@@ -105,8 +106,8 @@ def test_quick():
     """
     Test for a few days in 2017.  Sanity check for refactoring etc.
     """
-    state_keys = (['obsid', 'clocking', 'power_cmd',  'fep_count', 'vid_board',
-                   'si_mode',  'ccd_count'] +
+    state_keys = (['obsid', 'clocking', 'power_cmd', 'fep_count', 'vid_board',
+                   'si_mode', 'ccd_count'] +
                   ['q1', 'q2', 'q3', 'q4', 'pcad_mode', 'dither', 'ra', 'dec', 'roll'] +
                   ['letg', 'hetg'] +
                   ['simpos', 'simfa_pos'])
@@ -140,7 +141,7 @@ def test_states_2017():
     maneuver commanding (so the NMAN period before maneuver starts is OK) while kadi
     will insert pitch breaks only in NPNT.  (Tested later).
     """
-    state_keys = (['obsid', 'clocking', 'power_cmd',  'fep_count',
+    state_keys = (['obsid', 'clocking', 'power_cmd', 'fep_count',
                    'si_mode'] +
                   ['q1', 'q2', 'q3', 'q4', 'pcad_mode', 'dither', 'ra', 'dec', 'roll'] +
                   ['letg', 'hetg'] +

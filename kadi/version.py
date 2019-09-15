@@ -31,7 +31,7 @@ which retains the git information outside of the git repo.
 import os
 
 ############################
-### SET THESE VALUES
+# SET THESE VALUES
 ############################
 # Major, Minor, Bugfix, Dev
 VERSION = (4, 18, 0, False)
