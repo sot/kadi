@@ -41,4 +41,4 @@ setup(name='kadi',
       tests_require=['pytest'],
       cmdclass=cmdclass,
       entry_points=entry_points,
-)
+      )
