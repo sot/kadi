@@ -52,6 +52,7 @@ class JSONDict(dict):
     Hack so repr() called by dumpdata will output JSON instead of
     Python formatted data.  This way fixtures will work!
     """
+
     def __repr__(self):
         return dumps(self)
 
@@ -60,6 +61,7 @@ class JSONList(list):
     """
     As above
     """
+
     def __repr__(self):
         return dumps(self)
 

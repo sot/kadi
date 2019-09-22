@@ -186,5 +186,6 @@ aofattmd_STDY_MNVR | 2000:015:05:46:51.421  40561.3
 """
     return dat
 
+
 if __name__ == '__main__':
     get_manvr_templates()

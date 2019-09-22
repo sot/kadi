@@ -1,6 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import tables
-import tables3_api
 
 import numpy as np
 
@@ -55,6 +54,7 @@ def load_pars_dict():
         kwargs = {} if six.PY2 else {'encoding': 'ascii'}
         pars_dict = pickle.load(fh, **kwargs)
     return pars_dict
+
 
 # Globals that contain the entire commands table and the parameters index
 # dictionary.

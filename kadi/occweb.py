@@ -23,8 +23,8 @@ CACHE_TIME = 86000
 TIMEOUT = 60
 
 ROOTURL = 'http://occweb.cfa.harvard.edu'
-URLS = {'fdb_major_events':  '/occweb/web/fdb_web/Major_Events.html',
-        'fot_major_events':  '/occweb/web/fot_web/eng/reports/Chandra_major_events.htm',
+URLS = {'fdb_major_events': '/occweb/web/fdb_web/Major_Events.html',
+        'fot_major_events': '/occweb/web/fot_web/eng/reports/Chandra_major_events.htm',
         'ifot': '/occweb/web/webapps/ifot/ifot.php',
         }
 
@@ -42,7 +42,7 @@ def get_auth():
             # Do this as a tuple so the operation is atomic
             username, password = (Ska.ftp.parse_netrc()['occweb']['login'],
                                   Ska.ftp.parse_netrc()['occweb']['password'])
-        except:
+        except Exception:
             pass
 
     return (username, password)

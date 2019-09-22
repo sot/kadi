@@ -259,5 +259,6 @@ def main():
         # Push events database file to OCC via lucky ftp
         occweb.ftp_put_to_lucky('kadi', [EVENTS_DB_PATH()], logger=logger)
 
+
 if __name__ == '__main__':
     main()

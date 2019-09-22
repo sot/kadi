@@ -5,7 +5,6 @@ import difflib
 
 import numpy as np
 import tables
-import tables3_api
 from six.moves import cPickle as pickle
 import six
 
@@ -116,7 +115,7 @@ def fix_nonload_cmds(nl_cmds):
                 else:
                     try:
                         val = val.item()
-                    except:
+                    except Exception:
                         pass
                 params[key] = val
 
@@ -442,7 +441,7 @@ def parse_params(paramstr):
         try:
             key, val = opt.split('=')
             params[key] = val if key == 'HEX' else _coerce_type(val)
-        except:
+        except Exception:
             pass  # backstop has some quirks like blank or '??????' fields
 
     return params

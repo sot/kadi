@@ -13,6 +13,7 @@ from Chandra.Time import DateTime
 class NotFoundError(Exception):
     pass
 
+
 ORBIT_POINTS_DTYPE = [('date', 'S21'), ('name', 'S8'),
                       ('orbit_num', 'i4'), ('descr', 'S50')]
 
@@ -319,13 +320,13 @@ def process_orbit_points(orbit_points):
             next_num, next_idx = get_nearest_orbit_num(orbit_nums, idx, +1)
         except NotFoundError:
             logger.info('No nearest orbit point for orbit_points[{}] (len={})'
-                  .format(idx, len(orbit_points)))
+                        .format(idx, len(orbit_points)))
         else:
             if prev_num == next_num:
                 orbit_nums[idx] = next_num
             else:
                 logger.info('Unable to assign orbit num idx={} prev={} next={}'
-                      .format(idx, prev_num, next_num))
+                            .format(idx, prev_num, next_num))
                 logger.info('  {} {}'.format(prev_idx, orbit_points[prev_idx]))
                 logger.info(' * {} {}'.format(idx, orbit_points[idx]))
                 logger.info('  {} {}'.format(next_idx, orbit_points[next_idx]))

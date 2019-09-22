@@ -80,7 +80,7 @@ except IOError:
             import stat
             os.chmod(_secret_file, stat.S_IRUSR)
             print('Changed file mode to owner read-only')
-        except:
+        except Exception:
             import warnings
             warnings.warn('Unable to change file mode permission!')
 

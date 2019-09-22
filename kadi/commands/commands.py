@@ -1,6 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import tables
-import tables3_api
 from pathlib import Path
 
 import numpy as np
@@ -56,6 +55,7 @@ def load_pars_dict():
         kwargs = {} if six.PY2 else {'encoding': 'ascii'}
         pars_dict = pickle.load(fh, **kwargs)
     return pars_dict
+
 
 # Globals that contain the entire commands table and the parameters index
 # dictionary.
@@ -260,6 +260,7 @@ class CommandTable(Table):
     Astropy Table subclass that is specialized to handle commands via a
     ``params`` column that is expected to be ``None`` or a dict of params.
     """
+
     def __getitem__(self, item):
         if isinstance(item, six.string_types):
             if item in self.colnames:
