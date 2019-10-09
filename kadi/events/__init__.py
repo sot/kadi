@@ -51,9 +51,10 @@ if 'DJANGO_SETTINGS_MODULE' not in os.environ:
 # This attribute does not exist in 1.6.
 # https://docs.djangoproject.com/en/1.10/topics/settings/#calling-django-setup-is-required-for-standalone-django-usage
 try:
-    django.setup()
+    # django.setup()
+    pass
 except AttributeError:
     pass
 
 # from .models import *
-from .query import *  # noqa
+# from .query import *  # noqa
