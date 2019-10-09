@@ -1602,7 +1602,8 @@ class Dwell(Event):
     ============ ============ ========================================
     """
     rel_tstart = models.FloatField(help_text='Start time relative to manvr end (sec)')
-    manvr = models.ForeignKey(Manvr, help_text='Maneuver that contains this dwell')
+    manvr = models.ForeignKey(Manvr, on_delete=models.CASCADE,
+                              help_text='Maneuver that contains this dwell')
     ra = models.FloatField(help_text='Right ascension (deg)')
     dec = models.FloatField(help_text='Declination (deg)')
     roll = models.FloatField(help_text='Roll angle (deg)')
@@ -1643,7 +1644,7 @@ class ManvrSeq(BaseModel):
     =========== ============ ===========
     """
 
-    manvr = models.ForeignKey(Manvr)
+    manvr = models.ForeignKey(Manvr, on_delete=models.CASCADE)
     msid = models.CharField(max_length=8)
     prev_val = models.CharField(max_length=4)
     val = models.CharField(max_length=4)
@@ -2249,7 +2250,7 @@ class OrbitPoint(BaseModel):
          descr     Char(50)
     =========== ============ ===========
     """
-    orbit = models.ForeignKey(Orbit)
+    orbit = models.ForeignKey(Orbit, on_delete=models.CASCADE)
     date = models.CharField(max_length=21)
     name = models.CharField(max_length=9)
     orbit_num = models.IntegerField()
@@ -2282,7 +2283,7 @@ class RadZone(Event):
        perigee     Char(21)
     =========== ============ ================================
     """
-    orbit = models.ForeignKey(Orbit)
+    orbit = models.ForeignKey(Orbit, on_delete=models.CASCADE)
     orbit_num = models.IntegerField()
     perigee = models.CharField(max_length=21)
 

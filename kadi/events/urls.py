@@ -1,7 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import inspect
 
-from django.conf.urls import patterns, url
+from django.conf.urls import url
 
 from . import views
 
@@ -31,6 +31,6 @@ for name, val in vars(views).items():
         except KeyError:
             pass
 
-urlpatterns = patterns('',
-                       url('^$', views.IndexView.as_view()),
-                       *urls)
+urlpatterns = [# '',
+               url('^$', views.IndexView.as_view()),
+               *urls]
