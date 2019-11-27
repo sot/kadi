@@ -14,6 +14,7 @@ from Chandra.Time import DateTime
 from Chandra.cmd_states.cmd_states import _tl_to_bs_cmds
 from . import occweb
 from .paths import IDX_CMDS_PATH, PARS_DICT_PATH
+from . import __version__
 
 MIN_MATCHING_BLOCK_SIZE = 500
 BACKSTOP_CACHE = {}
@@ -68,6 +69,8 @@ def get_opt(args=None):
                         default=False,
                         action='store_true',
                         help="Store or get files via ftp (implied for --occ)")
+    parser.add_argument('--version', action='version',
+                        version='%(prog)s {version}'.format(version=__version__))
 
     args = parser.parse_args(args)
     return args
