@@ -1,5 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 from distutils.core import setup
+import os
+import sys
 
 # from this_package.version import package_version object
 from kadi.version import package_version
@@ -23,13 +25,21 @@ try:
 except ImportError:
     cmdclass = {}
 
-entry_points = {'console_scripts': 'get_chandra_states = kadi.commands.states:get_chandra_states'}
+if "--user" not in sys.argv:
+    share_path = os.path.join(sys.prefix, "share", "kadi")
+    data_files = [(share_path, ['task_schedule.cfg'])]
+else:
+    data_files = None
+
+entry_points = {'console_scripts': [
+    'get_chandra_states = kadi.commands.states:get_chandra_states',
+    'kadi_update_cmds = kadi.update_cmds:main']}
 
 setup(name='kadi',
       version=package_version.version,
       description='Kadi events archive',
       author='Tom Aldcroft',
-      author_email='aldcroft@head.cfa.harvard.edu',
+      author_email='taldcroft@cfa.harvard.edu',
       url='http://cxc.harvard.edu/mta/ASPECT/tool_doc/kadi/',
       packages=['kadi', 'kadi.events', 'kadi.cmds', 'kadi.tests',
                 'kadi.commands', 'kadi.commands.tests'],
@@ -39,6 +49,7 @@ setup(name='kadi',
                                                 'static/images/*', 'static/*.css',
                                                 'GIT_VERSION']},
       tests_require=['pytest'],
+      data_files=data_files,
       cmdclass=cmdclass,
       entry_points=entry_points,
       )
