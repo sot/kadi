@@ -2,11 +2,10 @@
 import os
 import argparse
 import difflib
+import pickle
 
 import numpy as np
 import tables
-from six.moves import cPickle as pickle
-import six
 
 import pyyaks.logger
 import Ska.DBI
@@ -15,6 +14,7 @@ from Chandra.Time import DateTime
 from Chandra.cmd_states.cmd_states import _tl_to_bs_cmds
 from . import occweb
 from .paths import IDX_CMDS_PATH, PARS_DICT_PATH
+from . import __version__
 
 MIN_MATCHING_BLOCK_SIZE = 500
 BACKSTOP_CACHE = {}
@@ -69,6 +69,8 @@ def get_opt(args=None):
                         default=False,
                         action='store_true',
                         help="Store or get files via ftp (implied for --occ)")
+    parser.add_argument('--version', action='version',
+                        version='%(prog)s {version}'.format(version=__version__))
 
     args = parser.parse_args(args)
     return args
@@ -105,18 +107,15 @@ def fix_nonload_cmds(nl_cmds):
         if cmd['msid'] is not None:
             new_cmd['params']['msid'] = str(cmd['msid'])
 
-        # De-unicode and de-numpy (otherwise unpickling on PY3 has problems).
+        # De-numpy (otherwise unpickling on PY3 has problems).
         if 'params' in cmd:
             params = new_cmd['params']
             for key, val in cmd['params'].items():
                 key = str(key)
-                if isinstance(val, six.string_types):
-                    val = str(val)
-                else:
-                    try:
-                        val = val.item()
-                    except Exception:
-                        pass
+                try:
+                    val = val.item()
+                except AttributeError:
+                    pass
                 params[key] = val
 
         new_cmds.append(new_cmd)
@@ -316,7 +315,10 @@ def add_h5_cmds(h5file, idx_cmds):
         # Define the column names that specify a complete and unique row
         key_names = ('date', 'type', 'tlmsid', 'scs', 'step', 'timeline_id', 'vcdu')
 
-        h5d_recent_vals = [tuple(str(row[x]) for x in key_names) for row in h5d_recent]
+        h5d_recent_vals = [tuple(
+            row[x].decode('ascii') if isinstance(row[x], bytes) else str(row[x])
+            for x in key_names)
+            for row in h5d_recent]
         idx_cmds_vals = [tuple(str(x) for x in row[1:]) for row in idx_cmds]
 
         diff = difflib.SequenceMatcher(a=h5d_recent_vals, b=idx_cmds_vals, autojunk=False)
