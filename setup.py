@@ -27,7 +27,8 @@ except ImportError:
 
 if "--user" not in sys.argv:
     share_path = os.path.join(sys.prefix, "share", "kadi")
-    data_files = [(share_path, ['task_schedule.cfg'])]
+    data_files = [(share_path, ['task_schedule_cmds.cfg',
+                                'task_schedule_events.cfg'])]
 else:
     data_files = None
 
