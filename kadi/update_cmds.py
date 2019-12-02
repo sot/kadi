@@ -142,15 +142,15 @@ def get_cmds(start, stop, mp_dir='/data/mpcrit1/mplogs'):
         # Get non-load commands (from autonomous or ground SCS107, NSM, etc) in the
         # time range that the timelines span.
         tl_datestart = min(timeline_loads['datestart'])
-        tl_datestop = max(timeline_loads['datestop'])
         nl_cmds = db.fetchall('SELECT * from cmds where timeline_id IS NULL and '
                               'date >= "{}" and date <= "{}"'
-                              .format(tl_datestart, tl_datestop))
+                              .format(tl_datestart, stop.date))
 
         # Private method from cmd_states.py fetches the actual int/float param values
         # and returns list of dict.
         nl_cmds = _tl_to_bs_cmds(nl_cmds, None, db)
         nl_cmds = fix_nonload_cmds(nl_cmds)
+        logger.info(f'Found {len(nl_cmds)} non-load commands between {tl_datestart} : {stop.date}')
 
     logger.info('Found {} timelines included within {} to {}'
                 .format(len(timeline_loads), start.date, stop.date))
