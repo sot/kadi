@@ -5,36 +5,17 @@
 cd ~/git/kadi
 export KADI=$PWD
 rm events.db3 cmds.h5 cmds.pkl
-./manage.py syncdb
+./manage.py makemigrations events
+./manage.py migrate
 
-export ENG_ARCHIVE=/proj/sot/ska/data/eng_archive/1999
 ./update_events --start=1999:200 --stop=2000:001 --model=SafeSun
-
-export ENG_ARCHIVE=
 ./update_events --start=2000:001
 ./update_cmds --start=2000:001
 
-NOTE: could potentially get all the 1999 events using the 1999 eng
-      archive.
-
 #################################################################
-# Remove certain tables in a local version of the flight events database
+# Re-build single table
 #################################################################
 
 % export KADI=$PWD
 % cp /proj/sot/ska/data/kadi/events.db3 ./
-% sqlite3 events.db3
-> drop table events_cap;
-
-% ./manage.py syncdb
-% ./update_events --start=2000:001 --model=CAP --delete-from-start
-
-
-#################################################################
-# Reprocess a table from a starting date in a local version of
-# the flight events database
-#################################################################
-
-% cp /proj/sot/ska/data/kadi/events.db3 ./
-% ./update_events --start=2012:001 --model=Scs107 --delete-from-start
-
+% ./update_events --start=1999:001 --model=CAP --delete-from-start

@@ -1833,6 +1833,7 @@ class MajorEvent(BaseEvent):
         # Manually generate a unique key for event since date is not unique
         for event in events:
             key = ''.join(event[x] for x in ('start', 'descr', 'note', 'source'))
+            key = key.encode('ascii', 'replace')  # Should already be clean ASCII but make sure
             event['key'] = event['start'] + ':' + hashlib.sha1(key).hexdigest()[:6]
 
         return events

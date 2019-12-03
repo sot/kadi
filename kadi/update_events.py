@@ -150,25 +150,30 @@ def update(EventModel, date_stop):
                 .format(cls_name, date_start.date[:-4], date_stop.date[:-4]))
 
     # Get events for this model from telemetry.  This is returned as a list
-    # of dicts with key/val pairs corresponding to model fields
-    events = EventModel.get_events(date_start, date_stop)
+    # of dicts with key/val pairs corresponding to model fields.
+    events_in_dates = EventModel.get_events(date_start, date_stop)
 
-    with django.db.transaction.commit_on_success():
-        for event in events:
-            # Try to save event.  Use force_insert=True because otherwise django will
-            # update if the event primary key already exists.  In this case we want to
-            # force an exception and move on to the next event.
-            try:
-                event_model = EventModel.from_dict(event, logger)
-                try4times(event_model.save, force_insert=True)
-            except django.db.utils.IntegrityError as err:
-                if not re.search('unique', str(err), re.IGNORECASE):
-                    raise
-                logger.verbose('Skipping {} at {}: already in database ({})'
-                               .format(cls_name, event['start'], err))
-                continue
+    # Determine which of the events is not already in the database and
+    # put them in a list for saving.
+    events = []
+    event_models = []
+    for event in events_in_dates:
+        event_model = EventModel.from_dict(event, logger)
+        try:
+            EventModel.objects.get(pk=event_model.pk)
+        except EventModel.DoesNotExist:
+            events.append(event)
+            event_models.append(event_model)
+        else:
+            logger.verbose('Skipping {} at {}: already in database'
+                           .format(cls_name, event['start']))
 
+    # Save the new events in an atomic fashion
+    with django.db.transaction.atomic():
+        for event, event_model in zip(events, event_models):
+            try4times(event_model.save)
             logger.info('Added {} {}'.format(cls_name, event_model))
+
             if 'dur' in event and event['dur'] < 0:
                 logger.info('WARNING: negative event duration for {} {}'
                             .format(cls_name, event_model))
