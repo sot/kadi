@@ -418,7 +418,7 @@ class BaseModel(models.Model):
             tstart = DateTime(model_dict[cls._get_obsid_start_attr]).secs
             obsrq = fetch.Msid('cobsrqid', tstart, tstart + 200)
             if len(obsrq.vals) == 0:
-                logger.warn(f'unable to get COBSRQID near {model_dict["datestart"]}, '
+                logger.warn(f'unable to get COBSRQID near {model_dict[cls._get_obsid_start_attr]}, '
                             f'using obsid=-999')
                 model_dict['obsid'] = -999
             else:
@@ -2404,8 +2404,7 @@ class LttBad(AsciiTableEvent):
 
     intervals_file = 'ltt_bads.dat'
     # Table.read keyword args
-    table_read_kwargs = dict(format='ascii', data_start=2, delimiter='|', guess=False,
-                             fill_values=None)
+    table_read_kwargs = dict(format='ascii', data_start=2, delimiter='|', guess=False)
     start_column = 'start'
     stop_column = 'stop'
 
