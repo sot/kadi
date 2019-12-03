@@ -8,7 +8,7 @@ Test
 ----
 
 export KADI=$PWD
-./update_events --start '1999:100' --delete-from-start --loop-days=10000 \
+python -m kadi.update_events --start '1999:100' --delete-from-start --loop-days=10000 \
                 --model=LttBad >& run.log &
 
 # Confirm new events added as expected
@@ -23,7 +23,7 @@ make install  # or just copy ltt_bads.dat to $ska/data/kadi/.
 
 unset KADI
 cd $ska/share/kadi
-./update_events --start '1999:100' --delete-from-start --loop-days=10000 \
+python -m kadi.update_events --start '1999:100' --delete-from-start --loop-days=10000 \
                 --data-root=$ska/data/kadi --model=LttBad >& run.log &
 
 

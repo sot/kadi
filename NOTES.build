@@ -8,9 +8,9 @@ rm events.db3 cmds.h5 cmds.pkl
 ./manage.py makemigrations events
 ./manage.py migrate
 
-./update_events --start=1999:200 --stop=2000:001 --model=SafeSun
-./update_events --start=2000:001
-./update_cmds --start=2000:001
+python -m kadi.update_events --start=1999:200 --stop=2000:001 --model=SafeSun
+python -m kadi.update_events --start=2000:001
+python -m kadi.update_cmds --start=2000:001
 
 #################################################################
 # Re-build single table
@@ -18,4 +18,4 @@ rm events.db3 cmds.h5 cmds.pkl
 
 % export KADI=$PWD
 % cp /proj/sot/ska/data/kadi/events.db3 ./
-% ./update_events --start=1999:001 --model=CAP --delete-from-start
+% python -m kadi.update_events --start=1999:001 --model=CAP --delete-from-start
