@@ -411,6 +411,19 @@ class BaseModel(models.Model):
         Model.  If `logger` is supplied then log output at debug level.
         """
         model = cls()
+
+        # Get the obsid at the appropriate time for the event (typically "start"
+        # but "stop" in the case of Manvr).
+        if isinstance(model, TlmEvent):
+            tstart = DateTime(model_dict[cls._get_obsid_start_attr]).secs
+            obsrq = fetch.Msid('cobsrqid', tstart, tstart + 200)
+            if len(obsrq.vals) == 0:
+                logger.warn(f'unable to get COBSRQID near {model_dict["datestart"]}, '
+                            f'using obsid=-999')
+                model_dict['obsid'] = -999
+            else:
+                model_dict['obsid'] = obsrq.vals[0]
+
         for key, val in model_dict.items():
             if hasattr(model, key):
                 if logger is not None:
@@ -585,6 +598,8 @@ class Event(BaseEvent):
 
 
 class TlmEvent(Event):
+    obsid = models.IntegerField(help_text='Observation ID (COBSRQID)')
+
     event_msids = None  # must be overridden by derived class
     event_val = None
     event_filter_bad = True  # Normally remove bad quality data immediately
@@ -756,8 +771,6 @@ class Obsid(TlmEvent):
     ======== ========== ================================
     """
     event_msids = ['cobsrqid']
-
-    obsid = models.IntegerField(help_text='Observation ID (COBSRQID)')
 
     update_priority = 1000  # Process Obsid first
 
