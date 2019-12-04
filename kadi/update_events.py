@@ -155,6 +155,52 @@ def update(EventModel, date_stop):
 
     # Determine which of the events is not already in the database and
     # put them in a list for saving.
+    event_models, events = get_events_and_event_models(EventModel, cls_name, events_in_dates)
+
+    # Save the new events in an atomic fashion
+    with django.db.transaction.atomic():
+        for event, event_model in zip(events, event_models):
+            try:
+                # In order to catch an IntegrityError here and press on, need to
+                # wrap this in atomic().  This was driven by bad data in iFOT, namely
+                # duplicate PassPlans that point to the same DsnComm, which gives an
+                # IntegrityError because those are related as one-to-one.
+                with django.db.transaction.atomic():
+                    save_event_to_database(cls_name, event, event_model, models)
+            except django.db.utils.IntegrityError:
+                import traceback
+                logger.warn(f'WARNING: IntegrityError skipping {event_model}')
+                logger.warn(f'Event dict:\n{event}')
+                logger.warn(f'Traceback:\n{traceback.format_exc()}')
+                continue
+
+        # If processing got here with no exceptions then save the event update
+        # information to database
+        update.save()
+
+
+def save_event_to_database(cls_name, event, event_model, models):
+    try4times(event_model.save)
+    logger.info('Added {} {}'.format(cls_name, event_model))
+    if 'dur' in event and event['dur'] < 0:
+        logger.info('WARNING: negative event duration for {} {}'
+                    .format(cls_name, event_model))
+    # Add any foreign rows (many to one)
+    for foreign_cls_name, rows in event.get('foreign', {}).items():
+        ForeignModel = getattr(models, foreign_cls_name)
+        if isinstance(rows, np.ndarray):
+            rows = [{key: row[key].tolist() for key in row.dtype.names} for row in rows]
+        for row in rows:
+            # Convert to a plain dict if row is structured array
+            foreign_model = ForeignModel.from_dict(row, logger)
+            setattr(foreign_model, event_model.model_name, event_model)
+            logger.verbose('Adding {}'.format(foreign_model))
+            try4times(foreign_model.save)
+
+
+def get_events_and_event_models(EventModel, cls_name, events_in_dates):
+    # Determine which of the events is not already in the database and
+    # put them in a list for saving.
     events = []
     event_models = []
     for event in events_in_dates:
@@ -167,32 +213,7 @@ def update(EventModel, date_stop):
         else:
             logger.verbose('Skipping {} at {}: already in database'
                            .format(cls_name, event['start']))
-
-    # Save the new events in an atomic fashion
-    with django.db.transaction.atomic():
-        for event, event_model in zip(events, event_models):
-            try4times(event_model.save)
-            logger.info('Added {} {}'.format(cls_name, event_model))
-
-            if 'dur' in event and event['dur'] < 0:
-                logger.info('WARNING: negative event duration for {} {}'
-                            .format(cls_name, event_model))
-
-            # Add any foreign rows (many to one)
-            for foreign_cls_name, rows in event.get('foreign', {}).items():
-                ForeignModel = getattr(models, foreign_cls_name)
-                if isinstance(rows, np.ndarray):
-                    rows = [{key: row[key].tolist() for key in row.dtype.names} for row in rows]
-                for row in rows:
-                    # Convert to a plain dict if row is structured array
-                    foreign_model = ForeignModel.from_dict(row, logger)
-                    setattr(foreign_model, event_model.model_name, event_model)
-                    logger.verbose('Adding {}'.format(foreign_model))
-                    try4times(foreign_model.save)
-
-        # If processing got here with no exceptions then save the event update
-        # information to database
-        update.save()
+    return event_models, events
 
 
 def main():
@@ -254,11 +275,17 @@ def main():
     EventModels = sorted(EventModels, key=lambda x: x.update_priority, reverse=True)
 
     for EventModel in EventModels:
-        if opt.delete_from_start and opt.start is not None:
-            delete_from_date(EventModel, opt.start)
+        try:
+            if opt.delete_from_start and opt.start is not None:
+                delete_from_date(EventModel, opt.start)
 
-        for date_stop in date_stops:
-            update(EventModel, date_stop)
+            for date_stop in date_stops:
+                update(EventModel, date_stop)
+        except Exception:
+            # Something went wrong, but press on with processing other EventModels
+            import traceback
+            logger.error(f'ERROR in processing {EventModel}')
+            logger.error(f'Traceback:\n{traceback.format_exc()}')
 
     if opt.ftp:
         # Push events database file to OCC via lucky ftp
