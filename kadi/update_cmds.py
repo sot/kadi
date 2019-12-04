@@ -3,6 +3,7 @@ import os
 import argparse
 import difflib
 import pickle
+from pathlib import Path
 
 import numpy as np
 import tables
@@ -48,8 +49,8 @@ def get_opt(args=None):
     OCC_SOT_ACCOUNT = os.environ['USER'].lower() == 'sot'
     parser = argparse.ArgumentParser(description='Update HDF5 cmds table')
     parser.add_argument("--mp-dir",
-                        default='/data/mpcrit1/mplogs',
-                        help="MP load directory")
+                        help=("MP load directory (default=/data/mpcrit1/mplogs) "
+                              "or $SKA/data/mpcrit1/mplogs)"))
     parser.add_argument("--start",
                         help="Start date for update (default=stop-42 days)")
     parser.add_argument("--stop",
@@ -390,6 +391,16 @@ def main(args=None):
         logger.info('No pars_dict file {} found, starting from empty dict'
                     .format(pars_dict_path))
         pars_dict = {}
+
+    if not opt.mp_dir:
+        for prefix in ('/', os.environ['SKA']):
+            pth = Path(prefix, 'data', 'mpcrit1', 'mplogs')
+            if pth.exists():
+                opt.mp_dir = str(pth)
+                break
+        else:
+            raise FileNotFoundError('no mission planning directories found (need --mp-dir)')
+    logger.info(f'Using mission planning files at {opt.mp_dir}')
 
     # Recast as dict subclass that remembers if any element was updated
     pars_dict = UpdatedDict(pars_dict)
