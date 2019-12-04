@@ -9,8 +9,6 @@ import itertools
 import inspect
 
 import numpy as np
-import six
-from six.moves import range
 
 from astropy.table import Table, Column
 
@@ -114,11 +112,11 @@ class TransitionMeta(type):
         return cls
 
 
-@six.add_metaclass(TransitionMeta)
 class BaseTransition(object):
     """
     Base transition class from which all actual transition classes are derived.
     """
+    __metaclass__ = TransitionMeta
 
     @classmethod
     def get_state_changing_commands(cls, cmds):
@@ -992,7 +990,7 @@ def get_transition_classes(state_keys=None):
     Get all BaseTransition subclasses in this module corresponding to
     state keys ``state_keys``.
     """
-    if isinstance(state_keys, six.string_types):
+    if isinstance(state_keys, str):
         state_keys = [state_keys]
     elif state_keys is None:
         state_keys = DEFAULT_STATE_KEYS

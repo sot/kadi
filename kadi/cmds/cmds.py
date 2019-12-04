@@ -5,8 +5,7 @@ import numpy as np
 
 from astropy.table import Table
 from Chandra.Time import DateTime
-import six
-from six.moves import cPickle as pickle
+import pickle
 
 from ..paths import IDX_CMDS_PATH, PARS_DICT_PATH
 
@@ -51,8 +50,7 @@ def load_idx_cmds():
 
 def load_pars_dict():
     with open(PARS_DICT_PATH(), 'rb') as fh:
-        kwargs = {} if six.PY2 else {'encoding': 'ascii'}
-        pars_dict = pickle.load(fh, **kwargs)
+        pars_dict = pickle.load(fh, encoding='ascii')
     return pars_dict
 
 
@@ -141,7 +139,7 @@ def _find(start=None, stop=None, **kwargs):
         ok &= idx_cmds['date'] < DateTime(stop).date
     for key, val in kwargs.items():
         key = key.lower()
-        if isinstance(val, six.string_types):
+        if isinstance(val, str):
             val = val.upper()
         if key in idx_cmds.dtype.names:
             ok &= idx_cmds[key] == val
@@ -203,7 +201,7 @@ class CmdList(object):
 
     def __getitem__(self, item):
         cmds = self.cmds
-        if isinstance(item, six.string_types):
+        if isinstance(item, str):
             if item in cmds.colnames:
                 return cmds[item]
 

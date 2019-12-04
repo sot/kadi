@@ -6,8 +6,7 @@ import numpy as np
 
 from astropy.table import Table, Row, Column, vstack
 from Chandra.Time import DateTime
-import six
-from six.moves import cPickle as pickle
+import pickle
 
 from ..paths import IDX_CMDS_PATH, PARS_DICT_PATH
 
@@ -52,8 +51,7 @@ def load_idx_cmds():
 
 def load_pars_dict():
     with open(PARS_DICT_PATH(), 'rb') as fh:
-        kwargs = {} if six.PY2 else {'encoding': 'ascii'}
-        pars_dict = pickle.load(fh, **kwargs)
+        pars_dict = pickle.load(fh, encoding='ascii')
     return pars_dict
 
 
@@ -195,7 +193,7 @@ def _find(start=None, stop=None, **kwargs):
         ok &= idx_cmds['date'] < DateTime(stop).date
     for key, val in kwargs.items():
         key = key.lower()
-        if isinstance(val, six.string_types):
+        if isinstance(val, str):
             val = val.upper()
         if key in idx_cmds.dtype.names:
             ok &= idx_cmds[key] == val
@@ -262,7 +260,7 @@ class CommandTable(Table):
     """
 
     def __getitem__(self, item):
-        if isinstance(item, six.string_types):
+        if isinstance(item, str):
             if item in self.colnames:
                 return self.columns[item]
             else:
@@ -294,7 +292,7 @@ class CommandTable(Table):
             raise ValueError('Illegal type {0} for table item access'
                              .format(type(item)))
 
-    def __unicode__(self):
+    def __str__(self):
         # Cut out params column for printing
         colnames = self.colnames
         if 'idx' in colnames:
@@ -320,13 +318,8 @@ class CommandTable(Table):
         lines = tmp.pformat(max_width=-1)
         return '\n'.join(lines)
 
-    if not six.PY2:
-        __str__ = __unicode__
-
     def __bytes__(self):
-        return six.text_type(self).encode('utf-8')
-    if six.PY2:
-        __str__ = __bytes__
+        return str(self).encode('utf-8')
 
     def fetch_params(self):
         """

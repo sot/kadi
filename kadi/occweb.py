@@ -11,7 +11,6 @@ import hashlib
 import time
 from collections import OrderedDict as odict
 
-import six
 import numpy as np
 import requests
 
@@ -92,7 +91,7 @@ def get_ifot(event_type, start=None, stop=None, props=[], columns=[], timeout=TI
     response = requests.get(url, auth=get_auth(), params=params, timeout=timeout)
 
     # For Py2 convert from unicode to ASCII str
-    text = response.text.encode('ascii', 'ignore') if six.PY2 else response.text
+    text = response.text
     text = re.sub(r'\r\n', ' ', text)
     lines = [x for x in text.split('\t\n') if x.strip()]
 
