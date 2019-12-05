@@ -1220,8 +1220,11 @@ def test_get_pitch_from_mid_maneuver():
            '2019:039:14:32:16.745 2019:039:14:37:24.205 148.857427163      NMAN',
            '2019:039:14:37:24.205 2019:039:14:42:31.665 159.541502291      NMAN',
            '2019:039:14:42:31.665 2019:039:16:00:00.000 161.950922135      NPNT']
+    exp = Table.read(exp, format='ascii')
 
     sts = states.get_states(start, stop, state_keys=['pitch', 'pcad_mode'])
-    del sts['trans_keys']
 
-    assert sts.pformat(max_width=-1, max_lines=-1) == exp
+    assert np.all(exp['datestart'] == sts['datestart'])
+    assert np.all(exp['datestop'] == sts['datestop'])
+    assert np.all(exp['pcad_mode'] == sts['pcad_mode'])
+    assert np.all(np.isclose(exp['pitch'], sts['pitch'], rtol=0, atol=1e-8))
