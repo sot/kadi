@@ -112,12 +112,10 @@ class TransitionMeta(type):
         return cls
 
 
-class BaseTransition(object):
+class BaseTransition(object, metaclass=TransitionMeta):
     """
     Base transition class from which all actual transition classes are derived.
     """
-    __metaclass__ = TransitionMeta
-
     @classmethod
     def get_state_changing_commands(cls, cmds):
         """

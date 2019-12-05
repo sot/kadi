@@ -64,10 +64,9 @@ class JSONList(list):
         return dumps(self)
 
 
-class JSONField(models.TextField):
+class JSONField(models.TextField, metaclass=models.SubfieldBase):
     """JSONField is a generic textfield that neatly serializes/unserializes
     JSON objects seamlessly.  Main thingy must be a dict object."""
-    __metaclass__ = models.SubfieldBase
 
     def __init__(self, *args, **kwargs):
         default = kwargs.get('default')
