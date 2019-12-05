@@ -177,7 +177,7 @@ def get_orbit_points(tlrfiles):
         # 012345678901234567890123456789012345678901234567890123456789
         logger.info('Getting points from {}'.format(tlrfile))
         try:
-            fh = open(tlrfile, 'r')
+            fh = open(tlrfile, 'r', encoding='ascii', errors='ignore')
         except IOError as err:
             logger.warn(err)
             continue
