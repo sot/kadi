@@ -413,7 +413,8 @@ class BaseModel(models.Model):
             tstart = DateTime(model_dict[cls._get_obsid_start_attr]).secs
             obsrq = fetch.Msid('cobsrqid', tstart, tstart + 200)
             if len(obsrq.vals) == 0:
-                logger.warn(f'unable to get COBSRQID near {model_dict[cls._get_obsid_start_attr]}, '
+                logger.warn(f'WARNING: unable to get COBSRQID near '
+                            f'{model_dict[cls._get_obsid_start_attr]}, '
                             f'using obsid=-999')
                 model_dict['obsid'] = -999
             else:
