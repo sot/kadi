@@ -31,6 +31,5 @@ for name, val in vars(views).items():
         except KeyError:
             pass
 
-urlpatterns = [# '',
-               url('^$', views.IndexView.as_view()),
+urlpatterns = [url('^$', views.IndexView.as_view()),
                *urls]
