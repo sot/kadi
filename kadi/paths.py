@@ -11,7 +11,7 @@ def DATA_DIR():
 
 
 def EVENTS_DB_PATH():
-    return os.path.join(DATA_DIR(), 'events.db3')
+    return os.path.join(DATA_DIR(), 'events3.db3')
 
 
 def IDX_CMDS_PATH():
