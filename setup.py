@@ -21,13 +21,15 @@ except ImportError:
 if "--user" not in sys.argv:
     share_path = os.path.join(sys.prefix, "share", "kadi")
     data_files = [(share_path, ['task_schedule_cmds.cfg',
-                                'task_schedule_events.cfg'])]
+                                'task_schedule_events.cfg',
+                                'ltt_bads.dat'])]
 else:
     data_files = None
 
 entry_points = {'console_scripts': [
     'get_chandra_states = kadi.commands.states:get_chandra_states',
-    'kadi_update_cmds = kadi.update_cmds:main']}
+    'kadi_update_cmds = kadi.update_cmds:main',
+    'kadi_update_events = kadi.update_events:main']}
 
 setup(name='kadi',
       use_scm_version=True,

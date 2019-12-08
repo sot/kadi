@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-import os
+import sys
 import operator
+from pathlib import Path
 
 from itertools import count
 
@@ -2330,8 +2331,10 @@ class AsciiTableEvent(BaseEvent):
         start = DateTime(start).date
         stop = DateTime(stop).date
 
-        filename = os.path.join(DATA_DIR(), cls.intervals_file)
-        intervals = table.Table.read(filename, **cls.table_read_kwargs)  # noqa
+        filename = Path(cls.intervals_file)
+        if not filename.absolute():
+            filename = Path(DATA_DIR(), filename)
+        intervals = table.Table.read(str(filename), **cls.table_read_kwargs)  # noqa
 
         # Custom in-place processing of raw intervals
         cls.process_intervals(intervals)
@@ -2394,7 +2397,7 @@ class LttBad(AsciiTableEvent):
     key._kadi_hidden = True
     dur._kadi_format = '{:.1f}'
 
-    intervals_file = 'ltt_bads.dat'
+    intervals_file = Path(sys.prefix) / 'share' / 'kadi' / 'ltt_bads.dat'
     # Table.read keyword args
     table_read_kwargs = dict(format='ascii', data_start=2, delimiter='|', guess=False)
     start_column = 'start'
