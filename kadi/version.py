@@ -71,4 +71,3 @@ __git_version__ = package_version.version
 VERSION = (package_version.major, package_version.minor, package_version.bugfix,
            package_version.dev)
 version = __version__  # For back-compatibility with legacy version.py
-
