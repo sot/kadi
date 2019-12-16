@@ -37,7 +37,8 @@ entry_points = {'console_scripts': [
     'kadi_update_cmds = kadi.update_cmds:main']}
 
 setup(name='kadi',
-      version=package_version.version,
+      use_scm_version=True,
+      setup_requires = ['setuptools_scm', 'setuptools_scm_git_archive'],
       description='Kadi events archive',
       author='Tom Aldcroft',
       author_email='taldcroft@cfa.harvard.edu',

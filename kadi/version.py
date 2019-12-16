@@ -17,8 +17,6 @@ In addition to ``major``, ``minor``, ``bugfix``, and ``dev`` attributes, the obj
 ``version_object`` has a number of useful attributes::
 
   version            Including git info if dev=True    0.5 or 0.5dev-r21-123acf1
-  git_version        Always including git info         0.5dev-r21-123acf1
-  semantic_version   Never including git info          0.5dev
   git_sha            Git 7-digit SHA tag               123acf1
   git_revs           Git revision count                21
 
@@ -29,99 +27,25 @@ which retains the git information outside of the git repo.
 """
 
 import os
-
-############################
-# SET THESE VALUES
-############################
-# Major, Minor, Bugfix, Dev
-VERSION = (4, 19, None, False)
+import ska_helpers
 
 
 class SemanticVersion(object):
-    def __init__(self, major=0, minor=None, bugfix=None, dev=False):
+    def __init__(self, package):
         """
         Semantic version object with support for git revisions
 
-        :param major: Major version
-        :param minor: Minor version
-        :param bugfix: Bugfix version
-        :param dev: True if this is a development version
-        :param version_filename: File name for package version.py
+        :param package: Package name
         """
-        self.major = major
-        self.minor = minor
-        self.bugfix = bugfix
-        self.dev = dev
+        self.version = ska_helpers.get_version(package)
+        info = ska_helpers.version.parse_version(self.version)
+        self.major = info['major']
+        self.minor = info['minor']
+        self.bugfix = info['patch']
+        self.dev = info['date'] is not None
+        self.git_revs = info['distance']
+        self.git_sha = info['hash']
         self.version_dir = os.path.abspath(os.path.dirname(__file__))
-
-    def _get_git_info(self):
-        """
-        Determines the number of revisions in this repository and returns "" if
-        this is not possible.
-        """
-        try:
-            # First try getting git version from self.version_dir/GIT_VERSION
-            git_version_filename = os.path.join(self.version_dir, 'GIT_VERSION')
-            with open(git_version_filename, 'r') as fh:
-                git_revs, git_sha = fh.read().strip().split()
-                git_revs = int(git_revs)
-
-        except Exception:
-            from subprocess import Popen, PIPE
-            try:
-                p = Popen(['git', 'rev-list', 'HEAD'], cwd=self.version_dir,
-                          stdout=PIPE, stderr=PIPE, stdin=PIPE)
-                stdout, stderr = p.communicate()
-
-                if p.returncode == 0:
-                    revs = stdout.split('\n')
-                    git_revs, git_sha = len(revs), revs[0][:7]
-                else:
-                    git_revs, git_sha = None, None
-            except Exception:
-                git_revs, git_sha = None, None
-
-        return git_revs, git_sha
-
-    @property
-    def git_revs(self):
-        if not hasattr(self, '_git_revs'):
-            self._git_revs, self._git_sha = self._get_git_info()
-        return self._git_revs
-
-    @property
-    def git_sha(self):
-        if not hasattr(self, '_git_sha'):
-            self._git_revs, self._git_sha = self._get_git_info()
-        return self._git_sha
-
-    @property
-    def semantic_version(self):
-        _version = '{}'.format(self.major)
-        if self.minor is not None:
-            _version += '.{}'.format(self.minor)
-        if self.bugfix is not None:
-            _version += '.{}'.format(self.bugfix)
-        if self.dev:
-            _version += 'dev'
-        return _version
-
-    @property
-    def git_version(self):
-        """
-        Get the full version with git hashtag and release, e.g.
-        0.5dev-r190-423abc1
-        """
-        if not hasattr(self, '_git_version'):
-            self._git_version = self.semantic_version
-            if self.git_revs and self.git_sha:
-                self._git_version += '-r{0}-{1}'.format(self.git_revs, self.git_sha)
-
-        return self._git_version
-
-    @property
-    def version(self):
-        return self.git_version if self.dev else self.semantic_version
 
     def write_git_version_file(self):
         """
@@ -134,18 +58,17 @@ class SemanticVersion(object):
         if os.path.exists(git_version_filename):
             os.unlink(git_version_filename)
 
-        # Remove existing attributes
-        for attr in ('_git_revs', '_git_sha'):
-            if hasattr(self, attr):
-                delattr(self, attr)
-
         git_revs = self.git_revs
         git_sha = self.git_sha
         with open(git_version_filename, 'w') as fh:
             fh.write('{} {}'.format(git_revs, git_sha))
 
 
-package_version = SemanticVersion(*VERSION)
+package_version = SemanticVersion(__package__)
+
 __version__ = package_version.version
-__git_version__ = package_version.git_version
+__git_version__ = package_version.version
+VERSION = (package_version.major, package_version.minor, package_version.bugfix,
+           package_version.dev)
 version = __version__  # For back-compatibility with legacy version.py
+
