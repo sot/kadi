@@ -62,7 +62,7 @@ copyright = u'2013, Tom Aldcroft'
 # built documents.
 #
 # The full version, including alpha/beta/rc tags.
-from kadi.version import version as release
+from kadi import __version__ as release
 # The short X.Y version.
 version = '.'.join(release.split('.')[:2])
 
