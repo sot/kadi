@@ -3,13 +3,6 @@ from distutils.core import setup
 import os
 import sys
 
-# from this_package.version import package_version object
-from kadi.version import package_version
-
-# Write GIT revisions and SHA tag into <this_package/git_version.py>
-# (same directory as version.py)
-package_version.write_git_version_file()
-
 foundation_files = ['static/foundation/css/*',
                     'static/foundation/js/foundation/*',
                     'static/foundation/js/vendor/*',
