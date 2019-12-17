@@ -7,7 +7,7 @@ import re
 # Create your views here.
 from django.views.generic import ListView, TemplateView, DetailView
 from . import models
-from ..version import __git_version__
+from .. import __version__
 
 # Provide translation from event model class names like DarkCal to the URL name like dark_cal
 MODEL_NAMES = {m_class.__name__: m_name
@@ -30,7 +30,7 @@ class BaseView(object):
     def get_context_data(self, **kwargs):
         # Call the base implementation first to get a context
         context = super(BaseView, self).get_context_data(**kwargs)
-        context['kadi_version'] = __git_version__
+        context['kadi_version'] = __version__
 
         event_models = models.get_event_models()
         # Make a list of tuples [(description1, name1), (description2, name2), ...]

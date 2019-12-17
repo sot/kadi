@@ -203,10 +203,10 @@ def main():
     os.environ['KADI'] = os.path.abspath(opt.data_root)
     from .paths import EVENTS_DB_PATH
 
-    from . import version
+    from . import __version__
     from pprint import pformat
-    logger.info('Kadi version   : {}'.format(version.__version__))
-    logger.info('Kadi path      : {}'.format(os.path.dirname(os.path.abspath(version.__file__))))
+    logger.info('Kadi version   : {}'.format(__version__))
+    logger.info('Kadi path      : {}'.format(os.path.dirname(os.path.abspath(__file__))))
     logger.info('Event database : {}'.format(EVENTS_DB_PATH()))
     logger.info('')
     logger.info('Options:')
