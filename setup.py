@@ -1,5 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from distutils.core import setup
+from setuptools import setup
 import os
 import sys
 
