@@ -96,24 +96,15 @@ ALLOWED_HOSTS = []
 
 INSTALLED_APPS = (
     'django.contrib.admin',
-    # 'django.contrib.admindocs',  # ?? needed?  Lost in 1.6
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'kadi.events',
+    'mica.web',
+    'find_attitude.web_find_attitude',  # app label (last module) must be unique
 )
-
-OPTIONAL_APPS = ('mica.web', 'find_attitude.web')
-for app in OPTIONAL_APPS:
-    try:
-        __import__(app)
-    except ImportError:
-        pass
-    else:
-        INSTALLED_APPS += (app,)
-
 
 MIDDLEWARE = (
     'django.contrib.sessions.middleware.SessionMiddleware',

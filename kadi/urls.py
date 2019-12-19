@@ -4,7 +4,7 @@ from django.contrib import admin
 
 import kadi.views
 import mica.web.views
-# import find_attitude.web.views
+import find_attitude.web_find_attitude.views
 
 admin.autodiscover()
 
@@ -15,5 +15,5 @@ urlpatterns = [  # '',
     url(r'^mica/$', mica.web.views.IndexView.as_view()),
     url(r'^pcad_acq/$', mica.web.views.AcqView.as_view()),
     url(r'^star_hist/$', mica.web.views.StarHistView.as_view()),
-    #                       url(r'^find_attitude/$', find_attitude.web.views.index),
+    url(r'^find_attitude/$', find_attitude.web_find_attitude.views.index),
 ]
