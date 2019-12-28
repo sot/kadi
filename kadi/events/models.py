@@ -2399,7 +2399,8 @@ class LttBad(AsciiTableEvent):
 
     intervals_file = Path(sys.prefix) / 'share' / 'kadi' / 'ltt_bads.dat'
     # Table.read keyword args
-    table_read_kwargs = dict(format='ascii', data_start=2, delimiter='|', guess=False)
+    table_read_kwargs = dict(format='ascii', data_start=2, delimiter='|',
+                             guess=False, fill_values=())
     start_column = 'start'
     stop_column = 'stop'
 

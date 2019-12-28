@@ -4,11 +4,14 @@
 
 cd ~/git/kadi
 export KADI=$PWD
-rm events.db3 cmds.h5 cmds.pkl
+rm -f events3.db3 cmds.h5 cmds.pkl
+rm -rf kadi/events/migrations
 ./manage.py makemigrations events
 ./manage.py migrate
 
-python -m kadi.update_events --start=1999:200 --stop=2000:001 --model=SafeSun
+# First line is just to see that every model works.  One can just drop the
+# --stop=2000:001 if you are sure it will work.
+python -m kadi.update_events --start=1999:240 --stop=2000:001
 python -m kadi.update_events --start=2000:001
 python -m kadi.update_cmds --start=2000:001
 

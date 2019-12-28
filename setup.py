@@ -19,7 +19,7 @@ except ImportError:
     cmdclass = {}
 
 if "--user" not in sys.argv:
-    share_path = os.path.join(sys.prefix, "share", "kadi")
+    share_path = os.path.join("share", "kadi")
     data_files = [(share_path, ['task_schedule_cmds.cfg',
                                 'task_schedule_events.cfg',
                                 'ltt_bads.dat'])]

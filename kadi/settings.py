@@ -87,8 +87,6 @@ except IOError:
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-TEMPLATE_DEBUG = True
-
 ALLOWED_HOSTS = []
 
 
@@ -181,6 +179,7 @@ TEMPLATES = [
         ],
         'APP_DIRS': True,
         'OPTIONS': {
+            'debug': True,
             'context_processors': [
                 # Insert your TEMPLATE_CONTEXT_PROCESSORS here or use this
                 # list if you haven't customized them:
@@ -195,3 +194,7 @@ TEMPLATES = [
         },
     },
 ]
+# (1_8.W001) The standalone TEMPLATE_* settings were deprecated in Django 1.8
+# and the TEMPLATES dictionary takes precedence. You must put the values of the
+# following settings into your default TEMPLATES dict: TEMPLATE_DEBUG.
+
