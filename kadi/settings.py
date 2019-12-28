@@ -197,4 +197,3 @@ TEMPLATES = [
 # (1_8.W001) The standalone TEMPLATE_* settings were deprecated in Django 1.8
 # and the TEMPLATES dictionary takes precedence. You must put the values of the
 # following settings into your default TEMPLATES dict: TEMPLATE_DEBUG.
-

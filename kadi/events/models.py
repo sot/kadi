@@ -1550,8 +1550,8 @@ class Manvr(TlmEvent):
             i1 = np.searchsorted(changes['time'], manvr_next['tstart'])
             sequence = changes[i0:i1 + 1]
             sequence['dt'] = (sequence['time'] + sequence['prev_time']) / 2.0 - manvr['tstop']
-            ok = ((sequence['dt'] >= ZERO_DT) | (sequence['msid'] == 'aofattmd') |
-                  (sequence['msid'] == 'aopcadmd'))
+            ok = ((sequence['dt'] >= ZERO_DT) | (sequence['msid'] == 'aofattmd')
+                  | (sequence['msid'] == 'aopcadmd'))
             sequence = sequence[ok]
             manvr_attrs = cls.get_manvr_attrs(sequence)
 

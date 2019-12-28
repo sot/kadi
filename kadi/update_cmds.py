@@ -189,8 +189,8 @@ def get_cmds(start, stop, mp_dir='/data/mpcrit1/mplogs'):
 
         # Only store commands for this timeline (match SCS and date)
         bs_cmds = [x for x in bs_cmds
-                   if tl['datestart'] <= x['date'] <= tl['datestop'] and
-                   x['scs'] == tl['scs']]
+                   if tl['datestart'] <= x['date'] <= tl['datestop']
+                   and x['scs'] == tl['scs']]
 
         for bs_cmd in bs_cmds:
             bs_cmd['timeline_id'] = tl['id']
@@ -232,8 +232,8 @@ def get_unique_orbit_cmds(orbit_cmds):
     # "different" from uniq_cmds[-1].
     for cmd in orbit_cmds:
         last_cmd = uniq_cmds[-1]
-        if (cmd['params']['EVENT_TYPE'] == last_cmd['params']['EVENT_TYPE'] and
-                abs(DateTime(cmd['date']).secs - DateTime(last_cmd['date']).secs) < 180):
+        if (cmd['params']['EVENT_TYPE'] == last_cmd['params']['EVENT_TYPE']
+                and abs(DateTime(cmd['date']).secs - DateTime(last_cmd['date']).secs) < 180):
             # Same event as last (even if date is a bit different).  Now if this one
             # has a larger timeline_id that means it is from a more recent schedule, so
             # use that one.

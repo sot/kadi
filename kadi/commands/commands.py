@@ -244,8 +244,8 @@ class CommandRow(Row):
         if 'idx' in keys:
             keys.remove('idx')
 
-        out = ('{} {} '.format(self['date'], self['type']) +
-               ' '.join('{}={}'.format(key, self[key]) for key in keys
+        out = ('{} {} '.format(self['date'], self['type'])
+               + ' '.join('{}={}'.format(key, self[key]) for key in keys
                         if key not in ('type', 'date')))
         return out
 
@@ -278,10 +278,10 @@ class CommandTable(Table):
                                              keys=self.groups._keys)
             return out
 
-        elif (isinstance(item, slice) or
-              isinstance(item, np.ndarray) or
-              isinstance(item, list) or
-              isinstance(item, tuple) and all(isinstance(x, np.ndarray)
+        elif (isinstance(item, slice)
+              or isinstance(item, np.ndarray)
+              or isinstance(item, list)
+              or isinstance(item, tuple) and all(isinstance(x, np.ndarray)
                                               for x in item)):
             # here for the many ways to give a slice; a tuple of ndarray
             # is produced by np.where, as in t[np.where(t['a'] > 2)]

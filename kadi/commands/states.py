@@ -38,10 +38,10 @@ QUAT_COMPS = ['q1', 'q2', 'q3', 'q4']
 
 # State keys for PCAD-related transitions.  If *any* of these are requested then
 # *all* of them need to be processed to get the correct answer.
-PCAD_STATE_KEYS = (QUAT_COMPS +
-                   ['targ_' + qc for qc in QUAT_COMPS] +
-                   ['ra', 'dec', 'roll'] +
-                   ['auto_npnt', 'pcad_mode', 'pitch', 'off_nom_roll'])
+PCAD_STATE_KEYS = (QUAT_COMPS
+                   + ['targ_' + qc for qc in QUAT_COMPS]
+                   + ['ra', 'dec', 'roll']
+                   + ['auto_npnt', 'pcad_mode', 'pitch', 'off_nom_roll'])
 
 # Default state keys (mostly matches classic command states list)
 DEFAULT_STATE_KEYS = ('ccd_count', 'clocking', 'dec', 'dither', 'fep_count',
@@ -188,8 +188,8 @@ class BaseTransition(object, metaclass=TransitionMeta):
 
         others = []
         for attr, val in cls.__dict__.items():
-            if (attr.startswith('_') or inspect.ismethod(val) or
-                    attr in ('state_keys', 'command_attributes', 'command_params')):
+            if (attr.startswith('_') or inspect.ismethod(val)
+                    or attr in ('state_keys', 'command_attributes', 'command_params')):
                 continue
             others.append('{}={}'.format(attr, val))
         if others:

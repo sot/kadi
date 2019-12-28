@@ -171,16 +171,16 @@ class Cmd(dict):
         if self['tlmsid'] == 'None':
             colnames.remove('tlmsid')
 
-        self._ordered_keys = (colnames[1:] +
-                              [par[0] for par in rev_pars_dict[cmd['idx']]])
+        self._ordered_keys = (colnames[1:]
+                              + [par[0] for par in rev_pars_dict[cmd['idx']]])
 
     def __repr__(self):
         out = ('<{} '.format(self.__class__.__name__) + str(self) + '>')
         return out
 
     def __str__(self):
-        out = ('{} {:11s} '.format(self['date'], self['type']) +
-               ' '.join('{}={}'.format(key, self[key]) for key in self._ordered_keys
+        out = ('{} {:11s} '.format(self['date'], self['type'])
+               + ' '.join('{}={}'.format(key, self[key]) for key in self._ordered_keys
                         if key not in ('type', 'date')))
         return out
 
