@@ -246,7 +246,7 @@ class CommandRow(Row):
 
         out = ('{} {} '.format(self['date'], self['type'])
                + ' '.join('{}={}'.format(key, self[key]) for key in keys
-                        if key not in ('type', 'date')))
+                          if key not in ('type', 'date')))
         return out
 
     def __sstr__(self):
@@ -282,7 +282,7 @@ class CommandTable(Table):
               or isinstance(item, np.ndarray)
               or isinstance(item, list)
               or isinstance(item, tuple) and all(isinstance(x, np.ndarray)
-                                              for x in item)):
+                                                 for x in item)):
             # here for the many ways to give a slice; a tuple of ndarray
             # is produced by np.where, as in t[np.where(t['a'] > 2)]
             # For all, a new table is constructed with slice of all columns

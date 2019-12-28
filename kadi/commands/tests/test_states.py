@@ -107,8 +107,8 @@ def test_quick():
     Test for a few days in 2017.  Sanity check for refactoring etc.
     """
     state_keys = (['obsid', 'clocking', 'power_cmd', 'fep_count', 'vid_board',
-                   'si_mode', 'ccd_count'] +
-                  ['q1', 'q2', 'q3', 'q4', 'pcad_mode', 'dither', 'ra', 'dec', 'roll']
+                   'si_mode', 'ccd_count']
+                  + ['q1', 'q2', 'q3', 'q4', 'pcad_mode', 'dither', 'ra', 'dec', 'roll']
                   + ['letg', 'hetg']
                   + ['simpos', 'simfa_pos'])
     continuity = {'letg': 'RETR', 'hetg': 'RETR'}  # Not necessarily set within 7 days

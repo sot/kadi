@@ -156,14 +156,14 @@ def test_intervals_filter():
     lines = sorted(str(ltt_bads().filter('2000:121', '2000:134')).splitlines())
     assert (lines
             == ['<LttBad: start=2000:121:00:00:00.000 msid=ELBI_LOW flag=R>',
-             '<LttBad: start=2000:121:00:00:00.000 msid=EPOWER1 flag=R>',
-             '<LttBad: start=2000:122:00:00:00.000 msid=3SDTSTSV flag=Y>',
-             '<LttBad: start=2000:134:00:00:00.000 msid=3SDP15V flag=1>'])
+                '<LttBad: start=2000:121:00:00:00.000 msid=EPOWER1 flag=R>',
+                '<LttBad: start=2000:122:00:00:00.000 msid=3SDTSTSV flag=Y>',
+                '<LttBad: start=2000:134:00:00:00.000 msid=3SDP15V flag=1>'])
 
     # No filter
     assert (ltt_bads.intervals(start, stop)
             == [('2000:121:12:00:00.000', '2000:123:00:00:00.000'),
-             ('2000:134:00:00:00.000', '2000:134:12:00:00.000')])
+                ('2000:134:00:00:00.000', '2000:134:12:00:00.000')])
 
     assert (ltt_bads(flag='Y').intervals(start, stop)
             == [('2000:122:00:00:00.000', '2000:123:00:00:00.000')])

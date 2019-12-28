@@ -1354,8 +1354,8 @@ class Manvr(TlmEvent):
 
             # End of dwell because of NPNT => NMAN transition OR another acquisition
             elif (state == 'dwell'
-                  and ((change['msid'] == 'aopcadmd' and change['val'] == 'NMAN') or
-                       (change['msid'] == 'aoacaseq' and change['time'] - t0 > 400))):
+                  and ((change['msid'] == 'aopcadmd' and change['val'] == 'NMAN')
+                       or (change['msid'] == 'aoacaseq' and change['time'] - t0 > 400))):
                 dwell['tstop'] = change['prev_time']
                 dwell['stop'] = change['prev_date']
                 dwell['dur'] = dwell['tstop'] - dwell['tstart']
@@ -1415,8 +1415,8 @@ class Manvr(TlmEvent):
         # least twice as of ~Mar 2012.
         manvr_templates = get_manvr_templates()
         seqs = ['{}_{}_{}'.format(c['msid'], c['prev_val'], c['val']) for c in changes
-                if (c['msid'] in ('aopcadmd', 'aofattmd', 'aoacaseq') and
-                    c['dt'] >= ZERO_DT)]
+                if (c['msid'] in ('aopcadmd', 'aofattmd', 'aoacaseq')
+                    and c['dt'] >= ZERO_DT)]
         for name, manvr_template in manvr_templates:
             if seqs == manvr_template[2:]:  # skip first two which are STDY-MNVR and MNVR-STDY
                 template = name

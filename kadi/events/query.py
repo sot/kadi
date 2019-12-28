@@ -169,8 +169,9 @@ class EventQuery(object):
                 if self.interval_pad.start != 0:
                     bits.append(' pad={}'.format(self.interval_pad.start))
             if self.filter_kwargs:
-                bits.append(' '
-                            + ' '.join('{}={!r}'.format(k, v) for k, v in self.filter_kwargs.items()))
+                bits.append(
+                    ' ' + ' '.join('{}={!r}'.format(k, v)
+                                   for k, v in self.filter_kwargs.items()))
             bits.append('>')
             return ''.join(bits)
 

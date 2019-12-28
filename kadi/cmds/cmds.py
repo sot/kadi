@@ -181,7 +181,7 @@ class Cmd(dict):
     def __str__(self):
         out = ('{} {:11s} '.format(self['date'], self['type'])
                + ' '.join('{}={}'.format(key, self[key]) for key in self._ordered_keys
-                        if key not in ('type', 'date')))
+                          if key not in ('type', 'date')))
         return out
 
 
