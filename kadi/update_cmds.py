@@ -371,6 +371,8 @@ def main(args=None):
     logger = pyyaks.logger.get_logger(name='kadi', level=opt.log_level,
                                       format="%(asctime)s %(message)s")
 
+    logger.info('\n'.join(get_run_info(__file__, opt)))
+
     # Set the global root data directory.  This gets used in ..paths to
     # construct file names.  The use of an env var is needed to allow
     # configurability of the root data directory within django.
@@ -486,6 +488,22 @@ def read_backstop(filename):
                    'vcdu': vcdu
                    })
     return bs
+
+
+def get_run_info(filename, opt):
+    import time
+    import platform
+    from pprint import pformat
+    info = [f'******************************************',
+            f'Running {filename}',
+            f'Version: {__version__}',
+            f'Time: {time.ctime()}',
+            f'User: {os.getlogin()}',
+            f'Machine: {platform.node()}',
+            f'Processing args:',
+            pformat(vars(opt)),
+            f'******************************************']
+    return info
 
 
 if __name__ == '__main__':
