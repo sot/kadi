@@ -13,7 +13,8 @@ import Ska.DBI
 import Ska.File
 from Chandra.Time import DateTime
 from Chandra.cmd_states.cmd_states import _tl_to_bs_cmds
-from . import occweb
+from ska_helpers.run_info import get_run_info_string
+
 from .paths import IDX_CMDS_PATH, PARS_DICT_PATH
 from . import __version__
 
@@ -46,7 +47,6 @@ def get_opt(args=None):
     """
     Get options for command line interface to update_cmd_states.
     """
-    OCC_SOT_ACCOUNT = os.environ['USER'].lower() == 'sot'
     parser = argparse.ArgumentParser(description='Update HDF5 cmds table')
     parser.add_argument("--mp-dir",
                         help=("MP load directory (default=/data/mpcrit1/mplogs) "
@@ -62,14 +62,6 @@ def get_opt(args=None):
     parser.add_argument("--data-root",
                         default='.',
                         help="Data root (default='.')")
-    parser.add_argument("--occ",
-                        default=OCC_SOT_ACCOUNT,
-                        action='store_true',
-                        help="Running at OCC as copy-only client")
-    parser.add_argument("--ftp",
-                        default=False,
-                        action='store_true',
-                        help="Store or get files via ftp (implied for --occ)")
     parser.add_argument('--version', action='version',
                         version='%(prog)s {version}'.format(version=__version__))
 
@@ -371,7 +363,7 @@ def main(args=None):
     logger = pyyaks.logger.get_logger(name='kadi', level=opt.log_level,
                                       format="%(asctime)s %(message)s")
 
-    logger.info('\n'.join(get_run_info(__file__, opt)))
+    logger.info('\n' + get_run_info_string(opt))
 
     # Set the global root data directory.  This gets used in ..paths to
     # construct file names.  The use of an env var is needed to allow
@@ -379,11 +371,6 @@ def main(args=None):
     os.environ['KADI'] = os.path.abspath(opt.data_root)
     idx_cmds_path = IDX_CMDS_PATH()
     pars_dict_path = PARS_DICT_PATH()
-
-    if opt.occ:
-        # Get cmds files from HEAD via lucky ftp
-        occweb.ftp_get_from_lucky('kadi', [idx_cmds_path, pars_dict_path], logger=logger)
-        return
 
     try:
         with open(pars_dict_path, 'rb') as fh:
@@ -421,10 +408,6 @@ def main(args=None):
                         .format(len(pars_dict), pars_dict.n_updated, pars_dict_path))
     else:
         logger.info('pars_dict was unmodified, not writing')
-
-    if opt.ftp:
-        # Push cmds files to OCC via lucky ftp
-        occweb.ftp_put_to_lucky('kadi', [idx_cmds_path, pars_dict_path], logger=logger)
 
 
 def _coerce_type(val):
@@ -488,22 +471,6 @@ def read_backstop(filename):
                    'vcdu': vcdu
                    })
     return bs
-
-
-def get_run_info(filename, opt):
-    import time
-    import platform
-    from pprint import pformat
-    info = [f'******************************************',
-            f'Running {filename}',
-            f'Version: {__version__}',
-            f'Time: {time.ctime()}',
-            f'User: {os.getlogin()}',
-            f'Machine: {platform.node()}',
-            f'Processing args:',
-            pformat(vars(opt)),
-            f'******************************************']
-    return info
 
 
 if __name__ == '__main__':
