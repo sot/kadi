@@ -9,11 +9,18 @@ rm -rf kadi/events/migrations
 ./manage.py makemigrations events
 ./manage.py migrate
 
+# For commands one MUST do this in a dedicated test env because the pickling
+# of UpdatedDict does not work.  That object gets a module of __main__ but for
+# production it must be kadi.update_cmds.  See e.g.
+# https://www.stefaanlippens.net/python-pickling-and-dealing-with-attributeerror-
+# module-object-has-no-attribute-thing.html
+pip install .  # to a TEST env!!  (Maybe with -e for editable install?)
+
 # First line is just to see that every model works.  One can just drop the
 # --stop=2000:001 if you are sure it will work.
-python -m kadi.update_events --start=1999:240 --stop=2000:001
-python -m kadi.update_events --start=2000:001
-python -m kadi.update_cmds --start=2000:001
+kadi_update_events --start=1999:240 --stop=2000:001
+kadi_update_events --start=2000:001
+kadi_update_cmds --start=2000:001
 
 #################################################################
 # Re-build single table
