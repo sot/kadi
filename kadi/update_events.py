@@ -10,6 +10,8 @@ import numpy as np
 
 import pyyaks.logger
 from Chandra.Time import DateTime
+from ska_helpers.run_info import log_run_info
+from kadi import __version__  # noqa
 
 logger = None  # for pyflakes
 
@@ -212,21 +214,15 @@ def main():
 
     logger = pyyaks.logger.get_logger(name='kadi', level=opt.log_level,
                                       format="%(asctime)s %(message)s")
+    log_run_info(logger.info, opt)
 
     # Set the global root data directory.  This gets used in the django
     # setup to find the sqlite3 database file.
     os.environ['KADI'] = os.path.abspath(opt.data_root)
     from .paths import EVENTS_DB_PATH
 
-    from . import __version__
-    from pprint import pformat
-    logger.info('Kadi version   : {}'.format(__version__))
-    logger.info('Kadi path      : {}'.format(os.path.dirname(os.path.abspath(__file__))))
     logger.info('Event database : {}'.format(EVENTS_DB_PATH()))
     logger.info('')
-    logger.info('Options:')
-    for line in pformat(vars(opt)).splitlines():
-        logger.info('  {}'.format(line))
 
     from .events import models
 
