@@ -972,6 +972,13 @@ class ACISTransition(BaseTransition):
             elif tlmsid.startswith('WC'):
                 transitions[date].update(si_mode='CC_' + tlmsid[2:7])
 
+            # Two special-case raw-mode SI modes (https://github.com/sot/cmd_states/issues/23)
+            elif tlmsid == 'WT000B5024':
+                transitions[date].update(si_mode='TN_000B4')
+
+            elif tlmsid == 'WT000B7024':
+                transitions[date].update(si_mode='TN_000B6')
+
             elif tlmsid.startswith('WT'):
                 transitions[date].update(si_mode='TE_' + tlmsid[2:7])
 
