@@ -13,7 +13,7 @@ import Ska.DBI
 import Ska.File
 from Chandra.Time import DateTime
 from Chandra.cmd_states.cmd_states import _tl_to_bs_cmds
-from ska_helpers.run_info import get_run_info_string
+from ska_helpers.run_info import log_run_info
 
 from .paths import IDX_CMDS_PATH, PARS_DICT_PATH
 from . import __version__
@@ -363,7 +363,7 @@ def main(args=None):
     logger = pyyaks.logger.get_logger(name='kadi', level=opt.log_level,
                                       format="%(asctime)s %(message)s")
 
-    logger.info('\n' + get_run_info_string(opt))
+    log_run_info(logger.info, opt)
 
     # Set the global root data directory.  This gets used in ..paths to
     # construct file names.  The use of an env var is needed to allow
