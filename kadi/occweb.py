@@ -10,8 +10,8 @@ import configobj
 import hashlib
 import time
 from collections import OrderedDict as odict
+from pathlib import Path
 
-import six
 import numpy as np
 import requests
 
@@ -30,12 +30,16 @@ URLS = {'fdb_major_events': '/occweb/web/fdb_web/Major_Events.html',
 
 
 def get_auth():
-    authfile = '/proj/sot/ska/data/aspect_authorization/occweb-{}'.format(os.environ['USER'])
-    config = configobj.ConfigObj(authfile)
-    username = config.get('username')
-    password = config.get('password')
+    username = None
+    ska = os.environ.get('SKA')
+    if ska:
+        user = os.environ.get('USER') or os.environ.get('LOGNAME')
+        authfile = Path(ska, 'data', 'aspect_authorization', f'occweb-{user}')
+        config = configobj.ConfigObj(str(authfile))
+        username = config.get('username')
+        password = config.get('password')
 
-    # If /proj/sot/ska doesn't have occweb credentials try .netrc.
+    # If $SKA doesn't have occweb credentials try .netrc.
     if username is None:
         try:
             import Ska.ftp
@@ -92,7 +96,7 @@ def get_ifot(event_type, start=None, stop=None, props=[], columns=[], timeout=TI
     response = requests.get(url, auth=get_auth(), params=params, timeout=timeout)
 
     # For Py2 convert from unicode to ASCII str
-    text = response.text.encode('ascii', 'ignore') if six.PY2 else response.text
+    text = response.text
     text = re.sub(r'\r\n', ' ', text)
     lines = [x for x in text.split('\t\n') if x.strip()]
 

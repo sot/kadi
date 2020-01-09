@@ -38,7 +38,7 @@ if any(pth.startswith('/proj/web-kadi') for pth in sys.path):
 BASE_DIR = dirname(dirname(realpath(__file__)))
 
 # Data paths for kadi project
-from .paths import EVENTS_DB_PATH, DATA_DIR
+from .paths import EVENTS_DB_PATH, DATA_DIR  # noqa
 
 # Make sure there is an events database
 if not os.path.exists(EVENTS_DB_PATH()):
@@ -87,8 +87,6 @@ except IOError:
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-TEMPLATE_DEBUG = True
-
 ALLOWED_HOSTS = []
 
 
@@ -96,26 +94,17 @@ ALLOWED_HOSTS = []
 
 INSTALLED_APPS = (
     'django.contrib.admin',
-    # 'django.contrib.admindocs',  # ?? needed?  Lost in 1.6
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'kadi.events',
+    'mica.web',
+    'find_attitude.web_find_attitude',  # app label (last module) must be unique
 )
 
-OPTIONAL_APPS = ('mica.web', 'find_attitude.web')
-for app in OPTIONAL_APPS:
-    try:
-        __import__(app)
-    except ImportError:
-        pass
-    else:
-        INSTALLED_APPS += (app,)
-
-
-MIDDLEWARE_CLASSES = (
+MIDDLEWARE = (
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -181,9 +170,30 @@ STATICFILES_DIRS = (
     join(BASE_DIR, 'kadi/static'),
 )
 
-TEMPLATE_DIRS = (
-    # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
-    # Always use forward slashes, even on Windows.
-    # Don't forget to use absolute paths, not relative paths.
-    join(BASE_DIR, 'kadi/templates'),
-)
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [
+            # insert your TEMPLATE_DIRS here
+            join(BASE_DIR, 'kadi/templates'),
+        ],
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'debug': True,
+            'context_processors': [
+                # Insert your TEMPLATE_CONTEXT_PROCESSORS here or use this
+                # list if you haven't customized them:
+                'django.contrib.auth.context_processors.auth',
+                'django.template.context_processors.debug',
+                'django.template.context_processors.i18n',
+                'django.template.context_processors.media',
+                'django.template.context_processors.static',
+                'django.template.context_processors.tz',
+                'django.contrib.messages.context_processors.messages',
+            ],
+        },
+    },
+]
+# (1_8.W001) The standalone TEMPLATE_* settings were deprecated in Django 1.8
+# and the TEMPLATES dictionary takes precedence. You must put the values of the
+# following settings into your default TEMPLATES dict: TEMPLATE_DEBUG.

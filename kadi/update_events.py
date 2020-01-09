@@ -7,17 +7,16 @@ import argparse
 import time
 
 import numpy as np
-import six
 
-from . import occweb
 import pyyaks.logger
 from Chandra.Time import DateTime
+from ska_helpers.run_info import log_run_info
+from kadi import __version__  # noqa
 
 logger = None  # for pyflakes
 
 
 def get_opt(args=None):
-    OCC_SOT_ACCOUNT = os.environ['USER'].lower() == 'sot'
     parser = argparse.ArgumentParser(description='Update the events database')
     parser.add_argument("--stop",
                         default=DateTime().date,
@@ -44,14 +43,6 @@ def get_opt(args=None):
     parser.add_argument("--data-root",
                         default=".",
                         help="Root data directory (default='.')")
-    parser.add_argument("--occ",
-                        default=OCC_SOT_ACCOUNT,
-                        action='store_true',
-                        help="Running at OCC as copy-only client")
-    parser.add_argument("--ftp",
-                        default=False,
-                        action='store_true',
-                        help="Store or get files via ftp (implied for --occ)")
 
     args = parser.parse_args(args)
     return args
@@ -150,44 +141,70 @@ def update(EventModel, date_stop):
                 .format(cls_name, date_start.date[:-4], date_stop.date[:-4]))
 
     # Get events for this model from telemetry.  This is returned as a list
-    # of dicts with key/val pairs corresponding to model fields
-    events = EventModel.get_events(date_start, date_stop)
+    # of dicts with key/val pairs corresponding to model fields.
+    events_in_dates = EventModel.get_events(date_start, date_stop)
 
-    with django.db.transaction.commit_on_success():
-        for event in events:
-            # Try to save event.  Use force_insert=True because otherwise django will
-            # update if the event primary key already exists.  In this case we want to
-            # force an exception and move on to the next event.
+    # Determine which of the events is not already in the database and
+    # put them in a list for saving.
+    event_models, events = get_events_and_event_models(EventModel, cls_name, events_in_dates)
+
+    # Save the new events in an atomic fashion
+    with django.db.transaction.atomic():
+        for event, event_model in zip(events, event_models):
             try:
-                event_model = EventModel.from_dict(event, logger)
-                try4times(event_model.save, force_insert=True)
-            except django.db.utils.IntegrityError as err:
-                if not re.search('unique', str(err), re.IGNORECASE):
-                    raise
-                logger.verbose('Skipping {} at {}: already in database ({})'
-                               .format(cls_name, event['start'], err))
+                # In order to catch an IntegrityError here and press on, need to
+                # wrap this in atomic().  This was driven by bad data in iFOT, namely
+                # duplicate PassPlans that point to the same DsnComm, which gives an
+                # IntegrityError because those are related as one-to-one.
+                with django.db.transaction.atomic():
+                    save_event_to_database(cls_name, event, event_model, models)
+            except django.db.utils.IntegrityError:
+                import traceback
+                logger.warn(f'WARNING: IntegrityError skipping {event_model}')
+                logger.warn(f'Event dict:\n{event}')
+                logger.warn(f'Traceback:\n{traceback.format_exc()}')
                 continue
-
-            logger.info('Added {} {}'.format(cls_name, event_model))
-            if 'dur' in event and event['dur'] < 0:
-                logger.info('WARNING: negative event duration for {} {}'
-                            .format(cls_name, event_model))
-
-            # Add any foreign rows (many to one)
-            for foreign_cls_name, rows in event.get('foreign', {}).items():
-                ForeignModel = getattr(models, foreign_cls_name)
-                if isinstance(rows, np.ndarray):
-                    rows = [{key: row[key].tolist() for key in row.dtype.names} for row in rows]
-                for row in rows:
-                    # Convert to a plain dict if row is structured array
-                    foreign_model = ForeignModel.from_dict(row, logger)
-                    setattr(foreign_model, event_model.model_name, event_model)
-                    logger.verbose('Adding {}'.format(foreign_model))
-                    try4times(foreign_model.save)
 
         # If processing got here with no exceptions then save the event update
         # information to database
         update.save()
+
+
+def save_event_to_database(cls_name, event, event_model, models):
+    try4times(event_model.save)
+    logger.info('Added {} {}'.format(cls_name, event_model))
+    if 'dur' in event and event['dur'] < 0:
+        logger.info('WARNING: negative event duration for {} {}'
+                    .format(cls_name, event_model))
+    # Add any foreign rows (many to one)
+    for foreign_cls_name, rows in event.get('foreign', {}).items():
+        ForeignModel = getattr(models, foreign_cls_name)
+        if isinstance(rows, np.ndarray):
+            rows = [{key: row[key].tolist() for key in row.dtype.names} for row in rows]
+        for row in rows:
+            # Convert to a plain dict if row is structured array
+            foreign_model = ForeignModel.from_dict(row, logger)
+            setattr(foreign_model, event_model.model_name, event_model)
+            logger.verbose('Adding {}'.format(foreign_model))
+            try4times(foreign_model.save)
+
+
+def get_events_and_event_models(EventModel, cls_name, events_in_dates):
+    # Determine which of the events is not already in the database and
+    # put them in a list for saving.
+    events = []
+    event_models = []
+    for event in events_in_dates:
+        event_model = EventModel.from_dict(event, logger)
+        try:
+            EventModel.objects.get(pk=event_model.pk)
+        except EventModel.DoesNotExist:
+            events.append(event)
+            event_models.append(event_model)
+        else:
+            logger.verbose('Skipping {} at {}: already in database'
+                           .format(cls_name, event['start']))
+    return event_models, events
 
 
 def main():
@@ -197,26 +214,15 @@ def main():
 
     logger = pyyaks.logger.get_logger(name='kadi', level=opt.log_level,
                                       format="%(asctime)s %(message)s")
+    log_run_info(logger.info, opt)
 
     # Set the global root data directory.  This gets used in the django
     # setup to find the sqlite3 database file.
     os.environ['KADI'] = os.path.abspath(opt.data_root)
     from .paths import EVENTS_DB_PATH
 
-    from . import version
-    from pprint import pformat
-    logger.info('Kadi version   : {}'.format(version.__version__))
-    logger.info('Kadi path      : {}'.format(os.path.dirname(os.path.abspath(version.__file__))))
     logger.info('Event database : {}'.format(EVENTS_DB_PATH()))
     logger.info('')
-    logger.info('Options:')
-    for line in pformat(vars(opt)).splitlines():
-        logger.info('  {}'.format(line))
-
-    if opt.occ:
-        # Get events database file from HEAD via lucky ftp
-        occweb.ftp_get_from_lucky('kadi', [EVENTS_DB_PATH()], logger=logger)
-        return
 
     from .events import models
 
@@ -234,7 +240,7 @@ def main():
 
     # Get the event classes in models module
     EventModels = [Model for name, Model in vars(models).items()
-                   if (isinstance(Model, six.class_types)  # is a class
+                   if (isinstance(Model, type)  # is a class
                        and issubclass(Model, models.BaseEvent)  # is a BaseEvent subclass
                        and 'Meta' not in Model.__dict__  # is not a base class
                        and hasattr(Model, 'get_events')  # can get events
@@ -249,15 +255,17 @@ def main():
     EventModels = sorted(EventModels, key=lambda x: x.update_priority, reverse=True)
 
     for EventModel in EventModels:
-        if opt.delete_from_start and opt.start is not None:
-            delete_from_date(EventModel, opt.start)
+        try:
+            if opt.delete_from_start and opt.start is not None:
+                delete_from_date(EventModel, opt.start)
 
-        for date_stop in date_stops:
-            update(EventModel, date_stop)
-
-    if opt.ftp:
-        # Push events database file to OCC via lucky ftp
-        occweb.ftp_put_to_lucky('kadi', [EVENTS_DB_PATH()], logger=logger)
+            for date_stop in date_stops:
+                update(EventModel, date_stop)
+        except Exception:
+            # Something went wrong, but press on with processing other EventModels
+            import traceback
+            logger.error(f'ERROR in processing {EventModel}')
+            logger.error(f'Traceback:\n{traceback.format_exc()}')
 
 
 if __name__ == '__main__':

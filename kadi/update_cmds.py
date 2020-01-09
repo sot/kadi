@@ -13,7 +13,8 @@ import Ska.DBI
 import Ska.File
 from Chandra.Time import DateTime
 from Chandra.cmd_states.cmd_states import _tl_to_bs_cmds
-from . import occweb
+from ska_helpers.run_info import log_run_info
+
 from .paths import IDX_CMDS_PATH, PARS_DICT_PATH
 from . import __version__
 
@@ -46,7 +47,6 @@ def get_opt(args=None):
     """
     Get options for command line interface to update_cmd_states.
     """
-    OCC_SOT_ACCOUNT = os.environ['USER'].lower() == 'sot'
     parser = argparse.ArgumentParser(description='Update HDF5 cmds table')
     parser.add_argument("--mp-dir",
                         help=("MP load directory (default=/data/mpcrit1/mplogs) "
@@ -62,14 +62,6 @@ def get_opt(args=None):
     parser.add_argument("--data-root",
                         default='.',
                         help="Data root (default='.')")
-    parser.add_argument("--occ",
-                        default=OCC_SOT_ACCOUNT,
-                        action='store_true',
-                        help="Running at OCC as copy-only client")
-    parser.add_argument("--ftp",
-                        default=False,
-                        action='store_true',
-                        help="Store or get files via ftp (implied for --occ)")
     parser.add_argument('--version', action='version',
                         version='%(prog)s {version}'.format(version=__version__))
 
@@ -189,8 +181,8 @@ def get_cmds(start, stop, mp_dir='/data/mpcrit1/mplogs'):
 
         # Only store commands for this timeline (match SCS and date)
         bs_cmds = [x for x in bs_cmds
-                   if tl['datestart'] <= x['date'] <= tl['datestop'] and
-                   x['scs'] == tl['scs']]
+                   if tl['datestart'] <= x['date'] <= tl['datestop']
+                   and x['scs'] == tl['scs']]
 
         for bs_cmd in bs_cmds:
             bs_cmd['timeline_id'] = tl['id']
@@ -232,8 +224,8 @@ def get_unique_orbit_cmds(orbit_cmds):
     # "different" from uniq_cmds[-1].
     for cmd in orbit_cmds:
         last_cmd = uniq_cmds[-1]
-        if (cmd['params']['EVENT_TYPE'] == last_cmd['params']['EVENT_TYPE'] and
-                abs(DateTime(cmd['date']).secs - DateTime(last_cmd['date']).secs) < 180):
+        if (cmd['params']['EVENT_TYPE'] == last_cmd['params']['EVENT_TYPE']
+                and abs(DateTime(cmd['date']).secs - DateTime(last_cmd['date']).secs) < 180):
             # Same event as last (even if date is a bit different).  Now if this one
             # has a larger timeline_id that means it is from a more recent schedule, so
             # use that one.
@@ -371,17 +363,14 @@ def main(args=None):
     logger = pyyaks.logger.get_logger(name='kadi', level=opt.log_level,
                                       format="%(asctime)s %(message)s")
 
+    log_run_info(logger.info, opt)
+
     # Set the global root data directory.  This gets used in ..paths to
     # construct file names.  The use of an env var is needed to allow
     # configurability of the root data directory within django.
     os.environ['KADI'] = os.path.abspath(opt.data_root)
     idx_cmds_path = IDX_CMDS_PATH()
     pars_dict_path = PARS_DICT_PATH()
-
-    if opt.occ:
-        # Get cmds files from HEAD via lucky ftp
-        occweb.ftp_get_from_lucky('kadi', [idx_cmds_path, pars_dict_path], logger=logger)
-        return
 
     try:
         with open(pars_dict_path, 'rb') as fh:
@@ -419,10 +408,6 @@ def main(args=None):
                         .format(len(pars_dict), pars_dict.n_updated, pars_dict_path))
     else:
         logger.info('pars_dict was unmodified, not writing')
-
-    if opt.ftp:
-        # Push cmds files to OCC via lucky ftp
-        occweb.ftp_put_to_lucky('kadi', [idx_cmds_path, pars_dict_path], logger=logger)
 
 
 def _coerce_type(val):

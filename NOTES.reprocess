@@ -11,6 +11,6 @@ If the kadi events.db3 database gets corrupted (e.g. problems related to the
   cp /proj/sot/ska/data/kadi/events.db3 ./
 
   # Update from 2017:017 (for example) to present
-  ./update_events --start=2017:017 --delete-from-start
+  python -m kadi.update_events --start=2017:017 --delete-from-start
 
   cp events.db3 /proj/sot/ska/data/kadi/

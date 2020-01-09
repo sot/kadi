@@ -107,10 +107,10 @@ def test_quick():
     Test for a few days in 2017.  Sanity check for refactoring etc.
     """
     state_keys = (['obsid', 'clocking', 'power_cmd', 'fep_count', 'vid_board',
-                   'si_mode', 'ccd_count'] +
-                  ['q1', 'q2', 'q3', 'q4', 'pcad_mode', 'dither', 'ra', 'dec', 'roll'] +
-                  ['letg', 'hetg'] +
-                  ['simpos', 'simfa_pos'])
+                   'si_mode', 'ccd_count']
+                  + ['q1', 'q2', 'q3', 'q4', 'pcad_mode', 'dither', 'ra', 'dec', 'roll']
+                  + ['letg', 'hetg']
+                  + ['simpos', 'simfa_pos'])
     continuity = {'letg': 'RETR', 'hetg': 'RETR'}  # Not necessarily set within 7 days
     rc, rk = compare_states('2018:235', '2018:245', state_keys, continuity=continuity)
 
@@ -154,6 +154,7 @@ def test_states_2017():
     maneuver commanding (so the NMAN period before maneuver starts is OK) while kadi
     will insert pitch breaks only in NPNT.  (Tested later).
     """
+
     state_keys = (['obsid', 'clocking', 'power_cmd', 'fep_count']
                   + ['q1', 'q2', 'q3', 'q4', 'pcad_mode', 'dither', 'ra', 'dec', 'roll']
                   + ['letg', 'hetg']
@@ -442,8 +443,8 @@ def test_reduce_states_cmd_states():
     cs = cmd_states.fetch_states('2018:235', '2018:245', allow_identical=True)
     cs = Table(cs)
 
-    state_keys = (set(cmd_states.STATE0) -
-                  set(['datestart', 'datestop', 'trans_keys', 'tstart', 'tstop']))
+    state_keys = (set(cmd_states.STATE0)
+                  - set(['datestart', 'datestop', 'trans_keys', 'tstart', 'tstop']))
 
     # Default setting is reduce states with merge_identical=False, which is the same
     # as cmd_states.

@@ -1,14 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from distutils.core import setup
+from setuptools import setup
 import os
 import sys
-
-# from this_package.version import package_version object
-from kadi.version import package_version
-
-# Write GIT revisions and SHA tag into <this_package/git_version.py>
-# (same directory as version.py)
-package_version.write_git_version_file()
 
 foundation_files = ['static/foundation/css/*',
                     'static/foundation/js/foundation/*',
@@ -26,18 +19,21 @@ except ImportError:
     cmdclass = {}
 
 if "--user" not in sys.argv:
-    share_path = os.path.join(sys.prefix, "share", "kadi")
+    share_path = os.path.join("share", "kadi")
     data_files = [(share_path, ['task_schedule_cmds.cfg',
-                                'task_schedule_events.cfg'])]
+                                'task_schedule_events.cfg',
+                                'ltt_bads.dat'])]
 else:
     data_files = None
 
 entry_points = {'console_scripts': [
     'get_chandra_states = kadi.commands.states:get_chandra_states',
-    'kadi_update_cmds = kadi.update_cmds:main']}
+    'kadi_update_cmds = kadi.update_cmds:main',
+    'kadi_update_events = kadi.update_events:main']}
 
 setup(name='kadi',
-      version=package_version.version,
+      use_scm_version=True,
+      setup_requires=['setuptools_scm', 'setuptools_scm_git_archive'],
       description='Kadi events archive',
       author='Tom Aldcroft',
       author_email='taldcroft@cfa.harvard.edu',

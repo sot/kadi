@@ -18,6 +18,14 @@ import os
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "kadi.settings")
 
+# When running production web site there should be no HOME, but
+# some packages (e.g. sherpa) assume its existence.
+os.environ.setdefault("HOME", "/tmp")
+
+# Need SYBASE for some apps like star history.
+# TODO: remove dependence on sybase, use mica guide / acq stats instead.
+os.environ.setdefault("SYBASE", "/soft/SYBASE15.7")
+
 # This application object is used by any WSGI server configured to use this
 # file. This includes Django's development server, if the WSGI_APPLICATION
 # setting points here.

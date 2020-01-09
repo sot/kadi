@@ -1,17 +1,15 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-import os
+import sys
 import operator
+from pathlib import Path
 
 from itertools import count
-from six.moves import zip
-import six
 
 from django.db import models
-models.query.REPR_OUTPUT_SIZE = 1000  # Increase default number of rows printed
-
 import pyyaks.logger
-
 from .manvr_templates import get_manvr_templates
+
+models.query.REPR_OUTPUT_SIZE = 1000  # Increase default number of rows printed
 
 # Fool pyflakes into thinking these are defined
 fetch = None
@@ -285,7 +283,7 @@ class BaseModel(models.Model):
         @property
         def table(self):
             def un_unicode(vals):
-                return tuple(val.encode('ascii') if isinstance(val, six.text_type) else val
+                return tuple(val.encode('ascii') if isinstance(val, str) else val
                              for val in vals)
 
             from astropy.table import Table
@@ -293,8 +291,6 @@ class BaseModel(models.Model):
             model_fields = self.model.get_model_fields()
             names = [f.name for f in model_fields]
             rows = self.values_list()
-            if six.PY2:
-                rows = [un_unicode(vals) for vals in rows]
             cols = (list(zip(*rows)) if len(rows) > 0 else None)
             dat = Table(cols, names=names)
 
@@ -411,6 +407,20 @@ class BaseModel(models.Model):
         Model.  If `logger` is supplied then log output at debug level.
         """
         model = cls()
+
+        # Get the obsid at the appropriate time for the event (typically "start"
+        # but "stop" in the case of Manvr).
+        if isinstance(model, TlmEvent) and model is not Obsid:
+            tstart = DateTime(model_dict[cls._get_obsid_start_attr]).secs
+            obsrq = fetch.Msid('cobsrqid', tstart, tstart + 200)
+            if len(obsrq.vals) == 0:
+                logger.warn(f'WARNING: unable to get COBSRQID near '
+                            f'{model_dict[cls._get_obsid_start_attr]}, '
+                            f'using obsid=-999')
+                model_dict['obsid'] = -999
+            else:
+                model_dict['obsid'] = obsrq.vals[0]
+
         for key, val in model_dict.items():
             if hasattr(model, key):
                 if logger is not None:
@@ -505,14 +515,10 @@ class BaseModel(models.Model):
         return obsids[0].obsid
 
     def __bytes__(self):
-        return six.text_type(self).encode('utf-8')
+        return str(self).encode('utf-8')
 
-    if six.PY2:
-        def __str__(self):
-            return self.__bytes__()
-    else:
-        def __str__(self):
-            return self.__unicode__()
+    def __str__(self):
+        return self.__unicode__()
 
 
 class BaseEvent(BaseModel):
@@ -585,6 +591,8 @@ class Event(BaseEvent):
 
 
 class TlmEvent(Event):
+    obsid = models.IntegerField(help_text='Observation ID (COBSRQID)')
+
     event_msids = None  # must be overridden by derived class
     event_val = None
     event_filter_bad = True  # Normally remove bad quality data immediately
@@ -756,8 +764,6 @@ class Obsid(TlmEvent):
     ======== ========== ================================
     """
     event_msids = ['cobsrqid']
-
-    obsid = models.IntegerField(help_text='Observation ID (COBSRQID)')
 
     update_priority = 1000  # Process Obsid first
 
@@ -1348,8 +1354,8 @@ class Manvr(TlmEvent):
 
             # End of dwell because of NPNT => NMAN transition OR another acquisition
             elif (state == 'dwell'
-                  and ((change['msid'] == 'aopcadmd' and change['val'] == 'NMAN') or
-                       (change['msid'] == 'aoacaseq' and change['time'] - t0 > 400))):
+                  and ((change['msid'] == 'aopcadmd' and change['val'] == 'NMAN')
+                       or (change['msid'] == 'aoacaseq' and change['time'] - t0 > 400))):
                 dwell['tstop'] = change['prev_time']
                 dwell['stop'] = change['prev_date']
                 dwell['dur'] = dwell['tstop'] - dwell['tstart']
@@ -1409,8 +1415,8 @@ class Manvr(TlmEvent):
         # least twice as of ~Mar 2012.
         manvr_templates = get_manvr_templates()
         seqs = ['{}_{}_{}'.format(c['msid'], c['prev_val'], c['val']) for c in changes
-                if (c['msid'] in ('aopcadmd', 'aofattmd', 'aoacaseq') and
-                    c['dt'] >= ZERO_DT)]
+                if (c['msid'] in ('aopcadmd', 'aofattmd', 'aoacaseq')
+                    and c['dt'] >= ZERO_DT)]
         for name, manvr_template in manvr_templates:
             if seqs == manvr_template[2:]:  # skip first two which are STDY-MNVR and MNVR-STDY
                 template = name
@@ -1544,8 +1550,8 @@ class Manvr(TlmEvent):
             i1 = np.searchsorted(changes['time'], manvr_next['tstart'])
             sequence = changes[i0:i1 + 1]
             sequence['dt'] = (sequence['time'] + sequence['prev_time']) / 2.0 - manvr['tstop']
-            ok = ((sequence['dt'] >= ZERO_DT) | (sequence['msid'] == 'aofattmd') |
-                  (sequence['msid'] == 'aopcadmd'))
+            ok = ((sequence['dt'] >= ZERO_DT) | (sequence['msid'] == 'aofattmd')
+                  | (sequence['msid'] == 'aopcadmd'))
             sequence = sequence[ok]
             manvr_attrs = cls.get_manvr_attrs(sequence)
 
@@ -1602,7 +1608,8 @@ class Dwell(Event):
     ============ ============ ========================================
     """
     rel_tstart = models.FloatField(help_text='Start time relative to manvr end (sec)')
-    manvr = models.ForeignKey(Manvr, help_text='Maneuver that contains this dwell')
+    manvr = models.ForeignKey(Manvr, on_delete=models.CASCADE,
+                              help_text='Maneuver that contains this dwell')
     ra = models.FloatField(help_text='Right ascension (deg)')
     dec = models.FloatField(help_text='Declination (deg)')
     roll = models.FloatField(help_text='Roll angle (deg)')
@@ -1643,7 +1650,7 @@ class ManvrSeq(BaseModel):
     =========== ============ ===========
     """
 
-    manvr = models.ForeignKey(Manvr)
+    manvr = models.ForeignKey(Manvr, on_delete=models.CASCADE)
     msid = models.CharField(max_length=8)
     prev_val = models.CharField(max_length=4)
     val = models.CharField(max_length=4)
@@ -1832,6 +1839,7 @@ class MajorEvent(BaseEvent):
         # Manually generate a unique key for event since date is not unique
         for event in events:
             key = ''.join(event[x] for x in ('start', 'descr', 'note', 'source'))
+            key = key.encode('ascii', 'replace')  # Should already be clean ASCII but make sure
             event['key'] = event['start'] + ':' + hashlib.sha1(key).hexdigest()[:6]
 
         return events
@@ -2102,7 +2110,8 @@ class DsnComm(IFotEvent):
     oc = models.CharField(max_length=30, help_text='OC crew')
     cc = models.CharField(max_length=30, help_text='CC crew')
     pass_plan = models.OneToOneField(PassPlan, help_text='Pass plan', null=True,
-                                     related_name='dsn_comm')
+                                     related_name='dsn_comm',
+                                     on_delete=models.CASCADE)
 
     ifot_type_desc = 'DSN_COMM'
     ifot_props = ['bot', 'eot', 'activity', 'config', 'data_rate', 'site', 'soe', 'station']
@@ -2249,7 +2258,7 @@ class OrbitPoint(BaseModel):
          descr     Char(50)
     =========== ============ ===========
     """
-    orbit = models.ForeignKey(Orbit)
+    orbit = models.ForeignKey(Orbit, on_delete=models.CASCADE)
     date = models.CharField(max_length=21)
     name = models.CharField(max_length=9)
     orbit_num = models.IntegerField()
@@ -2282,7 +2291,7 @@ class RadZone(Event):
        perigee     Char(21)
     =========== ============ ================================
     """
-    orbit = models.ForeignKey(Orbit)
+    orbit = models.ForeignKey(Orbit, on_delete=models.CASCADE)
     orbit_num = models.IntegerField()
     perigee = models.CharField(max_length=21)
 
@@ -2322,8 +2331,10 @@ class AsciiTableEvent(BaseEvent):
         start = DateTime(start).date
         stop = DateTime(stop).date
 
-        filename = os.path.join(DATA_DIR(), cls.intervals_file)
-        intervals = table.Table.read(filename, **cls.table_read_kwargs)  # noqa
+        filename = Path(cls.intervals_file)
+        if not filename.absolute():
+            filename = Path(DATA_DIR(), filename)
+        intervals = table.Table.read(str(filename), **cls.table_read_kwargs)  # noqa
 
         # Custom in-place processing of raw intervals
         cls.process_intervals(intervals)
@@ -2386,10 +2397,10 @@ class LttBad(AsciiTableEvent):
     key._kadi_hidden = True
     dur._kadi_format = '{:.1f}'
 
-    intervals_file = 'ltt_bads.dat'
+    intervals_file = Path(sys.prefix) / 'share' / 'kadi' / 'ltt_bads.dat'
     # Table.read keyword args
-    table_read_kwargs = dict(format='ascii', data_start=2, delimiter='|', guess=False,
-                             fill_values=None)
+    table_read_kwargs = dict(format='ascii', data_start=2, delimiter='|',
+                             guess=False, fill_values=())
     start_column = 'start'
     stop_column = 'stop'
 

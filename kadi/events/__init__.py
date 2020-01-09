@@ -44,16 +44,12 @@ More help available at:
 import os
 import django
 
+# If we are running standalone then this ENV var is not set.  Need to explicitly
+# do the setup and then import query module attributes for standalone.
+# For WSGI server the env var is set in wsgi.py.
+# For the dev server it is set in manage.py.
+
 if 'DJANGO_SETTINGS_MODULE' not in os.environ:
     os.environ['DJANGO_SETTINGS_MODULE'] = 'kadi.settings'
-
-# In django >= 1.8 an explicit call to setup is required for standalone.
-# This attribute does not exist in 1.6.
-# https://docs.djangoproject.com/en/1.10/topics/settings/#calling-django-setup-is-required-for-standalone-django-usage
-try:
     django.setup()
-except AttributeError:
-    pass
-
-# from .models import *
-from .query import *  # noqa
+    from .query import *  # noqa

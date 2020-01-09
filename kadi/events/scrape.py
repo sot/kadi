@@ -1,7 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import re
 
-from BeautifulSoup import BeautifulSoup as parse_html
+from bs4 import BeautifulSoup as parse_html
 
 from Chandra.Time import DateTime
 from .. import occweb
@@ -23,8 +23,9 @@ def cleantext(text):
     """
     Clean up some HTML or unicode special characters and replace with ASCII equivalents.
     """
-    lines = text.encode('ascii', 'xmlcharrefreplace').splitlines()
-    lines = [x.strip() for x in lines]
+    # Convert any non-ASCII characters to XML like '&#40960;abcd&#1972;'
+    text = text.encode('ascii', 'xmlcharrefreplace').decode('ascii')
+    lines = [x.strip() for x in text.splitlines()]
     text = ' '.join(lines)
     for match, out in REPLACES:
         text = re.sub(match, out, text)
@@ -41,7 +42,7 @@ def get_table_rows(table):
     trs = table.findAll('tr')
     for tr in trs:
         tds = tr.findAll('td')
-        if u'colspan' in dict(tds[0].attrs):
+        if 'colspan' in dict(tds[0].attrs):
             continue
         vals = tuple(cleantext(td.text) for td in tds)
         rows.append(vals)
@@ -63,7 +64,7 @@ def get_fdb_major_events():
         return evts_cache[page]
 
     html = occweb.get_url(page)
-    soup = parse_html(html)
+    soup = parse_html(html, 'lxml')
     table = soup.find('table')
     rows = get_table_rows(table)
     evts = []
@@ -107,7 +108,7 @@ def get_fot_major_events():
         return evts_cache[page]
 
     html = occweb.get_url(page)
-    soup = parse_html(html)
+    soup = parse_html(html, 'lxml')
     table = soup.find('table', attrs={'class': 'MsoNormalTable'})
     rows = get_table_rows(table)
     evts = []

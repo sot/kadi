@@ -3,8 +3,6 @@ import operator
 import warnings
 
 import numpy as np
-from six.moves import zip
-import six
 
 from Chandra.Time import DateTime
 
@@ -18,11 +16,7 @@ __all__ = ['get_dates_vals', 'EventQuery']
 def un_unicode(vals):
     # I think this code is orphaned and should never be called.
     warnings.warn('unexpected call to query.un_unicode', stacklevel=2)
-    if six.PY2:
-        out = tuple(val.encode('ascii') if isinstance(val, six.text_type) else val
-                    for val in vals)
-    else:
-        out = tuple(vals)
+    out = tuple(vals)
 
     return out
 
@@ -175,8 +169,9 @@ class EventQuery(object):
                 if self.interval_pad.start != 0:
                     bits.append(' pad={}'.format(self.interval_pad.start))
             if self.filter_kwargs:
-                bits.append(' ' +
-                            ' '.join('{}={!r}'.format(k, v) for k, v in self.filter_kwargs.items()))
+                bits.append(
+                    ' ' + ' '.join('{}={!r}'.format(k, v)
+                                   for k, v in self.filter_kwargs.items()))
             bits.append('>')
             return ''.join(bits)
 

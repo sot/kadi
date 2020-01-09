@@ -14,14 +14,14 @@ class NotFoundError(Exception):
     pass
 
 
-ORBIT_POINTS_DTYPE = [('date', 'S21'), ('name', 'S8'),
-                      ('orbit_num', 'i4'), ('descr', 'S50')]
+ORBIT_POINTS_DTYPE = [('date', 'U21'), ('name', 'U8'),
+                      ('orbit_num', 'i4'), ('descr', 'U50')]
 
 ORBITS_DTYPE = [('orbit_num', 'i4'),
-                ('start', 'S21'), ('stop', 'S21'),
+                ('start', 'U21'), ('stop', 'U21'),
                 ('tstart', 'f8'), ('tstop', 'f8'), ('dur', 'f4'),
-                ('perigee', 'S21'), ('t_perigee', 'f8'), ('apogee', 'S21'),
-                ('start_radzone', 'S21'), ('stop_radzone', 'S21'),
+                ('perigee', 'U21'), ('t_perigee', 'f8'), ('apogee', 'U21'),
+                ('start_radzone', 'U21'), ('stop_radzone', 'U21'),
                 ('dt_start_radzone', 'f4'), ('dt_stop_radzone', 'f4')]
 
 logger = logging.getLogger('events')
@@ -177,7 +177,7 @@ def get_orbit_points(tlrfiles):
         # 012345678901234567890123456789012345678901234567890123456789
         logger.info('Getting points from {}'.format(tlrfile))
         try:
-            fh = open(tlrfile, 'r')
+            fh = open(tlrfile, 'r', encoding='ascii', errors='ignore')
         except IOError as err:
             logger.warn(err)
             continue
@@ -235,6 +235,9 @@ def interpolate_orbit_points(orbit_points, name):
     """
     Linearly interpolate across any gaps for ``name`` orbit_points.
     """
+    if len(orbit_points) == 0:
+        return []
+
     ok = orbit_points['name'] == name
     ops = orbit_points[ok]
     # Get the indexes of missing orbits
@@ -267,12 +270,15 @@ def process_orbit_points(orbit_points):
 
     Returns a numpy array with processed orbit points::
 
-      ORBIT_POINTS_DTYPE = [('date', 'S21'), ('name', 'S8'),
-                            ('orbit_num', 'i4'), ('descr', 'S50')]
+      ORBIT_POINTS_DTYPE = [('date', 'U21'), ('name', 'U8'),
+                            ('orbit_num', 'i4'), ('descr', 'U50')]
     """
     # Find neighboring pairs of orbit points that are identical except for date.
     # If the dates are then within 180 seconds of each other then toss the first
     # of the pair.
+    if len(orbit_points) == 0:
+        return np.array([], dtype=ORBIT_POINTS_DTYPE)
+
     uniq_orbit_points = []
     for op0, op1 in zip(orbit_points[:-1], orbit_points[1:]):
         if op0[1:4] == op1[1:4]:
@@ -345,10 +351,10 @@ def get_orbits(orbit_points):
     Returns a numpy structured array::
 
       ORBITS_DTYPE = [('orbit_num', 'i4'),
-                      ('start', 'S21'), ('stop', 'S21'),
+                      ('start', 'U21'), ('stop', 'U21'),
                       ('tstart', 'f8'), ('tstop', 'f8'), ('dur', 'f4'),
-                      ('perigee', 'S21'), ('t_perigee', 'f8'), ('apogee', 'S21'),
-                      ('start_radzone', 'S21'), ('stop_radzone', 'S21'),
+                      ('perigee', 'U21'), ('t_perigee', 'f8'), ('apogee', 'U21'),
+                      ('start_radzone', 'U21'), ('stop_radzone', 'U21'),
                       ('dt_start_radzone', 'f4'), ('dt_stop_radzone', 'f4')]
     """
     def get_idx(ops, name):

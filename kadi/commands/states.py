@@ -9,8 +9,6 @@ import itertools
 import inspect
 
 import numpy as np
-import six
-from six.moves import range
 
 from astropy.table import Table, Column
 
@@ -40,10 +38,10 @@ QUAT_COMPS = ['q1', 'q2', 'q3', 'q4']
 
 # State keys for PCAD-related transitions.  If *any* of these are requested then
 # *all* of them need to be processed to get the correct answer.
-PCAD_STATE_KEYS = (QUAT_COMPS +
-                   ['targ_' + qc for qc in QUAT_COMPS] +
-                   ['ra', 'dec', 'roll'] +
-                   ['auto_npnt', 'pcad_mode', 'pitch', 'off_nom_roll'])
+PCAD_STATE_KEYS = (QUAT_COMPS
+                   + ['targ_' + qc for qc in QUAT_COMPS]
+                   + ['ra', 'dec', 'roll']
+                   + ['auto_npnt', 'pcad_mode', 'pitch', 'off_nom_roll'])
 
 # Default state keys (mostly matches classic command states list)
 DEFAULT_STATE_KEYS = ('ccd_count', 'clocking', 'dec', 'dither', 'fep_count',
@@ -114,12 +112,10 @@ class TransitionMeta(type):
         return cls
 
 
-@six.add_metaclass(TransitionMeta)
-class BaseTransition(object):
+class BaseTransition(object, metaclass=TransitionMeta):
     """
     Base transition class from which all actual transition classes are derived.
     """
-
     @classmethod
     def get_state_changing_commands(cls, cmds):
         """
@@ -192,8 +188,8 @@ class BaseTransition(object):
 
         others = []
         for attr, val in cls.__dict__.items():
-            if (attr.startswith('_') or inspect.ismethod(val) or
-                    attr in ('state_keys', 'command_attributes', 'command_params')):
+            if (attr.startswith('_') or inspect.ismethod(val)
+                    or attr in ('state_keys', 'command_attributes', 'command_params')):
                 continue
             others.append('{}={}'.format(attr, val))
         if others:
@@ -992,7 +988,7 @@ def get_transition_classes(state_keys=None):
     Get all BaseTransition subclasses in this module corresponding to
     state keys ``state_keys``.
     """
-    if isinstance(state_keys, six.string_types):
+    if isinstance(state_keys, str):
         state_keys = [state_keys]
     elif state_keys is None:
         state_keys = DEFAULT_STATE_KEYS
