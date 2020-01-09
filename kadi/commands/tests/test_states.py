@@ -126,6 +126,16 @@ def test_quick():
     assert np.all(rc['datestop'][:-1] == rk['datestop'][:-1])
 
 
+def test_acis_raw_mode():
+    """Test ACIS raw-mode SI modes"""
+    # Minimal test that they are found in a period of time known to have
+    # raw mode commanding.
+    kstates = states.get_states(start='2017:189', stop='2017:197',
+                                state_keys=['si_mode'])
+    assert 'TN_000B4' in kstates['si_mode']
+    assert 'TN_000B6' in kstates['si_mode']
+
+
 def test_states_2017():
     """
     Test for 200 days in 2017.  Includes 2017:066, 068, 090 anomalies and
@@ -134,6 +144,9 @@ def test_states_2017():
     Skip 'vid_board' because https://github.com/sot/cmd_states/pull/31 was put
     in place around 2017:276 and so the behavior of this changed then. (Tested later).
 
+    Skip 'si_mode' because raw-mode SI modes occur in this time frame and are
+    not found in cmd_states.  Si_mode is tested in other places.
+
     Skip 'ccd_count' because https://github.com/sot/cmd_states/pull/39 changed
     that behavior.
 
@@ -141,11 +154,10 @@ def test_states_2017():
     maneuver commanding (so the NMAN period before maneuver starts is OK) while kadi
     will insert pitch breaks only in NPNT.  (Tested later).
     """
-    state_keys = (['obsid', 'clocking', 'power_cmd', 'fep_count',
-                   'si_mode'] +
-                  ['q1', 'q2', 'q3', 'q4', 'pcad_mode', 'dither', 'ra', 'dec', 'roll'] +
-                  ['letg', 'hetg'] +
-                  ['simpos', 'simfa_pos'])
+    state_keys = (['obsid', 'clocking', 'power_cmd', 'fep_count']
+                  + ['q1', 'q2', 'q3', 'q4', 'pcad_mode', 'dither', 'ra', 'dec', 'roll']
+                  + ['letg', 'hetg']
+                  + ['simpos', 'simfa_pos'])
     rcstates, rkstates = compare_states('2017:060', '2017:260', state_keys, compare_dates=False)
 
     # Check state datestart.  There are 4 known discrepancies of 0.001 sec
