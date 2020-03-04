@@ -90,7 +90,12 @@ def test_cmd_line_interface(tmpdir):
                                '--state-keys', 'obsid,si_mode,pcad_mode'])
     with open(filename, 'r') as fh:
         out = fh.read()
-    assert out.splitlines() == [
+
+    # Work around bug in astropy 3.0 where text table output has `\r\r\n` line endings
+    # due to putting os.linesep \r\n at the end of each line in universal newline mode,
+    # at which point python turns the \n into \r\n.
+    lines = [line for line in out.splitlines() if line.strip()]
+    assert lines == [
         '             datestart               datestop  obsid   si_mode  pcad_mode ',
         ' 2017:001:21:00:00.000  2017:001:21:02:06.467  18140  TE_008FC       NPNT ',
         ' 2017:001:21:02:06.467  2017:001:21:05:06.467  18140  TE_008FC       NMAN ',
