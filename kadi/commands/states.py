@@ -4,6 +4,7 @@ based entirely on known history of commands.
 """
 from __future__ import division, print_function, absolute_import
 
+import re
 import collections
 import itertools
 import inspect
@@ -977,6 +978,38 @@ class ACISTransition(BaseTransition):
 
             elif tlmsid.startswith('WT'):
                 transitions[date].update(si_mode='TE_' + tlmsid[2:7])
+
+
+class ACISFP_TempTransition(BaseTransition):
+    """
+    Implement transitions for ACIS focal plane temperature states.
+    """
+    command_attributes = {'type': 'ACISPKT'}
+    state_keys = ['acisfp_temp']
+    default_value = -121.0
+
+    @classmethod
+    def set_transitions(cls, transitions, cmds, start, stop):
+        """
+        Set transitions for a Table of commands ``cmds``.
+
+        :param transitions_dict: global dict of transitions (updated in-place)
+        :param cmds: commands (CmdList)
+        :param start: start time for states
+        :param stop: stop time for states
+
+        :returns: None
+        """
+        state_cmds = cls.get_state_changing_commands(cmds)
+        for cmd in state_cmds:
+            tlmsid = cmd['tlmsid']
+            date = cmd['date']
+
+            if tlmsid.startswith('WSFTNEG'):
+                match = re.search(r'(\d+)$', tlmsid)
+                if not match:
+                    raise ValueError(f'unable to parse command {tlmsid}')
+                transitions[date].update(acisfp_temp=-float(match.group(1)))
 
 
 ###################################################################

@@ -509,6 +509,9 @@ classes which affect the keys.
 
 .. Run kadi.commands.states.print_state_keys_transition_classes_docs() to generate this list.
 
+``acisfp_temp``
+  - :class:`~kadi.commands.states.ACISFP_TempTransition`
+
 ``aoephem1``, ``aoephem2``, ``aoratio``, ``aoargper``, ``aoeccent``, ``ao1minus``, ``ao1plus``, ``aomotion``, ``aoiterat``, ``aoorbang``, ``aoperige``, ``aoascend``, ``aosini``, ``aoslr``, ``aosqrtmu``
   - :class:`~kadi.commands.states.EphemerisTransition`
 
