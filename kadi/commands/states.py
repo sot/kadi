@@ -980,12 +980,12 @@ class ACISTransition(BaseTransition):
                 transitions[date].update(si_mode='TE_' + tlmsid[2:7])
 
 
-class ACISFP_TempTransition(BaseTransition):
+class ACISFP_SetPointTransition(BaseTransition):
     """
-    Implement transitions for ACIS focal plane temperature states.
+    Implement transitions for ACIS focal plane temperature setpoint state.
     """
     command_attributes = {'type': 'ACISPKT'}
-    state_keys = ['acisfp_temp']
+    state_keys = ['acisfp_setpoint']
     default_value = -121.0
 
     @classmethod
@@ -1009,7 +1009,7 @@ class ACISFP_TempTransition(BaseTransition):
                 match = re.search(r'(\d+)$', tlmsid)
                 if not match:
                     raise ValueError(f'unable to parse command {tlmsid}')
-                transitions[date].update(acisfp_temp=-float(match.group(1)))
+                transitions[date].update(acisfp_setpoint=-float(match.group(1)))
 
 
 ###################################################################
@@ -1445,6 +1445,18 @@ def get_continuity(date=None, state_keys=None, lookbacks=(7, 30, 180, 1000)):
         continuity['__transitions__'] = continuity_transitions
 
     return continuity
+
+
+def interpolate_states(states, times):
+    """Interpolate ``states`` table at given times.
+
+    :param states: states (np.recarray)
+    :param times: times (np.array or list)
+
+    :returns: ``states`` view at ``times``
+    """
+    indexes = np.searchsorted(states['tstop'], times)
+    return states[indexes]
 
 
 def _unique(seq):
