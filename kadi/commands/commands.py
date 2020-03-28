@@ -106,7 +106,7 @@ def get_cmds_from_backstop(backstop, remove_starcat=True):
     be a string file name or a backstop table from ``parse_cm.read_backstop``.
 
     :param backstop: str or Table
-    :param remove_starcat: remove star catalog commands (default=True)
+    :param remove_starcat: remove star catalog command parameters (default=True)
     :returns: :class:`~kadi.commands.commands.CommandTable` of commands
     """
     if isinstance(backstop, Path):
@@ -121,10 +121,6 @@ def get_cmds_from_backstop(backstop, remove_starcat=True):
         raise ValueError(f'`backstop` arg must be a string filename or '
                          f'a backstop Table')
 
-    if remove_starcat:
-        ok = bs['type'] != 'MP_STARCAT'
-        bs = bs[ok]
-
     n_bs = len(bs)
     out = {}
     # Set idx to max (2**16 -1) so it does not match any real idx
@@ -138,6 +134,11 @@ def get_cmds_from_backstop(backstop, remove_starcat=True):
     out['timeline_id'] = np.zeros(n_bs, dtype=np.uint32)
     out['vcdu'] = bs['vcdu'].astype(np.int32)
     out['params'] = bs['params']
+
+    if remove_starcat:
+        # Remove the lengthy parameters in star catalog but leave the command
+        for idx in np.flatnonzero(bs['type'] == 'MP_STARCAT'):
+            out['params'][idx] = {}
 
     # Backstop has redundant param keys, get rid of them here
     for params in out['params']:

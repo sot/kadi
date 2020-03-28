@@ -74,7 +74,7 @@ def test_get_cmds_from_backstop_and_add_cmds():
     cmds = commands.get_cmds(start='2018:182:00:00:00',
                              stop='2018:182:08:00:00')
 
-    assert len(bs_cmds) == 659
+    assert len(bs_cmds) == 674
     assert len(cmds) == 56
 
     assert bs_cmds.colnames == cmds.colnames
@@ -84,9 +84,13 @@ def test_get_cmds_from_backstop_and_add_cmds():
     new_cmds = cmds.add_cmds(bs_cmds)
     assert len(new_cmds) == len(cmds) + len(bs_cmds)
 
-    # No MP_STARCAT commands by default
-    assert not np.any(bs_cmds['type'] == 'MP_STARCAT')
+    # No MP_STARCAT command parameters by default
+    ok = bs_cmds['type'] == 'MP_STARCAT'
+    assert np.count_nonzero(ok) == 15
+    assert np.all(bs_cmds['params'][ok] == {})
 
     # Accept MP_STARCAT commands
     bs_cmds = commands.get_cmds_from_backstop(bs_file, remove_starcat=False)
-    assert np.count_nonzero(bs_cmds['type'] == 'MP_STARCAT') == 15
+    ok = bs_cmds['type'] == 'MP_STARCAT'
+    assert np.count_nonzero(ok) == 15
+    assert np.all(bs_cmds['params'][ok] != {})
