@@ -983,6 +983,9 @@ class ACISTransition(BaseTransition):
 class ACISFP_SetPointTransition(BaseTransition):
     """
     Implement transitions for ACIS focal plane temperature setpoint state.
+
+    Looks for ACISPKT commands with TLMSID like ``WSFTNEG<number>``, where the
+    ACIS FP setpoint temperature is ``-<number>``.
     """
     command_attributes = {'type': 'ACISPKT'}
     state_keys = ['acisfp_setpoint']
