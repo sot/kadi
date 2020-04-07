@@ -1246,3 +1246,30 @@ def test_get_pitch_from_mid_maneuver():
     assert np.all(exp['datestop'] == sts['datestop'])
     assert np.all(exp['pcad_mode'] == sts['pcad_mode'])
     assert np.all(np.isclose(exp['pitch'], sts['pitch'], rtol=0, atol=1e-8))
+
+
+def test_acisfp_setpoint_state():
+    sts = states.get_states('1999-01-01', '2004-01-01', state_keys='acisfp_setpoint')
+    assert repr(sts).splitlines() == [
+        '<Table length=5>',
+        '      datestart              datestop       acisfp_setpoint    trans_keys  ',
+        '        str21                 str21             float64          object    ',
+        '--------------------- --------------------- --------------- ---------------',
+        '1999:001:12:00:00.000 2003:130:05:07:28.341          -121.0                ',
+        '2003:130:05:07:28.341 2003:130:19:09:28.930          -130.0 acisfp_setpoint',
+        '2003:130:19:09:28.930 2003:132:14:22:33.782          -121.0 acisfp_setpoint',
+        '2003:132:14:22:33.782 2003:133:22:04:22.425          -130.0 acisfp_setpoint',
+        '2003:133:22:04:22.425 2004:001:12:00:00.000          -121.0 acisfp_setpoint']
+
+    sts = states.get_states('2018-01-01', '2020-03-01', state_keys='acisfp_setpoint')
+    assert repr(sts).splitlines() == [
+        '<Table length=6>',
+        '      datestart              datestop       acisfp_setpoint    trans_keys  ',
+        '        str21                 str21             float64          object    ',
+        '--------------------- --------------------- --------------- ---------------',
+        '2018:001:12:00:00.000 2018:249:20:16:04.603          -121.0                ',
+        '2018:249:20:16:04.603 2018:250:07:19:51.657          -126.0 acisfp_setpoint',
+        '2018:250:07:19:51.657 2018:294:22:29:00.000          -121.0 acisfp_setpoint',
+        '2018:294:22:29:00.000 2020:048:20:59:22.304          -121.0 acisfp_setpoint',
+        '2020:048:20:59:22.304 2020:049:13:05:52.537          -126.0 acisfp_setpoint',
+        '2020:049:13:05:52.537 2020:061:12:00:00.000          -121.0 acisfp_setpoint']
