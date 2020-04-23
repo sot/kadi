@@ -67,6 +67,19 @@ def test_get_cmds_zero_length_result():
                              'step', 'timeline_id', 'vcdu', 'params']
 
 
+def test_get_cmds_inclusive_stop():
+    """get_cmds returns start <= date < stop for inclusive_stop=False (default)
+    or start <= date <= stop for inclusive_stop=True.
+    """
+    # Query over a range that includes two commands at exactly start and stop.
+    start, stop = '2020:001:15:50:00.000', '2020:001:15:50:00.257'
+    cmds = commands.get_cmds(start, stop)
+    assert np.all(cmds['date'] == [start])
+
+    cmds = commands.get_cmds(start, stop, inclusive_stop=True)
+    assert np.all(cmds['date'] == [start, stop])
+
+
 def test_get_cmds_from_backstop_and_add_cmds():
     bs_file = Path(parse_cm.tests.__file__).parent / 'data' / 'CR182_0803.backstop'
     bs_cmds = commands.get_cmds_from_backstop(bs_file)
