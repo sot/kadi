@@ -74,8 +74,10 @@ def get_cmds(start=None, stop=None, inclusive_stop=False, **kwargs):
     the command parameters such as TLMSID, MSID, SCS, STEP, or POS, the ``key``
     can be:
 
-    type Command type e.g. COMMAND_SW, COMMAND_HW, ACISPKT, SIMTRANS date Exact
-      date of command e.g. '2013:003:22:11:45.530'
+    type
+      Command type e.g. COMMAND_SW, COMMAND_HW, ACISPKT, SIMTRANS
+    date
+      Exact date of command e.g. '2013:003:22:11:45.530'
 
     If ``date`` is provided then ``start`` and ``stop`` values are ignored.
 
