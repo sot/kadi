@@ -188,22 +188,20 @@ def _find(start=None, stop=None, inclusive_stop=False, **kwargs):
 
     :returns: astropy Table of commands
     """
-    date = kwargs.pop('date', None)
-    if date:
-        start = DateTime(date).date  # clip resolution to nearest msec
-        stop = DateTime(start) + 0.001 / 86400  # exactly 1 msec later
-        inclusive_stop = False
-
     ok = np.ones(len(idx_cmds), dtype=bool)
     par_ok = np.zeros(len(idx_cmds), dtype=bool)
 
-    if start:
-        ok &= idx_cmds['date'] >= DateTime(start).date
-    if stop:
-        if inclusive_stop:
-            ok &= idx_cmds['date'] <= DateTime(stop).date
-        else:
-            ok &= idx_cmds['date'] < DateTime(stop).date
+    date = kwargs.pop('date', None)
+    if date:
+        ok &= idx_cmds['date'] == DateTime(date).date
+    else:
+        if start:
+            ok &= idx_cmds['date'] >= DateTime(start).date
+        if stop:
+            if inclusive_stop:
+                ok &= idx_cmds['date'] <= DateTime(stop).date
+            else:
+                ok &= idx_cmds['date'] < DateTime(stop).date
 
     for key, val in kwargs.items():
         key = key.lower()
