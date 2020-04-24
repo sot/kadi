@@ -62,12 +62,17 @@ pars_dict = LazyVal(load_pars_dict)
 rev_pars_dict = LazyVal(lambda: {v: k for k, v in pars_dict.items()})
 
 
-def get_cmds(start=None, stop=None, **kwargs):
+def get_cmds(start=None, stop=None, inclusive_stop=False, **kwargs):
     """
-    Get commands with ``start`` <= date < ``stop``.  Additional ``key=val`` pairs
-    can be supplied to further filter the results.  Both ``key`` and ``val``
-    are case insensitive.  In addition to the any of the command parameters
-    such as TLMSID, MSID, SCS, STEP, or POS, the ``key`` can be:
+    Get commands beteween ``start`` and ``stop``.
+
+    By default the interval is ``start`` <= date < ``stop``, but if
+    ``inclusive_stop=True`` then the interval is ``start`` <= date <= ``stop``.
+
+    Additional ``key=val`` pairs can be supplied to further filter the results.
+    Both ``key`` and ``val`` are case insensitive.  In addition to the any of
+    the command parameters such as TLMSID, MSID, SCS, STEP, or POS, the ``key``
+    can be:
 
     type
       Command type e.g. COMMAND_SW, COMMAND_HW, ACISPKT, SIMTRANS
@@ -78,22 +83,20 @@ def get_cmds(start=None, stop=None, **kwargs):
 
     Examples::
 
-      >>> from kadi import commands
-      >>> cmds = commands.get_cmds('2012:001', '2012:030')
-      >>> cmds = commands.get_cmds('2012:001', '2012:030', type='simtrans')
-      >>> cmds = commands.get_cmds(type='acispkt', tlmsid='wsvidalldn')
-      >>> cmds = commands.get_cmds(msid='aflcrset')
+      >>> from kadi import commands cmds = commands.get_cmds('2012:001',
+      >>> '2012:030') cmds = commands.get_cmds('2012:001', '2012:030',
+      >>> type='simtrans') cmds = commands.get_cmds(type='acispkt',
+      >>> tlmsid='wsvidalldn') cmds = commands.get_cmds(msid='aflcrset')
       >>> print(cmds)
 
-    :param start: DateTime format (optional)
-        Start time, defaults to beginning of available commands (2002:001)
-    :param stop: DateTime format (optional)
-        Stop time, defaults to end of available commands
-    :param kwargs: key=val keyword argument pairs
+    :param start: DateTime format (optional) Start time, defaults to beginning
+        of available commands (2002:001) :param stop: DateTime format (optional)
+        Stop time, defaults to end of available commands :param kwargs: key=val
+        keyword argument pairs
 
     :returns: :class:`~kadi.commands.commands.CommandTable` of commands
     """
-    cmds = _find(start, stop, **kwargs)
+    cmds = _find(start, stop, inclusive_stop, **kwargs)
     out = CommandTable(cmds)
     out['params'] = None if len(out) > 0 else Column([], dtype=object)
 
@@ -154,12 +157,17 @@ def get_cmds_from_backstop(backstop, remove_starcat=True):
     return CommandTable(out)
 
 
-def _find(start=None, stop=None, **kwargs):
+def _find(start=None, stop=None, inclusive_stop=False, **kwargs):
     """
-    Get commands ``start`` <= date < ``stop``.  Additional ``key=val`` pairs
-    can be supplied to further filter the results.  Both ``key`` and ``val``
-    are case insensitive.  In addition to the any of the command parameters
-    such as TLMSID, MSID, SCS, STEP, or POS, the ``key`` can be:
+    Get commands beteween ``start`` and ``stop``.
+
+    By default the interval is ``start`` <= date < ``stop``, but if
+    ``inclusive_stop=True`` then the interval is ``start`` <= date <= ``stop``.
+
+    Additional ``key=val`` pairs can be supplied to further filter the results.
+    Both ``key`` and ``val`` are case insensitive.  In addition to the any of
+    the command parameters such as TLMSID, MSID, SCS, STEP, or POS, the ``key``
+    can be:
 
     date : Exact date of command e.g. '2013:003:22:11:45.530'
     type : Command type e.g. COMMAND_SW, COMMAND_HW, ACISPKT, SIMTRANS
@@ -180,18 +188,21 @@ def _find(start=None, stop=None, **kwargs):
 
     :returns: astropy Table of commands
     """
-    date = kwargs.pop('date', None)
-    if date:
-        start = DateTime(date).date  # clip resolution to nearest msec
-        stop = DateTime(start) + 0.001 / 86400  # exactly 1 msec later
-
     ok = np.ones(len(idx_cmds), dtype=bool)
     par_ok = np.zeros(len(idx_cmds), dtype=bool)
 
-    if start:
-        ok &= idx_cmds['date'] >= DateTime(start).date
-    if stop:
-        ok &= idx_cmds['date'] < DateTime(stop).date
+    date = kwargs.pop('date', None)
+    if date:
+        ok &= idx_cmds['date'] == DateTime(date).date
+    else:
+        if start:
+            ok &= idx_cmds['date'] >= DateTime(start).date
+        if stop:
+            if inclusive_stop:
+                ok &= idx_cmds['date'] <= DateTime(stop).date
+            else:
+                ok &= idx_cmds['date'] < DateTime(stop).date
+
     for key, val in kwargs.items():
         key = key.lower()
         if isinstance(val, str):
