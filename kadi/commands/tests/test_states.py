@@ -381,6 +381,28 @@ def test_get_continuity_vs_states():
             assert np.isclose(sts0[key], val, rtol=0, atol=1e-7)
 
 
+def test_get_states_with_cmds_and_start_stop():
+    """Test using get_states with supplied commands along with start and
+    stop."""
+    # Get 6 commands from 2020:001:02:55:00.000 to 2020:001:02:55:01.285
+    # (just comm setup commanding)
+    cmds = commands.get_cmds('2020:001:02:00:00', '2020:001:03:00:00')
+
+    sts = states.get_states(cmds=cmds, state_keys=['fep_count'])
+    assert len(sts) == 1
+    assert sts['datestart'][0] == '2020:001:02:55:00.000'
+    assert sts['datestop'][-1] == '2020:001:02:55:01.285'
+    assert np.all(sts['fep_count'] == 4)
+
+    sts = states.get_states(cmds=cmds, state_keys=['fep_count'],
+                            start='2020:001:00:00:00',
+                            stop='2020:002:00:00:00')
+    assert len(sts) == 1
+    assert sts['datestart'][0] == '2020:001:00:00:00.000'
+    assert sts['datestop'][-1] == '2020:002:00:00:00.000'
+    assert np.all(sts['fep_count'] == 4)
+
+
 def test_get_continuity_keys():
     """Test that output has only the desired state keys. Also test that one can
     provide a string instead of list of state keys"""

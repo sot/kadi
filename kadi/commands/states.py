@@ -1184,10 +1184,8 @@ def get_states(start=None, stop=None, state_keys=None, cmds=None, continuity=Non
         start = DateTime(start).date
         stop = DateTime(stop or cmds[-1]['date']).date  # User-supplied stop or last command
     else:
-        if start is not None or stop is not None:
-            raise ValueError("cannot supply both 'cmds' and 'start' / 'stop' arguments")
-        start = cmds[0]['date']
-        stop = cmds[-1]['date']
+        start = cmds[0]['date'] if start is None else DateTime(start).date
+        stop = cmds[-1]['date'] if stop is None else DateTime(stop).date
 
     # Get initial state at start of commands
     if continuity is None:
