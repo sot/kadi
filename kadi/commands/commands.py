@@ -246,7 +246,7 @@ class CommandRow(Row):
         return [(key, value) for key, value in zip(self.keys(), self.values())]
 
     def __repr__(self):
-        out = ('<Cmd '.format(self.__class__.__name__) + str(self) + '>')
+        out = (f'<Cmd {str(self)}>')
         return out
 
     def __str__(self):
