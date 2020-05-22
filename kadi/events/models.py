@@ -1914,8 +1914,7 @@ class IFotEvent(BaseEvent):
         return events
 
     def __unicode__(self):
-        return ('{}: {} {}'
-                .format(self.ifot_id, self.start[:17]))
+        return ('{}: {}'.format(self.ifot_id, self.start[:17]))
 
 
 class CAP(IFotEvent):
