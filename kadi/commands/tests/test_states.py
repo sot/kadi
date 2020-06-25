@@ -76,7 +76,7 @@ def test_acis():
     Test all ACIS states include vid_board for late-2017
     """
     state_keys = ['clocking', 'power_cmd', 'fep_count', 'si_mode', 'vid_board']
-    rc, rk = compare_states('2017:280', '2017:360', state_keys, state_keys)
+    rc, rk = compare_states('2017:280:12:00:00', '2017:360:12:00:00', state_keys, state_keys)
 
 
 def test_cmd_line_interface(tmpdir):
@@ -117,11 +117,12 @@ def test_quick():
                   + ['letg', 'hetg']
                   + ['simpos', 'simfa_pos'])
     continuity = {'letg': 'RETR', 'hetg': 'RETR'}  # Not necessarily set within 7 days
-    rc, rk = compare_states('2018:235', '2018:245', state_keys, continuity=continuity)
+    rc, rk = compare_states('2018:235:12:00:00', '2018:245:12:00:00', state_keys,
+                            continuity=continuity)
 
     # Now test using start/stop pair with start/stop and no supplied cmds or continuity.
     # This also tests the API kwarg order: datestart, datestop, state_keys, ..)
-    sts = states.get_states('2018:235', '2018:245', state_keys, reduce=False)
+    sts = states.get_states('2018:235:12:00:00', '2018:245:12:00:00', state_keys, reduce=False)
     rk = states.reduce_states(sts, state_keys, merge_identical=True)
     assert len(rc) == len(rk)
 
@@ -135,7 +136,7 @@ def test_acis_raw_mode():
     """Test ACIS raw-mode SI modes"""
     # Minimal test that they are found in a period of time known to have
     # raw mode commanding.
-    kstates = states.get_states(start='2017:189', stop='2017:197',
+    kstates = states.get_states(start='2017:189:12:00:00', stop='2017:197:12:00:00',
                                 state_keys=['si_mode'])
     assert 'TN_000B4' in kstates['si_mode']
     assert 'TN_000B6' in kstates['si_mode']
@@ -164,7 +165,8 @@ def test_states_2017():
                   + ['q1', 'q2', 'q3', 'q4', 'pcad_mode', 'dither', 'ra', 'dec', 'roll']
                   + ['letg', 'hetg']
                   + ['simpos', 'simfa_pos'])
-    rcstates, rkstates = compare_states('2017:060', '2017:260', state_keys, compare_dates=False)
+    rcstates, rkstates = compare_states('2017:060:12:00:00', '2017:260:12:00:00',
+                                        state_keys, compare_dates=False)
 
     # Check state datestart.  There are 4 known discrepancies of 0.001 sec
     # due to a slight difference in the start time for NSUN maneuvers.  Cmd_states
@@ -190,7 +192,8 @@ def test_pitch_2017():
     Make sure that pitch matches to within 0.5 deg in all samples, and 0.05 deg during
     NPNT.
     """
-    rcstates, rkstates = get_states_test('2017:060', '2017:160', ['pcad_mode', 'pitch'])
+    rcstates, rkstates = get_states_test('2017:060:12:00:00', '2017:160:12:00:00',
+                                         ['pcad_mode', 'pitch'])
 
     rcstates['tstop'] = DateTime(rcstates['datestop']).secs
     rkstates['tstop'] = DateTime(rkstates['datestop']).secs
@@ -365,9 +368,9 @@ def test_get_continuity_vs_states():
     Functional test: continuity for a certain date should be the same as the last states
     when fed in cmds up through that date.
     """
-    date0 = '2017:014'
+    date0 = '2017:014:12:00:00'
     # Get last state up through `date0`.  Hardwire the lookback here to 21 days.
-    cmds = commands.get_cmds('2016:360', date0)
+    cmds = commands.get_cmds('2016:360:12:00:00', date0)
     sts = states.get_states(cmds=cmds)
     sts0 = sts[-1]
 
@@ -406,13 +409,13 @@ def test_get_states_with_cmds_and_start_stop():
 def test_get_continuity_keys():
     """Test that output has only the desired state keys. Also test that one can
     provide a string instead of list of state keys"""
-    continuity = states.get_continuity('2017:014', 'clocking')
+    continuity = states.get_continuity('2017:014:12:00:00', 'clocking')
     assert set(continuity) == set(['clocking', '__dates__'])
 
 
 def test_get_continuity_fail():
     with pytest.raises(ValueError) as err:
-        states.get_continuity('2017:014', 'letg', lookbacks=[3])
+        states.get_continuity('2017:014:12:00:00', 'letg', lookbacks=[3])
     assert 'did not find transitions' in str(err)
 
 
@@ -467,7 +470,7 @@ def test_reduce_states_cmd_states():
     Test that simple get_states() call with defaults gives the same results
     as calling cmd_states.fetch_states().
     """
-    cs = cmd_states.fetch_states('2018:235', '2018:245', allow_identical=True)
+    cs = cmd_states.fetch_states('2018:235:12:00:00', '2018:245:12:00:00', allow_identical=True)
     cs = Table(cs)
 
     state_keys = (set(cmd_states.STATE0)
@@ -475,7 +478,7 @@ def test_reduce_states_cmd_states():
 
     # Default setting is reduce states with merge_identical=False, which is the same
     # as cmd_states.
-    ksr = states.get_states('2018:235', '2018:245', state_keys)
+    ksr = states.get_states('2018:235:12:00:00', '2018:245:12:00:00', state_keys)
 
     assert len(ksr) == len(cs)
 
@@ -956,7 +959,8 @@ def test_backstop_scs84():
     """
     SCS 84 has not changed from DISA since 2006 due to a change in operations.
     """
-    sts = states.get_states(start='2017:001', stop='2017:300', state_keys=['scs84'])
+    sts = states.get_states(start='2017:001:12:00:00', stop='2017:300:12:00:00',
+                            state_keys=['scs84'])
     assert len(sts) == 1
     assert sts[0]['scs84'] == 'DISA'
     assert sts[0]['datestart'] == '2017:001:12:00:00.000'
@@ -1239,7 +1243,7 @@ def test_continuity_with_no_transitions_SPM():
     key set if not needed.  Part of fix for #125.
 
     """
-    cont = states.get_continuity('2017:001', state_keys=['sun_pos_mon'])
+    cont = states.get_continuity('2017:001:12:00:00', state_keys=['sun_pos_mon'])
     assert cont == {'sun_pos_mon': 'DISA',
                     '__dates__': {'sun_pos_mon': '2017:001:04:23:55.764'}}
 
@@ -1271,7 +1275,8 @@ def test_get_pitch_from_mid_maneuver():
 
 
 def test_acisfp_setpoint_state():
-    sts = states.get_states('1999-01-01', '2004-01-01', state_keys='acisfp_setpoint')
+    sts = states.get_states('1999-01-01 12:00:00', '2004-01-01 12:00:00',
+                            state_keys='acisfp_setpoint')
     assert repr(sts).splitlines() == [
         '<Table length=5>',
         '      datestart              datestop       acisfp_setpoint    trans_keys  ',
@@ -1283,7 +1288,8 @@ def test_acisfp_setpoint_state():
         '2003:132:14:22:33.782 2003:133:22:04:22.425          -130.0 acisfp_setpoint',
         '2003:133:22:04:22.425 2004:001:12:00:00.000          -121.0 acisfp_setpoint']
 
-    sts = states.get_states('2018-01-01', '2020-03-01', state_keys='acisfp_setpoint')
+    sts = states.get_states('2018-01-01 12:00:00', '2020-03-01 12:00:00',
+                            state_keys='acisfp_setpoint')
     assert repr(sts).splitlines() == [
         '<Table length=6>',
         '      datestart              datestop       acisfp_setpoint    trans_keys  ',
