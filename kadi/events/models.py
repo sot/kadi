@@ -1728,7 +1728,7 @@ class SafeSun(TlmEvent):
                      | (msidset['c1sqax'].vals != 'ENAB'))
 
         # Telemetry indicates a safemode around 1999:221 which isn't real
-        bogus_tstart = DateTime('1999:225').secs
+        bogus_tstart = DateTime('1999:225:12:00:00').secs
         if msidset.tstart < bogus_tstart:
             ok = msidset.times < bogus_tstart
             safe_mode[ok] = False

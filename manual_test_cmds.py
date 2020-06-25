@@ -26,7 +26,7 @@ def test_ingest():
     # sure the LazyVals will re-read.
     data_root_tmp = Ska.File.TempDir()
     data_root = data_root_tmp.name
-    update_cmds.main(['--start', '2011:340', '--stop', '2012:100',
+    update_cmds.main(['--start', '2011:340:12:00:00', '--stop', '2012:100:12:00:00',
                       '--data-root', data_root])
 
     # Some chicken-n-egg
@@ -39,7 +39,7 @@ def test_ingest():
     if hasattr(cmds.pars_dict, '_val'):
         del cmds.pars_dict._val
 
-    cmds_at_once = cmds.filter('2012:010', '2012:090')
+    cmds_at_once = cmds.filter('2012:010:12:00:00', '2012:090:12:00:00')
     pars_at_once = {v: k for k, v in cmds.pars_dict.items()}
 
     # Second part of funkiness to be able to use two different data root values
@@ -53,12 +53,12 @@ def test_ingest():
     if hasattr(cmds.pars_dict, '_val'):
         del cmds.pars_dict._val
 
-    stop0 = DateTime('2012:001')
+    stop0 = DateTime('2012:001:12:00:00')
     for dt in range(0, 100, 1):
         update_cmds.main(['--stop', (stop0 + dt).date,
                           '--data-root', data_root])
 
-    cmds_per_day = cmds.filter('2012:010', '2012:090')
+    cmds_per_day = cmds.filter('2012:010:12:00:00', '2012:090:12:00:00')
     pars_per_day = {v: k for k, v in cmds.pars_dict.items()}
 
     for name in ('date', 'type', 'tlmsid', 'scs', 'step', 'timeline_id'):

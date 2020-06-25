@@ -76,7 +76,7 @@ def get_url(page, timeout=TIMEOUT):
 
 
 def get_ifot(event_type, start=None, stop=None, props=[], columns=[], timeout=TIMEOUT, types={}):
-    start = DateTime('1998:001' if start is None else start)
+    start = DateTime('1998:001:12:00:00' if start is None else start)
     stop = DateTime(stop)
     event_props = '.'.join([event_type] + props)
 

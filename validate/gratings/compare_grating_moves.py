@@ -18,7 +18,7 @@ from astropy.io import ascii
 from kadi import events
 from Chandra.Time import DateTime
 
-kadi_moves = events.grating_moves.filter(start='2000:160', stop='2014:008',
+kadi_moves = events.grating_moves.filter(start='2000:160:12:00:00', stop='2014:008:12:00:00',
                                          grating__contains='ETG').table
 mta_moves = Table.read('mta_grating_moves.dat', format='ascii',
                        converters={'START_TIME': [ascii.convert_numpy(np.str)],

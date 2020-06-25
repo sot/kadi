@@ -76,13 +76,14 @@ def test_interval_pads():
 
 
 def test_query_event_intervals():
-    intervals = (events.manvrs & events.tsc_moves).intervals('2012:001', '2012:002')
+    intervals = (events.manvrs & events.tsc_moves).intervals('2012:001:12:00:00',
+                                                             '2012:002:12:00:00')
     assert intervals == [('2012:001:18:21:31.715', '2012:001:18:22:04.515'),
                          ('2012:002:02:53:03.804', '2012:002:02:54:50.917')]
 
 
 def test_basic_query():
-    rad_zones = events.rad_zones.filter('2013:001', '2013:007')
+    rad_zones = events.rad_zones.filter('2013:001:12:00:00', '2013:007:12:00:00')
     assert str(rad_zones).splitlines() == [
         '<RadZone: 1852 2013:003:16:19:36 2013:004:02:21:34 dur=36.1 ksec>',
         '<RadZone: 1853 2013:006:08:22:22 2013:006:17:58:48 dur=34.6 ksec>']
@@ -97,7 +98,7 @@ def test_basic_query():
         '2013:006:08:22:22.982 2013:006:17:58:48.982 473847810.166 473882396.166 34586.000  1853      1853 2013:006:13:58:21.389'  # noqa
     ]
 
-    rad_zones = events.rad_zones.filter('2013:001', '2013:002')
+    rad_zones = events.rad_zones.filter('2013:001:12:00:00', '2013:002:12:00:00')
     assert len(rad_zones) == 0
     assert len(rad_zones.table) == 0
 
@@ -123,7 +124,7 @@ def test_get_obsid():
     for model in models.values():
         if model.__name__ == 'SafeSun':
             continue  # Doesn't work for SafeSun because of bad OBC telem
-        model_obj = model.objects.filter(start__gte='2002:010')[0]
+        model_obj = model.objects.filter(start__gte='2002:010:12:00:00')[0]
         obsid = model_obj.get_obsid()
         obsid_obj = events.obsids.filter(obsid__exact=obsid)[0]
         model_obj_start = DateTime(getattr(model_obj, model_obj._get_obsid_start_attr)).date
@@ -146,14 +147,14 @@ def test_intervals_filter():
     Test setting filter keywords in the EventQuery object itself.
     """
     ltt_bads = events.ltt_bads
-    start, stop = '2000:121', '2000:134'
+    start, stop = '2000:121:12:00:00', '2000:134:12:00:00'
 
     # 2000-04-30 00:00:00 | ELBI_LOW        | R
     # 2000-04-30 00:00:00 | EPOWER1         | R
     # 2000-05-01 00:00:00 | 3SDTSTSV        | Y
     # 2000-05-13 00:00:00 | 3SDP15V         | 1
 
-    lines = sorted(str(ltt_bads().filter('2000:121', '2000:134')).splitlines())
+    lines = sorted(str(ltt_bads().filter('2000:121:12:00:00', '2000:134:12:00:00')).splitlines())
     assert (lines
             == ['<LttBad: start=2000:121:00:00:00.000 msid=ELBI_LOW flag=R>',
                 '<LttBad: start=2000:121:00:00:00.000 msid=EPOWER1 flag=R>',
@@ -188,7 +189,7 @@ def test_get_overlaps():
     overlap_starts, overlap_stops = zip(*overlaps)
     overlap_starts, overlap_stops = np.array(overlap_starts), np.array(overlap_stops)
 
-    x = events.manvrs.filter('2000:001', '2000:002')
+    x = events.manvrs.filter('2000:001:12:00:00', '2000:002:12:00:00')
     indices = x._get_full_overlaps(overlap_starts, overlap_stops, datestarts, datestops)
     assert np.all(indices == [0, 1, 2])
 

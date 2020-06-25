@@ -80,7 +80,7 @@ HAS_OCCWEB = True if user is not None else False
 
 @pytest.mark.skipif('not HAS_OCCWEB')
 def test_ifot_fetch():
-    events = occweb.get_ifot('LOADSEG', start='2008:001', stop='2008:003')
+    events = occweb.get_ifot('LOADSEG', start='2008:001:12:00:00', stop='2008:003:12:00:00')
     assert len(events) == 1
     assert events[0]['tstart'] == '2008:002:21:00:00.000'
 

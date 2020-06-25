@@ -38,7 +38,7 @@ if 'msidset' not in globals():
     # msidset = fetch.Msidset(msids, '2013:357:10:00:00', '2013:357:10:15:00')
     # msidset = fetch.Msidset(msids, '2000:001:10:00:00', '2000:010:10:15:00')
     # msidset = fetch.Msidset(msids, '2001:145:16:40:00', '2001:145:16:46:00')
-    # msidset = fetch.Msidset(msids, '2001:188', '2001:191')
+    # msidset = fetch.Msidset(msids, '2001:188:12:00:00', '2001:191:12:00:00')
     msidset = fetch.Msidset(msids, '2000:048:08:09:19.544', '2000:048:08:14:36.344')
 
 
