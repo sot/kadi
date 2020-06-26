@@ -199,8 +199,8 @@ def test_pitch_2017():
     rkstates['tstop'] = DateTime(rkstates['datestop']).secs
 
     times = np.arange(rcstates['tstop'][0], rcstates['tstop'][-2], 200.0)
-    rci = cmd_states.interpolate_states(rcstates, times)
-    rki = cmd_states.interpolate_states(rkstates, times)
+    rci = states.interpolate_states(rcstates, times)
+    rki = states.interpolate_states(rkstates, times)
 
     dp = np.abs(rci['pitch'] - rki['pitch'])
     assert np.all(dp < 0.5)
