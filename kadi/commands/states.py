@@ -1451,13 +1451,24 @@ def get_continuity(date=None, state_keys=None, lookbacks=(7, 30, 180, 1000)):
 def interpolate_states(states, times):
     """Interpolate ``states`` table at given times.
 
-    :param states: states (np.recarray)
-    :param times: times (np.array or list)
+    :param states: states (astropy states Table)
+    :param times: times (np.array or any DateTime compatible input)
 
     :returns: ``states`` view at ``times``
     """
-    indexes = np.searchsorted(states['tstop'], times)
-    return states[indexes]
+    if not isinstance(times, np.ndarray) or times.dtype.kind != 'f':
+        times = DateTime(times).secs
+
+    try:
+        tstops = states['tstop']
+    except (ValueError, KeyError):
+        tstops = date2secs(states['datestop'])
+
+    indexes = np.searchsorted(tstops, times)
+    out = states[indexes]
+    out.add_column(secs2date(times), index=0, name='date')
+
+    return out
 
 
 def _unique(seq):
