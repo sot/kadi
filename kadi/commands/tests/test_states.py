@@ -510,10 +510,11 @@ def cmd_states_fetch_states(*args, **kwargs):
     md5.update(repr(args).encode('utf8'))
     md5.update(repr(kwargs).encode('utf8'))
     digest = md5.hexdigest()
-    datafile = Path(__file__).parent / 'data' / f'states_{digest}.pkl.gz'
+    datafile = Path(__file__).parent / 'data' / f'states_{digest}.ecsv'
+    datafile_gz = datafile.parent / (datafile.name + '.gz')
 
-    if datafile.exists():
-        cs = pickle.load(gzip.open(datafile, 'rb'))
+    if datafile_gz.exists():
+        cs = Table.read(datafile_gz, format='ascii.ecsv')
     else:
         # Prevent accidentally writing data to flight in case of some packaging problem.
         if 'KADI_WRITE_TEST_DATA' not in os.environ:
@@ -522,8 +523,13 @@ def cmd_states_fetch_states(*args, **kwargs):
         import Chandra.cmd_states as cmd_states
         cs = cmd_states.fetch_states(*args, **kwargs)
         cs = Table(cs)
-        print(f'Writing {datafile} for args={args} kwargs={kwargs}')
-        pickle.dump(cs, gzip.open(datafile, 'wb'), protocol=-1)
+        print(f'Writing {datafile_gz} for args={args} kwargs={kwargs}')
+        cs.write(datafile, format='ascii.ecsv')
+
+        # Gzip the file
+        with open(datafile, 'rb') as f_in, gzip.open(datafile_gz, 'wb') as f_out:
+            f_out.writelines(f_in)
+        datafile.unlink()
 
     return cs
 

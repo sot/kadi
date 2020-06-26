@@ -1512,6 +1512,7 @@ def interpolate_states(states, times):
 
     :returns: ``states`` view at ``times``
     """
+    from astropy.table import Column
     if not isinstance(times, np.ndarray) or times.dtype.kind != 'f':
         times = DateTime(times).secs
 
@@ -1522,7 +1523,7 @@ def interpolate_states(states, times):
 
     indexes = np.searchsorted(tstops, times)
     out = states[indexes]
-    out.add_column(secs2date(times), index=0, name='date')
+    out.add_column(Column(secs2date(times), name='date'), index=0)
 
     return out
 
