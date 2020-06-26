@@ -1,10 +1,13 @@
 import os
+import hashlib
+from pathlib import Path
+import pickle
+import gzip
 import numpy as np
 
 from .. import commands, states
 import pytest
 
-import Chandra.cmd_states as cmd_states
 from Chandra.Time import DateTime
 from Ska.engarchive import fetch
 from astropy.io import ascii
@@ -15,6 +18,37 @@ try:
     HAS_PITCH = True
 except Exception:
     HAS_PITCH = False
+
+
+# Canonical state0 giving spacecraft state at beginning of timelines
+# 2002:007:13 fetch --start 2002:007:13:00:00 --stop 2002:007:13:02:00 aoattqt1
+# aoattqt2 aoattqt3 aoattqt4 cobsrqid aopcadmd tscpos
+STATE0 = {'ccd_count': 5,
+          'clocking': 0,
+          'datestart': '2002:007:13:00:00.000',
+          'datestop': '2099:001:00:00:00.000',
+          'dec': -11.500,
+          'fep_count': 0,
+          'hetg': 'RETR',
+          'letg': 'RETR',
+          'obsid': 61358,
+          'pcad_mode': 'NPNT',
+          'pitch': 61.37,
+          'power_cmd': 'AA00000000',
+          'q1': -0.568062,
+          'q2': 0.121674,
+          'q3': 0.00114141,
+          'q4': 0.813941,
+          'ra': 352.000,
+          'roll': 289.37,
+          'si_mode': 'undef',
+          'simfa_pos': -468,
+          'simpos': -99616,
+          'trans_keys': 'undef',
+          'tstart': 127020624.552,
+          'tstop': 3187296066.184,
+          'vid_board': 0,
+          'dither': 'None'}
 
 
 def assert_all_close_states(rc, rk, keys):
@@ -37,7 +71,7 @@ def get_states_test(start, stop, state_keys, continuity=None):
     start = DateTime(start)
     stop = DateTime(stop)
 
-    cstates = Table(cmd_states.fetch_states(start, stop))
+    cstates = cmd_states_fetch_states(start.date, stop.date)
     trans_keys = [set(val.split(',')) for val in cstates['trans_keys']]
     cstates.remove_column('trans_keys')  # Necessary for older astropy
     cstates['trans_keys'] = trans_keys
@@ -465,15 +499,43 @@ def test_reduce_states_merge_identical():
     assert dr['trans_keys'][3] == set(['val2'])
 
 
+def cmd_states_fetch_states(*args, **kwargs):
+    """Generate regression data files for states using Chandra.cmd_states.
+
+    Once files have been created they are included in the package distribution
+    and Chandra.cmd_states is no longer needed. From this point kadi will be
+    the definitive reference for states.
+    """
+    md5 = hashlib.md5()
+    md5.update(repr(args).encode('utf8'))
+    md5.update(repr(kwargs).encode('utf8'))
+    digest = md5.hexdigest()
+    datafile = Path(__file__).parent / 'data' / f'states_{digest}.pkl.gz'
+
+    if datafile.exists():
+        cs = pickle.load(gzip.open(datafile, 'rb'))
+    else:
+        # Prevent accidentally writing data to flight in case of some packaging problem.
+        if 'KADI_WRITE_TEST_DATA' not in os.environ:
+            raise RuntimeError('cannot find test data. Define KADI_WRITE_TEST_DATA '
+                               'env var to create it.')
+        import Chandra.cmd_states as cmd_states
+        cs = cmd_states.fetch_states(*args, **kwargs)
+        cs = Table(cs)
+        print(f'Writing {datafile} for args={args} kwargs={kwargs}')
+        pickle.dump(cs, gzip.open(datafile, 'wb'), protocol=-1)
+
+    return cs
+
+
 def test_reduce_states_cmd_states():
     """
     Test that simple get_states() call with defaults gives the same results
     as calling cmd_states.fetch_states().
     """
-    cs = cmd_states.fetch_states('2018:235:12:00:00', '2018:245:12:00:00', allow_identical=True)
-    cs = Table(cs)
+    cs = cmd_states_fetch_states('2018:235:12:00:00', '2018:245:12:00:00', allow_identical=True)
 
-    state_keys = (set(cmd_states.STATE0)
+    state_keys = (set(STATE0)
                   - set(['datestart', 'datestop', 'trans_keys', 'tstart', 'tstop']))
 
     # Default setting is reduce states with merge_identical=False, which is the same
