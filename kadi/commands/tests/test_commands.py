@@ -82,6 +82,17 @@ def test_get_cmds_inclusive_stop():
     assert np.all(cmds['date'] == [start, stop])
 
 
+def test_cmds_as_list_of_dict():
+    cmds = commands.get_cmds('2020:140', '2020:141')
+    cmds_list = cmds.as_list_of_dict()
+    assert isinstance(cmds_list, list)
+    assert isinstance(cmds_list[0], dict)
+    cmds_rt = commands.CommandTable(cmds)
+    assert set(cmds_rt.colnames) == set(cmds.colnames)
+    for name in cmds.colnames:
+        assert np.all(cmds_rt[name] == cmds[name])
+
+
 def test_get_cmds_from_backstop_and_add_cmds():
     bs_file = Path(parse_cm.tests.__file__).parent / 'data' / 'CR182_0803.backstop'
     bs_cmds = commands.get_cmds_from_backstop(bs_file, remove_starcat=True)
