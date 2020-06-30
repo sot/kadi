@@ -13,8 +13,7 @@ import numpy as np
 
 from astropy.table import Table, Column
 
-from Chandra.cmd_states import decode_power
-from Chandra.Time import DateTime
+from Chandra.Time import DateTime, date2secs, secs2date
 import Chandra.Maneuver
 from Quaternion import Quat
 import Ska.Sun
@@ -920,6 +919,63 @@ class NormalSunTransition(ManeuverTransition):
 ###################################################################
 # ACIS transitions
 ###################################################################
+def decode_power(mnem):
+    """
+    Decode number of chips and feps from a ACIS power command
+    Return a dictionary with the number of chips and their identifiers
+
+    Example::
+
+    >>> decode_power("WSPOW08F3E")
+    {'ccd_count': 5,
+     'ccds': 'I0 I1 I2 I3 S3 ',
+     'clocking': 0,
+     'fep_count': 5,
+     'feps': '1 2 3 4 5 ',
+     'vid_board': 1}
+
+    :param mnem: power command string
+
+    """
+    fep_info = {'fep_count': 0,
+                'ccd_count': 0,
+                'feps': '',
+                'ccds': '',
+                'vid_board': 1,
+                'clocking': 0}
+
+    # Special case WSPOW000XX to turn off vid_board
+    if mnem.startswith('WSPOW000'):
+        fep_info['vid_board'] = 0
+
+    # the hex for the commanding is after the WSPOW
+    powstr = mnem[5:]
+    if (len(powstr) != 5):
+        raise ValueError("%s in unexpected format" % mnem)
+
+    # convert the hex to decimal and "&" it with 63 (binary 111111)
+    fepkey = int(powstr, 16) & 63
+    # count the true binary bits
+    for bit in range(0, 6):
+        if (fepkey & (1 << bit)):
+            fep_info['fep_count'] = fep_info['fep_count'] + 1
+            fep_info['feps'] = fep_info['feps'] + str(bit) + ' '
+
+    # convert the hex to decimal and right shift by 8 places
+    vidkey = int(powstr, 16) >> 8
+
+    # count the true bits
+    for bit in range(0, 10):
+        if (vidkey & (1 << bit)):
+            fep_info['ccd_count'] = fep_info['ccd_count'] + 1
+            # position indicates I or S chip
+            if (bit < 4):
+                fep_info['ccds'] = fep_info['ccds'] + 'I' + str(bit) + ' '
+            else:
+                fep_info['ccds'] = fep_info['ccds'] + 'S' + str(bit - 4) + ' '
+
+    return fep_info
+
 
 class ACISTransition(BaseTransition):
     """
@@ -1451,13 +1507,25 @@ def get_continuity(date=None, state_keys=None, lookbacks=(7, 30, 180, 1000)):
 def interpolate_states(states, times):
     """Interpolate ``states`` table at given times.
 
-    :param states: states (np.recarray)
-    :param times: times (np.array or list)
+    :param states: states (astropy states Table)
+    :param times: times (np.array or any DateTime compatible input)
 
     :returns: ``states`` view at ``times``
     """
-    indexes = np.searchsorted(states['tstop'], times)
-    return states[indexes]
+    from astropy.table import Column
+    if not isinstance(times, np.ndarray) or times.dtype.kind != 'f':
+        times = DateTime(times).secs
+
+    try:
+        tstops = states['tstop']
+    except (ValueError, KeyError):
+        tstops = date2secs(states['datestop'])
+
+    indexes = np.searchsorted(tstops, times)
+    out = states[indexes]
+    out.add_column(Column(secs2date(times), name='date'), index=0)
+
+    return out
 
 
 def _unique(seq):
