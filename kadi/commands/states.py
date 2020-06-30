@@ -1314,6 +1314,13 @@ def get_states(start=None, stop=None, state_keys=None, cmds=None, continuity=Non
     # Final datestop far in the future
     datestop[-1] = stop
     out.add_column(Column(datestop, name='datestop'), 1)
+
+    # Add corresponding tstart, tstop
+    out.add_column(Column(date2secs(out['datestart']), name='tstart'), 2)
+    out.add_column(Column(date2secs(out['datestop']), name='tstop'), 3)
+    out['tstart'].info.format = '.3f'
+    out['tstop'].info.format = '.3f'
+
     out['trans_keys'] = [st.trans_keys for st in states]
 
     if reduce:
@@ -1369,9 +1376,10 @@ def reduce_states(states, state_keys, merge_identical=False):
         has_transition |= has_transitions[key]
 
     # Create output with only desired state keys and only states with a transition
-    out = states[['datestart', 'datestop'] + list(state_keys)][has_transition]
-    out['datestop'][:-1] = out['datestart'][1:]
-    out['datestop'][-1] = states['datestop'][-1]
+    out = states[['datestart', 'datestop', 'tstart', 'tstop'] + list(state_keys)][has_transition]
+    for dt in ('date', 't'):
+        out[f'{dt}stop'][:-1] = out[f'{dt}start'][1:]
+        out[f'{dt}stop'][-1] = states[f'{dt}stop'][-1]
 
     trans_keys_list = [TransKeysSet() for _ in range(len(out))]
     for key in state_keys:
@@ -1462,7 +1470,8 @@ def get_continuity(date=None, state_keys=None, lookbacks=(7, 30, 180, 1000)):
                 # the stop time and did not get processed.
                 continuity_transitions.extend(states.meta['continuity_transitions'])
 
-            colnames = set(states.colnames) - set(['datestart', 'datestop', 'trans_keys'])
+            colnames = set(states.colnames) - set(['datestart', 'datestop',
+                                                   'tstart', 'tstop', 'trans_keys'])
             for colname in colnames:
                 if states[colname][-1] is not None:
                     # Reduce states to only the desired state_key
@@ -1583,5 +1592,7 @@ def get_chandra_states(main_args=None):
     state_keys = opt.state_keys.split(',') if opt.state_keys else None
     states = get_states(start, stop, state_keys, merge_identical=opt.merge_identical)
     del states['trans_keys']
+    del states['tstart']
+    del states['tstop']
 
     ascii.write(states, output=opt.outfile, format='fixed_width', delimiter='')

@@ -156,6 +156,9 @@ def test_quick():
     # Now test using start/stop pair with start/stop and no supplied cmds or continuity.
     # This also tests the API kwarg order: datestart, datestop, state_keys, ..)
     sts = states.get_states('2018:235:12:00:00', '2018:245:12:00:00', state_keys, reduce=False)
+    assert np.all(DateTime(sts['tstart']).date == sts['datestart'])
+    assert np.all(DateTime(sts['tstop']).date == sts['datestop'])
+
     rk = states.reduce_states(sts, state_keys, merge_identical=True)
     assert len(rc) == len(rk)
 
@@ -453,19 +456,23 @@ def test_get_continuity_fail():
 
 
 def test_reduce_states_merge_identical():
-    datestart = DateTime(np.arange(0, 5)).date
-    datestop = DateTime(np.arange(1, 6)).date
+    tstart = np.arange(0, 5)
+    tstop = np.arange(1, 6)
+    datestart = DateTime(tstart).date
+    datestop = DateTime(tstop).date
+    dat0 = Table([datestart, datestop, tstart, tstop],
+                 names=['datestart', 'datestop', 'tstart', 'tstop'])
 
     # Table with something that changes every time
-    vals = np.arange(5)
-    dat = Table([datestart, datestop, vals], names=['datestart', 'datestop', 'vals'])
+    dat = dat0.copy()
+    dat['vals'] = np.arange(5)
     dat['val1'] = 1
     dr = states.reduce_states(dat, ['vals', 'val1'], merge_identical=True)
     assert np.all(dr[dat.colnames] == dat)
 
     # Table with nothing that changes
-    vals = np.ones(5)
-    dat = Table([datestart, datestop, vals], names=['datestart', 'datestop', 'vals'])
+    dat = dat0.copy()
+    dat['vals'] = 1
     dat['val1'] = 1
     dr = states.reduce_states(dat, ['vals', 'val1'], merge_identical=True)
     assert len(dr) == 1
@@ -473,8 +480,8 @@ def test_reduce_states_merge_identical():
     assert dr['datestop'][0] == dat['datestop'][-1]
 
     # Table with edge changes
-    vals = [1, 0, 0, 0, 1]
-    dat = Table([datestart, datestop, vals], names=['datestart', 'datestop', 'vals'])
+    dat = dat0.copy()
+    dat['vals'] = [1, 0, 0, 0, 1]
     dr = states.reduce_states(dat, ['vals'], merge_identical=True)
     assert len(dr) == 3
     assert np.all(dr['datestart'] == dat['datestart'][[0, 1, 4]])
@@ -482,9 +489,9 @@ def test_reduce_states_merge_identical():
     assert np.all(dr['vals'] == [1, 0, 1])
 
     # Table with multiple changes
-    val1 = [1, 0, 1, 1, 1]
-    val2 = [1, 1, 1, 1, 0]
-    dat = Table([datestart, datestop, val1, val2], names=['datestart', 'datestop', 'val1', 'val2'])
+    dat = dat0.copy()
+    dat['val1'] = [1, 0, 1, 1, 1]
+    dat['val2'] = [1, 1, 1, 1, 0]
     dr = states.reduce_states(dat, ['val1', 'val2'], merge_identical=True)
     assert len(dr) == 4
     assert np.all(dr['datestart'] == dat['datestart'][[0, 1, 2, 4]])
@@ -1296,11 +1303,16 @@ def test_continuity_with_transitions_SPM():
                     '__transitions__': [{'date': '2017:087:08:21:35.838', 'sun_pos_mon': 'ENAB'}],
                     'sun_pos_mon': 'DISA'}
 
-    exp = ['      datestart              datestop       sun_pos_mon  trans_keys',
-           '--------------------- --------------------- ----------- -----------',
-           '2017:087:08:20:35.838 2017:087:08:21:35.838        DISA            ',
-           '2017:087:08:21:35.838 2017:087:08:30:50.891        ENAB sun_pos_mon',
-           '2017:087:08:30:50.891 2017:087:10:20:35.838        DISA sun_pos_mon']
+    exp = ['      datestart              datestop           tstart        tstop     '
+           'sun_pos_mon  trans_keys',
+           '--------------------- --------------------- ------------- ------------- '
+           '----------- -----------',
+           '2017:087:08:20:35.838 2017:087:08:21:35.838 607076505.022 '
+           '607076565.022        DISA            ',
+           '2017:087:08:21:35.838 2017:087:08:30:50.891 607076565.022 '
+           '607077120.075        ENAB sun_pos_mon',
+           '2017:087:08:30:50.891 2017:087:10:20:35.838 607077120.075 '
+           '607083705.022        DISA sun_pos_mon']
     sts = states.get_states(start, stop, state_keys=['sun_pos_mon'])
     assert sts.pformat(max_lines=-1, max_width=-1) == exp
 
@@ -1344,6 +1356,9 @@ def test_get_pitch_from_mid_maneuver():
 def test_acisfp_setpoint_state():
     sts = states.get_states('1999-01-01 12:00:00', '2004-01-01 12:00:00',
                             state_keys='acisfp_setpoint')
+    del sts['tstart']
+    del sts['tstop']
+
     assert repr(sts).splitlines() == [
         '<Table length=5>',
         '      datestart              datestop       acisfp_setpoint    trans_keys  ',
@@ -1357,6 +1372,8 @@ def test_acisfp_setpoint_state():
 
     sts = states.get_states('2018-01-01 12:00:00', '2020-03-01 12:00:00',
                             state_keys='acisfp_setpoint')
+    del sts['tstart']
+    del sts['tstop']
     assert repr(sts).splitlines() == [
         '<Table length=6>',
         '      datestart              datestop       acisfp_setpoint    trans_keys  ',
