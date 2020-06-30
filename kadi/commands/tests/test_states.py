@@ -1299,6 +1299,8 @@ def test_continuity_with_transitions_SPM():
     start = '2017:087:08:20:35.838'
     stop = '2017:087:10:20:35.838'
     cont = states.get_continuity(start, state_keys=['sun_pos_mon'])
+    del cont['__dates__']['tstart']
+    del cont['__dates__']['tstop']
     assert cont == {'__dates__': {'sun_pos_mon': '2017:087:07:44:55.838'},
                     '__transitions__': [{'date': '2017:087:08:21:35.838', 'sun_pos_mon': 'ENAB'}],
                     'sun_pos_mon': 'DISA'}
@@ -1324,7 +1326,8 @@ def test_continuity_with_no_transitions_SPM():
     """
     cont = states.get_continuity('2017:001:12:00:00', state_keys=['sun_pos_mon'])
     assert cont == {'sun_pos_mon': 'DISA',
-                    '__dates__': {'sun_pos_mon': '2017:001:04:23:55.764'}}
+                    '__dates__': {'sun_pos_mon': '2017:001:04:23:55.764',
+                                  'tstart': 599659269.184, 'tstop': 599659269.184}}
 
 
 def test_get_pitch_from_mid_maneuver():
