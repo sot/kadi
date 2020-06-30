@@ -372,3 +372,17 @@ class CommandTable(Table):
         out.sort(['date', 'step', 'scs'])
 
         return out
+
+    def as_list_of_dict(self):
+        """Convert CommandTable to a list of dict (ala Ska.ParseCM)
+
+        The command ``params`` are embedded as a dict for each command.
+
+        :return: list of dict
+        """
+        self.fetch_params()
+
+        names = self.colnames
+        cmds_list = [{name: cmd[name] for name in names} for cmd in self]
+
+        return cmds_list
