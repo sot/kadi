@@ -1504,9 +1504,6 @@ def get_continuity(date=None, state_keys=None, lookbacks=(7, 30, 180, 1000)):
     # Finally reduce down to the state_keys the user requested
     continuity = {key: continuity[key] for key in state_keys}
     dates = {key: dates[key] for key in state_keys}
-    # Add tstart, tstop for legacy compatibility treating this as a state0 dict.
-    dates['tstart'] = np.round(stop.secs, 3)
-    dates['tstop'] = np.round(stop.secs, 3)
     continuity['__dates__'] = dates
 
     # List of transitions needed to fully express continuity.  See long comment above.
