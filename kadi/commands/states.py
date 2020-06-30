@@ -1510,6 +1510,10 @@ def get_continuity(date=None, state_keys=None, lookbacks=(7, 30, 180, 1000)):
     if continuity_transitions:
         continuity['__transitions__'] = continuity_transitions
 
+    # Add tstart, tstop for legacy compatibility treating this as a state0 dict.
+    continuity['tstart'] = stop.secs
+    continuity['tstop'] = stop.secs
+
     return continuity
 
 
