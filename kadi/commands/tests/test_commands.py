@@ -83,7 +83,7 @@ def test_get_cmds_inclusive_stop():
 
 def test_get_cmds_from_backstop_and_add_cmds():
     bs_file = Path(parse_cm.tests.__file__).parent / 'data' / 'CR182_0803.backstop'
-    bs_cmds = commands.get_cmds_from_backstop(bs_file)
+    bs_cmds = commands.get_cmds_from_backstop(bs_file, remove_starcat=True)
 
     cmds = commands.get_cmds(start='2018:182:00:00:00',
                              stop='2018:182:08:00:00')
@@ -104,7 +104,7 @@ def test_get_cmds_from_backstop_and_add_cmds():
     assert np.all(bs_cmds['params'][ok] == {})
 
     # Accept MP_STARCAT commands
-    bs_cmds = commands.get_cmds_from_backstop(bs_file, remove_starcat=False)
+    bs_cmds = commands.get_cmds_from_backstop(bs_file)
     ok = bs_cmds['type'] == 'MP_STARCAT'
     assert np.count_nonzero(ok) == 15
     assert np.all(bs_cmds['params'][ok] != {})

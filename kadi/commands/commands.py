@@ -103,13 +103,13 @@ def get_cmds(start=None, stop=None, inclusive_stop=False, **kwargs):
     return out
 
 
-def get_cmds_from_backstop(backstop, remove_starcat=True):
+def get_cmds_from_backstop(backstop, remove_starcat=False):
     """
     Initialize a ``CommandTable`` from ``backstop``, which can either
     be a string file name or a backstop table from ``parse_cm.read_backstop``.
 
     :param backstop: str or Table
-    :param remove_starcat: remove star catalog command parameters (default=True)
+    :param remove_starcat: remove star catalog command parameters (default=False)
     :returns: :class:`~kadi.commands.commands.CommandTable` of commands
     """
     if isinstance(backstop, Path):
