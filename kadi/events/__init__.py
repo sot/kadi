@@ -49,7 +49,12 @@ import django
 # For WSGI server the env var is set in wsgi.py.
 # For the dev server it is set in manage.py.
 
+# In addition, set DJANGO_ALLOW_ASYNC_UNSAFE, to avoid exception seen running in
+# Jupyter notebook: SynchronousOnlyOperation: You cannot call this from an async
+# context. See: https://stackoverflow.com/questions/59119396
+
 if 'DJANGO_SETTINGS_MODULE' not in os.environ:
     os.environ['DJANGO_SETTINGS_MODULE'] = 'kadi.settings'
+    os.environ["DJANGO_ALLOW_ASYNC_UNSAFE"] = "true"
     django.setup()
     from .query import *  # noqa
