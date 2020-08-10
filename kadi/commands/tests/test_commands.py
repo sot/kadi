@@ -6,6 +6,7 @@ from astropy.table import Table
 # Use data file from parse_cm.test for get_cmds_from_backstop test.
 # This package is a dependency
 import parse_cm.tests
+from Chandra.Time import secs2date
 
 # Import cmds module directly (not kadi.cmds package, which is from ... import cmds)
 from .. import commands
@@ -65,7 +66,7 @@ def test_get_cmds_zero_length_result():
     cmds = commands.get_cmds(date='2017:001:12:00:00')
     assert len(cmds) == 0
     assert cmds.colnames == ['idx', 'date', 'type', 'tlmsid', 'scs',
-                             'step', 'timeline_id', 'vcdu', 'params']
+                             'step', 'time', 'timeline_id', 'vcdu', 'params']
 
 
 def test_get_cmds_inclusive_stop():
@@ -81,12 +82,22 @@ def test_get_cmds_inclusive_stop():
     assert np.all(cmds['date'] == [start, stop])
 
 
+def test_cmds_as_list_of_dict():
+    cmds = commands.get_cmds('2020:140', '2020:141')
+    cmds_list = cmds.as_list_of_dict()
+    assert isinstance(cmds_list, list)
+    assert isinstance(cmds_list[0], dict)
+    cmds_rt = commands.CommandTable(cmds)
+    assert set(cmds_rt.colnames) == set(cmds.colnames)
+    for name in cmds.colnames:
+        assert np.all(cmds_rt[name] == cmds[name])
+
+
 def test_get_cmds_from_backstop_and_add_cmds():
     bs_file = Path(parse_cm.tests.__file__).parent / 'data' / 'CR182_0803.backstop'
-    bs_cmds = commands.get_cmds_from_backstop(bs_file)
+    bs_cmds = commands.get_cmds_from_backstop(bs_file, remove_starcat=True)
 
-    cmds = commands.get_cmds(start='2018:182:00:00:00',
-                             stop='2018:182:08:00:00')
+    cmds = commands.get_cmds(start='2018:182:00:00:00', stop='2018:182:08:00:00')
 
     assert len(bs_cmds) == 674
     assert len(cmds) == 56
@@ -94,6 +105,9 @@ def test_get_cmds_from_backstop_and_add_cmds():
     assert bs_cmds.colnames == cmds.colnames
     for bs_col, col in zip(bs_cmds.itercols(), cmds.itercols()):
         assert bs_col.dtype == col.dtype
+
+    assert np.all(secs2date(cmds['time']) == cmds['date'])
+    assert np.all(secs2date(bs_cmds['time']) == bs_cmds['date'])
 
     new_cmds = cmds.add_cmds(bs_cmds)
     assert len(new_cmds) == len(cmds) + len(bs_cmds)
@@ -104,7 +118,7 @@ def test_get_cmds_from_backstop_and_add_cmds():
     assert np.all(bs_cmds['params'][ok] == {})
 
     # Accept MP_STARCAT commands
-    bs_cmds = commands.get_cmds_from_backstop(bs_file, remove_starcat=False)
+    bs_cmds = commands.get_cmds_from_backstop(bs_file)
     ok = bs_cmds['type'] == 'MP_STARCAT'
     assert np.count_nonzero(ok) == 15
     assert np.all(bs_cmds['params'][ok] != {})

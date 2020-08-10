@@ -13,8 +13,7 @@ import numpy as np
 
 from astropy.table import Table, Column
 
-from Chandra.cmd_states import decode_power
-from Chandra.Time import DateTime
+from Chandra.Time import DateTime, date2secs, secs2date
 import Chandra.Maneuver
 from Quaternion import Quat
 import Ska.Sun
@@ -920,6 +919,63 @@ class NormalSunTransition(ManeuverTransition):
 ###################################################################
 # ACIS transitions
 ###################################################################
+def decode_power(mnem):
+    """
+    Decode number of chips and feps from a ACIS power command
+    Return a dictionary with the number of chips and their identifiers
+
+    Example::
+
+    >>> decode_power("WSPOW08F3E")
+    {'ccd_count': 5,
+     'ccds': 'I0 I1 I2 I3 S3 ',
+     'clocking': 0,
+     'fep_count': 5,
+     'feps': '1 2 3 4 5 ',
+     'vid_board': 1}
+
+    :param mnem: power command string
+
+    """
+    fep_info = {'fep_count': 0,
+                'ccd_count': 0,
+                'feps': '',
+                'ccds': '',
+                'vid_board': 1,
+                'clocking': 0}
+
+    # Special case WSPOW000XX to turn off vid_board
+    if mnem.startswith('WSPOW000'):
+        fep_info['vid_board'] = 0
+
+    # the hex for the commanding is after the WSPOW
+    powstr = mnem[5:]
+    if (len(powstr) != 5):
+        raise ValueError("%s in unexpected format" % mnem)
+
+    # convert the hex to decimal and "&" it with 63 (binary 111111)
+    fepkey = int(powstr, 16) & 63
+    # count the true binary bits
+    for bit in range(0, 6):
+        if (fepkey & (1 << bit)):
+            fep_info['fep_count'] = fep_info['fep_count'] + 1
+            fep_info['feps'] = fep_info['feps'] + str(bit) + ' '
+
+    # convert the hex to decimal and right shift by 8 places
+    vidkey = int(powstr, 16) >> 8
+
+    # count the true bits
+    for bit in range(0, 10):
+        if (vidkey & (1 << bit)):
+            fep_info['ccd_count'] = fep_info['ccd_count'] + 1
+            # position indicates I or S chip
+            if (bit < 4):
+                fep_info['ccds'] = fep_info['ccds'] + 'I' + str(bit) + ' '
+            else:
+                fep_info['ccds'] = fep_info['ccds'] + 'S' + str(bit - 4) + ' '
+
+    return fep_info
+
 
 class ACISTransition(BaseTransition):
     """
@@ -1258,6 +1314,13 @@ def get_states(start=None, stop=None, state_keys=None, cmds=None, continuity=Non
     # Final datestop far in the future
     datestop[-1] = stop
     out.add_column(Column(datestop, name='datestop'), 1)
+
+    # Add corresponding tstart, tstop
+    out.add_column(Column(date2secs(out['datestart']), name='tstart'), 2)
+    out.add_column(Column(date2secs(out['datestop']), name='tstop'), 3)
+    out['tstart'].info.format = '.3f'
+    out['tstop'].info.format = '.3f'
+
     out['trans_keys'] = [st.trans_keys for st in states]
 
     if reduce:
@@ -1313,9 +1376,10 @@ def reduce_states(states, state_keys, merge_identical=False):
         has_transition |= has_transitions[key]
 
     # Create output with only desired state keys and only states with a transition
-    out = states[['datestart', 'datestop'] + list(state_keys)][has_transition]
-    out['datestop'][:-1] = out['datestart'][1:]
-    out['datestop'][-1] = states['datestop'][-1]
+    out = states[['datestart', 'datestop', 'tstart', 'tstop'] + list(state_keys)][has_transition]
+    for dt in ('date', 't'):
+        out[f'{dt}stop'][:-1] = out[f'{dt}start'][1:]
+        out[f'{dt}stop'][-1] = states[f'{dt}stop'][-1]
 
     trans_keys_list = [TransKeysSet() for _ in range(len(out))]
     for key in state_keys:
@@ -1406,7 +1470,8 @@ def get_continuity(date=None, state_keys=None, lookbacks=(7, 30, 180, 1000)):
                 # the stop time and did not get processed.
                 continuity_transitions.extend(states.meta['continuity_transitions'])
 
-            colnames = set(states.colnames) - set(['datestart', 'datestop', 'trans_keys'])
+            colnames = set(states.colnames) - set(['datestart', 'datestop',
+                                                   'tstart', 'tstop', 'trans_keys'])
             for colname in colnames:
                 if states[colname][-1] is not None:
                     # Reduce states to only the desired state_key
@@ -1451,13 +1516,25 @@ def get_continuity(date=None, state_keys=None, lookbacks=(7, 30, 180, 1000)):
 def interpolate_states(states, times):
     """Interpolate ``states`` table at given times.
 
-    :param states: states (np.recarray)
-    :param times: times (np.array or list)
+    :param states: states (astropy states Table)
+    :param times: times (np.array or any DateTime compatible input)
 
     :returns: ``states`` view at ``times``
     """
-    indexes = np.searchsorted(states['tstop'], times)
-    return states[indexes]
+    from astropy.table import Column
+    if not isinstance(times, np.ndarray) or times.dtype.kind != 'f':
+        times = DateTime(times).secs
+
+    try:
+        tstops = states['tstop']
+    except (ValueError, KeyError):
+        tstops = date2secs(states['datestop'])
+
+    indexes = np.searchsorted(tstops, times)
+    out = states[indexes]
+    out.add_column(Column(secs2date(times), name='date'), index=0)
+
+    return out
 
 
 def _unique(seq):
@@ -1515,5 +1592,7 @@ def get_chandra_states(main_args=None):
     state_keys = opt.state_keys.split(',') if opt.state_keys else None
     states = get_states(start, stop, state_keys, merge_identical=opt.merge_identical)
     del states['trans_keys']
+    del states['tstart']
+    del states['tstop']
 
     ascii.write(states, output=opt.outfile, format='fixed_width', delimiter='')

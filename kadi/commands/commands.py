@@ -5,7 +5,7 @@ from pathlib import Path
 import numpy as np
 
 from astropy.table import Table, Row, Column, vstack
-from Chandra.Time import DateTime
+from Chandra.Time import DateTime, date2secs
 import pickle
 
 from ..paths import IDX_CMDS_PATH, PARS_DICT_PATH
@@ -90,9 +90,11 @@ def get_cmds(start=None, stop=None, inclusive_stop=False, **kwargs):
       >>> print(cmds)
 
     :param start: DateTime format (optional) Start time, defaults to beginning
-        of available commands (2002:001) :param stop: DateTime format (optional)
-        Stop time, defaults to end of available commands :param kwargs: key=val
-        keyword argument pairs
+        of available commands (2002:001)
+    :param stop: DateTime format (optional) Stop time, defaults to end of available
+        commands
+    :param inclusive_stop: bool, include commands at exactly ``stop`` if True.
+    :param kwargs: key=val keyword argument pairs for filtering
 
     :returns: :class:`~kadi.commands.commands.CommandTable` of commands
     """
@@ -100,16 +102,23 @@ def get_cmds(start=None, stop=None, inclusive_stop=False, **kwargs):
     out = CommandTable(cmds)
     out['params'] = None if len(out) > 0 else Column([], dtype=object)
 
+    # Convert 'date' from bytestring to unicode. This allows
+    # date2secs(out['date']) to work and will generally reduce weird problems.
+    out.convert_bytestring_to_unicode()
+
+    out.add_column(date2secs(out['date']), name='time', index=6)
+    out['time'].info.format = '.3f'
+
     return out
 
 
-def get_cmds_from_backstop(backstop, remove_starcat=True):
+def get_cmds_from_backstop(backstop, remove_starcat=False):
     """
     Initialize a ``CommandTable`` from ``backstop``, which can either
     be a string file name or a backstop table from ``parse_cm.read_backstop``.
 
     :param backstop: str or Table
-    :param remove_starcat: remove star catalog command parameters (default=True)
+    :param remove_starcat: remove star catalog command parameters (default=False)
     :returns: :class:`~kadi.commands.commands.CommandTable` of commands
     """
     if isinstance(backstop, Path):
@@ -133,6 +142,7 @@ def get_cmds_from_backstop(backstop, remove_starcat=True):
     out['tlmsid'] = np.chararray.encode(bs['tlmsid'])
     out['scs'] = bs['scs'].astype(np.uint8)
     out['step'] = bs['step'].astype(np.uint16)
+    out['time'] = date2secs(bs['date'])
     # Set timeline_id to 0, does not match any real timeline id
     out['timeline_id'] = np.zeros(n_bs, dtype=np.uint32)
     out['vcdu'] = bs['vcdu'].astype(np.int32)
@@ -154,7 +164,14 @@ def get_cmds_from_backstop(backstop, remove_starcat=True):
             params['event_type'] = params['type']
             del params['type']
 
-    return CommandTable(out)
+    out = CommandTable(out)
+    out['time'].info.format = '.3f'
+
+    # Convert 'date' from bytestring to unicode. This allows
+    # date2secs(out['date']) to work and will generally reduce weird problems.
+    out.convert_bytestring_to_unicode()
+
+    return out
 
 
 def _find(start=None, stop=None, inclusive_stop=False, **kwargs):
@@ -217,6 +234,7 @@ def _find(start=None, stop=None, inclusive_stop=False, **kwargs):
                     par_ok |= (idx_cmds['idx'] == idx)
             ok &= par_ok
     cmds = idx_cmds[ok]
+
     return cmds
 
 
@@ -258,7 +276,7 @@ class CommandRow(Row):
 
         out = ('{} {} '.format(self['date'], self['type'])
                + ' '.join('{}={}'.format(key, self[key]) for key in keys
-                          if key not in ('type', 'date')))
+                          if key not in ('type', 'date', 'time')))
         return out
 
     def __sstr__(self):
@@ -354,3 +372,17 @@ class CommandTable(Table):
         out.sort(['date', 'step', 'scs'])
 
         return out
+
+    def as_list_of_dict(self):
+        """Convert CommandTable to a list of dict (ala Ska.ParseCM)
+
+        The command ``params`` are embedded as a dict for each command.
+
+        :return: list of dict
+        """
+        self.fetch_params()
+
+        names = self.colnames
+        cmds_list = [{name: cmd[name] for name in names} for cmd in self]
+
+        return cmds_list

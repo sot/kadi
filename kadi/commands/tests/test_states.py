@@ -1,10 +1,12 @@
 import os
+import hashlib
+from pathlib import Path
+import gzip
 import numpy as np
 
 from .. import commands, states
 import pytest
 
-import Chandra.cmd_states as cmd_states
 from Chandra.Time import DateTime
 from Ska.engarchive import fetch
 from astropy.io import ascii
@@ -15,6 +17,37 @@ try:
     HAS_PITCH = True
 except Exception:
     HAS_PITCH = False
+
+
+# Canonical state0 giving spacecraft state at beginning of timelines
+# 2002:007:13 fetch --start 2002:007:13:00:00 --stop 2002:007:13:02:00 aoattqt1
+# aoattqt2 aoattqt3 aoattqt4 cobsrqid aopcadmd tscpos
+STATE0 = {'ccd_count': 5,
+          'clocking': 0,
+          'datestart': '2002:007:13:00:00.000',
+          'datestop': '2099:001:00:00:00.000',
+          'dec': -11.500,
+          'fep_count': 0,
+          'hetg': 'RETR',
+          'letg': 'RETR',
+          'obsid': 61358,
+          'pcad_mode': 'NPNT',
+          'pitch': 61.37,
+          'power_cmd': 'AA00000000',
+          'q1': -0.568062,
+          'q2': 0.121674,
+          'q3': 0.00114141,
+          'q4': 0.813941,
+          'ra': 352.000,
+          'roll': 289.37,
+          'si_mode': 'undef',
+          'simfa_pos': -468,
+          'simpos': -99616,
+          'trans_keys': 'undef',
+          'tstart': 127020624.552,
+          'tstop': 3187296066.184,
+          'vid_board': 0,
+          'dither': 'None'}
 
 
 def assert_all_close_states(rc, rk, keys):
@@ -37,7 +70,7 @@ def get_states_test(start, stop, state_keys, continuity=None):
     start = DateTime(start)
     stop = DateTime(stop)
 
-    cstates = Table(cmd_states.fetch_states(start, stop))
+    cstates = cmd_states_fetch_states(start.date, stop.date)
     trans_keys = [set(val.split(',')) for val in cstates['trans_keys']]
     cstates.remove_column('trans_keys')  # Necessary for older astropy
     cstates['trans_keys'] = trans_keys
@@ -123,6 +156,9 @@ def test_quick():
     # Now test using start/stop pair with start/stop and no supplied cmds or continuity.
     # This also tests the API kwarg order: datestart, datestop, state_keys, ..)
     sts = states.get_states('2018:235:12:00:00', '2018:245:12:00:00', state_keys, reduce=False)
+    assert np.all(DateTime(sts['tstart']).date == sts['datestart'])
+    assert np.all(DateTime(sts['tstop']).date == sts['datestop'])
+
     rk = states.reduce_states(sts, state_keys, merge_identical=True)
     assert len(rc) == len(rk)
 
@@ -199,8 +235,8 @@ def test_pitch_2017():
     rkstates['tstop'] = DateTime(rkstates['datestop']).secs
 
     times = np.arange(rcstates['tstop'][0], rcstates['tstop'][-2], 200.0)
-    rci = cmd_states.interpolate_states(rcstates, times)
-    rki = cmd_states.interpolate_states(rkstates, times)
+    rci = states.interpolate_states(rcstates, times)
+    rki = states.interpolate_states(rkstates, times)
 
     dp = np.abs(rci['pitch'] - rki['pitch'])
     assert np.all(dp < 0.5)
@@ -420,19 +456,23 @@ def test_get_continuity_fail():
 
 
 def test_reduce_states_merge_identical():
-    datestart = DateTime(np.arange(0, 5)).date
-    datestop = DateTime(np.arange(1, 6)).date
+    tstart = np.arange(0, 5)
+    tstop = np.arange(1, 6)
+    datestart = DateTime(tstart).date
+    datestop = DateTime(tstop).date
+    dat0 = Table([datestart, datestop, tstart, tstop],
+                 names=['datestart', 'datestop', 'tstart', 'tstop'])
 
     # Table with something that changes every time
-    vals = np.arange(5)
-    dat = Table([datestart, datestop, vals], names=['datestart', 'datestop', 'vals'])
+    dat = dat0.copy()
+    dat['vals'] = np.arange(5)
     dat['val1'] = 1
     dr = states.reduce_states(dat, ['vals', 'val1'], merge_identical=True)
     assert np.all(dr[dat.colnames] == dat)
 
     # Table with nothing that changes
-    vals = np.ones(5)
-    dat = Table([datestart, datestop, vals], names=['datestart', 'datestop', 'vals'])
+    dat = dat0.copy()
+    dat['vals'] = 1
     dat['val1'] = 1
     dr = states.reduce_states(dat, ['vals', 'val1'], merge_identical=True)
     assert len(dr) == 1
@@ -440,8 +480,8 @@ def test_reduce_states_merge_identical():
     assert dr['datestop'][0] == dat['datestop'][-1]
 
     # Table with edge changes
-    vals = [1, 0, 0, 0, 1]
-    dat = Table([datestart, datestop, vals], names=['datestart', 'datestop', 'vals'])
+    dat = dat0.copy()
+    dat['vals'] = [1, 0, 0, 0, 1]
     dr = states.reduce_states(dat, ['vals'], merge_identical=True)
     assert len(dr) == 3
     assert np.all(dr['datestart'] == dat['datestart'][[0, 1, 4]])
@@ -449,9 +489,9 @@ def test_reduce_states_merge_identical():
     assert np.all(dr['vals'] == [1, 0, 1])
 
     # Table with multiple changes
-    val1 = [1, 0, 1, 1, 1]
-    val2 = [1, 1, 1, 1, 0]
-    dat = Table([datestart, datestop, val1, val2], names=['datestart', 'datestop', 'val1', 'val2'])
+    dat = dat0.copy()
+    dat['val1'] = [1, 0, 1, 1, 1]
+    dat['val2'] = [1, 1, 1, 1, 0]
     dr = states.reduce_states(dat, ['val1', 'val2'], merge_identical=True)
     assert len(dr) == 4
     assert np.all(dr['datestart'] == dat['datestart'][[0, 1, 2, 4]])
@@ -465,15 +505,49 @@ def test_reduce_states_merge_identical():
     assert dr['trans_keys'][3] == set(['val2'])
 
 
+def cmd_states_fetch_states(*args, **kwargs):
+    """Generate regression data files for states using Chandra.cmd_states.
+
+    Once files have been created they are included in the package distribution
+    and Chandra.cmd_states is no longer needed. From this point kadi will be
+    the definitive reference for states.
+    """
+    md5 = hashlib.md5()
+    md5.update(repr(args).encode('utf8'))
+    md5.update(repr(kwargs).encode('utf8'))
+    digest = md5.hexdigest()
+    datafile = Path(__file__).parent / 'data' / f'states_{digest}.ecsv'
+    datafile_gz = datafile.parent / (datafile.name + '.gz')
+
+    if datafile_gz.exists():
+        cs = Table.read(datafile_gz, format='ascii.ecsv')
+    else:
+        # Prevent accidentally writing data to flight in case of some packaging problem.
+        if 'KADI_WRITE_TEST_DATA' not in os.environ:
+            raise RuntimeError('cannot find test data. Define KADI_WRITE_TEST_DATA '
+                               'env var to create it.')
+        import Chandra.cmd_states as cmd_states
+        cs = cmd_states.fetch_states(*args, **kwargs)
+        cs = Table(cs)
+        print(f'Writing {datafile_gz} for args={args} kwargs={kwargs}')
+        cs.write(datafile, format='ascii.ecsv')
+
+        # Gzip the file
+        with open(datafile, 'rb') as f_in, gzip.open(datafile_gz, 'wb') as f_out:
+            f_out.writelines(f_in)
+        datafile.unlink()
+
+    return cs
+
+
 def test_reduce_states_cmd_states():
     """
     Test that simple get_states() call with defaults gives the same results
     as calling cmd_states.fetch_states().
     """
-    cs = cmd_states.fetch_states('2018:235:12:00:00', '2018:245:12:00:00', allow_identical=True)
-    cs = Table(cs)
+    cs = cmd_states_fetch_states('2018:235:12:00:00', '2018:245:12:00:00', allow_identical=True)
 
-    state_keys = (set(cmd_states.STATE0)
+    state_keys = (set(STATE0)
                   - set(['datestart', 'datestop', 'trans_keys', 'tstart', 'tstop']))
 
     # Default setting is reduce states with merge_identical=False, which is the same
@@ -1229,11 +1303,16 @@ def test_continuity_with_transitions_SPM():
                     '__transitions__': [{'date': '2017:087:08:21:35.838', 'sun_pos_mon': 'ENAB'}],
                     'sun_pos_mon': 'DISA'}
 
-    exp = ['      datestart              datestop       sun_pos_mon  trans_keys',
-           '--------------------- --------------------- ----------- -----------',
-           '2017:087:08:20:35.838 2017:087:08:21:35.838        DISA            ',
-           '2017:087:08:21:35.838 2017:087:08:30:50.891        ENAB sun_pos_mon',
-           '2017:087:08:30:50.891 2017:087:10:20:35.838        DISA sun_pos_mon']
+    exp = ['      datestart              datestop           tstart        tstop     '
+           'sun_pos_mon  trans_keys',
+           '--------------------- --------------------- ------------- ------------- '
+           '----------- -----------',
+           '2017:087:08:20:35.838 2017:087:08:21:35.838 607076505.022 '
+           '607076565.022        DISA            ',
+           '2017:087:08:21:35.838 2017:087:08:30:50.891 607076565.022 '
+           '607077120.075        ENAB sun_pos_mon',
+           '2017:087:08:30:50.891 2017:087:10:20:35.838 607077120.075 '
+           '607083705.022        DISA sun_pos_mon']
     sts = states.get_states(start, stop, state_keys=['sun_pos_mon'])
     assert sts.pformat(max_lines=-1, max_width=-1) == exp
 
@@ -1277,6 +1356,9 @@ def test_get_pitch_from_mid_maneuver():
 def test_acisfp_setpoint_state():
     sts = states.get_states('1999-01-01 12:00:00', '2004-01-01 12:00:00',
                             state_keys='acisfp_setpoint')
+    del sts['tstart']
+    del sts['tstop']
+
     assert repr(sts).splitlines() == [
         '<Table length=5>',
         '      datestart              datestop       acisfp_setpoint    trans_keys  ',
@@ -1290,6 +1372,8 @@ def test_acisfp_setpoint_state():
 
     sts = states.get_states('2018-01-01 12:00:00', '2020-03-01 12:00:00',
                             state_keys='acisfp_setpoint')
+    del sts['tstart']
+    del sts['tstop']
     assert repr(sts).splitlines() == [
         '<Table length=6>',
         '      datestart              datestop       acisfp_setpoint    trans_keys  ',

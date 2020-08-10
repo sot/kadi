@@ -12,7 +12,6 @@ import pyyaks.logger
 import Ska.DBI
 import Ska.File
 from Chandra.Time import DateTime
-from Chandra.cmd_states.cmd_states import _tl_to_bs_cmds
 from ska_helpers.run_info import log_run_info
 
 from .paths import IDX_CMDS_PATH, PARS_DICT_PATH
@@ -114,6 +113,39 @@ def fix_nonload_cmds(nl_cmds):
         new_cmds.append(new_cmd)
 
     return new_cmds
+
+
+def _tl_to_bs_cmds(tl_cmds, tl_id, db):
+    """
+    Convert the commands ``tl_cmds`` (numpy recarray) that occur in the
+    timeline ``tl_id'' to a format mimicking backstop commands from
+    Ska.ParseCM.read_backstop().  This includes reading parameter values
+    from the ``db``.
+
+    :param tl_cmds: numpy recarray of commands from timeline load segment
+    :param tl_id: timeline id
+    :param db: Ska.DBI db object
+
+    :returns: list of command dicts
+    """
+    bs_cmds = [dict((col, row[col]) for col in tl_cmds.dtype.names)
+               for row in tl_cmds]
+    cmd_index = dict((x['id'], x) for x in bs_cmds)
+
+    # Add 'params' dict of command parameter key=val pairs to each tl_cmd
+    for par_table in ('cmd_intpars', 'cmd_fltpars'):
+        tl_params = db.fetchall("SELECT * FROM %s WHERE timeline_id %s" %
+                                (par_table,
+                                 '= %d' % tl_id if tl_id else 'IS NULL'))
+
+        # Build up the params dict for each command in timeline load segment
+        for par in tl_params:
+            # I.e. cmd_index[par.cmd_id]['params'][par.name] = par.value
+            # but create the ['params'] dict as needed.
+            if par.cmd_id in cmd_index:
+                cmd_index[par.cmd_id].setdefault('params', {})[par.name] = par.value
+
+    return bs_cmds
 
 
 def get_cmds(start, stop, mp_dir='/data/mpcrit1/mplogs'):
