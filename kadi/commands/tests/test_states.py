@@ -407,7 +407,7 @@ def test_get_continuity_vs_states():
     date0 = '2017:014:12:00:00'
     # Get last state up through `date0`.  Hardwire the lookback here to 21 days.
     cmds = commands.get_cmds('2016:360:12:00:00', date0)
-    sts = states.get_states(cmds=cmds)
+    sts = states.get_states(cmds=cmds, stop=date0)
     sts0 = sts[-1]
 
     continuity = states.get_continuity(date0)
@@ -1351,6 +1351,35 @@ def test_get_pitch_from_mid_maneuver():
     assert np.all(exp['datestop'] == sts['datestop'])
     assert np.all(exp['pcad_mode'] == sts['pcad_mode'])
     assert np.all(np.isclose(exp['pitch'], sts['pitch'], rtol=0, atol=1e-8))
+
+
+def test_get_continuity_and_pitch_from_mid_maneuver():
+    """Test for bug in continuity first noted at:
+    https://github.com/acisops/acis_thermal_check/pull/30#issuecomment-665240053
+
+    Continuity during mid-maneuver was incorrect.
+    """
+    start = '2017:207:23:35:00'
+    stop = '2017:208:00:00:00'
+    sts = states.get_states(start, stop, state_keys=['pitch', 'pcad_mode'])
+    exp = """
+    datestart              datestop                   pitch        pcad_mode
+    --------------------- --------------------- ------------------ ---------
+    2017:207:23:35:00.000 2017:207:23:37:23.398  69.54669822454251      NMAN
+    2017:207:23:37:23.398 2017:207:23:42:25.863  59.41050320985601      NMAN
+    2017:207:23:42:25.863 2017:207:23:45:30.816  57.13454809508824      NPNT
+    2017:207:23:45:30.816 2017:208:00:00:00.000 57.132522367348834      NPNT
+    """
+    exp = Table.read(exp, format='ascii')
+
+    assert np.all(exp['datestart'] == sts['datestart'])
+    assert np.all(exp['datestop'] == sts['datestop'])
+    assert np.all(exp['pcad_mode'] == sts['pcad_mode'])
+    assert np.all(np.isclose(exp['pitch'], sts['pitch'], rtol=0, atol=1e-8))
+
+    cont = states.get_continuity(start, state_keys=['pitch', 'pcad_mode'])
+    assert np.isclose(cont['pitch'], sts['pitch'][0], rtol=0, atol=1e-8)
+    assert cont['pcad_mode'] == sts['pcad_mode'][0]
 
 
 def test_acisfp_setpoint_state():
