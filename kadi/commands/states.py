@@ -1446,7 +1446,8 @@ def get_continuity(date=None, state_keys=None, lookbacks=(7, 30, 180, 1000)):
     continuity_transitions = []
 
     for lookback in lookbacks:
-        cmds = commands.get_cmds(stop - lookback, stop)
+        start = stop - lookback
+        cmds = commands.get_cmds(start, stop)
         if len(cmds) == 0:
             continue
 
@@ -1461,7 +1462,11 @@ def get_continuity(date=None, state_keys=None, lookbacks=(7, 30, 180, 1000)):
             # continuity as possible from last state (corresponding to the state after the
             # last command in cmds).
             try:
-                states = get_states(state_keys=state_key, cmds=cmds, continuity={}, reduce=False)
+                # Note that we need to specify start and stop to ensure that the states span
+                # the required time range. Without this the time range of cmds is used which
+                # can give unexpected outputs if ``date``` is within a maneuver.
+                states = get_states(state_keys=state_key, cmds=cmds, start=start, stop=stop,
+                                    continuity={}, reduce=False)
             except NoTransitionsError:
                 # No transitions within `cmds` for state_key, continue with other keys
                 continue
