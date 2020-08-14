@@ -31,28 +31,73 @@ jobs:
         GIT_USERNAME: chandra-xray
         GIT_PASSWORD: ${{ secrets.CHANDRA_XRAY_TOKEN }}
         GIT_ASKPASS: /home/aca/git_pass.py
-    - name: Save packages
+    - name: Ensure non-empty conda directories
+      id: non-empty-dir
+      run: |
+        mkdir builds/noarch/ && touch builds/noarch/.ensure-non-empty
+        mkdir builds/linux-64/ && touch builds/linux-64/.ensure-non-empty
+    - name: Save package
       uses: actions/upload-artifact@v2
       with:
-        name: packages
+        name: package
         path: |
           builds/noarch/
+          builds/linux-64/
           !builds/*/*repodata*
           !builds/*/index.html
+
+
+  build-macos:
+    runs-on: macos-latest
+    name: Build on Mac OS
+    steps:
+    - name: Fetch Skare3 Tools
+      uses: actions/checkout@v2
+      with:
+        repository: sot/skare3_tools
+        ref: master
+        path: skare3_tools
+    - name: Build
+      run: |
+        source ./skare3_tools/actions/build/files/setup_conda.sh
+        ./skare3_tools/actions/build/files/build.py ${GITHUB_REPOSITORY} --tag ${GITHUB_SHA}
+      env:
+        CONDA_PASSWORD: ${{ secrets.CONDA_PASSWORD }}
+        GIT_USER: chandra-xray
+        GIT_ASKPASS: skare3_tools/actions/build/files/git_pass.py
+        GIT_PASSWORD: ${{ secrets.CHANDRA_XRAY_TOKEN }}
+    - name: Ensure non-empty conda directories
+      id: non-empty-dir
+      run: |
+        mkdir builds/osx-64/ && touch builds/osx-64/.ensure-non-empty
+    - name: Save package
+      uses: actions/upload-artifact@v2
+      with:
+        name: package-osx-64
+        path: |
+          builds/osx-64/
+          !builds/*/*repodata*
+          !builds/*/index.html
+
 
   update-channel:
     runs-on: head
     name: Update Conda Channel
     needs: [build-linux]
     steps:
-      - name: Get linux and noarch packages
+      - name: Get linux package
         uses: actions/download-artifact@v2
         with:
-          name: packages
-          path: packages
+          name: package
+          path: package
+      - name: Get osx package
+        uses: actions/download-artifact@v2
+        with:
+          name: package-osx-64
+          path: package/osx-64
       - name: Update channel
         run: |
-          rsync -a packages/ ${CONDA_CHANNEL_DIR}
+          rsync -a package/ ${CONDA_CHANNEL_DIR}
           for d in ${CONDA_CHANNEL_DIR}/*; do conda index $d; done;
         env:
           CONDA_CHANNEL_DIR: /proj/sot/ska/www/ASPECT/ska3-conda/test
