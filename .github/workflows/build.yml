@@ -18,27 +18,42 @@ jobs:
     - name: Login to GitHub Package Registry
       run: docker login docker.pkg.github.com -u $GITHUB_ACTOR -p ${{ secrets.GITHUB_TOKEN }}
     - name: Pull Docker image
-      run: docker pull docker.pkg.github.com/sot/skare3/centos5-builder:latest
+      run: docker pull docker.pkg.github.com/sot/skare3/centos7-builder:latest
     - name: Build
       id: build
       run: >
         docker run --rm  --name builder -v $GITHUB_WORKSPACE:/github/workspace -w /github/workspace
         -e CONDA_PASSWORD -e GIT_USERNAME -e GIT_PASSWORD
-        docker.pkg.github.com/sot/skare3/centos5-builder:latest
+        docker.pkg.github.com/sot/skare3/centos7-builder:latest
         ${GITHUB_REPOSITORY} --tag ${GITHUB_SHA}
+        touch builds/noarch/.prevent-empty-dir
       env:
         CONDA_PASSWORD: ${{ secrets.CONDA_PASSWORD }}
         GIT_USERNAME: chandra-xray
         GIT_PASSWORD: ${{ secrets.CHANDRA_XRAY_TOKEN }}
         GIT_ASKPASS: /home/aca/git_pass.py
-    - uses: sot/skare3_tools/actions/gdrive_upload@master
-      name: Upload to Google Drive
+    - name: Save packages
+      uses: actions/upload-artifact@v2
       with:
-        files: |
-          builds/linux-64
-          builds/noarch
-        directory: /ska3/conda-test
-        options: --drive=cxc_ops
-      env:
-        GOOGLE_DRIVE_CREDENTIALS: ${{ secrets.GOOGLE_DRIVE_CREDENTIALS }}
+        name: packages
+        path: |
+          builds/noarch/
+          !builds/*/*repodata*
+          !builds/*/index.html
 
+  update-channel:
+    runs-on: head
+    name: Update Conda Channel
+    needs: [build-linux]
+    steps:
+      - name: Get linux and noarch packages
+        uses: actions/download-artifact@v2
+        with:
+          name: packages
+          path: packages
+      - name: Update channel
+        run: |
+          rsync -a packages/ ${CONDA_CHANNEL_DIR}
+          for d in ${CONDA_CHANNEL_DIR}/*; do conda index $d; done;
+        env:
+          CONDA_CHANNEL_DIR: /proj/sot/ska/www/ASPECT/ska3-conda/test
