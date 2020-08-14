@@ -26,7 +26,6 @@ jobs:
         -e CONDA_PASSWORD -e GIT_USERNAME -e GIT_PASSWORD
         docker.pkg.github.com/sot/skare3/centos7-builder:latest
         ${GITHUB_REPOSITORY} --tag ${GITHUB_SHA}
-        touch builds/noarch/.prevent-empty-dir
       env:
         CONDA_PASSWORD: ${{ secrets.CONDA_PASSWORD }}
         GIT_USERNAME: chandra-xray
