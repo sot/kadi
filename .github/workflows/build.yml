@@ -47,54 +47,58 @@ jobs:
           !builds/*/index.html
 
 
-  build-macos:
-    runs-on: macos-latest
-    name: Build on Mac OS
+  build-other:
+    runs-on: ${{ matrix.os }}-latest
+    name: Build on ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ["macos", "windows"]
     steps:
-    - name: Fetch Skare3 Tools
+    - name: Fetch Skare3-tools
       uses: actions/checkout@v2
       with:
         repository: sot/skare3_tools
         ref: master
         path: skare3_tools
-    - name: Build
+    - uses: goanpeca/setup-miniconda@v1
+      with:
+        miniconda-version: "py38_4.8.3"
+        python-version: "3.8"
+        channels: https://ska:${{ secrets.CONDA_PASSWORD }}@cxc.cfa.harvard.edu/mta/ASPECT/ska3-conda/shiny
+    - name: Build Dependencies
+      shell: bash -l {0}
+      run: conda install setuptools_scm gitpython conda-build jinja2 pyyaml python=3.8 numpy packaging
+    - name: Build Package
+      shell: bash -l {0}
       run: |
-        source ./skare3_tools/actions/build/files/setup_conda.sh
-        ./skare3_tools/actions/build/files/build.py ${GITHUB_REPOSITORY} --tag ${GITHUB_SHA}
+        python skare3_tools/actions/build/files/build.py ${GITHUB_REPOSITORY} --tag ${GITHUB_SHA}
       env:
         CONDA_PASSWORD: ${{ secrets.CONDA_PASSWORD }}
-        GIT_USER: chandra-xray
-        GIT_ASKPASS: skare3_tools/actions/build/files/git_pass.py
+        GIT_USERNAME: chandra-xray
+        GIT_ASKPASS: ${{ github.workspace }}/skare3_tools/actions/build/files/git_pass.py
         GIT_PASSWORD: ${{ secrets.CHANDRA_XRAY_TOKEN }}
-    - name: Ensure non-empty conda directories
-      id: non-empty-dir
-      run: |
-        mkdir -p builds/osx-64/ && touch builds/osx-64/.ensure-non-empty
     - name: Save package
       uses: actions/upload-artifact@v2
       with:
-        name: package-osx-64
+        name: conda-package
         path: |
+          builds/noarch/
           builds/osx-64/
+          builds/win-64/
           !builds/*/*repodata*
           !builds/*/index.html
-
 
   update-channel:
     runs-on: head
     name: Update Conda Channel
-    needs: [build-linux, build-macos]
+    needs: [build-linux, build-other]
     steps:
       - name: Get linux package
         uses: actions/download-artifact@v2
         with:
           name: package
           path: package
-      - name: Get osx package
-        uses: actions/download-artifact@v2
-        with:
-          name: package-osx-64
-          path: package/osx-64
       - name: Update channel
         run: |
           rsync -a package/ ${CONDA_CHANNEL_DIR}
