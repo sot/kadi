@@ -61,7 +61,7 @@ jobs:
         repository: sot/skare3_tools
         ref: master
         path: skare3_tools
-    - uses: goanpeca/setup-miniconda@v1
+    - uses: sot/setup-miniconda@v1
       with:
         miniconda-version: "py38_4.8.3"
         python-version: "3.8"
@@ -72,7 +72,7 @@ jobs:
     - name: Build Package
       shell: bash -l {0}
       run: |
-        python skare3_tools/actions/build/files/build.py ${GITHUB_REPOSITORY} --tag ${GITHUB_SHA}
+        python skare3_tools/actions/build/files/build.py --arch-specific ${GITHUB_REPOSITORY} --tag ${GITHUB_SHA}
       env:
         CONDA_PASSWORD: ${{ secrets.CONDA_PASSWORD }}
         GIT_USERNAME: chandra-xray
