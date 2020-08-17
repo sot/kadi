@@ -72,7 +72,7 @@ jobs:
     - name: Build Package
       shell: bash -l {0}
       run: |
-        python skare3_tools/actions/build/files/build.py ${GITHUB_REPOSITORY} --tag ${GITHUB_SHA}
+        python skare3_tools/actions/build/files/build.py --arch-specific ${GITHUB_REPOSITORY} --tag ${GITHUB_SHA}
       env:
         CONDA_PASSWORD: ${{ secrets.CONDA_PASSWORD }}
         GIT_USERNAME: chandra-xray
