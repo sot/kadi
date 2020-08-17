@@ -104,4 +104,4 @@ jobs:
           rsync -a package/ ${CONDA_CHANNEL_DIR}
           for d in ${CONDA_CHANNEL_DIR}/*; do conda index $d; done;
         env:
-          CONDA_CHANNEL_DIR: /proj/sot/ska/www/ASPECT/ska3-conda/test
+          CONDA_CHANNEL_DIR: /proj/sot/ska/www/ASPECT/ska3-conda/masters
