@@ -97,7 +97,7 @@ jobs:
       - name: Get linux package
         uses: actions/download-artifact@v2
         with:
-          name: package
+          name: conda-package
           path: package
       - name: Update channel
         run: |
