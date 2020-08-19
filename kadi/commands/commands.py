@@ -135,8 +135,8 @@ def get_cmds_from_backstop(backstop, remove_starcat=False):
 
     n_bs = len(bs)
     out = {}
-    # Set idx to max (2**16 -1) so it does not match any real idx
-    out['idx'] = np.full(n_bs, fill_value=65535, dtype=np.uint16)
+    # Set idx to max (2**32 -1) so it does not match any real idx
+    out['idx'] = np.full(n_bs, fill_value=4294967295, dtype=np.uint32)
     out['date'] = np.chararray.encode(bs['date'])
     out['type'] = np.chararray.encode(bs['type'])
     out['tlmsid'] = np.chararray.encode(bs['tlmsid'])

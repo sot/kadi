@@ -19,7 +19,7 @@ from . import __version__
 
 MIN_MATCHING_BLOCK_SIZE = 500
 BACKSTOP_CACHE = {}
-CMDS_DTYPE = [('idx', np.uint16),
+CMDS_DTYPE = [('idx', np.uint32),
               ('date', '|S21'),
               ('type', '|S12'),
               ('tlmsid', '|S10'),
