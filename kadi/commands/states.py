@@ -281,7 +281,7 @@ class ParamTransition(BaseTransition):
             try:
                 # This is generally faster than cmd['params'] since it avoids the 'params'
                 # magic in the Command class.  It will work unless the commands are from
-                # backstop; these have idx=65535 which gives KeyError.
+                # backstop; these have idx=-1 which gives KeyError.
                 params = dict(REV_PARS_DICT[cmd['idx']])
             except KeyError:
                 params = cmd['params']

@@ -19,7 +19,7 @@ from . import __version__
 
 MIN_MATCHING_BLOCK_SIZE = 500
 BACKSTOP_CACHE = {}
-CMDS_DTYPE = [('idx', np.uint16),
+CMDS_DTYPE = [('idx', np.int32),
               ('date', '|S21'),
               ('type', '|S12'),
               ('tlmsid', '|S10'),
@@ -299,7 +299,12 @@ def get_idx_cmds(cmds, pars_dict):
         try:
             par_idx = pars_dict[pars_tup]
         except KeyError:
-            par_idx = len(pars_dict)
+            # Along with transition to 32-bit idx in #190, ensure that idx=65535
+            # never gets used. Prior to #190 this value was being used by
+            # get_cmds_from_backstop() assuming that it will never occur as a
+            # key in the pars_dict. Adding 65536 allows older versions to work
+            # with the new cmds.pkl pars_dict.
+            par_idx = len(pars_dict) + 65536
             pars_dict[pars_tup] = par_idx
 
         idx_cmds.append((par_idx, cmd['date'], cmd['type'], cmd.get('tlmsid'),
@@ -435,7 +440,10 @@ def main(args=None):
 
     if pars_dict.n_updated > 0:
         with open(pars_dict_path, 'wb') as fh:
-            pickle.dump(pars_dict, fh, protocol=2)
+            # Dump as pickle, first converting pars_dict from UpdatedDict to
+            # plain dict. The n_updated attribute is not used outside of
+            # update_cmds.py. See historical note in NOTES.build for context.
+            pickle.dump(dict(pars_dict), fh, protocol=2)
             logger.info('Wrote {} pars_dict values ({} new) to {}'
                         .format(len(pars_dict), pars_dict.n_updated, pars_dict_path))
     else:
