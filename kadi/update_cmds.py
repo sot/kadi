@@ -299,7 +299,12 @@ def get_idx_cmds(cmds, pars_dict):
         try:
             par_idx = pars_dict[pars_tup]
         except KeyError:
-            par_idx = len(pars_dict)
+            # Along with transition to 32-bit idx in #190, ensure that idx=65535
+            # never gets used. Prior to #190 this value was being used by
+            # get_cmds_from_backstop() assuming that it will never occur as a
+            # key in the pars_dict. Adding 65536 allows older versions to work
+            # with the new cmds.pkl pars_dict.
+            par_idx = len(pars_dict) + 65536
             pars_dict[pars_tup] = par_idx
 
         idx_cmds.append((par_idx, cmd['date'], cmd['type'], cmd.get('tlmsid'),
