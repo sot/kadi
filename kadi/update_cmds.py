@@ -440,7 +440,10 @@ def main(args=None):
 
     if pars_dict.n_updated > 0:
         with open(pars_dict_path, 'wb') as fh:
-            pickle.dump(pars_dict, fh, protocol=2)
+            # Dump as pickle, first converting pars_dict from UpdatedDict to
+            # plain dict. The n_updated attribute is not used outside of
+            # update_cmds.py. See historical note in NOTES.build for context.
+            pickle.dump(dict(pars_dict), fh, protocol=2)
             logger.info('Wrote {} pars_dict values ({} new) to {}'
                         .format(len(pars_dict), pars_dict.n_updated, pars_dict_path))
     else:
