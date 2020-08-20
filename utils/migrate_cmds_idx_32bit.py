@@ -10,7 +10,7 @@ print(cmds.dtype)
 # [('idx', '<u2'), ('date', 'S21'), ('type', 'S12'), ('tlmsid', 'S10'),
 #  ('scs', 'u1'), ('step', '<u2'), ('timeline_id', '<u4'), ('vcdu', '<i4')]
 
-new_dtype = [('idx', '<u4'), ('date', 'S21'), ('type', 'S12'), ('tlmsid', 'S10'),
+new_dtype = [('idx', '<i4'), ('date', 'S21'), ('type', 'S12'), ('tlmsid', 'S10'),
              ('scs', 'u1'), ('step', '<u2'), ('timeline_id', '<u4'), ('vcdu', '<i4')]
 new_cmds = cmds.astype(new_dtype)
 
@@ -33,4 +33,4 @@ for name in cmds.dtype.names:
     if name != 'idx':
         assert cmds[name].dtype == new_cmds[name].dtype
 
-assert new_cmds['idx'].dtype.str == '<u4'
+assert new_cmds['idx'].dtype.str == '<i4'
