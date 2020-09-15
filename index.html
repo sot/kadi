@@ -1,0 +1,186 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kadi archive &#8212; kadi 5.2.1.dev53+g4ed7d6a documentation</title>
+    <link rel="stylesheet" href="_static/bootstrap-astropy.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <script type="text/javascript" src="_static/sidebar.js"></script>
+    <script type="text/javascript" src="_static/copybutton.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Chandra events" href="events.html" />
+    <link href='https://fonts.googleapis.com/css?family=Source+Sans+Pro:200,600' rel='stylesheet' type='text/css'/>
+
+  </head><body>
+<div class="topbar">
+  <a class="brand" title="Documentation Home" href="#"><span id="logotext1">Ska!</span><span id="logotext2">Kadi</span><span id="logotext3"></span></a>
+  <ul>
+    
+    <li><a class="home" title="Homepage" href="">
+        <span id="logotext1"></span><span id="logotext2"></span>
+    </a></li>
+    <li><a title="General Index" href="genindex.html">Index</a></li>
+    <li><a title="Module Index" href="py-modindex.html">Modules</a></li>
+    <li>
+      
+      
+<form action="search.html" method="get">
+  <input type="text" name="q" placeholder="Search" />
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+      
+    </li>
+  </ul>
+</div>
+
+<div class="related">
+    <h3>Navigation</h3>
+    <ul>
+      <li class="right">
+	<a href="events.html" title="Chandra events">
+	  next &raquo;
+	</a>
+      </li>
+      <li>
+	<a href="#">kadi 5.2.1.dev53+g4ed7d6a documentation</a>
+	 &#187;
+      </li>
+      
+       
+    </ul>
+</div>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="kadi-archive">
+<h1>Kadi archive<a class="headerlink" href="#kadi-archive" title="Permalink to this headline">¶</a></h1>
+<p>The Kadi archive consists of the following integrated elements which allow for
+easy access and manipulation of events and commands related to the Chandra X-ray Observatory:</p>
+<p><strong>Database of Chandra events</strong></p>
+<ul class="simple">
+<li><p>Events in telemetry such as maneuvers, NPM dwells, obsids, mech movements, momentum
+dumps, orbit events, etc.</p></li>
+<li><p>CAPs, DSN passes, dark cals, SCS107, safe modes, bright star hold, etc</p></li>
+<li><p>Chandra major events since launch</p></li>
+</ul>
+<p><strong>Archive of Chandra commands</strong></p>
+<ul class="simple">
+<li><p>Every load command run on-board since 2002, with a link to source load products.</p></li>
+<li><p>Select non-load commands which result from either autonomous on-board commanding
+(e.g. SCS-107) or real-time ground commanding (e.g. anomaly recovery).</p></li>
+<li><p>Framework to dynamically generate the commanded state(s) of Chandra (a.k.a. load
+continuity) based on those mission loads and non-load commands.</p></li>
+</ul>
+<p><strong>Python API</strong> for accessing events and commands for analysis and using with the Ska engineering archive.</p>
+<p><strong>Python tools</strong> to maintain the Kadi database on the HEAD and Greta networks.</p>
+<dl class="simple">
+<dt><strong>Web site</strong> for browsing events on the icxc site. This</dt><dd><p>uses the Django web framework to provide query and administrative capabilities.</p>
+</dd>
+</dl>
+<div class="section" id="chandra-events">
+<h2>Chandra events<a class="headerlink" href="#chandra-events" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="events.html">Chandra events</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="events.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="events.html#getting-started">Getting started</a></li>
+<li class="toctree-l2"><a class="reference internal" href="events.html#get-events-as-a-table">Get events as a table</a></li>
+<li class="toctree-l2"><a class="reference internal" href="events.html#getting-help">Getting help</a></li>
+<li class="toctree-l2"><a class="reference internal" href="events.html#use-events-to-filter-telemetry">Use events to filter telemetry</a></li>
+<li class="toctree-l2"><a class="reference internal" href="events.html#more-on-intervals-and-padding">More on intervals and padding</a></li>
+<li class="toctree-l2"><a class="reference internal" href="events.html#details">Details</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="commands-and-states">
+<h2>Commands and states<a class="headerlink" href="#commands-and-states" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="commands_states.html">Commands and states</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="commands_states.html#commands-archive">Commands archive</a></li>
+<li class="toctree-l2"><a class="reference internal" href="commands_states.html#chandra-states-and-continuity">Chandra states and continuity</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="api-and-related-docs">
+<h2>API and related docs<a class="headerlink" href="#api-and-related-docs" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="event_descriptions.html">Event Descriptions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="maneuver_templates.html">Maneuver sequence templates</a></li>
+</ul>
+</div>
+</div>
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="#">
+              <img class="logo" src="_static/ska.png" alt="Logo"/>
+            </a></p><h3>Page Contents</h3>
+<ul>
+<li><a class="reference internal" href="#">Kadi archive</a><ul>
+<li><a class="reference internal" href="#chandra-events">Chandra events</a></li>
+<li><a class="reference internal" href="#commands-and-states">Commands and states</a></li>
+<li><a class="reference internal" href="#api-and-related-docs">API and related docs</a></li>
+</ul>
+</li>
+</ul>
+
+
+  <h4>Next topic</h4>
+  <p class="topless"><a href="events.html"
+                        title="next chapter">Chandra events</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/index.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<form action="search.html" method="get">
+  <input type="text" name="q" placeholder="Search" />
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+<footer class="footer">
+  <p class="pull-right">
+    <a href="_sources/index.rst.txt"
+       rel="nofollow">Page Source</a> &nbsp;
+    <a href="#">Back to Top</a></p>
+  <p>
+    &copy; Copyright 2013, Tom Aldcroft.<br/>
+    Created using <a href="http://www.sphinx-doc.org/en/stable/">Sphinx</a> 3.1.2. &nbsp;
+  </p>
+</footer>
+  </body>
+</html>
