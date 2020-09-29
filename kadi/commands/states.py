@@ -924,7 +924,7 @@ def decode_power(mnem):
     Decode number of chips and feps from a ACIS power command
     Return a dictionary with the number of chips and their identifiers
 
-    Example::
+    Example:
 
     >>> decode_power("WSPOW08F3E")
     {'ccd_count': 5,
