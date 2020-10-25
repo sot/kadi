@@ -17,6 +17,8 @@ from ska_helpers.run_info import log_run_info
 from .paths import IDX_CMDS_PATH, PARS_DICT_PATH
 from . import __version__
 
+MPLOGS_DIR = Path(os.environ['SKA'], 'data', 'mpcrit1', 'mplogs')
+
 MIN_MATCHING_BLOCK_SIZE = 500
 BACKSTOP_CACHE = {}
 CMDS_DTYPE = [('idx', np.int32),
@@ -148,13 +150,15 @@ def _tl_to_bs_cmds(tl_cmds, tl_id, db):
     return bs_cmds
 
 
-def get_cmds(start, stop, mp_dir='/data/mpcrit1/mplogs'):
+def get_cmds(start, stop, mp_dir=MPLOGS_DIR):
     """
     Get backstop commands corresponding to the supplied timeline load segments.
     The timeline load segments must be ordered by 'id'.
 
     Return cmds in the format defined by Ska.ParseCM.read_backstop().
     """
+    mp_dir = str(mp_dir)
+
     # Get timeline_loads within date range.  Also get non-load commands
     # within the date range covered by the timelines.
     server = os.path.join(os.environ['SKA'], 'data', 'cmd_states', 'cmd_states.db3')

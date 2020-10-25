@@ -4,6 +4,7 @@ from __future__ import division
 import re
 import os
 import logging
+from pathlib import Path
 
 import numpy as np
 
@@ -25,6 +26,8 @@ ORBITS_DTYPE = [('orbit_num', 'i4'),
                 ('dt_start_radzone', 'f4'), ('dt_stop_radzone', 'f4')]
 
 logger = logging.getLogger('events')
+
+MPLOGS_DIR = Path(os.environ['SKA'], 'data', 'mpcrit1', 'mplogs')
 
 # Just for reference, all name=descr pairs between 2000 to 2013:001
 NAMES = {
@@ -87,7 +90,7 @@ def get_tlr_files(mpdir=''):
 
     Returns a list of dicts [{name, date},..]
     """
-    rootdir = os.path.join('/data/mpcrit1/mplogs', mpdir)
+    rootdir = (MPLOGS_DIR / mpdir).absolute()
     try:
         return get_tlr_files_cache[rootdir]
     except KeyError:
@@ -97,16 +100,16 @@ def get_tlr_files(mpdir=''):
 
     tlrfiles = []
     for root, dirs, files in os.walk(rootdir):
-        logger.debug('get_trl_files: root={}'.format(root))
         root = root.rstrip('/')
-        depth = len(root.split('/')) - 1
-        if depth == 3:
+        depth = len(Path(root).parts) - len(MPLOGS_DIR.parts)
+        logger.debug(f'get_trl_files: root={root} {depth} {rootdir}')
+        if depth == 0:
             prune_dirs(dirs, r'\d{4}$')
-        elif depth == 4:
+        elif depth == 1:
             prune_dirs(dirs, r'[A-Z]{3}\d{4}$')
-        elif depth == 5:
+        elif depth == 2:
             prune_dirs(dirs, r'ofls[a-z]$')
-        elif depth > 5:
+        elif depth > 2:
             tlrs = [x for x in files if re.match(r'.+\.tlr$', x)]
             if len(tlrs) == 0:
                 logger.info('NO tlr file found in {}'.format(root))
