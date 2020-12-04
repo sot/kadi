@@ -43,9 +43,37 @@ class LazyVal(object):
 
 
 def load_idx_cmds():
-    h5 = tables.open_file(IDX_CMDS_PATH(), mode='r')
-    idx_cmds = Table(h5.root.data[:])
-    h5.close()
+    """Load the cmds.h5 file, trying up to 3 times
+
+    It seems that one can occasionally get:
+
+    File "tables/hdf5extension.pyx", line 492, in tables.hdf5extension.File._g_new
+tables.exceptions.HDF5ExtError: HDF5 error back trace
+
+     ...
+
+    File "H5FDsec2.c", line 941, in H5FD_sec2_lock
+    unable to lock file, errno = 11, error message = 'Resource temporarily unavailable'
+    """
+    last_exc = None
+    filename = IDX_CMDS_PATH()
+
+    for delay in (0.5, 5.0, None):
+        try:
+            with tables.open_file(filename, mode='r') as h5:
+                idx_cmds = Table(h5.root.data[:])
+            break
+        except Exception as exc:
+            import time
+            last_exc = exc
+            print(f'WARNING: could not open {filename}: {exc}')
+            if delay is not None:
+                print(f' .. trying again after {delay} seconds')
+                time.sleep(delay)
+
+    else:
+        raise IOError(f'failed to open idx_cmds file {filename}: {last_exc}')
+
     return idx_cmds
 
 
