@@ -3,6 +3,7 @@ import tables
 from pathlib import Path
 
 import numpy as np
+from ska_helpers import retry
 
 from astropy.table import Table, Row, Column, vstack
 from Chandra.Time import DateTime, date2secs
@@ -42,6 +43,7 @@ class LazyVal(object):
         return self._val.__len__()
 
 
+@retry.retry(tries=4, delay=0.5, backoff=4)
 def load_idx_cmds():
     """Load the cmds.h5 file, trying up to 3 times
 
@@ -49,30 +51,12 @@ def load_idx_cmds():
 
     File "tables/hdf5extension.pyx", line 492, in tables.hdf5extension.File._g_new
 tables.exceptions.HDF5ExtError: HDF5 error back trace
-
      ...
-
     File "H5FDsec2.c", line 941, in H5FD_sec2_lock
     unable to lock file, errno = 11, error message = 'Resource temporarily unavailable'
     """
-    last_exc = None
-    filename = IDX_CMDS_PATH()
-
-    for delay in (0.5, 5.0, None):
-        try:
-            with tables.open_file(filename, mode='r') as h5:
-                idx_cmds = Table(h5.root.data[:])
-            break
-        except Exception as exc:
-            import time
-            last_exc = exc
-            print(f'WARNING: could not open {filename}: {exc}')
-            if delay is not None:
-                print(f' .. trying again after {delay} seconds')
-                time.sleep(delay)
-
-    else:
-        raise IOError(f'failed to open idx_cmds file {filename}: {last_exc}')
+    with tables.open_file(IDX_CMDS_PATH(), mode='r') as h5:
+        idx_cmds = Table(h5.root.data[:])
 
     return idx_cmds
 
