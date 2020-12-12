@@ -13,6 +13,7 @@ import Ska.DBI
 import Ska.File
 from Chandra.Time import DateTime
 from ska_helpers.run_info import log_run_info
+from ska_helpers.retry import retry_call
 
 from .paths import IDX_CMDS_PATH, PARS_DICT_PATH
 from . import __version__
@@ -324,7 +325,8 @@ def add_h5_cmds(h5file, idx_cmds):
     """
     # Note: reading this file uncompressed is about 5 times faster, so sacrifice file size
     # for read speed and do not use compression.
-    h5 = tables.open_file(h5file, mode='a')
+    h5 = retry_call(tables.open_file, [h5file], {'mode': 'a'},
+                    tries=4, delay=1, backoff=4)
 
     # Convert cmds (list of tuples) to numpy structured array.  This also works for an
     # existing structured array.

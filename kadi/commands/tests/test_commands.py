@@ -1,15 +1,22 @@
 from pathlib import Path
+import os
 
 import numpy as np
 from astropy.table import Table
+import pytest
 
 # Use data file from parse_cm.test for get_cmds_from_backstop test.
 # This package is a dependency
 import parse_cm.tests
 from Chandra.Time import secs2date
+from cxotime import CxoTime
 
 # Import cmds module directly (not kadi.cmds package, which is from ... import cmds)
 from .. import commands
+from ... import update_cmds
+
+
+HAS_MPDIR = Path(os.environ['SKA'], 'data', 'mpcrit1', 'mplogs', '2020').exists()
 
 
 def test_find():
@@ -145,3 +152,44 @@ def test_get_cmds_from_backstop_and_add_cmds():
     ok = bs_cmds['type'] == 'MP_STARCAT'
     assert np.count_nonzero(ok) == 15
     assert np.all(bs_cmds['params'][ok] != {})
+
+
+@pytest.mark.skipif('not HAS_MPDIR')
+def test_commands_create_archive_regress(tmpdir):
+    """Create cmds archive from scratch and test that it matches flight"""
+    kadi_orig = os.environ.get('KADI')
+    start = CxoTime('2020:159:00:00:00')
+    stop = start + 30
+    cmds_flight = commands.get_cmds(start + 3, stop - 3)
+    cmds_flight.fetch_params()
+
+    try:
+        os.environ['KADI'] = str(tmpdir)
+        update_cmds.main((f'--start={start.date}',
+                          f'--stop={stop.date}',
+                          f'--data-root={tmpdir}'))
+        # Force reload of LazyVal
+        del commands.idx_cmds._val
+        del commands.pars_dict._val
+        del commands.rev_pars_dict._val
+
+        # Make sure we are seeing the temporary cmds archive
+        cmds_empty = commands.get_cmds(start - 60, start - 50)
+        assert len(cmds_empty) == 0
+
+        cmds_local = commands.get_cmds(start + 3, stop - 3)
+        cmds_local.fetch_params()
+        assert len(cmds_flight) == len(cmds_local)
+        for attr in ('tlmsid', 'date', 'params'):
+            assert np.all(cmds_flight[attr] == cmds_local[attr])
+
+    finally:
+        if kadi_orig is None:
+            del os.environ['KADI']
+        else:
+            os.environ['KADI'] = kadi_orig
+
+        # Force reload
+        del commands.idx_cmds._val
+        del commands.pars_dict._val
+        del commands.rev_pars_dict._val
