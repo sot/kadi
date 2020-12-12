@@ -93,6 +93,29 @@ def test_cmds_as_list_of_dict():
         assert np.all(cmds_rt[name] == cmds[name])
 
 
+def test_cmds_as_list_of_dict_ska_parsecm():
+    """Test the ska_parsecm=True compatibility mode for list_of_dict"""
+    cmds = commands.get_cmds('2020:140', '2020:141')
+    cmds_list = cmds.as_list_of_dict(ska_parsecm=True)
+    assert isinstance(cmds_list, list)
+    assert isinstance(cmds_list[0], dict)
+    assert cmds_list[0] == {
+        'cmd': 'COMMAND_HW',  # Cmd parameter exists and matches type
+        'date': '2020:140:00:00:00.000',
+        'idx': 21387,
+        'params': {'HEX': '7C063C0', 'MSID': 'CIU1024T'},  # Keys are upper case
+        'scs': 129,
+        'step': 496,
+        'time': 706233669.184,
+        'timeline_id': 426104285,
+        'tlmsid': 'CIMODESL',
+        'type': 'COMMAND_HW',
+        'vcdu': 12516929}
+    for cmd in cmds_list:
+        assert cmd.get('cmd') == cmd.get('type')
+        assert all(param.upper() == param for param in cmd['params'])
+
+
 def test_get_cmds_from_backstop_and_add_cmds():
     bs_file = Path(parse_cm.tests.__file__).parent / 'data' / 'CR182_0803.backstop'
     bs_cmds = commands.get_cmds_from_backstop(bs_file, remove_starcat=True)
@@ -117,8 +140,8 @@ def test_get_cmds_from_backstop_and_add_cmds():
     assert np.count_nonzero(ok) == 15
     assert np.all(bs_cmds['params'][ok] == {})
 
-    # Accept MP_STARCAT commands
-    bs_cmds = commands.get_cmds_from_backstop(bs_file)
+    # Accept MP_STARCAT commands (also check read_backstop command)
+    bs_cmds = commands.read_backstop(bs_file)
     ok = bs_cmds['type'] == 'MP_STARCAT'
     assert np.count_nonzero(ok) == 15
     assert np.all(bs_cmds['params'][ok] != {})

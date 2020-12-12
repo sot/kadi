@@ -11,7 +11,7 @@ import pickle
 
 from ..paths import IDX_CMDS_PATH, PARS_DICT_PATH
 
-__all__ = ['get_cmds', 'get_cmds_from_backstop', 'CommandTable']
+__all__ = ['get_cmds', 'read_backstop', 'get_cmds_from_backstop', 'CommandTable']
 
 
 class LazyVal(object):
@@ -123,6 +123,21 @@ def get_cmds(start=None, stop=None, inclusive_stop=False, **kwargs):
     out['time'].info.format = '.3f'
 
     return out
+
+
+def read_backstop(backstop):
+    """Read ``backstop`` and return a ``CommandTable``.
+
+    The ``backstop`` argument can be either be a string file name or a backstop
+    table from ``parse_cm.read_backstop``.
+
+    This function is a wrapper around ``get_cmds_from_backstop`` but follows a
+    more typical naming convention.
+
+    :param backstop: str or Table
+    :returns: :class:`~kadi.commands.commands.CommandTable` of commands
+    """
+    return get_cmds_from_backstop(backstop)
 
 
 def get_cmds_from_backstop(backstop, remove_starcat=False):
@@ -386,16 +401,30 @@ class CommandTable(Table):
 
         return out
 
-    def as_list_of_dict(self):
-        """Convert CommandTable to a list of dict (ala Ska.ParseCM)
+    def as_list_of_dict(self, ska_parsecm=False):
+        """Convert CommandTable to a list of dict.
 
         The command ``params`` are embedded as a dict for each command.
 
+        If ``ska_parsecm`` is True then the output is made more compatible with
+        the legacy output from ``Ska.ParseCM.read_backstop()``, namely:
+
+        - Add ``cmd`` key which is set to the ``type`` key
+        - Make ``params`` keys uppercase.
+
+        :param ska_parsecm: bool, make output more Ska.ParseCM compatible
         :return: list of dict
         """
         self.fetch_params()
 
         names = self.colnames
         cmds_list = [{name: cmd[name] for name in names} for cmd in self]
+
+        if ska_parsecm:
+            for cmd in cmds_list:
+                if 'type' in cmd:
+                    cmd['cmd'] = cmd['type']
+                if 'params' in cmd:
+                    cmd['params'] = {key.upper(): val for key, val in cmd['params'].items()}
 
         return cmds_list
