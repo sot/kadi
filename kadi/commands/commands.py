@@ -61,6 +61,7 @@ tables.exceptions.HDF5ExtError: HDF5 error back trace
     return idx_cmds
 
 
+@retry.retry(tries=4, delay=0.5, backoff=4)
 def load_pars_dict():
     with open(PARS_DICT_PATH(), 'rb') as fh:
         pars_dict = pickle.load(fh, encoding='ascii')
