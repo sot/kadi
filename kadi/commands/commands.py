@@ -3,6 +3,7 @@ import tables
 from pathlib import Path
 
 import numpy as np
+from ska_helpers import retry
 
 from astropy.table import Table, Row, Column, vstack
 from Chandra.Time import DateTime, date2secs
@@ -42,13 +43,25 @@ class LazyVal(object):
         return self._val.__len__()
 
 
+@retry.retry(tries=4, delay=0.5, backoff=4)
 def load_idx_cmds():
-    h5 = tables.open_file(IDX_CMDS_PATH(), mode='r')
-    idx_cmds = Table(h5.root.data[:])
-    h5.close()
+    """Load the cmds.h5 file, trying up to 3 times
+
+    It seems that one can occasionally get:
+
+    File "tables/hdf5extension.pyx", line 492, in tables.hdf5extension.File._g_new
+tables.exceptions.HDF5ExtError: HDF5 error back trace
+     ...
+    File "H5FDsec2.c", line 941, in H5FD_sec2_lock
+    unable to lock file, errno = 11, error message = 'Resource temporarily unavailable'
+    """
+    with tables.open_file(IDX_CMDS_PATH(), mode='r') as h5:
+        idx_cmds = Table(h5.root.data[:])
+
     return idx_cmds
 
 
+@retry.retry(tries=4, delay=0.5, backoff=4)
 def load_pars_dict():
     with open(PARS_DICT_PATH(), 'rb') as fh:
         pars_dict = pickle.load(fh, encoding='ascii')
