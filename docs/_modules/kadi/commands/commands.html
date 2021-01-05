@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>kadi.commands.commands &#8212; kadi 5.4.0 documentation</title>
+    <title>kadi.commands.commands &#8212; kadi 5.5.0 documentation</title>
     <link rel="stylesheet" href="../../../_static/bootstrap-astropy.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     
@@ -47,7 +47,7 @@
     <h3>Navigation</h3>
     <ul>
       <li>
-	<a href="../../../index.html">kadi 5.4.0 documentation</a>
+	<a href="../../../index.html">kadi 5.5.0 documentation</a>
 	 &#187;
       </li>
       <li><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
@@ -68,6 +68,7 @@
 <span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">ska_helpers</span> <span class="kn">import</span> <span class="n">retry</span>
 
 <span class="kn">from</span> <span class="nn">astropy.table</span> <span class="kn">import</span> <span class="n">Table</span><span class="p">,</span> <span class="n">Row</span><span class="p">,</span> <span class="n">Column</span><span class="p">,</span> <span class="n">vstack</span>
 <span class="kn">from</span> <span class="nn">Chandra.Time</span> <span class="kn">import</span> <span class="n">DateTime</span><span class="p">,</span> <span class="n">date2secs</span>
@@ -75,7 +76,7 @@
 
 <span class="kn">from</span> <span class="nn">..paths</span> <span class="kn">import</span> <span class="n">IDX_CMDS_PATH</span><span class="p">,</span> <span class="n">PARS_DICT_PATH</span>
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;get_cmds&#39;</span><span class="p">,</span> <span class="s1">&#39;get_cmds_from_backstop&#39;</span><span class="p">,</span> <span class="s1">&#39;CommandTable&#39;</span><span class="p">]</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;get_cmds&#39;</span><span class="p">,</span> <span class="s1">&#39;read_backstop&#39;</span><span class="p">,</span> <span class="s1">&#39;get_cmds_from_backstop&#39;</span><span class="p">,</span> <span class="s1">&#39;CommandTable&#39;</span><span class="p">]</span>
 
 
 <span class="k">class</span> <span class="nc">LazyVal</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
@@ -107,13 +108,25 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_val</span><span class="o">.</span><span class="fm">__len__</span><span class="p">()</span>
 
 
+<span class="nd">@retry</span><span class="o">.</span><span class="n">retry</span><span class="p">(</span><span class="n">tries</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">delay</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">backoff</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
 <span class="k">def</span> <span class="nf">load_idx_cmds</span><span class="p">():</span>
-    <span class="n">h5</span> <span class="o">=</span> <span class="n">tables</span><span class="o">.</span><span class="n">open_file</span><span class="p">(</span><span class="n">IDX_CMDS_PATH</span><span class="p">(),</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;r&#39;</span><span class="p">)</span>
-    <span class="n">idx_cmds</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="n">h5</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">data</span><span class="p">[:])</span>
-    <span class="n">h5</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="sd">&quot;&quot;&quot;Load the cmds.h5 file, trying up to 3 times</span>
+
+<span class="sd">    It seems that one can occasionally get:</span>
+
+<span class="sd">    File &quot;tables/hdf5extension.pyx&quot;, line 492, in tables.hdf5extension.File._g_new</span>
+<span class="sd">tables.exceptions.HDF5ExtError: HDF5 error back trace</span>
+<span class="sd">     ...</span>
+<span class="sd">    File &quot;H5FDsec2.c&quot;, line 941, in H5FD_sec2_lock</span>
+<span class="sd">    unable to lock file, errno = 11, error message = &#39;Resource temporarily unavailable&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">with</span> <span class="n">tables</span><span class="o">.</span><span class="n">open_file</span><span class="p">(</span><span class="n">IDX_CMDS_PATH</span><span class="p">(),</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">h5</span><span class="p">:</span>
+        <span class="n">idx_cmds</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="n">h5</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">data</span><span class="p">[:])</span>
+
     <span class="k">return</span> <span class="n">idx_cmds</span>
 
 
+<span class="nd">@retry</span><span class="o">.</span><span class="n">retry</span><span class="p">(</span><span class="n">tries</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">delay</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">backoff</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
 <span class="k">def</span> <span class="nf">load_pars_dict</span><span class="p">():</span>
     <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">PARS_DICT_PATH</span><span class="p">(),</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
         <span class="n">pars_dict</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">fh</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;ascii&#39;</span><span class="p">)</span>
@@ -175,6 +188,21 @@
     <span class="n">out</span><span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">info</span><span class="o">.</span><span class="n">format</span> <span class="o">=</span> <span class="s1">&#39;.3f&#39;</span>
 
     <span class="k">return</span> <span class="n">out</span></div>
+
+
+<div class="viewcode-block" id="read_backstop"><a class="viewcode-back" href="../../../api.html#kadi.commands.commands.read_backstop">[docs]</a><span class="k">def</span> <span class="nf">read_backstop</span><span class="p">(</span><span class="n">backstop</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Read ``backstop`` and return a ``CommandTable``.</span>
+
+<span class="sd">    The ``backstop`` argument can be either be a string file name or a backstop</span>
+<span class="sd">    table from ``parse_cm.read_backstop``.</span>
+
+<span class="sd">    This function is a wrapper around ``get_cmds_from_backstop`` but follows a</span>
+<span class="sd">    more typical naming convention.</span>
+
+<span class="sd">    :param backstop: str or Table</span>
+<span class="sd">    :returns: :class:`~kadi.commands.commands.CommandTable` of commands</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">get_cmds_from_backstop</span><span class="p">(</span><span class="n">backstop</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="get_cmds_from_backstop"><a class="viewcode-back" href="../../../api.html#kadi.commands.commands.get_cmds_from_backstop">[docs]</a><span class="k">def</span> <span class="nf">get_cmds_from_backstop</span><span class="p">(</span><span class="n">backstop</span><span class="p">,</span> <span class="n">remove_starcat</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
@@ -438,17 +466,31 @@
 
         <span class="k">return</span> <span class="n">out</span></div>
 
-<div class="viewcode-block" id="CommandTable.as_list_of_dict"><a class="viewcode-back" href="../../../api.html#kadi.commands.commands.CommandTable.as_list_of_dict">[docs]</a>    <span class="k">def</span> <span class="nf">as_list_of_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Convert CommandTable to a list of dict (ala Ska.ParseCM)</span>
+<div class="viewcode-block" id="CommandTable.as_list_of_dict"><a class="viewcode-back" href="../../../api.html#kadi.commands.commands.CommandTable.as_list_of_dict">[docs]</a>    <span class="k">def</span> <span class="nf">as_list_of_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ska_parsecm</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Convert CommandTable to a list of dict.</span>
 
 <span class="sd">        The command ``params`` are embedded as a dict for each command.</span>
 
+<span class="sd">        If ``ska_parsecm`` is True then the output is made more compatible with</span>
+<span class="sd">        the legacy output from ``Ska.ParseCM.read_backstop()``, namely:</span>
+
+<span class="sd">        - Add ``cmd`` key which is set to the ``type`` key</span>
+<span class="sd">        - Make ``params`` keys uppercase.</span>
+
+<span class="sd">        :param ska_parsecm: bool, make output more Ska.ParseCM compatible</span>
 <span class="sd">        :return: list of dict</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">fetch_params</span><span class="p">()</span>
 
         <span class="n">names</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">colnames</span>
         <span class="n">cmds_list</span> <span class="o">=</span> <span class="p">[{</span><span class="n">name</span><span class="p">:</span> <span class="n">cmd</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">names</span><span class="p">}</span> <span class="k">for</span> <span class="n">cmd</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">ska_parsecm</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">cmd</span> <span class="ow">in</span> <span class="n">cmds_list</span><span class="p">:</span>
+                <span class="k">if</span> <span class="s1">&#39;type&#39;</span> <span class="ow">in</span> <span class="n">cmd</span><span class="p">:</span>
+                    <span class="n">cmd</span><span class="p">[</span><span class="s1">&#39;cmd&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cmd</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span>
+                <span class="k">if</span> <span class="s1">&#39;params&#39;</span> <span class="ow">in</span> <span class="n">cmd</span><span class="p">:</span>
+                    <span class="n">cmd</span><span class="p">[</span><span class="s1">&#39;params&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="o">.</span><span class="n">upper</span><span class="p">():</span> <span class="n">val</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">cmd</span><span class="p">[</span><span class="s1">&#39;params&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
 
         <span class="k">return</span> <span class="n">cmds_list</span></div></div>
 </pre></div>
