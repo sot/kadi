@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>kadi.commands.states &#8212; kadi 5.5.0 documentation</title>
+    <title>kadi.commands.states &#8212; kadi 5.5.1 documentation</title>
     <link rel="stylesheet" href="../../../_static/bootstrap-astropy.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     
@@ -47,7 +47,7 @@
     <h3>Navigation</h3>
     <ul>
       <li>
-	<a href="../../../index.html">kadi 5.5.0 documentation</a>
+	<a href="../../../index.html">kadi 5.5.1 documentation</a>
 	 &#187;
       </li>
       <li><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
@@ -894,6 +894,11 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">end_manvr_date</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">add_manvr_transitions</span><span class="p">(</span><span class="n">date</span><span class="p">,</span> <span class="n">transitions</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">idx</span><span class="p">)</span>
 
+        <span class="c1"># If no target attitude has been defined to this point then we cannot</span>
+        <span class="c1"># do state processing for a maneuver, so drop it on the floor.</span>
+        <span class="k">if</span> <span class="n">end_manvr_date</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span>
+
         <span class="c1"># If auto-transition to NPM after manvr is enabled (this is</span>
         <span class="c1"># normally the case) then back to NPNT at end of maneuver</span>
         <span class="k">if</span> <span class="n">state</span><span class="p">[</span><span class="s1">&#39;auto_npnt&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;ENAB&#39;</span><span class="p">:</span>
@@ -908,6 +913,13 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Get the current target attitude state</span>
         <span class="n">targ_att</span> <span class="o">=</span> <span class="p">[</span><span class="n">state</span><span class="p">[</span><span class="s1">&#39;targ_&#39;</span> <span class="o">+</span> <span class="n">qc</span><span class="p">]</span> <span class="k">for</span> <span class="n">qc</span> <span class="ow">in</span> <span class="n">QUAT_COMPS</span><span class="p">]</span>
+
+        <span class="c1"># Check that target attitude is defined. If start time is between</span>
+        <span class="c1"># AOUPTARQ and AOMANUVR command then this will happen. In this case just</span>
+        <span class="c1"># drop the maneuver on the floor, consistent with attitude state being</span>
+        <span class="c1"># undefined.</span>
+        <span class="k">if</span> <span class="kc">None</span> <span class="ow">in</span> <span class="n">targ_att</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
 
         <span class="c1"># Deal with startup transient where spacecraft attitude is not known.</span>
         <span class="c1"># In this case first maneuver is a bogus null maneuver.</span>
