@@ -1353,6 +1353,45 @@ def test_get_pitch_from_mid_maneuver():
     assert np.all(np.isclose(exp['pitch'], sts['pitch'], rtol=0, atol=1e-8))
 
 
+def test_get_states_start_between_aouptarg_aomanuvr_cmds():
+    """Test fix for #198
+
+    Relevant commands::
+
+      2021:025:13:54:50.097  COMMAND_SW AOFUNCDS   130
+      2021:025:13:55:50.097  COMMAND_SW AONMMODE   130
+      2021:025:13:55:50.354  COMMAND_SW AONM2NPE   130
+      2021:025:13:55:54.454 MP_TARGQUAT AOUPTARQ   130  **
+      2021:025:13:55:56.097  MP_STARCAT AOSTRCAT   130
+      2021:025:13:56:00.348  COMMAND_HW    CNOOP   130
+      2021:025:13:56:00.348  COMMAND_SW AOMANUVR   130  **
+      2021:025:13:56:01.373  COMMAND_SW AOACRSTE   130
+
+    """
+    # This fails prior to the fix with ValueError: cannot convert float NaN to
+    # integer in Chandra.Maneuver.
+    sts = states.get_states('2021:025:13:56:00.000', '2021:026:00:00:00',
+                            state_keys=('q1', 'pcad_mode'), continuity={})
+    exp = ['      datestart              datestop            q1     pcad_mode',
+           '--------------------- --------------------- ----------- ---------',
+           '2021:025:13:56:00.000 2021:025:23:43:14.731        None      None',
+           '2021:025:23:43:14.731 2021:025:23:43:24.982        None      NMAN',
+           '2021:025:23:43:24.982 2021:025:23:47:24.982 0.129399482      NMAN',
+           '2021:025:23:47:24.982 2021:026:00:00:00.000 0.129399482      NPNT']  # noqa
+
+    exp = Table.read(exp, format='ascii', fill_values=[('None', '0')])
+    for name in ('datestart', 'datestop', 'pcad_mode'):
+        assert np.all(sts[name] == exp[name])
+    assert np.allclose(sts['q1'][2:].astype(float), exp['q1'][2:])
+    assert sts['q1'][0] is None
+    assert sts['q1'][1] is None
+    assert sts['pcad_mode'][0] is None
+
+    # Failure example from #198
+    cont = states.get_continuity('2021:032:13:56:00.000')
+    assert cont['__dates__']['q1'] == '2021:032:12:49:45.458'
+
+
 def test_get_continuity_and_pitch_from_mid_maneuver():
     """Test for bug in continuity first noted at:
     https://github.com/acisops/acis_thermal_check/pull/30#issuecomment-665240053

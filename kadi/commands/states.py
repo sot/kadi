@@ -829,6 +829,11 @@ class ManeuverTransition(BaseTransition):
         """
         end_manvr_date = cls.add_manvr_transitions(date, transitions, state, idx)
 
+        # If no target attitude has been defined to this point then we cannot
+        # do state processing for a maneuver, so drop it on the floor.
+        if end_manvr_date is None:
+            return
+
         # If auto-transition to NPM after manvr is enabled (this is
         # normally the case) then back to NPNT at end of maneuver
         if state['auto_npnt'] == 'ENAB':
@@ -843,6 +848,13 @@ class ManeuverTransition(BaseTransition):
         """
         # Get the current target attitude state
         targ_att = [state['targ_' + qc] for qc in QUAT_COMPS]
+
+        # Check that target attitude is defined. If start time is between
+        # AOUPTARQ and AOMANUVR command then this will happen. In this case just
+        # drop the maneuver on the floor, consistent with attitude state being
+        # undefined.
+        if None in targ_att:
+            return None
 
         # Deal with startup transient where spacecraft attitude is not known.
         # In this case first maneuver is a bogus null maneuver.
