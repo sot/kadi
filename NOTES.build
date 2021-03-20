@@ -1,24 +1,36 @@
 #################################################################
-# From scratch
+# Events from scratch
 #################################################################
 
 cd ~/git/kadi
 export KADI=$PWD
-rm -f events3.db3 cmds.h5 cmds.pkl
+rm -f events3.db3
 rm -rf kadi/events/migrations
 ./manage.py makemigrations events
 ./manage.py migrate
 
 # First line is just to see that every model works.  One can just drop the
 # --stop=2000:001 if you are sure it will work.
-kadi_update_events --start=1999:001 --stop=2000:001
-kadi_update_events --start=2000:001
-kadi_update_cmds --start=2000:001
+# Note: use kadi_update_events for the installed version.
+python -m kadi.update_events --start=1999:001 --stop=2000:001
+python -m kadi.update_events --start=2000:001
 
 #################################################################
-# Re-build single table
+# Re-build single events table
 #################################################################
 
 % export KADI=$PWD
 % cp /proj/sot/ska/data/kadi/events.db3 ./
 % python -m kadi.update_events --start=1999:001 --model=CAP --delete-from-start
+
+#################################################################
+# Commands from scratch
+#################################################################
+
+cd ~/git/kadi
+export KADI=$PWD
+rm -f cmds.h5 cmds.pkl
+
+# Note: use kadi_update_events for the installed version.
+python -m kadi.update_cmds --start=2000:001
+
