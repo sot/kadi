@@ -657,7 +657,7 @@ class TlmEvent(Event):
             # interval that spans a telemetry gap of more than 10 major frames.
             times, bools = cls.get_state_times_bools(event_msidset)
             states = utils.logical_intervals(times, bools, max_gap=MAX_GAP)
-        except ValueError:
+        except (IndexError, ValueError):
             if event_time_fuzz is None:
                 logger.warn('Warning: No telemetry available for {}'
                             .format(cls.__name__))
@@ -774,11 +774,16 @@ class Obsid(TlmEvent):
         Get obsid events from telemetry.  A event is defined by a
         contiguous interval of the telemetered obsid.
         """
+        events = []
         # Get the event telemetry MSID objects
         event_msidset = fetch.Msidset(cls.event_msids, start, stop)
         obsid = event_msidset['cobsrqid']
+
+        if len(obsid) < 2:
+            # Not enough telemetry for state_intervals, return no events
+            return events
+
         states = obsid.state_intervals()
-        events = []
         # Skip the first and last states as they are likely incomplete
         for state in states[1:-1]:
             event = dict(start=state['datestart'],
@@ -1521,16 +1526,23 @@ class Manvr(TlmEvent):
         """
         Get maneuver events from telemetry.
         """
+        events = []
         # Auxiliary information
         aux_msidset = fetch.Msidset(['aotarqt1', 'aotarqt2', 'aotarqt3',
                                      'aoatter1', 'aoatter2', 'aoatter3'],
                                     start, stop)
+
+        # Need at least 2 samples to get states. Having no samples typically
+        # happens when building the event tables and telemetry queries are just
+        # before telemetry starts.
+        if any(len(aux_msid) < 2 for aux_msid in aux_msidset.values()):
+            return events
+
         states, event_msidset = cls.get_msids_states(start, stop)
         changes = _get_msid_changes(list(event_msidset.values()),
                                     sortmsids={'aofattmd': 1, 'aopcadmd': 2,
                                                'aoacaseq': 3, 'aopsacpr': 4})
 
-        events = []
         for manvr_prev, manvr, manvr_next in zip(states, states[1:], states[2:]):
             tstart = manvr['tstart']
             tstop = manvr['tstop']
