@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>kadi.events.models &#8212; kadi 5.5.1 documentation</title>
+    <title>kadi.events.models &#8212; kadi 5.6.0 documentation</title>
     <link rel="stylesheet" href="../../../_static/bootstrap-astropy.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     
@@ -47,7 +47,7 @@
     <h3>Navigation</h3>
     <ul>
       <li>
-	<a href="../../../index.html">kadi 5.5.1 documentation</a>
+	<a href="../../../index.html">kadi 5.6.0 documentation</a>
 	 &#187;
       </li>
       <li><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
@@ -722,7 +722,7 @@
             <span class="c1"># interval that spans a telemetry gap of more than 10 major frames.</span>
             <span class="n">times</span><span class="p">,</span> <span class="n">bools</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">get_state_times_bools</span><span class="p">(</span><span class="n">event_msidset</span><span class="p">)</span>
             <span class="n">states</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">logical_intervals</span><span class="p">(</span><span class="n">times</span><span class="p">,</span> <span class="n">bools</span><span class="p">,</span> <span class="n">max_gap</span><span class="o">=</span><span class="n">MAX_GAP</span><span class="p">)</span>
-        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+        <span class="k">except</span> <span class="p">(</span><span class="ne">IndexError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">event_time_fuzz</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;Warning: No telemetry available for </span><span class="si">{}</span><span class="s1">&#39;</span>
                             <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="vm">__name__</span><span class="p">))</span>
@@ -839,11 +839,16 @@
 <span class="sd">        Get obsid events from telemetry.  A event is defined by a</span>
 <span class="sd">        contiguous interval of the telemetered obsid.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">events</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="c1"># Get the event telemetry MSID objects</span>
         <span class="n">event_msidset</span> <span class="o">=</span> <span class="n">fetch</span><span class="o">.</span><span class="n">Msidset</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">event_msids</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">)</span>
         <span class="n">obsid</span> <span class="o">=</span> <span class="n">event_msidset</span><span class="p">[</span><span class="s1">&#39;cobsrqid&#39;</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">obsid</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="c1"># Not enough telemetry for state_intervals, return no events</span>
+            <span class="k">return</span> <span class="n">events</span>
+
         <span class="n">states</span> <span class="o">=</span> <span class="n">obsid</span><span class="o">.</span><span class="n">state_intervals</span><span class="p">()</span>
-        <span class="n">events</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="c1"># Skip the first and last states as they are likely incomplete</span>
         <span class="k">for</span> <span class="n">state</span> <span class="ow">in</span> <span class="n">states</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
             <span class="n">event</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">start</span><span class="o">=</span><span class="n">state</span><span class="p">[</span><span class="s1">&#39;datestart&#39;</span><span class="p">],</span>
@@ -1586,16 +1591,23 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Get maneuver events from telemetry.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">events</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="c1"># Auxiliary information</span>
         <span class="n">aux_msidset</span> <span class="o">=</span> <span class="n">fetch</span><span class="o">.</span><span class="n">Msidset</span><span class="p">([</span><span class="s1">&#39;aotarqt1&#39;</span><span class="p">,</span> <span class="s1">&#39;aotarqt2&#39;</span><span class="p">,</span> <span class="s1">&#39;aotarqt3&#39;</span><span class="p">,</span>
                                      <span class="s1">&#39;aoatter1&#39;</span><span class="p">,</span> <span class="s1">&#39;aoatter2&#39;</span><span class="p">,</span> <span class="s1">&#39;aoatter3&#39;</span><span class="p">],</span>
                                     <span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">)</span>
+
+        <span class="c1"># Need at least 2 samples to get states. Having no samples typically</span>
+        <span class="c1"># happens when building the event tables and telemetry queries are just</span>
+        <span class="c1"># before telemetry starts.</span>
+        <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">aux_msid</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span> <span class="k">for</span> <span class="n">aux_msid</span> <span class="ow">in</span> <span class="n">aux_msidset</span><span class="o">.</span><span class="n">values</span><span class="p">()):</span>
+            <span class="k">return</span> <span class="n">events</span>
+
         <span class="n">states</span><span class="p">,</span> <span class="n">event_msidset</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">get_msids_states</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">)</span>
         <span class="n">changes</span> <span class="o">=</span> <span class="n">_get_msid_changes</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">event_msidset</span><span class="o">.</span><span class="n">values</span><span class="p">()),</span>
                                     <span class="n">sortmsids</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;aofattmd&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;aopcadmd&#39;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
                                                <span class="s1">&#39;aoacaseq&#39;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span> <span class="s1">&#39;aopsacpr&#39;</span><span class="p">:</span> <span class="mi">4</span><span class="p">})</span>
 
-        <span class="n">events</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">manvr_prev</span><span class="p">,</span> <span class="n">manvr</span><span class="p">,</span> <span class="n">manvr_next</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">states</span><span class="p">,</span> <span class="n">states</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">states</span><span class="p">[</span><span class="mi">2</span><span class="p">:]):</span>
             <span class="n">tstart</span> <span class="o">=</span> <span class="n">manvr</span><span class="p">[</span><span class="s1">&#39;tstart&#39;</span><span class="p">]</span>
             <span class="n">tstop</span> <span class="o">=</span> <span class="n">manvr</span><span class="p">[</span><span class="s1">&#39;tstop&#39;</span><span class="p">]</span>
