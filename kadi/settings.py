@@ -87,8 +87,12 @@ except IOError:
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
-
+ALLOWED_HOSTS = [
+    'kadi.cfa.harvard.edu',
+    'web-kadi.cfa.harvard.edu',
+    'kadi-test.cfa.harvard.edu',
+    'web-kadi-test.cfa.harvard.edu',
+]
 
 # Application definition
 
