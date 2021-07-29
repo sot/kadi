@@ -16,6 +16,14 @@ python -m kadi.update_events --start=1999:001 --stop=2000:001
 python -m kadi.update_events --start=2000:001
 
 #################################################################
+# Remove bad momentum dump (bad telem just before safe mode)
+# Search slack 'momentum "dump" on DOY 2020:145 that is an artifact'
+#################################################################
+% cd $SKA/data/kadi  # As needed
+% sqlite3 events3.db3
+sqlite> delete from events_dump where start='2020:145:14:17:22.641';
+
+#################################################################
 # Re-build single events table
 #################################################################
 
