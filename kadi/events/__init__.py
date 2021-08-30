@@ -53,7 +53,7 @@ import django
 # Jupyter notebook: SynchronousOnlyOperation: You cannot call this from an async
 # context. See: https://stackoverflow.com/questions/59119396
 
-if 'DJANGO_SETTINGS_MODULE' not in os.environ:
+if 'DJANGO_SETTINGS_MODULE' not in os.environ or 'manvrs' not in locals():
     os.environ['DJANGO_SETTINGS_MODULE'] = 'kadi.settings'
     os.environ["DJANGO_ALLOW_ASYNC_UNSAFE"] = "true"
     django.setup()
