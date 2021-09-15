@@ -439,7 +439,7 @@ class HETG_INSR_Transition(MechMove):
     state_keys = ['letg', 'hetg', 'grating']
     transition_key = ['hetg', 'grating']
     transition_val = ['INSR', 'HETG']
-    move_duration = 203 * u.s
+    move_duration = 157 * u.s
 
 
 class HETG_RETR_Transition(MechMove):
@@ -448,7 +448,7 @@ class HETG_RETR_Transition(MechMove):
     state_keys = ['letg', 'hetg', 'grating']
     transition_key = ['hetg', 'grating']
     transition_val = ['RETR', 'NONE']
-    move_duration = 203 * u.s
+    move_duration = 153 * u.s
 
 
 class LETG_INSR_Transition(MechMove):
