@@ -2174,12 +2174,12 @@ class Orbit(BaseEvent):
     ================== ========== ==================================================
           Field           Type                       Description
     ================== ========== ==================================================
+            orbit_num    Integer                                       Orbit number
                 start   Char(21)         Start time (orbit ascending node crossing)
                  stop   Char(21)     Stop time (next orbit ascending node crossing)
                tstart      Float         Start time (orbit ascending node crossing)
                 tstop      Float     Stop time (next orbit ascending node crossing)
                   dur      Float                               Orbit duration (sec)
-            orbit_num    Integer                                       Orbit number
               perigee   Char(21)                                       Perigee time
                apogee   Char(21)                                        Apogee time
             t_perigee      Float                             Perigee time (CXC sec)
@@ -2189,6 +2189,7 @@ class Orbit(BaseEvent):
       dt_stop_radzone      Float    Stop time of rad zone relative to perigee (sec)
     ================== ========== ==================================================
     """
+    orbit_num = models.IntegerField(primary_key=True, help_text='Orbit number')
     start = models.CharField(max_length=21,
                              help_text='Start time (orbit ascending node crossing)')
     stop = models.CharField(max_length=21,
@@ -2197,7 +2198,6 @@ class Orbit(BaseEvent):
                                help_text='Start time (orbit ascending node crossing)')
     tstop = models.FloatField(help_text='Stop time (next orbit ascending node crossing)')
     dur = models.FloatField(help_text='Orbit duration (sec)')
-    orbit_num = models.IntegerField(primary_key=True, help_text='Orbit number')
     perigee = models.CharField(max_length=21, help_text='Perigee time')
     apogee = models.CharField(max_length=21, help_text='Apogee time')
     t_perigee = models.FloatField(help_text='Perigee time (CXC sec)')
