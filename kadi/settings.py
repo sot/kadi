@@ -88,6 +88,7 @@ except IOError:
 DEBUG = True
 
 ALLOWED_HOSTS = [
+    '127.0.0.1',
     'kadi.cfa.harvard.edu',
     'web-kadi.cfa.harvard.edu',
     'kadi-test.cfa.harvard.edu',
