@@ -200,6 +200,10 @@ Examples:
                   if field.name not in self.ignore_fields]
         field_names = [field.name for field in fields]
 
+        # Get index of primary key in field_names. This gets used in the
+        # template to make a reference for the detail page.
+        context['model_pk_col_index'] = field_names.index(self.model._meta.pk.name)
+
         root_url = '/kadi/events/{}/list'.format(context['model_name'])
         filter_ = context['filter']
         sort = context['sort']
