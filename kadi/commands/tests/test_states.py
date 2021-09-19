@@ -1453,3 +1453,22 @@ def test_acisfp_setpoint_state():
         '2018:294:22:29:00.000 2020:048:20:59:22.304          -121.0 acisfp_setpoint',
         '2020:048:20:59:22.304 2020:049:13:05:52.537          -126.0 acisfp_setpoint',
         '2020:049:13:05:52.537 2020:061:12:00:00.000          -121.0 acisfp_setpoint']
+
+
+def test_grating_motion_states():
+    sts = states.get_states('2021:227:12:00:00', '2021:230:12:00:00',
+                            state_keys=['letg', 'hetg', 'grating'])
+    del sts['tstart']
+    del sts['tstop']
+    exp = ['      datestart              datestop          letg      hetg   grating  trans_keys ',
+           '--------------------- --------------------- --------- --------- ------- ------------',
+           '2021:227:12:00:00.000 2021:227:23:06:03.276      RETR      RETR    NONE             ',
+           '2021:227:23:06:03.276 2021:227:23:08:40.276      RETR INSR_MOVE    HETG grating,hetg',
+           '2021:227:23:08:40.276 2021:228:08:15:00.722      RETR      INSR    HETG         hetg',
+           '2021:228:08:15:00.722 2021:228:08:17:33.722      RETR RETR_MOVE    NONE grating,hetg',
+           '2021:228:08:17:33.722 2021:229:17:41:45.525      RETR      RETR    NONE         hetg',
+           '2021:229:17:41:45.525 2021:229:17:45:08.525 INSR_MOVE      RETR    LETG grating,letg',
+           '2021:229:17:45:08.525 2021:230:00:37:56.002      INSR      RETR    LETG         letg',
+           '2021:230:00:37:56.002 2021:230:00:41:19.002 RETR_MOVE      RETR    NONE grating,letg',
+           '2021:230:00:41:19.002 2021:230:12:00:00.000      RETR      RETR    NONE         letg']
+    assert sts.pformat_all() == exp
