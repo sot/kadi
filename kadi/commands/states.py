@@ -2,8 +2,7 @@
 This module provides the functions for dynamically determining Chandra commanded states
 based entirely on known history of commands.
 """
-from __future__ import division, print_function, absolute_import
-
+import contextlib
 import re
 import collections
 import itertools
@@ -51,6 +50,17 @@ DEFAULT_STATE_KEYS = ('ccd_count', 'clocking', 'dec', 'dither', 'fep_count',
                       'q1', 'q2', 'q3', 'q4', 'ra', 'roll', 'si_mode', 'simfa_pos', 'simpos',
                       'targ_q1', 'targ_q2', 'targ_q3', 'targ_q4',
                       'vid_board')
+
+
+@contextlib.contextmanager
+def disable_grating_move_duration():
+    """
+    Temporarily disable the grating move duration
+    """
+    apply_move_duration = MechMove.apply_move_duration
+    MechMove.apply_move_duration = False
+    yield
+    MechMove.apply_move_duration = apply_move_duration
 
 
 class NoTransitionsError(ValueError):
@@ -397,7 +407,10 @@ class MechMove(FixedTransition):
     :param transition_key: single transition key or list of transition keys
     :param transition_val: single transition value or list of values
     :param move_duration: duration of the move (astropy time Quantity)
+    :param apply_move_duration: if True, apply the move duration to states
     """
+    apply_move_duration = True
+
     @classmethod
     def set_transitions(cls, transitions_dict, cmds, start, stop):
         """
@@ -429,8 +442,11 @@ class MechMove(FixedTransition):
                 else:
                     # 'letg' or 'hetg' insert/retract status, include the move
                     # interval here
-                    transitions_dict[date_start.date][attr] = val + '_MOVE'
-                    transitions_dict[date_stop.date][attr] = val
+                    if cls.apply_move_duration:
+                        transitions_dict[date_start.date][attr] = val + '_MOVE'
+                        transitions_dict[date_stop.date][attr] = val
+                    else:
+                        transitions_dict[date_start.date][attr] = val
 
 
 class HETG_INSR_Transition(MechMove):

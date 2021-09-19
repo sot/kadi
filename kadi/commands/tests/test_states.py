@@ -78,8 +78,9 @@ def get_states_test(start, stop, state_keys, continuity=None):
     lenr = len(rcstates)
 
     cmds = commands.get_cmds(start - 7, stop)
-    kstates = states.get_states(state_keys=state_keys, cmds=cmds,
-                                continuity=continuity, reduce=False)
+    with states.disable_grating_move_duration():
+        kstates = states.get_states(state_keys=state_keys, cmds=cmds,
+                                    continuity=continuity, reduce=False)
     rkstates = states.reduce_states(kstates, state_keys, merge_identical=True)[-lenr:]
 
     return rcstates, rkstates
@@ -155,7 +156,9 @@ def test_quick():
 
     # Now test using start/stop pair with start/stop and no supplied cmds or continuity.
     # This also tests the API kwarg order: datestart, datestop, state_keys, ..)
-    sts = states.get_states('2018:235:12:00:00', '2018:245:12:00:00', state_keys, reduce=False)
+    with states.disable_grating_move_duration():
+        sts = states.get_states('2018:235:12:00:00', '2018:245:12:00:00',
+                                state_keys, reduce=False)
     assert np.all(DateTime(sts['tstart']).date == sts['datestart'])
     assert np.all(DateTime(sts['tstop']).date == sts['datestop'])
 
@@ -383,7 +386,8 @@ def test_get_continuity_regress():
              'targ_q4': '2018:001:11:52:10.175',
              'vid_board': '2018:001:11:58:21.735'}
 
-    continuity = states.get_continuity('2018:001:12:00:00')
+    with states.disable_grating_move_duration():
+        continuity = states.get_continuity('2018:001:12:00:00')
 
     for key, val in expected.items():
         if isinstance(val, (int, str)):
@@ -552,7 +556,8 @@ def test_reduce_states_cmd_states():
 
     # Default setting is reduce states with merge_identical=False, which is the same
     # as cmd_states.
-    ksr = states.get_states('2018:235:12:00:00', '2018:245:12:00:00', state_keys)
+    with states.disable_grating_move_duration():
+        ksr = states.get_states('2018:235:12:00:00', '2018:245:12:00:00', state_keys)
 
     assert len(ksr) == len(cs)
 
