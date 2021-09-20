@@ -15,7 +15,7 @@ MODEL_NAMES = {m_class.__name__: m_name
 
 
 class BaseView(object):
-    reverse_sort = False  # Reverse the default sort by model primary key (e.g. CAPs)
+    reverse_sort = True  # Reverse the default sort by model primary key (e.g. CAPs)
 
     def get_sort(self):
         sort = self.request.GET.get('sort')
@@ -200,6 +200,10 @@ Examples:
                   if field.name not in self.ignore_fields]
         field_names = [field.name for field in fields]
 
+        # Get index of primary key in field_names. This gets used in the
+        # template to make a reference for the detail page.
+        context['model_pk_col_index'] = field_names.index(self.model._meta.pk.name)
+
         root_url = '/kadi/events/{}/list'.format(context['model_name'])
         filter_ = context['filter']
         sort = context['sort']
@@ -255,17 +259,14 @@ class TscMoveList(EventList):
 
 class DarkCalReplicaList(EventList):
     model = models.DarkCalReplica
-    reverse_sort = True
 
 
 class DarkCalList(EventList):
     model = models.DarkCal
-    reverse_sort = True
 
 
 class Scs107List(EventList):
     model = models.Scs107
-    reverse_sort = True
 
 
 class GratingMoveList(EventList):
@@ -274,7 +275,6 @@ class GratingMoveList(EventList):
 
 class LoadSegmentList(EventList):
     model = models.LoadSegment
-    reverse_sort = True
 
 
 class FaMoveList(EventList):
@@ -321,14 +321,12 @@ class CAPList(EventList):
     filter_string_field = 'title'
     filter_string_op = 'icontains'
     ignore_fields = EventList.ignore_fields + ['descr', 'notes', 'link']
-    reverse_sort = True
 
 
 class DsnCommList(EventList):
     model = models.DsnComm
     filter_string_field = 'activity'
     filter_string_op = 'icontains'
-    reverse_sort = True
 
 
 class OrbitList(EventList):

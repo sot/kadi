@@ -20,11 +20,11 @@
         <tr>
           {% for val in event_row %}
           <td>
-            {% if forloop.first %}
+            {% ifequal forloop.counter0 model_pk_col_index %}
             <a href="/kadi/events/{{ model_name }}/{{val}}?filter={{filter}}&sort={{sort}}&index={{index}}">{{ val }}</a>
             {% else %}
             {{ val }}
-            {% endif %}
+            {% endifequal %}
           </td>
           {% endfor %}
         </tr>
