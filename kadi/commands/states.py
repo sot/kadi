@@ -392,7 +392,7 @@ class SubFormatSSR_Transition(FixedTransition):
 
 class MechMove(FixedTransition):
     """
-    Transitions for mech moves that having a non-zero duration.
+    Transitions for mech moves that have non-zero duration.
 
     This adds two transitions per matched command:
     - First one at cmd time with the transition value with ``_MOVE`` appended
