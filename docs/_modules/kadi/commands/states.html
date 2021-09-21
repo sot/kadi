@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>kadi.commands.states &#8212; kadi 5.6.1 documentation</title>
+    <title>kadi.commands.states &#8212; kadi 5.7.0 documentation</title>
     <link rel="stylesheet" href="../../../_static/bootstrap-astropy.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     
@@ -47,7 +47,7 @@
     <h3>Navigation</h3>
     <ul>
       <li>
-	<a href="../../../index.html">kadi 5.6.1 documentation</a>
+	<a href="../../../index.html">kadi 5.7.0 documentation</a>
 	 &#187;
       </li>
       <li><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
@@ -67,8 +67,7 @@
 <span class="sd">This module provides the functions for dynamically determining Chandra commanded states</span>
 <span class="sd">based entirely on known history of commands.</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">absolute_import</span>
-
+<span class="kn">import</span> <span class="nn">contextlib</span>
 <span class="kn">import</span> <span class="nn">re</span>
 <span class="kn">import</span> <span class="nn">collections</span>
 <span class="kn">import</span> <span class="nn">itertools</span>
@@ -77,8 +76,10 @@
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 <span class="kn">from</span> <span class="nn">astropy.table</span> <span class="kn">import</span> <span class="n">Table</span><span class="p">,</span> <span class="n">Column</span>
+<span class="kn">import</span> <span class="nn">astropy.units</span> <span class="k">as</span> <span class="nn">u</span>
 
 <span class="kn">from</span> <span class="nn">Chandra.Time</span> <span class="kn">import</span> <span class="n">DateTime</span><span class="p">,</span> <span class="n">date2secs</span><span class="p">,</span> <span class="n">secs2date</span>
+<span class="kn">from</span> <span class="nn">cxotime</span> <span class="kn">import</span> <span class="n">CxoTime</span>
 <span class="kn">import</span> <span class="nn">Chandra.Maneuver</span>
 <span class="kn">from</span> <span class="nn">Quaternion</span> <span class="kn">import</span> <span class="n">Quat</span>
 <span class="kn">import</span> <span class="nn">Ska.Sun</span>
@@ -114,6 +115,17 @@
                       <span class="s1">&#39;q1&#39;</span><span class="p">,</span> <span class="s1">&#39;q2&#39;</span><span class="p">,</span> <span class="s1">&#39;q3&#39;</span><span class="p">,</span> <span class="s1">&#39;q4&#39;</span><span class="p">,</span> <span class="s1">&#39;ra&#39;</span><span class="p">,</span> <span class="s1">&#39;roll&#39;</span><span class="p">,</span> <span class="s1">&#39;si_mode&#39;</span><span class="p">,</span> <span class="s1">&#39;simfa_pos&#39;</span><span class="p">,</span> <span class="s1">&#39;simpos&#39;</span><span class="p">,</span>
                       <span class="s1">&#39;targ_q1&#39;</span><span class="p">,</span> <span class="s1">&#39;targ_q2&#39;</span><span class="p">,</span> <span class="s1">&#39;targ_q3&#39;</span><span class="p">,</span> <span class="s1">&#39;targ_q4&#39;</span><span class="p">,</span>
                       <span class="s1">&#39;vid_board&#39;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="disable_grating_move_duration"><a class="viewcode-back" href="../../../api.html#kadi.commands.states.disable_grating_move_duration">[docs]</a><span class="nd">@contextlib</span><span class="o">.</span><span class="n">contextmanager</span>
+<span class="k">def</span> <span class="nf">disable_grating_move_duration</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Temporarily disable the grating move duration</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">apply_move_duration</span> <span class="o">=</span> <span class="n">MechMove</span><span class="o">.</span><span class="n">apply_move_duration</span>
+    <span class="n">MechMove</span><span class="o">.</span><span class="n">apply_move_duration</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="k">yield</span>
+    <span class="n">MechMove</span><span class="o">.</span><span class="n">apply_move_duration</span> <span class="o">=</span> <span class="n">apply_move_duration</span></div>
 
 
 <div class="viewcode-block" id="NoTransitionsError"><a class="viewcode-back" href="../../../api.html#kadi.commands.states.NoTransitionsError">[docs]</a><span class="k">class</span> <span class="nc">NoTransitionsError</span><span class="p">(</span><span class="ne">ValueError</span><span class="p">):</span>
@@ -443,36 +455,99 @@
 <span class="c1"># Mech transitions</span>
 <span class="c1">###################################################################</span>
 
-<div class="viewcode-block" id="HETG_INSR_Transition"><a class="viewcode-back" href="../../../api.html#kadi.commands.states.HETG_INSR_Transition">[docs]</a><span class="k">class</span> <span class="nc">HETG_INSR_Transition</span><span class="p">(</span><span class="n">FixedTransition</span><span class="p">):</span>
+<div class="viewcode-block" id="MechMove"><a class="viewcode-back" href="../../../api.html#kadi.commands.states.MechMove">[docs]</a><span class="k">class</span> <span class="nc">MechMove</span><span class="p">(</span><span class="n">FixedTransition</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Transitions for mech moves that have non-zero duration.</span>
+
+<span class="sd">    This adds two transitions per matched command:</span>
+<span class="sd">    - First one at cmd time with the transition value with ``_MOVE`` appended</span>
+<span class="sd">    - Second one at cmd time + move_duration with the straight transition value</span>
+
+<span class="sd">    This inherits from FixedTransition for the case of an attribute that gets</span>
+<span class="sd">    set to a fixed value when the command occurs, e.g. pcad_mode=&#39;NMAN&#39; for</span>
+<span class="sd">    AONMMODE.</span>
+
+<span class="sd">    Class attributes:</span>
+
+<span class="sd">    :param transition_key: single transition key or list of transition keys</span>
+<span class="sd">    :param transition_val: single transition value or list of values</span>
+<span class="sd">    :param move_duration: duration of the move (astropy time Quantity)</span>
+<span class="sd">    :param apply_move_duration: if True, apply the move duration to states</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">apply_move_duration</span> <span class="o">=</span> <span class="kc">True</span>
+
+<div class="viewcode-block" id="MechMove.set_transitions"><a class="viewcode-back" href="../../../api.html#kadi.commands.states.MechMove.set_transitions">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">set_transitions</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">transitions_dict</span><span class="p">,</span> <span class="n">cmds</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set transitions for a Table of commands ``cmds``.</span>
+
+<span class="sd">        :param transitions_dict: global dict of transitions (updated in-place)</span>
+<span class="sd">        :param cmds: commands (CmdList)</span>
+<span class="sd">        :param start: start time for states</span>
+<span class="sd">        :param stop: stop time for states</span>
+
+<span class="sd">        :returns: None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">state_cmds</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">get_state_changing_commands</span><span class="p">(</span><span class="n">cmds</span><span class="p">)</span>
+        <span class="n">vals</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">transition_val</span>
+        <span class="n">attrs</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">transition_key</span>
+        <span class="n">move_duration</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">move_duration</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">vals</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="n">vals</span> <span class="o">=</span> <span class="p">[</span><span class="n">vals</span><span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">attrs</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="n">attrs</span> <span class="o">=</span> <span class="p">[</span><span class="n">attrs</span><span class="p">]</span>
+
+        <span class="k">for</span> <span class="n">cmd</span> <span class="ow">in</span> <span class="n">state_cmds</span><span class="p">:</span>
+            <span class="n">date_start</span> <span class="o">=</span> <span class="n">CxoTime</span><span class="p">(</span><span class="n">cmd</span><span class="p">[</span><span class="s1">&#39;date&#39;</span><span class="p">])</span>
+            <span class="n">date_stop</span> <span class="o">=</span> <span class="n">date_start</span> <span class="o">+</span> <span class="n">move_duration</span>
+            <span class="k">for</span> <span class="n">val</span><span class="p">,</span> <span class="n">attr</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">vals</span><span class="p">,</span> <span class="n">attrs</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">attr</span> <span class="o">==</span> <span class="s1">&#39;grating&#39;</span><span class="p">:</span>
+                    <span class="n">transitions_dict</span><span class="p">[</span><span class="n">date_start</span><span class="o">.</span><span class="n">date</span><span class="p">][</span><span class="n">attr</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># &#39;letg&#39; or &#39;hetg&#39; insert/retract status, include the move</span>
+                    <span class="c1"># interval here</span>
+                    <span class="k">if</span> <span class="bp">cls</span><span class="o">.</span><span class="n">apply_move_duration</span><span class="p">:</span>
+                        <span class="n">transitions_dict</span><span class="p">[</span><span class="n">date_start</span><span class="o">.</span><span class="n">date</span><span class="p">][</span><span class="n">attr</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span> <span class="o">+</span> <span class="s1">&#39;_MOVE&#39;</span>
+                        <span class="n">transitions_dict</span><span class="p">[</span><span class="n">date_stop</span><span class="o">.</span><span class="n">date</span><span class="p">][</span><span class="n">attr</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">transitions_dict</span><span class="p">[</span><span class="n">date_start</span><span class="o">.</span><span class="n">date</span><span class="p">][</span><span class="n">attr</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span></div></div>
+
+
+<div class="viewcode-block" id="HETG_INSR_Transition"><a class="viewcode-back" href="../../../api.html#kadi.commands.states.HETG_INSR_Transition">[docs]</a><span class="k">class</span> <span class="nc">HETG_INSR_Transition</span><span class="p">(</span><span class="n">MechMove</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;HETG insertion&quot;&quot;&quot;</span>
     <span class="n">command_attributes</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;tlmsid&#39;</span><span class="p">:</span> <span class="s1">&#39;4OHETGIN&#39;</span><span class="p">}</span>
     <span class="n">state_keys</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;letg&#39;</span><span class="p">,</span> <span class="s1">&#39;hetg&#39;</span><span class="p">,</span> <span class="s1">&#39;grating&#39;</span><span class="p">]</span>
     <span class="n">transition_key</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;hetg&#39;</span><span class="p">,</span> <span class="s1">&#39;grating&#39;</span><span class="p">]</span>
-    <span class="n">transition_val</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;INSR&#39;</span><span class="p">,</span> <span class="s1">&#39;HETG&#39;</span><span class="p">]</span></div>
+    <span class="n">transition_val</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;INSR&#39;</span><span class="p">,</span> <span class="s1">&#39;HETG&#39;</span><span class="p">]</span>
+    <span class="n">move_duration</span> <span class="o">=</span> <span class="mi">157</span> <span class="o">*</span> <span class="n">u</span><span class="o">.</span><span class="n">s</span></div>
 
 
-<div class="viewcode-block" id="HETG_RETR_Transition"><a class="viewcode-back" href="../../../api.html#kadi.commands.states.HETG_RETR_Transition">[docs]</a><span class="k">class</span> <span class="nc">HETG_RETR_Transition</span><span class="p">(</span><span class="n">FixedTransition</span><span class="p">):</span>
+<div class="viewcode-block" id="HETG_RETR_Transition"><a class="viewcode-back" href="../../../api.html#kadi.commands.states.HETG_RETR_Transition">[docs]</a><span class="k">class</span> <span class="nc">HETG_RETR_Transition</span><span class="p">(</span><span class="n">MechMove</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;HETG retraction&quot;&quot;&quot;</span>
     <span class="n">command_attributes</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;tlmsid&#39;</span><span class="p">:</span> <span class="s1">&#39;4OHETGRE&#39;</span><span class="p">}</span>
     <span class="n">state_keys</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;letg&#39;</span><span class="p">,</span> <span class="s1">&#39;hetg&#39;</span><span class="p">,</span> <span class="s1">&#39;grating&#39;</span><span class="p">]</span>
     <span class="n">transition_key</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;hetg&#39;</span><span class="p">,</span> <span class="s1">&#39;grating&#39;</span><span class="p">]</span>
-    <span class="n">transition_val</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;RETR&#39;</span><span class="p">,</span> <span class="s1">&#39;NONE&#39;</span><span class="p">]</span></div>
+    <span class="n">transition_val</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;RETR&#39;</span><span class="p">,</span> <span class="s1">&#39;NONE&#39;</span><span class="p">]</span>
+    <span class="n">move_duration</span> <span class="o">=</span> <span class="mi">153</span> <span class="o">*</span> <span class="n">u</span><span class="o">.</span><span class="n">s</span></div>
 
 
-<div class="viewcode-block" id="LETG_INSR_Transition"><a class="viewcode-back" href="../../../api.html#kadi.commands.states.LETG_INSR_Transition">[docs]</a><span class="k">class</span> <span class="nc">LETG_INSR_Transition</span><span class="p">(</span><span class="n">FixedTransition</span><span class="p">):</span>
+<div class="viewcode-block" id="LETG_INSR_Transition"><a class="viewcode-back" href="../../../api.html#kadi.commands.states.LETG_INSR_Transition">[docs]</a><span class="k">class</span> <span class="nc">LETG_INSR_Transition</span><span class="p">(</span><span class="n">MechMove</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;LETG insertion&quot;&quot;&quot;</span>
     <span class="n">command_attributes</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;tlmsid&#39;</span><span class="p">:</span> <span class="s1">&#39;4OLETGIN&#39;</span><span class="p">}</span>
     <span class="n">state_keys</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;letg&#39;</span><span class="p">,</span> <span class="s1">&#39;hetg&#39;</span><span class="p">,</span> <span class="s1">&#39;grating&#39;</span><span class="p">]</span>
     <span class="n">transition_key</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;letg&#39;</span><span class="p">,</span> <span class="s1">&#39;grating&#39;</span><span class="p">]</span>
-    <span class="n">transition_val</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;INSR&#39;</span><span class="p">,</span> <span class="s1">&#39;LETG&#39;</span><span class="p">]</span></div>
+    <span class="n">transition_val</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;INSR&#39;</span><span class="p">,</span> <span class="s1">&#39;LETG&#39;</span><span class="p">]</span>
+    <span class="n">move_duration</span> <span class="o">=</span> <span class="mi">203</span> <span class="o">*</span> <span class="n">u</span><span class="o">.</span><span class="n">s</span></div>
 
 
-<div class="viewcode-block" id="LETG_RETR_Transition"><a class="viewcode-back" href="../../../api.html#kadi.commands.states.LETG_RETR_Transition">[docs]</a><span class="k">class</span> <span class="nc">LETG_RETR_Transition</span><span class="p">(</span><span class="n">FixedTransition</span><span class="p">):</span>
+<div class="viewcode-block" id="LETG_RETR_Transition"><a class="viewcode-back" href="../../../api.html#kadi.commands.states.LETG_RETR_Transition">[docs]</a><span class="k">class</span> <span class="nc">LETG_RETR_Transition</span><span class="p">(</span><span class="n">MechMove</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;LETG retraction&quot;&quot;&quot;</span>
     <span class="n">command_attributes</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;tlmsid&#39;</span><span class="p">:</span> <span class="s1">&#39;4OLETGRE&#39;</span><span class="p">}</span>
     <span class="n">state_keys</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;letg&#39;</span><span class="p">,</span> <span class="s1">&#39;hetg&#39;</span><span class="p">,</span> <span class="s1">&#39;grating&#39;</span><span class="p">]</span>
     <span class="n">transition_key</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;letg&#39;</span><span class="p">,</span> <span class="s1">&#39;grating&#39;</span><span class="p">]</span>
-    <span class="n">transition_val</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;RETR&#39;</span><span class="p">,</span> <span class="s1">&#39;NONE&#39;</span><span class="p">]</span></div>
+    <span class="n">transition_val</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;RETR&#39;</span><span class="p">,</span> <span class="s1">&#39;NONE&#39;</span><span class="p">]</span>
+    <span class="n">move_duration</span> <span class="o">=</span> <span class="mi">203</span> <span class="o">*</span> <span class="n">u</span><span class="o">.</span><span class="n">s</span></div>
 
 
 <div class="viewcode-block" id="SimTscTransition"><a class="viewcode-back" href="../../../api.html#kadi.commands.states.SimTscTransition">[docs]</a><span class="k">class</span> <span class="nc">SimTscTransition</span><span class="p">(</span><span class="n">ParamTransition</span><span class="p">):</span>
