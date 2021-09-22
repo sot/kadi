@@ -2,8 +2,7 @@
 This module provides the functions for dynamically determining Chandra commanded states
 based entirely on known history of commands.
 """
-from __future__ import division, print_function, absolute_import
-
+import contextlib
 import re
 import collections
 import itertools
@@ -12,8 +11,10 @@ import inspect
 import numpy as np
 
 from astropy.table import Table, Column
+import astropy.units as u
 
 from Chandra.Time import DateTime, date2secs, secs2date
+from cxotime import CxoTime
 import Chandra.Maneuver
 from Quaternion import Quat
 import Ska.Sun
@@ -49,6 +50,17 @@ DEFAULT_STATE_KEYS = ('ccd_count', 'clocking', 'dec', 'dither', 'fep_count',
                       'q1', 'q2', 'q3', 'q4', 'ra', 'roll', 'si_mode', 'simfa_pos', 'simpos',
                       'targ_q1', 'targ_q2', 'targ_q3', 'targ_q4',
                       'vid_board')
+
+
+@contextlib.contextmanager
+def disable_grating_move_duration():
+    """
+    Temporarily disable the grating move duration
+    """
+    apply_move_duration = MechMove.apply_move_duration
+    MechMove.apply_move_duration = False
+    yield
+    MechMove.apply_move_duration = apply_move_duration
 
 
 class NoTransitionsError(ValueError):
@@ -378,36 +390,99 @@ class SubFormatSSR_Transition(FixedTransition):
 # Mech transitions
 ###################################################################
 
-class HETG_INSR_Transition(FixedTransition):
+class MechMove(FixedTransition):
+    """
+    Transitions for mech moves that have non-zero duration.
+
+    This adds two transitions per matched command:
+    - First one at cmd time with the transition value with ``_MOVE`` appended
+    - Second one at cmd time + move_duration with the straight transition value
+
+    This inherits from FixedTransition for the case of an attribute that gets
+    set to a fixed value when the command occurs, e.g. pcad_mode='NMAN' for
+    AONMMODE.
+
+    Class attributes:
+
+    :param transition_key: single transition key or list of transition keys
+    :param transition_val: single transition value or list of values
+    :param move_duration: duration of the move (astropy time Quantity)
+    :param apply_move_duration: if True, apply the move duration to states
+    """
+    apply_move_duration = True
+
+    @classmethod
+    def set_transitions(cls, transitions_dict, cmds, start, stop):
+        """
+        Set transitions for a Table of commands ``cmds``.
+
+        :param transitions_dict: global dict of transitions (updated in-place)
+        :param cmds: commands (CmdList)
+        :param start: start time for states
+        :param stop: stop time for states
+
+        :returns: None
+        """
+        state_cmds = cls.get_state_changing_commands(cmds)
+        vals = cls.transition_val
+        attrs = cls.transition_key
+        move_duration = cls.move_duration
+
+        if not isinstance(vals, list):
+            vals = [vals]
+        if not isinstance(attrs, list):
+            attrs = [attrs]
+
+        for cmd in state_cmds:
+            date_start = CxoTime(cmd['date'])
+            date_stop = date_start + move_duration
+            for val, attr in zip(vals, attrs):
+                if attr == 'grating':
+                    transitions_dict[date_start.date][attr] = val
+                else:
+                    # 'letg' or 'hetg' insert/retract status, include the move
+                    # interval here
+                    if cls.apply_move_duration:
+                        transitions_dict[date_start.date][attr] = val + '_MOVE'
+                        transitions_dict[date_stop.date][attr] = val
+                    else:
+                        transitions_dict[date_start.date][attr] = val
+
+
+class HETG_INSR_Transition(MechMove):
     """HETG insertion"""
     command_attributes = {'tlmsid': '4OHETGIN'}
     state_keys = ['letg', 'hetg', 'grating']
     transition_key = ['hetg', 'grating']
     transition_val = ['INSR', 'HETG']
+    move_duration = 157 * u.s
 
 
-class HETG_RETR_Transition(FixedTransition):
+class HETG_RETR_Transition(MechMove):
     """HETG retraction"""
     command_attributes = {'tlmsid': '4OHETGRE'}
     state_keys = ['letg', 'hetg', 'grating']
     transition_key = ['hetg', 'grating']
     transition_val = ['RETR', 'NONE']
+    move_duration = 153 * u.s
 
 
-class LETG_INSR_Transition(FixedTransition):
+class LETG_INSR_Transition(MechMove):
     """LETG insertion"""
     command_attributes = {'tlmsid': '4OLETGIN'}
     state_keys = ['letg', 'hetg', 'grating']
     transition_key = ['letg', 'grating']
     transition_val = ['INSR', 'LETG']
+    move_duration = 203 * u.s
 
 
-class LETG_RETR_Transition(FixedTransition):
+class LETG_RETR_Transition(MechMove):
     """LETG retraction"""
     command_attributes = {'tlmsid': '4OLETGRE'}
     state_keys = ['letg', 'hetg', 'grating']
     transition_key = ['letg', 'grating']
     transition_val = ['RETR', 'NONE']
+    move_duration = 203 * u.s
 
 
 class SimTscTransition(ParamTransition):
