@@ -78,9 +78,8 @@ def get_states_test(start, stop, state_keys, continuity=None):
     lenr = len(rcstates)
 
     cmds = commands.get_cmds(start - 7, stop)
-    with states.disable_grating_move_duration():
-        kstates = states.get_states(state_keys=state_keys, cmds=cmds,
-                                    continuity=continuity, reduce=False)
+    kstates = states.get_states(state_keys=state_keys, cmds=cmds,
+                                continuity=continuity, reduce=False)
     rkstates = states.reduce_states(kstates, state_keys, merge_identical=True)[-lenr:]
 
     return rcstates, rkstates
@@ -156,9 +155,7 @@ def test_quick():
 
     # Now test using start/stop pair with start/stop and no supplied cmds or continuity.
     # This also tests the API kwarg order: datestart, datestop, state_keys, ..)
-    with states.disable_grating_move_duration():
-        sts = states.get_states('2018:235:12:00:00', '2018:245:12:00:00',
-                                state_keys, reduce=False)
+    sts = states.get_states('2018:235:12:00:00', '2018:245:12:00:00', state_keys, reduce=False)
     assert np.all(DateTime(sts['tstart']).date == sts['datestart'])
     assert np.all(DateTime(sts['tstop']).date == sts['datestop'])
 
@@ -386,8 +383,7 @@ def test_get_continuity_regress():
              'targ_q4': '2018:001:11:52:10.175',
              'vid_board': '2018:001:11:58:21.735'}
 
-    with states.disable_grating_move_duration():
-        continuity = states.get_continuity('2018:001:12:00:00')
+    continuity = states.get_continuity('2018:001:12:00:00')
 
     for key, val in expected.items():
         if isinstance(val, (int, str)):
@@ -556,8 +552,7 @@ def test_reduce_states_cmd_states():
 
     # Default setting is reduce states with merge_identical=False, which is the same
     # as cmd_states.
-    with states.disable_grating_move_duration():
-        ksr = states.get_states('2018:235:12:00:00', '2018:245:12:00:00', state_keys)
+    ksr = states.get_states('2018:235:12:00:00', '2018:245:12:00:00', state_keys)
 
     assert len(ksr) == len(cs)
 
@@ -1458,22 +1453,3 @@ def test_acisfp_setpoint_state():
         '2018:294:22:29:00.000 2020:048:20:59:22.304          -121.0 acisfp_setpoint',
         '2020:048:20:59:22.304 2020:049:13:05:52.537          -126.0 acisfp_setpoint',
         '2020:049:13:05:52.537 2020:061:12:00:00.000          -121.0 acisfp_setpoint']
-
-
-def test_grating_motion_states():
-    sts = states.get_states('2021:227:12:00:00', '2021:230:12:00:00',
-                            state_keys=['letg', 'hetg', 'grating'])
-    del sts['tstart']
-    del sts['tstop']
-    exp = ['      datestart              datestop          letg      hetg   grating  trans_keys ',
-           '--------------------- --------------------- --------- --------- ------- ------------',
-           '2021:227:12:00:00.000 2021:227:23:06:03.276      RETR      RETR    NONE             ',
-           '2021:227:23:06:03.276 2021:227:23:08:40.276      RETR INSR_MOVE    HETG grating,hetg',
-           '2021:227:23:08:40.276 2021:228:08:15:00.722      RETR      INSR    HETG         hetg',
-           '2021:228:08:15:00.722 2021:228:08:17:33.722      RETR RETR_MOVE    NONE grating,hetg',
-           '2021:228:08:17:33.722 2021:229:17:41:45.525      RETR      RETR    NONE         hetg',
-           '2021:229:17:41:45.525 2021:229:17:45:08.525 INSR_MOVE      RETR    LETG grating,letg',
-           '2021:229:17:45:08.525 2021:230:00:37:56.002      INSR      RETR    LETG         letg',
-           '2021:230:00:37:56.002 2021:230:00:41:19.002 RETR_MOVE      RETR    NONE grating,letg',
-           '2021:230:00:41:19.002 2021:230:12:00:00.000      RETR      RETR    NONE         letg']
-    assert sts.pformat_all() == exp
