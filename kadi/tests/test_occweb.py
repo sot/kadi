@@ -1,4 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+from pathlib import Path
 import os
 import uuid
 
@@ -14,9 +15,6 @@ import Ska.File
 import pytest
 
 from kadi import occweb
-import pyyaks.logger
-
-logger = pyyaks.logger.get_logger()
 
 
 try:
@@ -97,3 +95,35 @@ def test_get_fdb_major_events():
 def test_get_fot_major_events():
     page = occweb.get_url('fot_major_events')
     assert 'ACA Dark Current Calibration' in page
+
+
+@pytest.mark.skipif('not HAS_OCCWEB')
+@pytest.mark.parametrize('str_or_Path', [str, Path])
+@pytest.mark.parametrize('cache', [False, 'update', True])
+def test_get_occweb_dir(str_or_Path, cache):
+    """Test get_occweb_dir and get_occweb_page (which is called in the process)"""
+    path = str_or_Path('FOT/mission_planning/PRODUCTS/APPR_LOADS/2000/MAR/')
+    url = f'https://occweb.cfa.harvard.edu/occweb/{path}'
+    files_path = occweb.get_occweb_dir(path, cache=cache)
+    files_url = occweb.get_occweb_dir(url, cache=cache)
+    exp = [
+        '      Name        Last modified   Size',
+        '---------------- ---------------- ----',
+        'Parent Directory               --    -',
+        '       MAR0500D/ 2002-04-30 13:38    -',
+        '       MAR1200D/ 2002-04-30 13:38    -',
+        '       MAR1900E/ 2004-03-18 13:44    -',
+        '       MAR2600C/ 2002-04-30 13:38    -']
+    assert files_path.pformat_all() == exp
+    assert files_url.pformat_all() == exp
+
+
+@pytest.mark.skipif('not HAS_OCCWEB')
+@pytest.mark.parametrize('cache', [False, 'update', True])
+def test_get_occweb_page_binary(cache):
+    """Test get_occweb_page binary"""
+    path = 'FOT/mission_planning/PRODUCTS/APPR_LOADS/2000/MAR/'
+    content_bytes = occweb.get_occweb_page(path, binary=True, cache=cache)
+    content_str = occweb.get_occweb_page(path, binary=False, cache=cache)
+
+    assert content_bytes.decode('utf-8') == content_str

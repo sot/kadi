@@ -1,4 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+import os
 import tables
 from pathlib import Path
 
@@ -111,6 +112,12 @@ def get_cmds(start=None, stop=None, inclusive_stop=False, **kwargs):
 
     :returns: :class:`~kadi.commands.commands.CommandTable` of commands
     """
+    # HACK for now! This selects the v2.0 commands archive.
+    if os.environ.get('KADI_CMDS_DIR') or os.environ.get('KADI_SCENARIO'):
+        from kadi.commands_archive import get_cmds as get_cmds_archive
+        print('**** GETTING COMMANDS using the new v2.0 archive ****')
+        return get_cmds_archive(start, stop)
+
     cmds = _find(start, stop, inclusive_stop, **kwargs)
     out = CommandTable(cmds)
     out['params'] = None if len(out) > 0 else Column([], dtype=object)
@@ -152,7 +159,7 @@ def get_cmds_from_backstop(backstop, remove_starcat=False):
     if isinstance(backstop, Path):
         backstop = str(backstop)
 
-    if isinstance(backstop, str):
+    if isinstance(backstop, (str, list)):
         from parse_cm import read_backstop
         bs = read_backstop(backstop)
     elif isinstance(backstop, Table):
@@ -428,3 +435,42 @@ class CommandTable(Table):
                     cmd['params'] = {key.upper(): val for key, val in cmd['params'].items()}
 
         return cmds_list
+
+    def pformat_like_backstop(self):
+        """Format the table in a human-readable format that is similar to backstop"""
+        lines = []
+        for cmd in self:
+            # Make a single string of params like POS= 75624, SCS= 130, STEP= 9
+            fmtvals = []
+            for key, val in cmd['params'].items():
+                if key == 'aoperige':
+                    fmt = '{}={:.13e}'
+                elif isinstance(val, float):
+                    fmt = '{}={:.8e}'
+                elif key == 'packet(40)':
+                    continue
+                elif (key.startswith('aopcads') or
+                      key.startswith('co')
+                      or key.startswith('afl')
+                      or key.startswith('2s1s')
+                      or key.startswith('2s2s')
+                      ):
+                    fmt = '{}={:d} '
+                else:
+                    fmt = '{}={}'
+                fmtvals.append(fmt.format(key, val))
+
+            if cmd['scs'] != 0:
+                fmtvals.append(f'scs={cmd["scs"]}')
+
+            params_str = ', '.join(fmtvals)
+
+            lines.append('{} | {:16s} | {:10s} | {:8s} | {}'.format(
+                cmd['date'], cmd['type'], cmd['tlmsid'], cmd['source'], params_str))
+
+        return lines
+
+    def pprint_like_backstop(self):
+        lines = self.pformat_like_backstop()
+        for line in lines:
+            print(line)
