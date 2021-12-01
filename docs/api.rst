@@ -26,3 +26,9 @@ Command states
 .. automodule:: kadi.commands.states
    :members:
    :show-inheritance:
+
+OCCweb access
+-------------
+
+.. automodule:: kadi.occweb
+   :members:

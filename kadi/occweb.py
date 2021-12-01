@@ -1,7 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
-Provide an interface for getting pages from the OCCweb.  For good measure leave
-this off of github.
+Provide an interface for getting pages from the OCCweb.
 """
 
 import re
@@ -36,7 +35,28 @@ URLS = {'fdb_major_events': '/occweb/web/fdb_web/Major_Events.html',
 logger = pyyaks.logger.get_logger(__name__)
 
 
+__all__ = ['get_auth', 'get_url', 'get_ifot', 'get_occweb_page',
+           'get_auth_http_headers', 'get_occweb_dir', 'ftp_put_to_lucky',
+           'ftp_get_from_lucky']
+
+
 def get_auth(username=None, password=None):
+    """Get OCCweb authentication credentials.
+
+    This takes credentials either from:
+
+    - Supplied ``username`` and ``password`` if both are given
+    - ``$SKA/data/aspect_authorization/occweb-<user>.cfg``
+    - ``~/.netrc``
+
+    :param username: str, optional
+        Username for OCCweb authentication
+    :param password: str, optional
+        Password for OCCweb authentication
+
+    :returns: tuple
+        (username, password)
+    """
     if username and password:
         return (username, password)
 
