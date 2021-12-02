@@ -46,7 +46,7 @@ def get_auth(username=None, password=None):
     This takes credentials either from:
 
     - Supplied ``username`` and ``password`` if both are given
-    - ``$SKA/data/aspect_authorization/occweb-<user>.cfg``
+    - ``$SKA/data/aspect_authorization/occweb-<username>.cfg``
     - ``~/.netrc``
 
     :param username: str, optional
