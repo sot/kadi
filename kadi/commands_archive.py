@@ -44,7 +44,7 @@ CMDS_DTYPE = [('idx', np.int32),
 
 # TODO: make it easier to set the log level (e.g. add a set_level method() to
 # logger object that sets all handlers to that level)
-logger = pyyaks.logger.get_logger('kadi')
+logger = pyyaks.logger.get_logger(name=__name__)
 
 
 def ska_load_dir(load_name):
