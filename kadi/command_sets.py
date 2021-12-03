@@ -7,21 +7,15 @@ import astropy.units as u
 from Quaternion import Quat
 from cxotime import CxoTime
 from parse_cm.common import _coerce_type as coerce_type
-from kadi.occweb import get_occweb_page
 
 RTS_PATH = Path('FOT/configuration/products/rts')
 
 
-def cmd_set_rts(date, name, *args):
-    from parse_cm.csd import rts_cmd_gen
+def cmd_set_rts(date, *args):
+    from parse_cm.csd import csd_cmd_gen
 
-    # parse params like NUM_HOURS=12
-    params = {}
-    for arg in args:
-        key, val = arg.split('=')
-        params[key.upper()] = coerce_type(val)
-    rts = get_occweb_page(RTS_PATH / f'{name}.RTS', cache=True)
-    cmds = rts_cmd_gen(rts, date=date, scs=135, **params)
+    rts = 'SCS_CATEGORY,OBSERVING\n' + ''.join(args).upper()
+    cmds = csd_cmd_gen(rts, date=date)
     return cmds
 
 
@@ -121,6 +115,10 @@ def cmd_set_nsm():
 
 
 def cmd_set_load_not_run(load_name):
+    return None
+
+
+def cmd_set_observing_not_run(load_name):
     return None
 
 
