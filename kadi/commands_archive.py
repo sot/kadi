@@ -18,6 +18,7 @@ from kadi import occweb
 from kadi import paths
 from cxotime import CxoTime
 import Ska.DBI
+import pyyaks.logger
 
 
 SKA = Path(os.environ['SKA'])
@@ -40,6 +41,10 @@ CMDS_DTYPE = [('idx', np.int32),
               ('step', np.uint16),
               ('source', '|S8'),
               ('vcdu', np.int32)]
+
+# TODO: make it easier to set the log level (e.g. add a set_level method() to
+# logger object that sets all handlers to that level)
+logger = pyyaks.logger.get_logger('kadi')
 
 
 def ska_load_dir(load_name):
@@ -184,7 +189,7 @@ def interrupt_load_commands(load, cmds):
         bad |= ((cmds['date'] > load['vehicle_stop'])
                 & (cmds['scs'] < 131))
     if np.any(bad):
-        print(f'Cutting {bad.sum()} commands from {load["name"]}')
+        logger.info(f'Cutting {bad.sum()} commands from {load["name"]}')
         cmds = cmds[~bad]
     return cmds
 
@@ -234,7 +239,7 @@ def get_cmds(start=None, stop=None, cmds_dir=None, scenario=None,
 
     bad = (loads['cmd_stop'] < start.date) | (loads['cmd_start'] > stop.date)
     loads = loads[~bad]
-    print(f'Including loads {", ".join(loads["name"])}')
+    logger.info(f'Including loads {", ".join(loads["name"])}')
 
     for load in loads:
         loads_backstop_path = paths.LOADS_BACKSTOP_PATH(cmds_dir, load['name'])
@@ -247,7 +252,7 @@ def get_cmds(start=None, stop=None, cmds_dir=None, scenario=None,
         # Load Events sheet).
         cmds = interrupt_load_commands(load, cmds)
         if len(cmds) > 0:
-            print(f'Load {load["name"]} has {len(cmds)} commands')
+            logger.info(f'Load {load["name"]} has {len(cmds)} commands')
             cmds_list.append(cmds)
             rltts.append(load['rltt'])
 
@@ -261,7 +266,7 @@ def get_cmds(start=None, stop=None, cmds_dir=None, scenario=None,
            | (cmd_events['Date'] > stop.date))
     cmd_events = cmd_events[~bad]
     cmd_events_ids = [evt['Event'] + '-' + evt['Date'][:8] for evt in cmd_events]
-    print(f'Including cmd_events {", ".join(cmd_events_ids)}')
+    logger.info(f'Including cmd_events {", ".join(cmd_events_ids)}')
 
     for cmd_event in cmd_events:
         cmds = get_cmds_from_event(
@@ -294,16 +299,15 @@ def get_cmds(start=None, stop=None, cmds_dir=None, scenario=None,
                 # See Boolean masks in
                 # https://occweb.cfa.harvard.edu/twiki/bin/view/Aspect/SkaPython#Ska_idioms_and_style
                 idx_rltt = np.searchsorted(prev_cmds['date'], rltt, side='right')
-                print(f'Removing {len(prev_cmds) - idx_rltt} cmds from {prev_cmds["source"][0]}')
+                logger.info(f'Removing {len(prev_cmds) - idx_rltt} '
+                            f'cmds from {prev_cmds["source"][0]}')
                 prev_cmds.remove_rows(slice(idx_rltt, None))
 
         if len(cmds) > 0:
-            print(f'Adding {len(cmds)} commands from {cmds["source"][0]}')
+            logger.info(f'Adding {len(cmds)} commands from {cmds["source"][0]}')
 
     out = vstack(cmds_list)
-    ok = ((out['type'] != 'LOAD_EVENT')
-          & (out['date'] >= start.date)
-          & (out['date'] < stop.date))
+    ok = (out['date'] >= start.date) & (out['date'] < stop.date)
     out = out[ok]
     out.sort(['date', 'step', 'scs'])
 
@@ -318,7 +322,7 @@ def update_cmd_events(*, cmds_dir=None, scenario=None):
 
     cmd_events_path = paths.CMD_EVENTS_PATH(cmds_dir, scenario)
     url = CMD_EVENTS_SHEET_URL
-    print(f'Getting cmd_events from {url}')
+    logger.info(f'Getting cmd_events from {url}')
     req = requests.get(url, timeout=30)
     if req.status_code != 200:
         raise ValueError(f'Failed to get cmd events sheet: {req.status_code}')
@@ -327,13 +331,13 @@ def update_cmd_events(*, cmds_dir=None, scenario=None):
     ok = cmd_events['Valid'] == 'Yes'
     cmd_events = cmd_events[ok]
     del cmd_events['Valid']
-    print(f'Writing {len(cmd_events)} cmd_events to {cmd_events_path}')
+    logger.info(f'Writing {len(cmd_events)} cmd_events to {cmd_events_path}')
     cmd_events.write(cmd_events_path, format='csv', overwrite=True)
 
 
 def get_cmd_events(cmds_dir=None, scenario=None):
     cmd_events_path = paths.CMD_EVENTS_PATH(cmds_dir, scenario)
-    print(f'Reading command events {cmd_events_path}')
+    logger.info(f'Reading command events {cmd_events_path}')
     cmd_events = Table.read(cmd_events_path, format='csv', fill_values=[])
     return cmd_events
 
@@ -353,15 +357,18 @@ def update_loads(cmds_dir=None, scenario=None, *, lookback=31, stop=None):
 
     cmd_events = get_cmd_events(cmds_dir, scenario)
 
+    # TODO for performance when we have decent testing:
+    # Read in the existing loads table and grab the RLTT and scheduled stop
+    # dates. Those are the only reason we need to read an existing set of
+    # commands that are already locally available, but they are fixed and cannot
+    # change. The only thing that might change is an interrupt time, e.g. if
+    # the SCS time gets updated.
+    # So maybe read in the loads table and make a dict of rltts and ssts keyed
+    # by load name and use those to avoid reading in the cmds table.
+    # For now just get things working reliably.
+
     loads_table_path = paths.LOADS_TABLE_PATH(cmds_dir, scenario)
-    if loads_table_path.exists():
-        # str() around Path not required for astropy 4.3+
-        loads_table = Table.read(str(loads_table_path), format='csv', guess=False)
-        load_names = set(loads_table['name'])
-        loads_table.add_index('name')
-    else:
-        loads_table = None
-        load_names = set()
+    loads_rows = []
 
     # Probably too complicated, but this bit of code generates a list of dates
     # that are guaranteed to sample all the months in the lookback period with
@@ -386,10 +393,7 @@ def update_loads(cmds_dir=None, scenario=None, *, lookback=31, stop=None):
         dirs_tried.add(dir_year_month)
 
         # Get directory listing for Year/Month
-        try:
-            contents = occweb.get_occweb_dir(dir_year_month)
-        except IOError:
-            continue
+        contents = occweb.get_occweb_dir(dir_year_month)
 
         # Find each valid load name in the directory listing and process:
         # - Find and download the backstop file
@@ -398,24 +402,14 @@ def update_loads(cmds_dir=None, scenario=None, *, lookback=31, stop=None):
         # - Add the load to the table
         for content in contents:
             if re.match(r'[A-Z]{3}\d{4}[A-Z]/', content['Name']):
-                load_name = content['Name'][:8]
-                # THIS IS GETTING in the way of cmd_events updates that impact
-                # the loads table. FIXME.
-                if load_name in load_names:
-                    continue
-                load_names.add(load_name)
-
-                cmds = download_backstop_and_save(cmds_dir, dir_year_month, load_name)
-
+                load_name = content['Name'][:8]  # chop the /
+                cmds = get_load_cmds_from_occweb_or_local(cmds_dir, dir_year_month, load_name)
                 load = get_load_dict_from_cmds(load_name, cmds, cmd_events)
-                if loads_table is None:
-                    loads_table = Table([load])
-                else:
-                    loads_table.add_row(load)
+                loads_rows.append(load)
 
     # Finally, save the table to file
-    # TODO: Consider checking if the table is any different from the last time
-    print(f'Saving {len(loads_table)} loads to {loads_table_path}')
+    loads_table = Table(loads_rows)
+    logger.info(f'Saving {len(loads_table)} loads to {loads_table_path}')
     loads_table.sort('cmd_start')
     loads_table.write(loads_table_path, format='csv', overwrite=True)
     loads_table.write(loads_table_path.with_suffix('.dat'), format='ascii.fixed_width',
@@ -438,7 +432,8 @@ def get_load_dict_from_cmds(load_name, cmds, cmd_events):
     else:
         raise ValueError(f'No RLTT found')
 
-    for cmd in cmds[::-1]:
+    for idx in range(len(cmds), 0, -1):
+        cmd = cmds[idx - 1]
         if (cmd['type'] == 'LOAD_EVENT'
                 and cmd['params']['event_type'] == 'SCHEDULED_STOP_TIME'):
             load['scheduled_stop_time'] = cmd['date']
@@ -454,28 +449,29 @@ def get_load_dict_from_cmds(load_name, cmds, cmd_events):
         if (cmd_event_date >= load['cmd_start']
                 and cmd_event_date <= load['cmd_stop']
                 and cmd_event['Event'] in ('SCS-107', 'NSM')):
-            print(f'{cmd_event["Event"]} at {cmd_event_date} found for {load_name}')
+            logger.info(f'{cmd_event["Event"]} at {cmd_event_date} found for {load_name}')
             load['observing_stop'] = cmd_event['Date']
             if cmd_event['Event'] == 'NSM':
                 load['vehicle_stop'] = cmd_event['Date']
 
         if cmd_event['Event'] == 'Load not run' and cmd_event['Params'] == load_name:
-            print(f'{cmd_event["Event"]} at {cmd_event_date} found for {load_name}')
+            logger.info(f'{cmd_event["Event"]} at {cmd_event_date} found for {load_name}')
             load['observing_stop'] = '1998:001'
             load['vehicle_stop'] = '1998:001'
 
         if cmd_event['Event'] == 'Observing not run' and cmd_event['Params'] == load_name:
-            print(f'{cmd_event["Event"]} at {cmd_event_date} found for {load_name}')
+            logger.info(f'{cmd_event["Event"]} at {cmd_event_date} found for {load_name}')
             load['observing_stop'] = '1998:001'
 
     return load
 
 
-def download_backstop_and_save(cmds_dir, dir_year_month, load_name):
-    """Download the backstop file for ``load_name`` within ``dir_year_month``
+def get_load_cmds_from_occweb_or_local(cmds_dir, dir_year_month, load_name):
+    """Get the load cmds (backstop) for ``load_name`` within ``dir_year_month``
 
-    The backstop file is parsed and saved as a gzipped pickle file of the
-    corresponding CommandTable object.
+    If the backstop file is already available locally, use that. Otherwise, the
+    file is downloaded from OCCweb and is then parsed and saved as a gzipped
+    pickle file of the corresponding CommandTable object.
 
     :param cmds_dir: str, Path, None
         Directory where the backstop files are saved.
@@ -486,26 +482,24 @@ def download_backstop_and_save(cmds_dir, dir_year_month, load_name):
     :returns: CommandTable
         Backstop commands for the load.
     """
-    print(f'Found {load_name}')
+    # Determine output file name and make directory if necessary.
+    loads_dir = paths.LOADS_ARCHIVE_DIR(cmds_dir, load_name)
+    loads_dir.mkdir(parents=True, exist_ok=True)
+    cmds_filename = loads_dir / f'{load_name}.pkl.gz'
+
+    # If the output file already exists, read the commands and return them.
+    if cmds_filename.exists():
+        logger.info(f'Already have {cmds_filename}')
+        with gzip.open(cmds_filename, 'rb') as fh:
+            cmds = pickle.load(fh)
+        return cmds
+
     load_dir_contents = occweb.get_occweb_dir(dir_year_month / load_name)
-
-    cmds = None
-
     for filename in load_dir_contents['Name']:
         if re.match(r'CR\d{3}_\d{4}\.backstop', filename):
-            # Determine output file name and make directory if necessary.
-            # If the output file already exists, skip this load.
-            loads_dir = paths.LOADS_ARCHIVE_DIR(cmds_dir, load_name)
-            loads_dir.mkdir(parents=True, exist_ok=True)
-            cmds_filename = loads_dir / f'{load_name}.pkl.gz'
-            if cmds_filename.exists():
-                print(f'Already have {cmds_filename}')
-                with gzip.open(cmds_filename, 'rb') as fh:
-                    cmds = pickle.load(fh)
-                break
 
             # Download the backstop file from OCCweb
-            print(f'Getting {dir_year_month / load_name / filename}')
+            logger.info(f'Getting {dir_year_month / load_name / filename}')
             backstop_text = occweb.get_occweb_page(dir_year_month / load_name / filename,
                                                    cache=True)
             backstop_lines = backstop_text.splitlines()
@@ -516,12 +510,9 @@ def download_backstop_and_save(cmds_dir, dir_year_month, load_name):
             cmds.add_column(load_name, index=idx, name='source')
             del cmds['timeline_id']
 
-            print(f'Saving {cmds_filename}')
+            logger.info(f'Saving {cmds_filename}')
             with gzip.open(cmds_filename, 'wb') as fh:
                 pickle.dump(cmds, fh)
-            break
-
-    if cmds is None:
+            return cmds
+    else:
         raise ValueError(f'Could not find backstop file in {dir_year_month / load_name}')
-
-    return cmds
