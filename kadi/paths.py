@@ -3,6 +3,11 @@ import os
 from pathlib import Path
 
 
+def _version_str(version):
+    """Legacy version string"""
+    return '' if version is None else f'_v{version}'
+
+
 def SKA_DATA():
     return Path(os.environ.get('SKA', '/proj/sot/ska'), 'data/kadi')
 
@@ -15,12 +20,14 @@ def EVENTS_DB_PATH():
     return DATA_DIR() / 'events3.db3'
 
 
-def IDX_CMDS_PATH():
-    return DATA_DIR() / 'cmds.h5'
+def IDX_CMDS_PATH(version=None):
+    version = _version_str(version)
+    return DATA_DIR() / f'cmds{version}.h5'
 
 
-def PARS_DICT_PATH():
-    return DATA_DIR() / 'cmds.pkl'
+def PARS_DICT_PATH(version=None):
+    version = _version_str(version)
+    return DATA_DIR() / f'cmds{version}.pkl'
 
 
 def CMDS_DIR(cmds_dir=None):

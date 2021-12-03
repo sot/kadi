@@ -6,6 +6,7 @@ import re
 import gzip
 import pickle
 import itertools
+import functools
 
 import numpy as np
 from astropy.table import Table, vstack
@@ -13,16 +14,12 @@ import astropy.units as u
 import requests
 
 from kadi.commands import get_cmds_from_backstop
+from kadi.commands.commands import load_idx_cmds, load_pars_dict, LazyVal
 from kadi.command_sets import get_cmds_from_event
 from kadi import occweb
 from kadi import paths
 from cxotime import CxoTime
-import Ska.DBI
 import pyyaks.logger
-
-
-SKA = Path(os.environ['SKA'])
-CMD_STATES_PATH = SKA / 'data' / 'cmd_states' / 'cmd_states.db3'
 
 
 APPROVED_LOADS_OCCWEB_DIR = 'FOT/mission_planning/PRODUCTS/APPR_LOADS'
@@ -30,8 +27,6 @@ APPROVED_LOADS_OCCWEB_DIR = 'FOT/mission_planning/PRODUCTS/APPR_LOADS'
 # https://docs.google.com/spreadsheets/d/<document_id>/export?format=csv&gid=<sheet_id>
 CMD_EVENTS_SHEET_ID = '19d6XqBhWoFjC-z1lS1nM6wLE_zjr4GYB1lOvrEGCbKQ'
 CMD_EVENTS_SHEET_URL = f'https://docs.google.com/spreadsheets/d/{CMD_EVENTS_SHEET_ID}/export?format=csv'  # noqa
-
-RLTT_ERA_START = 'APR1420A'
 
 CMDS_DTYPE = [('idx', np.int32),
               ('date', '|S21'),
@@ -47,136 +42,9 @@ CMDS_DTYPE = [('idx', np.int32),
 logger = pyyaks.logger.get_logger(name=__name__)
 
 
-def ska_load_dir(load_name):
-    root = SKA / 'data' / 'mpcrit1' / 'mplogs'
-    year = load_name[5:7]
-    if year == '99':
-        year = 1999
-    else:
-        year = 2000 + int(year)
-    load_rev = load_name[-1].lower()
-    load_dir = load_name[:-1]
-    load_dir = root / str(year) / load_dir / f'ofls{load_rev}'
-    return load_dir
-
-
-# CSV table file with column names in the first row and data in subsequent rows.
-#
-# - load_name: name of load products containing this load segment (e.g. "MAY2217B")
-# - cmd_start: time of first command in load segment
-# - cmd_stop: time of last command in load segment
-# - rltt: running load termination time (terminates previous running loads).
-# - schedule_stop_observing: activity end time for loads (propagation goes to this point).
-# - schedule_stop_vehicle: activity end time for loads (propagation goes to this point).
-# - ~~approval_date: load approval date proxy using time-stamp of backstop file.~~
-#
-
-
-def get_loads_from_timelines(min_date=None):
-    """Migrate the timelines and load_segments into a list of load dicts"""
-    with Ska.DBI.DBI(dbi='sqlite', server=str(CMD_STATES_PATH)) as db:
-        timelines = db.fetchall("""SELECT * from timelines""")
-        load_segs = db.fetchall("""SELECT * from load_segments""")
-    load_segs = Table(load_segs)
-    load_segs.add_index('id')
-    timelines = Table(timelines)
-
-    # First assemble loads by load name
-    loads = {}
-    for timeline in timelines:
-        if min_date is not None and timeline['datestart'] < min_date:
-            continue
-
-        # dir looks like /2002/JAN0702/oflsd/
-        name = timeline['dir'][6:13] + timeline['dir'][-2].upper()
-        loads.setdefault(name, {'timeline_start': '2099:001:00:00:00.000',
-                                'observing_stop': '1999:001:00:00:00.000',
-                                'vehicle_stop': '1999:001:00:00:000'})
-        load = loads[name]
-
-        load_seg = load_segs.loc[timeline['load_segment_id']]
-        is_observing = load_seg['load_scs'] > 130
-
-        # Set timeline_start as the min of the timeline start times and likewise
-        # observing/vehicle stop as the max of the timeline stop times.
-        if timeline['datestart'] < load['timeline_start']:
-            load['timeline_start'] = timeline['datestart']
-        if is_observing and timeline['datestop'] > load['observing_stop']:
-            load['observing_stop'] = timeline['datestop']
-        elif not is_observing and timeline['datestop'] > load['vehicle_stop']:
-            load['vehicle_stop'] = timeline['datestop']
-
-    # Turn the dict of loads into a list of loads sorted by start time
-    out_loads = []
-    for name in sorted(loads, key=lambda x: loads[x]['timeline_start']):
-        load = loads[name]
-        load['name'] = name
-        del load['timeline_start']  # Not relevant (cmd_start is what matters)
-        out_loads.append(loads[name])
-
-    if min_date is not None:
-        # First load may be incomplete when filtering on min_date, so remove it
-        out_loads = out_loads[1:]
-
-    return out_loads
-
-
-def get_backstop_cmds_from_load_legacy(load):
-    """This also updates the load cmd_start and cmd_stop as a side effect."""
-    # THIS WILL BE MADE FASTER by using pre-generated gzipped CommandTable files
-    load_name = load if isinstance(load, str) else load['name']
-    load_dir = ska_load_dir(load_name)
-    backstop_files = list(load_dir.glob('CR*.backstop'))
-    if len(backstop_files) != 1:
-        raise ValueError(f'Expected 1 backstop file for {load_name}')
-    bs = get_cmds_from_backstop(backstop_files[0], remove_starcat=True)
-    return bs
-
-
-def fix_load_based_on_backstop_legacy(load, bs):
-    # Get the first and last cmds for the load which are not the RLTT and
-    # scheduled_stop pseudo-cmds.
-    for cmd in bs:
-        if cmd['type'] != 'LOAD_EVENT':
-            load['cmd_start'] = cmd['date']
-            break
-    for cmd in bs[::-1]:
-        if cmd['type'] != 'LOAD_EVENT':
-            load['cmd_stop'] = cmd['date']
-            break
-    for cmd in bs:
-        if (cmd['type'] == 'LOAD_EVENT'
-                and cmd['params']['event_type'] == 'RUNNING_LOAD_TERMINATION_TIME'):
-            load['rltt'] = cmd['date']
-            break
-    for cmd in bs[::-1]:
-        if (cmd['type'] == 'LOAD_EVENT'
-                and cmd['params']['event_type'] == 'SCHEDULED_STOP_TIME'):
-            load['scheduled_stop_time'] = cmd['date']
-            break
-
-    if load['observing_stop'] == load['cmd_stop']:
-        del load['observing_stop']
-    if load['vehicle_stop'] == load['cmd_stop']:
-        del load['vehicle_stop']
-
-
-def get_backstop_cmds_from_loads_legacy(loads):
-    """Get all the commands using LEGACY products, specifically loads includes
-    interrupt times from legacy timelines.
-    """
-    bs_list = []
-    for load in loads:
-        bs = get_backstop_cmds_from_load_legacy(load)
-        fix_load_based_on_backstop_legacy(load, bs)
-
-        bs = interrupt_load_commands_legacy(load, bs)
-
-        bs_list.append(bs)
-
-    bs_cmds = vstack(bs_list)
-    bs_cmds.sort(['date', 'step', 'scs'])
-    return bs_cmds
+IDX_CMDS = LazyVal(functools.partial(load_idx_cmds, version=2))
+PARS_DICT = LazyVal(functools.partial(load_pars_dict, version=2))
+REV_PARS_DICT = LazyVal(lambda: {v: k for k, v in PARS_DICT.items()})
 
 
 def interrupt_load_commands(load, cmds):
@@ -190,20 +58,6 @@ def interrupt_load_commands(load, cmds):
                 & (cmds['scs'] < 131))
     if np.any(bad):
         logger.info(f'Cutting {bad.sum()} commands from {load["name"]}')
-        cmds = cmds[~bad]
-    return cmds
-
-
-def interrupt_load_commands_legacy(load, cmds):
-    # Cut commands beyond stop times
-    bad = np.zeros(len(cmds), dtype=bool)
-    if 'observing_stop' in load:
-        bad |= ((cmds['date'] > load['observing_stop'])
-                & (cmds['scs'] > 130))
-    if 'vehicle_stop' in load:
-        bad |= ((cmds['date'] > load['vehicle_stop'])
-                & (cmds['scs'] < 131))
-    if np.any(bad):
         cmds = cmds[~bad]
     return cmds
 
@@ -349,7 +203,17 @@ def get_loads(cmds_dir=None, scenario=None):
 
 
 def update_loads(cmds_dir=None, scenario=None, *, lookback=31, stop=None):
-    """Update or create loads.csv and loads/ archive though ``lookback`` days"""
+    """Update or create loads.csv and loads/ archive though ``lookback`` days
+
+    CSV table file with column names in the first row and data in subsequent rows.
+
+    - load_name: name of load products containing this load segment (e.g. "MAY2217B")
+    - cmd_start: time of first command in load segment
+    - cmd_stop: time of last command in load segment
+    - rltt: running load termination time (terminates previous running loads).
+    - schedule_stop_observing: activity end time for loads (propagation goes to this point).
+    - schedule_stop_vehicle: activity end time for loads (propagation goes to this point).
+    """
     if scenario is not None:
         # Ensure the scenario directory exists
         scenario_dir = paths.SCENARIO_DIR(scenario)

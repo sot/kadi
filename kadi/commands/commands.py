@@ -10,7 +10,7 @@ from astropy.table import Table, Row, Column, vstack
 from Chandra.Time import DateTime, date2secs
 import pickle
 
-from ..paths import IDX_CMDS_PATH, PARS_DICT_PATH
+from kadi.paths import IDX_CMDS_PATH, PARS_DICT_PATH
 
 __all__ = ['get_cmds', 'read_backstop', 'get_cmds_from_backstop', 'CommandTable']
 
@@ -45,7 +45,7 @@ class LazyVal(object):
 
 
 @retry.retry(tries=4, delay=0.5, backoff=4)
-def load_idx_cmds():
+def load_idx_cmds(version=None):
     """Load the cmds.h5 file, trying up to 3 times
 
     It seems that one can occasionally get:
@@ -56,15 +56,15 @@ tables.exceptions.HDF5ExtError: HDF5 error back trace
     File "H5FDsec2.c", line 941, in H5FD_sec2_lock
     unable to lock file, errno = 11, error message = 'Resource temporarily unavailable'
     """
-    with tables.open_file(IDX_CMDS_PATH(), mode='r') as h5:
+    with tables.open_file(IDX_CMDS_PATH(version), mode='r') as h5:
         idx_cmds = Table(h5.root.data[:])
 
     return idx_cmds
 
 
 @retry.retry(tries=4, delay=0.5, backoff=4)
-def load_pars_dict():
-    with open(PARS_DICT_PATH(), 'rb') as fh:
+def load_pars_dict(version=None):
+    with open(PARS_DICT_PATH(version), 'rb') as fh:
         pars_dict = pickle.load(fh, encoding='ascii')
     return pars_dict
 
@@ -113,10 +113,10 @@ def get_cmds(start=None, stop=None, inclusive_stop=False, **kwargs):
     :returns: :class:`~kadi.commands.commands.CommandTable` of commands
     """
     # HACK for now! This selects the v2.0 commands archive.
-    if os.environ.get('KADI_CMDS_DIR') or os.environ.get('KADI_SCENARIO'):
-        from kadi.commands_archive import get_cmds as get_cmds_archive
+    if os.environ.get('KADI_COMMANDS_VERSION') == '2':
+        from kadi.commands.commands_v2 import get_cmds as get_cmds_v2
         print('**** GETTING COMMANDS using the new v2.0 archive ****')
-        return get_cmds_archive(start, stop)
+        return get_cmds_v2(start, stop)
 
     cmds = _find(start, stop, inclusive_stop, **kwargs)
     out = CommandTable(cmds)
