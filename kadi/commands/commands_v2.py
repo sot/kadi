@@ -22,6 +22,15 @@ from cxotime import CxoTime
 import pyyaks.logger
 
 
+# TODO configuration options:
+# - cache loads (backstop) downloads from OCCweb (useful for development but
+#   likely to just take disk space for users)
+# - commands_dir ?
+# - commands_version (v1, v2)
+# - default_lookback_time
+# - update_from_network (default True)
+# - remove_old_loads (default True) Remove older loads from local directory.
+
 APPROVED_LOADS_OCCWEB_DIR = 'FOT/mission_planning/PRODUCTS/APPR_LOADS'
 
 # https://docs.google.com/spreadsheets/d/<document_id>/export?format=csv&gid=<sheet_id>
@@ -50,6 +59,21 @@ REV_PARS_DICT = LazyVal(lambda: {v: k for k, v in PARS_DICT.items()})
 
 # Cache of recent commands keyed by scenario
 CMDS_RECENT = {}
+
+
+def load_name_to_cxotime(name):
+    """Convert load name to date"""
+    mon = name[:3].capitalize()
+    imon = list(calendar.month_abbr).index(mon)
+    day = name[3:5]
+    yr = name[5:7]
+    if int(yr) > 50:
+        year = f'19{yr}'
+    else:
+        year = f'20{yr}'
+    out = CxoTime(f'{year}-{imon:02d}-{day}')
+    out.format = 'date'
+    return out
 
 
 def interrupt_load_commands(load, cmds):
@@ -282,8 +306,11 @@ def update_loads(scenario=None, *, cmd_events=None, lookback=31, stop=None):
     # that are guaranteed to sample all the months in the lookback period with
     # two weeks of margin on the tail end.
     dt = 14 * u.day
+    if stop is None:
+        stop = CxoTime.now() + dt
+    else:
+        stop = CxoTime(stop)
     start = CxoTime(stop) - lookback * u.day
-    stop = CxoTime(stop) + dt
     n_sample = int(np.ceil((stop - start) / dt))
     dates = start + np.arange(n_sample + 1) * (stop - start) / n_sample
     dirs_tried = set()
@@ -311,9 +338,11 @@ def update_loads(scenario=None, *, cmd_events=None, lookback=31, stop=None):
         for content in contents:
             if re.match(r'[A-Z]{3}\d{4}[A-Z]/', content['Name']):
                 load_name = content['Name'][:8]  # chop the /
-                cmds = get_load_cmds_from_occweb_or_local(dir_year_month, load_name)
-                load = get_load_dict_from_cmds(load_name, cmds, cmd_events)
-                loads_rows.append(load)
+                load_date = load_name_to_cxotime(load_name)
+                if load_date >= start and load_date <= stop:
+                    cmds = get_load_cmds_from_occweb_or_local(dir_year_month, load_name)
+                    load = get_load_dict_from_cmds(load_name, cmds, cmd_events)
+                    loads_rows.append(load)
 
     # Finally, save the table to file
     loads_table = Table(loads_rows)
@@ -322,7 +351,19 @@ def update_loads(scenario=None, *, cmd_events=None, lookback=31, stop=None):
     loads_table.write(loads_table_path, format='csv', overwrite=True)
     loads_table.write(loads_table_path.with_suffix('.dat'), format='ascii.fixed_width',
                       overwrite=True)
+
+    clean_loads_dir(loads_table)
+
     return loads_table
+
+
+def clean_loads_dir(loads):
+    """Remove load-like files from loads directory if not in ``loads``"""
+    for file in Path(paths.LOADS_ARCHIVE_DIR()).glob('*.pkl.gz'):
+        if (re.match(r'[A-Z]{3}\d{4}[A-Z]\.pkl\.gz', file.name)
+                and file.name[:8] not in loads['name']):
+            logger.info(f'Removing load file {file}')
+            file.unlink()
 
 
 def get_load_dict_from_cmds(load_name, cmds, cmd_events):
@@ -390,7 +431,7 @@ def get_load_cmds_from_occweb_or_local(dir_year_month, load_name):
         Backstop commands for the load.
     """
     # Determine output file name and make directory if necessary.
-    loads_dir = paths.LOADS_ARCHIVE_DIR(load_name)
+    loads_dir = paths.LOADS_ARCHIVE_DIR()
     loads_dir.mkdir(parents=True, exist_ok=True)
     cmds_filename = loads_dir / f'{load_name}.pkl.gz'
 

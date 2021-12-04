@@ -39,15 +39,8 @@ def CMDS_DIR():
     return cmds_dir.absolute()
 
 
-def LOADS_ARCHIVE_DIR(load_name=None):
+def LOADS_ARCHIVE_DIR():
     out = CMDS_DIR() / 'loads'
-    if load_name is not None:
-        year = load_name[5:7]
-        if year == '99':
-            year = '1999'
-        else:
-            year = f'20{year}'
-        out = out / year
     return out
 
 
