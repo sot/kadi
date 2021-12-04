@@ -6,6 +6,7 @@ import gzip
 import pickle
 import itertools
 import functools
+import operator
 
 import numpy as np
 from astropy.table import Table, vstack
@@ -47,6 +48,9 @@ IDX_CMDS = LazyVal(functools.partial(load_idx_cmds, version=2))
 PARS_DICT = LazyVal(functools.partial(load_pars_dict, version=2))
 REV_PARS_DICT = LazyVal(lambda: {v: k for k, v in PARS_DICT.items()})
 
+# Cache of recent commands keyed by scenario
+CMDS_RECENT = {}
+
 
 def interrupt_load_commands(load, cmds):
     # Cut commands beyond stop times
@@ -63,6 +67,28 @@ def interrupt_load_commands(load, cmds):
     return cmds
 
 
+def merge_cmds_archive_recent(cmds_recent, start):
+    idx0 = np.searchsorted(IDX_CMDS['date'], start.date)
+    cmds_arch = IDX_CMDS[idx0:]
+    key_names = ('date', 'type', 'tlmsid', 'scs', 'step', 'vcdu')
+    idx1 = np.searchsorted(cmds_arch['date'], cmds_recent['date'][0])
+    while True:
+        for ii in range(5):
+            if not np.all(cmds_arch[name][idx1 + ii] == cmds_recent[name][ii]
+                          for name in key_names):
+                break  # row didn't match, break from "for ii" loop, try next row
+        else:
+            break  # all 5 rows matched, break from "while True"
+
+        idx1 += 1
+        if cmds_arch['date'][idx1] != cmds_recent['date'][0]:
+            raise ValueError(f'No matching commands block in archive found for recent_commands:\n'
+                             f'{cmds_recent[:5]}')
+
+    cmds = vstack([cmds_arch[:idx1], cmds_recent])
+    return cmds
+
+
 def get_cmds(start=None, stop=None, inclusive_stop=False, scenario=None):
     """Get commands using loads table, relying entirely on RLTT.
 
@@ -72,43 +98,47 @@ def get_cmds(start=None, stop=None, inclusive_stop=False, scenario=None):
         Stop time for cmds
     :param scenario: str, None
         Scenario name
-    :param loads: Table, None
-        Loads table (read from file if None)
-    :param cmd_events: Table, None
-        Command events table (read from file if None)
+    :param inclusive_stop: bool
+        Include commands at exactly ``stop`` if True.
     :returns: CommandTable
     """
-    cmds_recent = get_cmds_recent(start, stop, inclusive_stop, scenario)
-    return cmds_recent
+    if scenario not in CMDS_RECENT:
+        cmds_recent = get_cmds_recent(scenario)
+        CMDS_RECENT[scenario] = cmds_recent
+    else:
+        cmds_recent = CMDS_RECENT[scenario]
+
+    start = CxoTime(start or '1999:001')
+    stop = CxoTime(stop or '2099:001')
+
+    if start < CxoTime(cmds_recent['date'][0]) + 1 * u.day:
+        cmds = merge_cmds_archive_recent(cmds_recent, start)
+    else:
+        cmds = cmds_recent
+
+    idx0 = np.searchsorted(cmds['date'], start.date)
+    idx1 = np.searchsorted(cmds['date'], stop.date,
+                           side=('right' if inclusive_stop else 'left'))
+    cmds = cmds[idx0:idx1]
+
+    return cmds
 
 
-def get_cmds_recent(start=None, stop=None, inclusive_stop=False, scenario=None):
+def get_cmds_recent(scenario=None):
     """Get commands using loads table, relying entirely on RLTT.
 
-    :param start: CxoTime-like
-        Start time for cmds
-    :param stop: CxoTime-like
-        Stop time for cmds
     :param scenario: str, None
         Scenario name
-    :param loads: Table, None
-        Loads table (read from file if None)
-    :param cmd_events: Table, None
-        Command events table (read from file if None)
+
     :returns: CommandTable
     """
     cmds_list = []  # List of CommandTable objects from loads and cmd_events
     rltts = []  # Corresponding list of RLTTs, where cmd_events use None for RLTT
 
-    # Start and stop filters, using lexical string comparisons
-    start = CxoTime('1999:001') if start is None else CxoTime(start)
-    stop = CxoTime('2099:001') if stop is None else CxoTime(stop)
+    # Update loads from OCCweb
+    cmd_events = update_cmd_events(scenario)
+    loads = update_loads(scenario, cmd_events=cmd_events)
 
-    # First get command tables from each applicable load set
-    loads = get_loads(scenario=scenario)
-
-    bad = (loads['cmd_stop'] < start.date) | (loads['cmd_start'] > stop.date)
-    loads = loads[~bad]
     logger.info(f'Including loads {", ".join(loads["name"])}')
 
     for load in loads:
@@ -118,19 +148,18 @@ def get_cmds_recent(start=None, stop=None, inclusive_stop=False, scenario=None):
 
         # Apply load interrupts (SCS-107, NSM) from the loads table to this
         # command load. This assumes that loads.csv has been updated
-        # appropriately from load_events.csv (which might have come from the
-        # Load Events sheet).
+        # appropriately from cmd_events.csv (which might have come from the
+        # Command Events sheet).
         cmds = interrupt_load_commands(load, cmds)
         if len(cmds) > 0:
             logger.info(f'Load {load["name"]} has {len(cmds)} commands')
             cmds_list.append(cmds)
             rltts.append(load['rltt'])
 
-    # Second get command tables from each event in cmd_events
-    cmd_events = get_cmd_events(scenario)
-
     # Filter events outside the time interval, assuming command event cannot
     # last more than 2 weeks.
+    start = CxoTime(min(loads['cmd_start']))
+    stop = CxoTime(max(loads['cmd_stop']))
     bad = ((cmd_events['Date'] < (start - 14 * u.day).date)
            | (cmd_events['Date'] > stop.date))
     cmd_events = cmd_events[~bad]
@@ -176,14 +205,12 @@ def get_cmds_recent(start=None, stop=None, inclusive_stop=False, scenario=None):
             logger.info(f'Adding {len(cmds)} commands from {cmds["source"][0]}')
 
     out = vstack(cmds_list)
-    ok = (out['date'] >= start.date) & (out['date'] < stop.date)
-    out = out[ok]
     out.sort(['date', 'step', 'scs'])
 
     return out
 
 
-def update_cmd_events(*, scenario=None):
+def update_cmd_events(scenario=None):
     if scenario is not None:
         # Ensure the scenario directory exists
         scenario_dir = paths.SCENARIO_DIR(scenario)
@@ -202,6 +229,7 @@ def update_cmd_events(*, scenario=None):
     del cmd_events['Valid']
     logger.info(f'Writing {len(cmd_events)} cmd_events to {cmd_events_path}')
     cmd_events.write(cmd_events_path, format='csv', overwrite=True)
+    return cmd_events
 
 
 def get_cmd_events(scenario=None):
@@ -217,7 +245,7 @@ def get_loads(scenario=None):
     return loads
 
 
-def update_loads(scenario=None, *, lookback=31, stop=None):
+def update_loads(scenario=None, *, cmd_events=None, lookback=31, stop=None):
     """Update or create loads.csv and loads/ archive though ``lookback`` days
 
     CSV table file with column names in the first row and data in subsequent rows.
@@ -234,7 +262,8 @@ def update_loads(scenario=None, *, lookback=31, stop=None):
         scenario_dir = paths.SCENARIO_DIR(scenario)
         scenario_dir.mkdir(parents=True, exist_ok=True)
 
-    cmd_events = get_cmd_events(scenario)
+    if cmd_events is None:
+        cmd_events = get_cmd_events(scenario)
 
     # TODO for performance when we have decent testing:
     # Read in the existing loads table and grab the RLTT and scheduled stop
@@ -251,10 +280,10 @@ def update_loads(scenario=None, *, lookback=31, stop=None):
 
     # Probably too complicated, but this bit of code generates a list of dates
     # that are guaranteed to sample all the months in the lookback period with
-    # two weeks of margin on either side.
+    # two weeks of margin on the tail end.
     dt = 14 * u.day
+    start = CxoTime(stop) - lookback * u.day
     stop = CxoTime(stop) + dt
-    start = stop - lookback * u.day - dt
     n_sample = int(np.ceil((stop - start) / dt))
     dates = start + np.arange(n_sample + 1) * (stop - start) / n_sample
     dirs_tried = set()
@@ -293,6 +322,7 @@ def update_loads(scenario=None, *, lookback=31, stop=None):
     loads_table.write(loads_table_path, format='csv', overwrite=True)
     loads_table.write(loads_table_path.with_suffix('.dat'), format='ascii.fixed_width',
                       overwrite=True)
+    return loads_table
 
 
 def get_load_dict_from_cmds(load_name, cmds, cmd_events):
