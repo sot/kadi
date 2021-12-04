@@ -30,20 +30,17 @@ def PARS_DICT_PATH(version=None):
     return DATA_DIR() / f'cmds{version}.pkl'
 
 
-def CMDS_DIR(cmds_dir=None):
-    if cmds_dir is None:
-        if 'KADI_CMDS_DIR' in os.environ:
-            cmds_dir = Path(os.environ['KADI_CMDS_DIR'])
-        else:
-            cmds_dir = Path('.')  # DATA_DIR() ?
+def CMDS_DIR():
+    if 'KADI_CMDS_DIR' in os.environ:
+        cmds_dir = Path(os.environ['KADI_CMDS_DIR'])
     else:
-        cmds_dir = Path(cmds_dir)
+        cmds_dir = Path('.')  # DATA_DIR() ?
 
     return cmds_dir.absolute()
 
 
-def LOADS_ARCHIVE_DIR(cmds_dir=None, load_name=None):
-    out = CMDS_DIR(cmds_dir) / 'loads'
+def LOADS_ARCHIVE_DIR(load_name=None):
+    out = CMDS_DIR() / 'loads'
     if load_name is not None:
         year = load_name[5:7]
         if year == '99':
@@ -54,13 +51,13 @@ def LOADS_ARCHIVE_DIR(cmds_dir=None, load_name=None):
     return out
 
 
-def LOADS_BACKSTOP_PATH(cmds_dir=None, load_name=None):
-    out = LOADS_ARCHIVE_DIR(cmds_dir, load_name) / f'{load_name}.pkl.gz'
+def LOADS_BACKSTOP_PATH(load_name=None):
+    out = LOADS_ARCHIVE_DIR(load_name) / f'{load_name}.pkl.gz'
     return out
 
 
-def SCENARIO_DIR(cmds_dir=None, scenario=None):
-    scenario_dir = CMDS_DIR(cmds_dir)
+def SCENARIO_DIR(scenario=None):
+    scenario_dir = CMDS_DIR()
     if scenario is None:
         scenario = os.environ.get('KADI_SCENARIO')
     if scenario:
@@ -68,9 +65,9 @@ def SCENARIO_DIR(cmds_dir=None, scenario=None):
     return scenario_dir
 
 
-def LOADS_TABLE_PATH(cmds_dir=None, scenario=None):
-    return SCENARIO_DIR(cmds_dir, scenario) / 'loads.csv'
+def LOADS_TABLE_PATH(scenario=None):
+    return SCENARIO_DIR(scenario) / 'loads.csv'
 
 
-def CMD_EVENTS_PATH(cmds_dir=None, scenario=None):
-    return SCENARIO_DIR(cmds_dir, scenario) / 'cmd_events.csv'
+def CMD_EVENTS_PATH(scenario=None):
+    return SCENARIO_DIR(scenario) / 'cmd_events.csv'

@@ -41,6 +41,8 @@ CMDS_DTYPE = [('idx', np.int32),
 logger = pyyaks.logger.get_logger(name=__name__)
 
 
+# Cached values of the full mission commands archive (cmds_v2.h5, cmds_v2.pkl).
+# These are loaded on demand.
 IDX_CMDS = LazyVal(functools.partial(load_idx_cmds, version=2))
 PARS_DICT = LazyVal(functools.partial(load_pars_dict, version=2))
 REV_PARS_DICT = LazyVal(lambda: {v: k for k, v in PARS_DICT.items()})
@@ -61,15 +63,32 @@ def interrupt_load_commands(load, cmds):
     return cmds
 
 
-def get_cmds(start=None, stop=None, inclusive_stop=False, cmds_dir=None, scenario=None):
+def get_cmds(start=None, stop=None, inclusive_stop=False, scenario=None):
     """Get commands using loads table, relying entirely on RLTT.
 
     :param start: CxoTime-like
         Start time for cmds
     :param stop: CxoTime-like
         Stop time for cmds
-    :param cmds_dir: str, Path, None
-        Commands directory
+    :param scenario: str, None
+        Scenario name
+    :param loads: Table, None
+        Loads table (read from file if None)
+    :param cmd_events: Table, None
+        Command events table (read from file if None)
+    :returns: CommandTable
+    """
+    cmds_recent = get_cmds_recent(start, stop, inclusive_stop, scenario)
+    return cmds_recent
+
+
+def get_cmds_recent(start=None, stop=None, inclusive_stop=False, scenario=None):
+    """Get commands using loads table, relying entirely on RLTT.
+
+    :param start: CxoTime-like
+        Start time for cmds
+    :param stop: CxoTime-like
+        Stop time for cmds
     :param scenario: str, None
         Scenario name
     :param loads: Table, None
@@ -93,7 +112,7 @@ def get_cmds(start=None, stop=None, inclusive_stop=False, cmds_dir=None, scenari
     logger.info(f'Including loads {", ".join(loads["name"])}')
 
     for load in loads:
-        loads_backstop_path = paths.LOADS_BACKSTOP_PATH(cmds_dir, load['name'])
+        loads_backstop_path = paths.LOADS_BACKSTOP_PATH(load['name'])
         with gzip.open(loads_backstop_path, 'rb') as fh:
             cmds = pickle.load(fh)
 
@@ -108,7 +127,7 @@ def get_cmds(start=None, stop=None, inclusive_stop=False, cmds_dir=None, scenari
             rltts.append(load['rltt'])
 
     # Second get command tables from each event in cmd_events
-    cmd_events = get_cmd_events(cmds_dir, scenario)
+    cmd_events = get_cmd_events(scenario)
 
     # Filter events outside the time interval, assuming command event cannot
     # last more than 2 weeks.
@@ -164,13 +183,13 @@ def get_cmds(start=None, stop=None, inclusive_stop=False, cmds_dir=None, scenari
     return out
 
 
-def update_cmd_events(*, cmds_dir=None, scenario=None):
+def update_cmd_events(*, scenario=None):
     if scenario is not None:
         # Ensure the scenario directory exists
         scenario_dir = paths.SCENARIO_DIR(scenario)
         scenario_dir.mkdir(parents=True, exist_ok=True)
 
-    cmd_events_path = paths.CMD_EVENTS_PATH(cmds_dir, scenario)
+    cmd_events_path = paths.CMD_EVENTS_PATH(scenario)
     url = CMD_EVENTS_SHEET_URL
     logger.info(f'Getting cmd_events from {url}')
     req = requests.get(url, timeout=30)
@@ -185,20 +204,20 @@ def update_cmd_events(*, cmds_dir=None, scenario=None):
     cmd_events.write(cmd_events_path, format='csv', overwrite=True)
 
 
-def get_cmd_events(cmds_dir=None, scenario=None):
-    cmd_events_path = paths.CMD_EVENTS_PATH(cmds_dir, scenario)
+def get_cmd_events(scenario=None):
+    cmd_events_path = paths.CMD_EVENTS_PATH(scenario)
     logger.info(f'Reading command events {cmd_events_path}')
     cmd_events = Table.read(cmd_events_path, format='csv', fill_values=[])
     return cmd_events
 
 
-def get_loads(cmds_dir=None, scenario=None):
-    loads_path = paths.LOADS_TABLE_PATH(cmds_dir, scenario)
+def get_loads(scenario=None):
+    loads_path = paths.LOADS_TABLE_PATH(scenario)
     loads = Table.read(loads_path, format='csv')
     return loads
 
 
-def update_loads(cmds_dir=None, scenario=None, *, lookback=31, stop=None):
+def update_loads(scenario=None, *, lookback=31, stop=None):
     """Update or create loads.csv and loads/ archive though ``lookback`` days
 
     CSV table file with column names in the first row and data in subsequent rows.
@@ -215,7 +234,7 @@ def update_loads(cmds_dir=None, scenario=None, *, lookback=31, stop=None):
         scenario_dir = paths.SCENARIO_DIR(scenario)
         scenario_dir.mkdir(parents=True, exist_ok=True)
 
-    cmd_events = get_cmd_events(cmds_dir, scenario)
+    cmd_events = get_cmd_events(scenario)
 
     # TODO for performance when we have decent testing:
     # Read in the existing loads table and grab the RLTT and scheduled stop
@@ -227,7 +246,7 @@ def update_loads(cmds_dir=None, scenario=None, *, lookback=31, stop=None):
     # by load name and use those to avoid reading in the cmds table.
     # For now just get things working reliably.
 
-    loads_table_path = paths.LOADS_TABLE_PATH(cmds_dir, scenario)
+    loads_table_path = paths.LOADS_TABLE_PATH(scenario)
     loads_rows = []
 
     # Probably too complicated, but this bit of code generates a list of dates
@@ -263,7 +282,7 @@ def update_loads(cmds_dir=None, scenario=None, *, lookback=31, stop=None):
         for content in contents:
             if re.match(r'[A-Z]{3}\d{4}[A-Z]/', content['Name']):
                 load_name = content['Name'][:8]  # chop the /
-                cmds = get_load_cmds_from_occweb_or_local(cmds_dir, dir_year_month, load_name)
+                cmds = get_load_cmds_from_occweb_or_local(dir_year_month, load_name)
                 load = get_load_dict_from_cmds(load_name, cmds, cmd_events)
                 loads_rows.append(load)
 
@@ -326,15 +345,13 @@ def get_load_dict_from_cmds(load_name, cmds, cmd_events):
     return load
 
 
-def get_load_cmds_from_occweb_or_local(cmds_dir, dir_year_month, load_name):
+def get_load_cmds_from_occweb_or_local(dir_year_month, load_name):
     """Get the load cmds (backstop) for ``load_name`` within ``dir_year_month``
 
     If the backstop file is already available locally, use that. Otherwise, the
     file is downloaded from OCCweb and is then parsed and saved as a gzipped
     pickle file of the corresponding CommandTable object.
 
-    :param cmds_dir: str, Path, None
-        Directory where the backstop files are saved.
     :param dir_year_month: Path
         Path to the directory containing the ``load_name`` directory.
     :param load_name: str
@@ -343,7 +360,7 @@ def get_load_cmds_from_occweb_or_local(cmds_dir, dir_year_month, load_name):
         Backstop commands for the load.
     """
     # Determine output file name and make directory if necessary.
-    loads_dir = paths.LOADS_ARCHIVE_DIR(cmds_dir, load_name)
+    loads_dir = paths.LOADS_ARCHIVE_DIR(load_name)
     loads_dir.mkdir(parents=True, exist_ok=True)
     cmds_filename = loads_dir / f'{load_name}.pkl.gz'
 
