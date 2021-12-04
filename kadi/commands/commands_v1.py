@@ -1,4 +1,3 @@
-import os
 import weakref
 
 from astropy.table import Column
@@ -63,5 +62,3 @@ def get_cmds(start=None, stop=None, inclusive_stop=False, **kwargs):
     out['time'].info.format = '.3f'
 
     return out
-
-

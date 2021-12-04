@@ -1,6 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 from pathlib import Path
-import os
 import calendar
 import re
 import gzip
@@ -14,7 +13,7 @@ import astropy.units as u
 import requests
 
 from kadi.commands import get_cmds_from_backstop
-from kadi.commands.core import load_idx_cmds, load_pars_dict, LazyVal, CommandTable
+from kadi.commands.core import load_idx_cmds, load_pars_dict, LazyVal
 from kadi.command_sets import get_cmds_from_event
 from kadi import occweb
 from kadi import paths
