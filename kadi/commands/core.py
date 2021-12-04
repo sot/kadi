@@ -6,13 +6,13 @@ from pathlib import Path
 import numpy as np
 from ska_helpers import retry
 
-from astropy.table import Table, Row, Column, vstack
+from astropy.table import Table, Row, Column, vstack, TableAttribute
 from Chandra.Time import DateTime, date2secs
 import pickle
 
 from kadi.paths import IDX_CMDS_PATH, PARS_DICT_PATH
 
-__all__ = ['get_cmds', 'read_backstop', 'get_cmds_from_backstop', 'CommandTable']
+__all__ = ['read_backstop', 'get_cmds_from_backstop', 'CommandTable']
 
 
 class LazyVal(object):
@@ -67,69 +67,6 @@ def load_pars_dict(version=None):
     with open(PARS_DICT_PATH(version), 'rb') as fh:
         pars_dict = pickle.load(fh, encoding='ascii')
     return pars_dict
-
-
-# Globals that contain the entire commands table and the parameters index
-# dictionary.
-idx_cmds = LazyVal(load_idx_cmds)
-pars_dict = LazyVal(load_pars_dict)
-rev_pars_dict = LazyVal(lambda: {v: k for k, v in pars_dict.items()})
-
-
-def get_cmds(start=None, stop=None, inclusive_stop=False, **kwargs):
-    """
-    Get commands beteween ``start`` and ``stop``.
-
-    By default the interval is ``start`` <= date < ``stop``, but if
-    ``inclusive_stop=True`` then the interval is ``start`` <= date <= ``stop``.
-
-    Additional ``key=val`` pairs can be supplied to further filter the results.
-    Both ``key`` and ``val`` are case insensitive.  In addition to the any of
-    the command parameters such as TLMSID, MSID, SCS, STEP, or POS, the ``key``
-    can be:
-
-    type
-      Command type e.g. COMMAND_SW, COMMAND_HW, ACISPKT, SIMTRANS
-    date
-      Exact date of command e.g. '2013:003:22:11:45.530'
-
-    If ``date`` is provided then ``start`` and ``stop`` values are ignored.
-
-    Examples::
-
-      >>> from kadi import commands cmds = commands.get_cmds('2012:001',
-      >>> '2012:030') cmds = commands.get_cmds('2012:001', '2012:030',
-      >>> type='simtrans') cmds = commands.get_cmds(type='acispkt',
-      >>> tlmsid='wsvidalldn') cmds = commands.get_cmds(msid='aflcrset')
-      >>> print(cmds)
-
-    :param start: DateTime format (optional) Start time, defaults to beginning
-        of available commands (2002:001)
-    :param stop: DateTime format (optional) Stop time, defaults to end of available
-        commands
-    :param inclusive_stop: bool, include commands at exactly ``stop`` if True.
-    :param kwargs: key=val keyword argument pairs for filtering
-
-    :returns: :class:`~kadi.commands.commands.CommandTable` of commands
-    """
-    # HACK for now! This selects the v2.0 commands archive.
-    if os.environ.get('KADI_COMMANDS_VERSION') == '2':
-        from kadi.commands.commands_v2 import get_cmds as get_cmds_v2
-        print('**** GETTING COMMANDS using the new v2.0 archive ****')
-        return get_cmds_v2(start, stop)
-
-    cmds = _find(start, stop, inclusive_stop, **kwargs)
-    out = CommandTable(cmds)
-    out['params'] = None if len(out) > 0 else Column([], dtype=object)
-
-    # Convert 'date' from bytestring to unicode. This allows
-    # date2secs(out['date']) to work and will generally reduce weird problems.
-    out.convert_bytestring_to_unicode()
-
-    out.add_column(date2secs(out['date']), name='time', index=6)
-    out['time'].info.format = '.3f'
-
-    return out
 
 
 def read_backstop(backstop):
@@ -209,7 +146,8 @@ def get_cmds_from_backstop(backstop, remove_starcat=False):
     return out
 
 
-def _find(start=None, stop=None, inclusive_stop=False, **kwargs):
+def _find(start=None, stop=None, inclusive_stop=False, idx_cmds=None,
+          pars_dict=None,  **kwargs):
     """
     Get commands beteween ``start`` and ``stop``.
 
@@ -279,7 +217,14 @@ class CommandRow(Row):
             out = super(CommandRow, self).__getitem__(item)
             if out is None:
                 idx = super(CommandRow, self).__getitem__('idx')
-                out = self['params'] = dict(rev_pars_dict[idx])
+                # self.parent.rev_pars_dict should be a weakref to the reverse
+                # pars dict for this CommandTable. But it might not be defined,
+                # in which case just leave it as None.
+                if rev_pars_dict := self.table.rev_pars_dict:
+                    params = dict(rev_pars_dict()[idx])
+                else:
+                    params = None
+                out = self['params'] = params
         elif item not in self.colnames:
             out = self['params'][item]
         else:
@@ -323,6 +268,7 @@ class CommandTable(Table):
     Astropy Table subclass that is specialized to handle commands via a
     ``params`` column that is expected to be ``None`` or a dict of params.
     """
+    rev_pars_dict = TableAttribute()
 
     def __getitem__(self, item):
         if isinstance(item, str):
@@ -465,8 +411,12 @@ class CommandTable(Table):
 
             params_str = ', '.join(fmtvals)
 
-            lines.append('{} | {:16s} | {:10s} | {:8s} | {}'.format(
-                cmd['date'], cmd['type'], cmd['tlmsid'], cmd['source'], params_str))
+            if 'source' in self.colnames:
+                lines.append('{} | {:16s} | {:10s} | {:8s} | {}'.format(
+                    cmd['date'], cmd['type'], cmd['tlmsid'], cmd['source'], params_str))
+            else:
+                lines.append('{} | {:16s} | {:10s} | {}'.format(
+                    cmd['date'], cmd['type'], cmd['tlmsid'], params_str))
 
         return lines
 

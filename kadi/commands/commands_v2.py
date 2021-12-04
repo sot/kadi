@@ -14,7 +14,7 @@ import astropy.units as u
 import requests
 
 from kadi.commands import get_cmds_from_backstop
-from kadi.commands.commands import load_idx_cmds, load_pars_dict, LazyVal
+from kadi.commands.core import load_idx_cmds, load_pars_dict, LazyVal, CommandTable
 from kadi.command_sets import get_cmds_from_event
 from kadi import occweb
 from kadi import paths
@@ -62,8 +62,7 @@ def interrupt_load_commands(load, cmds):
     return cmds
 
 
-def get_cmds(start=None, stop=None, cmds_dir=None, scenario=None,
-             loads=None, cmd_events=None):
+def get_cmds(start=None, stop=None, inclusive_stop=False, cmds_dir=None, scenario=None):
     """Get commands using loads table, relying entirely on RLTT.
 
     :param start: CxoTime-like
@@ -88,8 +87,7 @@ def get_cmds(start=None, stop=None, cmds_dir=None, scenario=None,
     stop = CxoTime('2099:001') if stop is None else CxoTime(stop)
 
     # First get command tables from each applicable load set
-    if loads is None:
-        loads = get_loads(scenario=scenario)
+    loads = get_loads(scenario=scenario)
 
     bad = (loads['cmd_stop'] < start.date) | (loads['cmd_start'] > stop.date)
     loads = loads[~bad]
@@ -111,8 +109,7 @@ def get_cmds(start=None, stop=None, cmds_dir=None, scenario=None,
             rltts.append(load['rltt'])
 
     # Second get command tables from each event in cmd_events
-    if cmd_events is None:
-        cmd_events = get_cmd_events(cmds_dir, scenario)
+    cmd_events = get_cmd_events(cmds_dir, scenario)
 
     # Filter events outside the time interval, assuming command event cannot
     # last more than 2 weeks.
