@@ -60,6 +60,9 @@ REV_PARS_DICT = LazyVal(lambda: {v: k for k, v in PARS_DICT.items()})
 # Cache of recent commands keyed by scenario
 CMDS_RECENT = {}
 
+# APR1420B was the first load set to have RLTT (backstop 6.9)
+RLTT_ERA_START = CxoTime('2020-04-14')
+
 
 def load_name_to_cxotime(name):
     """Convert load name to date"""
@@ -339,6 +342,10 @@ def update_loads(scenario=None, *, cmd_events=None, lookback=31, stop=None):
             if re.match(r'[A-Z]{3}\d{4}[A-Z]/', content['Name']):
                 load_name = content['Name'][:8]  # chop the /
                 load_date = load_name_to_cxotime(load_name)
+                if load_date < RLTT_ERA_START:
+                    logger.warning(f'Skipping {load_name} which is before '
+                                   'APR1420B start of RLTT era')
+                    continue
                 if load_date >= start and load_date <= stop:
                     cmds = get_load_cmds_from_occweb_or_local(dir_year_month, load_name)
                     load = get_load_dict_from_cmds(load_name, cmds, cmd_events)
