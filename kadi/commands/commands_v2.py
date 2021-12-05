@@ -104,7 +104,7 @@ def merge_cmds_archive_recent(start, cmds_recent):
     i0 = np.searchsorted(IDX_CMDS['date'], start.date)
     cmds_arch = IDX_CMDS[i0:]
 
-    i0_arch, i0_recent = get_matching_block_idx(cmds_recent, cmds_arch)
+    i0_arch, i0_recent = get_matching_block_idx(cmds_arch, cmds_recent)
 
     # Stored archive commands HDF5 has no `params` column, instead storing an
     # index to the param values which are in PARS_DICT. Add `params` object
@@ -188,7 +188,7 @@ def get_cmds(start=None, stop=None, inclusive_stop=False, scenario=None):
     return cmds
 
 
-def update_archive_and_get_cmds_recent(scenario=None, lookback=None, stop=None):
+def update_archive_and_get_cmds_recent(scenario=None, *, lookback=None, stop=None):
     """Update local loads table and downloaded loads and return all recent cmds.
 
     This also caches the recent commands in the global CMDS_RECENT dict.
@@ -533,14 +533,14 @@ def get_load_cmds_from_occweb_or_local(dir_year_month, load_name):
         raise ValueError(f'Could not find backstop file in {dir_year_month / load_name}')
 
 
-def update_commands_archive(lookback=None, stop=None, log_level=10, data_root='.'):
+def update_cmds_archive(*, lookback=None, stop=None, log_level=10, data_root='.'):
     idx_cmds_path = paths.IDX_CMDS_PATH(version=2)
     pars_dict_path = paths.PARS_DICT_PATH(version=2)
 
     cmds_arch = IDX_CMDS.copy()
     pars_dict = PARS_DICT.copy()
     cmds_recent = update_archive_and_get_cmds_recent(stop=stop, lookback=lookback)
-    idx0_arch, idx0_recent = get_matching_block_idx(cmds_recent, cmds_arch)
+    idx0_arch, idx0_recent = get_matching_block_idx(cmds_arch, cmds_recent)
 
     # Convert from `params` col of dicts to index into same params in pars_dict.
     for cmd in cmds_recent:
@@ -574,17 +574,14 @@ def update_commands_archive(lookback=None, stop=None, log_level=10, data_root='.
 import difflib
 
 
-def get_matching_block_idx(cmds_recent, cmds_arch):
-    h5d = cmds_arch
-    idx_cmds = cmds_recent
+def get_matching_block_idx(cmds_arch, cmds_recent):
+    date0 = cmds_recent['date'][0]
+    h5_date = cmds_arch['date'][:]
 
-    date0 = idx_cmds['date'][0]
-    h5_date = h5d['date'][:]
-    # Don't understand why the int() is needed. Fixed by astrpoy 5.0?
-    idx_recent = int(np.searchsorted(h5_date, date0))
+    idx_recent = np.searchsorted(h5_date, date0)
     logger.info('Selecting commands from h5d[{}:]'.format(idx_recent))
-    logger.info('  {}'.format(str(h5d[idx_recent])))
-    h5d_recent = h5d[idx_recent:]  # recent h5d entries
+    # logger.info('  {}'.format(str(cmds_arch[idx_recent])))
+    h5d_recent = cmds_arch[idx_recent:]  # recent h5d entries
 
     # Define the column names that specify a complete and unique row
     key_names = ('date', 'type', 'tlmsid', 'scs', 'step', 'source', 'vcdu')
@@ -596,7 +593,7 @@ def get_matching_block_idx(cmds_recent, cmds_arch):
     idx_cmds_vals = [tuple(
         row[x].decode('ascii') if isinstance(row[x], bytes) else str(row[x])
         for x in key_names)
-        for row in idx_cmds]
+        for row in cmds_recent]
 
     diff = difflib.SequenceMatcher(a=h5d_recent_vals, b=idx_cmds_vals, autojunk=False)
     blocks = diff.get_matching_blocks()
