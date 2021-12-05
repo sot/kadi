@@ -44,8 +44,8 @@ def LOADS_ARCHIVE_DIR():
     return out
 
 
-def LOADS_BACKSTOP_PATH(load_name=None):
-    out = LOADS_ARCHIVE_DIR(load_name) / f'{load_name}.pkl.gz'
+def LOADS_BACKSTOP_PATH(load_name):
+    out = LOADS_ARCHIVE_DIR() / f'{load_name}.pkl.gz'
     return out
 
 
