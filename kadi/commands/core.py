@@ -61,7 +61,7 @@ tables.exceptions.HDF5ExtError: HDF5 error back trace
     file = IDX_CMDS_PATH(version)
     logger.info(f'Loading {file}')
     with tables.open_file(file, mode='r') as h5:
-        idx_cmds = CommandTable(h5.root.data[:])
+        idx_cmds = Table(h5.root.data[:])
 
     return idx_cmds
 

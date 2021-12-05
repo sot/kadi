@@ -34,7 +34,7 @@ import logging
 DEFAULT_LOOKBACK = 30  # Lookback time for recent loads
 UPDATE_FROM_NETWORK = True
 CACHE_LOADS_IN_ASTROPY_CACHE = True  # Or maybe just be clever about cleaning old files?
-MATCHING_BLOCK_SIZE = 5
+MATCHING_BLOCK_SIZE = 50
 
 # TODO: cache translation from cmd_events to CommandTable's  [Probably not]
 
@@ -98,21 +98,21 @@ def interrupt_load_commands(load, cmds):
     return cmds
 
 
-def merge_cmds_archive_recent(start, cmds_recent, min_match=MATCHING_BLOCK_SIZE):
+def merge_cmds_archive_recent(start, cmds_recent):
     logger.info('Merging cmds_recent with archive commands from {start}')
     # First get the part of the mission archive commands from `start`
     i0 = np.searchsorted(IDX_CMDS['date'], start.date)
     cmds_arch = IDX_CMDS[i0:]
 
-    i0_arch = get_matching_block_idx(cmds_recent, cmds_arch, min_match)
+    i0_arch, i0_recent = get_matching_block_idx(cmds_recent, cmds_arch)
 
     # Stored archive commands HDF5 has no `params` column, instead storing an
     # index to the param values which are in PARS_DICT. Add `params` object
     # column with None values and then stack with cmds_recent (which has
     # `params` already as dicts).
-    cmds_arch = cmds_arch[:i0_arch]
     cmds_arch.add_column(None, name='params')
-    cmds = vstack([cmds_arch, cmds_recent])
+    cmds = vstack([cmds_arch[:i0_arch], cmds_recent[i0_recent:]],
+                  join_type='exact')
 
     # Need to give CommandTable a ref to REV_PARS_DICT so it can tranlate from
     # params index to the actual dict of values. Stored as a weakref so that
@@ -122,7 +122,7 @@ def merge_cmds_archive_recent(start, cmds_recent, min_match=MATCHING_BLOCK_SIZE)
     return cmds
 
 
-def get_matching_block_idx(cmds_recent, cmds_arch, min_match):
+def get_matching_block_idx_simple(cmds_recent, cmds_arch, min_match):
     # Find the first command in cmd_arch that starts at the same date as the
     # block of recent commands. There might be multiple commands at the same
     # date, so we walk through this getting a block match of `min_match` size.
@@ -533,27 +533,24 @@ def get_load_cmds_from_occweb_or_local(dir_year_month, load_name):
         raise ValueError(f'Could not find backstop file in {dir_year_month / load_name}')
 
 
-def update_commands_archive(lookback=None, stop=None, log_level=10, data_root='.',
-                            min_match=MATCHING_BLOCK_SIZE):
+def update_commands_archive(lookback=None, stop=None, log_level=10, data_root='.'):
     idx_cmds_path = paths.IDX_CMDS_PATH(version=2)
     pars_dict_path = paths.PARS_DICT_PATH(version=2)
 
     cmds_arch = IDX_CMDS.copy()
     pars_dict = PARS_DICT.copy()
     cmds_recent = update_archive_and_get_cmds_recent(stop=stop, lookback=lookback)
-    idx0_arch = get_matching_block_idx(cmds_recent, cmds_arch, min_match)
+    idx0_arch, idx0_recent = get_matching_block_idx(cmds_recent, cmds_arch)
 
     # Convert from `params` col of dicts to index into same params in pars_dict.
     for cmd in cmds_recent:
         cmd['idx'] = get_par_idx_update_pars_dict(pars_dict, cmd)
     del cmds_recent['params']
 
-    assert cmds_arch.colnames == cmds_recent.colnames
-
     # If the length of the updated table will be the same as the existing table,
     # it might be that there is no update so we can skip writing the file. But
     # we need to check that the new data values are exactly the same.
-    if len(cmds_arch) == len(cmds_recent) + idx0_arch:
+    if False and len(cmds_arch) == len(cmds_recent) + idx0_arch:
         for name in cmds_arch.colnames:
             if np.any(cmds_arch[name][idx0_arch:] != cmds_recent[name]):
                 break
@@ -564,8 +561,8 @@ def update_commands_archive(lookback=None, stop=None, log_level=10, data_root='.
     # Merge the recent commands with the existing archive.
     logger.info(f'Merging {len(cmds_recent)} new commands with existing archive'
                 'and re-sorting')
-    cmds_arch = cmds_arch[:idx0_arch]
-    cmds_arch = cmds_arch.add_cmds(cmds_recent)
+    cmds_arch = vstack([cmds_arch[:idx0_arch], cmds_recent[idx0_recent:]],
+                       join_type='exact')
 
     logger.info(f'Writing updated commands to {idx_cmds_path}')
     cmds_arch.write(str(idx_cmds_path), path='data', format='hdf5', overwrite=True)
@@ -573,6 +570,57 @@ def update_commands_archive(lookback=None, stop=None, log_level=10, data_root='.
     logger.info(f'Writing updated pars_dict to {pars_dict_path}')
     pickle.dump(pars_dict, open(pars_dict_path, 'wb'))
 
+
+import difflib
+
+
+def get_matching_block_idx(cmds_recent, cmds_arch):
+    h5d = cmds_arch
+    idx_cmds = cmds_recent
+
+    date0 = idx_cmds['date'][0]
+    h5_date = h5d['date'][:]
+    # Don't understand why the int() is needed. Fixed by astrpoy 5.0?
+    idx_recent = int(np.searchsorted(h5_date, date0))
+    logger.info('Selecting commands from h5d[{}:]'.format(idx_recent))
+    logger.info('  {}'.format(str(h5d[idx_recent])))
+    h5d_recent = h5d[idx_recent:]  # recent h5d entries
+
+    # Define the column names that specify a complete and unique row
+    key_names = ('date', 'type', 'tlmsid', 'scs', 'step', 'source', 'vcdu')
+
+    h5d_recent_vals = [tuple(
+        row[x].decode('ascii') if isinstance(row[x], bytes) else str(row[x])
+        for x in key_names)
+        for row in h5d_recent]
+    idx_cmds_vals = [tuple(
+        row[x].decode('ascii') if isinstance(row[x], bytes) else str(row[x])
+        for x in key_names)
+        for row in idx_cmds]
+
+    diff = difflib.SequenceMatcher(a=h5d_recent_vals, b=idx_cmds_vals, autojunk=False)
+    blocks = diff.get_matching_blocks()
+    logger.info('Matching blocks for existing HDF5 and timeline commands')
+    for block in blocks:
+        logger.info('  {}'.format(block))
+    opcodes = diff.get_opcodes()
+    logger.info('Diffs between existing HDF5 and timeline commands')
+    for opcode in opcodes:
+        logger.info('  {}'.format(opcode))
+    # Find the first matching block that is sufficiently long
+    for block in blocks:
+        if block.size > MATCHING_BLOCK_SIZE:
+            break
+    else:
+        raise ValueError('No matching blocks at least {} long'
+                         .format(MATCHING_BLOCK_SIZE))
+
+    # Index into idx_cmds at the end of the large matching block.  block.b is the
+    # beginning of the match.
+    idx_cmds_idx = block.b + block.size
+    h5d_idx = idx_recent + block.a + block.size
+
+    return h5d_idx, idx_cmds_idx
 
 def get_opt(args=None):
     """
