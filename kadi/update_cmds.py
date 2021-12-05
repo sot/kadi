@@ -16,6 +16,7 @@ from ska_helpers.run_info import log_run_info
 from ska_helpers.retry import retry_call
 
 from .paths import IDX_CMDS_PATH, PARS_DICT_PATH
+from kadi.commands.core import get_par_idx_update_pars_dict
 from . import __version__
 
 MPLOGS_DIR = Path(os.environ['SKA'], 'data', 'mpcrit1', 'mplogs')
@@ -291,26 +292,7 @@ def get_idx_cmds(cmds, pars_dict):
         if i % 10000 == 9999:
             logger.info('   Iteration {}'.format(i))
 
-        # Define a consistently ordered tuple that has all command parameter information
-        pars = cmd['params']
-        keys = set(pars.keys()) - set(('SCS', 'STEP', 'TLMSID'))
-        if cmd['tlmsid'] == 'AOSTRCAT':
-            # Skip star catalog command because that has many (uninteresting) parameters
-            # and increases the file size and load speed by an order of magnitude.
-            pars_tup = ()
-        else:
-            pars_tup = tuple((key.lower(), pars[key]) for key in sorted(keys))
-
-        try:
-            par_idx = pars_dict[pars_tup]
-        except KeyError:
-            # Along with transition to 32-bit idx in #190, ensure that idx=65535
-            # never gets used. Prior to #190 this value was being used by
-            # get_cmds_from_backstop() assuming that it will never occur as a
-            # key in the pars_dict. Adding 65536 allows older versions to work
-            # with the new cmds.pkl pars_dict.
-            par_idx = len(pars_dict) + 65536
-            pars_dict[pars_tup] = par_idx
+        par_idx = get_par_idx_update_pars_dict(pars_dict, cmd)
 
         idx_cmds.append((par_idx, cmd['date'], cmd['type'], cmd.get('tlmsid'),
                          cmd['scs'], cmd['step'], cmd['timeline_id'], cmd['vcdu']))

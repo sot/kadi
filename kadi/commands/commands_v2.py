@@ -6,7 +6,7 @@ import gzip
 import pickle
 import itertools
 import functools
-import operator
+import weakref
 
 import numpy as np
 from astropy.table import Table, vstack
@@ -14,12 +14,13 @@ import astropy.units as u
 import requests
 
 from kadi.commands import get_cmds_from_backstop
-from kadi.commands.core import load_idx_cmds, load_pars_dict, LazyVal
+from kadi.commands.core import (load_idx_cmds, load_pars_dict, LazyVal,
+                                get_par_idx_update_pars_dict)
 from kadi.command_sets import get_cmds_from_event
 from kadi import occweb
 from kadi import paths
 from cxotime import CxoTime
-import pyyaks.logger
+import logging
 
 
 # TODO configuration options, but use DEFAULT_* in the mean time
@@ -33,10 +34,11 @@ import pyyaks.logger
 DEFAULT_LOOKBACK = 30  # Lookback time for recent loads
 UPDATE_FROM_NETWORK = True
 CACHE_LOADS_IN_ASTROPY_CACHE = True  # Or maybe just be clever about cleaning old files?
+MATCHING_BLOCK_SIZE = 5
 
 # TODO: cache translation from cmd_events to CommandTable's  [Probably not]
 
-APPROVED_LOADS_OCCWEB_DIR = 'FOT/mission_planning/PRODUCTS/APPR_LOADS'
+APPROVED_LOADS_OCCWEB_DIR = Path('FOT/mission_planning/PRODUCTS/APPR_LOADS')
 
 # https://docs.google.com/spreadsheets/d/<document_id>/export?format=csv&gid=<sheet_id>
 CMD_EVENTS_SHEET_ID = '19d6XqBhWoFjC-z1lS1nM6wLE_zjr4GYB1lOvrEGCbKQ'
@@ -51,12 +53,6 @@ CMDS_DTYPE = [('idx', np.int32),
               ('source', '|S8'),
               ('vcdu', np.int32)]
 
-# TODO: make it easier to set the log level (e.g. add a set_level method() to
-# logger object that sets all handlers to that level)
-logger = pyyaks.logger.get_logger(
-    name=__name__,
-    format='%(asctime)s %(funcName)s - %(message)s')
-
 # Cached values of the full mission commands archive (cmds_v2.h5, cmds_v2.pkl).
 # These are loaded on demand.
 IDX_CMDS = LazyVal(functools.partial(load_idx_cmds, version=2))
@@ -68,6 +64,8 @@ CMDS_RECENT = {}
 
 # APR1420B was the first load set to have RLTT (backstop 6.9)
 RLTT_ERA_START = CxoTime('2020-04-14')
+
+logger = logging.getLogger('kadi.commands')
 
 
 def load_name_to_cxotime(name):
@@ -100,12 +98,31 @@ def interrupt_load_commands(load, cmds):
     return cmds
 
 
-def merge_cmds_archive_recent(start, cmds_recent, min_match=5):
+def merge_cmds_archive_recent(start, cmds_recent, min_match=MATCHING_BLOCK_SIZE):
     logger.info('Merging cmds_recent with archive commands from {start}')
     # First get the part of the mission archive commands from `start`
     i0 = np.searchsorted(IDX_CMDS['date'], start.date)
     cmds_arch = IDX_CMDS[i0:]
 
+    i0_arch = get_matching_block_idx(cmds_recent, cmds_arch, min_match)
+
+    # Stored archive commands HDF5 has no `params` column, instead storing an
+    # index to the param values which are in PARS_DICT. Add `params` object
+    # column with None values and then stack with cmds_recent (which has
+    # `params` already as dicts).
+    cmds_arch = cmds_arch[:i0_arch]
+    cmds_arch.add_column(None, name='params')
+    cmds = vstack([cmds_arch, cmds_recent])
+
+    # Need to give CommandTable a ref to REV_PARS_DICT so it can tranlate from
+    # params index to the actual dict of values. Stored as a weakref so that
+    # pickling and other serialization doesn't break.
+    cmds.rev_pars_dict = weakref.ref(REV_PARS_DICT)
+
+    return cmds
+
+
+def get_matching_block_idx(cmds_recent, cmds_arch, min_match):
     # Find the first command in cmd_arch that starts at the same date as the
     # block of recent commands. There might be multiple commands at the same
     # date, so we walk through this getting a block match of `min_match` size.
@@ -113,7 +130,13 @@ def merge_cmds_archive_recent(start, cmds_recent, min_match=5):
     date0 = cmds_recent['date'][0]
     i0_arch = np.searchsorted(cmds_arch['date'], date0)
     key_names = ('date', 'type', 'tlmsid', 'scs', 'step', 'vcdu')
-    while True:
+
+    # Find block of commands in cmd_arch that match first min_match of
+    # cmds_recent. Special case is min_match=0, which means we just want to
+    # append the cmds_recent to the end of cmds_arch. This is the case for
+    # the transition from pre-RLTT (APR1420B) to post, for the one-time
+    # migration from version 1 to version 2.
+    while min_match > 0:
         if all(np.all(cmds_arch[name][i0_arch:i0_arch + min_match]
                       == cmds_recent[name][:min_match])
                for name in key_names):
@@ -124,8 +147,7 @@ def merge_cmds_archive_recent(start, cmds_recent, min_match=5):
             raise ValueError(f'No matching commands block in archive found for recent_commands')
 
     logger.info(f'Found matching commands block in archive at {i0_arch}')
-    cmds = vstack([cmds_arch[:i0_arch], cmds_recent])
-    return cmds
+    return i0_arch
 
 
 def get_cmds(start=None, stop=None, inclusive_stop=False, scenario=None):
@@ -154,7 +176,7 @@ def get_cmds(start=None, stop=None, inclusive_stop=False, scenario=None):
     stop = CxoTime(stop or '2099:001')
 
     if start < CxoTime(cmds_recent['date'][0]) + 1 * u.day:
-        cmds = merge_cmds_archive_recent(cmds_recent, start)
+        cmds = merge_cmds_archive_recent(start, cmds_recent)
     else:
         cmds = cmds_recent
 
@@ -178,7 +200,7 @@ def update_archive_and_get_cmds_recent(scenario=None, lookback=None, stop=None):
     :param lookback: int, Quantity, None
         Lookback time from ``stop`` for recent loads. If None, use DEFAULT_LOOKBACK.
     :param stop: CxoTime-like, None
-        Stop time for loads table (default is now + 14 days)
+        Stop time for loads table (default is now + 21 days)
 
     :returns: CommandTable
     """
@@ -344,7 +366,7 @@ def update_loads(scenario=None, *, cmd_events=None, lookback=None, stop=None):
     # Probably too complicated, but this bit of code generates a list of dates
     # that are guaranteed to sample all the months in the lookback period with
     # two weeks of margin on the tail end.
-    dt = 14 * u.day
+    dt = 21 * u.day
     if stop is None:
         stop = CxoTime.now() + dt
     else:
@@ -361,7 +383,7 @@ def update_loads(scenario=None, *, cmd_events=None, lookback=None, stop=None):
         year, month = str(date.ymdhms.year), date.ymdhms.month
         month_name = calendar.month_abbr[month].upper()
 
-        dir_year_month = Path(APPROVED_LOADS_OCCWEB_DIR) / year / month_name
+        dir_year_month = APPROVED_LOADS_OCCWEB_DIR / year / month_name
         if dir_year_month in dirs_tried:
             continue
         dirs_tried.add(dir_year_month)
@@ -380,7 +402,7 @@ def update_loads(scenario=None, *, cmd_events=None, lookback=None, stop=None):
                 load_date = load_name_to_cxotime(load_name)
                 if load_date < RLTT_ERA_START:
                     logger.warning(f'Skipping {load_name} which is before '
-                                   'APR1420B start of RLTT era')
+                                   f'{RLTT_ERA_START} start of RLTT era')
                     continue
                 if load_date >= start and load_date <= stop:
                     cmds = get_load_cmds_from_occweb_or_local(dir_year_month, load_name)
@@ -501,6 +523,7 @@ def get_load_cmds_from_occweb_or_local(dir_year_month, load_name):
             idx = cmds.colnames.index('timeline_id')
             cmds.add_column(load_name, index=idx, name='source')
             del cmds['timeline_id']
+            del cmds['time']
 
             logger.info(f'Saving {cmds_filename}')
             with gzip.open(cmds_filename, 'wb') as fh:
@@ -508,3 +531,69 @@ def get_load_cmds_from_occweb_or_local(dir_year_month, load_name):
             return cmds
     else:
         raise ValueError(f'Could not find backstop file in {dir_year_month / load_name}')
+
+
+def update_commands_archive(lookback=None, stop=None, log_level=10, data_root='.',
+                            min_match=MATCHING_BLOCK_SIZE):
+    idx_cmds_path = paths.IDX_CMDS_PATH(version=2)
+    pars_dict_path = paths.PARS_DICT_PATH(version=2)
+
+    cmds_arch = IDX_CMDS.copy()
+    pars_dict = PARS_DICT.copy()
+    cmds_recent = update_archive_and_get_cmds_recent(stop=stop, lookback=lookback)
+    idx0_arch = get_matching_block_idx(cmds_recent, cmds_arch, min_match)
+
+    # Convert from `params` col of dicts to index into same params in pars_dict.
+    for cmd in cmds_recent:
+        cmd['idx'] = get_par_idx_update_pars_dict(pars_dict, cmd)
+    del cmds_recent['params']
+
+    assert cmds_arch.colnames == cmds_recent.colnames
+
+    # If the length of the updated table will be the same as the existing table,
+    # it might be that there is no update so we can skip writing the file. But
+    # we need to check that the new data values are exactly the same.
+    if len(cmds_arch) == len(cmds_recent) + idx0_arch:
+        for name in cmds_arch.colnames:
+            if np.any(cmds_arch[name][idx0_arch:] != cmds_recent[name]):
+                break
+        else:
+            logger.info(f'No new commands found, skipping writing {idx_cmds_path}')
+            return
+
+    # Merge the recent commands with the existing archive.
+    logger.info(f'Merging {len(cmds_recent)} new commands with existing archive'
+                'and re-sorting')
+    cmds_arch = cmds_arch[:idx0_arch]
+    cmds_arch = cmds_arch.add_cmds(cmds_recent)
+
+    logger.info(f'Writing updated commands to {idx_cmds_path}')
+    cmds_arch.write(str(idx_cmds_path), path='data', format='hdf5', overwrite=True)
+
+    logger.info(f'Writing updated pars_dict to {pars_dict_path}')
+    pickle.dump(pars_dict, open(pars_dict_path, 'wb'))
+
+
+def get_opt(args=None):
+    """
+    Get options for command line interface to update_
+    """
+    from kadi import __version__
+    import argparse
+    parser = argparse.ArgumentParser(description='Update HDF5 cmds v2 table')
+    parser.add_argument("--lookback",
+                        help="Lookback (default=30 days)")
+    parser.add_argument("--stop",
+                        help="Stop date for update (default=Now+21 days)")
+    parser.add_argument("--log-level",
+                        type=int,
+                        default=10,
+                        help='Log level (10=debug, 20=info, 30=warnings)')
+    parser.add_argument("--data-root",
+                        default='.',
+                        help="Data root (default='.')")
+    parser.add_argument('--version', action='version',
+                        version='%(prog)s {version}'.format(version=__version__))
+
+    args = parser.parse_args(args)
+    return args

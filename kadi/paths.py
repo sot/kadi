@@ -5,7 +5,7 @@ from pathlib import Path
 
 def _version_str(version):
     """Legacy version string"""
-    return '' if version is None else f'_v{version}'
+    return '' if version in (None, 1) else str(version)
 
 
 def SKA_DATA():

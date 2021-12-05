@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 from pathlib import Path
 import os
+import shutil
 
 import numpy as np
 from astropy.table import Table, vstack, Column
@@ -26,16 +27,17 @@ CMDS_DTYPE = [('idx', np.int32),
               ('vcdu', np.int32)]
 
 
-def migrate_cmds_to_cmds2(chop_after_rltt=True):
+def migrate_cmds_to_cmds2(chop_after_load='APR2020A'):
     """Migrate the legacy cmds.h5 to the new cmds2.h5 format.
 
     Key change is migrating from timeline_id to source, which is either the load
     name or "CMD_EVT" for commands from the event table.
 
-    If ``chop_after_rltt`` is True, this only includes commands up to the start
-    of APR1420B, which is the first load set to include RLTT /
-    scheduled_stop_time. Later loads are ingested with the new commands v2 code
-    that includes the RLTT / scheduled_stop_time LOAD_EVENT commands.
+    If ``chop_after_load`` is not ``None``, this only includes commands up to
+    the start of the specified load name. A good value for production is
+    APR2020A, which includes just one week of loads with RLTT (APR1420B). Later
+    loads are ingested with the new commands v2 code that includes the RLTT /
+    scheduled_stop_time LOAD_EVENT commands.
     """
     cmds = Table.read(paths.DATA_DIR() / 'cmds.h5')
 
@@ -57,14 +59,11 @@ def migrate_cmds_to_cmds2(chop_after_rltt=True):
     cmds.add_column(Column(sources, name='source', dtype='S8'), index=col_index)
     del cmds['timeline_id']
 
-    if chop_after_rltt:
-        # Optionally cut commands at the start of APR1420B. In this case there
-        # was no overlap in commanding (in part because APR1420B is a fast TOO)
-        # so this works.
-        idx_rltt_start = np.flatnonzero(cmds['source'] == RLTT_ERA_START)[0]
-        cmds = cmds[:idx_rltt_start]
+    idx_start = np.flatnonzero(cmds['source'] == RLTT_ERA_START)[0]
+    cmds = cmds[:idx_start]
 
-    cmds.write('cmds_v2.h5', path='data', overwrite=True)
+    cmds.write('cmds2.h5', path='data', overwrite=True)
+    shutil.copy2(paths.DATA_DIR() / 'cmds.pkl', 'cmds2.pkl')
 
     return cmds
 

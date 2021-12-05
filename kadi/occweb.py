@@ -32,8 +32,13 @@ URLS = {'fdb_major_events': '/occweb/web/fdb_web/Major_Events.html',
         'ifot': '/occweb/web/webapps/ifot/ifot.php',
         }
 
-# Initialize logger with default INFO level. Logging in this module is VERBOSE.
-logger = pyyaks.logger.get_logger(__name__)
+# Initialize 'kadi.occweb' logger with WARNING level. Logging in this
+# module is INFO.
+logger = pyyaks.logger.get_logger(
+    __name__, format='%(asctime)s %(funcName)s - %(message)s',
+    level=pyyaks.logger.WARNING)
+for handler in logger.handlers:
+    handler.setLevel(pyyaks.logger.DEBUG)
 
 
 def get_auth(username=None, password=None):

@@ -1,18 +1,20 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-import os
 import tables
 from pathlib import Path
+import logging
+import pickle
 
 import numpy as np
 from ska_helpers import retry
 
 from astropy.table import Table, Row, Column, vstack, TableAttribute
 from Chandra.Time import DateTime, date2secs
-import pickle
 
 from kadi.paths import IDX_CMDS_PATH, PARS_DICT_PATH
 
 __all__ = ['read_backstop', 'get_cmds_from_backstop', 'CommandTable']
+
+logger = logging.getLogger('kadi.commands')
 
 
 class LazyVal(object):
@@ -56,14 +58,18 @@ tables.exceptions.HDF5ExtError: HDF5 error back trace
     File "H5FDsec2.c", line 941, in H5FD_sec2_lock
     unable to lock file, errno = 11, error message = 'Resource temporarily unavailable'
     """
-    with tables.open_file(IDX_CMDS_PATH(version), mode='r') as h5:
-        idx_cmds = Table(h5.root.data[:])
+    file = IDX_CMDS_PATH(version)
+    logger.info(f'Loading {file}')
+    with tables.open_file(file, mode='r') as h5:
+        idx_cmds = CommandTable(h5.root.data[:])
 
     return idx_cmds
 
 
 @retry.retry(tries=4, delay=0.5, backoff=4)
 def load_pars_dict(version=None):
+    file = PARS_DICT_PATH(version)
+    logger.info(f'Loading {file}')
     with open(PARS_DICT_PATH(version), 'rb') as fh:
         pars_dict = pickle.load(fh, encoding='ascii')
     return pars_dict
@@ -147,7 +153,7 @@ def get_cmds_from_backstop(backstop, remove_starcat=False):
 
 
 def _find(start=None, stop=None, inclusive_stop=False, idx_cmds=None,
-          pars_dict=None,  **kwargs):
+          pars_dict=None, **kwargs):
     """
     Get commands beteween ``start`` and ``stop``.
 
@@ -424,3 +430,41 @@ class CommandTable(Table):
         lines = self.pformat_like_backstop()
         for line in lines:
             print(line)
+
+
+def get_par_idx_update_pars_dict(pars_dict, cmd):
+    """Get par_idx representing index into pars tuples dict.
+
+    This is used internally in updating the commands H5 and commands PARS_DICT
+    pickle files. The ``pars_dict`` input is updated in place.
+
+    This code was factored out verbatim from kadi.update_cmds.py.
+
+    :param pars_dict: dict of pars tuples
+    :param cmd: dict or CommandRow
+        Command for updated par_idx
+    :returns: int
+        Params index (value of corresponding pars tuple dict key)
+    """
+    # Define a consistently ordered tuple that has all command parameter information
+    pars = cmd['params']
+    keys = set(pars.keys()) - set(('SCS', 'STEP', 'TLMSID'))
+    if cmd['tlmsid'] == 'AOSTRCAT':
+        # Skip star catalog command because that has many (uninteresting) parameters
+        # and increases the file size and load speed by an order of magnitude.
+        pars_tup = ()
+    else:
+        pars_tup = tuple((key.lower(), pars[key]) for key in sorted(keys))
+
+    try:
+        par_idx = pars_dict[pars_tup]
+    except KeyError:
+        # Along with transition to 32-bit idx in #190, ensure that idx=65535
+        # never gets used. Prior to #190 this value was being used by
+        # get_cmds_from_backstop() assuming that it will never occur as a
+        # key in the pars_dict. Adding 65536 allows older versions to work
+        # with the new cmds.pkl pars_dict.
+        par_idx = len(pars_dict) + 65536
+        pars_dict[pars_tup] = par_idx
+
+    return par_idx
