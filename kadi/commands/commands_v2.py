@@ -45,15 +45,6 @@ APPROVED_LOADS_OCCWEB_DIR = Path('FOT/mission_planning/PRODUCTS/APPR_LOADS')
 CMD_EVENTS_SHEET_ID = '19d6XqBhWoFjC-z1lS1nM6wLE_zjr4GYB1lOvrEGCbKQ'
 CMD_EVENTS_SHEET_URL = f'https://docs.google.com/spreadsheets/d/{CMD_EVENTS_SHEET_ID}/export?format=csv'  # noqa
 
-CMDS_DTYPE = [('idx', np.int32),
-              ('date', '|S21'),
-              ('type', '|S12'),
-              ('tlmsid', '|S10'),
-              ('scs', np.uint8),
-              ('step', np.uint16),
-              ('source', '|S8'),
-              ('vcdu', np.int32)]
-
 # Cached values of the full mission commands archive (cmds_v2.h5, cmds_v2.pkl).
 # These are loaded on demand.
 IDX_CMDS = LazyVal(functools.partial(load_idx_cmds, version=2))
@@ -265,21 +256,19 @@ def update_archive_and_get_cmds_recent(scenario=None, *, lookback=None, stop=Non
     rltts = [rltts[ii] for ii in idx_sort]
 
     for ii, cmds, rltt in zip(itertools.count(), cmds_list, rltts):
-        if rltt is None:
-            continue
-
-        # Apply RLTT from this load to the current running loads (cmds_all).
-        # Remove commands with date greater than the RLTT date. In most
-        # cases this does not cut anything.
-        for jj in range(0, ii):
-            prev_cmds = cmds_list[jj]
-            if prev_cmds['date'][-1] > rltt:
-                # See Boolean masks in
-                # https://occweb.cfa.harvard.edu/twiki/bin/view/Aspect/SkaPython#Ska_idioms_and_style
-                idx_rltt = np.searchsorted(prev_cmds['date'], rltt, side='right')
-                logger.info(f'Removing {len(prev_cmds) - idx_rltt} '
-                            f'cmds from {prev_cmds["source"][0]}')
-                prev_cmds.remove_rows(slice(idx_rltt, None))
+        if rltt is not None:
+            # Apply RLTT from this load to the current running loads (cmds_all).
+            # Remove commands with date greater than the RLTT date. In most
+            # cases this does not cut anything.
+            for jj in range(0, ii):
+                prev_cmds = cmds_list[jj]
+                if prev_cmds['date'][-1] > rltt:
+                    # See Boolean masks in
+                    # https://occweb.cfa.harvard.edu/twiki/bin/view/Aspect/SkaPython#Ska_idioms_and_style
+                    idx_rltt = np.searchsorted(prev_cmds['date'], rltt, side='right')
+                    logger.info(f'Removing {len(prev_cmds) - idx_rltt} '
+                                f'cmds from {prev_cmds["source"][0]}')
+                    prev_cmds.remove_rows(slice(idx_rltt, None))
 
         if len(cmds) > 0:
             logger.info(f'Adding {len(cmds)} commands from {cmds["source"][0]}')

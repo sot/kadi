@@ -7,6 +7,7 @@ import astropy.units as u
 from Quaternion import Quat
 from cxotime import CxoTime
 from parse_cm.common import _coerce_type as coerce_type
+from kadi.commands.core import CommandTable
 
 RTS_PATH = Path('FOT/configuration/products/rts')
 
@@ -149,8 +150,6 @@ def get_cmds_from_event(date, event, params_str):
     :param \*args: optional args
     :returns: list of dict with commands
     """
-    from kadi.commands import CommandTable
-
     event_func_name = event.lower().replace(' ', '_').replace('-', '')
     event_func = globals().get('cmd_set_' + event_func_name)
     if event_func is None:
@@ -191,14 +190,12 @@ def get_cmds_from_event(date, event, params_str):
             args[key.lower()] = val
         scs = args.pop('scs', 0)
         date = cmd.get('date', cmd_date.date)
-        time = CxoTime(date).cxcsec
         out = {'idx': -1,
                'date': date,
                'type': cmd['type'],
                'tlmsid': cmd.get('tlmsid', 'None'),
                'scs': scs,
                'step': 0,
-               'time': time,
                'source': 'CMD_EVT',
                'vcdu': -1,
                'params': args}
