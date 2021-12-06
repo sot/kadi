@@ -276,6 +276,23 @@ class CommandTable(Table):
     """
     rev_pars_dict = TableAttribute()
 
+    COL_TYPES = {'idx': np.int32,
+                 'date': 'S21',
+                 'type': 'S12',
+                 'tlmsid': 'S10',
+                 'scs': np.uint8,
+                 'step': np.uint16,
+                 'source': 'S8',
+                 'timeline_id': np.uint32,
+                 'vcdu': np.int32,
+                 'params': object}
+
+    def _convert_data_to_col(self, *args, **kwargs):
+        col = super()._convert_data_to_col(*args, **kwargs)
+        if col.info.name in self.COL_TYPES:
+            col = col.astype(self.COL_TYPES[col.info.name])
+        return col
+
     def __getitem__(self, item):
         if isinstance(item, str):
             if item in self.colnames:
@@ -358,7 +375,7 @@ class CommandTable(Table):
         :returns: :class:`~kadi.commands.commands.CommandTable` of commands
         """
         out = vstack([self, cmds])
-        out.sort_cmds()
+        out.sort_in_backstop_order()
 
         return out
 
@@ -367,7 +384,7 @@ class CommandTable(Table):
 
         This matches the order in backstop.
         """
-        sort_keys = ['date', 'step', 'scs', 'source']
+        sort_keys = ['date', 'step', 'scs']
         self.sort(sort_keys)
 
     def as_list_of_dict(self, ska_parsecm=False):
