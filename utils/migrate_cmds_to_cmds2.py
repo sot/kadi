@@ -2,11 +2,14 @@
 from pathlib import Path
 import os
 import shutil
+import weakref
 
 import numpy as np
 from astropy.table import Table, vstack, Column
 
-from kadi.commands import get_cmds_from_backstop
+from kadi.commands.core import get_cmds_from_backstop, CommandTable
+from kadi.commands.commands_v1 import IDX_CMDS, REV_PARS_DICT
+from kadi.commands.commands_v2 import update_cmds_archive
 from kadi import paths
 import Ska.DBI
 
@@ -27,19 +30,26 @@ CMDS_DTYPE = [('idx', np.int32),
               ('vcdu', np.int32)]
 
 
-def migrate_cmds_to_cmds2(chop_after_load='APR2020A'):
+def migrate_cmds_to_cmds2():
     """Migrate the legacy cmds.h5 to the new cmds2.h5 format.
 
     Key change is migrating from timeline_id to source, which is either the load
     name or "CMD_EVT" for commands from the event table.
 
-    If ``chop_after_load`` is not ``None``, this only includes commands up to
-    the start of the specified load name. A good value for production is
-    APR2020A, which includes just one week of loads with RLTT (APR1420B). Later
-    loads are ingested with the new commands v2 code that includes the RLTT /
-    scheduled_stop_time LOAD_EVENT commands.
+    This create ``cmds2.h5`` and ``cmds2.pkl`` in the current directory.
+
+    This includes all commands prior to APR1420B, which is the first
+    load of the RLTT era that includes LOAD_EVENT commands. After generating
+    cmds2.h5 and cmds2.pkl with this, run::
+
+       >>> %run utils/migrate_cmds_to_cmds2.py
+       >>> migrate_cmds_to_cmds2()
+       >>> from kadi.commands.commands_v2 import update_cmds_archive
+       >>> update_cmds_archive(stop='2020-04-28', v1_v2_transition=True)
+
+    After this running the ``update_cmds_archive`` command as normal will work.
     """
-    cmds = Table.read(paths.DATA_DIR() / 'cmds.h5')
+    cmds = IDX_CMDS.copy()
 
     with Ska.DBI.DBI(dbi='sqlite', server=str(CMD_STATES_PATH)) as db:
         timelines = db.fetchall("""SELECT * from timelines""")
@@ -59,11 +69,15 @@ def migrate_cmds_to_cmds2(chop_after_load='APR2020A'):
     cmds.add_column(Column(sources, name='source', dtype='S8'), index=col_index)
     del cmds['timeline_id']
 
-    idx_start = np.flatnonzero(cmds['source'] == RLTT_ERA_START)[0]
+    idx_start = np.flatnonzero(cmds['source'] == chop_after_load)[0]
     cmds = cmds[:idx_start]
 
     cmds.write('cmds2.h5', path='data', overwrite=True)
     shutil.copy2(paths.DATA_DIR() / 'cmds.pkl', 'cmds2.pkl')
+
+    update_cmds_archive(stop='2020-04-21', data_root='.', v1_v2_transition=True)
+
+    cmds.rev_pars_dict = weakref.ref(REV_PARS_DICT)
 
     return cmds
 

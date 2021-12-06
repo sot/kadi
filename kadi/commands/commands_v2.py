@@ -1,4 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+import os
 from pathlib import Path
 import calendar
 import re
@@ -284,7 +285,7 @@ def update_archive_and_get_cmds_recent(scenario=None, *, lookback=None, stop=Non
             logger.info(f'Adding {len(cmds)} commands from {cmds["source"][0]}')
 
     cmds_recent = vstack(cmds_list)
-    cmds_recent.sort(['date', 'step', 'scs'])
+    cmds_recent.sort_in_backstop_order()
 
     # Cache recent commands so future requests for the same scenario are fast
     CMDS_RECENT[scenario] = cmds_recent
@@ -533,14 +534,55 @@ def get_load_cmds_from_occweb_or_local(dir_year_month, load_name):
         raise ValueError(f'Could not find backstop file in {dir_year_month / load_name}')
 
 
-def update_cmds_archive(*, lookback=None, stop=None, log_level=10, data_root='.'):
+def update_cmds_archive(*, lookback=None, stop=None, log_level=logging.INFO,
+                        data_root='.', v1_v2_transition=False):
+    """Update cmds2.h5 and cmds2.pkl archive files.
+
+    This updates the archive though ``stop`` date, where is required that the
+    ``stop`` date is within ``lookback`` days of existing data in the archive.
+
+    :param lookback: int, None
+        Number of days to look back to get recent load commands from OCCweb.
+        Default is ``DEFAULT_LOOKBACK`` (currently 30).
+    :param stop: CxoTime-like, None
+        Stop date to update the archive to. Default is NOW + 21 days.
+    :param log_level: int
+        Logging level. Default is ``logging.INFO``.
+    :param data_root: str, Path
+        Root directory where cmds2.h5 and cmds2.pkl are stored. Default is '.'.
+    :param v1_v2_transition: bool
+        One-time use flag set to True to update the cmds archive near the v1/v2
+        transition of APR1420B. See ``utils/migrate_cmds_to_cmds2.py`` for
+        details.
+    """
+    # Local context manager for log_level and data_root
+    kadi_orig = os.environ.get('KADI')
+    kadi_logger = logging.getLogger('kadi')
+    log_level_orig = kadi_logger.level
+    try:
+        os.environ['KADI'] = data_root
+        kadi_logger.setLevel(log_level)
+        _update_cmds_archive(lookback=lookback, stop=stop,
+                             v1_v2_transition=v1_v2_transition)
+    finally:
+        if kadi_orig is not None:
+            os.environ['KADI'] = kadi_orig
+        kadi_logger.setLevel(log_level_orig)
+
+
+def _update_cmds_archive(*, lookback=None, stop=None, v1_v2_transition=False):
     idx_cmds_path = paths.IDX_CMDS_PATH(version=2)
     pars_dict_path = paths.PARS_DICT_PATH(version=2)
 
-    cmds_arch = IDX_CMDS.copy()
-    pars_dict = PARS_DICT.copy()
+    cmds_arch = load_idx_cmds(version=2)
+    pars_dict = load_pars_dict(version=2)
+
     cmds_recent = update_archive_and_get_cmds_recent(stop=stop, lookback=lookback)
-    idx0_arch, idx0_recent = get_matching_block_idx(cmds_arch, cmds_recent)
+    if v1_v2_transition:
+        idx0_arch = len(cmds_arch)
+        idx0_recent = 0
+    else:
+        idx0_arch, idx0_recent = get_matching_block_idx(cmds_arch, cmds_recent)
 
     # Convert from `params` col of dicts to index into same params in pars_dict.
     for cmd in cmds_recent:
@@ -559,12 +601,14 @@ def update_cmds_archive(*, lookback=None, stop=None, log_level=10, data_root='.'
             return
 
     # Merge the recent commands with the existing archive.
-    logger.info(f'Merging {len(cmds_recent)} new commands with existing archive'
-                'and re-sorting')
+    logger.info(f'Merging {len(cmds_recent)} new commands with existing archive')
+    logger.info(f' starting with cmds_arch[:{idx0_arch}] and adding '
+                f'cmds_recent[{idx0_recent}:{len(cmds_recent)}]')
+
+    # Save the updated archive and pars_dict.
     cmds_arch = vstack([cmds_arch[:idx0_arch], cmds_recent[idx0_recent:]],
                        join_type='exact')
-
-    logger.info(f'Writing updated commands to {idx_cmds_path}')
+    logger.info(f'Writing {len(cmds_arch)} commands to {idx_cmds_path}')
     cmds_arch.write(str(idx_cmds_path), path='data', format='hdf5', overwrite=True)
 
     logger.info(f'Writing updated pars_dict to {pars_dict_path}')
@@ -575,37 +619,44 @@ import difflib
 
 
 def get_matching_block_idx(cmds_arch, cmds_recent):
-    date0 = cmds_recent['date'][0]
-    h5_date = cmds_arch['date'][:]
-
-    idx_recent = np.searchsorted(h5_date, date0)
-    logger.info('Selecting commands from h5d[{}:]'.format(idx_recent))
+    # Find place in archive where the recent commands start.
+    idx_arch_recent = np.searchsorted(cmds_arch['date'], cmds_recent['date'][0])
+    logger.info('Selecting commands from cmds_arch[{}:]'.format(idx_arch_recent))
     # logger.info('  {}'.format(str(cmds_arch[idx_recent])))
-    h5d_recent = cmds_arch[idx_recent:]  # recent h5d entries
+    cmds_arch_recent = cmds_arch[idx_arch_recent:]
+
+    cmds_arch_recent[:10].pprint_like_backstop(
+        logger.info, 'Start of archive commands from beginning of recent commands')
+    cmds_recent[:10].pprint_like_backstop(
+        logger.info, 'Start of recent commands')
 
     # Define the column names that specify a complete and unique row
     key_names = ('date', 'type', 'tlmsid', 'scs', 'step', 'source', 'vcdu')
 
-    h5d_recent_vals = [tuple(
+    cmds_arch_recent[key_names].write('cmds_arch_recent.dat', format='ascii.fixed_width', overwrite=True)
+    cmds_recent[key_names].write('cmds_recent.dat', format='ascii.fixed_width', overwrite=True)
+
+    recent_vals = [tuple(
         row[x].decode('ascii') if isinstance(row[x], bytes) else str(row[x])
         for x in key_names)
-        for row in h5d_recent]
-    idx_cmds_vals = [tuple(
+        for row in cmds_arch_recent]
+    arch_vals = [tuple(
         row[x].decode('ascii') if isinstance(row[x], bytes) else str(row[x])
         for x in key_names)
         for row in cmds_recent]
 
-    diff = difflib.SequenceMatcher(a=h5d_recent_vals, b=idx_cmds_vals, autojunk=False)
-    blocks = diff.get_matching_blocks()
-    logger.info('Matching blocks for existing HDF5 and timeline commands')
-    for block in blocks:
+    diff = difflib.SequenceMatcher(a=arch_vals, b=recent_vals, autojunk=False)
+
+    matching_blocks = diff.get_matching_blocks()
+    logger.info('Matching blocks for (a) existing HDF5 and (b) recent commands')
+    for block in matching_blocks:
         logger.info('  {}'.format(block))
     opcodes = diff.get_opcodes()
-    logger.info('Diffs between existing HDF5 and timeline commands')
+    logger.info('Diffs between (a) existing HDF5 and (b) recent commands')
     for opcode in opcodes:
         logger.info('  {}'.format(opcode))
     # Find the first matching block that is sufficiently long
-    for block in blocks:
+    for block in matching_blocks:
         if block.size > MATCHING_BLOCK_SIZE:
             break
     else:
@@ -615,7 +666,7 @@ def get_matching_block_idx(cmds_arch, cmds_recent):
     # Index into idx_cmds at the end of the large matching block.  block.b is the
     # beginning of the match.
     idx_cmds_idx = block.b + block.size
-    h5d_idx = idx_recent + block.a + block.size
+    h5d_idx = idx_arch_recent + block.a + block.size
 
     return h5d_idx, idx_cmds_idx
 

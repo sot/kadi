@@ -61,7 +61,7 @@ tables.exceptions.HDF5ExtError: HDF5 error back trace
     file = IDX_CMDS_PATH(version)
     logger.info(f'Loading {file}')
     with tables.open_file(file, mode='r') as h5:
-        idx_cmds = Table(h5.root.data[:])
+        idx_cmds = CommandTable(h5.root.data[:])
 
     return idx_cmds
 
@@ -283,7 +283,7 @@ class CommandTable(Table):
             else:
                 return Column([cmd['params'].get(item) for cmd in self], name=item)
 
-        elif isinstance(item, int):
+        elif isinstance(item, (int, np.integer)):
             return CommandRow(self, item)
 
         elif isinstance(item, (tuple, list)) and all(x in self.colnames
@@ -344,6 +344,8 @@ class CommandTable(Table):
 
         This is handy for printing a command table and seeing all the parameters at once.
         """
+        if 'params' not in self.colnames:
+            self['params'] = None
         for cmd in self:
             cmd['params']
 
@@ -356,9 +358,17 @@ class CommandTable(Table):
         :returns: :class:`~kadi.commands.commands.CommandTable` of commands
         """
         out = vstack([self, cmds])
-        out.sort(['date', 'step', 'scs'])
+        out.sort_cmds()
 
         return out
+
+    def sort_in_backstop_order(self):
+        """Sort table in order (date, step, scs)
+
+        This matches the order in backstop.
+        """
+        sort_keys = ['date', 'step', 'scs', 'source']
+        self.sort(sort_keys)
 
     def as_list_of_dict(self, ska_parsecm=False):
         """Convert CommandTable to a list of dict.
@@ -391,45 +401,53 @@ class CommandTable(Table):
     def pformat_like_backstop(self):
         """Format the table in a human-readable format that is similar to backstop"""
         lines = []
+        has_params = 'params' in self.colnames
         for cmd in self:
-            # Make a single string of params like POS= 75624, SCS= 130, STEP= 9
-            fmtvals = []
-            for key, val in cmd['params'].items():
-                if key == 'aoperige':
-                    fmt = '{}={:.13e}'
-                elif isinstance(val, float):
-                    fmt = '{}={:.8e}'
-                elif key == 'packet(40)':
-                    continue
-                elif (key.startswith('aopcads') or
-                      key.startswith('co')
-                      or key.startswith('afl')
-                      or key.startswith('2s1s')
-                      or key.startswith('2s2s')
-                      ):
-                    fmt = '{}={:d} '
-                else:
-                    fmt = '{}={}'
-                fmtvals.append(fmt.format(key, val))
+            if has_params:
+                # Make a single string of params like POS= 75624, SCS= 130, STEP= 9
+                fmtvals = []
+                for key, val in cmd['params'].items():
+                    if key == 'aoperige':
+                        fmt = '{}={:.13e}'
+                    elif isinstance(val, float):
+                        fmt = '{}={:.8e}'
+                    elif key == 'packet(40)':
+                        continue
+                    elif (key.startswith('aopcads') or
+                        key.startswith('co')
+                        or key.startswith('afl')
+                        or key.startswith('2s1s')
+                        or key.startswith('2s2s')
+                        ):
+                        fmt = '{}={:d} '
+                    else:
+                        fmt = '{}={}'
+                    fmtvals.append(fmt.format(key, val))
 
-            if cmd['scs'] != 0:
-                fmtvals.append(f'scs={cmd["scs"]}')
+                if cmd['scs'] != 0:
+                    fmtvals.append(f'scs={cmd["scs"]}')
 
-            params_str = ', '.join(fmtvals)
+                params_str = ', '.join(fmtvals)
+            else:
+                params_str = 'N/A'
 
             if 'source' in self.colnames:
                 lines.append('{} | {:16s} | {:10s} | {:8s} | {}'.format(
                     cmd['date'], cmd['type'], cmd['tlmsid'], cmd['source'], params_str))
             else:
-                lines.append('{} | {:16s} | {:10s} | {}'.format(
-                    cmd['date'], cmd['type'], cmd['tlmsid'], params_str))
+                lines.append('{} | {:16s} | {:10s} | {:8d} | {}'.format(
+                    cmd['date'], cmd['type'], cmd['tlmsid'], cmd['timeline_id'], params_str))
 
         return lines
 
-    def pprint_like_backstop(self):
-        lines = self.pformat_like_backstop()
-        for line in lines:
-            print(line)
+    def pprint_like_backstop(self, logger_func=None, logger_text=''):
+        if logger_func is None:
+            lines = self.pformat_like_backstop()
+            for line in lines:
+                print(line)
+        else:
+            lines = self.pformat_like_backstop()
+            logger_func(logger_text + '\n' + '\n'.join(lines) + '\n')
 
 
 def get_par_idx_update_pars_dict(pars_dict, cmd):
