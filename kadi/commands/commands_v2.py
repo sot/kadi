@@ -93,8 +93,8 @@ def interrupt_load_commands(load, cmds):
 def merge_cmds_archive_recent(start, cmds_recent):
     logger.info('Merging cmds_recent with archive commands from {start}')
     # First get the part of the mission archive commands from `start`
-    ok = IDX_CMDS['date'] >= start.date
-    cmds_arch = IDX_CMDS[ok]
+    i0 = IDX_CMDS.find_date(start)
+    cmds_arch = IDX_CMDS[i0:]
 
     i0_arch, i0_recent = get_matching_block_idx(cmds_arch, cmds_recent)
 
@@ -120,7 +120,7 @@ def get_matching_block_idx_simple(cmds_recent, cmds_arch, min_match):
     # date, so we walk through this getting a block match of `min_match` size.
     # Matching block is defined by all `key_names` columns matching.
     date0 = cmds_recent['date'][0]
-    i0_arch = np.searchsorted(cmds_arch['date'], date0)
+    i0_arch = cmds_arch.find_date(date0)
     key_names = ('date', 'type', 'tlmsid', 'scs', 'step', 'vcdu')
 
     # Find block of commands in cmd_arch that match first min_match of
@@ -177,7 +177,9 @@ def get_cmds(start=None, stop=None, inclusive_stop=False, scenario=None, **kwarg
     else:
         cmds = cmds_recent
 
-    cmds = _find(start, stop, inclusive_stop, idx_cmds=cmds)
+    idx0 = cmds.find_date(start)
+    idx1 = cmds.find_date(stop_date, side=('right' if inclusive_stop else 'left'))
+    cmds = cmds[idx0:idx1]
 
     if 'params' not in cmds.colnames:
         cmds['params'] = None
@@ -195,10 +197,6 @@ def get_cmds(start=None, stop=None, inclusive_stop=False, scenario=None, **kwarg
         cmds = _find(idx_cmds=cmds, pars_dict=pars_dict, **kwargs)
 
     cmds.rev_pars_dict = weakref.ref(REV_PARS_DICT)
-
-    # Convert 'date' from bytestring to unicode. This allows
-    # date2secs(out['date']) to work and will generally reduce weird problems.
-    cmds.convert_bytestring_to_unicode()
 
     cmds.add_column(CxoTime(cmds['date'], format='date').secs, name='time', index=6)
     cmds['time'].info.format = '.3f'
@@ -294,7 +292,7 @@ def update_archive_and_get_cmds_recent(scenario=None, *, lookback=None, stop=Non
                 if prev_cmds['date'][-1] > rltt:
                     # See Boolean masks in
                     # https://occweb.cfa.harvard.edu/twiki/bin/view/Aspect/SkaPython#Ska_idioms_and_style
-                    idx_rltt = np.searchsorted(prev_cmds['date'], rltt, side='right')
+                    idx_rltt = prev_cmds.find_date(rltt, side='right')
                     logger.info(f'Removing {len(prev_cmds) - idx_rltt} '
                                 f'cmds from {prev_cmds["source"][0]}')
                     prev_cmds.remove_rows(slice(idx_rltt, None))
@@ -641,9 +639,8 @@ import difflib
 
 def get_matching_block_idx(cmds_arch, cmds_recent):
     # Find place in archive where the recent commands start.
-    idx_arch_recent = np.searchsorted(cmds_arch['date'], cmds_recent['date'][0])
+    idx_arch_recent = cmds_arch.find_date(cmds_recent['date'][0])
     logger.info('Selecting commands from cmds_arch[{}:]'.format(idx_arch_recent))
-    # logger.info('  {}'.format(str(cmds_arch[idx_recent])))
     cmds_arch_recent = cmds_arch[idx_arch_recent:]
 
     cmds_arch_recent[:10].pprint_like_backstop(

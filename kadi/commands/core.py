@@ -145,10 +145,6 @@ def get_cmds_from_backstop(backstop, remove_starcat=False):
     out = CommandTable(out)
     out['time'].info.format = '.3f'
 
-    # Convert 'date' from bytestring to unicode. This allows
-    # date2secs(out['date']) to work and will generally reduce weird problems.
-    out.convert_bytestring_to_unicode()
-
     return out
 
 
@@ -356,6 +352,29 @@ class CommandTable(Table):
 
     def __bytes__(self):
         return str(self).encode('utf-8')
+
+    def find_date(self, date, side='left'):
+        """Find row in table corresponding to ``date``.
+
+        This is a thin wrapper around np.searchsorted that converts ``date`` to
+        a byte string before calling searchsorted. This is necessary because
+        the ``date`` column is a byte string and the astropy unicode machinery
+        ends up getting called a lot in a way that impacts performance badly.
+
+        :param date: str, sequence of str
+            Date(s) to search for.
+        :param side: {'left', 'right'}, optional
+            If 'left', the index of the first suitable location found is given.
+            If 'right', return the last such index.  If there is no suitable
+            index, return either 0 or N (where N is the length of `a`).
+        :returns: int
+            Index of row(s) corresponding to ``date``.
+        """
+        if isinstance(date, CxoTime):
+            date = date.date
+        date = np.char.encode(date, encoding='ascii')
+        idxs = np.searchsorted(self['date'], date, side=side)
+        return idxs
 
     def fetch_params(self):
         """

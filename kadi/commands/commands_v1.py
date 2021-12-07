@@ -54,10 +54,6 @@ def get_cmds(start=None, stop=None, inclusive_stop=False, **kwargs):
     out.rev_pars_dict = weakref.ref(REV_PARS_DICT)
     out['params'] = None if len(out) > 0 else Column([], dtype=object)
 
-    # Convert 'date' from bytestring to unicode. This allows
-    # date2secs(out['date']) to work and will generally reduce weird problems.
-    out.convert_bytestring_to_unicode()
-
     out.add_column(CxoTime(out['date'], format='date').secs, name='time', index=6)
     out['time'].info.format = '.3f'
 
