@@ -58,7 +58,7 @@ MATCHING_BLOCKS = {}
 # APR1420B was the first load set to have RLTT (backstop 6.9)
 RLTT_ERA_START = CxoTime('2020-04-14')
 
-logger = logging.getLogger('kadi.commands')
+logger = logging.getLogger(__name__)
 
 
 def load_name_to_cxotime(name):

@@ -11,6 +11,7 @@ import hashlib
 import time
 from collections import OrderedDict as odict
 from pathlib import Path
+import logging
 
 import numpy as np
 import requests
@@ -19,7 +20,6 @@ from Chandra.Time import DateTime
 from astropy.io import ascii
 from astropy.table import Table
 from astropy.utils.data import download_file
-import pyyaks.logger
 
 # This is for deprecated functionality to cache to a local directory
 CACHE_DIR = 'cache'
@@ -32,13 +32,8 @@ URLS = {'fdb_major_events': '/occweb/web/fdb_web/Major_Events.html',
         'ifot': '/occweb/web/webapps/ifot/ifot.php',
         }
 
-# Initialize 'kadi.occweb' logger with WARNING level. Logging in this
-# module is INFO.
-logger = pyyaks.logger.get_logger(
-    __name__, format='%(asctime)s %(funcName)s - %(message)s',
-    level=pyyaks.logger.WARNING)
-for handler in logger.handlers:
-    handler.setLevel(pyyaks.logger.DEBUG)
+# Initialize 'kadi.occweb' logger.
+logger = logging.getLogger(__name__)
 
 
 def get_auth(username=None, password=None):
@@ -229,7 +224,7 @@ def get_occweb_page(path, timeout=30, cache=False, binary=False,
     else:
         url = ROOTURL + (Path('/occweb') / path).as_posix()
 
-    logger.verbose(f'Getting OCCweb {path} with {cache=}')
+    logger.info(f'Getting OCCweb {path} with {cache=}')
     if cache:
         user, password = get_auth(user, password)
         headers = get_auth_http_headers(user, password)

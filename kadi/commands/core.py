@@ -14,7 +14,7 @@ from kadi.paths import IDX_CMDS_PATH, PARS_DICT_PATH
 
 __all__ = ['read_backstop', 'get_cmds_from_backstop', 'CommandTable']
 
-logger = logging.getLogger('kadi.commands')
+logger = logging.getLogger(__name__)
 
 
 class LazyVal(object):
