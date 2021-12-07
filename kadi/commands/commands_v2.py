@@ -10,7 +10,7 @@ import functools
 import weakref
 
 import numpy as np
-from astropy.table import Table, vstack, Column
+from astropy.table import Table, vstack
 import astropy.units as u
 import requests
 
@@ -691,9 +691,6 @@ def get_matching_block_idx(cmds_arch, cmds_recent):
     # Define the column names that specify a complete and unique row
     key_names = ('date', 'type', 'tlmsid', 'scs', 'step', 'source', 'vcdu')
 
-    cmds_arch_recent[key_names].write('cmds_arch_recent.dat', format='ascii.fixed_width', overwrite=True)
-    cmds_recent[key_names].write('cmds_recent.dat', format='ascii.fixed_width', overwrite=True)
-
     recent_vals = [tuple(
         row[x].decode('ascii') if isinstance(row[x], bytes) else str(row[x])
         for x in key_names)
@@ -727,6 +724,7 @@ def get_matching_block_idx(cmds_arch, cmds_recent):
     h5d_idx = idx_arch_recent + block.a + block.size
 
     return h5d_idx, idx_cmds_idx
+
 
 def get_opt(args=None):
     """
