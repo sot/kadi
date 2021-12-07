@@ -7,7 +7,7 @@ logger = pyyaks.logger.get_logger(
     name='kadi.commands',
     format='%(asctime)s %(funcName)s - %(message)s')
 for handler in logger.handlers:
-    handler.setLevel(1)
+    handler.setLevel(pyyaks.logger.DEBUG)
 
 from .core import *  # noqa
 from .commands import *  # noqa

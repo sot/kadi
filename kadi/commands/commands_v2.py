@@ -53,6 +53,7 @@ REV_PARS_DICT = LazyVal(lambda: {v: k for k, v in PARS_DICT.items()})
 
 # Cache of recent commands keyed by scenario
 CMDS_RECENT = {}
+MATCHING_BLOCKS = {}
 
 # APR1420B was the first load set to have RLTT (backstop 6.9)
 RLTT_ERA_START = CxoTime('2020-04-14')
@@ -90,20 +91,52 @@ def interrupt_load_commands(load, cmds):
     return cmds
 
 
-def merge_cmds_archive_recent(start, cmds_recent):
-    logger.info('Merging cmds_recent with archive commands from {start}')
-    # First get the part of the mission archive commands from `start`
-    i0 = IDX_CMDS.find_date(start)
-    cmds_arch = IDX_CMDS[i0:]
+def _merge_cmds_archive_recent(start, scenario):
+    """Merge cmds archive from ``start`` onward with recent cmds for ``scenario``
 
-    i0_arch, i0_recent = get_matching_block_idx(cmds_arch, cmds_recent)
+    This assumes:
+    - CMDS_RECENT cache has been set with that scenario.
+    - Recent commands overlap the cmds archive
+
+    :parameter start: CxoTime-like,
+        Start time for returned commands
+    :parameter scenario: str
+        Scenario name
+    :returns: CommandTable
+        Commands from cmds archive and all recent commands
+    """
+    cmds_recent = CMDS_RECENT[scenario]
+
+    logger.info('Merging cmds_recent with archive commands from {start}')
+
+    if scenario not in MATCHING_BLOCKS:
+        # Get index for start of cmds_recent within the cmds archive
+        i0_arch_recent = IDX_CMDS.find_date(cmds_recent['date'][0])
+
+        # Find the end of the first large (MATCHING_BLOCK_SIZE) block of
+        # cmds_recent that overlap with archive cmds. Look for the matching
+        # block in a subset of archive cmds that starts at the start of
+        # cmds_recent. `arch_recent_offset` is the offset from `i0_arch_recent`
+        # to the end of the matching block. `i0_recent` is the end of the
+        # matching block in recent commands.
+        arch_recent_offset, recent_block_end = get_matching_block_idx(
+            IDX_CMDS[i0_arch_recent:], cmds_recent)
+        arch_block_end = i0_arch_recent + arch_recent_offset
+        MATCHING_BLOCKS[scenario] = arch_block_end, recent_block_end, i0_arch_recent
+    else:
+        arch_block_end, recent_block_end, i0_arch_recent = MATCHING_BLOCKS[scenario]
+
+    # Get archive commands from the requested start time (or start of the overlap
+    # with recent commands) to the end of the matching block in recent commands.
+    i0_arch_start = min(IDX_CMDS.find_date(start), i0_arch_recent)
+    cmds_arch = IDX_CMDS[i0_arch_start:arch_block_end]
 
     # Stored archive commands HDF5 has no `params` column, instead storing an
     # index to the param values which are in PARS_DICT. Add `params` object
     # column with None values and then stack with cmds_recent (which has
     # `params` already as dicts).
     cmds_arch.add_column(None, name='params')
-    cmds = vstack([cmds_arch[:i0_arch], cmds_recent[i0_recent:]],
+    cmds = vstack([cmds_arch, cmds_recent[recent_block_end:]],
                   join_type='exact')
 
     # Need to give CommandTable a ref to REV_PARS_DICT so it can tranlate from
@@ -162,8 +195,7 @@ def get_cmds(start=None, stop=None, inclusive_stop=False, scenario=None, **kwarg
     :returns: CommandTable
     """
     if scenario not in CMDS_RECENT:
-        cmds_recent = update_archive_and_get_cmds_recent(scenario)
-        CMDS_RECENT[scenario] = cmds_recent
+        cmds_recent = update_archive_and_get_cmds_recent(scenario, cache=True)
     else:
         cmds_recent = CMDS_RECENT[scenario]
 
@@ -171,11 +203,19 @@ def get_cmds(start=None, stop=None, inclusive_stop=False, scenario=None, **kwarg
     stop_date = CxoTime(stop) if stop else '2099:001'
 
     if stop_date < cmds_recent['date'][0]:
+        # Query does not overlap with recent commands, just use archive.
+        logger.info('Getting commands from archive only')
         cmds = IDX_CMDS
-    elif start < CxoTime(cmds_recent['date'][0]) + 1 * u.day:
-        cmds = merge_cmds_archive_recent(start, cmds_recent)
+    elif start < CxoTime(cmds_recent['date'][0]) + 1 * u.hr:
+        # Query starts near beginning of recent commands and *might* need some
+        # archive commands. The margin is set at 1 hour, but in reality it is
+        # probably just the 3 minutes of typical overlaps between loads.
+        cmds = _merge_cmds_archive_recent(start, scenario)
+        logger.info('Getting commands from archive + recent')
     else:
+        # Query is strictly within recent commands.
         cmds = cmds_recent
+        logger.info('Getting commands from recent only')
 
     idx0 = cmds.find_date(start)
     idx1 = cmds.find_date(stop_date, side=('right' if inclusive_stop else 'left'))
