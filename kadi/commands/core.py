@@ -8,7 +8,7 @@ import numpy as np
 from ska_helpers import retry
 
 from astropy.table import Table, Row, Column, vstack, TableAttribute
-from Chandra.Time import DateTime, date2secs
+from cxotime import CxoTime
 
 from kadi.paths import IDX_CMDS_PATH, PARS_DICT_PATH
 
@@ -120,7 +120,7 @@ def get_cmds_from_backstop(backstop, remove_starcat=False):
     out['tlmsid'] = np.chararray.encode(bs['tlmsid'])
     out['scs'] = bs['scs'].astype(np.uint8)
     out['step'] = bs['step'].astype(np.uint16)
-    out['time'] = date2secs(bs['date'])
+    out['time'] = CxoTime(bs['date']).secs
     # Set timeline_id to 0, does not match any real timeline id
     out['timeline_id'] = np.zeros(n_bs, dtype=np.uint32)
     out['vcdu'] = bs['vcdu'].astype(np.int32)
@@ -176,9 +176,9 @@ def _find(start=None, stop=None, inclusive_stop=False, idx_cmds=None,
       >>> cmds = commands._find(type='acispkt', tlmsid='wsvidalldn')
       >>> cmds = commands._find(msid='aflcrset')
 
-    :param start: DateTime format (optional)
+    :param start: CxoTime format (optional)
         Start time, defaults to beginning of available commands (2002:001)
-    :param stop: DateTime format (optional)
+    :param stop: CxoTime format (optional)
         Stop time, defaults to end of available commands
     :param kwargs: key=val keyword argument pairs
 
@@ -189,15 +189,15 @@ def _find(start=None, stop=None, inclusive_stop=False, idx_cmds=None,
 
     date = kwargs.pop('date', None)
     if date:
-        ok &= idx_cmds['date'] == DateTime(date).date
+        ok &= idx_cmds['date'] == CxoTime(date).date
     else:
         if start:
-            ok &= idx_cmds['date'] >= DateTime(start).date
+            ok &= idx_cmds['date'] >= CxoTime(start).date
         if stop:
             if inclusive_stop:
-                ok &= idx_cmds['date'] <= DateTime(stop).date
+                ok &= idx_cmds['date'] <= CxoTime(stop).date
             else:
-                ok &= idx_cmds['date'] < DateTime(stop).date
+                ok &= idx_cmds['date'] < CxoTime(stop).date
 
     for key, val in kwargs.items():
         key = key.lower()
@@ -229,7 +229,9 @@ class CommandRow(Row):
                 if rev_pars_dict := self.table.rev_pars_dict:
                     params = dict(rev_pars_dict()[idx])
                 else:
-                    params = None
+                    raise KeyError('params cannot be mapped because the rev_pars_dict '
+                                   'attribute is not defined (needs to be a weakref.ref '
+                                   'of REV_PARS_DICT)')
                 out = self['params'] = params
         elif item not in self.colnames:
             out = self['params'][item]

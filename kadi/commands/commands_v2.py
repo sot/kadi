@@ -10,13 +10,13 @@ import functools
 import weakref
 
 import numpy as np
-from astropy.table import Table, vstack
+from astropy.table import Table, vstack, Column
 import astropy.units as u
 import requests
 
 from kadi.commands import get_cmds_from_backstop
 from kadi.commands.core import (load_idx_cmds, load_pars_dict, LazyVal,
-                                get_par_idx_update_pars_dict)
+                                get_par_idx_update_pars_dict, _find)
 from kadi.command_sets import get_cmds_from_event
 from kadi import occweb
 from kadi import paths
@@ -93,8 +93,8 @@ def interrupt_load_commands(load, cmds):
 def merge_cmds_archive_recent(start, cmds_recent):
     logger.info('Merging cmds_recent with archive commands from {start}')
     # First get the part of the mission archive commands from `start`
-    i0 = np.searchsorted(IDX_CMDS['date'], start.date)
-    cmds_arch = IDX_CMDS[i0:]
+    ok = IDX_CMDS['date'] >= start.date
+    cmds_arch = IDX_CMDS[ok]
 
     i0_arch, i0_recent = get_matching_block_idx(cmds_arch, cmds_recent)
 
@@ -142,7 +142,7 @@ def get_matching_block_idx_simple(cmds_recent, cmds_arch, min_match):
     return i0_arch
 
 
-def get_cmds(start=None, stop=None, inclusive_stop=False, scenario=None):
+def get_cmds(start=None, stop=None, inclusive_stop=False, scenario=None, **kwargs):
     """Get commands using loads table, relying entirely on RLTT.
 
     :param start: CxoTime-like
@@ -156,6 +156,9 @@ def get_cmds(start=None, stop=None, inclusive_stop=False, scenario=None):
     :param loads_stop: CxoTime-like, None
         Stop time for loads table (default is all available loads, but useful
         for development/testing work)
+    :param **kwargs: dict
+        key=val keyword argument pairs for filtering
+
     :returns: CommandTable
     """
     if scenario not in CMDS_RECENT:
@@ -165,22 +168,46 @@ def get_cmds(start=None, stop=None, inclusive_stop=False, scenario=None):
         cmds_recent = CMDS_RECENT[scenario]
 
     start = CxoTime(start or '1999:001')
-    stop = CxoTime(stop or '2099:001')
+    stop_date = CxoTime(stop) if stop else '2099:001'
 
-    if start < CxoTime(cmds_recent['date'][0]) + 1 * u.day:
+    if stop_date < cmds_recent['date'][0]:
+        cmds = IDX_CMDS
+    elif start < CxoTime(cmds_recent['date'][0]) + 1 * u.day:
         cmds = merge_cmds_archive_recent(start, cmds_recent)
     else:
         cmds = cmds_recent
 
-    idx0 = np.searchsorted(cmds['date'], start.date)
-    idx1 = np.searchsorted(cmds['date'], stop.date,
-                           side=('right' if inclusive_stop else 'left'))
-    cmds = cmds[idx0:idx1]
+    cmds = _find(start, stop, inclusive_stop, idx_cmds=cmds)
+
+    if 'params' not in cmds.colnames:
+        cmds['params'] = None
+
+    if kwargs:
+        # Specified extra filters on cmds search
+        pars_dict = PARS_DICT.copy()
+        # For any recent commands that have params as a dict, those will have
+        # idx = -1. This doesn't work with _find, which is optimized to search
+        # pars_dict for the matching search keys.
+        # TODO: this step is only really required for kwargs that are not a column,
+        # i.e. keys that are found only in params.
+        for ii in np.flatnonzero(cmds['idx'] == -1):
+            cmds[ii]['idx'] = get_par_idx_update_pars_dict(pars_dict, cmds[ii])
+        cmds = _find(idx_cmds=cmds, pars_dict=pars_dict, **kwargs)
+
+    cmds.rev_pars_dict = weakref.ref(REV_PARS_DICT)
+
+    # Convert 'date' from bytestring to unicode. This allows
+    # date2secs(out['date']) to work and will generally reduce weird problems.
+    cmds.convert_bytestring_to_unicode()
+
+    cmds.add_column(CxoTime(cmds['date']).secs, name='time', index=6)
+    cmds['time'].info.format = '.3f'
 
     return cmds
 
 
-def update_archive_and_get_cmds_recent(scenario=None, *, lookback=None, stop=None):
+def update_archive_and_get_cmds_recent(scenario=None, *, lookback=None, stop=None,
+                                       cache=True):
     """Update local loads table and downloaded loads and return all recent cmds.
 
     This also caches the recent commands in the global CMDS_RECENT dict.
@@ -193,6 +220,8 @@ def update_archive_and_get_cmds_recent(scenario=None, *, lookback=None, stop=Non
         Lookback time from ``stop`` for recent loads. If None, use DEFAULT_LOOKBACK.
     :param stop: CxoTime-like, None
         Stop time for loads table (default is now + 21 days)
+    :param cache: bool
+        Cache the result in CMDS_RECENT dict.
 
     :returns: CommandTable
     """
@@ -276,8 +305,9 @@ def update_archive_and_get_cmds_recent(scenario=None, *, lookback=None, stop=Non
     cmds_recent = vstack(cmds_list)
     cmds_recent.sort_in_backstop_order()
 
-    # Cache recent commands so future requests for the same scenario are fast
-    CMDS_RECENT[scenario] = cmds_recent
+    if cache:
+        # Cache recent commands so future requests for the same scenario are fast
+        CMDS_RECENT[scenario] = cmds_recent
 
     return cmds_recent
 
@@ -357,11 +387,11 @@ def update_loads(scenario=None, *, cmd_events=None, lookback=None, stop=None):
     # that are guaranteed to sample all the months in the lookback period with
     # two weeks of margin on the tail end.
     dt = 21 * u.day
+    start = CxoTime(stop) - lookback * u.day
     if stop is None:
         stop = CxoTime.now() + dt
     else:
         stop = CxoTime(stop)
-    start = CxoTime(stop) - lookback * u.day
     n_sample = int(np.ceil((stop - start) / dt))
     dates = start + np.arange(n_sample + 1) * (stop - start) / n_sample
     dirs_tried = set()
@@ -566,7 +596,9 @@ def _update_cmds_archive(*, lookback=None, stop=None, v1_v2_transition=False):
     cmds_arch = load_idx_cmds(version=2)
     pars_dict = load_pars_dict(version=2)
 
-    cmds_recent = update_archive_and_get_cmds_recent(stop=stop, lookback=lookback)
+    cmds_recent = update_archive_and_get_cmds_recent(
+        stop=stop, lookback=lookback, cache=False)
+
     if v1_v2_transition:
         idx0_arch = len(cmds_arch)
         idx0_recent = 0

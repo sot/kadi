@@ -97,8 +97,8 @@ def test_get_cmds(version_env):
     assert repr(cmd).startswith('<Cmd 2012:030:08:27:02.000 SIMTRANS')
     assert str(cmd).startswith('2012:030:08:27:02.000 SIMTRANS')
     if version_env == '2':
-        assert repr(cmd).endswith('scs=133 step=161 source=JAN2612A vcdu=15639968 pos=73176>')
-        assert str(cmd).endswith('scs=133 step=161 source=JAN2612A vcdu=15639968 pos=73176')
+        assert repr(cmd).endswith('scs=133 step=161 source=JAN3012C vcdu=15639968 pos=73176>')
+        assert str(cmd).endswith('scs=133 step=161 source=JAN3012C vcdu=15639968 pos=73176')
     else:
         assert repr(cmd).endswith('scs=133 step=161 timeline_id=426098449 vcdu=15639968 pos=73176>')
         assert str(cmd).endswith('scs=133 step=161 timeline_id=426098449 vcdu=15639968 pos=73176')
@@ -110,8 +110,9 @@ def test_get_cmds(version_env):
 def test_get_cmds_zero_length_result(version_env):
     cmds = commands.get_cmds(date='2017:001:12:00:00')
     assert len(cmds) == 0
+    source_name = 'source' if version_env == '2' else 'timeline_id'
     assert cmds.colnames == ['idx', 'date', 'type', 'tlmsid', 'scs',
-                             'step', 'time', 'timeline_id', 'vcdu', 'params']
+                             'step', 'time', source_name, 'vcdu', 'params']
 
 
 def test_get_cmds_inclusive_stop(version_env):
