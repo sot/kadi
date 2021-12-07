@@ -120,7 +120,7 @@ def get_cmds_from_backstop(backstop, remove_starcat=False):
     out['tlmsid'] = np.chararray.encode(bs['tlmsid'])
     out['scs'] = bs['scs'].astype(np.uint8)
     out['step'] = bs['step'].astype(np.uint16)
-    out['time'] = CxoTime(bs['date']).secs
+    out['time'] = CxoTime(bs['date'], format='date').secs
     # Set timeline_id to 0, does not match any real timeline id
     out['timeline_id'] = np.zeros(n_bs, dtype=np.uint32)
     out['vcdu'] = bs['vcdu'].astype(np.int32)

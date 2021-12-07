@@ -58,7 +58,7 @@ def get_cmds(start=None, stop=None, inclusive_stop=False, **kwargs):
     # date2secs(out['date']) to work and will generally reduce weird problems.
     out.convert_bytestring_to_unicode()
 
-    out.add_column(CxoTime(out['date']).secs, name='time', index=6)
+    out.add_column(CxoTime(out['date'], format='date').secs, name='time', index=6)
     out['time'].info.format = '.3f'
 
     return out
