@@ -31,7 +31,7 @@ CMDS_DTYPE = [('idx', np.int32),
               ('vcdu', np.int32)]
 
 
-def make_cmds2_through_date(stop=None, step=7 * u.day):
+def make_cmds2_through_date(stop=None, step=7):
     """Make initial cmds2 and then do archive updates every ``step`` days"""
     migrate_cmds_to_cmds2()
     update_cmds_archive(stop='2020-04-28', v1_v2_transition=True)
@@ -42,7 +42,7 @@ def make_cmds2_through_date(stop=None, step=7 * u.day):
         print('*' * 80)
         print(f'Updating cmds2 to {date}')
         print('*' * 80)
-        update_cmds_archive(stop=date)
+        update_cmds_archive(stop=date, lookback=step + 30)
         date += step
 
 
