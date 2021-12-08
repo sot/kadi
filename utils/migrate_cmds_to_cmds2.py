@@ -7,12 +7,13 @@ import weakref
 import numpy as np
 from astropy.table import Table, vstack, Column
 
-from kadi.commands.core import get_cmds_from_backstop, CommandTable
-from kadi.commands.commands_v1 import IDX_CMDS, REV_PARS_DICT
+from kadi.commands.core import (get_cmds_from_backstop, CommandTable,
+                                load_idx_cmds, load_pars_dict)
 from kadi.commands.commands_v2 import update_cmds_archive
 from kadi import paths
 import Ska.DBI
-
+from cxotime import CxoTime
+import astropy.units as u
 
 SKA = Path(os.environ['SKA'])
 CMD_STATES_PATH = SKA / 'data' / 'cmd_states' / 'cmd_states.db3'
@@ -30,8 +31,23 @@ CMDS_DTYPE = [('idx', np.int32),
               ('vcdu', np.int32)]
 
 
+def make_cmds2_through_date(stop=None, step=7 * u.day):
+    """Make initial cmds2 and then do archive updates every ``step`` days"""
+    migrate_cmds_to_cmds2()
+    update_cmds_archive(stop='2020-04-28', v1_v2_transition=True)
+
+    date = CxoTime('2020-04-28')
+    stop = CxoTime(stop)
+    while date < stop:
+        print('*' * 80)
+        print(f'Updating cmds2 to {date}')
+        print('*' * 80)
+        update_cmds_archive(stop=date)
+        date += step
+
+
 def migrate_cmds_to_cmds2(start=0):
-    """Migrate the legacy cmds.h5 to the new cmds2.h5 format.
+    """Migrate the legacy cmds.h5 through APR1320A to the new cmds2.h5 format.
 
     Key change is migrating from timeline_id to source, which is either the load
     name or "CMD_EVT" for commands from the event table.
@@ -53,8 +69,9 @@ def migrate_cmds_to_cmds2(start=0):
         Index into existing loads to start at. Used in debugging by setting
         start=-200 to include just 200 commands from APR1320A.
     """
-    cmds = IDX_CMDS.copy()
+    cmds = load_idx_cmds(version=1)
 
+    # This code is to get the load name ("source") for each cmd
     with Ska.DBI.DBI(dbi='sqlite', server=str(CMD_STATES_PATH)) as db:
         timelines = db.fetchall("""SELECT * from timelines""")
     timelines = Table(timelines)
@@ -78,12 +95,6 @@ def migrate_cmds_to_cmds2(start=0):
 
     cmds[start:].write('cmds2.h5', path='data', overwrite=True)
     shutil.copy2(paths.DATA_DIR() / 'cmds.pkl', 'cmds2.pkl')
-
-    # update_cmds_archive(stop='2020-04-21', data_root='.', v1_v2_transition=True)
-
-    cmds.rev_pars_dict = weakref.ref(REV_PARS_DICT)
-
-    return cmds
 
 
 ###############################################################################
