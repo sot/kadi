@@ -3,6 +3,7 @@ import tables
 from pathlib import Path
 import logging
 import pickle
+import struct
 
 import numpy as np
 from ska_helpers import retry
@@ -215,6 +216,34 @@ def _find(start=None, stop=None, inclusive_stop=False, idx_cmds=None,
     return cmds
 
 
+
+def get_starcat_keys_types():
+    cat_keys = ['dimdts', 'imgsz', 'imnum', 'maxmag', 'minmag', 'restrk', 'type', 'yang', 'zang']
+    # Unsigned char (uint8) and float (np.float32)
+    cat_types = ['B', 'B', 'B', 'f', 'f', 'B', 'B', 'f', 'f']
+    keys = ['cmds']
+    types = ['B']
+    for idx in range(1, 17):
+        for cat_key, cat_type in zip(cat_keys, cat_types):
+            keys.append(f'{cat_key}{idx}')
+            types.append(cat_type)
+    return keys, ''.join(types)
+
+
+STARCAT_KEYS, STARCAT_TYPES = get_starcat_keys_types()
+
+
+def encode_starcat_params(params_dict):
+    assert set(params_dict.keys()) == set(STARCAT_KEYS)
+    args = tuple(params_dict[key] for key in STARCAT_KEYS)
+    return struct.pack(STARCAT_TYPES, *args)
+
+
+def decode_starcat_params(params_bytes):
+    vals = struct.unpack(STARCAT_TYPES, params_bytes)
+    return {key: val for key, val in zip(STARCAT_KEYS, vals)}
+
+
 class CommandRow(Row):
     def __getitem__(self, item):
         if item == 'params':
@@ -225,7 +254,11 @@ class CommandRow(Row):
                 # pars dict for this CommandTable. But it might not be defined,
                 # in which case just leave it as None.
                 if rev_pars_dict := self.table.rev_pars_dict:
-                    params = dict(rev_pars_dict()[idx])
+                    parvals = rev_pars_dict()[idx]
+                    if isinstance(parvals, bytes):
+                        params = decode_starcat_params(parvals)
+                    else:
+                        params = dict(parvals)
                 else:
                     raise KeyError('params cannot be mapped because the rev_pars_dict '
                                    'attribute is not defined (needs to be a weakref.ref '
@@ -510,7 +543,7 @@ def get_par_idx_update_pars_dict(pars_dict, cmd):
     if cmd['tlmsid'] == 'AOSTRCAT':
         # Skip star catalog command because that has many (uninteresting) parameters
         # and increases the file size and load speed by an order of magnitude.
-        pars_tup = ()
+        pars_tup = encode_starcat_params(cmd['params'])
     else:
         pars_tup = tuple((key.lower(), pars[key]) for key in sorted(keys))
 

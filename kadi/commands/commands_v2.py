@@ -8,6 +8,7 @@ import pickle
 import itertools
 import functools
 import weakref
+import logging
 
 import numpy as np
 from astropy.table import Table, vstack
@@ -16,13 +17,12 @@ import requests
 
 from kadi.commands import get_cmds_from_backstop
 from kadi.commands.core import (load_idx_cmds, load_pars_dict, LazyVal,
-                                get_par_idx_update_pars_dict, _find)
+                                get_par_idx_update_pars_dict, _find,
+                                encode_starcat_params)
 from kadi.command_sets import get_cmds_from_event
 from kadi import occweb
 from kadi import paths
 from cxotime import CxoTime
-import logging
-
 
 # TODO configuration options, but use DEFAULT_* in the mean time
 # - cache loads (backstop) downloads from OCCweb (useful for development but
