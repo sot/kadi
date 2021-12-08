@@ -36,6 +36,7 @@ DEFAULT_LOOKBACK = 30  # Lookback time for recent loads
 UPDATE_FROM_NETWORK = True
 CACHE_LOADS_IN_ASTROPY_CACHE = True  # Or maybe just be clever about cleaning old files?
 MATCHING_BLOCK_SIZE = 100
+CLEAN_LOADS_DIR = False
 
 # TODO: cache translation from cmd_events to CommandTable's  [Probably not]
 
@@ -475,7 +476,8 @@ def update_loads(scenario=None, *, cmd_events=None, lookback=None, stop=None):
     loads_table.write(loads_table_path.with_suffix('.dat'), format='ascii.fixed_width',
                       overwrite=True)
 
-    clean_loads_dir(loads_table)
+    if CLEAN_LOADS_DIR:
+        clean_loads_dir(loads_table)
 
     return loads_table
 
@@ -575,7 +577,7 @@ def get_load_cmds_from_occweb_or_local(dir_year_month, load_name):
             backstop_text = occweb.get_occweb_page(dir_year_month / load_name / filename,
                                                    cache=CACHE_LOADS_IN_ASTROPY_CACHE)
             backstop_lines = backstop_text.splitlines()
-            cmds = get_cmds_from_backstop(backstop_lines, remove_starcat=True)
+            cmds = get_cmds_from_backstop(backstop_lines, remove_starcat=False)
 
             # Fix up the commands to be in the right format
             idx = cmds.colnames.index('timeline_id')
