@@ -47,7 +47,7 @@ class LazyVal(object):
 
 
 @retry.retry(tries=4, delay=0.5, backoff=4)
-def load_idx_cmds(version=None):
+def load_idx_cmds(version=None, file=None):
     """Load the cmds.h5 file, trying up to 3 times
 
     It seems that one can occasionally get:
@@ -58,7 +58,8 @@ tables.exceptions.HDF5ExtError: HDF5 error back trace
     File "H5FDsec2.c", line 941, in H5FD_sec2_lock
     unable to lock file, errno = 11, error message = 'Resource temporarily unavailable'
     """
-    file = IDX_CMDS_PATH(version)
+    if file is None:
+        file = IDX_CMDS_PATH(version)
     logger.info(f'Loading {file}')
     with tables.open_file(file, mode='r') as h5:
         idx_cmds = CommandTable(h5.root.data[:])
@@ -67,8 +68,9 @@ tables.exceptions.HDF5ExtError: HDF5 error back trace
 
 
 @retry.retry(tries=4, delay=0.5, backoff=4)
-def load_pars_dict(version=None):
-    file = PARS_DICT_PATH(version)
+def load_pars_dict(version=None, file=None):
+    if file is None:
+        file = PARS_DICT_PATH(version)
     logger.info(f'Loading {file}')
     with open(PARS_DICT_PATH(version), 'rb') as fh:
         pars_dict = pickle.load(fh, encoding='ascii')
@@ -405,7 +407,7 @@ class CommandTable(Table):
 
         This matches the order in backstop.
         """
-        sort_keys = ['date', 'step', 'scs']
+        sort_keys = ['date', 'step', 'scs', 'source']
         self.sort(sort_keys)
 
     def as_list_of_dict(self, ska_parsecm=False):

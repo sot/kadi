@@ -30,7 +30,7 @@ CMDS_DTYPE = [('idx', np.int32),
               ('vcdu', np.int32)]
 
 
-def migrate_cmds_to_cmds2():
+def migrate_cmds_to_cmds2(start=0):
     """Migrate the legacy cmds.h5 to the new cmds2.h5 format.
 
     Key change is migrating from timeline_id to source, which is either the load
@@ -48,6 +48,10 @@ def migrate_cmds_to_cmds2():
        >>> update_cmds_archive(stop='2020-04-28', v1_v2_transition=True)
 
     After this running the ``update_cmds_archive`` command as normal will work.
+
+    :param start: int
+        Index into existing loads to start at. Used in debugging by setting
+        start=-200 to include just 200 commands from APR1320A.
     """
     cmds = IDX_CMDS.copy()
 
@@ -69,13 +73,13 @@ def migrate_cmds_to_cmds2():
     cmds.add_column(Column(sources, name='source', dtype='S8'), index=col_index)
     del cmds['timeline_id']
 
-    idx_start = np.flatnonzero(cmds['source'] == chop_after_load)[0]
+    idx_start = np.flatnonzero(cmds['source'] == RLTT_ERA_START)[0]
     cmds = cmds[:idx_start]
 
-    cmds.write('cmds2.h5', path='data', overwrite=True)
+    cmds[start:].write('cmds2.h5', path='data', overwrite=True)
     shutil.copy2(paths.DATA_DIR() / 'cmds.pkl', 'cmds2.pkl')
 
-    update_cmds_archive(stop='2020-04-21', data_root='.', v1_v2_transition=True)
+    # update_cmds_archive(stop='2020-04-21', data_root='.', v1_v2_transition=True)
 
     cmds.rev_pars_dict = weakref.ref(REV_PARS_DICT)
 
