@@ -218,9 +218,9 @@ def _find(start=None, stop=None, inclusive_stop=False, idx_cmds=None,
 class CommandRow(Row):
     def __getitem__(self, item):
         if item == 'params':
-            out = super(CommandRow, self).__getitem__(item)
+            out = super().__getitem__(item)
             if out is None:
-                idx = super(CommandRow, self).__getitem__('idx')
+                idx = super().__getitem__('idx')
                 # self.parent.rev_pars_dict should be a weakref to the reverse
                 # pars dict for this CommandTable. But it might not be defined,
                 # in which case just leave it as None.
@@ -234,7 +234,7 @@ class CommandRow(Row):
         elif item not in self.colnames:
             out = self['params'][item]
         else:
-            out = super(CommandRow, self).__getitem__(item)
+            out = super().__getitem__(item)
         return out
 
     def keys(self):
