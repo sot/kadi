@@ -1,4 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+import os
 import tables
 from pathlib import Path
 import logging
@@ -216,7 +217,6 @@ def _find(start=None, stop=None, inclusive_stop=False, idx_cmds=None,
     return cmds
 
 
-
 def get_starcat_keys_types():
     cat_keys = ['dimdts', 'imgsz', 'imnum', 'maxmag', 'minmag', 'restrk', 'type', 'yang', 'zang']
     # Unsigned char (uint8) and float (np.float32)
@@ -374,7 +374,10 @@ class CommandTable(Table):
                     params_list.append('N/A')
                 else:
                     param_strs = ['{}={}'.format(key, val) for key, val in params.items()]
-                    params_list.append(' '.join(param_strs))
+                    params_str = ' '.join(param_strs)
+                    if len(params_str) > 40:
+                        params_str = params_str[:40] + ' ...'
+                    params_list.append(params_str)
             tmp_params = params_list
             colnames.remove('params')
 
@@ -523,7 +526,7 @@ class CommandTable(Table):
             logger_func(logger_text + '\n' + '\n'.join(lines) + '\n')
 
 
-def get_par_idx_update_pars_dict(pars_dict, cmd):
+def get_par_idx_update_pars_dict(pars_dict, cmd, params=None):
     """Get par_idx representing index into pars tuples dict.
 
     This is used internally in updating the commands H5 and commands PARS_DICT
@@ -534,18 +537,20 @@ def get_par_idx_update_pars_dict(pars_dict, cmd):
     :param pars_dict: dict of pars tuples
     :param cmd: dict or CommandRow
         Command for updated par_idx
+    :param pars: dict, optional
+        If provided, this is used instead of cmd['params']
     :returns: int
         Params index (value of corresponding pars tuple dict key)
     """
     # Define a consistently ordered tuple that has all command parameter information
-    pars = cmd['params']
-    keys = set(pars.keys()) - set(('SCS', 'STEP', 'TLMSID'))
+    if params is None:
+        params = cmd['params']
+    keys = set(params.keys()) - set(('SCS', 'STEP', 'TLMSID'))
+
     if cmd['tlmsid'] == 'AOSTRCAT':
-        # Skip star catalog command because that has many (uninteresting) parameters
-        # and increases the file size and load speed by an order of magnitude.
-        pars_tup = encode_starcat_params(cmd['params'])
+        pars_tup = encode_starcat_params(params) if params else ()
     else:
-        pars_tup = tuple((key.lower(), pars[key]) for key in sorted(keys))
+        pars_tup = tuple((key.lower(), params[key]) for key in sorted(keys))
 
     try:
         par_idx = pars_dict[pars_tup]
@@ -559,3 +564,16 @@ def get_par_idx_update_pars_dict(pars_dict, cmd):
         pars_dict[pars_tup] = par_idx
 
     return par_idx
+
+
+def ska_load_dir(load_name):
+    root = Path(os.environ['SKA']) / 'data' / 'mpcrit1' / 'mplogs'
+    year = load_name[5:7]
+    if year == '99':
+        year = 1999
+    else:
+        year = 2000 + int(year)
+    load_rev = load_name[-1].lower()
+    load_dir = load_name[:-1]
+    load_dir = root / str(year) / load_dir / f'ofls{load_rev}'
+    return load_dir
