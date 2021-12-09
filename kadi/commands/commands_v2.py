@@ -223,7 +223,7 @@ def get_cmds(start=None, stop=None, inclusive_stop=False, scenario=None, **kwarg
     cmds = cmds[idx0:idx1]
 
     if 'params' not in cmds.colnames:
-        cmds['params'] = None
+        cmds['params'] = np.full(len(cmds), None)
 
     if kwargs:
         # Specified extra filters on cmds search
