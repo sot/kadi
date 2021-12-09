@@ -443,7 +443,15 @@ class CommandTable(Table):
 
         This matches the order in backstop.
         """
-        sort_keys = ['date', 'step', 'scs', 'source']
+        sort_keys = ['date', 'step', 'scs']
+
+        # For V2 archive also sort by 'source'. This is needed to maintain sort
+        # order for LOAD_EVENT (RLTT and schedule stop) commands. Otherwise the
+        # two from different loads are often at the same time and the sort order
+        # is not stable, causing unnecessary churn (diffs) in weekly updates.
+        if 'source' in self.colnames:
+            sort_keys.append('source')
+
         self.sort(sort_keys)
 
     def as_list_of_dict(self, ska_parsecm=False):
