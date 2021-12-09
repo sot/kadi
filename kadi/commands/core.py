@@ -208,6 +208,10 @@ def _find(start=None, stop=None, inclusive_stop=False, idx_cmds=None,
         else:
             par_ok[:] = False
             for pars_tuple, idx in pars_dict.items():
+                if isinstance(pars_tuple, bytes):
+                    # pars_dict values includes bytes strings for encoded
+                    # starcat params. Just skip those.
+                    continue
                 pars = dict(pars_tuple)
                 if pars.get(key) == val:
                     par_ok |= (idx_cmds['idx'] == idx)
