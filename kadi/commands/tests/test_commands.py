@@ -13,13 +13,13 @@ from cxotime import CxoTime
 
 from kadi import commands
 from kadi.commands import core, commands_v1, commands_v2
-from kadi.scripts import update_cmds_v1
+from kadi.scripts import update_cmds_v1, update_cmds_v2
 
 
 HAS_MPDIR = Path(os.environ['SKA'], 'data', 'mpcrit1', 'mplogs', '2020').exists()
 
 
-@pytest.fixture(scope="module", params=["1", "2"])
+@pytest.fixture(scope="module", params=["2", "1"])
 def version(request):
     return request.param
 
@@ -194,30 +194,42 @@ def test_get_cmds_from_backstop_and_add_cmds():
 
 
 @pytest.mark.skipif('not HAS_MPDIR')
-def test_commands_v1_create_archive_regress(tmpdir):
-    """Create cmds archive from scratch and test that it matches flight"""
+def test_commands_create_archive_regress(tmpdir, version_env):
+    """Create cmds archive from scratch and test that it matches flight
+
+    This tests over an eventful month that includes IU reset/NSM, SCS-107
+    (radiation), fast replan, loads approved but not uplinked, etc.
+    """
+    import logging
+    logging.getLogger('kadi').setLevel(logging.DEBUG)
+
+    update_cmds = update_cmds_v2 if version_env == "2" else update_cmds_v1
+    commands = commands_v2 if version_env == "2" else commands_v1
+
     kadi_orig = os.environ.get('KADI')
-    start = CxoTime('2020:159:00:00:00')
+    cmds_dir_orig = os.environ.get('KADI_CMDS_DIR')
+    start = CxoTime('2021:290')
     stop = start + 30
-    cmds_flight = commands_v1.get_cmds(start + 3, stop - 3)
+    cmds_flight = commands.get_cmds(start + 3, stop - 3)
     cmds_flight.fetch_params()
 
     try:
         os.environ['KADI'] = str(tmpdir)
-        update_cmds_v1.main(
-            (f'--start={start.date}',
+        os.environ['KADI_CMDS_DIR'] = str(tmpdir)
+        update_cmds.main(
+            ('--lookback=30' if version_env == "2" else f'--start={start.date}',
              f'--stop={stop.date}',
              f'--data-root={tmpdir}'))
         # Force reload of LazyVal
-        del commands_v1.IDX_CMDS._val
-        del commands_v1.PARS_DICT._val
-        del commands_v1.REV_PARS_DICT._val
+        del commands.IDX_CMDS._val
+        del commands.PARS_DICT._val
+        del commands.REV_PARS_DICT._val
 
         # Make sure we are seeing the temporary cmds archive
-        cmds_empty = commands_v1.get_cmds(start - 60, start - 50)
+        cmds_empty = commands.get_cmds(start - 60, start - 50)
         assert len(cmds_empty) == 0
 
-        cmds_local = commands_v1.get_cmds(start + 3, stop - 3)
+        cmds_local = commands.get_cmds(start + 3, stop - 3)
         cmds_local.fetch_params()
         assert len(cmds_flight) == len(cmds_local)
         for attr in ('tlmsid', 'date', 'params'):
@@ -229,7 +241,33 @@ def test_commands_v1_create_archive_regress(tmpdir):
         else:
             os.environ['KADI'] = kadi_orig
 
+        if cmds_dir_orig is None:
+            del os.environ['KADI_CMDS_DIR']
+        else:
+            os.environ['KADI_CMDS_DIR'] = cmds_dir_orig
+
         # Force reload
-        del commands_v1.IDX_CMDS._val
-        del commands_v1.PARS_DICT._val
-        del commands_v1.REV_PARS_DICT._val
+        del commands.IDX_CMDS._val
+        del commands.PARS_DICT._val
+        del commands.REV_PARS_DICT._val
+
+
+def test_get_cmds_v2_arch_only():
+    # Transition is around APR1420
+    cmds = commands_v2.get_cmds(start='2020-01-01', stop='2020-01-02')
+    assert len(cmds) == 153
+    # Also do a zero-length query
+    cmds = commands_v2.get_cmds(start='2020-01-01', stop='2020-01-01')
+    assert len(cmds) == 0
+
+
+def test_get_cmds_v2_arch_recent():
+    cmds = commands_v2.get_cmds(start='2020-01-01', stop='2020-12-01')
+    assert len(cmds) == 66144
+
+
+def test_get_cmds_v2_recent_only():
+    cmds = commands_v2.get_cmds(start='2020-12-01', stop='2020-12-02')
+    assert len(cmds) == 224
+    cmds = commands_v2.get_cmds(start='2020-12-01', stop='2020-12-01')
+    assert len(cmds) == 0

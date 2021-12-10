@@ -178,7 +178,7 @@ def get_cmds_from_event(date, event, params_str):
     # Loop through commands. This could be a list of dict which is a relative
     # time specification of the commands (with 'dur' keys to indicate timing) or
     # a CommandTable, which has a date for each command.
-    for cmd in cmds:
+    for step, cmd in enumerate(cmds):
         # Force CommandTable row to be a dict
         if not isinstance(cmd, dict):
             cmd = {name: cmd[name] for name in cmd.colnames}
@@ -195,7 +195,7 @@ def get_cmds_from_event(date, event, params_str):
                'type': cmd['type'],
                'tlmsid': cmd.get('tlmsid', 'None'),
                'scs': scs,
-               'step': 0,
+               'step': step,
                'source': 'CMD_EVT',
                'vcdu': -1,
                'params': args}

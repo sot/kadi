@@ -19,7 +19,7 @@ import requests
 from kadi.commands import get_cmds_from_backstop
 from kadi.commands.core import (load_idx_cmds, load_pars_dict, LazyVal,
                                 get_par_idx_update_pars_dict, _find,
-                                ska_load_dir)
+                                ska_load_dir, CommandTable)
 from kadi.command_sets import get_cmds_from_event
 from kadi import occweb, paths
 from cxotime import CxoTime
@@ -141,23 +141,8 @@ def _merge_cmds_archive_recent(start, scenario):
     # index to the param values which are in PARS_DICT. Add `params` object
     # column with None values and then stack with cmds_recent (which has
     # `params` already as dicts).
-    ok = cmds_recent['tlmsid'] == 'AOSTRCAT'
-    print('recent')
-    print(repr(cmds_recent['idx', 'date', 'source'][ok][-2:-1]))
-
-    cmds_arch.add_column(None, name='params')
-
-    ok = cmds_arch['tlmsid'] == 'AOSTRCAT'
-    print('arch')
-    print(repr(cmds_arch['idx', 'date', 'source'][ok][-2:-1]))
-
-
     cmds = vstack([cmds_arch, cmds_recent[recent_block_end:]],
                   join_type='exact')
-
-    ok = cmds['tlmsid'] == 'AOSTRCAT'
-    print('cmds')
-    print(repr(cmds['idx', 'date', 'source'][ok][-2:-1]))
 
     # Need to give CommandTable a ref to REV_PARS_DICT so it can tranlate from
     # params index to the actual dict of values. Stored as a weakref so that
@@ -242,9 +227,6 @@ def get_cmds(start=None, stop=None, inclusive_stop=False, scenario=None, **kwarg
     idx0 = cmds.find_date(start)
     idx1 = cmds.find_date(stop_date, side=('right' if inclusive_stop else 'left'))
     cmds = cmds[idx0:idx1].copy()
-
-    if 'params' not in cmds.colnames:
-        cmds['params'] = np.full(len(cmds), None)
 
     if kwargs:
         # Specified extra filters on cmds search
@@ -595,6 +577,9 @@ def get_load_cmds_from_occweb_or_local(dir_year_month=None, load_name=None, use_
             backstop_text = filename.read_text()
             logger.info(f'Got backstop from {filename}')
             cmds = get_cmds_from_backstop(backstop_text.splitlines())
+            logger.info(f'Saving {cmds_filename}')
+            with gzip.open(cmds_filename, 'wb') as fh:
+                pickle.dump(cmds, fh)
             return cmds
         else:
             raise ValueError(f'No backstop file found in {ska_dir}')
@@ -625,7 +610,7 @@ def get_load_cmds_from_occweb_or_local(dir_year_month=None, load_name=None, use_
 
 
 def update_cmds_archive(*, lookback=None, stop=None, log_level=logging.INFO,
-                        scenario=None, data_root='.', v1_v2_transition=False):
+                        scenario=None, data_root='.', match_prev_cmds=True):
     """Update cmds2.h5 and cmds2.pkl archive files.
 
     This updates the archive though ``stop`` date, where is required that the
@@ -642,7 +627,7 @@ def update_cmds_archive(*, lookback=None, stop=None, log_level=logging.INFO,
         Scenario name for loads and command events
     :param data_root: str, Path
         Root directory where cmds2.h5 and cmds2.pkl are stored. Default is '.'.
-    :param v1_v2_transition: bool
+    :param match_prev_cmds: bool
         One-time use flag set to True to update the cmds archive near the v1/v2
         transition of APR1420B. See ``utils/migrate_cmds_to_cmds2.py`` for
         details.
@@ -654,7 +639,7 @@ def update_cmds_archive(*, lookback=None, stop=None, log_level=logging.INFO,
     try:
         os.environ['KADI_CMDS_DIR'] = data_root
         kadi_logger.setLevel(log_level)
-        _update_cmds_archive(lookback, stop, v1_v2_transition, scenario, data_root)
+        _update_cmds_archive(lookback, stop, match_prev_cmds, scenario, data_root)
     finally:
         if cmds_dir_orig is None:
             del os.environ['KADI_CMDS_DIR']
@@ -663,26 +648,34 @@ def update_cmds_archive(*, lookback=None, stop=None, log_level=logging.INFO,
         kadi_logger.setLevel(log_level_orig)
 
 
-def _update_cmds_archive(lookback, stop, v1_v2_transition, scenario, data_root):
+def _update_cmds_archive(lookback, stop, match_prev_cmds, scenario, data_root):
+    """Do the real work of updating the cmds archive"""
     idx_cmds_path = Path(data_root) / 'cmds2.h5'
     pars_dict_path = Path(data_root) / 'cmds2.pkl'
 
-    cmds_arch = load_idx_cmds(version=2, file=idx_cmds_path)
-    pars_dict = load_pars_dict(version=2, file=pars_dict_path)
+    if idx_cmds_path.exists():
+        cmds_arch = load_idx_cmds(version=2, file=idx_cmds_path)
+        pars_dict = load_pars_dict(version=2, file=pars_dict_path)
+    else:
+        # Make an empty cmds archive table and pars dict
+        cmds_arch = CommandTable(names=list(CommandTable.COL_TYPES),
+                                 dtype=list(CommandTable.COL_TYPES.values()))
+        del cmds_arch['timeline_id']
+        pars_dict = {}
+        match_prev_cmds = False  # No matching of previous commands
 
     cmds_recent = update_archive_and_get_cmds_recent(
         scenario=scenario, stop=stop, lookback=lookback, cache=False)
 
-    if v1_v2_transition:
+    if match_prev_cmds:
+        idx0_arch, idx0_recent = get_matching_block_idx(cmds_arch, cmds_recent)
+    else:
         idx0_arch = len(cmds_arch)
         idx0_recent = 0
-    else:
-        idx0_arch, idx0_recent = get_matching_block_idx(cmds_arch, cmds_recent)
 
     # Convert from `params` col of dicts to index into same params in pars_dict.
     for cmd in cmds_recent:
         cmd['idx'] = get_par_idx_update_pars_dict(pars_dict, cmd)
-    del cmds_recent['params']
 
     # If the length of the updated table will be the same as the existing table.
     # For the command below the no-op logic should be clear:
@@ -697,11 +690,15 @@ def _update_cmds_archive(lookback, stop, v1_v2_transition, scenario, data_root):
     logger.info(f' starting with cmds_arch[:{idx0_arch}] and adding '
                 f'cmds_recent[{idx0_recent}:{len(cmds_recent)}]')
 
+    # Remove params column before stacking and saving
+    del cmds_recent['params']
+    del cmds_arch['params']
+
     # Save the updated archive and pars_dict.
-    cmds_arch = vstack([cmds_arch[:idx0_arch], cmds_recent[idx0_recent:]],
-                       join_type='exact')
-    logger.info(f'Writing {len(cmds_arch)} commands to {idx_cmds_path}')
-    cmds_arch.write(str(idx_cmds_path), path='data', format='hdf5', overwrite=True)
+    cmds_arch_new = vstack([cmds_arch[:idx0_arch], cmds_recent[idx0_recent:]],
+                           join_type='exact')
+    logger.info(f'Writing {len(cmds_arch_new)} commands to {idx_cmds_path}')
+    cmds_arch_new.write(str(idx_cmds_path), path='data', format='hdf5', overwrite=True)
 
     logger.info(f'Writing updated pars_dict to {pars_dict_path}')
     pickle.dump(pars_dict, open(pars_dict_path, 'wb'))

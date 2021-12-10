@@ -66,6 +66,10 @@ tables.exceptions.HDF5ExtError: HDF5 error back trace
     with tables.open_file(file, mode='r') as h5:
         idx_cmds = CommandTable(h5.root.data[:])
 
+    # For V2 add the params column here to make IDX_CMDS be same as regular cmds
+    if version == 2:
+        idx_cmds['params'] = None
+
     return idx_cmds
 
 
@@ -450,16 +454,33 @@ class CommandTable(Table):
 
         This matches the order in backstop.
         """
-        sort_keys = ['date', 'step', 'scs']
+        # Legacy sort for V1 commands archive
+        if 'timeline_id' in self.colnames:
+            self.sort(['date', 'step', 'scs'])
+            return
 
-        # For V2 archive also sort by 'source'. This is needed to maintain sort
-        # order for LOAD_EVENT (RLTT and schedule stop) commands. Otherwise the
-        # two from different loads are often at the same time and the sort order
-        # is not stable, causing unnecessary churn (diffs) in weekly updates.
-        if 'source' in self.colnames:
-            sort_keys.append('source')
+        # For V2 use stable sort just on date, preserving the existing order.
+        # Copied verbatim from astropy.table.Table.sort except 'stable' sort.
+        # (Astropy sort does not provide `kind` argument for .sort(), hopefully
+        # fixed by astropy 5.1).
+        indexes = self.argsort(['date'], kind='stable')
 
-        self.sort(sort_keys)
+        with self.index_mode('freeze'):
+            for name, col in self.columns.items():
+                # Make a new sorted column.  This requires that take() also copies
+                # relevant info attributes for mixin columns.
+                new_col = col.take(indexes, axis=0)
+
+                # First statement in try: will succeed if the column supports an in-place
+                # update, and matches the legacy behavior of astropy Table.  However,
+                # some mixin classes may not support this, so in that case just drop
+                # in the entire new column. See #9553 and #9536 for discussion.
+                try:
+                    col[:] = new_col
+                except Exception:
+                    # In-place update failed for some reason, exception class not
+                    # predictable for arbitrary mixin.
+                    self[col.info.name] = new_col
 
     def as_list_of_dict(self, ska_parsecm=False):
         """Convert CommandTable to a list of dict.

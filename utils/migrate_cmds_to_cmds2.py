@@ -36,7 +36,7 @@ CMDS_DTYPE = [('idx', np.int32),
               ('vcdu', np.int32)]
 
 
-def make_cmds2(start=None, stop=None, step=365):
+def make_cmds2(start=None, stop=None, step=100):
     """Make initial cmds2.h5 and cmds2.pkl between ``start`` and ``stop``.
 
     This first converts the v1 archive to v2 format up through RLTT_ERA_START.
@@ -54,7 +54,7 @@ def make_cmds2(start=None, stop=None, step=365):
 
     # Adding first load week after RLTT_ERA_START is special because there is
     # no overlap. This stems from the lack of RLTT commands in the v1 archive.
-    update_cmds_archive(stop='2020-04-28', v1_v2_transition=True)
+    update_cmds_archive(stop='2020-04-28', match_prev_cmds=False)
 
     date = CxoTime('2020-04-28')
     stop = CxoTime(stop)
@@ -87,7 +87,7 @@ def migrate_cmds1_to_cmds2(start=None):
        >>> %run utils/migrate_cmds_to_cmds2.py
        >>> migrate_cmds_to_cmds2()
        >>> from kadi.commands.commands_v2 import update_cmds_archive
-       >>> update_cmds_archive(stop='2020-04-28', v1_v2_transition=True)
+       >>> update_cmds_archive(stop='2020-04-28', match_prev_cmds=True)
 
     After this running the ``update_cmds_archive`` command as normal will work.
 
