@@ -126,7 +126,7 @@ def migrate_cmds1_to_cmds2(start=None):
 
     # Assign params for every AOSTRCAT command
     for ii, idx in enumerate(np.flatnonzero(cmds['tlmsid'] == 'AOSTRCAT')):
-        if ii % 100 == 0:
+        if ii % 1000 == 0:
             print(f'Processing star catalog {ii}')
         cmd = cmds[idx]
         load_starcat_cmds = starcat_cmds[cmd['source']]
@@ -144,7 +144,9 @@ def migrate_cmds1_to_cmds2(start=None):
     idx_stop = np.flatnonzero(cmds['source'] == RLTT_ERA_START)[0]
     cmds = cmds[:idx_stop]
 
+    print(f'Writing {len(cmds)} cmds to cmds2.h5')
     cmds.write('cmds2.h5', path='data', overwrite=True)
+    print(f'Writing {len(pars_dict)} pars dict entries to cmds2.pkl')
     pickle.dump(pars_dict, open('cmds2.pkl', 'wb'))
 
 
