@@ -14,9 +14,10 @@ import logging
 import numpy as np
 from astropy.table import Table, vstack
 import astropy.units as u
+from numpy.distutils.misc_util import get_cmd
 import requests
 
-from kadi.commands import get_cmds_from_backstop
+from kadi.commands import get_cmds_from_backstop, conf
 from kadi.commands.core import (load_idx_cmds, load_pars_dict, LazyVal,
                                 get_par_idx_update_pars_dict, _find,
                                 ska_load_dir, CommandTable)
@@ -25,20 +26,9 @@ from kadi import occweb, paths
 from cxotime import CxoTime
 
 # TODO configuration options, but use DEFAULT_* in the mean time
-# - cache loads (backstop) downloads from OCCweb (useful for development but
-#   likely to just take disk space for users)
-# - commands_dir ?
 # - commands_version (v1, v2)
-# - default_lookback_time
-# - update_from_network (default True)
-# - remove_old_loads (default True) Remove older loads from local directory.
-# - Add truncate option to update_cmds_archive for testing
 
-DEFAULT_LOOKBACK = 30  # Lookback time for recent loads
-UPDATE_FROM_NETWORK = True
-CACHE_LOADS_IN_ASTROPY_CACHE = True  # Or maybe just be clever about cleaning old files?
 MATCHING_BLOCK_SIZE = 100
-CLEAN_LOADS_DIR = False
 
 # TODO: cache translation from cmd_events to CommandTable's  [Probably not]
 
@@ -259,7 +249,8 @@ def update_archive_and_get_cmds_recent(scenario=None, *, lookback=None, stop=Non
     :param scenario: str, None
         Scenario name
     :param lookback: int, Quantity, None
-        Lookback time from ``stop`` for recent loads. If None, use DEFAULT_LOOKBACK.
+        Lookback time from ``stop`` for recent loads. If None, use
+        conf.default_lookback.
     :param stop: CxoTime-like, None
         Stop time for loads table (default is now + 21 days)
     :param cache: bool
@@ -355,12 +346,17 @@ def update_archive_and_get_cmds_recent(scenario=None, *, lookback=None, stop=Non
 
 
 def update_cmd_events(scenario=None):
+    # If no network access allowed then just return the local file
+    if not conf.update_from_network:
+        return get_cmd_events(scenario)
+
     if scenario is not None:
         # Ensure the scenario directory exists
         scenario_dir = paths.SCENARIO_DIR(scenario)
         scenario_dir.mkdir(parents=True, exist_ok=True)
 
     cmd_events_path = paths.CMD_EVENTS_PATH(scenario)
+
     url = CMD_EVENTS_SHEET_URL
     logger.info(f'Getting cmd_events from {url}')
     req = requests.get(url, timeout=30)
@@ -385,6 +381,7 @@ def get_cmd_events(scenario=None):
 
 def get_loads(scenario=None):
     loads_path = paths.LOADS_TABLE_PATH(scenario)
+    logger.info(f'Reading loads file {loads_path}')
     loads = Table.read(loads_path, format='csv')
     return loads
 
@@ -401,8 +398,12 @@ def update_loads(scenario=None, *, cmd_events=None, lookback=None, stop=None):
     - schedule_stop_observing: activity end time for loads (propagation goes to this point).
     - schedule_stop_vehicle: activity end time for loads (propagation goes to this point).
     """
+    # If no network access allowed then just return the local file
+    if not conf.update_from_network:
+        return get_loads(scenario)
+
     if lookback is None:
-        lookback = DEFAULT_LOOKBACK
+        lookback = conf.default_lookback
 
     if scenario is not None:
         # Ensure the scenario directory exists
@@ -479,7 +480,7 @@ def update_loads(scenario=None, *, cmd_events=None, lookback=None, stop=None):
     loads_table.write(loads_table_path.with_suffix('.dat'), format='ascii.fixed_width',
                       overwrite=True)
 
-    if CLEAN_LOADS_DIR:
+    if conf.clean_loads_dir:
         clean_loads_dir(loads_table)
 
     return loads_table
@@ -591,7 +592,7 @@ def get_load_cmds_from_occweb_or_local(dir_year_month=None, load_name=None, use_
             # Download the backstop file from OCCweb
             logger.info(f'Getting {dir_year_month / load_name / filename}')
             backstop_text = occweb.get_occweb_page(dir_year_month / load_name / filename,
-                                                   cache=CACHE_LOADS_IN_ASTROPY_CACHE)
+                                                   cache=conf.cache_loads_in_astropy_cache)
             backstop_lines = backstop_text.splitlines()
             cmds = get_cmds_from_backstop(backstop_lines)
 
@@ -618,7 +619,7 @@ def update_cmds_archive(*, lookback=None, stop=None, log_level=logging.INFO,
 
     :param lookback: int, None
         Number of days to look back to get recent load commands from OCCweb.
-        Default is ``DEFAULT_LOOKBACK`` (currently 30).
+        Default is ``conf.default_lookback`` (currently 30).
     :param stop: CxoTime-like, None
         Stop date to update the archive to. Default is NOW + 21 days.
     :param log_level: int
@@ -634,17 +635,17 @@ def update_cmds_archive(*, lookback=None, stop=None, log_level=logging.INFO,
     """
     # Local context manager for log_level and data_root
     kadi_logger = logging.getLogger('kadi')
-    cmds_dir_orig = os.environ.get('KADI_CMDS_DIR')
+    cmds_dir_orig = os.environ.get('KADI_COMMANDS_DIR')
     log_level_orig = kadi_logger.level
     try:
-        os.environ['KADI_CMDS_DIR'] = data_root
+        os.environ['KADI_COMMANDS_DIR'] = data_root
         kadi_logger.setLevel(log_level)
         _update_cmds_archive(lookback, stop, match_prev_cmds, scenario, data_root)
     finally:
         if cmds_dir_orig is None:
-            del os.environ['KADI_CMDS_DIR']
+            del os.environ['KADI_COMMANDS_DIR']
         else:
-            os.environ['KADI_CMDS_DIR'] = cmds_dir_orig
+            os.environ['KADI_COMMANDS_DIR'] = cmds_dir_orig
         kadi_logger.setLevel(log_level_orig)
 
 

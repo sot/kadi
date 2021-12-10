@@ -31,10 +31,11 @@ def PARS_DICT_PATH(version=None):
 
 
 def CMDS_DIR():
-    if 'KADI_CMDS_DIR' in os.environ:
-        cmds_dir = Path(os.environ['KADI_CMDS_DIR'])
+    from kadi.commands import conf
+    if 'KADI_COMMANDS_DIR' in os.environ:
+        cmds_dir = Path(os.environ['KADI_COMMANDS_DIR'])
     else:
-        cmds_dir = Path.home() / '.kadi'
+        cmds_dir = Path(conf.commands_dir).expanduser()
 
     return cmds_dir.absolute()
 

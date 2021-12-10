@@ -24,6 +24,17 @@ def _get_kadi_logger():
 logger = _get_kadi_logger()
 
 
+import astropy.config as astropyconfig
+
+
+class ConfigNamespace(astropyconfig.ConfigNamespace):
+    rootname = 'kadi'
+
+
+class ConfigItem(astropyconfig.ConfigItem):
+    rootname = 'kadi'
+
+
 def test(*args, **kwargs):
     '''
     Run py.test unit tests.

@@ -207,7 +207,7 @@ def test_commands_create_archive_regress(tmpdir, version_env):
     commands = commands_v2 if version_env == "2" else commands_v1
 
     kadi_orig = os.environ.get('KADI')
-    cmds_dir_orig = os.environ.get('KADI_CMDS_DIR')
+    cmds_dir_orig = os.environ.get('KADI_COMMANDS_DIR')
     start = CxoTime('2021:290')
     stop = start + 30
     cmds_flight = commands.get_cmds(start + 3, stop - 3)
@@ -215,7 +215,7 @@ def test_commands_create_archive_regress(tmpdir, version_env):
 
     try:
         os.environ['KADI'] = str(tmpdir)
-        os.environ['KADI_CMDS_DIR'] = str(tmpdir)
+        os.environ['KADI_COMMANDS_DIR'] = str(tmpdir)
         update_cmds.main(
             ('--lookback=30' if version_env == "2" else f'--start={start.date}',
              f'--stop={stop.date}',
@@ -242,9 +242,9 @@ def test_commands_create_archive_regress(tmpdir, version_env):
             os.environ['KADI'] = kadi_orig
 
         if cmds_dir_orig is None:
-            del os.environ['KADI_CMDS_DIR']
+            del os.environ['KADI_COMMANDS_DIR']
         else:
-            os.environ['KADI_CMDS_DIR'] = cmds_dir_orig
+            os.environ['KADI_COMMANDS_DIR'] = cmds_dir_orig
 
         # Force reload
         del commands.IDX_CMDS._val
