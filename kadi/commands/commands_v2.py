@@ -20,7 +20,7 @@ from kadi.commands import get_cmds_from_backstop
 from kadi.commands.core import (load_idx_cmds, load_pars_dict, LazyVal,
                                 get_par_idx_update_pars_dict, _find,
                                 ska_load_dir, CommandTable)
-from kadi.command_sets import get_cmds_from_event
+from kadi.commands.command_sets import get_cmds_from_event
 from kadi import occweb, paths
 from cxotime import CxoTime
 

@@ -26,15 +26,6 @@ CMD_STATES_PATH = SKA / 'data' / 'cmd_states' / 'cmd_states.db3'
 
 RLTT_ERA_START = 'APR1420B'
 
-CMDS_DTYPE = [('idx', np.int32),
-              ('date', '|S21'),
-              ('type', '|S12'),
-              ('tlmsid', '|S10'),
-              ('scs', np.uint8),
-              ('step', np.uint16),
-              ('source', '|S8'),
-              ('vcdu', np.int32)]
-
 
 def make_cmds2(start=None, stop=None, step=100):
     """Make initial cmds2.h5 and cmds2.pkl between ``start`` and ``stop``.
