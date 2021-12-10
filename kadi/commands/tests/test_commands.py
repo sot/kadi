@@ -13,13 +13,13 @@ from cxotime import CxoTime
 
 from kadi import commands
 from kadi.commands import core, commands_v1, commands_v2
-from kadi import update_cmds
+from kadi.scripts import update_cmds_v1
 
 
 HAS_MPDIR = Path(os.environ['SKA'], 'data', 'mpcrit1', 'mplogs', '2020').exists()
 
 
-@pytest.fixture(scope="module", params=[None, "2"])
+@pytest.fixture(scope="module", params=["1", "2"])
 def version(request):
     return request.param
 
@@ -204,9 +204,10 @@ def test_commands_v1_create_archive_regress(tmpdir):
 
     try:
         os.environ['KADI'] = str(tmpdir)
-        update_cmds.main((f'--start={start.date}',
-                          f'--stop={stop.date}',
-                          f'--data-root={tmpdir}'))
+        update_cmds_v1.main(
+            (f'--start={start.date}',
+             f'--stop={stop.date}',
+             f'--data-root={tmpdir}'))
         # Force reload of LazyVal
         del commands_v1.IDX_CMDS._val
         del commands_v1.PARS_DICT._val
