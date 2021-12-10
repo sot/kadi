@@ -15,9 +15,8 @@ from Chandra.Time import DateTime
 from ska_helpers.run_info import log_run_info
 from ska_helpers.retry import retry_call
 
-from .paths import IDX_CMDS_PATH, PARS_DICT_PATH
-from kadi.commands.core import get_par_idx_update_pars_dict
-from . import __version__
+from kadi.paths import IDX_CMDS_PATH, PARS_DICT_PATH
+from kadi import __version__
 
 MPLOGS_DIR = Path(os.environ['SKA'], 'data', 'mpcrit1', 'mplogs')
 

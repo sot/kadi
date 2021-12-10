@@ -276,7 +276,10 @@ class CommandRow(Row):
 
     def keys(self):
         out = [name for name in self.colnames if name != 'params']
-        params = [key.lower() for key in sorted(self['params'])]
+        if 'params' in self.colnames:
+            params = [key.lower() for key in sorted(self['params'])]
+        else:
+            params = []
 
         return out + params
 

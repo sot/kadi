@@ -34,7 +34,7 @@ def CMDS_DIR():
     if 'KADI_CMDS_DIR' in os.environ:
         cmds_dir = Path(os.environ['KADI_CMDS_DIR'])
     else:
-        cmds_dir = Path('.')  # DATA_DIR() ?
+        cmds_dir = Path.home() / '.kadi'
 
     return cmds_dir.absolute()
 

@@ -19,7 +19,7 @@ from kadi import update_cmds
 HAS_MPDIR = Path(os.environ['SKA'], 'data', 'mpcrit1', 'mplogs', '2020').exists()
 
 
-@pytest.fixture(scope="module", params=[None, "1", "2"])
+@pytest.fixture(scope="module", params=[None, "2"])
 def version(request):
     return request.param
 
@@ -194,7 +194,7 @@ def test_get_cmds_from_backstop_and_add_cmds():
 
 
 @pytest.mark.skipif('not HAS_MPDIR')
-def test_commands_create_archive_regress(tmpdir):
+def test_commands_v1_create_archive_regress(tmpdir):
     """Create cmds archive from scratch and test that it matches flight"""
     kadi_orig = os.environ.get('KADI')
     start = CxoTime('2020:159:00:00:00')

@@ -1,5 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import difflib
+import os
 from pathlib import Path
 import calendar
 import re
@@ -20,8 +21,7 @@ from kadi.commands.core import (load_idx_cmds, load_pars_dict, LazyVal,
                                 get_par_idx_update_pars_dict, _find,
                                 ska_load_dir)
 from kadi.command_sets import get_cmds_from_event
-from kadi import occweb
-from kadi import paths
+from kadi import occweb, paths
 from cxotime import CxoTime
 
 # TODO configuration options, but use DEFAULT_* in the mean time
@@ -32,6 +32,8 @@ from cxotime import CxoTime
 # - default_lookback_time
 # - update_from_network (default True)
 # - remove_old_loads (default True) Remove older loads from local directory.
+# - Add truncate option to update_cmds_archive for testing
+
 DEFAULT_LOOKBACK = 30  # Lookback time for recent loads
 UPDATE_FROM_NETWORK = True
 CACHE_LOADS_IN_ASTROPY_CACHE = True  # Or maybe just be clever about cleaning old files?
@@ -60,6 +62,9 @@ MATCHING_BLOCKS = {}
 RLTT_ERA_START = CxoTime('2020-04-14')
 
 logger = logging.getLogger(__name__)
+
+# DEBUG: remove this for production
+logging.getLogger('kadi').setLevel(1)
 
 
 def load_name_to_cxotime(name):
@@ -136,9 +141,23 @@ def _merge_cmds_archive_recent(start, scenario):
     # index to the param values which are in PARS_DICT. Add `params` object
     # column with None values and then stack with cmds_recent (which has
     # `params` already as dicts).
+    ok = cmds_recent['tlmsid'] == 'AOSTRCAT'
+    print('recent')
+    print(repr(cmds_recent['idx', 'date', 'source'][ok][-2:-1]))
+
     cmds_arch.add_column(None, name='params')
+
+    ok = cmds_arch['tlmsid'] == 'AOSTRCAT'
+    print('arch')
+    print(repr(cmds_arch['idx', 'date', 'source'][ok][-2:-1]))
+
+
     cmds = vstack([cmds_arch, cmds_recent[recent_block_end:]],
                   join_type='exact')
+
+    ok = cmds['tlmsid'] == 'AOSTRCAT'
+    print('cmds')
+    print(repr(cmds['idx', 'date', 'source'][ok][-2:-1]))
 
     # Need to give CommandTable a ref to REV_PARS_DICT so it can tranlate from
     # params index to the actual dict of values. Stored as a weakref so that
@@ -218,9 +237,11 @@ def get_cmds(start=None, stop=None, inclusive_stop=False, scenario=None, **kwarg
         cmds = cmds_recent
         logger.info('Getting commands from recent only')
 
+    # Select the requested time range and make a copy. (Slicing is a view so
+    # in theory bad things could happen without a copy).
     idx0 = cmds.find_date(start)
     idx1 = cmds.find_date(stop_date, side=('right' if inclusive_stop else 'left'))
-    cmds = cmds[idx0:idx1]
+    cmds = cmds[idx0:idx1].copy()
 
     if 'params' not in cmds.colnames:
         cmds['params'] = np.full(len(cmds), None)
@@ -580,7 +601,7 @@ def get_load_cmds_from_occweb_or_local(dir_year_month=None, load_name=None, use_
 
     load_dir_contents = occweb.get_occweb_dir(dir_year_month / load_name)
     for filename in load_dir_contents['Name']:
-        if re.match(r'CR\d{3}?\d{4}\.backstop', filename):
+        if re.match(r'CR\d{3}.\d{4}\.backstop', filename):
 
             # Download the backstop file from OCCweb
             logger.info(f'Getting {dir_year_month / load_name / filename}')
@@ -604,7 +625,7 @@ def get_load_cmds_from_occweb_or_local(dir_year_month=None, load_name=None, use_
 
 
 def update_cmds_archive(*, lookback=None, stop=None, log_level=logging.INFO,
-                        data_root='.', v1_v2_transition=False):
+                        scenario=None, data_root='.', v1_v2_transition=False):
     """Update cmds2.h5 and cmds2.pkl archive files.
 
     This updates the archive though ``stop`` date, where is required that the
@@ -617,6 +638,8 @@ def update_cmds_archive(*, lookback=None, stop=None, log_level=logging.INFO,
         Stop date to update the archive to. Default is NOW + 21 days.
     :param log_level: int
         Logging level. Default is ``logging.INFO``.
+    :param scenario: str, None
+        Scenario name for loads and command events
     :param data_root: str, Path
         Root directory where cmds2.h5 and cmds2.pkl are stored. Default is '.'.
     :param v1_v2_transition: bool
@@ -626,15 +649,21 @@ def update_cmds_archive(*, lookback=None, stop=None, log_level=logging.INFO,
     """
     # Local context manager for log_level and data_root
     kadi_logger = logging.getLogger('kadi')
+    cmds_dir_orig = os.environ.get('KADI_CMDS_DIR')
     log_level_orig = kadi_logger.level
     try:
+        os.environ['KADI_CMDS_DIR'] = data_root
         kadi_logger.setLevel(log_level)
-        _update_cmds_archive(lookback, stop, v1_v2_transition, data_root)
+        _update_cmds_archive(lookback, stop, v1_v2_transition, scenario, data_root)
     finally:
+        if cmds_dir_orig is None:
+            del os.environ['KADI_CMDS_DIR']
+        else:
+            os.environ['KADI_CMDS_DIR'] = cmds_dir_orig
         kadi_logger.setLevel(log_level_orig)
 
 
-def _update_cmds_archive(lookback, stop, v1_v2_transition, data_root):
+def _update_cmds_archive(lookback, stop, v1_v2_transition, scenario, data_root):
     idx_cmds_path = Path(data_root) / 'cmds2.h5'
     pars_dict_path = Path(data_root) / 'cmds2.pkl'
 
@@ -642,7 +671,7 @@ def _update_cmds_archive(lookback, stop, v1_v2_transition, data_root):
     pars_dict = load_pars_dict(version=2, file=pars_dict_path)
 
     cmds_recent = update_archive_and_get_cmds_recent(
-        stop=stop, lookback=lookback, cache=False)
+        scenario=scenario, stop=stop, lookback=lookback, cache=False)
 
     if v1_v2_transition:
         idx0_arch = len(cmds_arch)
@@ -720,28 +749,3 @@ def get_matching_block_idx(cmds_arch, cmds_recent):
     idx0_arch = idx_arch_recent + block.a + block.size
 
     return idx0_arch, idx0_recent
-
-
-def get_opt(args=None):
-    """
-    Get options for command line interface to update_
-    """
-    from kadi import __version__
-    import argparse
-    parser = argparse.ArgumentParser(description='Update HDF5 cmds v2 table')
-    parser.add_argument("--lookback",
-                        help="Lookback (default=30 days)")
-    parser.add_argument("--stop",
-                        help="Stop date for update (default=Now+21 days)")
-    parser.add_argument("--log-level",
-                        type=int,
-                        default=10,
-                        help='Log level (10=debug, 20=info, 30=warnings)')
-    parser.add_argument("--data-root",
-                        default='.',
-                        help="Data root (default='.')")
-    parser.add_argument('--version', action='version',
-                        version='%(prog)s {version}'.format(version=__version__))
-
-    args = parser.parse_args(args)
-    return args

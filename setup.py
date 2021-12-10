@@ -28,8 +28,9 @@ else:
 
 entry_points = {'console_scripts': [
     'get_chandra_states = kadi.commands.states:get_chandra_states',
-    'kadi_update_cmds = kadi.update_cmds:main',
-    'kadi_update_events = kadi.update_events:main']}
+    'kadi_update_cmds_v1 = kadi.scripts.update_cmds_v1:main',
+    'kadi_update_cmds_v2 = kadi.scripts.update_cmds_v2:main',
+    'kadi_update_events = kadi.scripts.update_events:main']}
 
 setup(name='kadi',
       use_scm_version=True,
@@ -38,7 +39,7 @@ setup(name='kadi',
       author='Tom Aldcroft',
       author_email='taldcroft@cfa.harvard.edu',
       url='http://cxc.harvard.edu/mta/ASPECT/tool_doc/kadi/',
-      packages=['kadi', 'kadi.events', 'kadi.cmds', 'kadi.tests',
+      packages=['kadi', 'kadi.events', 'kadi.cmds', 'kadi.scripts', 'kadi.tests',
                 'kadi.commands', 'kadi.commands.tests'],
       # Temporarily install static data into site-packages
       package_data={'kadi.events': ['templates/*/*.html', 'templates/*.html'],
