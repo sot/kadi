@@ -617,7 +617,6 @@ def get_load_cmds_from_occweb_or_local(dir_year_month=None, load_name=None, use_
         if re.match(r'CR\d{3}.\d{4}\.backstop', filename):
 
             # Download the backstop file from OCCweb
-            logger.info(f'Getting {dir_year_month / load_name / filename}')
             backstop_text = occweb.get_occweb_page(dir_year_month / load_name / filename,
                                                    cache=conf.cache_loads_in_astropy_cache)
             backstop_lines = backstop_text.splitlines()
