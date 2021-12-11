@@ -204,6 +204,8 @@ def get_occweb_page(path, timeout=30, cache=False, binary=False,
     credentials are stored in the file ``~/.netrc``. See the ``Ska.ftp`` package
     for details.
 
+    If the page is not found then a ``requests.exceptions.HTTPError`` is raised.
+
     :param path: str, Path
         Relative path on OCCweb or an OCCweb URL
     :param timeout: int
@@ -226,11 +228,16 @@ def get_occweb_page(path, timeout=30, cache=False, binary=False,
 
     logger.info(f'Getting OCCweb {path} with {cache=}')
     if cache:
+        from urllib.request import HTTPError
         user, password = get_auth(user, password)
         headers = get_auth_http_headers(user, password)
-        cachefile = download_file(url, cache=cache, show_progress=False,
-                                  http_headers=headers, timeout=timeout,
-                                  pkgname='kadi')
+        try:
+            cachefile = download_file(url, cache=cache, show_progress=False,
+                                      http_headers=headers, timeout=timeout,
+                                      pkgname='kadi')
+        except HTTPError as err:
+            # Re-raise so caller can handle it with one exception class
+            raise requests.exceptions.HTTPError(str(err))
         pth = Path(cachefile)
         out = pth.read_bytes() if binary else pth.read_text()
     else:

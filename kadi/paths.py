@@ -30,10 +30,13 @@ def PARS_DICT_PATH(version=None):
     return DATA_DIR() / f'cmds{version}.pkl'
 
 
-def CMDS_DIR():
+def CMDS_DIR(scenario=None):
     from kadi.commands import conf
-    if 'KADI_COMMANDS_DIR' in os.environ:
-        cmds_dir = Path(os.environ['KADI_COMMANDS_DIR'])
+
+    # Special case for "flight" scenario. This is hardwired to $SKA/data/kadi
+    # and is intended for use in load review tools run on HEAD.
+    if scenario == 'flight':
+        cmds_dir = SKA_DATA()
     else:
         cmds_dir = Path(conf.commands_dir).expanduser()
 

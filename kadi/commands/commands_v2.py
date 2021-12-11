@@ -3,6 +3,7 @@ import difflib
 import os
 from pathlib import Path
 import calendar
+import platform
 import re
 import gzip
 import pickle
@@ -14,7 +15,6 @@ import logging
 import numpy as np
 from astropy.table import Table, vstack
 import astropy.units as u
-from numpy.distutils.misc_util import get_cmd
 import requests
 
 from kadi.commands import get_cmds_from_backstop, conf
@@ -345,9 +345,33 @@ def update_archive_and_get_cmds_recent(scenario=None, *, lookback=None, stop=Non
     return cmds_recent
 
 
+def update_from_network_enabled(scenario):
+    """Return True if updating from the network is enabled.
+
+    Logic:
+    - If scenario == 'flight' return False unless user is 'aca' and host is
+      on HEAD network. This allows production updates of the flight scenario
+      by cron job on HEAD, but otherwise do not try touching the archive files.
+    - Else return conf.update_from_network.
+
+    :param scenario: str, None
+        Scenario name
+    """
+    if scenario == 'flight':
+        # TODO: put these into configuration.
+        if (os.getlogin() != 'aca'
+                or not platform.node().endswith('.cfa.harvard.edu')):
+            if conf.update_from_network:
+                # Updating from network is enabled but this is turning it off.
+                logger.info('Not updating flight scenario from network')
+            return False
+    else:
+        return conf.update_from_network
+
+
 def update_cmd_events(scenario=None):
     # If no network access allowed then just return the local file
-    if not conf.update_from_network:
+    if not update_from_network_enabled(scenario):
         return get_cmd_events(scenario)
 
     if scenario is not None:
@@ -375,14 +399,14 @@ def update_cmd_events(scenario=None):
 def get_cmd_events(scenario=None):
     cmd_events_path = paths.CMD_EVENTS_PATH(scenario)
     logger.info(f'Reading command events {cmd_events_path}')
-    cmd_events = Table.read(cmd_events_path, format='csv', fill_values=[])
+    cmd_events = Table.read(str(cmd_events_path), format='csv', fill_values=[])
     return cmd_events
 
 
 def get_loads(scenario=None):
     loads_path = paths.LOADS_TABLE_PATH(scenario)
     logger.info(f'Reading loads file {loads_path}')
-    loads = Table.read(loads_path, format='csv')
+    loads = Table.read(str(loads_path), format='csv')
     return loads
 
 
@@ -399,7 +423,7 @@ def update_loads(scenario=None, *, cmd_events=None, lookback=None, stop=None):
     - schedule_stop_vehicle: activity end time for loads (propagation goes to this point).
     """
     # If no network access allowed then just return the local file
-    if not conf.update_from_network:
+    if not update_from_network_enabled(scenario):
         return get_loads(scenario)
 
     if lookback is None:
@@ -452,7 +476,10 @@ def update_loads(scenario=None, *, cmd_events=None, lookback=None, stop=None):
         dirs_tried.add(dir_year_month)
 
         # Get directory listing for Year/Month
-        contents = occweb.get_occweb_dir(dir_year_month)
+        try:
+            contents = occweb.get_occweb_dir(dir_year_month)
+        except requests.exceptions.HTTPError:
+            continue
 
         # Find each valid load name in the directory listing and process:
         # - Find and download the backstop file
@@ -635,18 +662,13 @@ def update_cmds_archive(*, lookback=None, stop=None, log_level=logging.INFO,
     """
     # Local context manager for log_level and data_root
     kadi_logger = logging.getLogger('kadi')
-    cmds_dir_orig = os.environ.get('KADI_COMMANDS_DIR')
     log_level_orig = kadi_logger.level
-    try:
-        os.environ['KADI_COMMANDS_DIR'] = data_root
-        kadi_logger.setLevel(log_level)
-        _update_cmds_archive(lookback, stop, match_prev_cmds, scenario, data_root)
-    finally:
-        if cmds_dir_orig is None:
-            del os.environ['KADI_COMMANDS_DIR']
-        else:
-            os.environ['KADI_COMMANDS_DIR'] = cmds_dir_orig
-        kadi_logger.setLevel(log_level_orig)
+    with conf.set_temp('commands_dir', data_root):
+        try:
+            kadi_logger.setLevel(log_level)
+            _update_cmds_archive(lookback, stop, match_prev_cmds, scenario, data_root)
+        finally:
+            kadi_logger.setLevel(log_level_orig)
 
 
 def _update_cmds_archive(lookback, stop, match_prev_cmds, scenario, data_root):

@@ -8,6 +8,7 @@ import uuid
 # test collection by pytest.  Note that this does not work with
 # paramiko 2.0.0.
 from paramiko import py3compat
+import requests
 py3compat.u('dirty hack')
 
 import Ska.ftp
@@ -116,6 +117,15 @@ def test_get_occweb_dir(str_or_Path, cache):
         '       MAR2600C/ 2002-04-30 13:38    -']
     assert files_path.pformat_all() == exp
     assert files_url.pformat_all() == exp
+
+
+@pytest.mark.skipif('not HAS_OCCWEB')
+@pytest.mark.parametrize('cache', [False, True])
+def test_get_occweb_dir_fail(cache):
+    """Test get_occweb_dir and get_occweb_page (which is called in the process)"""
+    path = Path('FOT/mission_planning/PRODUCTS/APPR_LOADS/FAIL-NOT-THERE')
+    with pytest.raises(requests.exceptions.HTTPError):
+        occweb.get_occweb_dir(path, cache=cache)
 
 
 @pytest.mark.skipif('not HAS_OCCWEB')

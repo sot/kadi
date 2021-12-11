@@ -34,8 +34,7 @@ class Conf(ConfigNamespace):
     commands_dir = ConfigItem(
         '~/.kadi',
         'Directory where command loads and command events are stored after '
-        'downloading from Google Sheets and OCCweb. Overridden by '
-        'KADI_COMMANDS_DIR environment variable.'
+        'downloading from Google Sheets and OCCweb.'
     )
     commands_version = ConfigItem(
         '1',

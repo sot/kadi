@@ -12,7 +12,7 @@ from Chandra.Time import secs2date
 from cxotime import CxoTime
 
 from kadi import commands
-from kadi.commands import core, commands_v1, commands_v2
+from kadi.commands import core, commands_v1, commands_v2, conf
 from kadi.scripts import update_cmds_v1, update_cmds_v2
 
 
@@ -207,49 +207,43 @@ def test_commands_create_archive_regress(tmpdir, version_env):
     commands = commands_v2 if version_env == "2" else commands_v1
 
     kadi_orig = os.environ.get('KADI')
-    cmds_dir_orig = os.environ.get('KADI_COMMANDS_DIR')
     start = CxoTime('2021:290')
     stop = start + 30
     cmds_flight = commands.get_cmds(start + 3, stop - 3)
     cmds_flight.fetch_params()
 
-    try:
-        os.environ['KADI'] = str(tmpdir)
-        os.environ['KADI_COMMANDS_DIR'] = str(tmpdir)
-        update_cmds.main(
-            ('--lookback=30' if version_env == "2" else f'--start={start.date}',
-             f'--stop={stop.date}',
-             f'--data-root={tmpdir}'))
-        # Force reload of LazyVal
-        del commands.IDX_CMDS._val
-        del commands.PARS_DICT._val
-        del commands.REV_PARS_DICT._val
+    with conf.set_temp('commands_dir', str(tmpdir)):
+        try:
+            os.environ['KADI'] = str(tmpdir)
+            update_cmds.main(
+                ('--lookback=30' if version_env == "2" else f'--start={start.date}',
+                 f'--stop={stop.date}',
+                 f'--data-root={tmpdir}'))
+            # Force reload of LazyVal
+            del commands.IDX_CMDS._val
+            del commands.PARS_DICT._val
+            del commands.REV_PARS_DICT._val
 
-        # Make sure we are seeing the temporary cmds archive
-        cmds_empty = commands.get_cmds(start - 60, start - 50)
-        assert len(cmds_empty) == 0
+            # Make sure we are seeing the temporary cmds archive
+            cmds_empty = commands.get_cmds(start - 60, start - 50)
+            assert len(cmds_empty) == 0
 
-        cmds_local = commands.get_cmds(start + 3, stop - 3)
-        cmds_local.fetch_params()
-        assert len(cmds_flight) == len(cmds_local)
-        for attr in ('tlmsid', 'date', 'params'):
-            assert np.all(cmds_flight[attr] == cmds_local[attr])
+            cmds_local = commands.get_cmds(start + 3, stop - 3)
+            cmds_local.fetch_params()
+            assert len(cmds_flight) == len(cmds_local)
+            for attr in ('tlmsid', 'date', 'params'):
+                assert np.all(cmds_flight[attr] == cmds_local[attr])
 
-    finally:
-        if kadi_orig is None:
-            del os.environ['KADI']
-        else:
-            os.environ['KADI'] = kadi_orig
+        finally:
+            if kadi_orig is None:
+                del os.environ['KADI']
+            else:
+                os.environ['KADI'] = kadi_orig
 
-        if cmds_dir_orig is None:
-            del os.environ['KADI_COMMANDS_DIR']
-        else:
-            os.environ['KADI_COMMANDS_DIR'] = cmds_dir_orig
-
-        # Force reload
-        del commands.IDX_CMDS._val
-        del commands.PARS_DICT._val
-        del commands.REV_PARS_DICT._val
+            # Force reload
+            del commands.IDX_CMDS._val
+            del commands.PARS_DICT._val
+            del commands.REV_PARS_DICT._val
 
 
 def test_get_cmds_v2_arch_only():
