@@ -54,7 +54,7 @@ def LOADS_BACKSTOP_PATH(load_name):
 
 
 def SCENARIO_DIR(scenario=None):
-    scenario_dir = CMDS_DIR()
+    scenario_dir = CMDS_DIR(scenario)
     if scenario is None:
         scenario = os.environ.get('KADI_SCENARIO')
     if scenario:

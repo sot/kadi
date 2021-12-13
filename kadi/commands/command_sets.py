@@ -15,7 +15,7 @@ RTS_PATH = Path('FOT/configuration/products/rts')
 def cmd_set_rts(date, *args):
     from parse_cm.csd import csd_cmd_gen
 
-    rts = 'SCS_CATEGORY,OBSERVING\n' + ''.join(args).upper()
+    rts = 'SCS_CATEGORY,OBSERVING\n' + '\n'.join(args).upper()
     cmds = csd_cmd_gen(rts, date=date)
     return cmds
 
@@ -156,11 +156,12 @@ def get_cmds_from_event(date, event, params_str):
         raise ValueError(f'unknown event {event!r}')
 
     if isinstance(params_str, str):
-        params_str = params_str.upper().split()
-        args = [coerce_type(p) for p in params_str]
         if event == 'RTS':
             # Ycky hack, better way?
-            args = [date] + args
+            args = [date] + [params_str]
+        else:
+            params_str = params_str.upper().split()
+            args = [coerce_type(p) for p in params_str]
     else:
         # Empty value means no args and implies params_str = np.ma.masked
         args = ()

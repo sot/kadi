@@ -1257,7 +1257,7 @@ def add_transition(transitions, idx, transition):
 
 
 def get_states(start=None, stop=None, state_keys=None, cmds=None, continuity=None,
-               reduce=True, merge_identical=False):
+               reduce=True, merge_identical=False, scenario=None):
     """
     Get table of states corresponding to intervals when ``state_keys`` parameters
     are unchanged given the input commands ``cmds`` or ``start`` date.
@@ -1293,7 +1293,7 @@ def get_states(start=None, stop=None, state_keys=None, cmds=None, continuity=Non
     :param continuity: initial state (optional, dict)
     :param reduce: call reduce_states() on output
     :param merge_identical: merge identical states (see reduce_states() docs)
-    :param version: version of commands archive to use
+    :param scenario: commands archive scenario to use
 
     :returns: astropy Table of states
     """
@@ -1320,7 +1320,7 @@ def get_states(start=None, stop=None, state_keys=None, cmds=None, continuity=Non
     if cmds is None:
         if start is None:
             raise ValueError("must supply either 'cmds' argument or 'start' argument")
-        cmds = commands.get_cmds(start, stop)
+        cmds = commands.get_cmds(start, stop, scenario=scenario)
         start = DateTime(start).date
         stop = DateTime(stop or cmds[-1]['date']).date  # User-supplied stop or last command
     else:
@@ -1329,7 +1329,7 @@ def get_states(start=None, stop=None, state_keys=None, cmds=None, continuity=Non
 
     # Get initial state at start of commands
     if continuity is None:
-        continuity = get_continuity(start, state_keys)
+        continuity = get_continuity(start, state_keys, scenario=scenario)
 
     # Get transitions, which is a list of dict (state key
     # and new state value at that date).  This goes through each active
@@ -1484,7 +1484,8 @@ def reduce_states(states, state_keys, merge_identical=False):
     return out
 
 
-def get_continuity(date=None, state_keys=None, lookbacks=(7, 30, 180, 1000)):
+def get_continuity(date=None, state_keys=None, lookbacks=(7, 30, 180, 1000),
+                   scenario=None):
     """
     Get the state and transition dates at ``date`` for ``state_keys``.
 
@@ -1508,7 +1509,7 @@ def get_continuity(date=None, state_keys=None, lookbacks=(7, 30, 180, 1000)):
     :param date: date (DateTime compatible, default=NOW)
     :param state_keys: list of state keys or str (one state key) or None
     :param lookbacks: list of lookback times in days (default=[7, 30, 180, 1000])
-    :param version: version of commands archive to use (default=None)
+    :param scenario: commands archive scenario (default=None)
 
     :returns: dict of state values
     """
@@ -1532,7 +1533,7 @@ def get_continuity(date=None, state_keys=None, lookbacks=(7, 30, 180, 1000)):
 
     for lookback in lookbacks:
         start = stop - lookback
-        cmds = commands.get_cmds(start, stop)
+        cmds = commands.get_cmds(start, stop, scenario=scenario)
         if len(cmds) == 0:
             continue
 
@@ -1551,7 +1552,7 @@ def get_continuity(date=None, state_keys=None, lookbacks=(7, 30, 180, 1000)):
                 # the required time range. Without this the time range of cmds is used which
                 # can give unexpected outputs if ``date``` is within a maneuver.
                 states = get_states(state_keys=state_key, cmds=cmds, start=start, stop=stop,
-                                    continuity={}, reduce=False)
+                                    continuity={}, reduce=False, scenario=scenario)
             except NoTransitionsError:
                 # No transitions within `cmds` for state_key, continue with other keys
                 continue

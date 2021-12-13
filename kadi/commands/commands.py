@@ -52,3 +52,19 @@ def get_cmds(start=None, stop=None, inclusive_stop=False, **kwargs):
                        inclusive_stop=inclusive_stop,
                        **kwargs)
     return cmds
+
+
+def clear_caches():
+    """Clear all commands caches.
+
+    This is useful for testing and in case upstream products like the Command
+    Events sheet have changed during a session.
+    """
+    commands_version = os.environ.get('KADI_COMMANDS_VERSION',
+                                      conf.commands_version)
+    if commands_version == '2':
+        from kadi.commands.commands_v2 import clear_caches as clear_caches_vN
+    else:
+        from kadi.commands.commands_v1 import clear_caches as clear_caches_vN
+
+    clear_caches_vN()

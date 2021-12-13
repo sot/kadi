@@ -29,7 +29,10 @@ from cxotime import CxoTime
 # - commands_version (v1, v2)
 
 MATCHING_BLOCK_SIZE = 100
-DEFAULT_STOP = '2021-10-29'  # Just before OCT3021 replan loads
+
+# Default stop time for getting commands and updating. The default is None
+# (now) but this can be set for debugging or testing purposes.
+DEFAULT_STOP = '2021-10-29'
 
 # TODO: cache translation from cmd_events to CommandTable's  [Probably not]
 
@@ -66,9 +69,11 @@ def clear_caches():
     """
     CMDS_RECENT.clear()
     MATCHING_BLOCKS.clear()
-    del IDX_CMDS._val
-    del PARS_DICT._val
-    del REV_PARS_DICT._val
+    for var in [IDX_CMDS, PARS_DICT, REV_PARS_DICT]:
+        try:
+            del IDX_CMDS._val
+        except AttributeError:
+            pass
 
 
 def load_name_to_cxotime(name):
@@ -254,7 +259,7 @@ def get_cmds(start=None, stop=None, inclusive_stop=False, scenario=None, **kwarg
     return cmds
 
 
-def update_archive_and_get_cmds_recent(scenario=None, *, lookback=None, stop=DEFAULT_STOP,
+def update_archive_and_get_cmds_recent(scenario=None, *, lookback=None, stop=None,
                                        cache=True):
     """Update local loads table and downloaded loads and return all recent cmds.
 
@@ -440,7 +445,7 @@ def get_loads(scenario=None):
     return loads
 
 
-def update_loads(scenario=None, *, cmd_events=None, lookback=None, stop=DEFAULT_STOP):
+def update_loads(scenario=None, *, cmd_events=None, lookback=None, stop=None):
     """Update or create loads.csv and loads/ archive though ``lookback`` days
 
     CSV table file with column names in the first row and data in subsequent rows.
@@ -452,6 +457,9 @@ def update_loads(scenario=None, *, cmd_events=None, lookback=None, stop=DEFAULT_
     - schedule_stop_observing: activity end time for loads (propagation goes to this point).
     - schedule_stop_vehicle: activity end time for loads (propagation goes to this point).
     """
+    if stop is None:
+        stop = DEFAULT_STOP  # Normally DEFAULT_STOP is None
+
     # If no network access allowed then just return the local file
     if not update_from_network_enabled(scenario):
         return get_loads(scenario)
@@ -664,7 +672,7 @@ def get_load_cmds_from_occweb_or_local(dir_year_month=None, load_name=None, use_
         raise ValueError(f'Could not find backstop file in {dir_year_month / load_name}')
 
 
-def update_cmds_archive(*, lookback=None, stop=DEFAULT_STOP, log_level=logging.INFO,
+def update_cmds_archive(*, lookback=None, stop=None, log_level=logging.INFO,
                         scenario=None, data_root='.', match_prev_cmds=True):
     """Update cmds2.h5 and cmds2.pkl archive files.
 
@@ -687,6 +695,9 @@ def update_cmds_archive(*, lookback=None, stop=DEFAULT_STOP, log_level=logging.I
         transition of APR1420B. See ``utils/migrate_cmds_to_cmds2.py`` for
         details.
     """
+    if stop is None:
+        stop = DEFAULT_STOP
+
     # Local context manager for log_level and data_root
     kadi_logger = logging.getLogger('kadi')
     log_level_orig = kadi_logger.level
