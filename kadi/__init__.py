@@ -13,7 +13,7 @@ def _get_kadi_logger():
     Defaults to WARNING level.
     """
     logger = logging.getLogger(__name__)
-    logger.setLevel(logging.WARNING)
+    logger.setLevel(logging.INFO)
     fmt = logging.Formatter('%(asctime)s %(funcName)s: %(message)s', datefmt=None)
     hdlr = logging.StreamHandler(sys.stdout)
     hdlr.setFormatter(fmt)

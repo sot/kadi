@@ -29,14 +29,15 @@ from cxotime import CxoTime
 # - commands_version (v1, v2)
 
 MATCHING_BLOCK_SIZE = 100
+DEFAULT_STOP = '2021-10-29'  # Just before OCT3021 replan loads
 
 # TODO: cache translation from cmd_events to CommandTable's  [Probably not]
 
 APPROVED_LOADS_OCCWEB_DIR = Path('FOT/mission_planning/PRODUCTS/APPR_LOADS')
 
 # https://docs.google.com/spreadsheets/d/<document_id>/export?format=csv&gid=<sheet_id>
-CMD_EVENTS_SHEET_ID = '19d6XqBhWoFjC-z1lS1nM6wLE_zjr4GYB1lOvrEGCbKQ'
-CMD_EVENTS_SHEET_URL = f'https://docs.google.com/spreadsheets/d/{CMD_EVENTS_SHEET_ID}/export?format=csv'  # noqa
+CMD_EVENTS_FLIGHT_ID = '19d6XqBhWoFjC-z1lS1nM6wLE_zjr4GYB1lOvrEGCbKQ'
+CMD_EVENTS_SHEET_URL = 'https://docs.google.com/spreadsheets/d/{doc_id}/export?format=csv'
 
 # Cached values of the full mission commands archive (cmds_v2.h5, cmds_v2.pkl).
 # These are loaded on demand.
@@ -55,6 +56,19 @@ logger = logging.getLogger(__name__)
 
 # DEBUG: remove this for production
 logging.getLogger('kadi').setLevel(1)
+
+
+def clear_caches():
+    """Clear all commands caches.
+
+    This is useful for testing and in case upstream products like the Command
+    Events sheet have changed during a session.
+    """
+    CMDS_RECENT.clear()
+    MATCHING_BLOCKS.clear()
+    del IDX_CMDS._val
+    del PARS_DICT._val
+    del REV_PARS_DICT._val
 
 
 def load_name_to_cxotime(name):
@@ -189,6 +203,8 @@ def get_cmds(start=None, stop=None, inclusive_stop=False, scenario=None, **kwarg
 
     :returns: CommandTable
     """
+    scenario = os.environ.get('KADI_SCENARIO', scenario)
+
     if scenario not in CMDS_RECENT:
         cmds_recent = update_archive_and_get_cmds_recent(scenario, cache=True)
     else:
@@ -206,11 +222,11 @@ def get_cmds(start=None, stop=None, inclusive_stop=False, scenario=None, **kwarg
         # archive commands. The margin is set at 1 hour, but in reality it is
         # probably just the 3 minutes of typical overlaps between loads.
         cmds = _merge_cmds_archive_recent(start, scenario)
-        logger.info('Getting commands from archive + recent')
+        logger.info(f'Getting commands from archive + recent {scenario=}')
     else:
         # Query is strictly within recent commands.
         cmds = cmds_recent
-        logger.info('Getting commands from recent only')
+        logger.info(f'Getting commands from recent only {scenario=}')
 
     # Select the requested time range and make a copy. (Slicing is a view so
     # in theory bad things could happen without a copy).
@@ -238,7 +254,7 @@ def get_cmds(start=None, stop=None, inclusive_stop=False, scenario=None, **kwarg
     return cmds
 
 
-def update_archive_and_get_cmds_recent(scenario=None, *, lookback=None, stop=None,
+def update_archive_and_get_cmds_recent(scenario=None, *, lookback=None, stop=DEFAULT_STOP,
                                        cache=True):
     """Update local loads table and downloaded loads and return all recent cmds.
 
@@ -369,19 +385,33 @@ def update_from_network_enabled(scenario):
         return conf.update_from_network
 
 
+def is_google_id(scenario):
+    """Return True if scenario appears to be a Google ID.
+
+    :param scenario: str, None
+    :returns: bool
+    """
+    # Something better??
+    return scenario is not None and len(scenario) > 35
+
+
 def update_cmd_events(scenario=None):
     # If no network access allowed then just return the local file
     if not update_from_network_enabled(scenario):
         return get_cmd_events(scenario)
 
-    if scenario is not None:
-        # Ensure the scenario directory exists
-        scenario_dir = paths.SCENARIO_DIR(scenario)
-        scenario_dir.mkdir(parents=True, exist_ok=True)
+    # Named scenarios with a name that isn't "flight" and does not look like a
+    # google sheet ID are assumed to be local files.
+    if scenario not in (None, 'flight') and not is_google_id(scenario):
+        return get_cmd_events(scenario)
+
+    # Ensure the scenario directory exists
+    paths.SCENARIO_DIR(scenario).mkdir(parents=True, exist_ok=True)
 
     cmd_events_path = paths.CMD_EVENTS_PATH(scenario)
 
-    url = CMD_EVENTS_SHEET_URL
+    doc_id = scenario if is_google_id(scenario) else CMD_EVENTS_FLIGHT_ID
+    url = CMD_EVENTS_SHEET_URL.format(doc_id=doc_id)
     logger.info(f'Getting cmd_events from {url}')
     req = requests.get(url, timeout=30)
     if req.status_code != 200:
@@ -410,7 +440,7 @@ def get_loads(scenario=None):
     return loads
 
 
-def update_loads(scenario=None, *, cmd_events=None, lookback=None, stop=None):
+def update_loads(scenario=None, *, cmd_events=None, lookback=None, stop=DEFAULT_STOP):
     """Update or create loads.csv and loads/ archive though ``lookback`` days
 
     CSV table file with column names in the first row and data in subsequent rows.
@@ -429,10 +459,8 @@ def update_loads(scenario=None, *, cmd_events=None, lookback=None, stop=None):
     if lookback is None:
         lookback = conf.default_lookback
 
-    if scenario is not None:
-        # Ensure the scenario directory exists
-        scenario_dir = paths.SCENARIO_DIR(scenario)
-        scenario_dir.mkdir(parents=True, exist_ok=True)
+    # Ensure the scenario directory exists
+    paths.SCENARIO_DIR(scenario).mkdir(parents=True, exist_ok=True)
 
     if cmd_events is None:
         cmd_events = get_cmd_events(scenario)
@@ -636,7 +664,7 @@ def get_load_cmds_from_occweb_or_local(dir_year_month=None, load_name=None, use_
         raise ValueError(f'Could not find backstop file in {dir_year_month / load_name}')
 
 
-def update_cmds_archive(*, lookback=None, stop=None, log_level=logging.INFO,
+def update_cmds_archive(*, lookback=None, stop=DEFAULT_STOP, log_level=logging.INFO,
                         scenario=None, data_root='.', match_prev_cmds=True):
     """Update cmds2.h5 and cmds2.pkl archive files.
 
