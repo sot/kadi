@@ -32,7 +32,7 @@ MATCHING_BLOCK_SIZE = 100
 
 # Default stop time for getting commands and updating. The default is None
 # (now) but this can be set for debugging or testing purposes.
-DEFAULT_STOP = '2021-10-29'
+DEFAULT_STOP = '2021-10-24'  # 10-29?
 
 # TODO: cache translation from cmd_events to CommandTable's  [Probably not]
 
@@ -566,22 +566,9 @@ def get_load_dict_from_cmds(load_name, cmds, cmd_events):
             'cmd_stop': cmds['date'][-1],
             'observing_stop': '',
             'vehicle_stop': ''}
-    for cmd in cmds:
-        if (cmd['type'] == 'LOAD_EVENT'
-                and cmd['params']['event_type'] == 'RUNNING_LOAD_TERMINATION_TIME'):
-            load['rltt'] = cmd['date']
-            break
-    else:
-        raise ValueError(f'No RLTT found')
 
-    for idx in range(len(cmds), 0, -1):
-        cmd = cmds[idx - 1]
-        if (cmd['type'] == 'LOAD_EVENT'
-                and cmd['params']['event_type'] == 'SCHEDULED_STOP_TIME'):
-            load['scheduled_stop_time'] = cmd['date']
-            break
-    else:
-        raise ValueError(f'No scheduled stop time found')
+    load['rltt'] = cmds.get_rltt()
+    load['scheduled_stop_time'] = cmds.get_scheduled_stop_time()
 
     # CHANGE THIS to use LOAD_EVENT entries in commands. Or NOT?? Probably
     # provides good visibility into what's going on. But this hard-coding is

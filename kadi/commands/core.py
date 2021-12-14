@@ -436,14 +436,38 @@ class CommandTable(Table):
         for cmd in self:
             cmd['params']
 
-    def add_cmds(self, cmds):
+    def get_rltt(self):
+        # Find the RLTT, which should be near the start of the table.
+        for cmd in self:
+            if (cmd['type'] == 'LOAD_EVENT'
+                    and cmd['params']['event_type'] == 'RUNNING_LOAD_TERMINATION_TIME'):
+                return cmd['date']
+        else:
+            raise ValueError(f'No RLTT found')
+
+    def get_scheduled_stop_time(self):
+        for idx in range(len(self), 0, -1):
+            cmd = self[idx - 1]
+            if (cmd['type'] == 'LOAD_EVENT'
+                    and cmd['params']['event_type'] == 'SCHEDULED_STOP_TIME'):
+                return cmd['date']
+        else:
+            raise ValueError(f'No scheduled stop time found')
+
+    def add_cmds(self, cmds, rltt=None):
         """
         Add CommandTable ``cmds`` to self and return the new CommandTable. The
         commands table is maintained in order (date, step, scs).
 
         :param cmds: :class:`~kadi.commands.commands.CommandTable` of commands
+        :param apply_rltt: bool, optional
+            Clip existing commands to the RLTT of the new commands.
         :returns: :class:`~kadi.commands.commands.CommandTable` of commands
         """
+        if rltt is not None:
+            remove_idxs = np.where(self['date'] > rltt)[0]
+            self.remove_rows(remove_idxs)
+
         out = vstack([self, cmds])
         out.sort_in_backstop_order()
 
