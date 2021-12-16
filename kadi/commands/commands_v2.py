@@ -32,7 +32,7 @@ MATCHING_BLOCK_SIZE = 100
 
 # Default stop time for getting commands and updating. The default is None
 # (now) but this can be set for debugging or testing purposes.
-DEFAULT_STOP = '2021-10-24'  # 10-29?
+DEFAULT_STOP = None  # '2021-10-24'  # 10-29?
 
 # TODO: cache translation from cmd_events to CommandTable's  [Probably not]
 
