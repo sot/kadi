@@ -30,10 +30,6 @@ from cxotime import CxoTime
 
 MATCHING_BLOCK_SIZE = 100
 
-# Default stop time for getting commands and updating. The default is None
-# (now) but this can be set for debugging or testing purposes.
-DEFAULT_STOP = None  # '2021-10-24'  # 10-29?
-
 # TODO: cache translation from cmd_events to CommandTable's  [Probably not]
 
 APPROVED_LOADS_OCCWEB_DIR = Path('FOT/mission_planning/PRODUCTS/APPR_LOADS')
@@ -457,8 +453,9 @@ def update_loads(scenario=None, *, cmd_events=None, lookback=None, stop=None):
     - schedule_stop_observing: activity end time for loads (propagation goes to this point).
     - schedule_stop_vehicle: activity end time for loads (propagation goes to this point).
     """
+    # For testing allow override of default `stop` value
     if stop is None:
-        stop = DEFAULT_STOP  # Normally DEFAULT_STOP is None
+        stop = os.environ.get('KADI_COMMANDS_DEFAULT_STOP')
 
     # If no network access allowed then just return the local file
     if not update_from_network_enabled(scenario):
@@ -682,8 +679,9 @@ def update_cmds_archive(*, lookback=None, stop=None, log_level=logging.INFO,
         transition of APR1420B. See ``utils/migrate_cmds_to_cmds2.py`` for
         details.
     """
+    # For testing allow override of default `stop` value
     if stop is None:
-        stop = DEFAULT_STOP
+        stop = os.environ.get('KADI_COMMANDS_DEFAULT_STOP')
 
     # Local context manager for log_level and data_root
     kadi_logger = logging.getLogger('kadi')
