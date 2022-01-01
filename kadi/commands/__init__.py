@@ -42,6 +42,11 @@ class Conf(ConfigNamespace):
         'KADI_COMMANDS_VERSION environment variable.'
     )
 
+    cmd_events_flight_id = ConfigItem(
+        '19d6XqBhWoFjC-z1lS1nM6wLE_zjr4GYB1lOvrEGCbKQ',
+        'Google Sheet ID for command events (flight scenario).'
+    )
+
 
 # Create a configuration instance for the user
 conf = Conf()

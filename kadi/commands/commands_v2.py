@@ -34,8 +34,7 @@ MATCHING_BLOCK_SIZE = 100
 
 APPROVED_LOADS_OCCWEB_DIR = Path('FOT/mission_planning/PRODUCTS/APPR_LOADS')
 
-# https://docs.google.com/spreadsheets/d/<document_id>/export?format=csv&gid=<sheet_id>
-CMD_EVENTS_FLIGHT_ID = '19d6XqBhWoFjC-z1lS1nM6wLE_zjr4GYB1lOvrEGCbKQ'
+# URL to download google sheets `doc_id`
 CMD_EVENTS_SHEET_URL = 'https://docs.google.com/spreadsheets/d/{doc_id}/export?format=csv'
 
 # Cached values of the full mission commands archive (cmds_v2.h5, cmds_v2.pkl).
@@ -397,6 +396,13 @@ def is_google_id(scenario):
 
 
 def update_cmd_events(scenario=None):
+    """Update local cmd_events.csv from Google Sheets for ``scenario``.
+
+    :param scenario: str, None
+        Scenario name
+    :returns: Table
+        Command events table
+    """
     # If no network access allowed then just return the local file
     if not update_from_network_enabled(scenario):
         return get_cmd_events(scenario)
@@ -411,7 +417,7 @@ def update_cmd_events(scenario=None):
 
     cmd_events_path = paths.CMD_EVENTS_PATH(scenario)
 
-    doc_id = scenario if is_google_id(scenario) else CMD_EVENTS_FLIGHT_ID
+    doc_id = scenario if is_google_id(scenario) else conf.cmd_events_flight_id
     url = CMD_EVENTS_SHEET_URL.format(doc_id=doc_id)
     logger.info(f'Getting cmd_events from {url}')
     req = requests.get(url, timeout=30)
@@ -428,6 +434,13 @@ def update_cmd_events(scenario=None):
 
 
 def get_cmd_events(scenario=None):
+    """Get local cmd_events.csv for ``scenario``.
+
+    :param scenario: str, None
+        Scenario name
+    :returns: Table
+        Command events table
+    """
     cmd_events_path = paths.CMD_EVENTS_PATH(scenario)
     logger.info(f'Reading command events {cmd_events_path}')
     cmd_events = Table.read(str(cmd_events_path), format='csv', fill_values=[])
