@@ -33,7 +33,15 @@ def version_env(monkeypatch, version):
     return version
 
 
-@pytest.mark.parametrize('version', [1, 2])
+@pytest.fixture(scope="module", autouse=True)
+def cmds_dir(tmp_path_factory):
+    with commands_v2.conf.set_temp('cache_loads_in_astropy_cache', True):
+        with commands_v2.conf.set_temp('clean_loads_dir', False):
+            cmds_dir = tmp_path_factory.mktemp('cmds_dir')
+            with commands_v2.conf.set_temp('commands_dir', str(cmds_dir)):
+                yield
+
+
 def test_find(version):
     if version == 1:
         idx_cmds = commands_v1.IDX_CMDS
@@ -200,9 +208,6 @@ def test_commands_create_archive_regress(tmpdir, version_env):
     This tests over an eventful month that includes IU reset/NSM, SCS-107
     (radiation), fast replan, loads approved but not uplinked, etc.
     """
-    import logging
-    logging.getLogger('kadi').setLevel(logging.DEBUG)
-
     update_cmds = update_cmds_v2 if version_env == "2" else update_cmds_v1
     commands = commands_v2 if version_env == "2" else commands_v1
 
@@ -246,22 +251,138 @@ def test_commands_create_archive_regress(tmpdir, version_env):
             del commands.REV_PARS_DICT._val
 
 
-def test_get_cmds_v2_arch_only():
-    # Transition is around APR1420
+@pytest.fixture()
+def stop_date_2020_12_03(monkeypatch):
+    commands_v2.clear_caches()
+    monkeypatch.setenv('KADI_COMMANDS_DEFAULT_STOP', '2020-12-03')
+    cmds_dir = Path(conf.commands_dir) / '2020-12-03'
+    with commands_v2.conf.set_temp('commands_dir', str(cmds_dir)):
+        yield
+
+
+def test_get_cmds_v2_arch_only(stop_date_2020_12_03):
     cmds = commands_v2.get_cmds(start='2020-01-01', stop='2020-01-02')
     assert len(cmds) == 153
+    assert np.all(cmds['idx'] != -1)
     # Also do a zero-length query
     cmds = commands_v2.get_cmds(start='2020-01-01', stop='2020-01-01')
     assert len(cmds) == 0
 
 
-def test_get_cmds_v2_arch_recent():
-    cmds = commands_v2.get_cmds(start='2020-01-01', stop='2020-12-01')
-    assert len(cmds) == 66144
+def test_get_cmds_v2_arch_recent(stop_date_2020_12_03):
+    cmds = commands_v2.get_cmds(start='2020-09-01', stop='2020-12-01')
+    # Since recent matches arch in the past, even though the results are a mix
+    # of arch and recent, they commands actually come from the arch because of
+    # how the matching block is used (commands come from arch up through the end
+    # of the matching block).
+    assert np.all(cmds['idx'] != -1)
+    assert len(cmds) == 17645
+
+    loads = commands_v2.get_loads()
+    assert loads.pformat_all() == [
+        '  name         cmd_start              cmd_stop       observing_stop vehicle_stop          rltt          scheduled_stop_time ',  # noqa
+        '-------- --------------------- --------------------- -------------- ------------ --------------------- ---------------------',  # noqa
+        'NOV0920A 2020:314:12:13:00.000 2020:321:00:48:01.673             --           -- 2020:314:12:16:00.000 2020:321:00:48:01.673',  # noqa
+        'NOV1620A 2020:321:00:45:01.673 2020:327:19:26:00.000             --           -- 2020:321:00:48:01.673 2020:327:19:26:00.000',  # noqa
+        'NOV2320A 2020:327:19:23:00.000 2020:334:20:44:27.758             --           -- 2020:327:19:26:00.000 2020:334:20:44:27.758',  # noqa
+        'NOV3020A 2020:334:20:41:27.758 2020:342:06:04:34.287             --           -- 2020:334:20:44:27.758 2020:342:06:04:34.287'  # noqa
+    ]
 
 
-def test_get_cmds_v2_recent_only():
-    cmds = commands_v2.get_cmds(start='2020-12-01', stop='2020-12-02')
-    assert len(cmds) == 224
+def test_get_cmds_v2_recent_only(stop_date_2020_12_03):
+    # This query stop is well beyond the default stop date, so it should get
+    # only commands out to the end of the NOV3020A loads (~ Dec 7).
+    cmds = commands_v2.get_cmds(start='2020-12-01', stop='2021-01-01')
+    assert len(cmds) == 1523
+    assert np.all(cmds['idx'] == -1)
+    assert cmds[:5].pformat_like_backstop() == [
+        '2020:336:00:08:38.610 | COMMAND_HW       | CNOOP      | NOV3020A | hex=7E00000, msid=CNOOPLR, scs=128',  # noqa
+        '2020:336:00:08:39.635 | COMMAND_HW       | CNOOP      | NOV3020A | hex=7E00000, msid=CNOOPLR, scs=128',  # noqa
+        '2020:336:00:12:55.214 | ACISPKT          | AA00000000 | NOV3020A | cmds=3, words=3, scs=131',  # noqa
+        '2020:336:00:12:55.214 | ORBPOINT         | None       | NOV3020A | event_type=XEF1000',  # noqa
+        '2020:336:00:12:59.214 | ACISPKT          | AA00000000 | NOV3020A | cmds=3, words=3, scs=131'  # noqa
+    ]
+    assert cmds[-5:].pformat_like_backstop() == [
+        '2020:342:03:15:02.313 | COMMAND_SW       | OFMTSNRM   | NOV3020A | hex=8010A00, msid=OFMTSNRM, scs=130',  # noqa
+        '2020:342:03:15:02.313 | COMMAND_SW       | COSCSEND   | NOV3020A | hex=C800000, msid=OBC_END_SCS, scs=130',  # noqa
+        '2020:342:06:04:34.287 | ACISPKT          | AA00000000 | NOV3020A | cmds=3, words=3, scs=133',  # noqa
+        '2020:342:06:04:34.287 | COMMAND_SW       | COSCSEND   | NOV3020A | hex=C800000, msid=OBC_END_SCS, scs=133',  # noqa
+        '2020:342:06:04:34.287 | LOAD_EVENT       | None       | NOV3020A | event_type=SCHEDULED_STOP_TIME'  # noqa
+    ]
+
+    # Same for no stop date
+    cmds = commands_v2.get_cmds(start='2020-12-01', stop=None)
+    assert len(cmds) == 1523
+    assert np.all(cmds['idx'] == -1)
+
+    # Sanity check on the loads
+    loads = commands_v2.get_loads()
+    assert np.all(loads['name'] == ['NOV0920A', 'NOV1620A', 'NOV2320A', 'NOV3020A'])
+
+    # zero-length query
     cmds = commands_v2.get_cmds(start='2020-12-01', stop='2020-12-01')
     assert len(cmds) == 0
+
+
+@pytest.fixture()
+def stop_date_2021_10_24(monkeypatch):
+    commands_v2.clear_caches()
+    monkeypatch.setenv('KADI_COMMANDS_DEFAULT_STOP', '2021-10-24')
+    cmds_dir = Path(conf.commands_dir) / '2020-10-24'
+    with commands_v2.conf.set_temp('commands_dir', str(cmds_dir)):
+        yield
+
+
+def test_get_cmds_nsm_2021(stop_date_2021_10_24):
+    """NSM at ~2021:296:10:41. This tests non-load commands from cmd_events.
+    """
+    cmds = commands_v2.get_cmds('2021:296:10:35:00')  # , '2021:298:01:58:00')
+    exp = [
+        '2021:296:10:35:00.000 | COMMAND_HW       | CIMODESL   | OCT1821A | hex=7C067C0, msid=CIU1024X, scs=128',  # noqa
+        '2021:296:10:35:00.257 | COMMAND_HW       | CTXAOF     | OCT1821A | hex=780000C, msid=CTXAOF, scs=128',  # noqa
+        '2021:296:10:35:00.514 | COMMAND_HW       | CPAAOF     | OCT1821A | hex=780001E, msid=CPAAOF, scs=128',  # noqa
+        '2021:296:10:35:00.771 | COMMAND_HW       | CTXBOF     | OCT1821A | hex=780004C, msid=CTXBOF, scs=128',  # noqa
+        '2021:296:10:35:01.028 | COMMAND_HW       | CPABON     | OCT1821A | hex=7800056, msid=CPABON, scs=128',  # noqa
+        '2021:296:10:35:01.285 | COMMAND_HW       | CTXBON     | OCT1821A | hex=7800044, msid=CTXBON, scs=128',  # noqa
+        '2021:296:10:41:57.000 | COMMAND_SW       | AONSMSAF   | CMD_EVT  | event=NSM, event_date=2021:296:10:41:57',  # noqa
+        '2021:296:10:41:57.000 | COMMAND_SW       | OORMPDS    | CMD_EVT  | event=NSM, event_date=2021:296:10:41:57',  # noqa
+        '2021:296:10:41:58.025 | COMMAND_HW       | AFIDP      | CMD_EVT  | event=NSM, event_date=2021:296:10:41:57',  # noqa
+        '2021:296:10:41:59.050 | SIMTRANS         | None       | CMD_EVT  | event=NSM, event_date=2021:296:10:41:57, pos=-99616',  # noqa
+        '2021:296:10:42:20.000 | MP_OBSID         | COAOSQID   | CMD_EVT  | event=Obsid, event_date=2021:296:10:42:20, id=0',  # noqa
+        '2021:296:10:43:04.710 | ACISPKT          | AA00000000 | CMD_EVT  | event=NSM, event_date=2021:296:10:41:57',  # noqa
+        '2021:296:10:43:05.735 | ACISPKT          | AA00000000 | CMD_EVT  | event=NSM, event_date=2021:296:10:41:57',  # noqa
+        '2021:296:10:43:15.985 | ACISPKT          | WSPOW0002A | CMD_EVT  | event=NSM, event_date=2021:296:10:41:57',  # noqa
+        '2021:296:10:43:15.985 | COMMAND_SW       | AODSDITH   | CMD_EVT  | event=NSM, event_date=2021:296:10:41:57',  # noqa
+        '2021:297:01:41:01.000 | COMMAND_SW       | AONMMODE   | CMD_EVT  | event=Maneuver, event_date=2021:297:01:41:01',  # noqa
+        '2021:297:01:41:01.256 | COMMAND_SW       | AONM2NPE   | CMD_EVT  | event=Maneuver, event_date=2021:297:01:41:01',  # noqa
+        '2021:297:01:41:05.356 | MP_TARGQUAT      | AOUPTARQ   | CMD_EVT  | event=Maneuver, event_date=2021:297:01:41:01, '  # noqa
+            'q1=7.05469100e-01, q2=3.29883100e-01, q3=5.34409000e-01, q4=3.28477700e-01',  # noqa
+        '2021:297:01:41:11.250 | COMMAND_SW       | AOMANUVR   | CMD_EVT  | event=Maneuver, event_date=2021:297:01:41:01'  # noqa
+    ]
+    assert cmds.pformat_like_backstop() == exp
+
+
+def test_cmds_scenario(stop_date_2020_12_03):
+    """Test custom scenario with a couple of ACIS commands"""
+    # First make the cmd_events.csv file for the scenario
+    scenario = 'test_acis'
+    cmds_dir = Path(commands_v2.conf.commands_dir) / scenario
+    cmds_dir.mkdir(exist_ok=True)
+    # Note variation in format of date, since this comes from humans.
+    cmd_evts_text = """\
+Date,Event,Params,Author,Comment
+2020-12-01T00:08:30,Command,ACISPKT | TLMSID=WSPOW00000",Tom Aldcroft,
+2020-12-01 00:08:39,Command,"ACISPKT | TLMSID=WSVIDALLDN",Tom Aldcroft,
+"""
+    (cmds_dir / 'cmd_events.csv').write_text(cmd_evts_text)
+
+    # Now get commands in a time range that includes the new command events
+    cmds = commands_v2.get_cmds('2020-12-01 00:08:00', '2020-12-01 00:09:00',
+                                scenario=scenario)
+    exp = [
+        '2020:336:00:08:30.000 | ACISPKT          | WSPOW00000 | CMD_EVT  | event=Command, event_date=2020:336:00:08:30',  # noqa
+        '2020:336:00:08:38.610 | COMMAND_HW       | CNOOP      | NOV3020A | hex=7E00000, msid=CNOOPLR, scs=128',  # noqa
+        '2020:336:00:08:39.000 | ACISPKT          | WSVIDALLDN | CMD_EVT  | event=Command, event_date=2020:336:00:08:39',  # noqa
+        '2020:336:00:08:39.635 | COMMAND_HW       | CNOOP      | NOV3020A | hex=7E00000, msid=CNOOPLR, scs=128'  # noqa
+    ]
+    assert cmds.pformat_like_backstop() == exp

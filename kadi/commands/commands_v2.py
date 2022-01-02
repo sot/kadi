@@ -53,7 +53,7 @@ RLTT_ERA_START = CxoTime('2020-04-14')
 logger = logging.getLogger(__name__)
 
 # DEBUG: remove this for production
-logging.getLogger('kadi').setLevel(1)
+# logging.getLogger('kadi').setLevel(1)
 
 
 def clear_caches():
@@ -306,8 +306,10 @@ def update_archive_and_get_cmds_recent(scenario=None, *, lookback=None, stop=Non
     # last more than 2 weeks.
     start = CxoTime(min(loads['cmd_start']))
     stop = CxoTime(max(loads['cmd_stop']))
-    bad = ((cmd_events['Date'] < (start - 14 * u.day).date)
-           | (cmd_events['Date'] > stop.date))
+    # Allow for variations in input format of date
+    dates = np.array([CxoTime(date).date for date in cmd_events['Date']])
+    bad = ((dates < (start - 14 * u.day).date)
+           | (dates > stop.date))
     cmd_events = cmd_events[~bad]
     cmd_events_ids = [evt['Event'] + '-' + evt['Date'][:8] for evt in cmd_events]
     if len(cmd_events) > 0:
