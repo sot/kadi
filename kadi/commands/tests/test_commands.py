@@ -251,13 +251,18 @@ def test_commands_create_archive_regress(tmpdir, version_env):
             del commands.REV_PARS_DICT._val
 
 
-@pytest.fixture()
-def stop_date_2020_12_03(monkeypatch):
-    commands_v2.clear_caches()
-    monkeypatch.setenv('KADI_COMMANDS_DEFAULT_STOP', '2020-12-03')
-    cmds_dir = Path(conf.commands_dir) / '2020-12-03'
-    with commands_v2.conf.set_temp('commands_dir', str(cmds_dir)):
-        yield
+def stop_date_fixture_factory(stop_date):
+    @pytest.fixture()
+    def stop_date_fixture(monkeypatch):
+        commands_v2.clear_caches()
+        monkeypatch.setenv('KADI_COMMANDS_DEFAULT_STOP', stop_date)
+        cmds_dir = Path(conf.commands_dir) / stop_date
+        with commands_v2.conf.set_temp('commands_dir', str(cmds_dir)):
+            yield
+    return stop_date_fixture
+
+stop_date_2021_10_24 = stop_date_fixture_factory('2021-10-24')
+stop_date_2020_12_03 = stop_date_fixture_factory('2020-12-03')
 
 
 def test_get_cmds_v2_arch_only(stop_date_2020_12_03):
@@ -322,15 +327,6 @@ def test_get_cmds_v2_recent_only(stop_date_2020_12_03):
     # zero-length query
     cmds = commands_v2.get_cmds(start='2020-12-01', stop='2020-12-01')
     assert len(cmds) == 0
-
-
-@pytest.fixture()
-def stop_date_2021_10_24(monkeypatch):
-    commands_v2.clear_caches()
-    monkeypatch.setenv('KADI_COMMANDS_DEFAULT_STOP', '2021-10-24')
-    cmds_dir = Path(conf.commands_dir) / '2020-10-24'
-    with commands_v2.conf.set_temp('commands_dir', str(cmds_dir)):
-        yield
 
 
 def test_get_cmds_nsm_2021(stop_date_2021_10_24):
