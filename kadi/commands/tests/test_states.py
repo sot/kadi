@@ -7,6 +7,7 @@ import numpy as np
 from kadi import commands
 from kadi.commands import states
 import pytest
+from testr.test_helper import has_internet
 
 from Chandra.Time import DateTime
 from Ska.engarchive import fetch
@@ -19,8 +20,11 @@ try:
 except Exception:
     HAS_PITCH = False
 
+VERSIONS = ['1', '2'] if has_internet() else ['1']
+VERSIONS = ['1']
 
-@pytest.fixture(scope="module", params=["1", "2"])
+
+@pytest.fixture(scope="module", params=VERSIONS)
 def version(request):
     return request.param
 

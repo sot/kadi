@@ -16,6 +16,9 @@ import numpy as np
 from astropy.table import Table, vstack
 import astropy.units as u
 import requests
+from cxotime import CxoTime
+from testr.test_helper import has_internet
+
 
 from kadi.commands import get_cmds_from_backstop, conf
 from kadi.commands.core import (load_idx_cmds, load_pars_dict, LazyVal,
@@ -23,7 +26,6 @@ from kadi.commands.core import (load_idx_cmds, load_pars_dict, LazyVal,
                                 ska_load_dir, CommandTable)
 from kadi.commands.command_sets import get_cmds_from_event
 from kadi import occweb, paths
-from cxotime import CxoTime
 
 # TODO configuration options, but use DEFAULT_* in the mean time
 # - commands_version (v1, v2)
@@ -49,6 +51,8 @@ MATCHING_BLOCKS = {}
 
 # APR1420B was the first load set to have RLTT (backstop 6.9)
 RLTT_ERA_START = CxoTime('2020-04-14')
+
+HAS_INTERNET = has_internet()
 
 logger = logging.getLogger(__name__)
 

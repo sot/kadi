@@ -8,6 +8,7 @@ import pytest
 # Use data file from parse_cm.test for get_cmds_from_backstop test.
 # This package is a dependency
 import parse_cm.tests
+from testr.test_helper import has_internet
 from Chandra.Time import secs2date
 from cxotime import CxoTime
 
@@ -15,11 +16,15 @@ from kadi import commands
 from kadi.commands import core, commands_v1, commands_v2, conf
 from kadi.scripts import update_cmds_v1, update_cmds_v2
 
-
 HAS_MPDIR = Path(os.environ['SKA'], 'data', 'mpcrit1', 'mplogs', '2020').exists()
+HAS_INTERNET = has_internet()
+VERSIONS = ['1', '2'] if HAS_INTERNET else ['1']
 
 
-@pytest.fixture(scope="module", params=["2", "1"])
+VERSIONS = ['1']
+
+
+@pytest.fixture(scope="module", params=VERSIONS)
 def version(request):
     return request.param
 
@@ -261,10 +266,12 @@ def stop_date_fixture_factory(stop_date):
             yield
     return stop_date_fixture
 
+
 stop_date_2021_10_24 = stop_date_fixture_factory('2021-10-24')
 stop_date_2020_12_03 = stop_date_fixture_factory('2020-12-03')
 
 
+@pytest.mark.skipif(not HAS_INTERNET, reason="No internet connection")
 def test_get_cmds_v2_arch_only(stop_date_2020_12_03):
     cmds = commands_v2.get_cmds(start='2020-01-01', stop='2020-01-02')
     assert len(cmds) == 153
@@ -274,6 +281,7 @@ def test_get_cmds_v2_arch_only(stop_date_2020_12_03):
     assert len(cmds) == 0
 
 
+@pytest.mark.skipif(not HAS_INTERNET, reason="No internet connection")
 def test_get_cmds_v2_arch_recent(stop_date_2020_12_03):
     cmds = commands_v2.get_cmds(start='2020-09-01', stop='2020-12-01')
     # Since recent matches arch in the past, even though the results are a mix
@@ -294,6 +302,7 @@ def test_get_cmds_v2_arch_recent(stop_date_2020_12_03):
     ]
 
 
+@pytest.mark.skipif(not HAS_INTERNET, reason="No internet connection")
 def test_get_cmds_v2_recent_only(stop_date_2020_12_03):
     # This query stop is well beyond the default stop date, so it should get
     # only commands out to the end of the NOV3020A loads (~ Dec 7).
@@ -329,6 +338,7 @@ def test_get_cmds_v2_recent_only(stop_date_2020_12_03):
     assert len(cmds) == 0
 
 
+@pytest.mark.skipif(not HAS_INTERNET, reason="No internet connection")
 def test_get_cmds_nsm_2021(stop_date_2021_10_24):
     """NSM at ~2021:296:10:41. This tests non-load commands from cmd_events.
     """
@@ -358,6 +368,7 @@ def test_get_cmds_nsm_2021(stop_date_2021_10_24):
     assert cmds.pformat_like_backstop() == exp
 
 
+@pytest.mark.skipif(not HAS_INTERNET, reason="No internet connection")
 def test_cmds_scenario(stop_date_2020_12_03):
     """Test custom scenario with a couple of ACIS commands"""
     # First make the cmd_events.csv file for the scenario
