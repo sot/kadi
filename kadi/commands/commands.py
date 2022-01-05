@@ -1,9 +1,10 @@
+import functools
 import os
 
 from kadi.commands import conf
 
 
-def get_cmds(start=None, stop=None, inclusive_stop=False, **kwargs):
+def get_cmds(start=None, stop=None, inclusive_stop=False, scenario=None, **kwargs):
     """
     Get commands beteween ``start`` and ``stop``.
 
@@ -35,8 +36,8 @@ def get_cmds(start=None, stop=None, inclusive_stop=False, **kwargs):
     :param stop: DateTime format (optional) Stop time, defaults to end of available
         commands
     :param inclusive_stop: bool, include commands at exactly ``stop`` if True.
-    :param version: int, None
-        Version of commands archive to use (default=version 1)
+    :param scenario: str, None
+        Commands scenario (applicable only for V2 commands)
     :param kwargs: key=val keyword argument pairs for filtering
 
     :returns: :class:`~kadi.commands.commands.CommandTable` of commands
@@ -44,13 +45,14 @@ def get_cmds(start=None, stop=None, inclusive_stop=False, **kwargs):
     commands_version = os.environ.get('KADI_COMMANDS_VERSION',
                                       conf.commands_version)
     if commands_version == '2':
-        from kadi.commands.commands_v2 import get_cmds as get_cmds_vN
+        from kadi.commands.commands_v2 import get_cmds as get_cmds_
+        get_cmds_ = functools.partial(get_cmds_, scenario=scenario)
     else:
-        from kadi.commands.commands_v1 import get_cmds as get_cmds_vN
+        from kadi.commands.commands_v1 import get_cmds as get_cmds_
 
-    cmds = get_cmds_vN(start=start, stop=stop,
-                       inclusive_stop=inclusive_stop,
-                       **kwargs)
+    cmds = get_cmds_(start=start, stop=stop,
+                     inclusive_stop=inclusive_stop,
+                     **kwargs)
     return cmds
 
 

@@ -21,9 +21,6 @@ HAS_INTERNET = has_internet()
 VERSIONS = ['1', '2'] if HAS_INTERNET else ['1']
 
 
-VERSIONS = ['1']
-
-
 @pytest.fixture(scope="module", params=VERSIONS)
 def version(request):
     return request.param

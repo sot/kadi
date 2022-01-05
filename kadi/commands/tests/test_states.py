@@ -21,7 +21,6 @@ except Exception:
     HAS_PITCH = False
 
 VERSIONS = ['1', '2'] if has_internet() else ['1']
-VERSIONS = ['1']
 
 
 @pytest.fixture(scope="module", params=VERSIONS)

@@ -569,8 +569,8 @@ class CommandTable(Table):
             else:
                 params_str = 'N/A'
 
-            fmts = ('{}', '{:16s}', '{:10s}', '{:4d}', '{:3d}')
-            args = (cmd['date'], cmd['type'], cmd['tlmsid'], cmd['step'], cmd['scs'])
+            fmts = ('{}', '{:16s}', '{:10s}')
+            args = (cmd['date'], cmd['type'], cmd['tlmsid'])
             if show_source:
                 if 'source' in self.colnames:
                     fmts += ('{:8s}',)
