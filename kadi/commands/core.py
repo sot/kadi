@@ -534,7 +534,7 @@ class CommandTable(Table):
 
         return cmds_list
 
-    def pformat_like_backstop(self):
+    def pformat_like_backstop(self, show_source=True):
         """Format the table in a human-readable format that is similar to backstop"""
         lines = []
         has_params = 'params' in self.colnames
@@ -542,7 +542,9 @@ class CommandTable(Table):
             if has_params:
                 # Make a single string of params like POS= 75624, SCS= 130, STEP= 9
                 fmtvals = []
-                for key, val in cmd['params'].items():
+                keys = sorted(cmd['params'])
+                for key in keys:
+                    val = cmd['params'][key]
                     if key == 'aoperige':
                         fmt = '{}={:.13e}'
                     elif isinstance(val, float):
@@ -567,22 +569,29 @@ class CommandTable(Table):
             else:
                 params_str = 'N/A'
 
-            if 'source' in self.colnames:
-                lines.append('{} | {:16s} | {:10s} | {:8s} | {}'.format(
-                    cmd['date'], cmd['type'], cmd['tlmsid'], cmd['source'], params_str))
-            else:
-                lines.append('{} | {:16s} | {:10s} | {:8d} | {}'.format(
-                    cmd['date'], cmd['type'], cmd['tlmsid'], cmd['timeline_id'], params_str))
+            fmts = ('{}', '{:16s}', '{:10s}', '{:4d}', '{:3d}')
+            args = (cmd['date'], cmd['type'], cmd['tlmsid'], cmd['step'], cmd['scs'])
+            if show_source:
+                if 'source' in self.colnames:
+                    fmts += ('{:8s}',)
+                    args += (cmd['source'],)
+                elif 'timeline_id' in self.colnames:
+                    fmts += ('{:8d}',)
+                    args += (cmd['timeline_id'],)
+            fmts += ('{}',)
+            args += (params_str,)
+            fmt = ' | '.join(fmts)
+            lines.append(fmt.format(*args))
 
         return lines
 
-    def pprint_like_backstop(self, logger_func=None, logger_text=''):
+    def pprint_like_backstop(self, logger_func=None, logger_text='', show_source=True):
         if logger_func is None:
-            lines = self.pformat_like_backstop()
+            lines = self.pformat_like_backstop(show_source=show_source)
             for line in lines:
                 print(line)
         else:
-            lines = self.pformat_like_backstop()
+            lines = self.pformat_like_backstop(show_source=show_source)
             logger_func(logger_text + '\n' + '\n'.join(lines) + '\n')
 
 
