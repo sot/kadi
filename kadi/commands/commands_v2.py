@@ -23,7 +23,7 @@ from testr.test_helper import has_internet
 from kadi.commands import get_cmds_from_backstop, conf
 from kadi.commands.core import (load_idx_cmds, load_pars_dict, LazyVal,
                                 get_par_idx_update_pars_dict, _find,
-                                ska_load_dir, CommandTable)
+                                ska_load_dir, CommandTable, load_name_to_cxotime)
 from kadi.commands.command_sets import get_cmds_from_event
 from kadi import occweb, paths
 
@@ -75,30 +75,21 @@ def clear_caches():
             pass
 
 
-def load_name_to_cxotime(name):
-    """Convert load name to date"""
-    mon = name[:3].capitalize()
-    imon = list(calendar.month_abbr).index(mon)
-    day = name[3:5]
-    yr = name[5:7]
-    if int(yr) > 50:
-        year = f'19{yr}'
-    else:
-        year = f'20{yr}'
-    out = CxoTime(f'{year}-{imon:02d}-{day}')
-    out.format = 'date'
-    return out
-
-
 def interrupt_load_commands(load, cmds):
-    # Cut commands beyond stop times
+    """Cut commands beyond observing or vehicle stop times.
+
+    Orbit point commands are NOT cut so that in the case of a load stop the
+    orbit points are still available. This takes advantage of additional code
+    that de-duplicates orbit points.
+    """
     bad = np.zeros(len(cmds), dtype=bool)
     if load['observing_stop'] != '':
         bad |= ((cmds['date'] > load['observing_stop'])
                 & (cmds['scs'] > 130))
     if load['vehicle_stop'] != '':
         bad |= ((cmds['date'] > load['vehicle_stop'])
-                & (cmds['scs'] < 131))
+                & (cmds['scs'] < 131)
+                & (cmds['type'] != 'ORBPOINT'))
     if np.any(bad):
         logger.info(f'Cutting {bad.sum()} commands from {load["name"]}')
         cmds = cmds[~bad]
@@ -121,7 +112,7 @@ def _merge_cmds_archive_recent(start, scenario):
     """
     cmds_recent = CMDS_RECENT[scenario]
 
-    logger.info('Merging cmds_recent with archive commands from {start}')
+    logger.info(f'Merging cmds_recent with archive commands from {start}')
 
     if scenario not in MATCHING_BLOCKS:
         # Get index for start of cmds_recent within the cmds archive
@@ -359,6 +350,7 @@ def update_archive_and_get_cmds_recent(scenario=None, *, lookback=None, stop=Non
 
     cmds_recent = vstack(cmds_list)
     cmds_recent.sort_in_backstop_order()
+    cmds_recent.deduplicate_orbit_cmds()
 
     if cache:
         # Cache recent commands so future requests for the same scenario are fast

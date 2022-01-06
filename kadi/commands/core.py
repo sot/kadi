@@ -1,4 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+import calendar
+import functools
 import os
 import tables
 from pathlib import Path
@@ -81,6 +83,22 @@ def load_pars_dict(version=None, file=None):
         pars_dict = pickle.load(fh, encoding='ascii')
     logger.info(f'Loaded {file} with {len(pars_dict)} pars')
     return pars_dict
+
+
+@functools.lru_cache()
+def load_name_to_cxotime(name):
+    """Convert load name to date"""
+    mon = name[:3].capitalize()
+    imon = list(calendar.month_abbr).index(mon)
+    day = name[3:5]
+    yr = name[5:7]
+    if int(yr) > 50:
+        year = f'19{yr}'
+    else:
+        year = f'20{yr}'
+    out = CxoTime(f'{year}-{imon:02d}-{day}')
+    out.format = 'date'
+    return out
 
 
 def read_backstop(backstop):
@@ -534,16 +552,41 @@ class CommandTable(Table):
 
         return cmds_list
 
-    def pformat_like_backstop(self, show_source=True):
+    def pformat_like_backstop(self,
+                              show_source=True,
+                              show_nonload_meta=True,
+                              sort_orbit_events=False,
+                              max_params_width=None
+                              ):
         """Format the table in a human-readable format that is similar to backstop"""
         lines = []
         has_params = 'params' in self.colnames
-        for cmd in self:
+
+        if has_params and sort_orbit_events:
+            cmds = self.copy()
+            cmds['cmd_idx'] = np.arange(len(cmds))
+            orb_cmds = cmds[cmds['type'] == 'ORBPOINT']
+            cg = orb_cmds.group_by('date')
+            for i0, i1 in zip(cg.groups.indices[:-1], cg.groups.indices[1:]):
+                # For multiple orbit events at the same date, pull them out and
+                # sort the event_type and index and update in place.
+                if i1 - i0 > 1:
+                    vals = sorted([cg[ii]['params']['event_type'] for ii in range(i0, i1)])
+                    idxs = sorted(cg['cmd_idx'][i0:i1])
+                    for idx, val in zip(idxs, vals):
+                        cmds[idx]['params']['event_type'] = val
+        else:
+            cmds = self
+
+        for cmd in cmds:
             if has_params:
                 # Make a single string of params like POS= 75624, SCS= 130, STEP= 9
                 fmtvals = []
                 keys = sorted(cmd['params'])
                 for key in keys:
+                    if (not show_nonload_meta
+                            and key in ('nonload_id', 'event', 'event_date')):
+                        continue
                     val = cmd['params'][key]
                     if key == 'aoperige':
                         fmt = '{}={:.13e}'
@@ -569,6 +612,9 @@ class CommandTable(Table):
             else:
                 params_str = 'N/A'
 
+            if max_params_width is not None:
+                params_str = params_str[:max_params_width]
+
             fmts = ('{}', '{:16s}', '{:10s}')
             args = (cmd['date'], cmd['type'], cmd['tlmsid'])
             if show_source:
@@ -585,14 +631,53 @@ class CommandTable(Table):
 
         return lines
 
-    def pprint_like_backstop(self, logger_func=None, logger_text='', show_source=True):
+    def pprint_like_backstop(self, *, logger_func=None, logger_text='', **kwargs):
         if logger_func is None:
-            lines = self.pformat_like_backstop(show_source=show_source)
+            lines = self.pformat_like_backstop(**kwargs)
             for line in lines:
                 print(line)
         else:
-            lines = self.pformat_like_backstop(show_source=show_source)
+            lines = self.pformat_like_backstop(**kwargs)
             logger_func(logger_text + '\n' + '\n'.join(lines) + '\n')
+
+    def deduplicate_orbit_cmds(self):
+        """Remove duplicate orbit commands (ORBPOINT type) in place.
+
+        In the event of a load stops and a replan, there can be multiple cmds
+        that describe the same orbit event.  Since the detailed timing might
+        change between schedule runs, cmds are considered the same if the date
+        is within 3 minutes. This code chooses the cmd from the latest loads in
+        this case.
+        """
+        idxs = np.where(self['type'] == 'ORBPOINT')[0]
+        orbit_cmds = self[idxs]
+        orbit_cmds['idx'] = idxs
+        orbit_cmds['time'] = CxoTime(orbit_cmds['date']).secs
+
+        # Turn into a list of Row's and sort by (event_type, date)
+        orbit_cmds = list(orbit_cmds)
+        orbit_cmds.sort(key=lambda y: (y['params']['event_type'], y['date']))
+
+        uniq_cmds = [orbit_cmds[0]]
+        # Step through one at a time and add to uniq_cmds only if the candidate is
+        # "different" from uniq_cmds[-1].
+        for cmd in orbit_cmds:
+            last_cmd = uniq_cmds[-1]
+            if (cmd['params']['event_type'] == last_cmd['params']['event_type']
+                    and abs(cmd['time'] - last_cmd['time']) < 180):
+                # Same event as last (even if date is a bit different).  Now if this one
+                # has a larger timeline_id that means it is from a more recent schedule, so
+                # use that one.
+                load_date = load_name_to_cxotime(cmd['source'])
+                load_date_last = load_name_to_cxotime(last_cmd['source'])
+                if load_date > load_date_last:
+                    uniq_cmds[-1] = cmd
+            else:
+                uniq_cmds.append(cmd)
+
+        uniq_idxs = [uniq_cmd['idx'] for uniq_cmd in uniq_cmds]
+        remove_idxs = set(idxs) - set(uniq_idxs)
+        self.remove_rows(list(remove_idxs))
 
 
 def get_par_idx_update_pars_dict(pars_dict, cmd, params=None):
