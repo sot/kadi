@@ -1267,11 +1267,10 @@ def get_states(start=None, stop=None, state_keys=None, cmds=None, continuity=Non
     Chandra commanded states (obsid, ACIS, PCAD, and mechanisms).  One can also
     provide a single state key as a a string, e.g. ``state_keys='obsid'``.
 
-    One can provide *either* the ``cmds`` argument with the ``CmdList`` of
-    commands (via ``commands.get_cmds()``), *OR* the ``start`` (and optionally
-    ``stop``) date.  In the latter case this function will automatically fetch
-    the commands internally.  If the ``stop`` date is not provided then all
-    known commands (including those from approved loads) will be included.
+    If the ``cmds`` argument is not provided then the ``start`` and ``stop`` are
+    used to fetch the commands internally. If the ``stop`` date is not provided
+    then all known commands (including future commands from approved loads) will
+    be included.
 
     The output table will contain columns for ``state_keys`` along with
     ``datestart`` and ``datestop`` columns.  By default the ``reduce_states``
@@ -1289,7 +1288,7 @@ def get_states(start=None, stop=None, state_keys=None, cmds=None, continuity=Non
     :param start: start of states (optional, DateTime compatible)
     :param stop: stop of states (optional, DateTime compatible)
     :param state_keys: state keys of interest (optional, list or str or None)
-    :param cmds: input commands (optional, CmdList)
+    :param cmds: input commands (optional, CmdList, CommandTable)
     :param continuity: initial state (optional, dict)
     :param reduce: call reduce_states() on output
     :param merge_identical: merge identical states (see reduce_states() docs)
