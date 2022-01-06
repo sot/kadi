@@ -337,13 +337,17 @@ def update_archive_and_get_cmds_recent(scenario=None, *, lookback=None, stop=Non
             # cases this does not cut anything.
             for jj in range(0, ii):
                 prev_cmds = cmds_list[jj]
+                # First check for any overlap since prev_cmds is sorted by date.
                 if prev_cmds['date'][-1] > rltt:
-                    # See Boolean masks in
-                    # https://occweb.cfa.harvard.edu/twiki/bin/view/Aspect/SkaPython#Ska_idioms_and_style
-                    idx_rltt = prev_cmds.find_date(rltt, side='right')
-                    logger.info(f'Removing {len(prev_cmds) - idx_rltt} '
-                                f'cmds from {prev_cmds["source"][0]}')
-                    prev_cmds.remove_rows(slice(idx_rltt, None))
+                    # Cut commands EXCEPT for ORBPOINT ones, which we leave as a
+                    # special case to ensure availability of orbit events from
+                    # commands. Otherwise RLTT can cut ORBPOINT commands that
+                    # are not replaced by the subsquent loads.
+                    bad = (prev_cmds['date'] > rltt) & (prev_cmds['type'] != 'ORBPOINT')
+                    if np.any(bad):
+                        n_bad = np.count_nonzero(bad)
+                        logger.info(f'Removing {n_bad} cmds from {prev_cmds["source"][0]}')
+                    cmds_list[jj] = prev_cmds[~bad]
 
         if len(cmds) > 0:
             logger.info(f'Adding {len(cmds)} commands from {cmds["source"][0]}')

@@ -12,7 +12,7 @@ from kadi.commands.core import CommandTable
 RTS_PATH = Path('FOT/configuration/products/rts')
 
 
-def cmd_set_rts(date, *args):
+def cmd_set_rts(*args, date=None):
     from parse_cm.csd import csd_cmd_gen
 
     rts = 'SCS_CATEGORY,OBSERVING\n' + '\n'.join(args).upper()
@@ -20,7 +20,7 @@ def cmd_set_rts(date, *args):
     return cmds
 
 
-def cmd_set_obsid(obs_id):
+def cmd_set_obsid(obs_id, date=None):
     """Return a command set that initiates a maneuver to the given attitude
     ``att``.
 
@@ -32,7 +32,7 @@ def cmd_set_obsid(obs_id):
                  params=dict(ID=obs_id)),)
 
 
-def cmd_set_maneuver(*args):
+def cmd_set_maneuver(*args, date=None):
     """Return a command set that initiates a maneuver to the given attitude
     ``att``.
 
@@ -59,7 +59,7 @@ def cmd_set_maneuver(*args):
             )
 
 
-def cmd_set_aciscti():
+def cmd_set_aciscti(date=None):
     return (dict(type='ACISPKT',
                  tlmsid='WSVIDALLDN',
                  dur=1.025),
@@ -73,12 +73,18 @@ def cmd_set_aciscti():
                  tlmsid='XTZ0000005'))
 
 
-def cmd_set_scs107():
+def cmd_set_scs107(date=None):
+    # SCS-106 (which is called by 107) was patched around 2021-Jun-08
+    if date is not None and date > CxoTime('2021-06-08').date:
+        pow_cmd = 'WSPOW0002A'  # 3-FEPS
+    else:
+        pow_cmd = 'WSPOW00000'  # 0-FEPS
+
     return (dict(type='COMMAND_SW',
                  dur=1.025,
                  tlmsid='OORMPDS'),
             dict(type='COMMAND_HW',
-                 dur=1.025,
+                 # dur=1.025,
                  tlmsid='AFIDP',
                  msid='AFLCRSET'),
             dict(type='SIMTRANS',
@@ -91,11 +97,11 @@ def cmd_set_scs107():
                  tlmsid='AA00000000',
                  dur=10.25),
             dict(type='ACISPKT',
-                 tlmsid='WSPOW0002A'),
+                 tlmsid=pow_cmd),
             )
 
 
-def cmd_set_dither(state):
+def cmd_set_dither(state, date=None):
     if state not in ('ON', 'OFF'):
         raise ValueError(f'Invalid dither state {state!r}')
     enab = 'EN' if state == 'ON' else 'DS'
@@ -105,7 +111,7 @@ def cmd_set_dither(state):
             )
 
 
-def cmd_set_nsm():
+def cmd_set_nsm(date=None):
     nsm_cmd = dict(type='COMMAND_SW',
                    tlmsid='AONSMSAF')
     out = ((nsm_cmd,)
@@ -115,15 +121,15 @@ def cmd_set_nsm():
     return out
 
 
-def cmd_set_load_not_run(load_name):
+def cmd_set_load_not_run(load_name, date=None):
     return None
 
 
-def cmd_set_observing_not_run(load_name):
+def cmd_set_observing_not_run(load_name, date=None):
     return None
 
 
-def cmd_set_command(*args):
+def cmd_set_command(*args, date=None):
     cmd = {'type': args[0]}
 
     params = {}
@@ -157,15 +163,14 @@ def get_cmds_from_event(date, event, params_str):
 
     if isinstance(params_str, str):
         if event == 'RTS':
-            # Ycky hack, better way?
-            args = [date] + [params_str]
+            args = [params_str]
         else:
             params_str = params_str.upper().split()
             args = [coerce_type(p) for p in params_str]
     else:
         # Empty value means no args and implies params_str = np.ma.masked
         args = ()
-    cmds = event_func(*args)
+    cmds = event_func(*args, date=date)
 
     # Load event does not generate commands
     if cmds is None:
@@ -184,26 +189,41 @@ def get_cmds_from_event(date, event, params_str):
         if not isinstance(cmd, dict):
             cmd = {name: cmd[name] for name in cmd.colnames}
 
-        args = {}
-        args['event'] = event_text
-        args['event_date'] = event_date
-        for key, val in cmd.get('params', {}).items():
-            args[key.lower()] = val
-        scs = args.pop('scs', 0)
-        date = cmd.get('date', cmd_date.date)
+        # Get command duration (if any). If the cmd is only {'dur': <dt>} then
+        # it is a pure delay so skip subsequent processing.
+        dur = cmd.pop('dur', None)
+        if dur and not cmd:
+            cmd_date += dur * u.s
+            continue
+
+        date = cmd.pop('date', cmd_date.date)
+        tlmsid = cmd.pop('tlmsid', None)
+        cmd_type = cmd.pop('type')
+
+        params = {}
+        params['event'] = event_text
+        params['event_date'] = event_date
+        for key, val in cmd.pop('params', {}).items():
+            params[key.lower()] = val
+        # Allow for params to be included in cmd dict directly as well as within
+        # the 'params' key.
+        for key, val in cmd.items():
+            params[key.lower()] = val
+        scs = params.pop('scs', 0)
+
         out = {'idx': -1,
                'date': date,
-               'type': cmd['type'],
-               'tlmsid': cmd.get('tlmsid', 'None'),
+               'type': cmd_type,
+               'tlmsid': tlmsid,
                'scs': scs,
                'step': step,
                'source': 'CMD_EVT',
                'vcdu': -1,
-               'params': args}
+               'params': params}
         outs.append(out)
 
-        if 'dur' in cmd:
-            cmd_date += cmd['dur'] * u.s
+        if dur is not None:
+            cmd_date += dur * u.s
 
     out = CommandTable(outs)
     return out

@@ -38,6 +38,10 @@ def make_cmds2(start=None, stop=None, step=100):
 
     Example in ipython::
 
+      # Optional setup for speed if doing this repeatedly
+      >>> from kadi.commands import conf
+      >>> conf.cache_loads_in_astropy_cache = True
+
       >>> %run -i utils/migrate_cmds_to_cmds2.py
       >>> make_cmds2()
     """
