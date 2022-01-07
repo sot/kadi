@@ -691,7 +691,7 @@ class CommandTable(Table):
             ok = (self['date'] == cmd['date']) & (self['tlmsid'] == cmd['tlmsid'])
             idxs_remove.update(np.where(ok)[0])
         if idxs_remove:
-            logging.info(f'Removing {len(idxs_remove)} NOT_RUN cmds')
+            logger.info(f'Removing {len(idxs_remove)} NOT_RUN cmds')
             self.remove_rows(list(idxs_remove))
 
 

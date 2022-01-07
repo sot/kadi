@@ -306,9 +306,9 @@ def update_archive_and_get_cmds_recent(scenario=None, *, lookback=None, stop=Non
     bad = ((dates < (start - 14 * u.day).date)
            | (dates > stop.date))
     cmd_events = cmd_events[~bad]
-    cmd_events_ids = [evt['Event'] + '-' + evt['Date'][:8] for evt in cmd_events]
+    cmd_events_ids = [evt['Event'] + ' at ' + evt['Date'] for evt in cmd_events]
     if len(cmd_events) > 0:
-        logger.info(f'Including cmd_events {", ".join(cmd_events_ids)}')
+        logger.info('Including cmd_events:\n  {}'.format("\n  ".join(cmd_events_ids)))
     else:
         logger.info('No cmd_events to include')
 
@@ -640,36 +640,47 @@ def get_load_cmds_from_occweb_or_local(dir_year_month=None, load_name=None, use_
         for filename in ska_dir.glob('CR????????.backstop'):
             backstop_text = filename.read_text()
             logger.info(f'Got backstop from {filename}')
-            cmds = get_cmds_from_backstop(backstop_text.splitlines())
-            logger.info(f'Saving {cmds_filename}')
-            with gzip.open(cmds_filename, 'wb') as fh:
-                pickle.dump(cmds, fh)
-            return cmds
+            cmds = parse_backstop_and_write(load_name, cmds_filename, backstop_text)
+            break
         else:
             raise ValueError(f'No backstop file found in {ska_dir}')
 
-    load_dir_contents = occweb.get_occweb_dir(dir_year_month / load_name)
-    for filename in load_dir_contents['Name']:
-        if re.match(r'CR\d{3}.\d{4}\.backstop', filename):
+    else:  # use OCCweb
+        load_dir_contents = occweb.get_occweb_dir(dir_year_month / load_name)
+        for filename in load_dir_contents['Name']:
+            if re.match(r'CR\d{3}.\d{4}\.backstop', filename):
 
-            # Download the backstop file from OCCweb
-            backstop_text = occweb.get_occweb_page(dir_year_month / load_name / filename,
-                                                   cache=conf.cache_loads_in_astropy_cache)
-            backstop_lines = backstop_text.splitlines()
-            cmds = get_cmds_from_backstop(backstop_lines)
+                # Download the backstop file from OCCweb
+                backstop_text = occweb.get_occweb_page(
+                    dir_year_month / load_name / filename,
+                    cache=conf.cache_loads_in_astropy_cache)
+                cmds = parse_backstop_and_write(load_name, cmds_filename, backstop_text)
+                break
+        else:
+            raise ValueError(f'Could not find backstop file in {dir_year_month / load_name}')
 
-            # Fix up the commands to be in the right format
-            idx = cmds.colnames.index('timeline_id')
-            cmds.add_column(load_name, index=idx, name='source')
-            del cmds['timeline_id']
-            del cmds['time']
+    return cmds
 
-            logger.info(f'Saving {cmds_filename}')
-            with gzip.open(cmds_filename, 'wb') as fh:
-                pickle.dump(cmds, fh)
-            return cmds
-    else:
-        raise ValueError(f'Could not find backstop file in {dir_year_month / load_name}')
+
+def parse_backstop_and_write(load_name, cmds_filename, backstop_text):
+    """Parse ``backstop_text`` and write to ``cmds_filename`` (gzipped pickle).
+
+    This sets the ``source`` column to ``load_name`` and removes the
+    ``timeline_id`` column.
+    """
+    backstop_lines = backstop_text.splitlines()
+    cmds = get_cmds_from_backstop(backstop_lines)
+
+    # Fix up the commands to be in the right format
+    idx = cmds.colnames.index('timeline_id')
+    cmds.add_column(load_name, index=idx, name='source')
+    del cmds['timeline_id']
+    del cmds['time']
+
+    logger.info(f'Saving {cmds_filename}')
+    with gzip.open(cmds_filename, 'wb') as fh:
+        pickle.dump(cmds, fh)
+    return cmds
 
 
 def update_cmds_archive(*, lookback=None, stop=None, log_level=logging.INFO,
