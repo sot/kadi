@@ -678,6 +678,22 @@ class CommandTable(Table):
         remove_idxs = set(idxs) - set(uniq_idxs)
         self.remove_rows(list(remove_idxs))
 
+    def remove_not_run_cmds(self):
+        """Remove commands with type=NOT_RUN from the table.
+
+        This looks for type=NOT_RUN commands and then removes those and any
+        commands with the same date and same TLMSID.
+        """
+        idxs_remove = set()
+        idxs_not_run = np.where(self['type'] == 'NOT_RUN')[0]
+        for idx in idxs_not_run:
+            cmd = self[idx]
+            ok = (self['date'] == cmd['date']) & (self['tlmsid'] == cmd['tlmsid'])
+            idxs_remove.update(np.where(ok)[0])
+        if idxs_remove:
+            logging.info(f'Removing {len(idxs_remove)} NOT_RUN cmds')
+            self.remove_rows(list(idxs_remove))
+
 
 def get_par_idx_update_pars_dict(pars_dict, cmd, params=None):
     """Get par_idx representing index into pars tuples dict.

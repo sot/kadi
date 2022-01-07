@@ -355,6 +355,7 @@ def update_archive_and_get_cmds_recent(scenario=None, *, lookback=None, stop=Non
     cmds_recent = vstack(cmds_list)
     cmds_recent.sort_in_backstop_order()
     cmds_recent.deduplicate_orbit_cmds()
+    cmds_recent.remove_not_run_cmds()
 
     if cache:
         # Cache recent commands so future requests for the same scenario are fast

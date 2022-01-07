@@ -148,6 +148,12 @@ def cmd_set_command(*args, date=None):
     return (cmd,)
 
 
+def cmd_set_command_not_run(*args, date=None):
+    cmd, = cmd_set_command(*args, date=date)
+    cmd['type'] = 'NOT_RUN'
+    return (cmd,)
+
+
 def get_cmds_from_event(date, event, params_str):
     r"""
     Return a predefined cmd_set ``name`` generated with \*args.
