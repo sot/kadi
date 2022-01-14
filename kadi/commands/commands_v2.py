@@ -428,9 +428,9 @@ def update_cmd_events(scenario=None):
         raise ValueError(f'Failed to get cmd events sheet: {req.status_code}')
 
     cmd_events = Table.read(req.text, format='csv')
-    ok = cmd_events['Valid'] == 'Yes'
+    ok = np.isin(cmd_events['State'], ('Predictive', 'Definitive'))
     cmd_events = cmd_events[ok]
-    del cmd_events['Valid']
+
     logger.info(f'Writing {len(cmd_events)} cmd_events to {cmd_events_path}')
     cmd_events.write(cmd_events_path, format='csv', overwrite=True)
     return cmd_events
