@@ -128,6 +128,14 @@ def migrate_cmds1_to_cmds2(start=None):
     cmds.add_column(Column(sources, name='source', dtype='S8'), index=col_index)
     del cmds['timeline_id']
 
+    # Remove one known incorrect command (duplicate starcats, the newer one
+    # in OCT2206A is correct).
+    bad = ((cmds['type'] == 'MP_STARCAT')
+           & (cmds['source'] == 'OCT1606B')
+           & (cmds['date'] == '2006:295:18:59:08.748'))
+    print(f'Removing {np.count_nonzero(bad)} bad starcat commands')
+    cmds = cmds[~bad]
+
     # Assign params for every AOSTRCAT command
     for ii, idx in enumerate(np.flatnonzero(cmds['tlmsid'] == 'AOSTRCAT')):
         if ii % 1000 == 0:
