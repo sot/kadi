@@ -286,7 +286,7 @@ def test_get_cmds_v2_arch_recent(stop_date_2020_12_03):
     # how the matching block is used (commands come from arch up through the end
     # of the matching block).
     assert np.all(cmds['idx'] != -1)
-    assert len(cmds) == 17645
+    assert len(cmds) == 17640
 
     loads = commands_v2.get_loads()
     assert loads.pformat_all() == [
@@ -310,7 +310,7 @@ def test_get_cmds_v2_recent_only(stop_date_2020_12_03):
         '2020:336:00:08:38.610 | COMMAND_HW       | CNOOP      | NOV3020A | hex=7E00000, msid=CNOOPLR, scs=128',  # noqa
         '2020:336:00:08:39.635 | COMMAND_HW       | CNOOP      | NOV3020A | hex=7E00000, msid=CNOOPLR, scs=128',  # noqa
         '2020:336:00:12:55.214 | ACISPKT          | AA00000000 | NOV3020A | cmds=3, words=3, scs=131',  # noqa
-        '2020:336:00:12:55.214 | ORBPOINT         | None       | NOV3020A | event_type=XEF1000',  # noqa
+        '2020:336:00:12:55.214 | ORBPOINT         | None       | NOV3020A | event_type=XEF1000, scs=0',  # noqa
         '2020:336:00:12:59.214 | ACISPKT          | AA00000000 | NOV3020A | cmds=3, words=3, scs=131'  # noqa
     ]
     assert cmds[-5:].pformat_like_backstop() == [
@@ -318,7 +318,7 @@ def test_get_cmds_v2_recent_only(stop_date_2020_12_03):
         '2020:342:03:15:02.313 | COMMAND_SW       | COSCSEND   | NOV3020A | hex=C800000, msid=OBC_END_SCS, scs=130',  # noqa
         '2020:342:06:04:34.287 | ACISPKT          | AA00000000 | NOV3020A | cmds=3, words=3, scs=133',  # noqa
         '2020:342:06:04:34.287 | COMMAND_SW       | COSCSEND   | NOV3020A | hex=C800000, msid=OBC_END_SCS, scs=133',  # noqa
-        '2020:342:06:04:34.287 | LOAD_EVENT       | None       | NOV3020A | event_type=SCHEDULED_STOP_TIME'  # noqa
+        '2020:342:06:04:34.287 | LOAD_EVENT       | None       | NOV3020A | event_type=SCHEDULED_STOP_TIME, scs=0'  # noqa
     ]
 
     # Same for no stop date
@@ -340,28 +340,59 @@ def test_get_cmds_nsm_2021(stop_date_2021_10_24):
     """NSM at ~2021:296:10:41. This tests non-load commands from cmd_events.
     """
     cmds = commands_v2.get_cmds('2021:296:10:35:00')  # , '2021:298:01:58:00')
-    exp = [
-        '2021:296:10:35:00.000 | COMMAND_HW       | CIMODESL   | OCT1821A | hex=7C067C0, msid=CIU1024X, scs=128',  # noqa
-        '2021:296:10:35:00.257 | COMMAND_HW       | CTXAOF     | OCT1821A | hex=780000C, msid=CTXAOF, scs=128',  # noqa
-        '2021:296:10:35:00.514 | COMMAND_HW       | CPAAOF     | OCT1821A | hex=780001E, msid=CPAAOF, scs=128',  # noqa
-        '2021:296:10:35:00.771 | COMMAND_HW       | CTXBOF     | OCT1821A | hex=780004C, msid=CTXBOF, scs=128',  # noqa
-        '2021:296:10:35:01.028 | COMMAND_HW       | CPABON     | OCT1821A | hex=7800056, msid=CPABON, scs=128',  # noqa
-        '2021:296:10:35:01.285 | COMMAND_HW       | CTXBON     | OCT1821A | hex=7800044, msid=CTXBON, scs=128',  # noqa
-        '2021:296:10:41:57.000 | COMMAND_SW       | AONSMSAF   | CMD_EVT  | event=NSM, event_date=2021:296:10:41:57',  # noqa
-        '2021:296:10:41:57.000 | COMMAND_SW       | OORMPDS    | CMD_EVT  | event=NSM, event_date=2021:296:10:41:57',  # noqa
-        '2021:296:10:41:58.025 | COMMAND_HW       | AFIDP      | CMD_EVT  | event=NSM, event_date=2021:296:10:41:57',  # noqa
-        '2021:296:10:41:59.050 | SIMTRANS         | None       | CMD_EVT  | event=NSM, event_date=2021:296:10:41:57, pos=-99616',  # noqa
-        '2021:296:10:42:20.000 | MP_OBSID         | COAOSQID   | CMD_EVT  | event=Obsid, event_date=2021:296:10:42:20, id=0',  # noqa
-        '2021:296:10:43:04.710 | ACISPKT          | AA00000000 | CMD_EVT  | event=NSM, event_date=2021:296:10:41:57',  # noqa
-        '2021:296:10:43:05.735 | ACISPKT          | AA00000000 | CMD_EVT  | event=NSM, event_date=2021:296:10:41:57',  # noqa
-        '2021:296:10:43:15.985 | ACISPKT          | WSPOW0002A | CMD_EVT  | event=NSM, event_date=2021:296:10:41:57',  # noqa
-        '2021:296:10:43:15.985 | COMMAND_SW       | AODSDITH   | CMD_EVT  | event=NSM, event_date=2021:296:10:41:57',  # noqa
-        '2021:297:01:41:01.000 | COMMAND_SW       | AONMMODE   | CMD_EVT  | event=Maneuver, event_date=2021:297:01:41:01',  # noqa
-        '2021:297:01:41:01.256 | COMMAND_SW       | AONM2NPE   | CMD_EVT  | event=Maneuver, event_date=2021:297:01:41:01',  # noqa
-        '2021:297:01:41:05.356 | MP_TARGQUAT      | AOUPTARQ   | CMD_EVT  | event=Maneuver, event_date=2021:297:01:41:01, '  # noqa
-            'q1=7.05469100e-01, q2=3.29883100e-01, q3=5.34409000e-01, q4=3.28477700e-01',  # noqa
-        '2021:297:01:41:11.250 | COMMAND_SW       | AOMANUVR   | CMD_EVT  | event=Maneuver, event_date=2021:297:01:41:01'  # noqa
-    ]
+    exp = ['2021:296:10:35:00.000 | COMMAND_HW       | CIMODESL   | OCT1821A | '
+           'hex=7C067C0, msid=CIU1024X, scs=128',
+           '2021:296:10:35:00.257 | COMMAND_HW       | CTXAOF     | OCT1821A | '
+           'hex=780000C, msid=CTXAOF, scs=128',
+           '2021:296:10:35:00.514 | COMMAND_HW       | CPAAOF     | OCT1821A | '
+           'hex=780001E, msid=CPAAOF, scs=128',
+           '2021:296:10:35:00.771 | COMMAND_HW       | CTXBOF     | OCT1821A | '
+           'hex=780004C, msid=CTXBOF, scs=128',
+           '2021:296:10:35:01.028 | COMMAND_HW       | CPABON     | OCT1821A | '
+           'hex=7800056, msid=CPABON, scs=128',
+           '2021:296:10:35:01.285 | COMMAND_HW       | CTXBON     | OCT1821A | '
+           'hex=7800044, msid=CTXBON, scs=128',
+           '2021:296:10:41:57.000 | COMMAND_SW       | AONSMSAF   | CMD_EVT  | '
+           'event=NSM, event_date=2021:296:10:41:57, scs=0',
+           '2021:296:10:41:57.000 | COMMAND_SW       | OORMPDS    | CMD_EVT  | '
+           'event=NSM, event_date=2021:296:10:41:57, scs=0',
+           '2021:296:10:41:58.025 | COMMAND_HW       | AFIDP      | CMD_EVT  | '
+           'event=NSM, event_date=2021:296:10:41:57, msid=AFLCRSET, scs=0',
+           '2021:296:10:41:58.025 | SIMTRANS         | None       | CMD_EVT  | '
+           'event=NSM, event_date=2021:296:10:41:57, pos=-99616, scs=0',
+           '2021:296:10:42:20.000 | MP_OBSID         | COAOSQID   | CMD_EVT  | '
+           'event=Obsid, event_date=2021:296:10:42:20, id=0, scs=0',
+           '2021:296:10:43:03.685 | ACISPKT          | AA00000000 | CMD_EVT  | '
+           'event=NSM, event_date=2021:296:10:41:57, scs=0',
+           '2021:296:10:43:04.710 | ACISPKT          | AA00000000 | CMD_EVT  | '
+           'event=NSM, event_date=2021:296:10:41:57, scs=0',
+           '2021:296:10:43:14.960 | ACISPKT          | WSPOW00000 | CMD_EVT  | '
+           'event=NSM, event_date=2021:296:10:41:57, scs=0',
+           '2021:296:10:43:14.960 | COMMAND_SW       | AODSDITH   | CMD_EVT  | '
+           'event=NSM, event_date=2021:296:10:41:57, scs=0',
+           '2021:297:01:41:01.000 | COMMAND_SW       | AONMMODE   | CMD_EVT  | '
+           'event=Maneuver, event_date=2021:297:01:41:01, msid=AONMMODE, scs=0',
+           '2021:297:01:41:01.256 | COMMAND_SW       | AONM2NPE   | CMD_EVT  | '
+           'event=Maneuver, event_date=2021:297:01:41:01, msid=AONM2NPE, scs=0',
+           '2021:297:01:41:05.356 | MP_TARGQUAT      | AOUPTARQ   | CMD_EVT  | '
+           'event=Maneuver, event_date=2021:297:01:41:01, q1=7.05469100e-01, '
+           'q2=3.29883100e-01, q3=5.34409000e-01, q4=3.28477700e-01, scs=0',
+           '2021:297:01:41:11.250 | COMMAND_SW       | AOMANUVR   | CMD_EVT  | '
+           'event=Maneuver, event_date=2021:297:01:41:01, msid=AOMANUVR, scs=0',
+           '2021:297:02:12:42.886 | ORBPOINT         | None       | OCT1821A | '
+           'event_type=EQF003M, scs=0',
+           '2021:297:03:40:42.886 | ORBPOINT         | None       | OCT1821A | '
+           'event_type=EQF005M, scs=0',
+           '2021:297:03:40:42.886 | ORBPOINT         | None       | OCT1821A | '
+           'event_type=EQF015M, scs=0',
+           '2021:297:04:43:26.016 | ORBPOINT         | None       | OCT1821A | '
+           'event_type=EALT1, scs=0',
+           '2021:297:04:43:27.301 | ORBPOINT         | None       | OCT1821A | '
+           'event_type=XALT1, scs=0',
+           '2021:297:12:42:42.886 | ORBPOINT         | None       | OCT1821A | '
+           'event_type=EQF013M, scs=0',
+           '2021:297:13:59:39.602 | ORBPOINT         | None       | OCT1821A | '
+           'event_type=EEF1000, scs=0']
     assert cmds.pformat_like_backstop() == exp
 
 
@@ -384,9 +415,9 @@ Date,Event,Params,Author,Comment
     cmds = commands_v2.get_cmds('2020-12-01 00:08:00', '2020-12-01 00:09:00',
                                 scenario=scenario)
     exp = [
-        '2020:336:00:08:30.000 | ACISPKT          | WSPOW00000 | CMD_EVT  | event=Command, event_date=2020:336:00:08:30',  # noqa
+        '2020:336:00:08:30.000 | ACISPKT          | WSPOW00000 | CMD_EVT  | event=Command, event_date=2020:336:00:08:30, scs=0',  # noqa
         '2020:336:00:08:38.610 | COMMAND_HW       | CNOOP      | NOV3020A | hex=7E00000, msid=CNOOPLR, scs=128',  # noqa
-        '2020:336:00:08:39.000 | ACISPKT          | WSVIDALLDN | CMD_EVT  | event=Command, event_date=2020:336:00:08:39',  # noqa
+        '2020:336:00:08:39.000 | ACISPKT          | WSVIDALLDN | CMD_EVT  | event=Command, event_date=2020:336:00:08:39, scs=0',  # noqa
         '2020:336:00:08:39.635 | COMMAND_HW       | CNOOP      | NOV3020A | hex=7E00000, msid=CNOOPLR, scs=128'  # noqa
     ]
     assert cmds.pformat_like_backstop() == exp
