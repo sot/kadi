@@ -13,7 +13,7 @@ import weakref
 import logging
 
 import numpy as np
-from astropy.table import Table, vstack
+from astropy.table import Table
 import astropy.units as u
 import requests
 from cxotime import CxoTime
@@ -22,7 +22,7 @@ from testr.test_helper import has_internet
 
 from kadi.commands import get_cmds_from_backstop, conf
 from kadi.commands.core import (load_idx_cmds, load_pars_dict, LazyVal,
-                                get_par_idx_update_pars_dict, _find,
+                                get_par_idx_update_pars_dict, _find, vstack_exact,
                                 ska_load_dir, CommandTable, load_name_to_cxotime)
 from kadi.commands.command_sets import get_cmds_from_event
 from kadi import occweb, paths
@@ -140,8 +140,7 @@ def _merge_cmds_archive_recent(start, scenario):
     # index to the param values which are in PARS_DICT. Add `params` object
     # column with None values and then stack with cmds_recent (which has
     # `params` already as dicts).
-    cmds = vstack([cmds_arch, cmds_recent[recent_block_end:]],
-                  join_type='exact')
+    cmds = vstack_exact([cmds_arch, cmds_recent[recent_block_end:]])
 
     # Need to give CommandTable a ref to REV_PARS_DICT so it can tranlate from
     # params index to the actual dict of values. Stored as a weakref so that
@@ -352,7 +351,7 @@ def update_archive_and_get_cmds_recent(scenario=None, *, lookback=None, stop=Non
         if len(cmds) > 0:
             logger.info(f'Adding {len(cmds)} commands from {cmds["source"][0]}')
 
-    cmds_recent = vstack(cmds_list)
+    cmds_recent = vstack_exact(cmds_list)
     cmds_recent.sort_in_backstop_order()
     cmds_recent.deduplicate_orbit_cmds()
     cmds_recent.remove_not_run_cmds()
@@ -768,8 +767,7 @@ def _update_cmds_archive(lookback, stop, match_prev_cmds, scenario, data_root):
     del cmds_arch['params']
 
     # Save the updated archive and pars_dict.
-    cmds_arch_new = vstack([cmds_arch[:idx0_arch], cmds_recent[idx0_recent:]],
-                           join_type='exact')
+    cmds_arch_new = vstack_exact([cmds_arch[:idx0_arch], cmds_recent[idx0_recent:]])
     logger.info(f'Writing {len(cmds_arch_new)} commands to {idx_cmds_path}')
     cmds_arch_new.write(str(idx_cmds_path), path='data', format='hdf5', overwrite=True)
 

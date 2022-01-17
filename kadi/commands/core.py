@@ -101,6 +101,26 @@ def load_name_to_cxotime(name):
     return out
 
 
+def vstack_exact(tables):
+    """Stack tables known to have identical types and columns and no metadata.
+
+    :param tables: list of tables
+    :returns: stacked table with same type as first table
+    """
+    new_cols = []
+    table0 = tables[0]
+    names0 = table0.colnames
+    for table in tables[1:]:
+        if table.colnames != names0:
+            raise ValueError(f'Tables have different column names: {names0} != {table.colnames}')
+    for name in table0.colnames:
+        new_col = np.concatenate([t[name] for t in tables])
+        new_cols.append(new_col)
+
+    out = table0.__class__(new_cols, names=names0)
+    return out
+
+
 def read_backstop(backstop):
     """Read ``backstop`` and return a ``CommandTable``.
 
@@ -486,7 +506,12 @@ class CommandTable(Table):
             remove_idxs = np.where(self['date'] > rltt)[0]
             self.remove_rows(remove_idxs)
 
-        out = vstack([self, cmds])
+        try:
+            # Substantially faster than plain Table vstack (this is slow due to
+            # checks for strings overflowing and other generalities)
+            out = vstack_exact([self, cmds])
+        except ValueError:
+            out = vstack([self, cmds])
         out.sort_in_backstop_order()
 
         return out
