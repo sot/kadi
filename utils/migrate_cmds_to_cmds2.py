@@ -128,12 +128,20 @@ def migrate_cmds1_to_cmds2(start=None):
     cmds.add_column(Column(sources, name='source', dtype='S8'), index=col_index)
     del cmds['timeline_id']
 
-    # Remove one known incorrect command (duplicate starcats, the newer one
-    # in OCT2206A is correct).
-    bad = ((cmds['type'] == 'MP_STARCAT')
-           & (cmds['source'] == 'OCT1606B')
-           & (cmds['date'] == '2006:295:18:59:08.748'))
-    print(f'Removing {np.count_nonzero(bad)} bad starcat commands')
+    # Fix AONSMSAF in V1 at 2008:225:10:00:00.000 which was actually at
+    # 2008:225.10:07:13.600. This was from a CTU reset during the maneuver but
+    # the maneuver finished and NSM was because the ACA CCD warmed up (PEA
+    # reset). This makes a difference since the actual time is just after the
+    # maneuver end.
+    print('Fixing AONSMSAF at 2008:225:10:00:00.000')
+    idx = np.where(cmds['date'] == '2008:225:10:00:00.000')[0][0]
+    cmd = cmds[idx]
+    cmd['date'] = '2008:225:10:07:13.600'
+
+    # Fix incorrect interrupt time for OCT1606B. Commands after 295:18:59:00 are
+    # superceded by OCT2206A.
+    bad = (cmds['source'] == 'OCT1606B') & (cmds['date'] > '2006:295:18:59:00')
+    print(f'Removing {np.count_nonzero(bad)} bad commands from OCT1606B')
     cmds = cmds[~bad]
 
     # Assign params for every AOSTRCAT command
