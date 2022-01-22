@@ -1,4 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+import math
 import difflib
 import os
 from pathlib import Path
@@ -18,6 +19,7 @@ import astropy.units as u
 import requests
 from cxotime import CxoTime
 from testr.test_helper import has_internet
+from Chandra.Maneuver import NSM_attitude
 
 
 from kadi.commands import get_cmds_from_backstop, conf
@@ -200,7 +202,9 @@ def get_cmds(start=None, stop=None, inclusive_stop=False, scenario=None, **kwarg
     scenario = os.environ.get('KADI_SCENARIO', scenario)
 
     if scenario not in CMDS_RECENT:
-        cmds_recent = update_archive_and_get_cmds_recent(scenario, cache=True)
+        cmds_recent = update_archive_and_get_cmds_recent(
+            scenario, cache=True,
+            pars_dict=PARS_DICT, rev_pars_dict=REV_PARS_DICT)
     else:
         cmds_recent = CMDS_RECENT[scenario]
 
@@ -249,7 +253,8 @@ def get_cmds(start=None, stop=None, inclusive_stop=False, scenario=None, **kwarg
 
 
 def update_archive_and_get_cmds_recent(scenario=None, *, lookback=None, stop=None,
-                                       cache=True):
+                                       cache=True,
+                                       pars_dict=None, rev_pars_dict=None):
     """Update local loads table and downloaded loads and return all recent cmds.
 
     This also caches the recent commands in the global CMDS_RECENT dict.
@@ -355,12 +360,222 @@ def update_archive_and_get_cmds_recent(scenario=None, *, lookback=None, stop=Non
     cmds_recent.sort_in_backstop_order()
     cmds_recent.deduplicate_orbit_cmds()
     cmds_recent.remove_not_run_cmds()
+    cmds_recent = add_obs_cmds(cmds_recent, pars_dict, rev_pars_dict)
 
     if cache:
         # Cache recent commands so future requests for the same scenario are fast
         CMDS_RECENT[scenario] = cmds_recent
 
     return cmds_recent
+
+
+def add_obs_cmds(cmds_recent, pars_dict, rev_pars_dict):
+    """Add LOAD_EVENT OBS commands with info about observations.
+
+    This command includes the following:
+
+    - manvr_dur: duration of maneuver (sec)
+    - manvr_start: date of maneuver start
+    - npnt_enab: auto-transition to NPNT enabled
+    - obs_start: as the command date
+    - obs_stop: date of subsequent AONMMODE or AONSMSAF command)
+    - obsid: observation ID
+    - starcat_idx: index of starcat in reversed params dict
+
+    :param cmds_recent: CommandTable
+    :returns: CommandTable with added OBS commands
+    """
+    # Get the subset of commands needed to determine the state for OBS cmds like
+    # maneuver commanding, obsid, starcat, etc.
+    cmds_state = get_state_cmds(cmds_recent)
+
+    # Get a table of OBS cmds corresponding to the end of each maneuver. For the
+    # first pass this only has maneuver info that is known at the point of
+    # starting the maneuver.
+    cmds_obs = get_cmds_obs_from_manvrs(cmds_state)
+
+    # Put the OBS cmds into the state cmds table and then do the second pass to
+    # determine obsid, starcat, etc at the end of the maneuver (i.e. at the
+    # start of the obs). The OBS cmds are updated in place.
+    cmds_state_obs = cmds_state.add_cmds(cmds_obs)
+    update_cmds_obs_with_starcat_and_obsid(cmds_state_obs, pars_dict, rev_pars_dict)
+
+    # Finally add the OBS cmds to the recent cmds table.
+    ok = cmds_state_obs['tlmsid'] == 'OBS'
+    cmds_out = cmds_recent.add_cmds(cmds_state_obs[ok])
+    return cmds_out
+
+
+def get_state_cmds(cmds):
+    """Get the state-changing commands need to create LOAD_EVENT OBS commands.
+
+    :param cmds: CommandTable of input commands.
+    :returns: CommandTable of state-changing commands.
+    """
+    state_tlmsids = [
+        'AOSTRCAT',
+        'COAOSQID',
+        'AOMANUVR',
+        'AONMMODE',
+        'AONSMSAF',
+        'AOUPTARQ',
+        'AONM2NPE',
+        'AONM2NPD']
+
+    vals = [val.encode('ascii') for val in state_tlmsids]
+    ok = np.isin(cmds['tlmsid'], vals)
+    cmds = cmds[ok]
+    cmds.sort(['date', 'scs'])
+    return cmds
+
+
+def get_cmds_obs_from_manvrs(cmds):
+    # First put in pseudo-commands for the end of maneuvers
+    prev_att = [0, 0, 0, 1]
+    targ_att = None
+    npnt_enab = None
+
+    cmds_obs = []
+    times = CxoTime(cmds['date']).secs
+
+    for time, cmd in zip(times, cmds):
+        tlmsid = cmd['tlmsid']
+        if tlmsid == 'AOUPTARQ':
+            pars = cmd['params']
+            targ_att = [pars['q1'], pars['q2'], pars['q3'], pars['q4']]
+        elif tlmsid == 'AONM2NPE':
+            npnt_enab = True
+        elif tlmsid == 'AONM2NPD':
+            npnt_enab = False
+        elif tlmsid in ('AOMANUVR', 'AONSMSAF'):
+            if tlmsid == 'AONSMSAF':
+                targ_att = NSM_attitude(prev_att, cmd['date']).q.tolist()
+                npnt_enab = False
+            if prev_att is None:
+                print(f'No previous attitude for {cmd["date"]}')
+                log_context_obs(cmds, cmd)
+                continue
+            if targ_att is None:
+                print(f'No target attitude for {cmd["date"]}')
+                log_context_obs(cmds, cmd)
+                continue
+            dur = manvr_duration(prev_att, targ_att)
+            params = {'manvr_dur': round(dur, 3),
+                      'manvr_start': cmd['date'],
+                      'prev_att': prev_att,
+                      'targ_att': targ_att,
+                      'npnt_enab': npnt_enab}
+            cmd_obs = {'idx': -1,
+                       'type': 'LOAD_EVENT',
+                       'tlmsid': 'OBS',
+                       'scs': 0,
+                       'step': 0,
+                       'date': CxoTime(time + dur).date,
+                       'source': cmd['source'],
+                       'vcdu': -1,
+                       'params': params,
+                       }
+            cmds_obs.append(cmd_obs)
+            prev_att = targ_att
+            targ_att = None
+
+    cmds_obs = CommandTable(rows=cmds_obs)
+
+    # If an NSM occurs within a maneuver then remove that obs
+    nsms = cmds['tlmsid'] == 'AONSMSAF'
+    if np.any(nsms):
+        print('Got some NSMs')
+        bad_idxs = []
+        for nsm_date in cmds['date'][nsms]:
+            for ii, cmd in enumerate(cmds_obs):
+                if nsm_date > cmd['params']['manvr_start'] and nsm_date <= cmd['date']:
+                    logger.info(f'NSM at {nsm_date} happened during maneuver preceding obs\n{cmd}')
+                    log_context_obs(cmds, cmd)
+                    bad_idxs.append(ii)
+        if bad_idxs:
+            print(f'Removing obss at {bad_idxs}')
+            cmds_obs.remove_rows(bad_idxs)
+
+    return cmds_obs
+
+
+# parameters from characteristics_Hardware for normal maneuvers
+MANVR_DELTA = 60.0
+MANVR_ALPHAMAX = 2.18166e-006  # AKA alpha
+MANVR_VMAX = 0.001309  # AKA omega
+
+
+def manvr_duration(q1, q2):
+    """Calculate the duration of a maneuver from two quaternions
+
+    This is basically the same as the function in Chandra.Maneuver but
+    optimized to work on a single 4-vector quaterion.
+
+    :param q1: list of 4 quaternion elements
+    :param q2: list of 4 quaternion elements
+    :returns: duration of maneuver in seconds
+    """
+    # Compute 4th element of delta quaternion q_manvr = q2 / q1
+    q_manvr_3 = abs(-q2[0] * q1[0]
+                    - q2[1] * q1[1]
+                    - q2[2] * q1[2]
+                    + q2[3] * -q1[3])
+
+    # 4th component is cos(theta/2)
+    if (q_manvr_3 > 1):
+        q_manvr_3 = 1
+    phimax = 2 * math.acos(q_manvr_3)
+
+    epsmax = MANVR_VMAX / MANVR_ALPHAMAX - MANVR_DELTA
+    tau = phimax / MANVR_VMAX - epsmax - 2 * MANVR_DELTA
+    if (tau >= 0):
+        eps = epsmax
+    else:
+        tau = 0
+        eps = np.sqrt(MANVR_DELTA ** 2 + 4 * phimax / MANVR_ALPHAMAX) / 2 - 1.5 * MANVR_DELTA
+        if (eps < 0):
+            eps = 0
+
+    Tm = 4 * MANVR_DELTA + 2 * eps + tau
+    return Tm
+
+
+def update_cmds_obs_with_starcat_and_obsid(cmds, pars_dict, rev_pars_dict):
+    # TODO : undercover observations
+    obsid = None
+    starcat_idx = None
+    obs_params = None
+
+    for cmd in cmds:
+        tlmsid = cmd['tlmsid']
+        if tlmsid == 'AOSTRCAT':
+            if cmd['idx'] == -1:
+                starcat_idx = get_par_idx_update_pars_dict(
+                    pars_dict, cmd, rev_pars_dict=rev_pars_dict)
+            else:
+                starcat_idx = cmd['idx']
+
+        elif tlmsid == 'COAOSQID':
+            obsid = cmd['params']['id']
+
+        elif tlmsid == 'OBS':
+            obs_params = cmd['params']
+            obs_params['obsid'] = obsid
+            if obs_params['npnt_enab']:
+                obs_params['starcat_idx'] = starcat_idx
+            starcat_idx = None
+            obsid = None
+
+        elif tlmsid in ('AONMMODE', 'AONSMSAF'):
+            if obs_params is not None:
+                obs_params['obs_stop'] = cmd['date']
+            # This closes out the observation
+            obs_params = None
+
+
+def log_context_obs(cmds, cmd, before=3600, after=3600):
+    i0, i1 = np.searchsorted(cmds['time'], [cmd['time'] - before, cmd['time'] + after])
+    logger.info(f'\n{cmds[i0:i1]}')
 
 
 def update_from_network_enabled(scenario):
@@ -737,7 +952,8 @@ def _update_cmds_archive(lookback, stop, match_prev_cmds, scenario, data_root):
         match_prev_cmds = False  # No matching of previous commands
 
     cmds_recent = update_archive_and_get_cmds_recent(
-        scenario=scenario, stop=stop, lookback=lookback, cache=False)
+        scenario=scenario, stop=stop, lookback=lookback, cache=False,
+        pars_dict=pars_dict)
 
     if match_prev_cmds:
         idx0_arch, idx0_recent = get_matching_block_idx(cmds_arch, cmds_recent)

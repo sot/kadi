@@ -40,6 +40,9 @@ class LazyVal(object):
     def __getitem__(self, item):
         return self._val[item]
 
+    def __setitem__(self, item, value):
+        return self._val.__setitem__(item, value)
+
     def __repr__(self):
         return repr(self._val)
 
@@ -513,6 +516,7 @@ class CommandTable(Table):
         except ValueError:
             out = vstack([self, cmds])
         out.sort_in_backstop_order()
+        out.rev_pars_dict = self.rev_pars_dict
 
         return out
 
@@ -707,7 +711,9 @@ class CommandTable(Table):
         """Remove commands with type=NOT_RUN from the table.
 
         This looks for type=NOT_RUN commands and then removes those and any
-        commands with the same date and same TLMSID.
+        commands with the same date and same TLMSID. These are excluded via
+        the "Command not run" event in the Command Events sheet, e.g. the
+        LETG retract command in the loads after the LETG insert anomaly.
         """
         idxs_remove = set()
         idxs_not_run = np.where(self['type'] == 'NOT_RUN')[0]
@@ -720,7 +726,7 @@ class CommandTable(Table):
             self.remove_rows(list(idxs_remove))
 
 
-def get_par_idx_update_pars_dict(pars_dict, cmd, params=None):
+def get_par_idx_update_pars_dict(pars_dict, cmd, params=None, rev_pars_dict=None):
     """Get par_idx representing index into pars tuples dict.
 
     This is used internally in updating the commands H5 and commands PARS_DICT
@@ -733,6 +739,8 @@ def get_par_idx_update_pars_dict(pars_dict, cmd, params=None):
         Command for updated par_idx
     :param pars: dict, optional
         If provided, this is used instead of cmd['params']
+    :param rev_pars_dict: dict, optional
+        If provided, also update the reverse dict.
     :returns: int
         Params index (value of corresponding pars tuple dict key)
     """
@@ -756,6 +764,8 @@ def get_par_idx_update_pars_dict(pars_dict, cmd, params=None):
         # with the new cmds.pkl pars_dict.
         par_idx = len(pars_dict) + 65536
         pars_dict[pars_tup] = par_idx
+        if rev_pars_dict is not None:
+            rev_pars_dict[par_idx] = pars_tup
 
     return par_idx
 
