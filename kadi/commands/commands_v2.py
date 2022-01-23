@@ -246,7 +246,6 @@ def get_cmds(start=None, stop=None, inclusive_stop=False, scenario=None, **kwarg
 
     cmds.rev_pars_dict = weakref.ref(REV_PARS_DICT)
 
-    cmds.add_column(CxoTime(cmds['date'], format='date').secs, name='time', index=6)
     cmds['time'].info.format = '.3f'
 
     return cmds
@@ -369,7 +368,7 @@ def update_archive_and_get_cmds_recent(scenario=None, *, lookback=None, stop=Non
     return cmds_recent
 
 
-def add_obs_cmds(cmds_recent, pars_dict, rev_pars_dict):
+def add_obs_cmds(cmds, pars_dict, rev_pars_dict):
     """Add LOAD_EVENT OBS commands with info about observations.
 
     This command includes the following:
@@ -387,7 +386,7 @@ def add_obs_cmds(cmds_recent, pars_dict, rev_pars_dict):
     """
     # Get the subset of commands needed to determine the state for OBS cmds like
     # maneuver commanding, obsid, starcat, etc.
-    cmds_state = get_state_cmds(cmds_recent)
+    cmds_state = get_state_cmds(cmds)
 
     # Get a table of OBS cmds corresponding to the end of each maneuver. For the
     # first pass this only has maneuver info that is known at the point of
@@ -396,13 +395,13 @@ def add_obs_cmds(cmds_recent, pars_dict, rev_pars_dict):
 
     # Put the OBS cmds into the state cmds table and then do the second pass to
     # determine obsid, starcat, etc at the end of the maneuver (i.e. at the
-    # start of the obs). The OBS cmds are updated in place.
+    # start of the obs). This returns just the obs commands and updates
+    # `pars_dict` and `rev_pars_dict` in place.
     cmds_state_obs = cmds_state.add_cmds(cmds_obs)
-    update_cmds_obs_with_starcat_and_obsid(cmds_state_obs, pars_dict, rev_pars_dict)
+    cmds_obs = get_cmds_obs_with_starcat_and_obsid(cmds_state_obs, pars_dict, rev_pars_dict)
 
     # Finally add the OBS cmds to the recent cmds table.
-    ok = cmds_state_obs['tlmsid'] == 'OBS'
-    cmds_out = cmds_recent.add_cmds(cmds_state_obs[ok])
+    cmds_out = cmds.add_cmds(cmds_obs)
     return cmds_out
 
 
@@ -431,7 +430,7 @@ def get_state_cmds(cmds):
 
 def get_cmds_obs_from_manvrs(cmds):
     # First put in pseudo-commands for the end of maneuvers
-    prev_att = [0, 0, 0, 1]
+    prev_att = (0, 0, 0, 1)
     targ_att = None
     npnt_enab = None
 
@@ -442,14 +441,14 @@ def get_cmds_obs_from_manvrs(cmds):
         tlmsid = cmd['tlmsid']
         if tlmsid == 'AOUPTARQ':
             pars = cmd['params']
-            targ_att = [pars['q1'], pars['q2'], pars['q3'], pars['q4']]
+            targ_att = (pars['q1'], pars['q2'], pars['q3'], pars['q4'])
         elif tlmsid == 'AONM2NPE':
             npnt_enab = True
         elif tlmsid == 'AONM2NPD':
             npnt_enab = False
         elif tlmsid in ('AOMANUVR', 'AONSMSAF'):
             if tlmsid == 'AONSMSAF':
-                targ_att = NSM_attitude(prev_att, cmd['date']).q.tolist()
+                targ_att = tuple(NSM_attitude(prev_att, cmd['date']).q.tolist())
                 npnt_enab = False
             if prev_att is None:
                 print(f'No previous attitude for {cmd["date"]}')
@@ -470,7 +469,7 @@ def get_cmds_obs_from_manvrs(cmds):
                        'tlmsid': 'OBS',
                        'scs': 0,
                        'step': 0,
-                       'date': CxoTime(time + dur).date,
+                       'time': time + dur,
                        'source': cmd['source'],
                        'vcdu': -1,
                        'params': params,
@@ -480,6 +479,7 @@ def get_cmds_obs_from_manvrs(cmds):
             targ_att = None
 
     cmds_obs = CommandTable(rows=cmds_obs)
+    cmds_obs.add_column(CxoTime(cmds_obs['time']).date, name='date', index=0)
 
     # If an NSM occurs within a maneuver then remove that obs
     nsms = cmds['tlmsid'] == 'AONSMSAF'
@@ -540,7 +540,7 @@ def manvr_duration(q1, q2):
     return Tm
 
 
-def update_cmds_obs_with_starcat_and_obsid(cmds, pars_dict, rev_pars_dict):
+def get_cmds_obs_with_starcat_and_obsid(cmds, pars_dict, rev_pars_dict):
     # TODO : undercover observations
     obsid = None
     starcat_idx = None
@@ -572,10 +572,21 @@ def update_cmds_obs_with_starcat_and_obsid(cmds, pars_dict, rev_pars_dict):
             # This closes out the observation
             obs_params = None
 
+    # Filter down to just the observation commands
+    cmds_obs = cmds[cmds['tlmsid'] == 'OBS']
+    for cmd in cmds_obs:
+        cmd['idx'] = get_par_idx_update_pars_dict(
+            pars_dict, cmd, rev_pars_dict=rev_pars_dict)
+
+    return cmds_obs
+
 
 def log_context_obs(cmds, cmd, before=3600, after=3600):
-    i0, i1 = np.searchsorted(cmds['time'], [cmd['time'] - before, cmd['time'] + after])
-    logger.info(f'\n{cmds[i0:i1]}')
+    """Log commands before and after ``cmd``"""
+    date_before = (CxoTime(cmd['date']) - before * u.s).date
+    date_after = (CxoTime(cmd['date']) + after * u.s).date
+    ok = (cmds['date'] >= date_before) & (cmds['date'] <= date_after)
+    logger.info(f'\n{cmds[ok]}')
 
 
 def update_from_network_enabled(scenario):
@@ -889,7 +900,6 @@ def parse_backstop_and_write(load_name, cmds_filename, backstop_text):
     idx = cmds.colnames.index('timeline_id')
     cmds.add_column(load_name, index=idx, name='source')
     del cmds['timeline_id']
-    del cmds['time']
 
     logger.info(f'Saving {cmds_filename}')
     with gzip.open(cmds_filename, 'wb') as fh:

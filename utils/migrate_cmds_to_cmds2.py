@@ -12,7 +12,8 @@ from astropy.table import Table, vstack, Column
 from kadi.commands.core import (get_cmds_from_backstop,
                                 get_par_idx_update_pars_dict,
                                 load_idx_cmds, load_pars_dict, ska_load_dir)
-from kadi.commands.commands_v2 import update_cmds_archive, get_load_cmds_from_occweb_or_local
+from kadi.commands.commands_v2 import (
+    update_cmds_archive, get_load_cmds_from_occweb_or_local, add_obs_cmds)
 import Ska.DBI
 from cxotime import CxoTime
 from kadi import logger
@@ -90,13 +91,15 @@ def migrate_cmds1_to_cmds2(start=None):
         Start date in existing loads to start at. Used in debugging.
     """
     # Load V1 cmds, being explicit about the file in case KADI is set for testing.
-    cmds = load_idx_cmds(version=1, file=SKA / 'data' / 'kadi' / 'cmds.h5')
-    pars_dict = load_pars_dict(version=1, file=SKA / 'data' / 'kadi' / 'cmds.pkl')
+    if 'KADI' in os.environ:
+        raise ValueError('Cannot have KADI environment variable set')
+    from kadi.commands import commands_v1
+    cmds = commands_v1.get_cmds(start)
 
-    if start is not None:
-        idx_start = cmds.find_date(start)
-        cmds = cmds[idx_start:]
-        logger.info(f'Clipping cmds to start at {start} idx={idx_start}')
+    # Make a local copy of cmds params dicts since the processing here updates
+    # them in place. Only `pars_dict` gets written but both are used.
+    pars_dict = commands_v1.PARS_DICT._val.copy()
+    rev_pars_dict = commands_v1.REV_PARS_DICT._val.copy()
 
     # This code is to get the load name ("source") for each cmd
     with Ska.DBI.DBI(dbi='sqlite', server=str(CMD_STATES_PATH)) as db:
@@ -134,9 +137,10 @@ def migrate_cmds1_to_cmds2(start=None):
     # reset). This makes a difference since the actual time is just after the
     # maneuver end.
     print('Fixing AONSMSAF at 2008:225:10:00:00.000')
-    idx = np.where(cmds['date'] == '2008:225:10:00:00.000')[0][0]
-    cmd = cmds[idx]
-    cmd['date'] = '2008:225:10:07:13.600'
+    idxs = np.where(cmds['date'] == '2008:225:10:00:00.000')[0]
+    if len(idxs) == 1:
+        cmd = cmds[idxs[0]]
+        cmd['date'] = '2008:225:10:07:13.600'
 
     # Fix incorrect interrupt time for OCT1606B. Commands after 295:18:59:00 are
     # superceded by OCT2206A.
@@ -158,12 +162,15 @@ def migrate_cmds1_to_cmds2(start=None):
             # pars_dict.
             cmd['idx'] = get_par_idx_update_pars_dict(pars_dict, cmd, params)
         else:
-            breakpoint()
             raise ValueError(f'Expected 1 AOSTRCAT cmd for {cmd}')
 
     idx_stop = np.flatnonzero(cmds['source'] == RLTT_ERA_START)[0]
     cmds = cmds[:idx_stop]
 
+    print('Adding obsid commands')
+    cmds = add_obs_cmds(cmds, pars_dict, rev_pars_dict)
+
+    del cmds['params']
     print(f'Writing {len(cmds)} cmds to cmds2.h5')
     cmds.write('cmds2.h5', path='data', overwrite=True)
     print(f'Writing {len(pars_dict)} pars dict entries to cmds2.pkl')
