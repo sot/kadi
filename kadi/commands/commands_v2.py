@@ -423,6 +423,7 @@ def get_state_cmds(cmds):
 
     vals = [val.encode('ascii') for val in state_tlmsids]
     ok = np.isin(cmds['tlmsid'], vals)
+    ok |= cmds['type'] == 'SIMTRANS'
     cmds = cmds[ok]
     cmds.sort(['date', 'scs'])
     return cmds
@@ -544,6 +545,7 @@ def get_cmds_obs_with_starcat_and_obsid(cmds, pars_dict, rev_pars_dict):
     obsid = None
     starcat_idx = None
     obs_params = None
+    sim_pos = None
 
     for cmd in cmds:
         tlmsid = cmd['tlmsid']
@@ -553,23 +555,23 @@ def get_cmds_obs_with_starcat_and_obsid(cmds, pars_dict, rev_pars_dict):
                     pars_dict, cmd, rev_pars_dict=rev_pars_dict)
             else:
                 starcat_idx = cmd['idx']
-
         elif tlmsid == 'COAOSQID':
             obsid = cmd['params']['id']
-
         elif tlmsid == 'OBS':
             obs_params = cmd['params']
             obs_params['obsid'] = obsid
+            obs_params['simpos'] = sim_pos  # matches states 'simpos'
             if obs_params['npnt_enab']:
                 obs_params['starcat_idx'] = starcat_idx
             starcat_idx = None
             obsid = None
-
         elif tlmsid in ('AONMMODE', 'AONSMSAF'):
             if obs_params is not None:
                 obs_params['obs_stop'] = cmd['date']
             # This closes out the observation
             obs_params = None
+        elif cmd['type'] == 'SIMTRANS':
+            sim_pos = cmd['params']['pos']
 
     # Filter down to just the observation commands
     cmds_obs = cmds[cmds['tlmsid'] == 'OBS']
