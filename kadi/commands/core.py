@@ -114,7 +114,7 @@ def vstack_exact(tables):
     table0 = tables[0]
     names0 = table0.colnames
     for table in tables[1:]:
-        if table.colnames != names0:
+        if set(table.colnames) != set(names0):
             raise ValueError(f'Tables have different column names: {names0} != {table.colnames}')
     for name in table0.colnames:
         new_col = np.concatenate([t[name] for t in tables])

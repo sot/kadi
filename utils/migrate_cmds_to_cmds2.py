@@ -10,8 +10,7 @@ import numpy as np
 from astropy.table import Table, vstack, Column
 
 from kadi.commands.core import (get_cmds_from_backstop,
-                                get_par_idx_update_pars_dict,
-                                load_idx_cmds, load_pars_dict, ska_load_dir)
+                                get_par_idx_update_pars_dict, ska_load_dir)
 from kadi.commands.commands_v2 import (
     update_cmds_archive, get_load_cmds_from_occweb_or_local, add_obs_cmds)
 import Ska.DBI
@@ -25,13 +24,13 @@ SKA = Path(os.environ['SKA'])
 CMD_STATES_PATH = SKA / 'data' / 'cmd_states' / 'cmd_states.db3'
 
 
-RLTT_ERA_START = 'APR1420B'
+CMDS_V2_START = 'APR2020A'
 
 
 def make_cmds2(start=None, stop=None, step=100):
     """Make initial cmds2.h5 and cmds2.pkl between ``start`` and ``stop``.
 
-    This first converts the v1 archive to v2 format up through RLTT_ERA_START.
+    This first converts the v1 archive to v2 format up through CMDS_V2_START.
     Then it does v2 update_cmds_archive every ``step`` days through ``stop``.
 
     Running with the default step of one year is efficient. For testing it can
@@ -48,10 +47,7 @@ def make_cmds2(start=None, stop=None, step=100):
     """
     migrate_cmds1_to_cmds2(start)
 
-    # Adding first load week after RLTT_ERA_START is special because there is
-    # no overlap. This stems from the lack of RLTT commands in the v1 archive.
-    update_cmds_archive(stop='2020-04-28', match_prev_cmds=False)
-
+    # Start the V2 updates a week and a day after CMDS_V2_START
     date = CxoTime('2020-04-28')
     stop = CxoTime(stop)
     while date < stop:
@@ -164,7 +160,7 @@ def migrate_cmds1_to_cmds2(start=None):
         else:
             raise ValueError(f'Expected 1 AOSTRCAT cmd for {cmd}')
 
-    idx_stop = np.flatnonzero(cmds['source'] == RLTT_ERA_START)[0]
+    idx_stop = np.flatnonzero(cmds['source'] == CMDS_V2_START)[0]
     cmds = cmds[:idx_stop]
 
     print('Adding obsid commands')

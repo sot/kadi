@@ -32,7 +32,7 @@ from kadi import occweb, paths
 # TODO configuration options, but use DEFAULT_* in the mean time
 # - commands_version (v1, v2)
 
-MATCHING_BLOCK_SIZE = 100
+MATCHING_BLOCK_SIZE = 500
 
 # TODO: cache translation from cmd_events to CommandTable's  [Probably not]
 
@@ -451,11 +451,11 @@ def get_cmds_obs_from_manvrs(cmds):
                 targ_att = tuple(NSM_attitude(prev_att, cmd['date']).q.tolist())
                 npnt_enab = False
             if prev_att is None:
-                print(f'No previous attitude for {cmd["date"]}')
+                logger.info(f'No previous attitude for {cmd["date"]}')
                 log_context_obs(cmds, cmd)
                 continue
             if targ_att is None:
-                print(f'No target attitude for {cmd["date"]}')
+                logger.info(f'No target attitude for {cmd["date"]}')
                 log_context_obs(cmds, cmd)
                 continue
             dur = manvr_duration(prev_att, targ_att)
@@ -484,7 +484,6 @@ def get_cmds_obs_from_manvrs(cmds):
     # If an NSM occurs within a maneuver then remove that obs
     nsms = cmds['tlmsid'] == 'AONSMSAF'
     if np.any(nsms):
-        print('Got some NSMs')
         bad_idxs = []
         for nsm_date in cmds['date'][nsms]:
             for ii, cmd in enumerate(cmds_obs):
@@ -493,7 +492,7 @@ def get_cmds_obs_from_manvrs(cmds):
                     log_context_obs(cmds, cmd)
                     bad_idxs.append(ii)
         if bad_idxs:
-            print(f'Removing obss at {bad_idxs}')
+            logger.info(f'Removing obss at {bad_idxs}')
             cmds_obs.remove_rows(bad_idxs)
 
     return cmds_obs

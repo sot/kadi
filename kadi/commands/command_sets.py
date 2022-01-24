@@ -223,6 +223,7 @@ def get_cmds_from_event(date, event, params_str):
                'tlmsid': tlmsid,
                'scs': scs,
                'step': step,
+               'time': CxoTime(date).secs,
                'source': 'CMD_EVT',
                'vcdu': -1,
                'params': params}
