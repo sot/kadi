@@ -752,7 +752,18 @@ def get_par_idx_update_pars_dict(pars_dict, cmd, params=None, rev_pars_dict=None
     if cmd['tlmsid'] == 'AOSTRCAT':
         pars_tup = encode_starcat_params(params) if params else ()
     else:
-        pars_tup = tuple((key.lower(), params[key]) for key in sorted(keys))
+        if cmd['tlmsid'] == 'OBS':
+            # Re-order parameters to a priority order.
+            new_keys = ['obsid', 'simpos', 'obs_stop', 'manvr_start', 'targ_att']
+            for key in sorted(cmd['params']):
+                if key not in new_keys:
+                    new_keys.append(key)
+            keys = new_keys
+        else:
+            # Maintain original order of keys for OBS command but sort the rest.
+            # This is done so the OBS command displays more nicely.
+            keys = sorted(keys)
+        pars_tup = tuple((key.lower(), params[key]) for key in keys)
 
     try:
         par_idx = pars_dict[pars_tup]

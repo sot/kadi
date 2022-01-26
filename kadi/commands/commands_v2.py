@@ -215,10 +215,10 @@ def get_cmds(start=None, stop=None, inclusive_stop=False, scenario=None, **kwarg
         # Query does not overlap with recent commands, just use archive.
         logger.info('Getting commands from archive only')
         cmds = IDX_CMDS
-    elif start < CxoTime(cmds_recent['date'][0]) + 1 * u.hr:
+    elif start < CxoTime(cmds_recent['date'][0]) + 3 * u.day:
         # Query starts near beginning of recent commands and *might* need some
-        # archive commands. The margin is set at 1 hour, but in reality it is
-        # probably just the 3 minutes of typical overlaps between loads.
+        # archive commands. The margin is set at 3 days to ensure that OBS
+        # command continuity is maintained (there is at least one maneuver).
         cmds = _merge_cmds_archive_recent(start, scenario)
         logger.info(f'Getting commands from archive + recent {scenario=}')
     else:
@@ -373,7 +373,6 @@ def add_obs_cmds(cmds, pars_dict, rev_pars_dict):
 
     This command includes the following:
 
-    - manvr_dur: duration of maneuver (sec)
     - manvr_start: date of maneuver start
     - npnt_enab: auto-transition to NPNT enabled
     - obs_start: as the command date
@@ -384,6 +383,10 @@ def add_obs_cmds(cmds, pars_dict, rev_pars_dict):
     :param cmds_recent: CommandTable
     :returns: CommandTable with added OBS commands
     """
+    # Last command in cmds is the schedule stop time (i.e. obs_stop for the
+    # last observation).
+    schedule_stop_time = cmds['date'][-1]
+
     # Get the subset of commands needed to determine the state for OBS cmds like
     # maneuver commanding, obsid, starcat, etc.
     cmds_state = get_state_cmds(cmds)
@@ -398,7 +401,8 @@ def add_obs_cmds(cmds, pars_dict, rev_pars_dict):
     # start of the obs). This returns just the obs commands and updates
     # `pars_dict` and `rev_pars_dict` in place.
     cmds_state_obs = cmds_state.add_cmds(cmds_obs)
-    cmds_obs = get_cmds_obs_with_starcat_and_obsid(cmds_state_obs, pars_dict, rev_pars_dict)
+    cmds_obs = get_cmds_obs_final(cmds_state_obs, pars_dict, rev_pars_dict,
+                                  schedule_stop_time)
 
     # Finally add the OBS cmds to the recent cmds table.
     cmds_out = cmds.add_cmds(cmds_obs)
@@ -430,10 +434,19 @@ def get_state_cmds(cmds):
 
 
 def get_cmds_obs_from_manvrs(cmds):
-    # First put in pseudo-commands for the end of maneuvers
+    """Get OBS commands corresponding to the end of each maneuver.
+
+    This is the first pass of getting OBS commands, keying off each maneuver.
+    These OBS commands are then re-inserted into the commands table at the point
+    of the maneuver END for the second pass. At the point in time of the
+    maneuver end (obs start), all the state-changing commands have occurred.
+
+    :param cmds: CommandTable of state-changing commands.
+    :returns: CommandTable of OBS commands.
+    """
     prev_att = (0, 0, 0, 1)
     targ_att = None
-    npnt_enab = None
+    npnt_enab = False
 
     cmds_obs = []
     times = CxoTime(cmds['date']).secs
@@ -460,8 +473,7 @@ def get_cmds_obs_from_manvrs(cmds):
                 log_context_obs(cmds, cmd)
                 continue
             dur = manvr_duration(prev_att, targ_att)
-            params = {'manvr_dur': round(dur, 3),
-                      'manvr_start': cmd['date'],
+            params = {'manvr_start': cmd['date'],
                       'prev_att': prev_att,
                       'targ_att': targ_att,
                       'npnt_enab': npnt_enab}
@@ -480,6 +492,7 @@ def get_cmds_obs_from_manvrs(cmds):
             targ_att = None
 
     cmds_obs = CommandTable(rows=cmds_obs)
+    # NB: much faster to do this vectorized than when defining cmd_obs above.
     cmds_obs.add_column(CxoTime(cmds_obs['time']).date, name='date', index=0)
 
     # If an NSM occurs within a maneuver then remove that obs
@@ -540,31 +553,78 @@ def manvr_duration(q1, q2):
     return Tm
 
 
-def get_cmds_obs_with_starcat_and_obsid(cmds, pars_dict, rev_pars_dict):
-    # TODO : undercover observations
-    obsid = None
-    starcat_idx = None
+def get_cmds_obs_final(cmds, pars_dict, rev_pars_dict, schedule_stop_time):
+    """Fill in the rest of params for each OBS command.
+
+    Second pass of processing which implements a state machine to fill in the
+    other parameters like obsid, starcat, simpos etc. for each OBS command.
+
+    The observation state is completed by encountering the next transition to
+    NMM or NSM.
+
+    :param cmds: CommandTable of state-changing + OBS commands.
+    :param pars_dict: dict of parameters for commands
+    :param rev_pars_dict: reversed dict of parameters for commands
+    :param schedule_stop_time: date of last command
+
+    :returns: CommandTable of OBS commands with all parameters filled in.
+    """
+    # Initialize state variables. Note that the first OBS command may end up
+    # with None values for some of these, but this is OK because of the command
+    # merging with the archive commands which are always correct. Nevertheless
+    # use values that are not None to avoid errors. For `sim_pos`, if the SIM
+    # has not been commanded in a long time then it will be at -99616.
+    obsid = -1
+    starcat_idx = -1
+    sim_pos = -99616
     obs_params = None
-    sim_pos = None
+    cmd_obs_extras = []
 
     for cmd in cmds:
         tlmsid = cmd['tlmsid']
         if tlmsid == 'AOSTRCAT':
             if cmd['idx'] == -1:
+                # OBS command only stores the index of the starcat params, so at
+                # this point we need to put those params into the pars_dict and
+                # rev_pars_dict and get the index.
                 starcat_idx = get_par_idx_update_pars_dict(
                     pars_dict, cmd, rev_pars_dict=rev_pars_dict)
             else:
                 starcat_idx = cmd['idx']
         elif tlmsid == 'COAOSQID':
             obsid = cmd['params']['id']
+            # Look for obsid change within obs, likely an undercover
+            # (target="cold blank ECS"). First stop the initial obs at the time
+            # of the obsid command.
+            if obs_params is not None:
+                obs_params['obs_stop'] = cmd['date']
+                # Then start a new obs at the time of the next obsid command.
+                obs_params = obs_params.copy()
+                obs_params['obsid'] = obsid
+                obs_params['obs_start'] = cmd['date']
+                # Collect these extra obs to a list to be added to cmds table later.
+                cmd_obs = {'idx': -1,
+                           'date': cmd['date'],
+                           'type': 'LOAD_EVENT',
+                           'tlmsid': 'OBS',
+                           'scs': 0,
+                           'step': 0,
+                           'time': CxoTime(cmd['date']).secs,
+                           'source': cmd['source'],
+                           'vcdu': -1,
+                           'params': obs_params,
+                           }
+                cmd_obs_extras.append(cmd_obs)
         elif tlmsid == 'OBS':
             obs_params = cmd['params']
             obs_params['obsid'] = obsid
             obs_params['simpos'] = sim_pos  # matches states 'simpos'
+            obs_params['obs_start'] = cmd['date']
             if obs_params['npnt_enab']:
                 obs_params['starcat_idx'] = starcat_idx
-            starcat_idx = None
-            obsid = None
+            # These 2 lines were here, but I think they are not needed.
+            # starcat_idx = None
+            # obsid = None
         elif tlmsid in ('AONMMODE', 'AONSMSAF'):
             if obs_params is not None:
                 obs_params['obs_stop'] = cmd['date']
@@ -575,9 +635,14 @@ def get_cmds_obs_with_starcat_and_obsid(cmds, pars_dict, rev_pars_dict):
 
     # Filter down to just the observation commands
     cmds_obs = cmds[cmds['tlmsid'] == 'OBS']
+
+    # Potentially add extra obs commands (typically undercovers) to cmds table
+    if cmd_obs_extras:
+        cmds_obs = cmds_obs.add_cmds(CommandTable(cmd_obs_extras))
+
     for cmd in cmds_obs:
-        cmd['idx'] = get_par_idx_update_pars_dict(
-            pars_dict, cmd, rev_pars_dict=rev_pars_dict)
+        if 'obs_stop' not in cmd['params']:
+            cmd['params']['obs_stop'] = schedule_stop_time
 
     return cmds_obs
 
