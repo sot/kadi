@@ -412,12 +412,17 @@ class CommandTable(Table):
                              .format(type(item)))
 
     def __str__(self):
-        # Cut out params column for printing
+        # Cut out index column for printing
         colnames = self.colnames
         if 'idx' in colnames:
             colnames.remove('idx')
+        return self.__repr__(colnames)
 
-        # Nice repr of parameters.  This forces all cmd params to get resolved.
+    def __repr__(self, colnames=None):
+        if colnames is None:
+            colnames = self.colnames
+
+        # Nice repr of parameters.
         tmp_params = None
         if 'params' in colnames:
             params_list = []
@@ -585,9 +590,20 @@ class CommandTable(Table):
                               show_source=True,
                               show_nonload_meta=True,
                               sort_orbit_events=False,
-                              max_params_width=None
+                              max_params_width=80,
                               ):
-        """Format the table in a human-readable format that is similar to backstop"""
+        """Format the table in a human-readable format that is similar to backstop.
+
+        :param show_source: bool, optional
+            Show the source (load name) of each command (default=True)
+        :param show_nonload_meta: bool, optional
+            Show event and event_date for non-load commands (default=True)
+        :param sort_orbit_events: bool, optional
+            Sort orbit events at same date by event_type (default=False, mostly for testing)
+        :param max_params_width: int, optional
+            Maximum width of parameter values string (default=80)
+        :returns: list of lines
+        """
         lines = []
         has_params = 'params' in self.colnames
 
@@ -611,7 +627,7 @@ class CommandTable(Table):
             if has_params:
                 # Make a single string of params like POS= 75624, SCS= 130, STEP= 9
                 fmtvals = []
-                keys = sorted(cmd['params'])
+                keys = cmd['params']
                 for key in keys:
                     if (not show_nonload_meta
                             and key in ('nonload_id', 'event', 'event_date')):
@@ -660,12 +676,25 @@ class CommandTable(Table):
         return lines
 
     def pprint_like_backstop(self, *, logger_func=None, logger_text='', **kwargs):
+        """Format the table in a human-readable format that is similar to backstop.
+
+        :param logger_func: function, optional
+            Function to call with the formatted lines (default is print)
+        :param show_source: bool, optional
+            Show the source (load name) of each command (default=True)
+        :param show_nonload_meta: bool, optional
+            Show event and event_date for non-load commands (default=True)
+        :param sort_orbit_events: bool, optional
+            Sort orbit events at same date by event_type (default=False, mostly for testing)
+        :param max_params_width: int, optional
+            Maximum width of parameter values string (default=80)
+        :returns: list of lines
+        """
+        lines = self.pformat_like_backstop(**kwargs)
         if logger_func is None:
-            lines = self.pformat_like_backstop(**kwargs)
             for line in lines:
                 print(line)
         else:
-            lines = self.pformat_like_backstop(**kwargs)
             logger_func(logger_text + '\n' + '\n'.join(lines) + '\n')
 
     def deduplicate_orbit_cmds(self):
