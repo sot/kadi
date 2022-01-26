@@ -45,7 +45,7 @@ def cmds_dir(tmp_path_factory):
 
 
 def test_find(version):
-    if version == 1:
+    if version == '1':
         idx_cmds = commands_v1.IDX_CMDS
         pars_dict = commands_v1.PARS_DICT
     else:
@@ -55,8 +55,8 @@ def test_find(version):
     cs = core._find('2012:029:12:00:00', '2012:030:12:00:00',
                     idx_cmds=idx_cmds, pars_dict=pars_dict)
     assert isinstance(cs, Table)
-    assert len(cs) == 147
-    if version == 1:
+    assert len(cs) == 147 if version == '1' else 151  # OBS commands in v2 only
+    if version == '1':
         assert np.all(cs['timeline_id'][:10] == 426098447)
         assert np.all(cs['timeline_id'][-10:] == 426098448)
     else:
@@ -86,7 +86,7 @@ def test_find(version):
 def test_get_cmds(version_env):
     cs = commands.get_cmds('2012:029:12:00:00', '2012:030:12:00:00')
     assert isinstance(cs, commands.CommandTable)
-    assert len(cs) == 147
+    assert len(cs) == 147 if version_env == '1' else 151  # OBS commands in v2 only
     if version_env == '2':
         assert np.all(cs['source'][:10] == 'JAN2612A')
         assert np.all(cs['source'][-10:] == 'JAN3012C')

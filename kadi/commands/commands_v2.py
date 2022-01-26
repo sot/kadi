@@ -509,6 +509,13 @@ def get_cmds_obs_from_manvrs(cmds):
             logger.info(f'Removing obss at {bad_idxs}')
             cmds_obs.remove_rows(bad_idxs)
 
+    for cmd0, cmd1 in zip(cmds_obs[:-1], cmds_obs[1:]):
+        if cmd1['manvr_start'] <= cmd0['date'] < cmd1['date']:
+            logger.warning(f'WARNING: fixing overlapping OBS cmds: \n{cmd0} \n{cmd1}')
+            date0 = CxoTime(cmd1['params']['manvr_start']) - 15 * u.s
+            cmd0['date'] = date0.date
+            cmd0['time'] = date0.secs
+
     return cmds_obs
 
 
@@ -622,10 +629,15 @@ def get_cmds_obs_final(cmds, pars_dict, rev_pars_dict, schedule_stop_time):
             obs_params['obs_start'] = cmd['date']
             if obs_params['npnt_enab']:
                 obs_params['starcat_idx'] = starcat_idx
-            # These 2 lines were here, but I think they are not needed.
-            # starcat_idx = None
-            # obsid = None
-        elif tlmsid in ('AONMMODE', 'AONSMSAF'):
+
+        elif (tlmsid in ('AONMMODE', 'AONSMSAF')
+              or (tlmsid == 'AONM2NPE' and cmd['vcdu'] == -1)):
+            # Stop current obs at next maneuver. In some v1 commands (for
+            # migration) there are cases of non-load maneuvers without an
+            # AONMMODE command and only the AONM2NPE and AOMANUVR commands.
+            # In those cases just use ANOM2NPE as a proxy. In v2 commands this
+            # is OK since AONM2NPE always comes after the AONMMODE command and
+            # obs_params will be None at that point.
             if obs_params is not None:
                 obs_params['obs_stop'] = cmd['date']
             # This closes out the observation
@@ -640,9 +652,17 @@ def get_cmds_obs_final(cmds, pars_dict, rev_pars_dict, schedule_stop_time):
     if cmd_obs_extras:
         cmds_obs = cmds_obs.add_cmds(CommandTable(cmd_obs_extras))
 
+    # The last OBS command will be missing obs_stop since there is no
+    # subsequent maneuver. Fix that for the expected case but warn if an obs
+    # before the end is missing obs_stop.
     for cmd in cmds_obs:
         if 'obs_stop' not in cmd['params']:
             cmd['params']['obs_stop'] = schedule_stop_time
+            if cmd.index != len(cmds_obs) - 1:
+                logger.warning(f'OBS command missing obs_stop\n{cmd}')
+                log_context_obs(cmds, cmd)
+        cmd['idx'] = get_par_idx_update_pars_dict(
+            pars_dict, cmd, rev_pars_dict=rev_pars_dict)
 
     return cmds_obs
 
@@ -652,7 +672,7 @@ def log_context_obs(cmds, cmd, before=3600, after=3600):
     date_before = (CxoTime(cmd['date']) - before * u.s).date
     date_after = (CxoTime(cmd['date']) + after * u.s).date
     ok = (cmds['date'] >= date_before) & (cmds['date'] <= date_after)
-    logger.info(f'\n{cmds[ok]}')
+    logger.warning(f'\n{cmds[ok]}')
 
 
 def update_from_network_enabled(scenario):
