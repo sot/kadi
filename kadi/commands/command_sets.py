@@ -115,8 +115,8 @@ def cmd_set_nsm(date=None):
     nsm_cmd = dict(type='COMMAND_SW',
                    tlmsid='AONSMSAF')
     out = ((nsm_cmd,)
-           + cmd_set_scs107()
-           + cmd_set_dither('OFF')
+           + cmd_set_scs107(date=date)
+           + cmd_set_dither('OFF', date=date)
            )
     return out
 
