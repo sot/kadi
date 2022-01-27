@@ -14,6 +14,7 @@ from astropy.table import Table
 from cxotime import CxoTime
 from Quaternion import Quat
 
+
 class CmdStates:
     def __init__(self):
         self.db = []
