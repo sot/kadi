@@ -895,6 +895,9 @@ def clean_loads_dir(loads):
 def get_load_dict_from_cmds(load_name, cmds, cmd_events):
     """Update ``load`` dict in place from the backstop commands.
     """
+    vehicle_stop_events = ('NSM', 'Safe mode', 'Bright star hold')
+    observing_stop_events = vehicle_stop_events + ('SCS-107',)
+
     load = {'name': load_name,
             'cmd_start': cmds['date'][0],
             'cmd_stop': cmds['date'][-1],
@@ -912,10 +915,11 @@ def get_load_dict_from_cmds(load_name, cmds, cmd_events):
 
         if (cmd_event_date >= load['cmd_start']
                 and cmd_event_date <= load['cmd_stop']
-                and cmd_event['Event'] in ('SCS-107', 'NSM')):
+                and cmd_event['Event'] in observing_stop_events):
             logger.info(f'{cmd_event["Event"]} at {cmd_event_date} found for {load_name}')
             load['observing_stop'] = cmd_event['Date']
-            if cmd_event['Event'] == 'NSM':
+
+            if cmd_event['Event'] in vehicle_stop_events:
                 load['vehicle_stop'] = cmd_event['Date']
 
         if cmd_event['Event'] == 'Load not run' and cmd_event['Params'] == load_name:

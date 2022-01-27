@@ -111,6 +111,13 @@ def cmd_set_dither(state, date=None):
             )
 
 
+def cmd_set_bright_star_hold(date=None):
+    out = (cmd_set_scs107(date=date)
+           + cmd_set_dither('OFF', date=date)
+           )
+    return out
+
+
 def cmd_set_nsm(date=None):
     nsm_cmd = dict(type='COMMAND_SW',
                    tlmsid='AONSMSAF')
@@ -118,6 +125,21 @@ def cmd_set_nsm(date=None):
            + cmd_set_scs107(date=date)
            + cmd_set_dither('OFF', date=date)
            )
+    return out
+
+
+def cmd_set_safe_mode(date=None):
+    safe_mode_cmds = (dict(type='COMMAND_SW',
+                           tlmsid='ACPCSFSU'),  # CPE set pcad mode to safe sun
+                      dict(type='COMMAND_SW',
+                           tlmsid='CSELFMT5')  # Format 5 (programmable) select
+                      )
+    # This is a little lazy, but put the NSM commands on top of safe mode.
+    # Even though not 100% accurate this does the right thing for commands and
+    # state processing. Otherwise need to put stuff into commands_v2 and states
+    # to handle the ACPCSFSU command.
+    out = (safe_mode_cmds
+           + cmd_set_nsm(date=date))
     return out
 
 

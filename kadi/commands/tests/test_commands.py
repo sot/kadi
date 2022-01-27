@@ -15,6 +15,7 @@ from cxotime import CxoTime
 from kadi import commands
 from kadi.commands import core, commands_v1, commands_v2, conf
 from kadi.scripts import update_cmds_v1, update_cmds_v2
+from kadi.commands.command_sets import get_cmds_from_event
 
 HAS_MPDIR = Path(os.environ['SKA'], 'data', 'mpcrit1', 'mplogs', '2020').exists()
 HAS_INTERNET = has_internet()
@@ -435,4 +436,103 @@ Date,Event,Params,Author,Comment
         '2020:336:00:08:39.000 | ACISPKT          | WSVIDALLDN | CMD_EVT  | event=Command, event_date=2020:336:00:08:39, scs=0',  # noqa
         '2020:336:00:08:39.635 | COMMAND_HW       | CNOOP      | NOV3020A | hex=7E00000, msid=CNOOPLR, scs=128'  # noqa
     ]
+    assert cmds.pformat_like_backstop() == exp
+
+
+def test_command_set_bsh():
+    cmds = get_cmds_from_event('2000:001', 'Bright star hold', '')
+    exp = [
+        '2000:001:00:00:00.000 | COMMAND_SW       | OORMPDS    | CMD_EVT  | '
+        'event=Bright_star_hold, event_date=2000:001:00:00:00, scs=0',
+        '2000:001:00:00:01.025 | COMMAND_HW       | AFIDP      | CMD_EVT  | '
+        'event=Bright_star_hold, event_date=2000:001:00:00:00, msid=AFLCRSET, scs=0',
+        '2000:001:00:00:01.025 | SIMTRANS         | None       | CMD_EVT  | '
+        'event=Bright_star_hold, event_date=2000:001:00:00:00, pos=-99616, scs=0',
+        '2000:001:00:01:06.685 | ACISPKT          | AA00000000 | CMD_EVT  | '
+        'event=Bright_star_hold, event_date=2000:001:00:00:00, scs=0',
+        '2000:001:00:01:07.710 | ACISPKT          | AA00000000 | CMD_EVT  | '
+        'event=Bright_star_hold, event_date=2000:001:00:00:00, scs=0',
+        '2000:001:00:01:17.960 | ACISPKT          | WSPOW00000 | CMD_EVT  | '
+        'event=Bright_star_hold, event_date=2000:001:00:00:00, scs=0',
+        '2000:001:00:01:17.960 | COMMAND_SW       | AODSDITH   | CMD_EVT  | '
+        'event=Bright_star_hold, event_date=2000:001:00:00:00, scs=0']
+
+    assert cmds.pformat_like_backstop() == exp
+
+
+def test_command_set_safe_mode():
+    cmds = get_cmds_from_event('2000:001', 'Safe mode', '')
+    exp = [
+        '2000:001:00:00:00.000 | COMMAND_SW       | ACPCSFSU   | CMD_EVT  | '
+        'event=Safe_mode, event_date=2000:001:00:00:00, scs=0',
+        '2000:001:00:00:00.000 | COMMAND_SW       | CSELFMT5   | CMD_EVT  | '
+        'event=Safe_mode, event_date=2000:001:00:00:00, scs=0',
+        '2000:001:00:00:00.000 | COMMAND_SW       | AONSMSAF   | CMD_EVT  | '
+        'event=Safe_mode, event_date=2000:001:00:00:00, scs=0',
+        '2000:001:00:00:00.000 | COMMAND_SW       | OORMPDS    | CMD_EVT  | '
+        'event=Safe_mode, event_date=2000:001:00:00:00, scs=0',
+        '2000:001:00:00:01.025 | COMMAND_HW       | AFIDP      | CMD_EVT  | '
+        'event=Safe_mode, event_date=2000:001:00:00:00, msid=AFLCRSET, scs=0',
+        '2000:001:00:00:01.025 | SIMTRANS         | None       | CMD_EVT  | '
+        'event=Safe_mode, event_date=2000:001:00:00:00, pos=-99616, scs=0',
+        '2000:001:00:01:06.685 | ACISPKT          | AA00000000 | CMD_EVT  | '
+        'event=Safe_mode, event_date=2000:001:00:00:00, scs=0',
+        '2000:001:00:01:07.710 | ACISPKT          | AA00000000 | CMD_EVT  | '
+        'event=Safe_mode, event_date=2000:001:00:00:00, scs=0',
+        '2000:001:00:01:17.960 | ACISPKT          | WSPOW00000 | CMD_EVT  | '
+        'event=Safe_mode, event_date=2000:001:00:00:00, scs=0',
+        '2000:001:00:01:17.960 | COMMAND_SW       | AODSDITH   | CMD_EVT  | '
+        'event=Safe_mode, event_date=2000:001:00:00:00, scs=0']
+
+    assert cmds.pformat_like_backstop() == exp
+
+
+@pytest.mark.skipif(not HAS_INTERNET, reason="No internet connection")
+def test_bright_star_hold_event(cmds_dir, stop_date_2020_12_03):
+    """Make a scenario with a bright star hold event.
+
+    Confirm that this inserts expected commands and interrupts all load commands.
+    """
+    bsh_dir = Path(conf.commands_dir) / 'bsh'
+    bsh_dir.mkdir(parents=True, exist_ok=True)
+    cmd_events_file = bsh_dir / 'cmd_events.csv'
+    cmd_events_file.write_text("""\
+State,Date,Event,Params,Author,Comment
+Definitive,2020:337:00:00:00,Bright star hold,,Tom Aldcroft,
+""")
+    cmds = commands_v2.get_cmds(start='2020:336:21:48:00', stop='2020:338', scenario='bsh')
+    exp = [
+        '2020:336:21:48:03.312 | LOAD_EVENT       | OBS        | NOV3020A | '
+        'manvr_start=2020:336:21:09:24.361, prev_att=(-0.242373434, -0.348723922, '
+        '0.42827',
+        '2020:336:21:48:06.387 | COMMAND_SW       | CODISASX   | NOV3020A | '
+        'hex=8456200, msid=CODISASX, codisas1=98 , scs=128',
+        '2020:336:21:48:07.412 | COMMAND_SW       | AOFUNCEN   | NOV3020A | '
+        'hex=803031E, msid=AOFUNCEN, aopcadse=30 , scs=128',
+        '2020:336:21:54:23.061 | COMMAND_SW       | AOFUNCEN   | NOV3020A | '
+        'hex=8030320, msid=AOFUNCEN, aopcadse=32 , scs=128',
+        '2020:336:21:55:23.061 | COMMAND_SW       | AOFUNCEN   | NOV3020A | '
+        'hex=8030315, msid=AOFUNCEN, aopcadse=21 , scs=128',
+        # BSH interrupt at 2020:337
+        '2020:337:00:00:00.000 | COMMAND_SW       | OORMPDS    | CMD_EVT  | '
+        'event=Bright_star_hold, event_date=2020:337:00:00:00, scs=0',
+        '2020:337:00:00:01.025 | COMMAND_HW       | AFIDP      | CMD_EVT  | '
+        'event=Bright_star_hold, event_date=2020:337:00:00:00, msid=AFLCRSET, scs=0',
+        '2020:337:00:00:01.025 | SIMTRANS         | None       | CMD_EVT  | '
+        'event=Bright_star_hold, event_date=2020:337:00:00:00, pos=-99616, scs=0',
+        '2020:337:00:01:06.685 | ACISPKT          | AA00000000 | CMD_EVT  | '
+        'event=Bright_star_hold, event_date=2020:337:00:00:00, scs=0',
+        '2020:337:00:01:07.710 | ACISPKT          | AA00000000 | CMD_EVT  | '
+        'event=Bright_star_hold, event_date=2020:337:00:00:00, scs=0',
+        '2020:337:00:01:17.960 | ACISPKT          | WSPOW00000 | CMD_EVT  | '
+        'event=Bright_star_hold, event_date=2020:337:00:00:00, scs=0',
+        '2020:337:00:01:17.960 | COMMAND_SW       | AODSDITH   | CMD_EVT  | '
+        'event=Bright_star_hold, event_date=2020:337:00:00:00, scs=0',
+        # Only ORBPOINT from here on
+        '2020:337:02:07:03.790 | ORBPOINT         | None       | NOV3020A | '
+        'event_type=EAPOGEE, scs=0',
+        '2020:337:21:15:45.455 | ORBPOINT         | None       | NOV3020A | '
+        'event_type=EALT1, scs=0',
+        '2020:337:21:15:46.227 | ORBPOINT         | None       | NOV3020A | '
+        'event_type=XALT1, scs=0']
     assert cmds.pformat_like_backstop() == exp
