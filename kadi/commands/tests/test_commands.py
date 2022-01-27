@@ -238,6 +238,14 @@ def test_commands_create_archive_regress(tmpdir, version_env):
             cmds_local = commands.get_cmds(start + 3, stop - 3)
             cmds_local.fetch_params()
             assert len(cmds_flight) == len(cmds_local)
+
+            # 'starcat_idx' param in OBS cmd does not match since the pickle files
+            # are different, so remove it.
+            for cmds in (cmds_local, cmds_flight):
+                for cmd in cmds:
+                    if cmd['tlmsid'] == 'OBS' and 'starcat_idx' in cmd['params']:
+                        del cmd['params']['starcat_idx']
+
             for attr in ('tlmsid', 'date', 'params'):
                 assert np.all(cmds_flight[attr] == cmds_local[attr])
 
@@ -271,6 +279,7 @@ stop_date_2020_12_03 = stop_date_fixture_factory('2020-12-03')
 @pytest.mark.skipif(not HAS_INTERNET, reason="No internet connection")
 def test_get_cmds_v2_arch_only(stop_date_2020_12_03):
     cmds = commands_v2.get_cmds(start='2020-01-01', stop='2020-01-02')
+    cmds = cmds[cmds['tlmsid'] != 'OBS']
     assert len(cmds) == 153
     assert np.all(cmds['idx'] != -1)
     # Also do a zero-length query
@@ -281,6 +290,8 @@ def test_get_cmds_v2_arch_only(stop_date_2020_12_03):
 @pytest.mark.skipif(not HAS_INTERNET, reason="No internet connection")
 def test_get_cmds_v2_arch_recent(stop_date_2020_12_03):
     cmds = commands_v2.get_cmds(start='2020-09-01', stop='2020-12-01')
+    cmds = cmds[cmds['tlmsid'] != 'OBS']
+
     # Since recent matches arch in the past, even though the results are a mix
     # of arch and recent, they commands actually come from the arch because of
     # how the matching block is used (commands come from arch up through the end
@@ -304,6 +315,7 @@ def test_get_cmds_v2_recent_only(stop_date_2020_12_03):
     # This query stop is well beyond the default stop date, so it should get
     # only commands out to the end of the NOV3020A loads (~ Dec 7).
     cmds = commands_v2.get_cmds(start='2020-12-01', stop='2021-01-01')
+    cmds = cmds[cmds['tlmsid'] != 'OBS']
     assert len(cmds) == 1523
     assert np.all(cmds['idx'] == -1)
     assert cmds[:5].pformat_like_backstop() == [
@@ -323,6 +335,7 @@ def test_get_cmds_v2_recent_only(stop_date_2020_12_03):
 
     # Same for no stop date
     cmds = commands_v2.get_cmds(start='2020-12-01', stop=None)
+    cmds = cmds[cmds['tlmsid'] != 'OBS']
     assert len(cmds) == 1523
     assert np.all(cmds['idx'] == -1)
 
@@ -340,6 +353,7 @@ def test_get_cmds_nsm_2021(stop_date_2021_10_24):
     """NSM at ~2021:296:10:41. This tests non-load commands from cmd_events.
     """
     cmds = commands_v2.get_cmds('2021:296:10:35:00')  # , '2021:298:01:58:00')
+    cmds = cmds[cmds['tlmsid'] != 'OBS']
     exp = ['2021:296:10:35:00.000 | COMMAND_HW       | CIMODESL   | OCT1821A | '
            'hex=7C067C0, msid=CIU1024X, scs=128',
            '2021:296:10:35:00.257 | COMMAND_HW       | CTXAOF     | OCT1821A | '
@@ -393,7 +407,7 @@ def test_get_cmds_nsm_2021(stop_date_2021_10_24):
            'event_type=EQF013M, scs=0',
            '2021:297:13:59:39.602 | ORBPOINT         | None       | OCT1821A | '
            'event_type=EEF1000, scs=0']
-    assert cmds.pformat_like_backstop() == exp
+    assert cmds.pformat_like_backstop(max_params_width=200) == exp
 
 
 @pytest.mark.skipif(not HAS_INTERNET, reason="No internet connection")
@@ -414,6 +428,7 @@ Date,Event,Params,Author,Comment
     # Now get commands in a time range that includes the new command events
     cmds = commands_v2.get_cmds('2020-12-01 00:08:00', '2020-12-01 00:09:00',
                                 scenario=scenario)
+    cmds = cmds[cmds['tlmsid'] != 'OBS']
     exp = [
         '2020:336:00:08:30.000 | ACISPKT          | WSPOW00000 | CMD_EVT  | event=Command, event_date=2020:336:00:08:30, scs=0',  # noqa
         '2020:336:00:08:38.610 | COMMAND_HW       | CNOOP      | NOV3020A | hex=7E00000, msid=CNOOPLR, scs=128',  # noqa

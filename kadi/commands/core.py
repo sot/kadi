@@ -370,6 +370,7 @@ class CommandTable(Table):
                  'source': 'S8',
                  'timeline_id': np.uint32,
                  'vcdu': np.int32,
+                 'time': np.float64,
                  'params': object}
 
     def _convert_data_to_col(self, *args, **kwargs):
