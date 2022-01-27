@@ -438,13 +438,13 @@ def get_cmds_obs_from_manvrs(cmds):
 
     This is the first pass of getting OBS commands, keying off each maneuver.
     These OBS commands are then re-inserted into the commands table at the point
-    of the maneuver END for the second pass. At the point in time of the
+    of the maneuver END for the second pass, where at the point in time of the
     maneuver end (obs start), all the state-changing commands have occurred.
 
     :param cmds: CommandTable of state-changing commands.
     :returns: CommandTable of OBS commands.
     """
-    prev_att = (0, 0, 0, 1)
+    prev_att = None
     targ_att = None
     npnt_enab = False
 
@@ -462,15 +462,21 @@ def get_cmds_obs_from_manvrs(cmds):
             npnt_enab = False
         elif tlmsid in ('AOMANUVR', 'AONSMSAF'):
             if tlmsid == 'AONSMSAF':
-                targ_att = tuple(NSM_attitude(prev_att, cmd['date']).q.tolist())
+                targ_att = tuple(NSM_attitude(prev_att or (0, 0, 0, 1), cmd['date']).q.tolist())
                 npnt_enab = False
-            if prev_att is None:
-                logger.info(f'No previous attitude for {cmd["date"]}')
+            if targ_att is None:
+                # No target attitude is unexpected since we got to a MANVR cmd.
+                logger.warning(f'WARNING: no target attitude for {cmd["date"]}')
                 log_context_obs(cmds, cmd)
                 continue
-            if targ_att is None:
-                logger.info(f'No target attitude for {cmd["date"]}')
-                log_context_obs(cmds, cmd)
+            if prev_att is None:
+                # No previous attitude happens always for first manvr at the
+                # beginning of loads, and normally we just push on to the next
+                # OBS. But if we already have OBS command this is a problem.
+                if cmds_obs:
+                    logger.warning(f'WARNING: No previous attitude for {cmd["date"]}')
+                    log_context_obs(cmds, cmd)
+                prev_att = targ_att
                 continue
             dur = manvr_duration(prev_att, targ_att)
             params = {'manvr_start': cmd['date'],
@@ -482,9 +488,9 @@ def get_cmds_obs_from_manvrs(cmds):
                        'tlmsid': 'OBS',
                        'scs': 0,
                        'step': 0,
-                       'time': time + dur,
                        'source': cmd['source'],
                        'vcdu': -1,
+                       'time': time + dur,
                        'params': params,
                        }
             cmds_obs.append(cmd_obs)
@@ -509,8 +515,12 @@ def get_cmds_obs_from_manvrs(cmds):
             logger.info(f'Removing obss at {bad_idxs}')
             cmds_obs.remove_rows(bad_idxs)
 
+    # This is known to happen for cmds in AUG0103A, JAN2204B, JUL2604D due to
+    # non-load maneuvers that are not captured correctly. Run the v1-v2
+    # migration script to see. The prev_att is wrong and the incorrect maneuver
+    # timing results in overlaps. It should not happen for modern loads.
     for cmd0, cmd1 in zip(cmds_obs[:-1], cmds_obs[1:]):
-        if cmd1['manvr_start'] <= cmd0['date'] < cmd1['date']:
+        if cmd1['params']['manvr_start'] <= cmd0['date'] < cmd1['date']:
             logger.warning(f'WARNING: fixing overlapping OBS cmds: \n{cmd0} \n{cmd1}')
             date0 = CxoTime(cmd1['params']['manvr_start']) - 15 * u.s
             cmd0['date'] = date0.date
