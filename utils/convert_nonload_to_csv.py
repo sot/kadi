@@ -45,7 +45,7 @@ def cmd_set(event, *args):
     else:
         if event == 'manvr':
             att = Quat(args)
-            args = [f'{arg:.7f}' for arg in att.q]
+            args = [f'{arg:.8f}' for arg in att.q]
         out = [
             {'Event': EVENT_TRANS[event],
              'Params': ' '.join(str(arg) for arg in args)}
