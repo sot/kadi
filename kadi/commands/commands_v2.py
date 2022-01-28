@@ -1,4 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+from collections import defaultdict
 import math
 import difflib
 import os
@@ -23,7 +24,7 @@ from Chandra.Maneuver import NSM_attitude
 
 
 from kadi.commands import get_cmds_from_backstop, conf
-from kadi.commands.core import (load_idx_cmds, load_pars_dict, LazyVal,
+from kadi.commands.core import (decode_starcat_params, load_idx_cmds, load_pars_dict, LazyVal,
                                 get_par_idx_update_pars_dict, _find, vstack_exact,
                                 ska_load_dir, CommandTable, load_name_to_cxotime)
 from kadi.commands.command_sets import get_cmds_from_event
@@ -1143,3 +1144,184 @@ def get_matching_block_idx(cmds_arch, cmds_recent):
     idx0_arch = idx_arch_recent + block.a + block.size
 
     return idx0_arch, idx0_recent
+
+
+TYPE_MAP = ['ACQ', 'GUI', 'BOT', 'FID', 'MON']
+IMGSZ_MAP = ['4x4', '6x6', '8x8']
+PAR_MAPS = [
+    ('imnum', 'slot', int),
+    ('type', 'type', lambda n: TYPE_MAP[n]),
+    ('imgsz', 'sz', lambda n: IMGSZ_MAP[n]),
+    ('maxmag', 'maxmag', float),
+    ('yang', 'yang', lambda x: np.degrees(x) * 3600),
+    ('zang', 'zang', lambda x: np.degrees(x) * 3600),
+    ('dimdts', 'dim', int),
+    ('restrk', 'res', int),
+]
+
+
+def convert_aostrcat_to_acatable(params):
+    """Convert dict of AOSTRCAT parameters to an ACATable.
+
+    The dict looks like::
+
+       2009:032:11:13:42.800 | 8023994 0 | MP_STARCAT | TLMSID= AOSTRCAT, CMDS=
+       49, IMNUM1= 0, YANG1= -3.74826751e-03, ZANG1= -8.44541515e-03, MAXMAG1=
+       8.00000000e+00, MINMAG1= 5.79687500e+00, DIMDTS1= 1, RESTRK1= 1, IMGSZ1=2,
+       TYPE1= 3, ...
+
+       IMNUM: slot
+       RESTRK: box size resolution, always 1 (high) in loads for non-MON slot
+       DIMDTS: (halfwidth - 20) / 5  # assumes AQRES='H'
+       TYPE: 4 => mon, 3 => fid, 2 => bot, 1 => gui, 0 => acq
+       YANG: yang in radians
+       ZANG: zang in radians
+       IMGSZ: 0=4x4, 1=6x6, 2=8x8
+       MINMAG = min mag
+       MAXMAG = max mag
+
+    :param params: dict of AOSTRCAT parameters
+    :returns: ACATable
+    """
+    from proseco.catalog import ACATable
+
+    for idx in range(1, 17):
+        if params[f'minmag{idx}'] == params[f'maxmag{idx}'] == 0:
+            break
+
+    max_idx = idx
+    cols = defaultdict(list)
+    for par_name, col_name, func in PAR_MAPS:
+        for idx in range(1, max_idx):
+            cols[col_name].append(func(params[par_name + str(idx)]))
+
+    out = ACATable(cols)
+    out.add_column(np.arange(1, max_idx), index=1, name='idx')
+
+    return out
+
+
+def get_starcats(obsid=None, start=None, stop=None, scenario=None):
+    """Get star catalogs corresponding to input parameters.
+
+    The ``obsid``, ``start``, and ``stop`` parameters serve as matching filters
+    on the list of star catalogs that is returned.
+
+    There are numerous instances of multiple observations with the same obsid,
+    so this function always returns a list of star catalogs even when ``obsid``
+    is specified. In most cases you can just use the first element.
+
+    Example::
+
+        >>> from kadi.commands import get_starcats
+        >>> cat = get_starcats(obsid=8008)[0]
+        >>> cat
+        <ACATable length=11>
+        slot  idx  type  sz   maxmag   yang     zang    dim   res
+        int64 int64 str3 str3 float64 float64  float64  int64 int64
+        ----- ----- ---- ---- ------- -------- -------- ----- -----
+            0     1  FID  8x8    8.00   937.71  -829.17     1     1
+            1     2  FID  8x8    8.00 -1810.42  1068.87     1     1
+            2     3  FID  8x8    8.00   403.68  1712.93     1     1
+            3     4  BOT  6x6   10.86  -318.22  1202.41    20     1
+            4     5  BOT  6x6   11.20  -932.79  -354.55    20     1
+            5     6  BOT  6x6   10.97  2026.85  1399.61    20     1
+            6     7  BOT  6x6   10.14   890.71 -1600.39    20     1
+            7     8  BOT  6x6   10.66  2023.08 -2021.72    13     1
+            0     9  ACQ  6x6   10.64    54.04   754.79    20     1
+            1    10  ACQ  6x6   11.70   562.06  -186.39    20     1
+            2    11  ACQ  6x6   11.30  1612.28  -428.24    20     1
+
+    :param obsid: int, None
+        ObsID
+    :param start: CxoTime-like, None
+        Start time (default=beginning of commands)
+    :param stop: CxoTime-like, None
+        Stop time (default=end of commands)
+    :param scenario: str, None
+        Scenario
+    :returns: list of ACATable
+        List star catalogs for matching observations.
+    """
+    obss = get_observations(obsid=obsid, start=start, stop=stop, scenario=scenario)
+    starcats = []
+    for obs in obss:
+        if (idx := obs.get('starcat_idx')) is None:
+            continue
+        params = REV_PARS_DICT[idx]
+        if isinstance(params, bytes):
+            params = decode_starcat_params(params)
+        starcat = convert_aostrcat_to_acatable(params)
+        starcats.append(starcat)
+    return starcats
+
+
+OBSERVATIONS = {}
+
+
+def get_observations(obsid=None, start=None, stop=None, scenario=None):
+    """Get observations corresponding to input parameters.
+
+    The ``obsid``, ``start``, and ``stop`` parameters serve as matching filters
+    on the list of observations that is returned.
+
+    There are numerous instances of multiple observations with the same obsid,
+    so this function always returns a list of observation parameters even when
+    ``obsid`` is specified. In most cases you can just use the first element.
+
+    Examples::
+
+        >>> from kadi.commands import get_observations
+        >>> obs = get_observations(obsid=8008)[0]
+        >>> obs
+        {'obsid': 8008,
+        'simpos': 92904,
+        'obs_stop': '2007:002:18:04:28.965',
+        'manvr_start': '2007:002:04:31:48.216',
+        'targ_att': (0.149614271, 0.490896707, 0.831470649, 0.21282047),
+        'npnt_enab': True,
+        'obs_start': '2007:002:04:46:58.056',
+        'prev_att': (0.319214732, 0.535685207, 0.766039803, 0.155969017),
+        'starcat_idx': 144398}
+
+        >>> obs_all = get_observations()  # All observations in commands archive
+
+        # Might be convenient to handle this as a Table
+        >>> from astropy.table import Table
+        >>> obs_all = Table(obs_all)
+
+    :param obsid: int, None
+        ObsID
+    :param start: CxoTime-like, None
+        Start time (default=beginning of commands)
+    :param stop: CxoTime-like, None
+        Stop time (default=end of commands)
+    :param scenario: str, None
+        Scenario
+    :returns: list of dict
+        Observation parameters for matching observations.
+    """
+    if start is None:
+        start = '1999:001'
+    if stop is None:
+        # Commands never extend more than 60 days in the future
+        stop = (CxoTime.now() + 60 * u.day).date
+
+    if scenario not in OBSERVATIONS:
+        cmds = get_cmds(scenario=scenario)
+        cmds_obs = cmds[cmds['tlmsid'] == 'OBS']
+        OBSERVATIONS[scenario] = cmds_obs
+    else:
+        cmds_obs = OBSERVATIONS[scenario]
+
+    i0, i1 = cmds_obs.find_date([start, stop])
+    cmds_obs = cmds_obs[i0:i1]
+
+    if obsid is not None:
+        cmds_obs = cmds_obs[cmds_obs['obsid'] == obsid]
+        if len(cmds_obs) == 0:
+            raise ValueError(f'No matching observations for {obsid=}')
+
+    obss = [cmd['params'] for cmd in cmds_obs]
+
+    return obss
