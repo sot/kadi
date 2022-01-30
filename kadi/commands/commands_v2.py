@@ -59,9 +59,6 @@ HAS_INTERNET = has_internet()
 
 logger = logging.getLogger(__name__)
 
-# DEBUG: remove this for production
-# logging.getLogger('kadi').setLevel(1)
-
 
 def clear_caches():
     """Clear all commands caches.

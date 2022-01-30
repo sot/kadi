@@ -2,6 +2,7 @@ import functools
 import os
 
 from kadi.commands import conf
+from kadi.commands.observations import *  # noqa
 
 
 def get_cmds(start=None, stop=None, inclusive_stop=False, scenario=None, **kwargs):
