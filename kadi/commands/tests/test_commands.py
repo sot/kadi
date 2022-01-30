@@ -381,7 +381,7 @@ def test_get_cmds_nsm_2021(stop_date_2021_10_24):
            'event=NSM, event_date=2021:296:10:41:57, scs=0',
            '2021:296:10:43:04.710 | ACISPKT          | AA00000000 | CMD_EVT  | '
            'event=NSM, event_date=2021:296:10:41:57, scs=0',
-           '2021:296:10:43:14.960 | ACISPKT          | WSPOW00000 | CMD_EVT  | '
+           '2021:296:10:43:14.960 | ACISPKT          | WSPOW0002A | CMD_EVT  | '
            'event=NSM, event_date=2021:296:10:41:57, scs=0',
            '2021:296:10:43:14.960 | COMMAND_SW       | AODSDITH   | CMD_EVT  | '
            'event=NSM, event_date=2021:296:10:41:57, scs=0',
@@ -390,8 +390,8 @@ def test_get_cmds_nsm_2021(stop_date_2021_10_24):
            '2021:297:01:41:01.256 | COMMAND_SW       | AONM2NPE   | CMD_EVT  | '
            'event=Maneuver, event_date=2021:297:01:41:01, msid=AONM2NPE, scs=0',
            '2021:297:01:41:05.356 | MP_TARGQUAT      | AOUPTARQ   | CMD_EVT  | '
-           'event=Maneuver, event_date=2021:297:01:41:01, q1=7.05469100e-01, '
-           'q2=3.29883100e-01, q3=5.34409000e-01, q4=3.28477700e-01, scs=0',
+           'event=Maneuver, event_date=2021:297:01:41:01, q1=7.05469070e-01, '
+           'q2=3.29883070e-01, q3=5.34409010e-01, q4=3.28477660e-01, scs=0',
            '2021:297:01:41:11.250 | COMMAND_SW       | AOMANUVR   | CMD_EVT  | '
            'event=Maneuver, event_date=2021:297:01:41:01, msid=AOMANUVR, scs=0',
            '2021:297:02:12:42.886 | ORBPOINT         | None       | OCT1821A | '
