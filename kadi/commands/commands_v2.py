@@ -198,31 +198,39 @@ def get_cmds(start=None, stop=None, inclusive_stop=False, scenario=None, **kwarg
     :returns: CommandTable
     """
     scenario = os.environ.get('KADI_SCENARIO', scenario)
-
-    if scenario not in CMDS_RECENT:
-        cmds_recent = update_archive_and_get_cmds_recent(
-            scenario, cache=True,
-            pars_dict=PARS_DICT, rev_pars_dict=REV_PARS_DICT)
-    else:
-        cmds_recent = CMDS_RECENT[scenario]
-
     start = CxoTime(start or '1999:001')
     stop_date = CxoTime(stop) if stop else '2099:001'
 
-    if stop_date < cmds_recent['date'][0]:
-        # Query does not overlap with recent commands, just use archive.
-        logger.info('Getting commands from archive only')
+    # Default stop is either now (typically) or set by env var
+    default_stop = CxoTime(os.environ.get('KADI_COMMANDS_DEFAULT_STOP'))
+
+    # For flight scenario or if the query stop time is guaranteed to not require
+    # recent commands then just use the archive.
+    if scenario == 'flight' or stop_date < default_stop - conf.default_lookback * u.day:
         cmds = IDX_CMDS
-    elif start < CxoTime(cmds_recent['date'][0]) + 3 * u.day:
-        # Query starts near beginning of recent commands and *might* need some
-        # archive commands. The margin is set at 3 days to ensure that OBS
-        # command continuity is maintained (there is at least one maneuver).
-        cmds = _merge_cmds_archive_recent(start, scenario)
-        logger.info(f'Getting commands from archive + recent {scenario=}')
+        logger.info('Getting commands from archive only')
     else:
-        # Query is strictly within recent commands.
-        cmds = cmds_recent
-        logger.info(f'Getting commands from recent only {scenario=}')
+        if scenario not in CMDS_RECENT:
+            cmds_recent = update_archive_and_get_cmds_recent(
+                scenario, cache=True,
+                pars_dict=PARS_DICT, rev_pars_dict=REV_PARS_DICT)
+        else:
+            cmds_recent = CMDS_RECENT[scenario]
+
+        if stop_date < cmds_recent['date'][0]:
+            # Query does not overlap with recent commands, just use archive.
+            logger.info('Getting commands from archive only')
+            cmds = IDX_CMDS
+        elif start < CxoTime(cmds_recent['date'][0]) + 3 * u.day:
+            # Query starts near beginning of recent commands and *might* need some
+            # archive commands. The margin is set at 3 days to ensure that OBS
+            # command continuity is maintained (there is at least one maneuver).
+            cmds = _merge_cmds_archive_recent(start, scenario)
+            logger.info(f'Getting commands from archive + recent {scenario=}')
+        else:
+            # Query is strictly within recent commands.
+            cmds = cmds_recent
+            logger.info(f'Getting commands from recent only {scenario=}')
 
     # Select the requested time range and make a copy. (Slicing is a view so
     # in theory bad things could happen without a copy).
