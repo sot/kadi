@@ -13,7 +13,8 @@ from Chandra.Time import secs2date
 from cxotime import CxoTime
 
 from kadi import commands
-from kadi.commands import core, commands_v1, commands_v2, conf
+from kadi.commands import (core, commands_v1, commands_v2, conf, get_starcats,
+                           get_observations)
 from kadi.scripts import update_cmds_v1, update_cmds_v2
 from kadi.commands.command_sets import get_cmds_from_event
 
@@ -536,3 +537,87 @@ Definitive,2020:337:00:00:00,Bright star hold,,Tom Aldcroft,
         '2020:337:21:15:46.227 | ORBPOINT         | None       | NOV3020A | '
         'event_type=XALT1, scs=0']
     assert cmds.pformat_like_backstop() == exp
+
+
+def test_get_observations_by_obsid_single():
+    obss = get_observations(8008)
+    assert len(obss) == 1
+    assert obss == [
+        {'obsid': 8008,
+         'simpos': 92904,
+         'obs_stop': '2007:002:18:04:28.965',
+         'manvr_start': '2007:002:04:31:48.216',
+         'targ_att': (0.149614271, 0.490896707, 0.831470649, 0.21282047),
+         'npnt_enab': True,
+         'obs_start': '2007:002:04:46:58.056',
+         'prev_att': (0.319214732, 0.535685207, 0.766039803, 0.155969017),
+         'starcat_idx': 144398,
+         'source': 'DEC2506C'}
+    ]
+
+
+def test_get_observations_by_obsid_multi():
+    obss = get_observations(47912)  # Following ACA high background NSM 2019:248
+    assert obss == [
+        {'obsid': 47912,
+         'simpos': -99616,
+         'obs_stop': '2019:248:16:51:18.000',
+         'manvr_start': '2019:248:14:52:35.407',
+         'targ_att': (-0.564950617, 0.252299958, -0.165669121, 0.767938327),
+         'npnt_enab': True,
+         'obs_start': '2019:248:15:27:35.289',
+         'prev_att': (-0.218410783, 0.748632452, -0.580771797, 0.233560059),
+         'starcat_idx': 165938,
+         'source': 'SEP0219B'},
+        {'obsid': 47912,
+         'simpos': -99616,
+         'obs_stop': '2019:249:01:59:00.000',
+         'manvr_start': '2019:248:16:51:18.000',
+         'targ_att': (-0.3594375808951632,
+                      0.6553454859043244,
+                      -0.4661410647781301,
+                      0.47332803366853643),
+         'npnt_enab': False,
+         'obs_start': '2019:248:17:18:17.732',
+         'prev_att': (-0.564950617, 0.252299958, -0.165669121, 0.767938327),
+         'source': 'CMD_EVT'},
+        {'obsid': 47912,
+         'simpos': -99616,
+         'obs_stop': '2019:249:23:30:00.000',
+         'manvr_start': '2019:249:01:59:10.250',
+         'targ_att': (-0.54577727, 0.27602874, -0.17407247, 0.77177334),
+         'npnt_enab': True,
+         'obs_start': '2019:249:02:25:31.907',
+         'prev_att': (-0.3594375808951632,
+                      0.6553454859043244,
+                      -0.4661410647781301,
+                      0.47332803366853643),
+         'starcat_idx': 165938,
+         'source': 'CMD_EVT'}
+    ]
+
+
+def test_get_observations_by_start_date():
+    # Test observations from a specific date onward
+    obss = get_observations(start='2022:001')
+    assert len(obss) > 233
+    assert obss[0]['obsid'] == 45814
+    assert obss[0]['obs_start'] == '2022:001:05:48:44.808'
+
+
+def test_get_observations_by_start_stop_date_with_scenario():
+    # Test observations in a range and use the scenario keyword
+    obss = get_observations(start='2022:001', stop='2022:002', scenario='flight')
+    assert len(obss) == 6
+    assert obss[0]['obsid'] == 45814
+    assert obss[0]['obs_start'] == '2022:001:05:48:44.808'
+    assert obss[-1]['obsid'] == 23800
+    assert obss[-1]['obs_start'] == '2022:001:17:33:53.255'
+
+
+def test_get_observations_no_match():
+    with pytest.raises(ValueError, match='No matching observations for obsid=8008'):
+        get_observations(obsid=8008, start='2022:001', stop='2022:002', scenario='flight')
+
+    obss = get_observations(start='2022:001', stop='2022:001', scenario='flight')
+    assert len(obss) == 0

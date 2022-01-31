@@ -245,9 +245,12 @@ def get_observations(obsid=None, *, start=None, stop=None, scenario=None):
     The ``obsid``, ``start``, and ``stop`` parameters serve as matching filters
     on the list of observations that is returned.
 
-    There are numerous instances of multiple observations with the same obsid,
-    so this function always returns a list of observation parameters even when
-    ``obsid`` is specified. In most cases you can just use the first element.
+    Over the mission there are thousands of instances of multiple observations
+    with the same obsid, so this function always returns a list of observation
+    parameters even when ``obsid`` is specified. This most frequently occurs
+    after any unexpected stoppage of the observng loads (SCS-107) which
+    therefore cancels subsequent obsid commanding. In many cases you can just
+    use the first element.
 
     Examples::
 
