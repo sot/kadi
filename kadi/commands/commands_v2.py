@@ -199,14 +199,15 @@ def get_cmds(start=None, stop=None, inclusive_stop=False, scenario=None, **kwarg
     """
     scenario = os.environ.get('KADI_SCENARIO', scenario)
     start = CxoTime(start or '1999:001')
-    stop_date = CxoTime(stop) if stop else '2099:001'
+    stop_date = CxoTime(stop).date if stop else '2099:001'
 
     # Default stop is either now (typically) or set by env var
     default_stop = CxoTime(os.environ.get('KADI_COMMANDS_DEFAULT_STOP'))
 
     # For flight scenario or if the query stop time is guaranteed to not require
     # recent commands then just use the archive.
-    if scenario == 'flight' or stop_date < default_stop - conf.default_lookback * u.day:
+    before_recent_cmds = stop_date < (default_stop - conf.default_lookback * u.day).date
+    if scenario == 'flight' or before_recent_cmds:
         cmds = IDX_CMDS
         logger.info('Getting commands from archive only')
     else:
@@ -217,6 +218,8 @@ def get_cmds(start=None, stop=None, inclusive_stop=False, scenario=None, **kwarg
         else:
             cmds_recent = CMDS_RECENT[scenario]
 
+        # Get `cmds` as correct mix of recent and archive commands that contains
+        # the requested date range.
         if stop_date < cmds_recent['date'][0]:
             # Query does not overlap with recent commands, just use archive.
             logger.info('Getting commands from archive only')
