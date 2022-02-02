@@ -204,10 +204,10 @@ def get_cmds(start=None, stop=None, inclusive_stop=False, scenario=None, **kwarg
     # Default stop is either now (typically) or set by env var
     default_stop = CxoTime(os.environ.get('KADI_COMMANDS_DEFAULT_STOP'))
 
-    # For flight scenario or if the query stop time is guaranteed to not require
-    # recent commands then just use the archive.
+    # For flight scenario or no internet or if the query stop time is guaranteed
+    # to not require recent commands then just use the archive.
     before_recent_cmds = stop_date < (default_stop - conf.default_lookback * u.day).date
-    if scenario == 'flight' or before_recent_cmds:
+    if scenario == 'flight' or not HAS_INTERNET or before_recent_cmds:
         cmds = IDX_CMDS
         logger.info('Getting commands from archive only')
     else:
@@ -694,30 +694,6 @@ def log_context_obs(cmds, cmd, before=3600, after=3600):
     logger.warning(f'\n{cmds[ok]}')
 
 
-def update_from_network_enabled(scenario):
-    """Return True if updating from the network is enabled.
-
-    Logic:
-    - If scenario == 'flight' return False unless user is 'aca' and host is
-      on HEAD network. This allows production updates of the flight scenario
-      by cron job on HEAD, but otherwise do not try touching the archive files.
-    - Else return conf.update_from_network.
-
-    :param scenario: str, None
-        Scenario name
-    """
-    if scenario == 'flight':
-        # TODO: put these into configuration.
-        if (os.getlogin() != 'aca'
-                or not platform.node().endswith('.cfa.harvard.edu')):
-            if conf.update_from_network:
-                # Updating from network is enabled but this is turning it off.
-                logger.info('Not updating flight scenario from network')
-            return False
-    else:
-        return conf.update_from_network
-
-
 def is_google_id(scenario):
     """Return True if scenario appears to be a Google ID.
 
@@ -736,13 +712,10 @@ def update_cmd_events(scenario=None):
     :returns: Table
         Command events table
     """
-    # If no network access allowed then just return the local file
-    if not update_from_network_enabled(scenario):
-        return get_cmd_events(scenario)
-
     # Named scenarios with a name that isn't "flight" and does not look like a
-    # google sheet ID are assumed to be local files.
-    if scenario not in (None, 'flight') and not is_google_id(scenario):
+    # google sheet ID are local files.
+    use_local = scenario not in (None, 'flight') and not is_google_id(scenario)
+    if use_local or not HAS_INTERNET:
         return get_cmd_events(scenario)
 
     # Ensure the scenario directory exists
@@ -802,10 +775,6 @@ def update_loads(scenario=None, *, cmd_events=None, lookback=None, stop=None):
     # For testing allow override of default `stop` value
     if stop is None:
         stop = os.environ.get('KADI_COMMANDS_DEFAULT_STOP')
-
-    # If no network access allowed then just return the local file
-    if not update_from_network_enabled(scenario):
-        return get_loads(scenario)
 
     if lookback is None:
         lookback = conf.default_lookback

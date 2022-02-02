@@ -14,12 +14,6 @@ class Conf(ConfigNamespace):
         30,
         'Default lookback for previous approved loads (days).'
     )
-    update_from_network = ConfigItem(
-        True,
-        'Use Google sheets and OCCweb to get the latest information about approved '
-        'loads and command events like SCS-107. If set to False then the existing '
-        'local files will be used.'
-    )
     cache_loads_in_astropy_cache = ConfigItem(
         True,
         'Cache backstop downloads in the astropy cache. Should typically be False, '
