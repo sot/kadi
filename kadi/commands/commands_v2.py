@@ -434,7 +434,8 @@ def get_state_cmds(cmds):
         'AONM2NPE',
         'AONM2NPD']
 
-    vals = [val.encode('ascii') for val in state_tlmsids]
+    if cmds['tlmsid'].dtype.kind == 'S':
+        vals = [val.encode('ascii') for val in state_tlmsids]
     ok = np.isin(cmds['tlmsid'], vals)
     ok |= cmds['type'] == 'SIMTRANS'
     cmds = cmds[ok]
