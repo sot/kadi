@@ -60,6 +60,7 @@ def set_detector_and_sim_offset(aca, simpos):
 
 def set_fid_ids(aca):
     from proseco.fid import get_fid_positions
+    from kadi.commands import conf
     fid_yangs, fid_zangs = get_fid_positions(
         detector=aca.detector, focus_offset=0, sim_offset=aca.sim_offset)
 
@@ -69,9 +70,11 @@ def set_fid_ids(aca):
         zang = aca['zang'][idx_aca]
         dys = np.abs(yang - fid_yangs)
         dzs = np.abs(zang - fid_zangs)
-        # Match with a very loose tolerance of 30 arcsec. The fids are widely
-        # spaced and there was a ~20 arcsec change in fid positions in 2007.
-        idxs_fid = np.where((dys < 30) & (dzs < 30))[0]
+        # Match fid positions in a box. Default is a very loose tolerance of 40
+        # arcsec. The fids are widely spaced and there was a ~20 arcsec change
+        # in fid positions in 2007.
+        halfw = conf.fid_id_match_halfwidth
+        idxs_fid = np.where((dys < halfw) & (dzs < halfw))[0]
         n_idxs_fid = len(idxs_fid)
         if n_idxs_fid == 1:
             aca[idx_aca]['id'] = idxs_fid[0] + 1
@@ -94,6 +97,7 @@ def set_star_ids(aca):
     """
     from chandra_aca.transform import radec_to_yagzag
     from Quaternion import Quat
+    from kadi.commands import conf
     q_att = Quat(aca.att)
     stars = get_agasc_cone_fast(q_att.ra, q_att.dec, radius=1.2, date=aca.date)
     yang_stars, zang_stars = radec_to_yagzag(stars['RA_PMCORR'], stars['DEC_PMCORR'], q_att)
@@ -103,8 +107,10 @@ def set_star_ids(aca):
         zang = aca['zang'][idx_aca]
         dys = np.abs(yang - yang_stars)
         dzs = np.abs(zang - zang_stars)
-        # Get the brightest star within a 5 arcsec box.
-        ok = (dys < 5) & (dzs < 5)
+
+        # Get the brightest star within a box (default = 5 arcsec halfwidth)
+        halfw = conf.star_id_match_halfwidth
+        ok = (dys < halfw) & (dzs < halfw)
         if np.any(ok):
             idx = np.argmin(stars['MAG_ACA'][ok])
             aca[idx_aca]['id'] = stars['AGASC_ID'][ok][idx]
@@ -162,7 +168,7 @@ def convert_aostrcat_to_acatable(obs, params):
     return aca
 
 
-def get_starcats(obsid=None, *, start=None, stop=None, set_ids=True, scenario=None):
+def get_starcats(obsid=None, *, start=None, stop=None, set_ids=True, scenario=None, cmds=None):
     """Get star catalogs corresponding to input parameters.
 
     The ``obsid``, ``start``, and ``stop`` parameters serve as matching filters
@@ -179,6 +185,14 @@ def get_starcats(obsid=None, *, start=None, stop=None, set_ids=True, scenario=No
 
     The ``mag`` column corresponds to the AGASC magnitude *without* the AGASC
     supplement.
+
+    Star ID's are determined by finding the brightest AGASC star within a search
+    box centered at the catalog location. The search box is 5 arcsec halfwidth
+    in size, but it can be changed by setting the ``star_id_match_halfwidth``
+    configuration parameter. Fid ID's are determined similarly by computing fid
+    locations given the commanded SIM-Z position. The default box size is 25
+    arcsec halfwidth, but it can be changed by setting the
+    ``fid_id_match_halfwidth`` configuration parameter.
 
     Note that the first instance of running this will be slow because it caches
     various data structures. Subsequent calls are much faster.
@@ -204,28 +218,26 @@ def get_starcats(obsid=None, *, start=None, stop=None, set_ids=True, scenario=No
             1    10 31982136  ACQ  6x6   10.19   11.70   562.06  -186.39    20     1
             2    11 32375384  ACQ  6x6    9.79   11.30  1612.28  -428.24    20     1]
 
-    :param obsid: int, None
-        ObsID
-    :param start: CxoTime-like, None
-        Start time (default=beginning of commands)
-    :param stop: CxoTime-like, None
-        Stop time (default=end of commands)
-    :param set_ids: bool, True
-        Set star and fid IDs
-    :param scenario: str, None
-        Scenario
-    :returns: list of ACATable
-        List star catalogs for matching observations.
+    :param obsid: int, None ObsID
+    :param start: CxoTime-like, None Start time (default=beginning of commands)
+    :param stop: CxoTime-like, None Stop time (default=end of commands)
+    :param set_ids: bool, True Set star and fid IDs
+    :param scenario: str, None Scenario
+    :param cmds: CommandTable, None Use this command table instead of querying
+        the archive.
+    :returns: list of ACATable List star catalogs for matching observations.
     """
     from kadi.commands.commands_v2 import REV_PARS_DICT
     from kadi.commands.core import decode_starcat_params
 
-    obss = get_observations(obsid=obsid, start=start, stop=stop, scenario=scenario)
+    obss = get_observations(obsid=obsid, start=start, stop=stop,
+                            scenario=scenario, cmds=cmds)
     starcats = []
+    rev_pars_dict = REV_PARS_DICT if cmds is None else cmds.rev_pars_dict()
     for obs in obss:
         if (idx := obs.get('starcat_idx')) is None:
             continue
-        params = REV_PARS_DICT[idx]
+        params = rev_pars_dict[idx]
         if isinstance(params, bytes):
             params = decode_starcat_params(params)
         starcat = convert_aostrcat_to_acatable(obs, params)
@@ -239,7 +251,7 @@ def get_starcats(obsid=None, *, start=None, stop=None, set_ids=True, scenario=No
     return starcats
 
 
-def get_observations(obsid=None, *, start=None, stop=None, scenario=None):
+def get_observations(obsid=None, *, start=None, stop=None, scenario=None, cmds=None):
     """Get observations corresponding to input parameters.
 
     The ``obsid``, ``start``, and ``stop`` parameters serve as matching filters
@@ -282,6 +294,8 @@ def get_observations(obsid=None, *, start=None, stop=None, scenario=None):
         Stop time (default=end of commands)
     :param scenario: str, None
         Scenario
+    :param cmds: CommandTable, None
+        Use this command table instead of querying the archive.
     :returns: list of dict
         Observation parameters for matching observations.
     """
@@ -292,21 +306,24 @@ def get_observations(obsid=None, *, start=None, stop=None, scenario=None):
         # Commands never extend more than 60 days in the future
         stop = (CxoTime.now() + 60 * u.day).date
 
-    if scenario not in OBSERVATIONS:
-        cmds = get_cmds(scenario=scenario)
-        cmds_obs = cmds[cmds['tlmsid'] == 'OBS']
-        obsids = []
-        for cmd in cmds_obs:
-            if cmd['params'] is None:
-                _obsid = cmd['obsid']
-            else:
-                _obsid = cmd['params']['obsid']
-            obsids.append(_obsid)
+    if cmds is None:
+        if scenario not in OBSERVATIONS:
+            cmds = get_cmds(scenario=scenario)
+            cmds_obs = cmds[cmds['tlmsid'] == 'OBS']
+            obsids = []
+            for cmd in cmds_obs:
+                if cmd['params'] is None:
+                    _obsid = cmd['obsid']
+                else:
+                    _obsid = cmd['params']['obsid']
+                obsids.append(_obsid)
 
-        cmds_obs['obsid'] = obsids
-        OBSERVATIONS[scenario] = cmds_obs
+            cmds_obs['obsid'] = obsids
+            OBSERVATIONS[scenario] = cmds_obs
+        else:
+            cmds_obs = OBSERVATIONS[scenario]
     else:
-        cmds_obs = OBSERVATIONS[scenario]
+        cmds_obs = cmds[cmds['tlmsid'] == 'OBS']
 
     i0, i1 = cmds_obs.find_date([start, stop])
     cmds_obs = cmds_obs[i0:i1]

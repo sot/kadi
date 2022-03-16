@@ -5,7 +5,6 @@ import difflib
 import os
 from pathlib import Path
 import calendar
-import platform
 import re
 import gzip
 import pickle
@@ -24,7 +23,7 @@ from Chandra.Maneuver import NSM_attitude
 
 
 from kadi.commands import get_cmds_from_backstop, conf
-from kadi.commands.core import (decode_starcat_params, load_idx_cmds, load_pars_dict, LazyVal,
+from kadi.commands.core import (load_idx_cmds, load_pars_dict, LazyVal,
                                 get_par_idx_update_pars_dict, _find, vstack_exact,
                                 ska_load_dir, CommandTable, load_name_to_cxotime)
 from kadi.commands.command_sets import get_cmds_from_event
@@ -377,7 +376,7 @@ def update_archive_and_get_cmds_recent(scenario=None, *, lookback=None, stop=Non
     return cmds_recent
 
 
-def add_obs_cmds(cmds, pars_dict, rev_pars_dict):
+def add_obs_cmds(cmds, pars_dict, rev_pars_dict, prev_att=None):
     """Add LOAD_EVENT OBS commands with info about observations.
 
     This command includes the following:
@@ -390,6 +389,12 @@ def add_obs_cmds(cmds, pars_dict, rev_pars_dict):
     - starcat_idx: index of starcat in reversed params dict
 
     :param cmds_recent: CommandTable
+    :param pars_dict: dict
+        Dictionary of parameters from the command table.
+    :param rev_pars_dict: dict
+        Dictionary of parameters from the command table, with keys reversed.
+    :param prev_att: tuple
+        Continuity attitude. If not supplied the first obs is dropped.
     :returns: CommandTable with added OBS commands
     """
     # Last command in cmds is the schedule stop time (i.e. obs_stop for the
@@ -403,7 +408,7 @@ def add_obs_cmds(cmds, pars_dict, rev_pars_dict):
     # Get a table of OBS cmds corresponding to the end of each maneuver. For the
     # first pass this only has maneuver info that is known at the point of
     # starting the maneuver.
-    cmds_obs = get_cmds_obs_from_manvrs(cmds_state)
+    cmds_obs = get_cmds_obs_from_manvrs(cmds_state, prev_att)
 
     # Put the OBS cmds into the state cmds table and then do the second pass to
     # determine obsid, starcat, etc at the end of the maneuver (i.e. at the
@@ -443,7 +448,7 @@ def get_state_cmds(cmds):
     return cmds
 
 
-def get_cmds_obs_from_manvrs(cmds):
+def get_cmds_obs_from_manvrs(cmds, prev_att=None):
     """Get OBS commands corresponding to the end of each maneuver.
 
     This is the first pass of getting OBS commands, keying off each maneuver.
@@ -452,9 +457,10 @@ def get_cmds_obs_from_manvrs(cmds):
     maneuver end (obs start), all the state-changing commands have occurred.
 
     :param cmds: CommandTable of state-changing commands.
+    :param prev_att: tuple
+        Previous attitude (q1, q2, q3, q4)
     :returns: CommandTable of OBS commands.
     """
-    prev_att = None
     targ_att = None
     npnt_enab = False
 
@@ -1177,129 +1183,3 @@ def convert_aostrcat_to_acatable(params):
     out.add_column(np.arange(1, max_idx), index=1, name='idx')
 
     return out
-
-
-def get_starcats(obsid=None, start=None, stop=None, scenario=None):
-    """Get star catalogs corresponding to input parameters.
-
-    The ``obsid``, ``start``, and ``stop`` parameters serve as matching filters
-    on the list of star catalogs that is returned.
-
-    There are numerous instances of multiple observations with the same obsid,
-    so this function always returns a list of star catalogs even when ``obsid``
-    is specified. In most cases you can just use the first element.
-
-    Example::
-
-        >>> from kadi.commands import get_starcats
-        >>> cat = get_starcats(obsid=8008)[0]
-        >>> cat
-        <ACATable length=11>
-        slot  idx  type  sz   maxmag   yang     zang    dim   res
-        int64 int64 str3 str3 float64 float64  float64  int64 int64
-        ----- ----- ---- ---- ------- -------- -------- ----- -----
-            0     1  FID  8x8    8.00   937.71  -829.17     1     1
-            1     2  FID  8x8    8.00 -1810.42  1068.87     1     1
-            2     3  FID  8x8    8.00   403.68  1712.93     1     1
-            3     4  BOT  6x6   10.86  -318.22  1202.41    20     1
-            4     5  BOT  6x6   11.20  -932.79  -354.55    20     1
-            5     6  BOT  6x6   10.97  2026.85  1399.61    20     1
-            6     7  BOT  6x6   10.14   890.71 -1600.39    20     1
-            7     8  BOT  6x6   10.66  2023.08 -2021.72    13     1
-            0     9  ACQ  6x6   10.64    54.04   754.79    20     1
-            1    10  ACQ  6x6   11.70   562.06  -186.39    20     1
-            2    11  ACQ  6x6   11.30  1612.28  -428.24    20     1
-
-    :param obsid: int, None
-        ObsID
-    :param start: CxoTime-like, None
-        Start time (default=beginning of commands)
-    :param stop: CxoTime-like, None
-        Stop time (default=end of commands)
-    :param scenario: str, None
-        Scenario
-    :returns: list of ACATable
-        List star catalogs for matching observations.
-    """
-    obss = get_observations(obsid=obsid, start=start, stop=stop, scenario=scenario)
-    starcats = []
-    for obs in obss:
-        if (idx := obs.get('starcat_idx')) is None:
-            continue
-        params = REV_PARS_DICT[idx]
-        if isinstance(params, bytes):
-            params = decode_starcat_params(params)
-        starcat = convert_aostrcat_to_acatable(params)
-        starcats.append(starcat)
-    return starcats
-
-
-OBSERVATIONS = {}
-
-
-def get_observations(obsid=None, start=None, stop=None, scenario=None):
-    """Get observations corresponding to input parameters.
-
-    The ``obsid``, ``start``, and ``stop`` parameters serve as matching filters
-    on the list of observations that is returned.
-
-    There are numerous instances of multiple observations with the same obsid,
-    so this function always returns a list of observation parameters even when
-    ``obsid`` is specified. In most cases you can just use the first element.
-
-    Examples::
-
-        >>> from kadi.commands import get_observations
-        >>> obs = get_observations(obsid=8008)[0]
-        >>> obs
-        {'obsid': 8008,
-        'simpos': 92904,
-        'obs_stop': '2007:002:18:04:28.965',
-        'manvr_start': '2007:002:04:31:48.216',
-        'targ_att': (0.149614271, 0.490896707, 0.831470649, 0.21282047),
-        'npnt_enab': True,
-        'obs_start': '2007:002:04:46:58.056',
-        'prev_att': (0.319214732, 0.535685207, 0.766039803, 0.155969017),
-        'starcat_idx': 144398}
-
-        >>> obs_all = get_observations()  # All observations in commands archive
-
-        # Might be convenient to handle this as a Table
-        >>> from astropy.table import Table
-        >>> obs_all = Table(obs_all)
-
-    :param obsid: int, None
-        ObsID
-    :param start: CxoTime-like, None
-        Start time (default=beginning of commands)
-    :param stop: CxoTime-like, None
-        Stop time (default=end of commands)
-    :param scenario: str, None
-        Scenario
-    :returns: list of dict
-        Observation parameters for matching observations.
-    """
-    if start is None:
-        start = '1999:001'
-    if stop is None:
-        # Commands never extend more than 60 days in the future
-        stop = (CxoTime.now() + 60 * u.day).date
-
-    if scenario not in OBSERVATIONS:
-        cmds = get_cmds(scenario=scenario)
-        cmds_obs = cmds[cmds['tlmsid'] == 'OBS']
-        OBSERVATIONS[scenario] = cmds_obs
-    else:
-        cmds_obs = OBSERVATIONS[scenario]
-
-    i0, i1 = cmds_obs.find_date([start, stop])
-    cmds_obs = cmds_obs[i0:i1]
-
-    if obsid is not None:
-        cmds_obs = cmds_obs[cmds_obs['obsid'] == obsid]
-        if len(cmds_obs) == 0:
-            raise ValueError(f'No matching observations for {obsid=}')
-
-    obss = [cmd['params'] for cmd in cmds_obs]
-
-    return obss

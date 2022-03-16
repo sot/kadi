@@ -40,6 +40,16 @@ class Conf(ConfigNamespace):
         '19d6XqBhWoFjC-z1lS1nM6wLE_zjr4GYB1lOvrEGCbKQ',
         'Google Sheet ID for command events (flight scenario).'
     )
+    
+    star_id_match_halfwidth = ConfigItem(
+        5,
+        'Half-width box size of star ID match for get_starcats() (arcsec).'
+    )
+
+    fid_id_match_halfwidth = ConfigItem(
+        40,
+        'Half-width box size of fid ID match for get_starcats() (arcsec).'
+    )
 
 
 # Create a configuration instance for the user
