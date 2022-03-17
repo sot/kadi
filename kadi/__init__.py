@@ -24,20 +24,19 @@ def _get_kadi_logger():
 logger = _get_kadi_logger()
 
 
-import astropy.config as astropyconfig
-
-
-class ConfigNamespace(astropyconfig.ConfigNamespace):
-    rootname = 'kadi'
-
-
-class ConfigItem(astropyconfig.ConfigItem):
-    rootname = 'kadi'
-
-
 def test(*args, **kwargs):
     '''
     Run py.test unit tests.
     '''
     import testr
     return testr.test(*args, **kwargs)
+
+
+def create_config_file(overwrite=False):
+    """Create the configuration file for the kadi package.
+
+    :param overwrite: bool
+        Force updating the file if it already exists.
+    """
+    from astropy import config
+    return config.create_config_file(pkg='kadi', rootname='kadi', overwrite=overwrite)

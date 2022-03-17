@@ -3,7 +3,8 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-from kadi import ConfigNamespace, ConfigItem
+from astropy.config import ConfigNamespace
+from kadi.config import ConfigItem
 
 
 class Conf(ConfigNamespace):
@@ -40,7 +41,7 @@ class Conf(ConfigNamespace):
         '19d6XqBhWoFjC-z1lS1nM6wLE_zjr4GYB1lOvrEGCbKQ',
         'Google Sheet ID for command events (flight scenario).'
     )
-    
+
     star_id_match_halfwidth = ConfigItem(
         5,
         'Half-width box size of star ID match for get_starcats() (arcsec).'
