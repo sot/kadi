@@ -198,14 +198,14 @@ def get_cmds(start=None, stop=None, inclusive_stop=False, scenario=None, **kwarg
     """
     scenario = os.environ.get('KADI_SCENARIO', scenario)
     start = CxoTime(start or '1999:001')
-    stop_date = CxoTime(stop).date if stop else '2099:001'
+    stop = (CxoTime.now() + 1 * u.year) if stop is None else CxoTime(stop)
 
     # Default stop is either now (typically) or set by env var
     default_stop = CxoTime(os.environ.get('KADI_COMMANDS_DEFAULT_STOP'))
 
     # For flight scenario or no internet or if the query stop time is guaranteed
     # to not require recent commands then just use the archive.
-    before_recent_cmds = stop_date < (default_stop - conf.default_lookback * u.day).date
+    before_recent_cmds = stop < default_stop - conf.default_lookback * u.day
     if scenario == 'flight' or not HAS_INTERNET or before_recent_cmds:
         cmds = IDX_CMDS
         logger.info('Getting commands from archive only')
@@ -219,7 +219,7 @@ def get_cmds(start=None, stop=None, inclusive_stop=False, scenario=None, **kwarg
 
         # Get `cmds` as correct mix of recent and archive commands that contains
         # the requested date range.
-        if stop_date < cmds_recent['date'][0]:
+        if stop.date < cmds_recent['date'][0]:
             # Query does not overlap with recent commands, just use archive.
             logger.info('Getting commands from archive only')
             cmds = IDX_CMDS
@@ -237,7 +237,7 @@ def get_cmds(start=None, stop=None, inclusive_stop=False, scenario=None, **kwarg
     # Select the requested time range and make a copy. (Slicing is a view so
     # in theory bad things could happen without a copy).
     idx0 = cmds.find_date(start)
-    idx1 = cmds.find_date(stop_date, side=('right' if inclusive_stop else 'left'))
+    idx1 = cmds.find_date(stop, side=('right' if inclusive_stop else 'left'))
     cmds = cmds[idx0:idx1].copy()
 
     if kwargs:

@@ -305,6 +305,8 @@ def get_observations(obsid=None, *, start=None, stop=None, scenario=None, cmds=N
     if stop is None:
         # Commands never extend more than 60 days in the future
         stop = (CxoTime.now() + 60 * u.day).date
+    start = CxoTime(start)
+    stop = CxoTime(stop)
 
     if cmds is None:
         if scenario not in OBSERVATIONS:
@@ -325,7 +327,7 @@ def get_observations(obsid=None, *, start=None, stop=None, scenario=None, cmds=N
     else:
         cmds_obs = cmds[cmds['tlmsid'] == 'OBS']
 
-    i0, i1 = cmds_obs.find_date([start, stop])
+    i0, i1 = cmds_obs.find_date([start.date, stop.date])
     cmds_obs = cmds_obs[i0:i1]
 
     if obsid is not None:
