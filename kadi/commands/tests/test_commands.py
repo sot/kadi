@@ -3,6 +3,7 @@ import os
 
 import numpy as np
 from astropy.table import Table
+import astropy.units as u
 import pytest
 
 # Use data file from parse_cm.test for get_cmds_from_backstop test.
@@ -598,11 +599,11 @@ def test_get_observations_by_obsid_multi():
 
 
 def test_get_observations_by_start_date():
-    # Test observations from a specific date onward
-    obss = get_observations(start='2022:001')
-    assert len(obss) > 233
-    assert obss[0]['obsid'] == 45814
-    assert obss[0]['obs_start'] == '2022:001:05:48:44.808'
+    # Test observations from a 6 months ago onward
+    obss = get_observations(start=CxoTime.now() - 180 * u.day)
+    assert len(obss) > 500
+    # Latest obs should also be no less than 14 days old
+    assert obss[-1]['obs_start'] > (CxoTime.now() - 14 * u.day).date
 
 
 def test_get_observations_by_start_stop_date_with_scenario():
@@ -621,3 +622,45 @@ def test_get_observations_no_match():
 
     obss = get_observations(start='2022:001', stop='2022:001', scenario='flight')
     assert len(obss) == 0
+
+
+years = np.arange(2003, CxoTime.now().ymdhms.year + 1)
+
+
+@pytest.mark.parametrize('year', years)
+def test_get_starcats_each_year(year):
+    starcats = get_starcats(start=f'{year}:001', stop=f'{year}:004')
+    assert len(starcats) > 2
+    for starcat in starcats:
+        # Make sure fids and stars are all ID'd
+        ok = starcat['type'] != 'MON'
+        assert np.all(starcat['id'][ok] != -999)
+
+
+def test_get_starcats_with_cmds():
+    cmds = commands_v2.get_cmds(start='2022:001', stop='2022:002')
+    starcats0 = get_starcats(start='2022:001', stop='2022:002')
+    starcats1 = get_starcats(cmds=cmds)
+    assert len(starcats0) == len(starcats1)
+    for starcat0, starcat1 in zip(starcats0, starcats1):
+        eq = starcat0.values_equal(starcat1)
+        for col in eq.itercols():
+            assert np.all(col)
+
+
+def test_get_starcats_obsid():
+    from mica.starcheck import get_starcat
+    sc_kadi = get_starcats(obsid=26330)[0]
+    sc_mica = get_starcat(26330)
+    assert len(sc_kadi) == len(sc_mica)
+    assert sc_kadi.colnames == ['slot', 'idx', 'id', 'type', 'sz', 'mag',
+                                'maxmag', 'yang', 'zang', 'dim', 'res']
+    for name in sc_kadi.colnames:
+        if name == 'mag':
+            continue  # kadi mag is latest from agasc, could change
+        elif name == 'maxmag':
+            assert np.allclose(sc_kadi[name], sc_mica[name], atol=0.001, rtol=0)
+        elif name in ('yang', 'zang'):
+            assert np.all(np.abs(sc_kadi[name] - sc_mica[name]) < 1)
+        else:
+            assert np.all(sc_kadi[name] == sc_mica[name])
