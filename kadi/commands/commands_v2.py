@@ -197,7 +197,7 @@ def get_cmds(start=None, stop=None, inclusive_stop=False, scenario=None, **kwarg
     :returns: CommandTable
     """
     scenario = os.environ.get('KADI_SCENARIO', scenario)
-    start = CxoTime(start or '1999:001')
+    start = CxoTime('1999:001' if start is None else start)
     stop = (CxoTime.now() + 1 * u.year) if stop is None else CxoTime(stop)
 
     # Default stop is either now (typically) or set by env var

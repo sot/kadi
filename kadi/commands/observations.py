@@ -300,13 +300,8 @@ def get_observations(obsid=None, *, start=None, stop=None, scenario=None, cmds=N
         Observation parameters for matching observations.
     """
     from kadi.commands.commands_v2 import get_cmds
-    if start is None:
-        start = '1999:001'
-    if stop is None:
-        # Commands never extend more than 60 days in the future
-        stop = (CxoTime.now() + 60 * u.day).date
-    start = CxoTime(start)
-    stop = CxoTime(stop)
+    start = CxoTime('1999:001' if start is None else start)
+    stop = (CxoTime.now() + 1 * u.year) if stop is None else CxoTime(stop)
 
     if cmds is None:
         if scenario not in OBSERVATIONS:
