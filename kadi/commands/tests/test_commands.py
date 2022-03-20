@@ -664,3 +664,18 @@ def test_get_starcats_obsid():
             assert np.all(np.abs(sc_kadi[name] - sc_mica[name]) < 1)
         else:
             assert np.all(sc_kadi[name] == sc_mica[name])
+
+
+@pytest.mark.parametrize(
+    'par_str', ['ACISPKT|  TLmSID= aa0000000 par1 = 1    par2=-1.0',
+                'AcisPKT|TLmSID=AA0000000 par1=1 par2=-1.0',
+                'ACISPKT|  TLmSID = aa0000000  par1  =1    par2 =  -1.0'])
+def test_get_cmds_from_event(par_str):
+    cmds = get_cmds_from_event('2022:001', 'Command', par_str)
+    assert len(cmds) == 1
+    cmd = cmds[0]
+    assert cmd['type'] == 'ACISPKT'
+    assert cmd['params'] == {'event': 'Command',
+                             'event_date': '2022:001:00:00:00',
+                             'par1': 1,
+                             'par2': -1.0}

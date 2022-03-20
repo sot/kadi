@@ -152,15 +152,17 @@ def cmd_set_observing_not_run(load_name, date=None):
 
 
 def cmd_set_command(*args, date=None):
-    cmd = {'type': args[0]}
+    params_str = args[0]
+    cmd_type, args_str = params_str.split('|', 1)
+    cmd = {'type': cmd_type.strip().upper()}
+
+    # Strip spaces around equals signs and uppercase args (note that later the
+    # keys are lowercased).
+    args_str = re.sub(r'\s*=\s*', '=', args_str).upper()
 
     params = {}
-    for param in args[1:]:
-        if param == '|':
-            continue
-        param = re.sub(r'\s+', '', param)
+    for param in args_str.split():
         key, val = param.split('=')
-        key = key.upper()
         if key == 'TLMSID':
             cmd['tlmsid'] = val
         else:
@@ -191,6 +193,9 @@ def get_cmds_from_event(date, event, params_str):
 
     if isinstance(params_str, str):
         if event == 'RTS':
+            args = [params_str]
+        elif event == 'Command':
+            # Delegate parsing to cmd_set_command
             args = [params_str]
         else:
             params_str = params_str.upper().split()
