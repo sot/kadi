@@ -595,7 +595,7 @@ def test_reduce_states_cmd_states():
 
 def compare_backstop_history(history, state_key, compare_val=True):
     hist = ascii.read(history, guess=False, format='no_header',
-                      converters={'col1': [ascii.convert_numpy(np.str)]})
+                      converters={'col1': [ascii.convert_numpy(str)]})
     start = DateTime(hist['col1'][0], format='greta') - 1 / 86400.
     stop = DateTime(hist['col1'][-1], format='greta') + 1 / 86400.
     sts = states.get_states(start=start, stop=stop, state_keys=state_key)
