@@ -145,6 +145,8 @@ def convert_aostrcat_to_acatable(obs, params):
     :returns: ACATable
     """
     from proseco.catalog import ACATable
+    from proseco.acq import AcqTable
+    from proseco.guide import GuideTable
     from Chandra.Time import date2secs
 
     for idx in range(1, 17):
@@ -158,12 +160,23 @@ def convert_aostrcat_to_acatable(obs, params):
             cols[col_name].append(func(params[par_name + str(idx)]))
 
     aca = ACATable(cols)
+    aca.acqs = AcqTable()
+    aca.guides = GuideTable()
     aca.add_column(np.arange(1, max_idx), index=1, name='idx')
 
     aca.obsid = obs['obsid']
     aca.att = obs['targ_att']
     aca.date = obs['obs_start']
     aca.duration = date2secs(obs['obs_stop']) - date2secs(obs['obs_start'])
+
+    # Make the catalog more complete and provide stuff temps needed for plot()
+    aca.t_ccd = -20.0
+    aca.acqs.t_ccd = -20.0
+    aca.guides.t_ccd = -20.0
+
+    halfws = 20 + np.where(aca['res'], 5, 40) * aca['dim']
+    halfws[aca['type'] == 'MON'] = 25
+    aca['halfw'] = halfws
 
     return aca
 

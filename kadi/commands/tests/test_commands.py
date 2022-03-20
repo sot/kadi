@@ -654,7 +654,7 @@ def test_get_starcats_obsid():
     sc_mica = get_starcat(26330)
     assert len(sc_kadi) == len(sc_mica)
     assert sc_kadi.colnames == ['slot', 'idx', 'id', 'type', 'sz', 'mag',
-                                'maxmag', 'yang', 'zang', 'dim', 'res']
+                                'maxmag', 'yang', 'zang', 'dim', 'res', 'halfw']
     for name in sc_kadi.colnames:
         if name == 'mag':
             continue  # kadi mag is latest from agasc, could change
