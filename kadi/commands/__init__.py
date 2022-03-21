@@ -16,12 +16,12 @@ class Conf(ConfigNamespace):
         'Default lookback for previous approved loads (days).'
     )
     cache_loads_in_astropy_cache = ConfigItem(
-        True,
+        False,
         'Cache backstop downloads in the astropy cache. Should typically be False, '
         'but useful during development to avoid re-downloading backstops.'
     )
     clean_loads_dir = ConfigItem(
-        False,
+        True,
         'Clean backstop loads (like APR1421B.pkl.gz) in the loads directory that are '
         'older than the default lookback. Most users will want this to be True, but '
         'for development or if you always want a copy of the loads set to False.'
