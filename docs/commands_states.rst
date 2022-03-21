@@ -197,7 +197,8 @@ Version 2 of the commands archive is currently provided as an experimental
 release to allow getting experience with the new interface.
 
 For details of the commands v2 archive, including important information about
-the content and timeliness of commands, please see:
+network access, the timeliness of commands, configuration and process details,
+please see:
 
 .. toctree::
    :maxdepth: 2
@@ -213,9 +214,10 @@ In order to use the v2 version do the following::
   >>> from kadi import commands
   >>> commands.conf.commands_archive_version = "2"  # must be the string "2" not int 2
 
-An alternative is to set the `KADI_COMMANDS_VERSION` environment variable to `2`.
-This will globally apply to all subsequent Python sessions that inherit this
-environment. For example from a linux/Mac bash command shell you can enter::
+An alternative is to set the ``KADI_COMMANDS_VERSION`` environment variable to
+``2``. This will globally apply to all subsequent Python sessions that inherit
+this environment. For example from a linux/Mac bash command shell you can
+enter::
 
   $ export KADI_COMMANDS_VERSION=2
 

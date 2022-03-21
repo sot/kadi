@@ -20,6 +20,9 @@ Commands
 .. automodule:: kadi.commands.commands
    :members:
 
+.. automodule:: kadi.commands.observations
+   :members:
+
 Command states
 --------------
 
