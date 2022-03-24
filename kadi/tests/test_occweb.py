@@ -2,14 +2,7 @@
 from pathlib import Path
 import os
 import uuid
-
-# See https://github.com/paramiko/paramiko/issues/735.  Without this
-# hack the module-level call to Ska.ftp.SFTP('lucky') hangs during
-# test collection by pytest.  Note that this does not work with
-# paramiko 2.0.0.
-from paramiko import py3compat
 import requests
-py3compat.u('dirty hack')
 
 import Ska.ftp
 import Ska.File
