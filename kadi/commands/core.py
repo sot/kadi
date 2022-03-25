@@ -225,9 +225,19 @@ def _find(start=None, stop=None, inclusive_stop=False, idx_cmds=None,
         Start time, defaults to beginning of available commands (2002:001)
     :param stop: CxoTime format (optional)
         Stop time, defaults to end of available commands
-    :param kwargs: key=val keyword argument pairs
+    :param include_stop: bool (optional)
+        If True, find commands with ``date <= stop``, otherwise ``date < stop``.
+    :param idx_cmds: CommandTable-like
+        Table of commands from the commands archive HDF5 file (e.g. ``cmds2.h5``).
+        In reality this is a ``LazyVal`` which encapsulates a ``CommandTable``.
+    :param pars_dict: dict-like
+        Dict mapping a command parameters tuple to the index in the commands
+        archive params pickle file.  This is a ``LazyVal`` which encapsulates a
+        dict.
+    :param **kwargs: dict
+        Additional key=val keyword argument pairs to filter the results.
 
-    :returns: astropy Table of commands
+    :returns: ``CommandTable`` of commands
     """
     ok = np.ones(len(idx_cmds), dtype=bool)
     par_ok = np.zeros(len(idx_cmds), dtype=bool)

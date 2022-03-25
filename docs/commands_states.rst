@@ -214,7 +214,7 @@ Getting commands
 In order to use the v2 version do the following::
 
   >>> from kadi import commands
-  >>> commands.conf.commands_archive_version = "2"  # must be the string "2" not int 2
+  >>> commands.conf.commands_version = "2"  # must be the string "2" not int 2
 
 An alternative is to set the ``KADI_COMMANDS_VERSION`` environment variable to
 ``2``. This will globally apply to all subsequent Python sessions that inherit
