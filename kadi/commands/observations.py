@@ -89,7 +89,7 @@ def set_fid_ids(aca):
 def set_star_ids(aca):
     """Find the star ID for each star in the ACA.
 
-    This set the ID in-place to the brightest star within 5 arcsec of the
+    This set the ID in-place to the brightest star within 1.5 arcsec of the
     commanded position.
 
     :param aca: ACATable
@@ -108,7 +108,7 @@ def set_star_ids(aca):
         dys = np.abs(yang - yang_stars)
         dzs = np.abs(zang - zang_stars)
 
-        # Get the brightest star within a box (default = 5 arcsec halfwidth)
+        # Get the brightest star within a box (default = 1.5 arcsec halfwidth)
         halfw = conf.star_id_match_halfwidth
         ok = (dys < halfw) & (dzs < halfw)
         if np.any(ok):
@@ -200,10 +200,10 @@ def get_starcats(obsid=None, *, start=None, stop=None, set_ids=True, scenario=No
     supplement.
 
     Star ID's are determined by finding the brightest AGASC star within a search
-    box centered at the catalog location. The search box is 5 arcsec halfwidth
+    box centered at the catalog location. The search box is 1.5 arcsec halfwidth
     in size, but it can be changed by setting the ``star_id_match_halfwidth``
     configuration parameter. Fid ID's are determined similarly by computing fid
-    locations given the commanded SIM-Z position. The default box size is 25
+    locations given the commanded SIM-Z position. The default box size is 40
     arcsec halfwidth, but it can be changed by setting the
     ``fid_id_match_halfwidth`` configuration parameter.
 
