@@ -92,9 +92,6 @@ Custom scenario example
 This example shows the steps to programmatically add an ACIS CTI in the midst
 of the 2021:296 NSM recovery::
 
-    # For Ska3 2022.2 this is necessary
-    >>> import sys
-    >>> sys.path.insert(0, '/Users/aldcroft/git/parse_cm')
 
     >>> from kadi import paths
     >>> from kadi.commands import conf, get_cmds

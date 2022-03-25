@@ -21,8 +21,7 @@ def cmd_set_rts(*args, date=None):
 
 
 def cmd_set_obsid(obs_id, date=None):
-    """Return a command set that initiates a maneuver to the given attitude
-    ``att``.
+    """Return a command set that updates the commanded ObsID.
 
     :param obsid: obsid
     :returns: list of command defs suitable for generate_cmds()
@@ -180,11 +179,12 @@ def cmd_set_command_not_run(*args, date=None):
 
 def get_cmds_from_event(date, event, params_str):
     r"""
-    Return a predefined cmd_set ``name`` generated with \*args.
+    Return a predefined cmd_set ``name`` corresponding to the given event.
 
-    :param name: cmd set name (manvr|scs107|nsm)
-    :param \*args: optional args
-    :returns: list of dict with commands
+    :param date: str, command event date
+    :param event: str, command event name (e.g. 'Obsid', 'SCS-107', 'Maneuver')
+    :param params_str: str, command event parameters string
+    :returns: ``CommandTable`` with commands
     """
     event_func_name = event.lower().replace(' ', '_').replace('-', '')
     event_func = globals().get('cmd_set_' + event_func_name)

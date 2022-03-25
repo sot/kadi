@@ -43,7 +43,7 @@ class Conf(ConfigNamespace):
     )
 
     star_id_match_halfwidth = ConfigItem(
-        5,
+        1.5,
         'Half-width box size of star ID match for get_starcats() (arcsec).'
     )
 
