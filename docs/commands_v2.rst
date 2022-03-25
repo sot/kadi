@@ -218,7 +218,7 @@ Environment variables
 
 ``KADI``
   Override the default location of kadi flight data files ``cmds2.h5`` and
-  ``cmds.pkl``.
+  ``cmds2.pkl``.
 
 ``KADI_COMMANDS_VERSION``
   Override the default kadi commands version. In order to use the commands
@@ -283,7 +283,7 @@ are stored in ``~/.kadi`` by default but the location is configurable.
 Web resources
 ^^^^^^^^^^^^^
 
-`Chandra Command Events`_ she Google sheet
+`Chandra Command Events`_ Google sheet
   Centralized repository which contains information about "command events" that
   impact the as-run commanding on Chandra. This document is viewable by anyone
   with the link but can be edited only by FOT mission planning, Flight Directors
