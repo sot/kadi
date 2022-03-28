@@ -709,13 +709,18 @@ def test_scenario_with_rts(monkeypatch):
 
     # Now read the commands from the custom scenario
     cmds = commands.get_cmds('2021:296:10:35:00', '2021:298:01:58:00', scenario='nsm-cti')
+    cmds.fetch_params()
+    for cmd in cmds:
+        if 'hex' in cmd['params']:
+            del cmd['params']['hex']
+
     exp = """\
-2021:296:10:35:00.000 | COMMAND_HW       | CIMODESL   | OCT1821A | hex=7C067C0, msid=CIU1024X, scs=128
-2021:296:10:35:00.257 | COMMAND_HW       | CTXAOF     | OCT1821A | hex=780000C, msid=CTXAOF, scs=128
-2021:296:10:35:00.514 | COMMAND_HW       | CPAAOF     | OCT1821A | hex=780001E, msid=CPAAOF, scs=128
-2021:296:10:35:00.771 | COMMAND_HW       | CTXBOF     | OCT1821A | hex=780004C, msid=CTXBOF, scs=128
-2021:296:10:35:01.028 | COMMAND_HW       | CPABON     | OCT1821A | hex=7800056, msid=CPABON, scs=128
-2021:296:10:35:01.285 | COMMAND_HW       | CTXBON     | OCT1821A | hex=7800044, msid=CTXBON, scs=128
+2021:296:10:35:00.000 | COMMAND_HW       | CIMODESL   | OCT1821A | msid=CIU1024X, scs=128
+2021:296:10:35:00.257 | COMMAND_HW       | CTXAOF     | OCT1821A | msid=CTXAOF, scs=128
+2021:296:10:35:00.514 | COMMAND_HW       | CPAAOF     | OCT1821A | msid=CPAAOF, scs=128
+2021:296:10:35:00.771 | COMMAND_HW       | CTXBOF     | OCT1821A | msid=CTXBOF, scs=128
+2021:296:10:35:01.028 | COMMAND_HW       | CPABON     | OCT1821A | msid=CPABON, scs=128
+2021:296:10:35:01.285 | COMMAND_HW       | CTXBON     | OCT1821A | msid=CTXBON, scs=128
 2021:296:10:41:57.000 | COMMAND_SW       | AONSMSAF   | CMD_EVT  | event=NSM, event_date=2021:296:10:41:57, scs=0
 2021:296:10:41:57.000 | COMMAND_SW       | OORMPDS    | CMD_EVT  | event=NSM, event_date=2021:296:10:41:57, scs=0
 2021:296:10:41:58.025 | COMMAND_HW       | AFIDP      | CMD_EVT  | event=NSM, event_date=2021:296:10:41:57, msid=AFLCRSET, scs=
@@ -763,11 +768,11 @@ def test_scenario_with_rts(monkeypatch):
 2021:298:00:12:42.886 | ORBPOINT         | None       | OCT2521A | event_type=XQF003M, scs=0
 2021:298:00:12:42.886 | ORBPOINT         | None       | OCT2521A | event_type=XQF013M, scs=0
 2021:298:01:57:00.000 | LOAD_EVENT       | None       | OCT2521B | event_type=RUNNING_LOAD_TERMINATION_TIME, scs=0
-2021:298:01:57:00.000 | COMMAND_SW       | AOACRSTD   | OCT2521B | hex=8032000, msid=AOACRSTD, scs=128
+2021:298:01:57:00.000 | COMMAND_SW       | AOACRSTD   | OCT2521B | msid=AOACRSTD, scs=128
 2021:298:01:57:00.000 | ACISPKT          | AA00000000 | OCT2521B | cmds=3, words=3, scs=131
 2021:298:01:57:03.000 | ACISPKT          | AA00000000 | OCT2521B | cmds=3, words=3, scs=131
-2021:298:01:57:33.000 | COMMAND_SW       | CODISASX   | OCT2521B | hex=8458700, msid=CODISASX, codisas1=135 , scs=131
-2021:298:01:57:34.000 | COMMAND_SW       | COCLRSX    | OCT2521B | hex=8468700, msid=COCLRSX, coclrs1=135 , scs=131"""  # noqa
+2021:298:01:57:33.000 | COMMAND_SW       | CODISASX   | OCT2521B | msid=CODISASX, codisas1=135 , scs=131
+2021:298:01:57:34.000 | COMMAND_SW       | COCLRSX    | OCT2521B | msid=COCLRSX, coclrs1=135 , scs=131"""  # noqa
 
     out = '\n'.join(cmds.pformat_like_backstop(max_params_width=60))
     assert out == exp
