@@ -679,3 +679,102 @@ def test_get_cmds_from_event(par_str):
                              'event_date': '2022:001:00:00:00',
                              'par1': 1,
                              'par2': -1.0}
+
+
+@pytest.mark.skipif(not HAS_INTERNET, reason='No internet connection')
+def test_scenario_with_rts(monkeypatch):
+    """Test a custom scenario with RTS. This is basically the same as the
+    example in the documentation."""
+    from kadi import paths
+
+    monkeypatch.setenv('KADI_COMMANDS_VERSION', '2')
+    monkeypatch.setenv('KADI_COMMANDS_DEFAULT_STOP', '2021:299')
+
+    # Ensure local cmd_events.csv is up to date by requesting "recent" commands
+    # relative to the default stop.
+    cmds = commands.get_cmds(start='2021:299')
+
+    path_flight = paths.CMD_EVENTS_PATH()
+    path_cti = paths.CMD_EVENTS_PATH(scenario='nsm-cti')
+    path_cti.parent.mkdir(exist_ok=True, parents=True)
+
+    # Make a new custom scenario from the flight version
+    events_flight = Table.read(path_flight)
+    cti_event = {'State': 'definitive', 'Date': '2021:297:13:00:00',
+                 'Event': 'RTS', 'Params': 'RTSLOAD,1_CTI06,NUM_HOURS=12:00:00,SCS_NUM=135',
+                 'Author': 'Tom Aldcroft', 'Reviewer': 'John Scott', 'Comment': ''}
+    events_cti = events_flight.copy()
+    events_cti.add_row(cti_event)
+    events_cti.write(path_cti, overwrite=True)
+
+    # Now read the commands from the custom scenario
+    cmds = commands.get_cmds('2021:296:10:35:00', '2021:298:01:58:00', scenario='nsm-cti')
+    exp = """\
+2021:296:10:35:00.000 | COMMAND_HW       | CIMODESL   | OCT1821A | hex=7C067C0, msid=CIU1024X, scs=128
+2021:296:10:35:00.257 | COMMAND_HW       | CTXAOF     | OCT1821A | hex=780000C, msid=CTXAOF, scs=128
+2021:296:10:35:00.514 | COMMAND_HW       | CPAAOF     | OCT1821A | hex=780001E, msid=CPAAOF, scs=128
+2021:296:10:35:00.771 | COMMAND_HW       | CTXBOF     | OCT1821A | hex=780004C, msid=CTXBOF, scs=128
+2021:296:10:35:01.028 | COMMAND_HW       | CPABON     | OCT1821A | hex=7800056, msid=CPABON, scs=128
+2021:296:10:35:01.285 | COMMAND_HW       | CTXBON     | OCT1821A | hex=7800044, msid=CTXBON, scs=128
+2021:296:10:41:57.000 | COMMAND_SW       | AONSMSAF   | CMD_EVT  | event=NSM, event_date=2021:296:10:41:57, scs=0
+2021:296:10:41:57.000 | COMMAND_SW       | OORMPDS    | CMD_EVT  | event=NSM, event_date=2021:296:10:41:57, scs=0
+2021:296:10:41:58.025 | COMMAND_HW       | AFIDP      | CMD_EVT  | event=NSM, event_date=2021:296:10:41:57, msid=AFLCRSET, scs=
+2021:296:10:41:58.025 | SIMTRANS         | None       | CMD_EVT  | event=NSM, event_date=2021:296:10:41:57, pos=-99616, scs=0
+2021:296:10:42:20.000 | MP_OBSID         | COAOSQID   | CMD_EVT  | event=Obsid, event_date=2021:296:10:42:20, id=0, scs=0
+2021:296:10:43:03.685 | ACISPKT          | AA00000000 | CMD_EVT  | event=NSM, event_date=2021:296:10:41:57, scs=0
+2021:296:10:43:04.710 | ACISPKT          | AA00000000 | CMD_EVT  | event=NSM, event_date=2021:296:10:41:57, scs=0
+2021:296:10:43:14.960 | ACISPKT          | WSPOW0002A | CMD_EVT  | event=NSM, event_date=2021:296:10:41:57, scs=0
+2021:296:10:43:14.960 | COMMAND_SW       | AODSDITH   | CMD_EVT  | event=NSM, event_date=2021:296:10:41:57, scs=0
+2021:296:11:08:12.966 | LOAD_EVENT       | OBS        | CMD_EVT  | manvr_start=2021:296:10:41:57.000, prev_att=(0.594590732, 0.
+2021:297:01:41:01.000 | COMMAND_SW       | AONMMODE   | CMD_EVT  | event=Maneuver, event_date=2021:297:01:41:01, msid=AONMMODE,
+2021:297:01:41:01.256 | COMMAND_SW       | AONM2NPE   | CMD_EVT  | event=Maneuver, event_date=2021:297:01:41:01, msid=AONM2NPE,
+2021:297:01:41:05.356 | MP_TARGQUAT      | AOUPTARQ   | CMD_EVT  | event=Maneuver, event_date=2021:297:01:41:01, q1=7.05469070e
+2021:297:01:41:11.250 | COMMAND_SW       | AOMANUVR   | CMD_EVT  | event=Maneuver, event_date=2021:297:01:41:01, msid=AOMANUVR,
+2021:297:02:05:11.042 | LOAD_EVENT       | OBS        | CMD_EVT  | manvr_start=2021:297:01:41:11.250, prev_att=(0.2854059718219
+2021:297:02:12:42.886 | ORBPOINT         | None       | OCT1821A | event_type=EQF003M, scs=0
+2021:297:03:40:42.886 | ORBPOINT         | None       | OCT1821A | event_type=EQF005M, scs=0
+2021:297:03:40:42.886 | ORBPOINT         | None       | OCT1821A | event_type=EQF015M, scs=0
+2021:297:04:43:26.016 | ORBPOINT         | None       | OCT1821A | event_type=EALT1, scs=0
+2021:297:04:43:27.301 | ORBPOINT         | None       | OCT1821A | event_type=XALT1, scs=0
+2021:297:12:42:42.886 | ORBPOINT         | None       | OCT1821A | event_type=EQF013M, scs=0
+2021:297:13:00:00.000 | COMMAND_SW       | OORMPEN    | CMD_EVT  | event=RTS, event_date=2021:297:13:00:00, msid=OORMPEN, scs=1
+2021:297:13:00:01.000 | ACISPKT          | WSVIDALLDN | CMD_EVT  | event=RTS, event_date=2021:297:13:00:00, scs=135
+2021:297:13:00:02.000 | COMMAND_HW       | 2S2STHV    | CMD_EVT  | event=RTS, event_date=2021:297:13:00:00, 2s2sthv2=0 , msid=2
+2021:297:13:00:03.000 | COMMAND_HW       | 2S2HVON    | CMD_EVT  | event=RTS, event_date=2021:297:13:00:00, msid=2S2HVON, scs=1
+2021:297:13:00:13.000 | COMMAND_HW       | 2S2STHV    | CMD_EVT  | event=RTS, event_date=2021:297:13:00:00, 2s2sthv2=4 , msid=2
+2021:297:13:00:23.000 | COMMAND_HW       | 2S2STHV    | CMD_EVT  | event=RTS, event_date=2021:297:13:00:00, 2s2sthv2=8 , msid=2
+2021:297:13:00:24.000 | ACISPKT          | WSPOW0CF3F | CMD_EVT  | event=RTS, event_date=2021:297:13:00:00, scs=135
+2021:297:13:01:27.000 | ACISPKT          | WT007AC024 | CMD_EVT  | event=RTS, event_date=2021:297:13:00:00, scs=135
+2021:297:13:01:31.000 | ACISPKT          | XTZ0000005 | CMD_EVT  | event=RTS, event_date=2021:297:13:00:00, scs=135
+2021:297:13:01:35.000 | ACISPKT          | RS_0000001 | CMD_EVT  | event=RTS, event_date=2021:297:13:00:00, scs=135
+2021:297:13:01:39.000 | ACISPKT          | RH_0000001 | CMD_EVT  | event=RTS, event_date=2021:297:13:00:00, scs=135
+2021:297:13:59:39.602 | ORBPOINT         | None       | OCT2521A | event_type=EEF1000, scs=0
+2021:297:14:37:39.602 | ORBPOINT         | None       | OCT2521A | event_type=EPF1000, scs=0
+2021:297:15:01:42.681 | ORBPOINT         | None       | OCT2521A | event_type=EALT0, scs=0
+2021:297:15:01:43.574 | ORBPOINT         | None       | OCT2521A | event_type=XALT0, scs=0
+2021:297:16:30:13.364 | ORBPOINT         | None       | OCT2521A | event_type=EPERIGEE, scs=0
+2021:297:17:58:42.322 | ORBPOINT         | None       | OCT2521A | event_type=EALT0, scs=0
+2021:297:17:58:43.505 | ORBPOINT         | None       | OCT2521A | event_type=XALT0, scs=0
+2021:297:20:09:39.602 | ORBPOINT         | None       | OCT2521A | event_type=XPF1000, scs=0
+2021:297:20:16:57.284 | ORBPOINT         | None       | OCT2521A | event_type=EASCNCR, scs=0
+2021:297:21:37:39.602 | ORBPOINT         | None       | OCT2521A | event_type=XEF1000, scs=0
+2021:297:22:32:42.886 | ORBPOINT         | None       | OCT2521A | event_type=XQF015M, scs=0
+2021:297:23:00:42.886 | ORBPOINT         | None       | OCT2521A | event_type=XQF005M, scs=0
+2021:298:00:12:42.886 | ORBPOINT         | None       | OCT2521A | event_type=XQF003M, scs=0
+2021:298:00:12:42.886 | ORBPOINT         | None       | OCT2521A | event_type=XQF013M, scs=0
+2021:298:01:57:00.000 | LOAD_EVENT       | None       | OCT2521B | event_type=RUNNING_LOAD_TERMINATION_TIME, scs=0
+2021:298:01:57:00.000 | COMMAND_SW       | AOACRSTD   | OCT2521B | hex=8032000, msid=AOACRSTD, scs=128
+2021:298:01:57:00.000 | ACISPKT          | AA00000000 | OCT2521B | cmds=3, words=3, scs=131
+2021:298:01:57:03.000 | ACISPKT          | AA00000000 | OCT2521B | cmds=3, words=3, scs=131
+2021:298:01:57:33.000 | COMMAND_SW       | CODISASX   | OCT2521B | hex=8458700, msid=CODISASX, codisas1=135 , scs=131
+2021:298:01:57:34.000 | COMMAND_SW       | COCLRSX    | OCT2521B | hex=8468700, msid=COCLRSX, coclrs1=135 , scs=131"""  # noqa
+
+    out = '\n'.join(cmds.pformat_like_backstop(max_params_width=60))
+    assert out == exp
+
+    # 11 RTS commands. Note that the ACIS stop science commands from the RTS
+    # are NOT evident because they are cut by the RLTT at 2021:298:01:57:00.
+    # TODO: (someday?) instead of the RLTT notice the disable SCS 135 command
+    # CODISASX.
+    ok = cmds['event'] == 'RTS'
+    assert np.count_nonzero(ok) == 11
