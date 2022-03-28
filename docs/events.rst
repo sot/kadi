@@ -119,15 +119,13 @@ Getting started
 To start using the Kadi archive you first need to fire up IPython in the Ska environment.
 From a shell terminal window do::
 
-  % skatest  # Greta network
-  % ska      # HEAD network
-
-  % ipython --pylab
+  % ska3
+  % ipython --matplotlib
 
 Now enter the following statement.  This imports the interface
 modules for the event and commands databases::
 
-  >>> from kadi import events, cmds
+  >>> from kadi import events
 
 .. note::
 
@@ -191,8 +189,9 @@ order to make the printout it fit onto one screen.  Now plot the maximum pulse w
 modulation for each SIM translation as a function of time::
 
   >>> from Ska.Matplotlib import plot_cxctime
+  >>> import matplotlib.pyplot as plt
   >>> plot_cxctime(tsc_moves['tstart'], tsc_moves['max_pwm'], '.')
-  >>> grid()
+  >>> plt.grid()
 
 .. image:: tsc_moves.png
 
@@ -210,10 +209,10 @@ case you do *not* use the final ``.table`` attribute as shown in the previous ex
 ::
 
   >>> manvrs = events.manvrs.filter('2013:001:12:00:00', '2013:002:12:00:00')
-  >>> print manvrs[0].get_obsid()
+  >>> print(manvrs[0].get_obsid())
   15046
   >>> for manvr in manvrs:
-  ...    print manvr.start, 'Obsid :', manvr.get_obsid()
+  ...    print(manvr.start, 'Obsid :', manvr.get_obsid())
   2013:001:16:38:45.535 Obsid : 15046
   2013:001:21:16:45.361 Obsid : 15213
 
@@ -223,7 +222,7 @@ we start by looking for all manuever events between 2013:100 and 2013:200 that h
 exactly two Kalman dwells::
 
   >>> manvrs = events.manvrs.filter('2013:100', '2013:200', n_dwell__exact=2)
-  >>> print manvrs
+  >>> print(manvrs)
   <Manvr: start=2013:104:21:38:11.867 dur=1442 n_dwell=2 template=two_acq>
   <Manvr: start=2013:142:12:43:01.918 dur=1763 n_dwell=2 template=three_acq>
   <Manvr: start=2013:144:19:19:07.204 dur=1553 n_dwell=2 template=three_acq>
@@ -231,16 +230,16 @@ exactly two Kalman dwells::
 Now we get the obsid for the first matching maneuver and search for Kalman dwells with
 that obsid::
 
-  >>> print manvrs[0].get_obsid()
+  >>> print(manvrs[0].get_obsid())
   15304
-  >>> print events.dwells.filter(obsid=15304)
+  >>> print(events.dwells.filter(obsid=15304))
   <Dwell: start=2013:104:22:04:05.255 dur=5795>
   <Dwell: start=2013:104:23:41:44.155 dur=4290>
 
 As expected this matches what comes from asking directly for the dwells associated
 with the maneuver via the ``dwell_set`` attribute::
 
-  >>> print manvrs[0].dwell_set.all()
+  >>> print(manvrs[0].dwell_set.all())
   <Dwell: start=2013:104:22:04:05.255 dur=5795>
   <Dwell: start=2013:104:23:41:44.155 dur=4290>
 
@@ -420,13 +419,13 @@ Here we show just the simple example above.  First we plot the E1300 rates over 
 span, including rad zones::
 
   >>> from Ska.engarchive import fetch
-  >>> figure()
+  >>> plt.figure()
 
   >>> e1300 = fetch.Msid("SCE1300", '2012:020', '2012:050')
   >>> e1300_log = np.log10(e1300.vals.clip(10))
   >>> plot_cxctime(e1300.times, e1300_log, '-b')
   >>> ylabel('log10(E1300)')
-  >>> grid()
+  >>> plt.grid()
 
 .. image:: e1300_rates1.png
 
@@ -534,7 +533,7 @@ of interest::
   >>> dat.plot()
   >>> dat_good = dat.select_intervals(good_times, copy=True)
   >>> dat_good.plot('.r')
-  >>> grid()
+  >>> plt.grid()
 
 .. image:: complex_event_filter.png
 
@@ -610,7 +609,7 @@ are bad for some reason::
 Some of the ``msid`` values correspond to like-named MSIDs in the engineering archive, but
 many (including all those shown here) do not.  You can find the non-matches with::
 
-  >>> print sorted(set(x.msid for x in events.ltt_bads.filter('1999:001')
+  >>> print(sorted(set(x.msid for x in events.ltt_bads.filter('1999:001'))
                    if not (x.msid in fetch.content or 'DP_' + x.msid in fetch.content)))
   [u'*', u'3SDAGV', u'3SDFATSV', u'3SDM15V', u'3SDP15V', u'3SDP5V', u'3SDTSTSV', u'5EHSE300', u'ABIASZ',
   ...

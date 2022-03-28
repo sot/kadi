@@ -4,8 +4,10 @@ from pathlib import Path
 import gzip
 import numpy as np
 
-from .. import commands, states
+from kadi import commands
+from kadi.commands import states
 import pytest
+from testr.test_helper import has_internet
 
 from Chandra.Time import DateTime
 from Ska.engarchive import fetch
@@ -17,6 +19,22 @@ try:
     HAS_PITCH = True
 except Exception:
     HAS_PITCH = False
+
+VERSIONS = ['1', '2'] if has_internet() else ['1']
+
+
+@pytest.fixture(scope="module", params=VERSIONS)
+def version(request):
+    return request.param
+
+
+@pytest.fixture(autouse=True)
+def version_env(monkeypatch, version):
+    if version is None:
+        monkeypatch.delenv('KADI_COMMANDS_VERSION', raising=False)
+    else:
+        monkeypatch.setenv('KADI_COMMANDS_VERSION', version)
+    return version
 
 
 # Canonical state0 giving spacecraft state at beginning of timelines

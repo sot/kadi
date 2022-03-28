@@ -6,10 +6,16 @@ import numpy as np
 from astropy.table import Table
 from Chandra.Time import DateTime
 import pickle
+import warnings
 
 from ..paths import IDX_CMDS_PATH, PARS_DICT_PATH
 
 __all__ = ['filter']
+
+# Warn about deprecation but use FutureWarning so it actually shows up (since
+# DeprecationWarning is ignored by default)
+warnings.warn('kadi.cmds is deprecated and no longer tested, use kadi.commands instead',
+              FutureWarning)
 
 
 class LazyVal(object):

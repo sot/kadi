@@ -1,11 +1,18 @@
-import functools
-import os
+import weakref
 
-from kadi.commands import conf
-from kadi.commands.observations import *  # noqa
+from astropy.table import Column
+from kadi.commands.core import LazyVal, _find, load_idx_cmds, load_pars_dict
+from cxotime import CxoTime
 
 
-def get_cmds(start=None, stop=None, inclusive_stop=False, scenario=None, **kwargs):
+# Globals that contain the entire commands table and the parameters index
+# dictionary.
+IDX_CMDS = LazyVal(load_idx_cmds)
+PARS_DICT = LazyVal(load_pars_dict)
+REV_PARS_DICT = LazyVal(lambda: {v: k for k, v in PARS_DICT.items()})
+
+
+def get_cmds(start=None, stop=None, inclusive_stop=False, **kwargs):
     """
     Get commands beteween ``start`` and ``stop``.
 
@@ -37,37 +44,19 @@ def get_cmds(start=None, stop=None, inclusive_stop=False, scenario=None, **kwarg
     :param stop: DateTime format (optional) Stop time, defaults to end of available
         commands
     :param inclusive_stop: bool, include commands at exactly ``stop`` if True.
-    :param scenario: str, None
-        Commands scenario (applicable only for V2 commands)
     :param kwargs: key=val keyword argument pairs for filtering
 
     :returns: :class:`~kadi.commands.commands.CommandTable` of commands
     """
-    commands_version = os.environ.get('KADI_COMMANDS_VERSION',
-                                      conf.commands_version)
-    if commands_version == '2':
-        from kadi.commands.commands_v2 import get_cmds as get_cmds_
-        get_cmds_ = functools.partial(get_cmds_, scenario=scenario)
-    else:
-        from kadi.commands.commands_v1 import get_cmds as get_cmds_
+    out = _find(start, stop, inclusive_stop, IDX_CMDS, PARS_DICT, **kwargs)
+    out.rev_pars_dict = weakref.ref(REV_PARS_DICT)
+    out['params'] = None if len(out) > 0 else Column([], dtype=object)
 
-    cmds = get_cmds_(start=start, stop=stop,
-                     inclusive_stop=inclusive_stop,
-                     **kwargs)
-    return cmds
+    out.add_column(CxoTime(out['date'], format='date').secs, name='time', index=6)
+    out['time'].info.format = '.3f'
 
+    # Convert 'date' from bytestring to unicode. This is for compatibility with
+    # the legacy V1 API.
+    out.convert_bytestring_to_unicode()
 
-def clear_caches():
-    """Clear all commands caches.
-
-    This is useful for testing and in case upstream products like the Command
-    Events sheet have changed during a session.
-    """
-    commands_version = os.environ.get('KADI_COMMANDS_VERSION',
-                                      conf.commands_version)
-    if commands_version == '2':
-        from kadi.commands.commands_v2 import clear_caches as clear_caches_vN
-    else:
-        from kadi.commands.commands_v1 import clear_caches as clear_caches_vN
-
-    clear_caches_vN()
+    return out

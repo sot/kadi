@@ -1,22 +1,14 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+from pathlib import Path
 import os
 import uuid
-
-# See https://github.com/paramiko/paramiko/issues/735.  Without this
-# hack the module-level call to Ska.ftp.SFTP('lucky') hangs during
-# test collection by pytest.  Note that this does not work with
-# paramiko 2.0.0.
-from paramiko import py3compat
-py3compat.u('dirty hack')
+import requests
 
 import Ska.ftp
 import Ska.File
 import pytest
 
 from kadi import occweb
-import pyyaks.logger
-
-logger = pyyaks.logger.get_logger()
 
 
 try:
@@ -60,7 +52,7 @@ def _test_put_get(user):
             assert open(filename).read() == filename
 
 
-@pytest.mark.skipif('not HAS_LUCKY')
+@pytest.mark.skipif(not HAS_LUCKY, reason='No access to lucky FTP server')
 def test_put_get_user_none():
     # Test the user=None code branch (gets username back from SFTP object, which
     # had previously gotten it from the netrc file).
@@ -78,7 +70,7 @@ user, passwd = occweb.get_auth()
 HAS_OCCWEB = True if user is not None else False
 
 
-@pytest.mark.skipif('not HAS_OCCWEB')
+@pytest.mark.skipif(not HAS_OCCWEB, reason='No access to OCCweb')
 def test_ifot_fetch():
     events = occweb.get_ifot('LOADSEG', start='2008:001:12:00:00', stop='2008:003:12:00:00')
     assert len(events) == 1
@@ -87,13 +79,54 @@ def test_ifot_fetch():
 
 # Looks like there isn't a way to check status (HTTP codes), but these
 # items should stay on these event pages
-@pytest.mark.skipif('not HAS_OCCWEB')
+@pytest.mark.skipif(not HAS_OCCWEB, reason='No access to OCCweb')
 def test_get_fdb_major_events():
     page = occweb.get_url('fdb_major_events')
     assert 'Aspect Camera First Star Solution' in page
 
 
-@pytest.mark.skipif('not HAS_OCCWEB')
+@pytest.mark.skipif(not HAS_OCCWEB, reason='No access to OCCweb')
 def test_get_fot_major_events():
     page = occweb.get_url('fot_major_events')
     assert 'ACA Dark Current Calibration' in page
+
+
+@pytest.mark.skipif(not HAS_OCCWEB, reason='No access to OCCweb')
+@pytest.mark.parametrize('str_or_Path', [str, Path])
+@pytest.mark.parametrize('cache', [False, 'update', True])
+def test_get_occweb_dir(str_or_Path, cache):
+    """Test get_occweb_dir and get_occweb_page (which is called in the process)"""
+    path = str_or_Path('FOT/mission_planning/PRODUCTS/APPR_LOADS/2000/MAR/')
+    url = f'https://occweb.cfa.harvard.edu/occweb/{path}'
+    files_path = occweb.get_occweb_dir(path, cache=cache)
+    files_url = occweb.get_occweb_dir(url, cache=cache)
+    exp = [
+        '      Name        Last modified   Size',
+        '---------------- ---------------- ----',
+        'Parent Directory               --    -',
+        '       MAR0500D/ 2002-04-30 13:38    -',
+        '       MAR1200D/ 2002-04-30 13:38    -',
+        '       MAR1900E/ 2004-03-18 13:44    -',
+        '       MAR2600C/ 2002-04-30 13:38    -']
+    assert files_path.pformat_all() == exp
+    assert files_url.pformat_all() == exp
+
+
+@pytest.mark.skipif(not HAS_OCCWEB, reason='No access to OCCweb')
+@pytest.mark.parametrize('cache', [False, True])
+def test_get_occweb_dir_fail(cache):
+    """Test get_occweb_dir and get_occweb_page (which is called in the process)"""
+    path = Path('FOT/mission_planning/PRODUCTS/APPR_LOADS/FAIL-NOT-THERE')
+    with pytest.raises(requests.exceptions.HTTPError):
+        occweb.get_occweb_dir(path, cache=cache)
+
+
+@pytest.mark.skipif(not HAS_OCCWEB, reason='No access to OCCweb')
+@pytest.mark.parametrize('cache', [False, 'update', True])
+def test_get_occweb_page_binary(cache):
+    """Test get_occweb_page binary"""
+    path = 'FOT/mission_planning/PRODUCTS/APPR_LOADS/2000/MAR/'
+    content_bytes = occweb.get_occweb_page(path, binary=True, cache=cache)
+    content_str = occweb.get_occweb_page(path, binary=False, cache=cache)
+
+    assert content_bytes.decode('utf-8') == content_str

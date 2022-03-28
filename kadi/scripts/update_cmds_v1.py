@@ -15,8 +15,8 @@ from Chandra.Time import DateTime
 from ska_helpers.run_info import log_run_info
 from ska_helpers.retry import retry_call
 
-from .paths import IDX_CMDS_PATH, PARS_DICT_PATH
-from . import __version__
+from kadi.paths import IDX_CMDS_PATH, PARS_DICT_PATH
+from kadi import __version__
 
 MPLOGS_DIR = Path(os.environ['SKA'], 'data', 'mpcrit1', 'mplogs')
 
@@ -403,7 +403,7 @@ def main(args=None):
 
     opt = get_opt(args)
 
-    logger = pyyaks.logger.get_logger(name='kadi', level=opt.log_level,
+    logger = pyyaks.logger.get_logger(name=__name__, level=opt.log_level,
                                       format="%(asctime)s %(message)s")
 
     log_run_info(logger.info, opt)
