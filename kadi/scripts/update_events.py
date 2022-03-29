@@ -82,7 +82,7 @@ def try4times(func, *arg, **kwarg):
 
 
 def delete_from_date(EventModel, start, set_update_date=True):
-    from .events import models
+    from kadi.events import models
 
     date_start = DateTime(start).date
     cls_name = EventModel.__name__
@@ -101,7 +101,7 @@ def delete_from_date(EventModel, start, set_update_date=True):
 def update(EventModel, date_stop):
     import django.db
     from django.core.exceptions import ObjectDoesNotExist
-    from .events import models
+    from kadi.events import models
 
     date_stop = DateTime(date_stop)
     cls_name = EventModel.__name__
@@ -212,19 +212,19 @@ def main():
 
     opt = get_opt()
 
-    logger = pyyaks.logger.get_logger(name=__name__, level=opt.log_level,
+    logger = pyyaks.logger.get_logger(name='kadi_update_events', level=opt.log_level,
                                       format="%(asctime)s %(message)s")
     log_run_info(logger.info, opt)
 
     # Set the global root data directory.  This gets used in the django
     # setup to find the sqlite3 database file.
     os.environ['KADI'] = os.path.abspath(opt.data_root)
-    from .paths import EVENTS_DB_PATH
+    from kadi.paths import EVENTS_DB_PATH
 
     logger.info('Event database : {}'.format(EVENTS_DB_PATH()))
     logger.info('')
 
-    from .events import models
+    from kadi.events import models
 
     # Allow for a cmd line option --start.  If supplied then loop the
     # effective value of opt.stop from start to the cmd line

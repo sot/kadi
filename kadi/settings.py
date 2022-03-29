@@ -38,7 +38,7 @@ if any(pth.startswith('/proj/web-kadi') for pth in sys.path):
 BASE_DIR = dirname(dirname(realpath(__file__)))
 
 # Data paths for kadi project
-from .paths import EVENTS_DB_PATH, DATA_DIR  # noqa
+from kadi.paths import EVENTS_DB_PATH, DATA_DIR  # noqa
 
 # Make sure there is an events database
 if not os.path.exists(EVENTS_DB_PATH()):

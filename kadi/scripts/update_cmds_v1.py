@@ -403,7 +403,7 @@ def main(args=None):
 
     opt = get_opt(args)
 
-    logger = pyyaks.logger.get_logger(name=__name__, level=opt.log_level,
+    logger = pyyaks.logger.get_logger(name='kadi_update_cmds', level=opt.log_level,
                                       format="%(asctime)s %(message)s")
 
     log_run_info(logger.info, opt)
