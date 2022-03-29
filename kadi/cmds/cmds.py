@@ -8,7 +8,7 @@ from Chandra.Time import DateTime
 import pickle
 import warnings
 
-from ..paths import IDX_CMDS_PATH, PARS_DICT_PATH
+from kadi.paths import IDX_CMDS_PATH, PARS_DICT_PATH
 
 __all__ = ['filter']
 

@@ -2337,7 +2337,7 @@ class AsciiTableEvent(BaseEvent):
         Get events from telemetry defined by a simple rule that the value of
         `event_msids[0]` == `event_val`.
         """
-        from ..paths import DATA_DIR
+        from kadi.paths import DATA_DIR
 
         start = DateTime(start).date
         stop = DateTime(stop).date
