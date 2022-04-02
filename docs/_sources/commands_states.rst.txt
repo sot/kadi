@@ -2,15 +2,27 @@
 .. |get_continuity| replace:: :func:`~kadi.commands.states.get_continuity`
 .. |get_states| replace:: :func:`~kadi.commands.states.get_states`
 .. |CommandTable| replace:: :class:`~kadi.commands.commands.CommandTable`
+.. _Chandra Command Events: https://docs.google.com/spreadsheets/d/19d6XqBhWoFjC-z1lS1nM6wLE_zjr4GYB1lOvrEGCbKQ
 
 Commands and states
 ===================
 
 **Commands**
 
-The `Commands archive`_ is a table of every load command that has been run, or is currently
+The Commands archive is a table of every load command that has been run, or is currently
 approved to be run, on the spacecraft since 2002.  This archive accounts for load stoppages,
 replans, and certain non-load commands like ACIS CTI runs or Normal Sun Mode transitions.
+
+As of this release there are two versions of the commands archive:
+
+- `Commands archive v1`_ (flight): this is the current default version and
+  relies on iFOT load segments and the Chandra.cmd_states timelines database to
+  maintain the commands database.
+- `Commands archive v2`_ (beta): this provides improved timeliness during
+  anomalies and better team-wide communication of non-load spacecraft commanding.
+  This relies on the `Chandra Command Events`_ sheet and OCCweb FOT mission planning approved load products to
+  maintain the commands database. V2 is planned to be promoted to the default
+  and the legacy will be deprecated and then retired.
 
 **States and continuity**
 
@@ -32,8 +44,8 @@ installed code.  Note that a key design feature is that is it straightforward fo
 to implement their own states, often with just a few lines of code.  See the `User-defined states`_
 section for details.
 
-Commands archive
-----------------
+Commands archive v1
+-------------------
 
 The basic way to select commands is with the |get_cmds| method.  For example you can find
 load commands from early in 2013 with::
@@ -41,16 +53,17 @@ load commands from early in 2013 with::
   >>> from kadi import commands
   >>> cmds = commands.get_cmds('2013:001:00:00:00', '2013:001:00:56:10')
   >>> print(cmds)
-           date            type      tlmsid   scs step timeline_id params
-  --------------------- ---------- ---------- --- ---- ----------- ------
-  2013:001:00:37:37.653   ORBPOINT       None   0    0   426098988    N/A
-  2013:001:00:53:07.181 COMMAND_SW   AOACRSTD 129 1524   426098990    N/A
-  2013:001:00:54:07.181 COMMAND_SW   AOFUNCDS 129 1526   426098990    N/A
-  2013:001:00:55:07.181 COMMAND_SW   AOFUNCDS 129 1528   426098990    N/A
-  2013:001:00:56:07.181 COMMAND_SW   AONMMODE 129 1530   426098990    N/A
-  2013:001:00:56:07.181    ACISPKT AA00000000 132 1620   426098991    N/A
-  2013:001:00:56:07.181   SIMTRANS       None 132 1623   426098991    N/A
-  2013:001:00:56:07.438 COMMAND_SW   AONM2NPE 129 1532   426098990    N/A
+          date            type      tlmsid   scs step      time     timeline_id   vcdu  params
+  --------------------- ---------- ---------- --- ---- ------------- ----------- ------- ------
+  2013:001:00:37:37.653   ORBPOINT       None   0    0 473387924.837   426098988 5533112    N/A
+  2013:001:00:53:07.181 COMMAND_SW   AOACRSTD 129 1524 473388854.365   426098990 5584176    N/A
+  2013:001:00:54:07.181 COMMAND_SW   AOFUNCDS 129 1526 473388914.365   426098990 5584410    N/A
+  2013:001:00:55:07.181 COMMAND_SW   AOFUNCDS 129 1528 473388974.365   426098990 5584644    N/A
+  2013:001:00:56:07.181 COMMAND_SW   AONMMODE 129 1530 473389034.365   426098990 5584878    N/A
+  2013:001:00:56:07.181    ACISPKT AA00000000 132 1620 473389034.365   426098991 5584878    N/A
+  2013:001:00:56:07.181   SIMTRANS       None 132 1623 473389034.365   426098991 5584878    N/A
+  2013:001:00:56:07.438 COMMAND_SW   AONM2NPE 129 1532 473389034.622   426098990 5584879    N/A
+
 
 In the |get_cmds| method, commands are selected with ``start <= date < stop``, where each
 of these are evaluated as a date string with millisec precision.  In order to get commands
@@ -178,6 +191,288 @@ Notes and caveats
   archive is stored in two files with a total size about 52 Mb.
 
 .. note:: Would a command-line interface be useful?
+
+Commands archive v2
+-------------------
+
+Version 2 of the commands archive is currently provided as an experimental
+release to allow getting experience with the new interface.
+
+For details of the commands v2 archive, including important information about
+network access, the timeliness of commands, configuration and process details,
+please see:
+
+.. toctree::
+   :maxdepth: 2
+
+   commands_v2.rst
+
+
+Getting commands
+^^^^^^^^^^^^^^^^
+
+In order to use the v2 version do the following::
+
+  >>> from kadi import commands
+  >>> commands.conf.commands_version = "2"  # must be the string "2" not int 2
+
+An alternative is to set the ``KADI_COMMANDS_VERSION`` environment variable to
+``2``. This will globally apply to all subsequent Python sessions that inherit
+this environment. For example from a linux/Mac bash command shell you can
+enter::
+
+  $ export KADI_COMMANDS_VERSION=2
+
+The basic way to select commands is with the |get_cmds| method.  For example you can find
+load commands from early in 2013 with::
+
+    >>> cmds = commands.get_cmds('2013:001:00:00:00', '2013:001:00:56:10')
+    >>> print(cmds)
+            date            type      tlmsid   scs step      time      source    vcdu  params
+    --------------------- ---------- ---------- --- ---- ------------- -------- ------- ------
+    2013:001:00:37:37.653   ORBPOINT       None   0    0 473387924.837 DEC2412B 5533112    N/A
+    2013:001:00:53:07.181 COMMAND_SW   AOACRSTD 129 1524 473388854.365 DEC2412B 5584176    N/A
+    2013:001:00:54:07.181 COMMAND_SW   AOFUNCDS 129 1526 473388914.365 DEC2412B 5584410    N/A
+    2013:001:00:55:07.181 COMMAND_SW   AOFUNCDS 129 1528 473388974.365 DEC2412B 5584644    N/A
+    2013:001:00:56:07.181 COMMAND_SW   AONMMODE 129 1530 473389034.365 DEC2412B 5584878    N/A
+    2013:001:00:56:07.181    ACISPKT AA00000000 132 1620 473389034.365 DEC2412B 5584878    N/A
+    2013:001:00:56:07.181   SIMTRANS       None 132 1623 473389034.365 DEC2412B 5584878    N/A
+    2013:001:00:56:07.438 COMMAND_SW   AONM2NPE 129 1532 473389034.622 DEC2412B 5584879    N/A
+
+
+In the |get_cmds| method, commands are selected with ``start <= date < stop``, where each
+of these are evaluated as a date string with millisec precision.  In order to get commands
+at exactly a certain date you need to select with the ``date`` argument::
+
+    >>> print(commands.get_cmds(date='2013:001:00:56:07.181'))
+            date            type      tlmsid   scs step      time      source    vcdu  params
+    --------------------- ---------- ---------- --- ---- ------------- -------- ------- ------
+    2013:001:00:56:07.181 COMMAND_SW   AONMMODE 129 1530 473389034.365 DEC2412B 5584878    N/A
+    2013:001:00:56:07.181    ACISPKT AA00000000 132 1620 473389034.365 DEC2412B 5584878    N/A
+    2013:001:00:56:07.181   SIMTRANS       None 132 1623 473389034.365 DEC2412B 5584878    N/A
+
+The output ``cmds`` is based on the astropy `Table
+<http://docs.astropy.org/en/stable/table/index.html>`_ object with many powerful and handy
+features built in.  For instance you could sort by ``type``, ``tlmsid`` and ``date``::
+
+    >>> cmds_type = cmds.copy()
+    >>> cmds_type.sort(['type', 'tlmsid', 'date'])
+    >>> print(cmds_type)
+            date            type      tlmsid   scs step      time      source    vcdu  params
+    --------------------- ---------- ---------- --- ---- ------------- -------- ------- ------
+    2013:001:00:56:07.181    ACISPKT AA00000000 132 1620 473389034.365 DEC2412B 5584878    N/A
+    2013:001:00:53:07.181 COMMAND_SW   AOACRSTD 129 1524 473388854.365 DEC2412B 5584176    N/A
+    2013:001:00:54:07.181 COMMAND_SW   AOFUNCDS 129 1526 473388914.365 DEC2412B 5584410    N/A
+    2013:001:00:55:07.181 COMMAND_SW   AOFUNCDS 129 1528 473388974.365 DEC2412B 5584644    N/A
+    2013:001:00:56:07.438 COMMAND_SW   AONM2NPE 129 1532 473389034.622 DEC2412B 5584879    N/A
+    2013:001:00:56:07.181 COMMAND_SW   AONMMODE 129 1530 473389034.365 DEC2412B 5584878    N/A
+    2013:001:00:37:37.653   ORBPOINT       None   0    0 473387924.837 DEC2412B 5533112    N/A
+    2013:001:00:56:07.181   SIMTRANS       None 132 1623 473389034.365 DEC2412B 5584878    N/A
+
+You can print a single command and get all the information about it::
+
+    >>> print(cmds[5])
+    2013:001:00:56:07.181 ACISPKT tlmsid=AA00000000 scs=132 step=1620 source=DEC2412B vcdu=5584878 cmds=3 packet(40)=D80000300030603001300 words=3
+
+This command has a number of attributes like ``date`` or ``tlmsid`` (shown in the original table) as well as command *parameters*: ``cmds``, ``packet(40)``, and ``words``.  You can access any of the attributes or parameters like a dictionary::
+
+    >>> print(cmds[5]['packet(40)'])
+    D80000300030603001300
+
+You probably noticed the first time we printed ``cmds`` that the command parameters
+``params`` were all listed as ``N/A`` (Not Available).  What happens if we print the
+table again::
+
+            date            type      tlmsid   scs step      time      source    vcdu                     params
+    --------------------- ---------- ---------- --- ---- ------------- -------- ------- --------------------------------------------
+    2013:001:00:37:37.653   ORBPOINT       None   0    0 473387924.837 DEC2412B 5533112                                          N/A
+    2013:001:00:53:07.181 COMMAND_SW   AOACRSTD 129 1524 473388854.365 DEC2412B 5584176                                          N/A
+    2013:001:00:54:07.181 COMMAND_SW   AOFUNCDS 129 1526 473388914.365 DEC2412B 5584410                                          N/A
+    2013:001:00:55:07.181 COMMAND_SW   AOFUNCDS 129 1528 473388974.365 DEC2412B 5584644                                          N/A
+    2013:001:00:56:07.181 COMMAND_SW   AONMMODE 129 1530 473389034.365 DEC2412B 5584878                                          N/A
+    2013:001:00:56:07.181    ACISPKT AA00000000 132 1620 473389034.365 DEC2412B 5584878 cmds=3 packet(40)=D80000300030603001300  ...
+    2013:001:00:56:07.181   SIMTRANS       None 132 1623 473389034.365 DEC2412B 5584878                                          N/A
+    2013:001:00:56:07.438 COMMAND_SW   AONM2NPE 129 1532 473389034.622 DEC2412B 5584879                                          N/A
+
+So what happened?  The answer is that for performance reasons the |CommandTable| class is
+lazy about loading the command parameters, and only does so when you directly request the
+parameter value (as we did with ``packet(40)``).  If you want to just fetch them all
+at once you can do so with the ``fetch_params()`` method::
+
+    >>> cmds.fetch_params()
+    >>> print(cmds)
+            date            type      tlmsid   scs step      time      source    vcdu                     params
+    --------------------- ---------- ---------- --- ---- ------------- -------- ------- --------------------------------------------
+    2013:001:00:37:37.653   ORBPOINT       None   0    0 473387924.837 DEC2412B 5533112                           event_type=EQF013M
+    2013:001:00:53:07.181 COMMAND_SW   AOACRSTD 129 1524 473388854.365 DEC2412B 5584176                    hex=8032000 msid=AOACRSTD
+    2013:001:00:54:07.181 COMMAND_SW   AOFUNCDS 129 1526 473388914.365 DEC2412B 5584410        aopcadsd=21 hex=8030215 msid=AOFUNCDS
+    2013:001:00:55:07.181 COMMAND_SW   AOFUNCDS 129 1528 473388974.365 DEC2412B 5584644        aopcadsd=32 hex=8030220 msid=AOFUNCDS
+    2013:001:00:56:07.181 COMMAND_SW   AONMMODE 129 1530 473389034.365 DEC2412B 5584878                    hex=8030402 msid=AONMMODE
+    2013:001:00:56:07.181    ACISPKT AA00000000 132 1620 473389034.365 DEC2412B 5584878 cmds=3 packet(40)=D80000300030603001300  ...
+    2013:001:00:56:07.181   SIMTRANS       None 132 1623 473389034.365 DEC2412B 5584878                                   pos=-99616
+    2013:001:00:56:07.438 COMMAND_SW   AONM2NPE 129 1532 473389034.622 DEC2412B 5584879                    hex=8030601 msid=AONM2NPE
+
+Finally, note that you can request the value of an attribute or parameter for the entire
+command table.  Note that command rows without that parameter will have a ``None`` object::
+
+  >>> print(cmds['msid'])
+    msid
+  --------
+      None
+  AOACRSTD
+  AOFUNCDS
+  AOFUNCDS
+  AONMMODE
+      None
+      None
+  AONM2NPE
+
+.. _getting-observations:
+
+Getting observations
+^^^^^^^^^^^^^^^^^^^^
+
+The commands archive includes special ``LOAD_EVENT`` commands (like the RLTT) that
+contain information about observations in the loads. An "observation" is defined
+as a dwell in normal point mode following a maneuver and includes most OR's and
+ER's. These are most easily accessed via the
+:func:`~kadi.commands.observations.get_observations()` function. For example::
+
+    >>> from kadi.commands import get_observations
+    >>> obss = get_observations(obsid=26330)
+    >>> obss[0]
+    {'obsid': 26330,
+    'simpos': 73296,
+    'obs_stop': '2022:075:19:10:35.734',
+    'manvr_start': '2022:075:17:39:54.696',
+    'targ_att': (0.105773397, -0.727314387, -0.579818109, 0.351620152),
+    'npnt_enab': True,
+    'obs_start': '2022:075:17:57:55.985',
+    'prev_att': (0.113370245, -0.848288771, -0.329080853, 0.399072852),
+    'starcat_idx': 211630,
+    'source': 'MAR1422A'}
+
+Notice that the command always returns a list of observations, even for a query
+asking for a specific ObsID. The reason is that cases of multiple observations
+with the same ObsID are relatively common, in particular after SCS-107 stops the
+observing loads this will happen. The commands archive reflects the commands
+that ran on-board, and since ObsID updates are in the observing loads those
+commands no longer run after SCS-107.
+
+For example, ObsID 65526 was manually commanded after the HRC B-side anomaly and
+persisted for 64 distinct observations in the vehicle loads::
+
+    >>> obss = get_observations(obsid=65526)  # ObsID after HRC B-side anomaly
+    >>> len(obss)
+    64
+
+Getting all the observations covering years or more is reasonably fast,
+typically seconds the first query and then << 1 sec for subsequent queries.
+
+    >>> %time obss = get_observations(start='2020:001', stop='2022:001')
+    CPU times: user 28.4 ms, sys: 952 µs, total: 29.4 ms
+    Wall time: 28.7 ms
+
+For a large number of observations like this you may find it convenient to turn
+this into an astropy ``Table``::
+
+    >>> from astropy.table import Table
+    >>> obss = Table(obss)
+    >>> obss
+    <Table length=4018>
+    obsid simpos        obs_stop            manvr_start      ...       obs_start               prev_att [4]         starcat_idx  source
+    int64 int64          str21                 str21         ...         str21                   float64               int64      str8
+    ----- ------ --------------------- --------------------- ... --------------------- ---------------------------- ----------- --------
+    47575  75624 2020:001:06:51:13.985 2020:001:06:15:56.053 ... 2020:001:06:46:33.236   -0.51363412 .. 0.832139148      166529 DEC2319A
+    23000  75624 2020:001:19:18:15.914 2020:001:06:51:24.236 ... 2020:001:07:17:16.164  -0.475120775 .. 0.693367999      166530 DEC2319A
+    47574  75624 2020:001:19:48:58.024 2020:001:19:18:26.165 ... 2020:001:19:44:17.276  -0.221358674 .. 0.710485779      166531 DEC2319A
+    ...    ...                   ...                   ... ...                   ...                          ...         ...      ...
+    25803  75624 2021:365:13:38:31.497 2021:365:05:20:58.062 ... 2021:365:05:47:31.748 -0.488490169 .. 0.0261316575      170515 DEC3021A
+    26264  75624 2021:365:18:39:19.983 2021:365:13:38:41.748 ... 2021:365:14:08:20.234 -0.0658948803 .. 0.350032226      170516 DEC3021A
+    26247  75624 2022:001:05:21:28.604 2021:365:18:39:30.234 ... 2021:365:19:06:05.650  0.553670113 .. 0.0635036584      170517 DEC3021A
+
+Under the hood
+""""""""""""""
+
+The observation information is stored as ``LOAD_EVENT`` commands that can be viewed
+directly::
+
+    >>> from kadi.commands import get_cmds
+    >>> cmds = get_cmds('2022:001', '2022:002', type='LOAD_EVENT')
+    >>> print(cmds)
+            date            type    tlmsid scs step      time      source  vcdu params
+    --------------------- ---------- ------ --- ---- ------------- -------- ---- ------
+    2022:001:05:48:44.808 LOAD_EVENT    OBS   0    0 757403393.992 DEC3021A   -1    N/A
+    2022:001:09:42:05.439 LOAD_EVENT    OBS   0    0 757417394.623 DEC3021A   -1    N/A
+    2022:001:11:37:20.405 LOAD_EVENT    OBS   0    0 757424309.589 DEC3021A   -1    N/A
+    2022:001:15:03:39.654 LOAD_EVENT    OBS   0    0 757436688.838 DEC3021A   -1    N/A
+    2022:001:15:29:26.255 LOAD_EVENT    OBS   0    0 757438235.439 DEC3021A   -1    N/A
+    2022:001:17:33:53.255 LOAD_EVENT    OBS   0    0 757445702.439 DEC3021A   -1    N/A
+    >>> cmds[0]['params']
+    {'obsid': 45814,
+    'simpos': -99616,
+    'obs_stop': '2022:001:09:13:04.557',
+    'manvr_start': '2022:001:05:21:38.855',
+    'targ_att': (0.530730117, 0.556620885, 0.610704042, 0.188518716),
+    'npnt_enab': True,
+    'obs_start': '2022:001:05:48:44.808',
+    'prev_att': (-0.0743435142, -0.559183412, -0.804323901, 0.186681591),
+    'starcat_idx': 170518}
+
+As with :func:`~kadi.commands.commands.get_cmds` in the v2 archive, you can provide a
+``scenario`` keyword to :func:`~kadi.commands.observations.get_observations` to
+select a custom or ``'flight'`` scenario.
+
+.. _getting-star-catalogs:
+
+Getting star catalogs
+^^^^^^^^^^^^^^^^^^^^^
+
+The ACA star catalogs associated with observations can be retrieved using the
+:func:`~kadi.commands.observations.get_starcats()` function. For example::
+
+    >>> from kadi.commands import get_starcats
+    >>> acas = get_starcats(obsid=26330)
+    >>> acas[0]
+    <ACATable length=11>
+    slot  idx      id    type  sz    mag    maxmag   yang     zang    dim   res  halfw
+    int64 int64   int64   str3 str3 float64 float64 float64  float64  int64 int64 int64
+    ----- ----- --------- ---- ---- ------- ------- -------- -------- ----- ----- -----
+        0     1         2  FID  8x8    7.00    8.00  -773.14 -1862.22     1     1    25
+        1     2         4  FID  8x8    7.00    8.00  2140.38    46.50     1     1    25
+        2     3         5  FID  8x8    7.00    8.00 -1826.24    40.03     1     1    25
+        3     4 194257752  BOT  6x6    6.09    7.59 -2389.55 -1716.62    28     1   160
+        4     5 264114816  BOT  6x6    8.64   10.19    -2.30 -2430.32    28     1   160
+        5     6 194249696  BOT  6x6    8.76   10.27 -2129.92 -2447.14    28     1   160
+        6     7 263198168  BOT  6x6    8.81   10.33  -375.16  2416.16    28     1   160
+        0     8 263199776  ACQ  6x6   10.13   11.20  1385.78  1949.73     8     1    60
+        1     9 264113448  ACQ  6x6   10.27   11.20  -187.29 -1336.05     8     1    60
+        2    10 263201064  ACQ  6x6   10.44   11.20   529.26   324.30     8     1    60
+        7    11 263196576  ACQ  6x6   10.56   11.20 -1046.29   258.97    16     1   100
+
+This function can be used to get star catalogs over a range of time. Depending
+on your specific needs, you might want to specify ``set_ids=False`` in the call,
+which disables the time-consuming step of finding the star and fid ids by
+cross-matching with expected star / fid locations. For example, to find catalogs
+between 2015 and 2022 with MON windows commanded::
+
+    >>> %time acas = get_starcats(start='2015:001', stop='2022:001', set_ids=False)
+    CPU times: user 13.4 s, sys: 91.8 ms, total: 13.5 s
+    Wall time: 13.5 s
+
+    >>> len(acas)
+    13261
+    >>> acas_with_mon = [aca for aca in acas if 'MON' in aca['type']]
+    >>> len(acas_with_mon)
+    119
+    >>> acas_with_mon[0].obsid
+    17320
+
+.. Note::
+   The ``ACATable`` objects that are returned can be plotted but they
+   are not fully equivalent to the catalogs that ``proseco`` would return. The
+   CCD temperatures are set to -20 C and the ``.acqs`` and ``.guides`` attributes
+   are stubbed with empty tables.
 
 Chandra states and continuity
 ------------------------------

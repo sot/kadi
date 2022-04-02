@@ -4,16 +4,16 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>kadi.commands.commands &#8212; kadi 5.8.1 documentation</title>
-    <link rel="stylesheet" href="../../../_static/bootstrap-astropy.css" type="text/css" />
-    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>kadi.commands.commands &#8212; kadi 5.9.1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/bootstrap-astropy.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/plot_directive.css" />
     
-    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
     <script src="../../../_static/jquery.js"></script>
     <script src="../../../_static/underscore.js"></script>
     <script src="../../../_static/doctools.js"></script>
-    <script src="../../../_static/language_data.js"></script>
     <script type="text/javascript" src="../../../_static/sidebar.js"></script>
     <script type="text/javascript" src="../../../_static/copybutton.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
@@ -47,7 +47,7 @@
     <h3>Navigation</h3>
     <ul>
       <li>
-	<a href="../../../index.html">kadi 5.8.1 documentation</a>
+	<a href="../../../index.html">kadi 5.9.1 documentation</a>
 	 &#187;
       </li>
       <li><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
@@ -63,84 +63,14 @@
           <div class="body" role="main">
             
   <h1>Source code for kadi.commands.commands</h1><div class="highlight"><pre>
-<span></span><span class="c1"># Licensed under a 3-clause BSD style license - see LICENSE.rst</span>
-<span class="kn">import</span> <span class="nn">tables</span>
-<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+<span></span><span class="kn">import</span> <span class="nn">functools</span>
+<span class="kn">import</span> <span class="nn">os</span>
 
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">ska_helpers</span> <span class="kn">import</span> <span class="n">retry</span>
-
-<span class="kn">from</span> <span class="nn">astropy.table</span> <span class="kn">import</span> <span class="n">Table</span><span class="p">,</span> <span class="n">Row</span><span class="p">,</span> <span class="n">Column</span><span class="p">,</span> <span class="n">vstack</span>
-<span class="kn">from</span> <span class="nn">Chandra.Time</span> <span class="kn">import</span> <span class="n">DateTime</span><span class="p">,</span> <span class="n">date2secs</span>
-<span class="kn">import</span> <span class="nn">pickle</span>
-
-<span class="kn">from</span> <span class="nn">..paths</span> <span class="kn">import</span> <span class="n">IDX_CMDS_PATH</span><span class="p">,</span> <span class="n">PARS_DICT_PATH</span>
-
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;get_cmds&#39;</span><span class="p">,</span> <span class="s1">&#39;read_backstop&#39;</span><span class="p">,</span> <span class="s1">&#39;get_cmds_from_backstop&#39;</span><span class="p">,</span> <span class="s1">&#39;CommandTable&#39;</span><span class="p">]</span>
+<span class="kn">from</span> <span class="nn">kadi.commands</span> <span class="kn">import</span> <span class="n">conf</span>
+<span class="kn">from</span> <span class="nn">kadi.commands.observations</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># noqa</span>
 
 
-<span class="k">class</span> <span class="nc">LazyVal</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">load_func</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_load_func</span> <span class="o">=</span> <span class="n">load_func</span>
-
-    <span class="k">def</span> <span class="fm">__getattribute__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="n">val</span> <span class="o">=</span> <span class="nb">object</span><span class="o">.</span><span class="fm">__getattribute__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;_val&#39;</span><span class="p">)</span>
-        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
-            <span class="n">val</span> <span class="o">=</span> <span class="nb">object</span><span class="o">.</span><span class="fm">__getattribute__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;_load_func&#39;</span><span class="p">)()</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_val</span> <span class="o">=</span> <span class="n">val</span>
-
-        <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;_val&#39;</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">val</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">val</span><span class="o">.</span><span class="fm">__getattribute__</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_val</span><span class="p">[</span><span class="n">item</span><span class="p">]</span>
-
-    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_val</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_val</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_val</span><span class="o">.</span><span class="fm">__len__</span><span class="p">()</span>
-
-
-<span class="nd">@retry</span><span class="o">.</span><span class="n">retry</span><span class="p">(</span><span class="n">tries</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">delay</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">backoff</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
-<span class="k">def</span> <span class="nf">load_idx_cmds</span><span class="p">():</span>
-    <span class="sd">&quot;&quot;&quot;Load the cmds.h5 file, trying up to 3 times</span>
-
-<span class="sd">    It seems that one can occasionally get:</span>
-
-<span class="sd">    File &quot;tables/hdf5extension.pyx&quot;, line 492, in tables.hdf5extension.File._g_new</span>
-<span class="sd">tables.exceptions.HDF5ExtError: HDF5 error back trace</span>
-<span class="sd">     ...</span>
-<span class="sd">    File &quot;H5FDsec2.c&quot;, line 941, in H5FD_sec2_lock</span>
-<span class="sd">    unable to lock file, errno = 11, error message = &#39;Resource temporarily unavailable&#39;</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">with</span> <span class="n">tables</span><span class="o">.</span><span class="n">open_file</span><span class="p">(</span><span class="n">IDX_CMDS_PATH</span><span class="p">(),</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">h5</span><span class="p">:</span>
-        <span class="n">idx_cmds</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="n">h5</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">data</span><span class="p">[:])</span>
-
-    <span class="k">return</span> <span class="n">idx_cmds</span>
-
-
-<span class="nd">@retry</span><span class="o">.</span><span class="n">retry</span><span class="p">(</span><span class="n">tries</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">delay</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">backoff</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
-<span class="k">def</span> <span class="nf">load_pars_dict</span><span class="p">():</span>
-    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">PARS_DICT_PATH</span><span class="p">(),</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
-        <span class="n">pars_dict</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">fh</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;ascii&#39;</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">pars_dict</span>
-
-
-<span class="c1"># Globals that contain the entire commands table and the parameters index</span>
-<span class="c1"># dictionary.</span>
-<span class="n">idx_cmds</span> <span class="o">=</span> <span class="n">LazyVal</span><span class="p">(</span><span class="n">load_idx_cmds</span><span class="p">)</span>
-<span class="n">pars_dict</span> <span class="o">=</span> <span class="n">LazyVal</span><span class="p">(</span><span class="n">load_pars_dict</span><span class="p">)</span>
-<span class="n">rev_pars_dict</span> <span class="o">=</span> <span class="n">LazyVal</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="p">{</span><span class="n">v</span><span class="p">:</span> <span class="n">k</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">pars_dict</span><span class="o">.</span><span class="n">items</span><span class="p">()})</span>
-
-
-<div class="viewcode-block" id="get_cmds"><a class="viewcode-back" href="../../../api.html#kadi.commands.commands.get_cmds">[docs]</a><span class="k">def</span> <span class="nf">get_cmds</span><span class="p">(</span><span class="n">start</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">stop</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">inclusive_stop</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="get_cmds"><a class="viewcode-back" href="../../../api.html#kadi.commands.commands.get_cmds">[docs]</a><span class="k">def</span> <span class="nf">get_cmds</span><span class="p">(</span><span class="n">start</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">stop</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">inclusive_stop</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">scenario</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Get commands beteween ``start`` and ``stop``.</span>
 
@@ -172,327 +102,40 @@
 <span class="sd">    :param stop: DateTime format (optional) Stop time, defaults to end of available</span>
 <span class="sd">        commands</span>
 <span class="sd">    :param inclusive_stop: bool, include commands at exactly ``stop`` if True.</span>
+<span class="sd">    :param scenario: str, None</span>
+<span class="sd">        Commands scenario (applicable only for V2 commands)</span>
 <span class="sd">    :param kwargs: key=val keyword argument pairs for filtering</span>
 
 <span class="sd">    :returns: :class:`~kadi.commands.commands.CommandTable` of commands</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">cmds</span> <span class="o">=</span> <span class="n">_find</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">,</span> <span class="n">inclusive_stop</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-    <span class="n">out</span> <span class="o">=</span> <span class="n">CommandTable</span><span class="p">(</span><span class="n">cmds</span><span class="p">)</span>
-    <span class="n">out</span><span class="p">[</span><span class="s1">&#39;params&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">out</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">Column</span><span class="p">([],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">object</span><span class="p">)</span>
-
-    <span class="c1"># Convert &#39;date&#39; from bytestring to unicode. This allows</span>
-    <span class="c1"># date2secs(out[&#39;date&#39;]) to work and will generally reduce weird problems.</span>
-    <span class="n">out</span><span class="o">.</span><span class="n">convert_bytestring_to_unicode</span><span class="p">()</span>
-
-    <span class="n">out</span><span class="o">.</span><span class="n">add_column</span><span class="p">(</span><span class="n">date2secs</span><span class="p">(</span><span class="n">out</span><span class="p">[</span><span class="s1">&#39;date&#39;</span><span class="p">]),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;time&#39;</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="mi">6</span><span class="p">)</span>
-    <span class="n">out</span><span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">info</span><span class="o">.</span><span class="n">format</span> <span class="o">=</span> <span class="s1">&#39;.3f&#39;</span>
-
-    <span class="k">return</span> <span class="n">out</span></div>
-
-
-<div class="viewcode-block" id="read_backstop"><a class="viewcode-back" href="../../../api.html#kadi.commands.commands.read_backstop">[docs]</a><span class="k">def</span> <span class="nf">read_backstop</span><span class="p">(</span><span class="n">backstop</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Read ``backstop`` and return a ``CommandTable``.</span>
-
-<span class="sd">    The ``backstop`` argument can be either be a string file name or a backstop</span>
-<span class="sd">    table from ``parse_cm.read_backstop``.</span>
-
-<span class="sd">    This function is a wrapper around ``get_cmds_from_backstop`` but follows a</span>
-<span class="sd">    more typical naming convention.</span>
-
-<span class="sd">    :param backstop: str or Table</span>
-<span class="sd">    :returns: :class:`~kadi.commands.commands.CommandTable` of commands</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">get_cmds_from_backstop</span><span class="p">(</span><span class="n">backstop</span><span class="p">)</span></div>
-
-
-<div class="viewcode-block" id="get_cmds_from_backstop"><a class="viewcode-back" href="../../../api.html#kadi.commands.commands.get_cmds_from_backstop">[docs]</a><span class="k">def</span> <span class="nf">get_cmds_from_backstop</span><span class="p">(</span><span class="n">backstop</span><span class="p">,</span> <span class="n">remove_starcat</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Initialize a ``CommandTable`` from ``backstop``, which can either</span>
-<span class="sd">    be a string file name or a backstop table from ``parse_cm.read_backstop``.</span>
-
-<span class="sd">    :param backstop: str or Table</span>
-<span class="sd">    :param remove_starcat: remove star catalog command parameters (default=False)</span>
-<span class="sd">    :returns: :class:`~kadi.commands.commands.CommandTable` of commands</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">backstop</span><span class="p">,</span> <span class="n">Path</span><span class="p">):</span>
-        <span class="n">backstop</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">backstop</span><span class="p">)</span>
-
-    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">backstop</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
-        <span class="kn">from</span> <span class="nn">parse_cm</span> <span class="kn">import</span> <span class="n">read_backstop</span>
-        <span class="n">bs</span> <span class="o">=</span> <span class="n">read_backstop</span><span class="p">(</span><span class="n">backstop</span><span class="p">)</span>
-    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">backstop</span><span class="p">,</span> <span class="n">Table</span><span class="p">):</span>
-        <span class="n">bs</span> <span class="o">=</span> <span class="n">backstop</span>
+    <span class="n">commands_version</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;KADI_COMMANDS_VERSION&#39;</span><span class="p">,</span>
+                                      <span class="n">conf</span><span class="o">.</span><span class="n">commands_version</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">commands_version</span> <span class="o">==</span> <span class="s1">&#39;2&#39;</span><span class="p">:</span>
+        <span class="kn">from</span> <span class="nn">kadi.commands.commands_v2</span> <span class="kn">import</span> <span class="n">get_cmds</span> <span class="k">as</span> <span class="n">get_cmds_</span>
+        <span class="n">get_cmds_</span> <span class="o">=</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">get_cmds_</span><span class="p">,</span> <span class="n">scenario</span><span class="o">=</span><span class="n">scenario</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;`backstop` arg must be a string filename or &#39;</span>
-                         <span class="sa">f</span><span class="s1">&#39;a backstop Table&#39;</span><span class="p">)</span>
+        <span class="kn">from</span> <span class="nn">kadi.commands.commands_v1</span> <span class="kn">import</span> <span class="n">get_cmds</span> <span class="k">as</span> <span class="n">get_cmds_</span>
 
-    <span class="n">n_bs</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">bs</span><span class="p">)</span>
-    <span class="n">out</span> <span class="o">=</span> <span class="p">{}</span>
-    <span class="c1"># Set idx to -1 so it does not match any real idx</span>
-    <span class="n">out</span><span class="p">[</span><span class="s1">&#39;idx&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="n">n_bs</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
-    <span class="n">out</span><span class="p">[</span><span class="s1">&#39;date&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">chararray</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">bs</span><span class="p">[</span><span class="s1">&#39;date&#39;</span><span class="p">])</span>
-    <span class="n">out</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">chararray</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">bs</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">])</span>
-    <span class="n">out</span><span class="p">[</span><span class="s1">&#39;tlmsid&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">chararray</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">bs</span><span class="p">[</span><span class="s1">&#39;tlmsid&#39;</span><span class="p">])</span>
-    <span class="n">out</span><span class="p">[</span><span class="s1">&#39;scs&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">bs</span><span class="p">[</span><span class="s1">&#39;scs&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
-    <span class="n">out</span><span class="p">[</span><span class="s1">&#39;step&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">bs</span><span class="p">[</span><span class="s1">&#39;step&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint16</span><span class="p">)</span>
-    <span class="n">out</span><span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">date2secs</span><span class="p">(</span><span class="n">bs</span><span class="p">[</span><span class="s1">&#39;date&#39;</span><span class="p">])</span>
-    <span class="c1"># Set timeline_id to 0, does not match any real timeline id</span>
-    <span class="n">out</span><span class="p">[</span><span class="s1">&#39;timeline_id&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n_bs</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">uint32</span><span class="p">)</span>
-    <span class="n">out</span><span class="p">[</span><span class="s1">&#39;vcdu&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">bs</span><span class="p">[</span><span class="s1">&#39;vcdu&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
-    <span class="n">out</span><span class="p">[</span><span class="s1">&#39;params&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">bs</span><span class="p">[</span><span class="s1">&#39;params&#39;</span><span class="p">]</span>
-
-    <span class="k">if</span> <span class="n">remove_starcat</span><span class="p">:</span>
-        <span class="c1"># Remove the lengthy parameters in star catalog but leave the command</span>
-        <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">flatnonzero</span><span class="p">(</span><span class="n">bs</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;MP_STARCAT&#39;</span><span class="p">):</span>
-            <span class="n">out</span><span class="p">[</span><span class="s1">&#39;params&#39;</span><span class="p">][</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
-
-    <span class="c1"># Backstop has redundant param keys, get rid of them here</span>
-    <span class="k">for</span> <span class="n">params</span> <span class="ow">in</span> <span class="n">out</span><span class="p">[</span><span class="s1">&#39;params&#39;</span><span class="p">]:</span>
-        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;tlmsid&#39;</span><span class="p">,</span> <span class="s1">&#39;step&#39;</span><span class="p">,</span> <span class="s1">&#39;scs&#39;</span><span class="p">):</span>
-            <span class="n">params</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-
-        <span class="c1"># Match the hack in update_commands which swaps in &quot;event_type&quot; for &quot;type&quot;</span>
-        <span class="c1"># for orbit event commands</span>
-        <span class="k">if</span> <span class="s1">&#39;type&#39;</span> <span class="ow">in</span> <span class="n">params</span><span class="p">:</span>
-            <span class="n">params</span><span class="p">[</span><span class="s1">&#39;event_type&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span>
-            <span class="k">del</span> <span class="n">params</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span>
-
-    <span class="n">out</span> <span class="o">=</span> <span class="n">CommandTable</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
-    <span class="n">out</span><span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">info</span><span class="o">.</span><span class="n">format</span> <span class="o">=</span> <span class="s1">&#39;.3f&#39;</span>
-
-    <span class="c1"># Convert &#39;date&#39; from bytestring to unicode. This allows</span>
-    <span class="c1"># date2secs(out[&#39;date&#39;]) to work and will generally reduce weird problems.</span>
-    <span class="n">out</span><span class="o">.</span><span class="n">convert_bytestring_to_unicode</span><span class="p">()</span>
-
-    <span class="k">return</span> <span class="n">out</span></div>
+    <span class="n">cmds</span> <span class="o">=</span> <span class="n">get_cmds_</span><span class="p">(</span><span class="n">start</span><span class="o">=</span><span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="o">=</span><span class="n">stop</span><span class="p">,</span>
+                     <span class="n">inclusive_stop</span><span class="o">=</span><span class="n">inclusive_stop</span><span class="p">,</span>
+                     <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">cmds</span></div>
 
 
-<span class="k">def</span> <span class="nf">_find</span><span class="p">(</span><span class="n">start</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">stop</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">inclusive_stop</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Get commands beteween ``start`` and ``stop``.</span>
+<div class="viewcode-block" id="clear_caches"><a class="viewcode-back" href="../../../api.html#kadi.commands.commands.clear_caches">[docs]</a><span class="k">def</span> <span class="nf">clear_caches</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;Clear all commands caches.</span>
 
-<span class="sd">    By default the interval is ``start`` &lt;= date &lt; ``stop``, but if</span>
-<span class="sd">    ``inclusive_stop=True`` then the interval is ``start`` &lt;= date &lt;= ``stop``.</span>
-
-<span class="sd">    Additional ``key=val`` pairs can be supplied to further filter the results.</span>
-<span class="sd">    Both ``key`` and ``val`` are case insensitive.  In addition to the any of</span>
-<span class="sd">    the command parameters such as TLMSID, MSID, SCS, STEP, or POS, the ``key``</span>
-<span class="sd">    can be:</span>
-
-<span class="sd">    date : Exact date of command e.g. &#39;2013:003:22:11:45.530&#39;</span>
-<span class="sd">    type : Command type e.g. COMMAND_SW, COMMAND_HW, ACISPKT, SIMTRANS</span>
-
-<span class="sd">    Examples::</span>
-
-<span class="sd">      &gt;&gt;&gt; from kadi import commands</span>
-<span class="sd">      &gt;&gt;&gt; cmds = commands._find(&#39;2012:001&#39;, &#39;2012:030&#39;)</span>
-<span class="sd">      &gt;&gt;&gt; cmds = commands._find(&#39;2012:001&#39;, &#39;2012:030&#39;, type=&#39;simtrans&#39;)</span>
-<span class="sd">      &gt;&gt;&gt; cmds = commands._find(type=&#39;acispkt&#39;, tlmsid=&#39;wsvidalldn&#39;)</span>
-<span class="sd">      &gt;&gt;&gt; cmds = commands._find(msid=&#39;aflcrset&#39;)</span>
-
-<span class="sd">    :param start: DateTime format (optional)</span>
-<span class="sd">        Start time, defaults to beginning of available commands (2002:001)</span>
-<span class="sd">    :param stop: DateTime format (optional)</span>
-<span class="sd">        Stop time, defaults to end of available commands</span>
-<span class="sd">    :param kwargs: key=val keyword argument pairs</span>
-
-<span class="sd">    :returns: astropy Table of commands</span>
+<span class="sd">    This is useful for testing and in case upstream products like the Command</span>
+<span class="sd">    Events sheet have changed during a session.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">ok</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">idx_cmds</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
-    <span class="n">par_ok</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">idx_cmds</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
-
-    <span class="n">date</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;date&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">date</span><span class="p">:</span>
-        <span class="n">ok</span> <span class="o">&amp;=</span> <span class="n">idx_cmds</span><span class="p">[</span><span class="s1">&#39;date&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">DateTime</span><span class="p">(</span><span class="n">date</span><span class="p">)</span><span class="o">.</span><span class="n">date</span>
+    <span class="n">commands_version</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;KADI_COMMANDS_VERSION&#39;</span><span class="p">,</span>
+                                      <span class="n">conf</span><span class="o">.</span><span class="n">commands_version</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">commands_version</span> <span class="o">==</span> <span class="s1">&#39;2&#39;</span><span class="p">:</span>
+        <span class="kn">from</span> <span class="nn">kadi.commands.commands_v2</span> <span class="kn">import</span> <span class="n">clear_caches</span> <span class="k">as</span> <span class="n">clear_caches_vN</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">start</span><span class="p">:</span>
-            <span class="n">ok</span> <span class="o">&amp;=</span> <span class="n">idx_cmds</span><span class="p">[</span><span class="s1">&#39;date&#39;</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">DateTime</span><span class="p">(</span><span class="n">start</span><span class="p">)</span><span class="o">.</span><span class="n">date</span>
-        <span class="k">if</span> <span class="n">stop</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">inclusive_stop</span><span class="p">:</span>
-                <span class="n">ok</span> <span class="o">&amp;=</span> <span class="n">idx_cmds</span><span class="p">[</span><span class="s1">&#39;date&#39;</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">DateTime</span><span class="p">(</span><span class="n">stop</span><span class="p">)</span><span class="o">.</span><span class="n">date</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">ok</span> <span class="o">&amp;=</span> <span class="n">idx_cmds</span><span class="p">[</span><span class="s1">&#39;date&#39;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">DateTime</span><span class="p">(</span><span class="n">stop</span><span class="p">)</span><span class="o">.</span><span class="n">date</span>
+        <span class="kn">from</span> <span class="nn">kadi.commands.commands_v1</span> <span class="kn">import</span> <span class="n">clear_caches</span> <span class="k">as</span> <span class="n">clear_caches_vN</span>
 
-    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-        <span class="n">key</span> <span class="o">=</span> <span class="n">key</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
-            <span class="n">val</span> <span class="o">=</span> <span class="n">val</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
-        <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">idx_cmds</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">names</span><span class="p">:</span>
-            <span class="n">ok</span> <span class="o">&amp;=</span> <span class="n">idx_cmds</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">==</span> <span class="n">val</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">par_ok</span><span class="p">[:]</span> <span class="o">=</span> <span class="kc">False</span>
-            <span class="k">for</span> <span class="n">pars_tuple</span><span class="p">,</span> <span class="n">idx</span> <span class="ow">in</span> <span class="n">pars_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-                <span class="n">pars</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">pars_tuple</span><span class="p">)</span>
-                <span class="k">if</span> <span class="n">pars</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">)</span> <span class="o">==</span> <span class="n">val</span><span class="p">:</span>
-                    <span class="n">par_ok</span> <span class="o">|=</span> <span class="p">(</span><span class="n">idx_cmds</span><span class="p">[</span><span class="s1">&#39;idx&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">idx</span><span class="p">)</span>
-            <span class="n">ok</span> <span class="o">&amp;=</span> <span class="n">par_ok</span>
-    <span class="n">cmds</span> <span class="o">=</span> <span class="n">idx_cmds</span><span class="p">[</span><span class="n">ok</span><span class="p">]</span>
-
-    <span class="k">return</span> <span class="n">cmds</span>
-
-
-<span class="k">class</span> <span class="nc">CommandRow</span><span class="p">(</span><span class="n">Row</span><span class="p">):</span>
-    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
-        <span class="k">if</span> <span class="n">item</span> <span class="o">==</span> <span class="s1">&#39;params&#39;</span><span class="p">:</span>
-            <span class="n">out</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">CommandRow</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__getitem__</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">out</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">idx</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">CommandRow</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__getitem__</span><span class="p">(</span><span class="s1">&#39;idx&#39;</span><span class="p">)</span>
-                <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="s1">&#39;params&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">rev_pars_dict</span><span class="p">[</span><span class="n">idx</span><span class="p">])</span>
-        <span class="k">elif</span> <span class="n">item</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">colnames</span><span class="p">:</span>
-            <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="s1">&#39;params&#39;</span><span class="p">][</span><span class="n">item</span><span class="p">]</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">out</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">CommandRow</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__getitem__</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">out</span>
-
-    <span class="k">def</span> <span class="nf">keys</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">out</span> <span class="o">=</span> <span class="p">[</span><span class="n">name</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">colnames</span> <span class="k">if</span> <span class="n">name</span> <span class="o">!=</span> <span class="s1">&#39;params&#39;</span><span class="p">]</span>
-        <span class="n">params</span> <span class="o">=</span> <span class="p">[</span><span class="n">key</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="s1">&#39;params&#39;</span><span class="p">])]</span>
-
-        <span class="k">return</span> <span class="n">out</span> <span class="o">+</span> <span class="n">params</span>
-
-    <span class="k">def</span> <span class="nf">values</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">keys</span><span class="p">()]</span>
-
-    <span class="k">def</span> <span class="nf">items</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="p">[(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">keys</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">())]</span>
-
-    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">out</span> <span class="o">=</span> <span class="p">(</span><span class="sa">f</span><span class="s1">&#39;&lt;Cmd </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="si">}</span><span class="s1">&gt;&#39;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">out</span>
-
-    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">keys</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
-        <span class="n">keys</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s1">&#39;date&#39;</span><span class="p">)</span>
-        <span class="n">keys</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s1">&#39;type&#39;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="s1">&#39;idx&#39;</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">:</span>
-            <span class="n">keys</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s1">&#39;idx&#39;</span><span class="p">)</span>
-
-        <span class="n">out</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1"> </span><span class="si">{}</span><span class="s1"> &#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="s1">&#39;date&#39;</span><span class="p">],</span> <span class="bp">self</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">])</span>
-               <span class="o">+</span> <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1">=</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="bp">self</span><span class="p">[</span><span class="n">key</span><span class="p">])</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">keys</span>
-                          <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;type&#39;</span><span class="p">,</span> <span class="s1">&#39;date&#39;</span><span class="p">,</span> <span class="s1">&#39;time&#39;</span><span class="p">)))</span>
-        <span class="k">return</span> <span class="n">out</span>
-
-    <span class="k">def</span> <span class="nf">__sstr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_table</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">index</span> <span class="o">+</span> <span class="mi">1</span><span class="p">])</span>
-
-
-<div class="viewcode-block" id="CommandTable"><a class="viewcode-back" href="../../../api.html#kadi.commands.commands.CommandTable">[docs]</a><span class="k">class</span> <span class="nc">CommandTable</span><span class="p">(</span><span class="n">Table</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Astropy Table subclass that is specialized to handle commands via a</span>
-<span class="sd">    ``params`` column that is expected to be ``None`` or a dict of params.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
-            <span class="k">if</span> <span class="n">item</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">colnames</span><span class="p">:</span>
-                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="n">item</span><span class="p">]</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="k">return</span> <span class="n">Column</span><span class="p">([</span><span class="n">cmd</span><span class="p">[</span><span class="s1">&#39;params&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">item</span><span class="p">)</span> <span class="k">for</span> <span class="n">cmd</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">],</span> <span class="n">name</span><span class="o">=</span><span class="n">item</span><span class="p">)</span>
-
-        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
-            <span class="k">return</span> <span class="n">CommandRow</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">)</span>
-
-        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="p">(</span><span class="nb">tuple</span><span class="p">,</span> <span class="nb">list</span><span class="p">))</span> <span class="ow">and</span> <span class="nb">all</span><span class="p">(</span><span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">colnames</span>
-                                                     <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">item</span><span class="p">):</span>
-            <span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
-            <span class="kn">from</span> <span class="nn">astropy.table</span> <span class="kn">import</span> <span class="n">groups</span>
-            <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">([</span><span class="bp">self</span><span class="p">[</span><span class="n">x</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">item</span><span class="p">],</span> <span class="n">meta</span><span class="o">=</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">meta</span><span class="p">))</span>
-            <span class="n">out</span><span class="o">.</span><span class="n">_groups</span> <span class="o">=</span> <span class="n">groups</span><span class="o">.</span><span class="n">TableGroups</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">indices</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">groups</span><span class="o">.</span><span class="n">_indices</span><span class="p">,</span>
-                                             <span class="n">keys</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">groups</span><span class="o">.</span><span class="n">_keys</span><span class="p">)</span>
-            <span class="k">return</span> <span class="n">out</span>
-
-        <span class="k">elif</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="nb">slice</span><span class="p">)</span>
-              <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span>
-              <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span>
-              <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">all</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span>
-                                                 <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">item</span><span class="p">)):</span>
-            <span class="c1"># here for the many ways to give a slice; a tuple of ndarray</span>
-            <span class="c1"># is produced by np.where, as in t[np.where(t[&#39;a&#39;] &gt; 2)]</span>
-            <span class="c1"># For all, a new table is constructed with slice of all columns</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_new_from_slice</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
-
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Illegal type </span><span class="si">{0}</span><span class="s1"> for table item access&#39;</span>
-                             <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">item</span><span class="p">)))</span>
-
-    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="c1"># Cut out params column for printing</span>
-        <span class="n">colnames</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">colnames</span>
-        <span class="k">if</span> <span class="s1">&#39;idx&#39;</span> <span class="ow">in</span> <span class="n">colnames</span><span class="p">:</span>
-            <span class="n">colnames</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s1">&#39;idx&#39;</span><span class="p">)</span>
-
-        <span class="c1"># Nice repr of parameters.  This forces all cmd params to get resolved.</span>
-        <span class="n">tmp_params</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="k">if</span> <span class="s1">&#39;params&#39;</span> <span class="ow">in</span> <span class="n">colnames</span><span class="p">:</span>
-            <span class="n">params_list</span> <span class="o">=</span> <span class="p">[]</span>
-            <span class="k">for</span> <span class="n">params</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">[</span><span class="s1">&#39;params&#39;</span><span class="p">]:</span>
-                <span class="k">if</span> <span class="n">params</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                    <span class="n">params_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;N/A&#39;</span><span class="p">)</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">param_strs</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1">=</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">params</span><span class="o">.</span><span class="n">items</span><span class="p">()]</span>
-                    <span class="n">params_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">param_strs</span><span class="p">))</span>
-            <span class="n">tmp_params</span> <span class="o">=</span> <span class="n">params_list</span>
-            <span class="n">colnames</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s1">&#39;params&#39;</span><span class="p">)</span>
-
-        <span class="n">tmp</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="n">colnames</span><span class="p">]</span>
-        <span class="k">if</span> <span class="n">tmp_params</span><span class="p">:</span>
-            <span class="n">tmp</span><span class="p">[</span><span class="s1">&#39;params&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tmp_params</span>
-
-        <span class="n">lines</span> <span class="o">=</span> <span class="n">tmp</span><span class="o">.</span><span class="n">pformat</span><span class="p">(</span><span class="n">max_width</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
-        <span class="k">return</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="fm">__bytes__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span>
-
-<div class="viewcode-block" id="CommandTable.fetch_params"><a class="viewcode-back" href="../../../api.html#kadi.commands.commands.CommandTable.fetch_params">[docs]</a>    <span class="k">def</span> <span class="nf">fetch_params</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Fetch all ``params`` for every row and force resolution of actual values.</span>
-
-<span class="sd">        This is handy for printing a command table and seeing all the parameters at once.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">for</span> <span class="n">cmd</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
-            <span class="n">cmd</span><span class="p">[</span><span class="s1">&#39;params&#39;</span><span class="p">]</span></div>
-
-<div class="viewcode-block" id="CommandTable.add_cmds"><a class="viewcode-back" href="../../../api.html#kadi.commands.commands.CommandTable.add_cmds">[docs]</a>    <span class="k">def</span> <span class="nf">add_cmds</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cmds</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Add CommandTable ``cmds`` to self and return the new CommandTable. The</span>
-<span class="sd">        commands table is maintained in order (date, step, scs).</span>
-
-<span class="sd">        :param cmds: :class:`~kadi.commands.commands.CommandTable` of commands</span>
-<span class="sd">        :returns: :class:`~kadi.commands.commands.CommandTable` of commands</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">out</span> <span class="o">=</span> <span class="n">vstack</span><span class="p">([</span><span class="bp">self</span><span class="p">,</span> <span class="n">cmds</span><span class="p">])</span>
-        <span class="n">out</span><span class="o">.</span><span class="n">sort</span><span class="p">([</span><span class="s1">&#39;date&#39;</span><span class="p">,</span> <span class="s1">&#39;step&#39;</span><span class="p">,</span> <span class="s1">&#39;scs&#39;</span><span class="p">])</span>
-
-        <span class="k">return</span> <span class="n">out</span></div>
-
-<div class="viewcode-block" id="CommandTable.as_list_of_dict"><a class="viewcode-back" href="../../../api.html#kadi.commands.commands.CommandTable.as_list_of_dict">[docs]</a>    <span class="k">def</span> <span class="nf">as_list_of_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ska_parsecm</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Convert CommandTable to a list of dict.</span>
-
-<span class="sd">        The command ``params`` are embedded as a dict for each command.</span>
-
-<span class="sd">        If ``ska_parsecm`` is True then the output is made more compatible with</span>
-<span class="sd">        the legacy output from ``Ska.ParseCM.read_backstop()``, namely:</span>
-
-<span class="sd">        - Add ``cmd`` key which is set to the ``type`` key</span>
-<span class="sd">        - Make ``params`` keys uppercase.</span>
-
-<span class="sd">        :param ska_parsecm: bool, make output more Ska.ParseCM compatible</span>
-<span class="sd">        :return: list of dict</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">fetch_params</span><span class="p">()</span>
-
-        <span class="n">names</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">colnames</span>
-        <span class="n">cmds_list</span> <span class="o">=</span> <span class="p">[{</span><span class="n">name</span><span class="p">:</span> <span class="n">cmd</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">names</span><span class="p">}</span> <span class="k">for</span> <span class="n">cmd</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">]</span>
-
-        <span class="k">if</span> <span class="n">ska_parsecm</span><span class="p">:</span>
-            <span class="k">for</span> <span class="n">cmd</span> <span class="ow">in</span> <span class="n">cmds_list</span><span class="p">:</span>
-                <span class="k">if</span> <span class="s1">&#39;type&#39;</span> <span class="ow">in</span> <span class="n">cmd</span><span class="p">:</span>
-                    <span class="n">cmd</span><span class="p">[</span><span class="s1">&#39;cmd&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cmd</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span>
-                <span class="k">if</span> <span class="s1">&#39;params&#39;</span> <span class="ow">in</span> <span class="n">cmd</span><span class="p">:</span>
-                    <span class="n">cmd</span><span class="p">[</span><span class="s1">&#39;params&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="o">.</span><span class="n">upper</span><span class="p">():</span> <span class="n">val</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">cmd</span><span class="p">[</span><span class="s1">&#39;params&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
-
-        <span class="k">return</span> <span class="n">cmds_list</span></div></div>
+    <span class="n">clear_caches_vN</span><span class="p">()</span></div>
 </pre></div>
 
             <div class="clearer"></div>
@@ -520,7 +163,7 @@
     <a href="#">Back to Top</a></p>
   <p>
     &copy; Copyright 2013, Tom Aldcroft.<br/>
-    Created using <a href="http://www.sphinx-doc.org/en/stable/">Sphinx</a> 3.1.2. &nbsp;
+    Created using <a href="http://www.sphinx-doc.org/en/stable/">Sphinx</a> 4.2.0. &nbsp;
   </p>
 </footer>
   </body>

@@ -4,16 +4,16 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Index &#8212; kadi 5.8.1 documentation</title>
-    <link rel="stylesheet" href="_static/bootstrap-astropy.css" type="text/css" />
-    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Index &#8212; kadi 5.9.1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/bootstrap-astropy.css" />
+    <link rel="stylesheet" type="text/css" href="_static/plot_directive.css" />
     
-    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
     <script src="_static/doctools.js"></script>
-    <script src="_static/language_data.js"></script>
     <script type="text/javascript" src="_static/sidebar.js"></script>
     <script type="text/javascript" src="_static/copybutton.js"></script>
     <link rel="index" title="Index" href="#" />
@@ -47,7 +47,7 @@
     <h3>Navigation</h3>
     <ul>
       <li>
-	<a href="index.html">kadi 5.8.1 documentation</a>
+	<a href="index.html">kadi 5.9.1 documentation</a>
 	 &#187;
       </li>
       
@@ -93,8 +93,6 @@
 </li>
       <li><a href="api.html#kadi.commands.states.ACISTransition">ACISTransition (class in kadi.commands.states)</a>
 </li>
-      <li><a href="api.html#kadi.commands.commands.CommandTable.add_cmds">add_cmds() (kadi.commands.commands.CommandTable method)</a>
-</li>
       <li><a href="api.html#kadi.commands.states.ManeuverTransition.add_manvr_transitions">add_manvr_transitions() (kadi.commands.states.ManeuverTransition class method)</a>
 </li>
       <li><a href="api.html#kadi.commands.states.add_transition">add_transition() (in module kadi.commands.states)</a>
@@ -102,8 +100,6 @@
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api.html#kadi.events.query.EventQuery.all">all() (kadi.events.query.EventQuery method)</a>
-</li>
-      <li><a href="api.html#kadi.commands.commands.CommandTable.as_list_of_dict">as_list_of_dict() (kadi.commands.commands.CommandTable method)</a>
 </li>
       <li><a href="api.html#kadi.events.models.AsciiTableEvent">AsciiTableEvent (class in kadi.events.models)</a>
 </li>
@@ -147,7 +143,7 @@
 </li>
       <li><a href="api.html#kadi.events.models.CAP.MultipleObjectsReturned">CAP.MultipleObjectsReturned</a>
 </li>
-      <li><a href="api.html#kadi.commands.commands.CommandTable">CommandTable (class in kadi.commands.commands)</a>
+      <li><a href="api.html#kadi.commands.commands.clear_caches">clear_caches() (in module kadi.commands.commands)</a>
 </li>
       <li><a href="api.html#kadi.commands.states.StateDict.copy">copy() (kadi.commands.states.StateDict method)</a>
 </li>
@@ -245,16 +241,14 @@
 </li>
       <li><a href="api.html#kadi.events.models.TlmEvent.fetch_event">fetch_event() (kadi.events.models.TlmEvent method)</a>
 </li>
-      <li><a href="api.html#kadi.commands.commands.CommandTable.fetch_params">fetch_params() (kadi.commands.commands.CommandTable method)</a>
-</li>
       <li><a href="api.html#kadi.events.query.EventQuery.filter">filter() (kadi.events.query.EventQuery method)</a>
 </li>
       <li><a href="api.html#kadi.commands.states.FixedTransition">FixedTransition (class in kadi.commands.states)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api.html#kadi.commands.states.Format1_Transition">Format1_Transition (class in kadi.commands.states)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api.html#kadi.commands.states.Format2_Transition">Format2_Transition (class in kadi.commands.states)</a>
 </li>
       <li><a href="api.html#kadi.commands.states.Format3_Transition">Format3_Transition (class in kadi.commands.states)</a>
@@ -278,8 +272,6 @@
       <li><a href="api.html#kadi.commands.states.get_chandra_states">get_chandra_states() (in module kadi.commands.states)</a>
 </li>
       <li><a href="api.html#kadi.commands.commands.get_cmds">get_cmds() (in module kadi.commands.commands)</a>
-</li>
-      <li><a href="api.html#kadi.commands.commands.get_cmds_from_backstop">get_cmds_from_backstop() (in module kadi.commands.commands)</a>
 </li>
       <li><a href="api.html#kadi.events.models.BaseEvent.get_commands">get_commands() (kadi.events.models.BaseEvent method)</a>
 </li>
@@ -316,8 +308,6 @@
 </li>
         <li><a href="api.html#kadi.events.models.GratingMove.get_extras">(kadi.events.models.GratingMove class method)</a>
 </li>
-        <li><a href="api.html#kadi.events.models.LttBad.get_extras">(kadi.events.models.LttBad class method)</a>
-</li>
         <li><a href="api.html#kadi.events.models.TlmEvent.get_extras">(kadi.events.models.TlmEvent class method)</a>
 </li>
         <li><a href="api.html#kadi.events.models.TscMove.get_extras">(kadi.events.models.TscMove class method)</a>
@@ -333,24 +323,20 @@
 </li>
       <li><a href="api.html#kadi.events.models.BaseEvent.get_next">get_next() (kadi.events.models.BaseEvent method)</a>
 </li>
+      <li><a href="api.html#kadi.commands.observations.get_observations">get_observations() (in module kadi.commands.observations)</a>
+</li>
       <li><a href="api.html#kadi.events.models.BaseModel.get_obsid">get_obsid() (kadi.events.models.BaseModel method)</a>
 </li>
       <li><a href="api.html#kadi.events.models.Manvr.get_one_shot">get_one_shot() (kadi.events.models.Manvr class method)</a>
 </li>
       <li><a href="api.html#kadi.events.models.BaseEvent.get_previous">get_previous() (kadi.events.models.BaseEvent method)</a>
 </li>
+      <li><a href="api.html#kadi.commands.observations.get_starcats">get_starcats() (in module kadi.commands.observations)</a>
+</li>
       <li><a href="api.html#kadi.commands.states.BaseTransition.get_state_changing_commands">get_state_changing_commands() (kadi.commands.states.BaseTransition class method)</a>
 </li>
-      <li><a href="api.html#kadi.events.models.GratingMove.get_state_times_bools">get_state_times_bools() (kadi.events.models.GratingMove class method)</a>
-
-      <ul>
-        <li><a href="api.html#kadi.events.models.SafeSun.get_state_times_bools">(kadi.events.models.SafeSun class method)</a>
+      <li><a href="api.html#kadi.events.models.TlmEvent.get_state_times_bools">get_state_times_bools() (kadi.events.models.TlmEvent class method)</a>
 </li>
-        <li><a href="api.html#kadi.events.models.Scs107.get_state_times_bools">(kadi.events.models.Scs107 class method)</a>
-</li>
-        <li><a href="api.html#kadi.events.models.TlmEvent.get_state_times_bools">(kadi.events.models.TlmEvent class method)</a>
-</li>
-      </ul></li>
       <li><a href="api.html#kadi.commands.states.get_states">get_states() (in module kadi.commands.states)</a>
 </li>
       <li><a href="api.html#kadi.events.models.Manvr.get_target_attitudes">get_target_attitudes() (kadi.events.models.Manvr class method)</a>
@@ -404,6 +390,13 @@
 
       <ul>
         <li><a href="api.html#module-kadi.commands.commands">module</a>
+</li>
+      </ul></li>
+      <li>
+    kadi.commands.observations
+
+      <ul>
+        <li><a href="api.html#module-kadi.commands.observations">module</a>
 </li>
       </ul></li>
       <li>
@@ -477,10 +470,10 @@
 </li>
       <li><a href="api.html#kadi.events.models.ManvrSeq.DoesNotExist">ManvrSeq.DoesNotExist</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api.html#kadi.events.models.ManvrSeq.MultipleObjectsReturned">ManvrSeq.MultipleObjectsReturned</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api.html#kadi.commands.states.MechMove">MechMove (class in kadi.commands.states)</a>
 </li>
       <li>
@@ -489,6 +482,8 @@
       <ul>
         <li><a href="api.html#module-kadi.commands.commands">kadi.commands.commands</a>
 </li>
+        <li><a href="api.html#module-kadi.commands.observations">kadi.commands.observations</a>
+</li>
         <li><a href="api.html#module-kadi.commands.states">kadi.commands.states</a>
 </li>
         <li><a href="api.html#module-kadi.events.models">kadi.events.models</a>
@@ -496,7 +491,7 @@
         <li><a href="api.html#module-kadi.events.query">kadi.events.query</a>
 </li>
       </ul></li>
-      <li><a href="api.html#kadi.events.models.TlmEvent.msidset">msidset() (kadi.events.models.TlmEvent property)</a>
+      <li><a href="api.html#kadi.events.models.TlmEvent.msidset">msidset (kadi.events.models.TlmEvent property)</a>
 </li>
       <li><a href="api.html#kadi.events.models.msidset_interpolate">msidset_interpolate() (in module kadi.events.models)</a>
 </li>
@@ -594,8 +589,6 @@
 </li>
       <li><a href="api.html#kadi.events.models.RadZone.MultipleObjectsReturned">RadZone.MultipleObjectsReturned</a>
 </li>
-      <li><a href="api.html#kadi.commands.commands.read_backstop">read_backstop() (in module kadi.commands.commands)</a>
-</li>
       <li><a href="api.html#kadi.commands.states.reduce_states">reduce_states() (in module kadi.commands.states)</a>
 </li>
   </ul></td>
@@ -678,8 +671,6 @@
 <h2 id="T">T</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api.html#kadi.events.models.BaseModel.QuerySet.table">table() (kadi.events.models.BaseModel.QuerySet property)</a>
-</li>
       <li><a href="api.html#kadi.commands.states.TargQuatTransition">TargQuatTransition (class in kadi.commands.states)</a>
 </li>
       <li><a href="api.html#kadi.events.models.TlmEvent">TlmEvent (class in kadi.events.models)</a>
@@ -742,7 +733,7 @@
     <a href="#">Back to Top</a></p>
   <p>
     &copy; Copyright 2013, Tom Aldcroft.<br/>
-    Created using <a href="http://www.sphinx-doc.org/en/stable/">Sphinx</a> 3.1.2. &nbsp;
+    Created using <a href="http://www.sphinx-doc.org/en/stable/">Sphinx</a> 4.2.0. &nbsp;
   </p>
 </footer>
   </body>

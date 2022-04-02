@@ -4,21 +4,22 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Commands and states &#8212; kadi 5.8.1 documentation</title>
-    <link rel="stylesheet" href="_static/bootstrap-astropy.css" type="text/css" />
-    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Commands and states &#8212; kadi 5.9.1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/bootstrap-astropy.css" />
+    <link rel="stylesheet" type="text/css" href="_static/plot_directive.css" />
     
-    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
     <script src="_static/doctools.js"></script>
-    <script src="_static/language_data.js"></script>
     <script type="text/javascript" src="_static/sidebar.js"></script>
     <script type="text/javascript" src="_static/copybutton.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="API documentation" href="api.html" />
+    <link rel="next" title="Commands archive v2 details" href="commands_v2.html" />
     <link rel="prev" title="Chandra events" href="events.html" />
     <link href='https://fonts.googleapis.com/css?family=Source+Sans+Pro:200,600' rel='stylesheet' type='text/css'/>
 
@@ -49,7 +50,7 @@
     <h3>Navigation</h3>
     <ul>
       <li class="right">
-	<a href="api.html" title="API documentation">
+	<a href="commands_v2.html" title="Commands archive v2 details">
 	  next &raquo;
 	</a>
       </li>
@@ -60,7 +61,7 @@
 	 |
       </li>
       <li>
-	<a href="index.html">kadi 5.8.1 documentation</a>
+	<a href="index.html">kadi 5.9.1 documentation</a>
 	 &#187;
       </li>
       
@@ -74,12 +75,23 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <div class="section" id="commands-and-states">
+  <section id="commands-and-states">
 <h1>Commands and states<a class="headerlink" href="#commands-and-states" title="Permalink to this headline">¶</a></h1>
 <p><strong>Commands</strong></p>
-<p>The <a class="reference internal" href="#commands-archive">Commands archive</a> is a table of every load command that has been run, or is currently
+<p>The Commands archive is a table of every load command that has been run, or is currently
 approved to be run, on the spacecraft since 2002.  This archive accounts for load stoppages,
 replans, and certain non-load commands like ACIS CTI runs or Normal Sun Mode transitions.</p>
+<p>As of this release there are two versions of the commands archive:</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#commands-archive-v1">Commands archive v1</a> (flight): this is the current default version and
+relies on iFOT load segments and the Chandra.cmd_states timelines database to
+maintain the commands database.</p></li>
+<li><p><a class="reference internal" href="#commands-archive-v2">Commands archive v2</a> (beta): this provides improved timeliness during
+anomalies and better team-wide communication of non-load spacecraft commanding.
+This relies on the <a class="reference external" href="https://docs.google.com/spreadsheets/d/19d6XqBhWoFjC-z1lS1nM6wLE_zjr4GYB1lOvrEGCbKQ">Chandra Command Events</a> sheet and OCCweb FOT mission planning approved load products to
+maintain the commands database. V2 is planned to be promoted to the default
+and the legacy will be deprecated and then retired.</p></li>
+</ul>
 <p><strong>States and continuity</strong></p>
 <p>Coupled with the commands archive is functionality determine <a class="reference internal" href="#chandra-states-and-continuity">Chandra states and continuity</a>:</p>
 <ul class="simple">
@@ -97,23 +109,23 @@ date of the last command which affected the state.</p></li>
 installed code.  Note that a key design feature is that is it straightforward for users
 to implement their own states, often with just a few lines of code.  See the <a class="reference internal" href="#user-defined-states">User-defined states</a>
 section for details.</p>
-<div class="section" id="commands-archive">
-<h2>Commands archive<a class="headerlink" href="#commands-archive" title="Permalink to this headline">¶</a></h2>
+<section id="commands-archive-v1">
+<h2>Commands archive v1<a class="headerlink" href="#commands-archive-v1" title="Permalink to this headline">¶</a></h2>
 <p>The basic way to select commands is with the <a class="reference internal" href="api.html#kadi.commands.commands.get_cmds" title="kadi.commands.commands.get_cmds"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_cmds()</span></code></a> method.  For example you can find
 load commands from early in 2013 with:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">kadi</span> <span class="kn">import</span> <span class="n">commands</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">cmds</span> <span class="o">=</span> <span class="n">commands</span><span class="o">.</span><span class="n">get_cmds</span><span class="p">(</span><span class="s1">&#39;2013:001:00:00:00&#39;</span><span class="p">,</span> <span class="s1">&#39;2013:001:00:56:10&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">cmds</span><span class="p">)</span>
-<span class="go">         date            type      tlmsid   scs step timeline_id params</span>
-<span class="go">--------------------- ---------- ---------- --- ---- ----------- ------</span>
-<span class="go">2013:001:00:37:37.653   ORBPOINT       None   0    0   426098988    N/A</span>
-<span class="go">2013:001:00:53:07.181 COMMAND_SW   AOACRSTD 129 1524   426098990    N/A</span>
-<span class="go">2013:001:00:54:07.181 COMMAND_SW   AOFUNCDS 129 1526   426098990    N/A</span>
-<span class="go">2013:001:00:55:07.181 COMMAND_SW   AOFUNCDS 129 1528   426098990    N/A</span>
-<span class="go">2013:001:00:56:07.181 COMMAND_SW   AONMMODE 129 1530   426098990    N/A</span>
-<span class="go">2013:001:00:56:07.181    ACISPKT AA00000000 132 1620   426098991    N/A</span>
-<span class="go">2013:001:00:56:07.181   SIMTRANS       None 132 1623   426098991    N/A</span>
-<span class="go">2013:001:00:56:07.438 COMMAND_SW   AONM2NPE 129 1532   426098990    N/A</span>
+<span class="go">        date            type      tlmsid   scs step      time     timeline_id   vcdu  params</span>
+<span class="go">--------------------- ---------- ---------- --- ---- ------------- ----------- ------- ------</span>
+<span class="go">2013:001:00:37:37.653   ORBPOINT       None   0    0 473387924.837   426098988 5533112    N/A</span>
+<span class="go">2013:001:00:53:07.181 COMMAND_SW   AOACRSTD 129 1524 473388854.365   426098990 5584176    N/A</span>
+<span class="go">2013:001:00:54:07.181 COMMAND_SW   AOFUNCDS 129 1526 473388914.365   426098990 5584410    N/A</span>
+<span class="go">2013:001:00:55:07.181 COMMAND_SW   AOFUNCDS 129 1528 473388974.365   426098990 5584644    N/A</span>
+<span class="go">2013:001:00:56:07.181 COMMAND_SW   AONMMODE 129 1530 473389034.365   426098990 5584878    N/A</span>
+<span class="go">2013:001:00:56:07.181    ACISPKT AA00000000 132 1620 473389034.365   426098991 5584878    N/A</span>
+<span class="go">2013:001:00:56:07.181   SIMTRANS       None 132 1623 473389034.365   426098991 5584878    N/A</span>
+<span class="go">2013:001:00:56:07.438 COMMAND_SW   AONM2NPE 129 1532 473389034.622   426098990 5584879    N/A</span>
 </pre></div>
 </div>
 <p>In the <a class="reference internal" href="api.html#kadi.commands.commands.get_cmds" title="kadi.commands.commands.get_cmds"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_cmds()</span></code></a> method, commands are selected with <code class="docutils literal notranslate"><span class="pre">start</span> <span class="pre">&lt;=</span> <span class="pre">date</span> <span class="pre">&lt;</span> <span class="pre">stop</span></code>, where each
@@ -170,7 +182,7 @@ table again:</p>
 <span class="go">2013:001:00:56:07.438 COMMAND_SW   AONM2NPE 129 1532   426098990                                             N/A</span>
 </pre></div>
 </div>
-<p>So what happened?  The answer is that for performance reasons the <a class="reference internal" href="api.html#kadi.commands.commands.CommandTable" title="kadi.commands.commands.CommandTable"><code class="xref py py-class docutils literal notranslate"><span class="pre">CommandTable</span></code></a> class is
+<p>So what happened?  The answer is that for performance reasons the <code class="xref py py-class docutils literal notranslate"><span class="pre">CommandTable</span></code> class is
 lazy about loading the command parameters, and only does so when you directly request the
 parameter value (as we did with <code class="docutils literal notranslate"><span class="pre">packet(40)</span></code>).  If you want to just fetch them all
 at once you can do so with the <code class="docutils literal notranslate"><span class="pre">fetch_params()</span></code> method:</p>
@@ -203,7 +215,7 @@ command table.  Note that command rows without that parameter will have a <code 
 <span class="go">AONM2NPE</span>
 </pre></div>
 </div>
-<div class="section" id="notes-and-caveats">
+<section id="notes-and-caveats">
 <h3>Notes and caveats<a class="headerlink" href="#notes-and-caveats" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>The exact set of load commands relies on the <a class="reference external" href="http://cxc.harvard.edu/mta/ASPECT/tool_doc/cmd_states">Chandra commanded states database</a> to determine which command
@@ -236,9 +248,289 @@ archive is stored in two files with a total size about 52 Mb.</p></li>
 <p class="admonition-title">Note</p>
 <p>Would a command-line interface be useful?</p>
 </div>
+</section>
+</section>
+<section id="commands-archive-v2">
+<h2>Commands archive v2<a class="headerlink" href="#commands-archive-v2" title="Permalink to this headline">¶</a></h2>
+<p>Version 2 of the commands archive is currently provided as an experimental
+release to allow getting experience with the new interface.</p>
+<p>For details of the commands v2 archive, including important information about
+network access, the timeliness of commands, configuration and process details,
+please see:</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="commands_v2.html">Commands archive v2 details</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="commands_v2.html#concept-overview">Concept overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="commands_v2.html#differences-from-v1">Differences from v1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="commands_v2.html#scenarios">Scenarios</a></li>
+<li class="toctree-l2"><a class="reference internal" href="commands_v2.html#configuration-options">Configuration options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="commands_v2.html#environment-variables">Environment variables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="commands_v2.html#data-files-and-resources">Data files and resources</a></li>
+</ul>
+</li>
+</ul>
 </div>
+<section id="getting-commands">
+<h3>Getting commands<a class="headerlink" href="#getting-commands" title="Permalink to this headline">¶</a></h3>
+<p>In order to use the v2 version do the following:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">kadi</span> <span class="kn">import</span> <span class="n">commands</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">commands</span><span class="o">.</span><span class="n">conf</span><span class="o">.</span><span class="n">commands_version</span> <span class="o">=</span> <span class="s2">&quot;2&quot;</span>  <span class="c1"># must be the string &quot;2&quot; not int 2</span>
+</pre></div>
 </div>
-<div class="section" id="chandra-states-and-continuity">
+<p>An alternative is to set the <code class="docutils literal notranslate"><span class="pre">KADI_COMMANDS_VERSION</span></code> environment variable to
+<code class="docutils literal notranslate"><span class="pre">2</span></code>. This will globally apply to all subsequent Python sessions that inherit
+this environment. For example from a linux/Mac bash command shell you can
+enter:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ export KADI_COMMANDS_VERSION=2
+</pre></div>
+</div>
+<p>The basic way to select commands is with the <a class="reference internal" href="api.html#kadi.commands.commands.get_cmds" title="kadi.commands.commands.get_cmds"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_cmds()</span></code></a> method.  For example you can find
+load commands from early in 2013 with:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">cmds</span> <span class="o">=</span> <span class="n">commands</span><span class="o">.</span><span class="n">get_cmds</span><span class="p">(</span><span class="s1">&#39;2013:001:00:00:00&#39;</span><span class="p">,</span> <span class="s1">&#39;2013:001:00:56:10&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">cmds</span><span class="p">)</span>
+<span class="go">        date            type      tlmsid   scs step      time      source    vcdu  params</span>
+<span class="go">--------------------- ---------- ---------- --- ---- ------------- -------- ------- ------</span>
+<span class="go">2013:001:00:37:37.653   ORBPOINT       None   0    0 473387924.837 DEC2412B 5533112    N/A</span>
+<span class="go">2013:001:00:53:07.181 COMMAND_SW   AOACRSTD 129 1524 473388854.365 DEC2412B 5584176    N/A</span>
+<span class="go">2013:001:00:54:07.181 COMMAND_SW   AOFUNCDS 129 1526 473388914.365 DEC2412B 5584410    N/A</span>
+<span class="go">2013:001:00:55:07.181 COMMAND_SW   AOFUNCDS 129 1528 473388974.365 DEC2412B 5584644    N/A</span>
+<span class="go">2013:001:00:56:07.181 COMMAND_SW   AONMMODE 129 1530 473389034.365 DEC2412B 5584878    N/A</span>
+<span class="go">2013:001:00:56:07.181    ACISPKT AA00000000 132 1620 473389034.365 DEC2412B 5584878    N/A</span>
+<span class="go">2013:001:00:56:07.181   SIMTRANS       None 132 1623 473389034.365 DEC2412B 5584878    N/A</span>
+<span class="go">2013:001:00:56:07.438 COMMAND_SW   AONM2NPE 129 1532 473389034.622 DEC2412B 5584879    N/A</span>
+</pre></div>
+</div>
+<p>In the <a class="reference internal" href="api.html#kadi.commands.commands.get_cmds" title="kadi.commands.commands.get_cmds"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_cmds()</span></code></a> method, commands are selected with <code class="docutils literal notranslate"><span class="pre">start</span> <span class="pre">&lt;=</span> <span class="pre">date</span> <span class="pre">&lt;</span> <span class="pre">stop</span></code>, where each
+of these are evaluated as a date string with millisec precision.  In order to get commands
+at exactly a certain date you need to select with the <code class="docutils literal notranslate"><span class="pre">date</span></code> argument:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">commands</span><span class="o">.</span><span class="n">get_cmds</span><span class="p">(</span><span class="n">date</span><span class="o">=</span><span class="s1">&#39;2013:001:00:56:07.181&#39;</span><span class="p">))</span>
+<span class="go">        date            type      tlmsid   scs step      time      source    vcdu  params</span>
+<span class="go">--------------------- ---------- ---------- --- ---- ------------- -------- ------- ------</span>
+<span class="go">2013:001:00:56:07.181 COMMAND_SW   AONMMODE 129 1530 473389034.365 DEC2412B 5584878    N/A</span>
+<span class="go">2013:001:00:56:07.181    ACISPKT AA00000000 132 1620 473389034.365 DEC2412B 5584878    N/A</span>
+<span class="go">2013:001:00:56:07.181   SIMTRANS       None 132 1623 473389034.365 DEC2412B 5584878    N/A</span>
+</pre></div>
+</div>
+<p>The output <code class="docutils literal notranslate"><span class="pre">cmds</span></code> is based on the astropy <a class="reference external" href="http://docs.astropy.org/en/stable/table/index.html">Table</a> object with many powerful and handy
+features built in.  For instance you could sort by <code class="docutils literal notranslate"><span class="pre">type</span></code>, <code class="docutils literal notranslate"><span class="pre">tlmsid</span></code> and <code class="docutils literal notranslate"><span class="pre">date</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">cmds_type</span> <span class="o">=</span> <span class="n">cmds</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cmds_type</span><span class="o">.</span><span class="n">sort</span><span class="p">([</span><span class="s1">&#39;type&#39;</span><span class="p">,</span> <span class="s1">&#39;tlmsid&#39;</span><span class="p">,</span> <span class="s1">&#39;date&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">cmds_type</span><span class="p">)</span>
+<span class="go">        date            type      tlmsid   scs step      time      source    vcdu  params</span>
+<span class="go">--------------------- ---------- ---------- --- ---- ------------- -------- ------- ------</span>
+<span class="go">2013:001:00:56:07.181    ACISPKT AA00000000 132 1620 473389034.365 DEC2412B 5584878    N/A</span>
+<span class="go">2013:001:00:53:07.181 COMMAND_SW   AOACRSTD 129 1524 473388854.365 DEC2412B 5584176    N/A</span>
+<span class="go">2013:001:00:54:07.181 COMMAND_SW   AOFUNCDS 129 1526 473388914.365 DEC2412B 5584410    N/A</span>
+<span class="go">2013:001:00:55:07.181 COMMAND_SW   AOFUNCDS 129 1528 473388974.365 DEC2412B 5584644    N/A</span>
+<span class="go">2013:001:00:56:07.438 COMMAND_SW   AONM2NPE 129 1532 473389034.622 DEC2412B 5584879    N/A</span>
+<span class="go">2013:001:00:56:07.181 COMMAND_SW   AONMMODE 129 1530 473389034.365 DEC2412B 5584878    N/A</span>
+<span class="go">2013:001:00:37:37.653   ORBPOINT       None   0    0 473387924.837 DEC2412B 5533112    N/A</span>
+<span class="go">2013:001:00:56:07.181   SIMTRANS       None 132 1623 473389034.365 DEC2412B 5584878    N/A</span>
+</pre></div>
+</div>
+<p>You can print a single command and get all the information about it:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">cmds</span><span class="p">[</span><span class="mi">5</span><span class="p">])</span>
+<span class="go">2013:001:00:56:07.181 ACISPKT tlmsid=AA00000000 scs=132 step=1620 source=DEC2412B vcdu=5584878 cmds=3 packet(40)=D80000300030603001300 words=3</span>
+</pre></div>
+</div>
+<p>This command has a number of attributes like <code class="docutils literal notranslate"><span class="pre">date</span></code> or <code class="docutils literal notranslate"><span class="pre">tlmsid</span></code> (shown in the original table) as well as command <em>parameters</em>: <code class="docutils literal notranslate"><span class="pre">cmds</span></code>, <code class="docutils literal notranslate"><span class="pre">packet(40)</span></code>, and <code class="docutils literal notranslate"><span class="pre">words</span></code>.  You can access any of the attributes or parameters like a dictionary:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">cmds</span><span class="p">[</span><span class="mi">5</span><span class="p">][</span><span class="s1">&#39;packet(40)&#39;</span><span class="p">])</span>
+<span class="go">D80000300030603001300</span>
+</pre></div>
+</div>
+<p>You probably noticed the first time we printed <code class="docutils literal notranslate"><span class="pre">cmds</span></code> that the command parameters
+<code class="docutils literal notranslate"><span class="pre">params</span></code> were all listed as <code class="docutils literal notranslate"><span class="pre">N/A</span></code> (Not Available).  What happens if we print the
+table again:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>        <span class="n">date</span>            <span class="nb">type</span>      <span class="n">tlmsid</span>   <span class="n">scs</span> <span class="n">step</span>      <span class="n">time</span>      <span class="n">source</span>    <span class="n">vcdu</span>                     <span class="n">params</span>
+<span class="o">---------------------</span> <span class="o">----------</span> <span class="o">----------</span> <span class="o">---</span> <span class="o">----</span> <span class="o">-------------</span> <span class="o">--------</span> <span class="o">-------</span> <span class="o">--------------------------------------------</span>
+<span class="mi">2013</span><span class="p">:</span><span class="mi">001</span><span class="p">:</span><span class="mi">00</span><span class="p">:</span><span class="mi">37</span><span class="p">:</span><span class="mf">37.653</span>   <span class="n">ORBPOINT</span>       <span class="kc">None</span>   <span class="mi">0</span>    <span class="mi">0</span> <span class="mf">473387924.837</span> <span class="n">DEC2412B</span> <span class="mi">5533112</span>                                          <span class="n">N</span><span class="o">/</span><span class="n">A</span>
+<span class="mi">2013</span><span class="p">:</span><span class="mi">001</span><span class="p">:</span><span class="mi">00</span><span class="p">:</span><span class="mi">53</span><span class="p">:</span><span class="mf">07.181</span> <span class="n">COMMAND_SW</span>   <span class="n">AOACRSTD</span> <span class="mi">129</span> <span class="mi">1524</span> <span class="mf">473388854.365</span> <span class="n">DEC2412B</span> <span class="mi">5584176</span>                                          <span class="n">N</span><span class="o">/</span><span class="n">A</span>
+<span class="mi">2013</span><span class="p">:</span><span class="mi">001</span><span class="p">:</span><span class="mi">00</span><span class="p">:</span><span class="mi">54</span><span class="p">:</span><span class="mf">07.181</span> <span class="n">COMMAND_SW</span>   <span class="n">AOFUNCDS</span> <span class="mi">129</span> <span class="mi">1526</span> <span class="mf">473388914.365</span> <span class="n">DEC2412B</span> <span class="mi">5584410</span>                                          <span class="n">N</span><span class="o">/</span><span class="n">A</span>
+<span class="mi">2013</span><span class="p">:</span><span class="mi">001</span><span class="p">:</span><span class="mi">00</span><span class="p">:</span><span class="mi">55</span><span class="p">:</span><span class="mf">07.181</span> <span class="n">COMMAND_SW</span>   <span class="n">AOFUNCDS</span> <span class="mi">129</span> <span class="mi">1528</span> <span class="mf">473388974.365</span> <span class="n">DEC2412B</span> <span class="mi">5584644</span>                                          <span class="n">N</span><span class="o">/</span><span class="n">A</span>
+<span class="mi">2013</span><span class="p">:</span><span class="mi">001</span><span class="p">:</span><span class="mi">00</span><span class="p">:</span><span class="mi">56</span><span class="p">:</span><span class="mf">07.181</span> <span class="n">COMMAND_SW</span>   <span class="n">AONMMODE</span> <span class="mi">129</span> <span class="mi">1530</span> <span class="mf">473389034.365</span> <span class="n">DEC2412B</span> <span class="mi">5584878</span>                                          <span class="n">N</span><span class="o">/</span><span class="n">A</span>
+<span class="mi">2013</span><span class="p">:</span><span class="mi">001</span><span class="p">:</span><span class="mi">00</span><span class="p">:</span><span class="mi">56</span><span class="p">:</span><span class="mf">07.181</span>    <span class="n">ACISPKT</span> <span class="n">AA00000000</span> <span class="mi">132</span> <span class="mi">1620</span> <span class="mf">473389034.365</span> <span class="n">DEC2412B</span> <span class="mi">5584878</span> <span class="n">cmds</span><span class="o">=</span><span class="mi">3</span> <span class="n">packet</span><span class="p">(</span><span class="mi">40</span><span class="p">)</span><span class="o">=</span><span class="n">D80000300030603001300</span>  <span class="o">...</span>
+<span class="mi">2013</span><span class="p">:</span><span class="mi">001</span><span class="p">:</span><span class="mi">00</span><span class="p">:</span><span class="mi">56</span><span class="p">:</span><span class="mf">07.181</span>   <span class="n">SIMTRANS</span>       <span class="kc">None</span> <span class="mi">132</span> <span class="mi">1623</span> <span class="mf">473389034.365</span> <span class="n">DEC2412B</span> <span class="mi">5584878</span>                                          <span class="n">N</span><span class="o">/</span><span class="n">A</span>
+<span class="mi">2013</span><span class="p">:</span><span class="mi">001</span><span class="p">:</span><span class="mi">00</span><span class="p">:</span><span class="mi">56</span><span class="p">:</span><span class="mf">07.438</span> <span class="n">COMMAND_SW</span>   <span class="n">AONM2NPE</span> <span class="mi">129</span> <span class="mi">1532</span> <span class="mf">473389034.622</span> <span class="n">DEC2412B</span> <span class="mi">5584879</span>                                          <span class="n">N</span><span class="o">/</span><span class="n">A</span>
+</pre></div>
+</div>
+<p>So what happened?  The answer is that for performance reasons the <code class="xref py py-class docutils literal notranslate"><span class="pre">CommandTable</span></code> class is
+lazy about loading the command parameters, and only does so when you directly request the
+parameter value (as we did with <code class="docutils literal notranslate"><span class="pre">packet(40)</span></code>).  If you want to just fetch them all
+at once you can do so with the <code class="docutils literal notranslate"><span class="pre">fetch_params()</span></code> method:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">cmds</span><span class="o">.</span><span class="n">fetch_params</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">cmds</span><span class="p">)</span>
+<span class="go">        date            type      tlmsid   scs step      time      source    vcdu                     params</span>
+<span class="go">--------------------- ---------- ---------- --- ---- ------------- -------- ------- --------------------------------------------</span>
+<span class="go">2013:001:00:37:37.653   ORBPOINT       None   0    0 473387924.837 DEC2412B 5533112                           event_type=EQF013M</span>
+<span class="go">2013:001:00:53:07.181 COMMAND_SW   AOACRSTD 129 1524 473388854.365 DEC2412B 5584176                    hex=8032000 msid=AOACRSTD</span>
+<span class="go">2013:001:00:54:07.181 COMMAND_SW   AOFUNCDS 129 1526 473388914.365 DEC2412B 5584410        aopcadsd=21 hex=8030215 msid=AOFUNCDS</span>
+<span class="go">2013:001:00:55:07.181 COMMAND_SW   AOFUNCDS 129 1528 473388974.365 DEC2412B 5584644        aopcadsd=32 hex=8030220 msid=AOFUNCDS</span>
+<span class="go">2013:001:00:56:07.181 COMMAND_SW   AONMMODE 129 1530 473389034.365 DEC2412B 5584878                    hex=8030402 msid=AONMMODE</span>
+<span class="go">2013:001:00:56:07.181    ACISPKT AA00000000 132 1620 473389034.365 DEC2412B 5584878 cmds=3 packet(40)=D80000300030603001300  ...</span>
+<span class="go">2013:001:00:56:07.181   SIMTRANS       None 132 1623 473389034.365 DEC2412B 5584878                                   pos=-99616</span>
+<span class="go">2013:001:00:56:07.438 COMMAND_SW   AONM2NPE 129 1532 473389034.622 DEC2412B 5584879                    hex=8030601 msid=AONM2NPE</span>
+</pre></div>
+</div>
+<p>Finally, note that you can request the value of an attribute or parameter for the entire
+command table.  Note that command rows without that parameter will have a <code class="docutils literal notranslate"><span class="pre">None</span></code> object:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">cmds</span><span class="p">[</span><span class="s1">&#39;msid&#39;</span><span class="p">])</span>
+<span class="go">  msid</span>
+<span class="go">--------</span>
+<span class="go">    None</span>
+<span class="go">AOACRSTD</span>
+<span class="go">AOFUNCDS</span>
+<span class="go">AOFUNCDS</span>
+<span class="go">AONMMODE</span>
+<span class="go">    None</span>
+<span class="go">    None</span>
+<span class="go">AONM2NPE</span>
+</pre></div>
+</div>
+</section>
+<section id="getting-observations">
+<span id="id3"></span><h3>Getting observations<a class="headerlink" href="#getting-observations" title="Permalink to this headline">¶</a></h3>
+<p>The commands archive includes special <code class="docutils literal notranslate"><span class="pre">LOAD_EVENT</span></code> commands (like the RLTT) that
+contain information about observations in the loads. An “observation” is defined
+as a dwell in normal point mode following a maneuver and includes most OR’s and
+ER’s. These are most easily accessed via the
+<a class="reference internal" href="api.html#kadi.commands.observations.get_observations" title="kadi.commands.observations.get_observations"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_observations()</span></code></a> function. For example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">kadi.commands</span> <span class="kn">import</span> <span class="n">get_observations</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">obss</span> <span class="o">=</span> <span class="n">get_observations</span><span class="p">(</span><span class="n">obsid</span><span class="o">=</span><span class="mi">26330</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">obss</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="go">{&#39;obsid&#39;: 26330,</span>
+<span class="go">&#39;simpos&#39;: 73296,</span>
+<span class="go">&#39;obs_stop&#39;: &#39;2022:075:19:10:35.734&#39;,</span>
+<span class="go">&#39;manvr_start&#39;: &#39;2022:075:17:39:54.696&#39;,</span>
+<span class="go">&#39;targ_att&#39;: (0.105773397, -0.727314387, -0.579818109, 0.351620152),</span>
+<span class="go">&#39;npnt_enab&#39;: True,</span>
+<span class="go">&#39;obs_start&#39;: &#39;2022:075:17:57:55.985&#39;,</span>
+<span class="go">&#39;prev_att&#39;: (0.113370245, -0.848288771, -0.329080853, 0.399072852),</span>
+<span class="go">&#39;starcat_idx&#39;: 211630,</span>
+<span class="go">&#39;source&#39;: &#39;MAR1422A&#39;}</span>
+</pre></div>
+</div>
+<p>Notice that the command always returns a list of observations, even for a query
+asking for a specific ObsID. The reason is that cases of multiple observations
+with the same ObsID are relatively common, in particular after SCS-107 stops the
+observing loads this will happen. The commands archive reflects the commands
+that ran on-board, and since ObsID updates are in the observing loads those
+commands no longer run after SCS-107.</p>
+<p>For example, ObsID 65526 was manually commanded after the HRC B-side anomaly and
+persisted for 64 distinct observations in the vehicle loads:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">obss</span> <span class="o">=</span> <span class="n">get_observations</span><span class="p">(</span><span class="n">obsid</span><span class="o">=</span><span class="mi">65526</span><span class="p">)</span>  <span class="c1"># ObsID after HRC B-side anomaly</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">len</span><span class="p">(</span><span class="n">obss</span><span class="p">)</span>
+<span class="go">64</span>
+</pre></div>
+</div>
+<p>Getting all the observations covering years or more is reasonably fast,
+typically seconds the first query and then &lt;&lt; 1 sec for subsequent queries.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="o">%</span><span class="n">time</span> <span class="n">obss</span> <span class="o">=</span> <span class="n">get_observations</span><span class="p">(</span><span class="n">start</span><span class="o">=</span><span class="s1">&#39;2020:001&#39;</span><span class="p">,</span> <span class="n">stop</span><span class="o">=</span><span class="s1">&#39;2022:001&#39;</span><span class="p">)</span>
+<span class="go">CPU times: user 28.4 ms, sys: 952 µs, total: 29.4 ms</span>
+<span class="go">Wall time: 28.7 ms</span>
+</pre></div>
+</div>
+<p>For a large number of observations like this you may find it convenient to turn
+this into an astropy <code class="docutils literal notranslate"><span class="pre">Table</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">astropy.table</span> <span class="kn">import</span> <span class="n">Table</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">obss</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="n">obss</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">obss</span>
+<span class="go">&lt;Table length=4018&gt;</span>
+<span class="go">obsid simpos        obs_stop            manvr_start      ...       obs_start               prev_att [4]         starcat_idx  source</span>
+<span class="go">int64 int64          str21                 str21         ...         str21                   float64               int64      str8</span>
+<span class="go">----- ------ --------------------- --------------------- ... --------------------- ---------------------------- ----------- --------</span>
+<span class="go">47575  75624 2020:001:06:51:13.985 2020:001:06:15:56.053 ... 2020:001:06:46:33.236   -0.51363412 .. 0.832139148      166529 DEC2319A</span>
+<span class="go">23000  75624 2020:001:19:18:15.914 2020:001:06:51:24.236 ... 2020:001:07:17:16.164  -0.475120775 .. 0.693367999      166530 DEC2319A</span>
+<span class="go">47574  75624 2020:001:19:48:58.024 2020:001:19:18:26.165 ... 2020:001:19:44:17.276  -0.221358674 .. 0.710485779      166531 DEC2319A</span>
+<span class="gp">... </span>   <span class="o">...</span>                   <span class="o">...</span>                   <span class="o">...</span> <span class="o">...</span>                   <span class="o">...</span>                          <span class="o">...</span>         <span class="o">...</span>      <span class="o">...</span>
+<span class="go">25803  75624 2021:365:13:38:31.497 2021:365:05:20:58.062 ... 2021:365:05:47:31.748 -0.488490169 .. 0.0261316575      170515 DEC3021A</span>
+<span class="go">26264  75624 2021:365:18:39:19.983 2021:365:13:38:41.748 ... 2021:365:14:08:20.234 -0.0658948803 .. 0.350032226      170516 DEC3021A</span>
+<span class="go">26247  75624 2022:001:05:21:28.604 2021:365:18:39:30.234 ... 2021:365:19:06:05.650  0.553670113 .. 0.0635036584      170517 DEC3021A</span>
+</pre></div>
+</div>
+<section id="under-the-hood">
+<h4>Under the hood<a class="headerlink" href="#under-the-hood" title="Permalink to this headline">¶</a></h4>
+<p>The observation information is stored as <code class="docutils literal notranslate"><span class="pre">LOAD_EVENT</span></code> commands that can be viewed
+directly:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">kadi.commands</span> <span class="kn">import</span> <span class="n">get_cmds</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cmds</span> <span class="o">=</span> <span class="n">get_cmds</span><span class="p">(</span><span class="s1">&#39;2022:001&#39;</span><span class="p">,</span> <span class="s1">&#39;2022:002&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;LOAD_EVENT&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">cmds</span><span class="p">)</span>
+<span class="go">        date            type    tlmsid scs step      time      source  vcdu params</span>
+<span class="go">--------------------- ---------- ------ --- ---- ------------- -------- ---- ------</span>
+<span class="go">2022:001:05:48:44.808 LOAD_EVENT    OBS   0    0 757403393.992 DEC3021A   -1    N/A</span>
+<span class="go">2022:001:09:42:05.439 LOAD_EVENT    OBS   0    0 757417394.623 DEC3021A   -1    N/A</span>
+<span class="go">2022:001:11:37:20.405 LOAD_EVENT    OBS   0    0 757424309.589 DEC3021A   -1    N/A</span>
+<span class="go">2022:001:15:03:39.654 LOAD_EVENT    OBS   0    0 757436688.838 DEC3021A   -1    N/A</span>
+<span class="go">2022:001:15:29:26.255 LOAD_EVENT    OBS   0    0 757438235.439 DEC3021A   -1    N/A</span>
+<span class="go">2022:001:17:33:53.255 LOAD_EVENT    OBS   0    0 757445702.439 DEC3021A   -1    N/A</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cmds</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;params&#39;</span><span class="p">]</span>
+<span class="go">{&#39;obsid&#39;: 45814,</span>
+<span class="go">&#39;simpos&#39;: -99616,</span>
+<span class="go">&#39;obs_stop&#39;: &#39;2022:001:09:13:04.557&#39;,</span>
+<span class="go">&#39;manvr_start&#39;: &#39;2022:001:05:21:38.855&#39;,</span>
+<span class="go">&#39;targ_att&#39;: (0.530730117, 0.556620885, 0.610704042, 0.188518716),</span>
+<span class="go">&#39;npnt_enab&#39;: True,</span>
+<span class="go">&#39;obs_start&#39;: &#39;2022:001:05:48:44.808&#39;,</span>
+<span class="go">&#39;prev_att&#39;: (-0.0743435142, -0.559183412, -0.804323901, 0.186681591),</span>
+<span class="go">&#39;starcat_idx&#39;: 170518}</span>
+</pre></div>
+</div>
+<p>As with <a class="reference internal" href="api.html#kadi.commands.commands.get_cmds" title="kadi.commands.commands.get_cmds"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_cmds()</span></code></a> in the v2 archive, you can provide a
+<code class="docutils literal notranslate"><span class="pre">scenario</span></code> keyword to <a class="reference internal" href="api.html#kadi.commands.observations.get_observations" title="kadi.commands.observations.get_observations"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_observations()</span></code></a> to
+select a custom or <code class="docutils literal notranslate"><span class="pre">'flight'</span></code> scenario.</p>
+</section>
+</section>
+<section id="getting-star-catalogs">
+<span id="id4"></span><h3>Getting star catalogs<a class="headerlink" href="#getting-star-catalogs" title="Permalink to this headline">¶</a></h3>
+<p>The ACA star catalogs associated with observations can be retrieved using the
+<a class="reference internal" href="api.html#kadi.commands.observations.get_starcats" title="kadi.commands.observations.get_starcats"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_starcats()</span></code></a> function. For example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">kadi.commands</span> <span class="kn">import</span> <span class="n">get_starcats</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">acas</span> <span class="o">=</span> <span class="n">get_starcats</span><span class="p">(</span><span class="n">obsid</span><span class="o">=</span><span class="mi">26330</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">acas</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="go">&lt;ACATable length=11&gt;</span>
+<span class="go">slot  idx      id    type  sz    mag    maxmag   yang     zang    dim   res  halfw</span>
+<span class="go">int64 int64   int64   str3 str3 float64 float64 float64  float64  int64 int64 int64</span>
+<span class="go">----- ----- --------- ---- ---- ------- ------- -------- -------- ----- ----- -----</span>
+<span class="go">    0     1         2  FID  8x8    7.00    8.00  -773.14 -1862.22     1     1    25</span>
+<span class="go">    1     2         4  FID  8x8    7.00    8.00  2140.38    46.50     1     1    25</span>
+<span class="go">    2     3         5  FID  8x8    7.00    8.00 -1826.24    40.03     1     1    25</span>
+<span class="go">    3     4 194257752  BOT  6x6    6.09    7.59 -2389.55 -1716.62    28     1   160</span>
+<span class="go">    4     5 264114816  BOT  6x6    8.64   10.19    -2.30 -2430.32    28     1   160</span>
+<span class="go">    5     6 194249696  BOT  6x6    8.76   10.27 -2129.92 -2447.14    28     1   160</span>
+<span class="go">    6     7 263198168  BOT  6x6    8.81   10.33  -375.16  2416.16    28     1   160</span>
+<span class="go">    0     8 263199776  ACQ  6x6   10.13   11.20  1385.78  1949.73     8     1    60</span>
+<span class="go">    1     9 264113448  ACQ  6x6   10.27   11.20  -187.29 -1336.05     8     1    60</span>
+<span class="go">    2    10 263201064  ACQ  6x6   10.44   11.20   529.26   324.30     8     1    60</span>
+<span class="go">    7    11 263196576  ACQ  6x6   10.56   11.20 -1046.29   258.97    16     1   100</span>
+</pre></div>
+</div>
+<p>This function can be used to get star catalogs over a range of time. Depending
+on your specific needs, you might want to specify <code class="docutils literal notranslate"><span class="pre">set_ids=False</span></code> in the call,
+which disables the time-consuming step of finding the star and fid ids by
+cross-matching with expected star / fid locations. For example, to find catalogs
+between 2015 and 2022 with MON windows commanded:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="o">%</span><span class="n">time</span> <span class="n">acas</span> <span class="o">=</span> <span class="n">get_starcats</span><span class="p">(</span><span class="n">start</span><span class="o">=</span><span class="s1">&#39;2015:001&#39;</span><span class="p">,</span> <span class="n">stop</span><span class="o">=</span><span class="s1">&#39;2022:001&#39;</span><span class="p">,</span> <span class="n">set_ids</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="go">CPU times: user 13.4 s, sys: 91.8 ms, total: 13.5 s</span>
+<span class="go">Wall time: 13.5 s</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">len</span><span class="p">(</span><span class="n">acas</span><span class="p">)</span>
+<span class="go">13261</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">acas_with_mon</span> <span class="o">=</span> <span class="p">[</span><span class="n">aca</span> <span class="k">for</span> <span class="n">aca</span> <span class="ow">in</span> <span class="n">acas</span> <span class="k">if</span> <span class="s1">&#39;MON&#39;</span> <span class="ow">in</span> <span class="n">aca</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">len</span><span class="p">(</span><span class="n">acas_with_mon</span><span class="p">)</span>
+<span class="go">119</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">acas_with_mon</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">obsid</span>
+<span class="go">17320</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">ACATable</span></code> objects that are returned can be plotted but they
+are not fully equivalent to the catalogs that <code class="docutils literal notranslate"><span class="pre">proseco</span></code> would return. The
+CCD temperatures are set to -20 C and the <code class="docutils literal notranslate"><span class="pre">.acqs</span></code> and <code class="docutils literal notranslate"><span class="pre">.guides</span></code> attributes
+are stubbed with empty tables.</p>
+</div>
+</section>
+</section>
+<section id="chandra-states-and-continuity">
 <h2>Chandra states and continuity<a class="headerlink" href="#chandra-states-and-continuity" title="Permalink to this headline">¶</a></h2>
 <p>To get started, import the <code class="docutils literal notranslate"><span class="pre">kadi.commands.states</span></code> module:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">kadi.commands</span> <span class="kn">import</span> <span class="n">states</span>
@@ -249,7 +541,7 @@ such as <code class="docutils literal notranslate"><span class="pre">obsid</span
 runs.  By stepping through all commands and maintaining a state vector during
 that process, one assembles the state history relevant to those commands.
 The identifer for each of these quantities is referred to as a <code class="docutils literal notranslate"><span class="pre">state_key</span></code></p>
-<div class="section" id="states">
+<section id="states">
 <h3>States<a class="headerlink" href="#states" title="Permalink to this headline">¶</a></h3>
 <p>A commanded state is an interval of time over which certain parameters of interest (obsid,
 SIM-Z position, commanded attitude, ACIS power configuration, etc) are unchanged.</p>
@@ -257,7 +549,7 @@ SIM-Z position, commanded attitude, ACIS power configuration, etc) are unchanged
 function is fairly flexible and is roughly equivalent to the combination of the legacy
 <code class="docutils literal notranslate"><span class="pre">Chandra.cmd_states</span></code> functions <code class="xref py py-func docutils literal notranslate"><span class="pre">get_states()</span></code>
 and  <code class="xref py py-func docutils literal notranslate"><span class="pre">fetch_states()</span></code>.</p>
-<div class="section" id="states-over-date-range">
+<section id="states-over-date-range">
 <h4>States over date range<a class="headerlink" href="#states-over-date-range" title="Permalink to this headline">¶</a></h4>
 <p>To get the commanded states over a date range you can do the following, which internally
 does a call to <a class="reference internal" href="api.html#kadi.commands.commands.get_cmds" title="kadi.commands.commands.get_cmds"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_cmds()</span></code></a> in order to get commands over the <code class="docutils literal notranslate"><span class="pre">start</span></code> / <code class="docutils literal notranslate"><span class="pre">stop</span></code> date
@@ -328,8 +620,8 @@ above query you could do:</p>
 <span class="go">[False, False, True, False, False, True]</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="command-line-interface">
+</section>
+<section id="command-line-interface">
 <h4>Command line interface<a class="headerlink" href="#command-line-interface" title="Permalink to this headline">¶</a></h4>
 <p>One can do the same thing as above from the command-line using the <code class="docutils literal notranslate"><span class="pre">get_chandra_states</span></code>
 command.  This outputs the table (sans trans_keys) in a space-delimited format
@@ -395,8 +687,8 @@ $ get_chandra_states --start 2018:006:07:29:16.206 --stop 2018:007:16:50:00 \
 <p>To see more examples of this look at the backstop history section of the testing file
 <a class="reference external" href="https://github.com/sot/kadi/blob/6cc8d7a241/kadi/commands/tests/test_states.py#L402">kadi/commands/tests/test_states.py</a>.
 All of the supported state keys that reproduce backstop history files are tested here.</p>
-</div>
-<div class="section" id="states-from-commands">
+</section>
+<section id="states-from-commands">
 <h4>States from commands<a class="headerlink" href="#states-from-commands" title="Permalink to this headline">¶</a></h4>
 <p>Instead of relying on <a class="reference internal" href="api.html#kadi.commands.states.get_states" title="kadi.commands.states.get_states"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_states()</span></code></a> to get the commands and continuity, you can do things
 manually.  For example:</p>
@@ -430,7 +722,7 @@ for thermal model propagation.</p></li>
 <li><p>Load commands</p></li>
 </ul>
 <p>In this case the calling code is responsible for logic to assemble a single commands table
-for the <code class="docutils literal notranslate"><span class="pre">cmds</span></code> argument as a <a class="reference internal" href="api.html#kadi.commands.commands.CommandTable" title="kadi.commands.commands.CommandTable"><code class="xref py py-class docutils literal notranslate"><span class="pre">CommandTable</span></code></a> object.</p>
+for the <code class="docutils literal notranslate"><span class="pre">cmds</span></code> argument as a <code class="xref py py-class docutils literal notranslate"><span class="pre">CommandTable</span></code> object.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>The plan is to provide convenience methods and documentation to make this
@@ -462,9 +754,9 @@ process more straightforward.  E.g.:</p>
 </pre></div>
 </div>
 </div>
-</div>
-</div>
-<div class="section" id="continuity">
+</section>
+</section>
+<section id="continuity">
 <h3>Continuity<a class="headerlink" href="#continuity" title="Permalink to this headline">¶</a></h3>
 <p>To get the continuity state for a desired set of state keys at a certain time, use
 <a class="reference internal" href="api.html#kadi.commands.states.get_continuity" title="kadi.commands.states.get_continuity"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_continuity()</span></code></a>.  Before doing this, recall that in IPython one can always get
@@ -551,8 +843,8 @@ state keys shown below is used:</p>
 <span class="go"> &#39;vid_board&#39;)</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="state-keys">
+</section>
+<section id="state-keys">
 <h3>State keys<a class="headerlink" href="#state-keys" title="Permalink to this headline">¶</a></h3>
 <p>The list below shows available state keys along with a list of the transition
 classes which affect the keys.</p>
@@ -649,8 +941,8 @@ classes which affect the keys.</p>
 </ul>
 </dd>
 </dl>
-</div>
-<div class="section" id="implementation">
+</section>
+<section id="implementation">
 <h3>Implementation<a class="headerlink" href="#implementation" title="Permalink to this headline">¶</a></h3>
 <p>Basic design concepts for transition classes:</p>
 <ul>
@@ -694,8 +986,8 @@ were set.  This function can add downstream transitions or directly update
 the current state.</p>
 </li>
 </ul>
-</div>
-<div class="section" id="user-defined-states">
+</section>
+<section id="user-defined-states">
 <h3>User-defined states<a class="headerlink" href="#user-defined-states" title="Permalink to this headline">¶</a></h3>
 <p>One of the driving factors in the design of the commanded states module is making it easy
 for users to create custom states with minimal effort.  With the available base classes,
@@ -794,9 +1086,9 @@ challenge is typically defining the <code class="docutils literal notranslate"><
 transition callback functions.  There are a number of examples of this in the kadi code
 and this should serve as your starting point.  The Ska team will be happy to assist
 you if this is not enough.</p>
-</div>
-</div>
-</div>
+</section>
+</section>
+</section>
 
 
             <div class="clearer"></div>
@@ -810,8 +1102,17 @@ you if this is not enough.</p>
             </a></p><h3>Page Contents</h3>
 <ul>
 <li><a class="reference internal" href="#">Commands and states</a><ul>
-<li><a class="reference internal" href="#commands-archive">Commands archive</a><ul>
+<li><a class="reference internal" href="#commands-archive-v1">Commands archive v1</a><ul>
 <li><a class="reference internal" href="#notes-and-caveats">Notes and caveats</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#commands-archive-v2">Commands archive v2</a><ul>
+<li><a class="reference internal" href="#getting-commands">Getting commands</a></li>
+<li><a class="reference internal" href="#getting-observations">Getting observations</a><ul>
+<li><a class="reference internal" href="#under-the-hood">Under the hood</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#getting-star-catalogs">Getting star catalogs</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#chandra-states-and-continuity">Chandra states and continuity</a><ul>
@@ -836,8 +1137,8 @@ you if this is not enough.</p>
   <p class="topless"><a href="events.html"
                         title="previous chapter">Chandra events</a></p>
   <h4>Next topic</h4>
-  <p class="topless"><a href="api.html"
-                        title="next chapter">API documentation</a></p>
+  <p class="topless"><a href="commands_v2.html"
+                        title="next chapter">Commands archive v2 details</a></p>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
     <ul class="this-page-menu">
@@ -861,7 +1162,7 @@ you if this is not enough.</p>
     <a href="#">Back to Top</a></p>
   <p>
     &copy; Copyright 2013, Tom Aldcroft.<br/>
-    Created using <a href="http://www.sphinx-doc.org/en/stable/">Sphinx</a> 3.1.2. &nbsp;
+    Created using <a href="http://www.sphinx-doc.org/en/stable/">Sphinx</a> 4.2.0. &nbsp;
   </p>
 </footer>
   </body>
