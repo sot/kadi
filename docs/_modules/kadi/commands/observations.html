@@ -1,0 +1,492 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>kadi.commands.observations &#8212; kadi 5.9.1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/bootstrap-astropy.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/plot_directive.css" />
+    
+    <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../../_static/sidebar.js"></script>
+    <script type="text/javascript" src="../../../_static/copybutton.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link href='https://fonts.googleapis.com/css?family=Source+Sans+Pro:200,600' rel='stylesheet' type='text/css'/>
+
+  </head><body>
+<div class="topbar">
+  <a class="brand" title="Documentation Home" href="../../../index.html"><span id="logotext1">Ska!</span><span id="logotext2">Kadi</span><span id="logotext3"></span></a>
+  <ul>
+    
+    <li><a class="home" title="Homepage" href="https://cxc.cfa.harvard.edu/mta/ASPECT/tool_doc">
+        <span id="logotext1">ska</span><span id="logotext2">tools</span>
+    </a></li>
+    <li><a title="General Index" href="../../../genindex.html">Index</a></li>
+    <li><a title="Module Index" href="../../../py-modindex.html">Modules</a></li>
+    <li>
+      
+      
+<form action="../../../search.html" method="get">
+  <input type="text" name="q" placeholder="Search" />
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+      
+    </li>
+  </ul>
+</div>
+
+<div class="related">
+    <h3>Navigation</h3>
+    <ul>
+      <li>
+	<a href="../../../index.html">kadi 5.9.1 documentation</a>
+	 &#187;
+      </li>
+      <li><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
+      
+       
+    </ul>
+</div>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for kadi.commands.observations</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Licensed under a 3-clause BSD style license - see LICENSE.rst</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">defaultdict</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">cxotime</span> <span class="kn">import</span> <span class="n">CxoTime</span>
+<span class="kn">import</span> <span class="nn">astropy.units</span> <span class="k">as</span> <span class="nn">u</span>
+<span class="kn">from</span> <span class="nn">astropy.table</span> <span class="kn">import</span> <span class="n">Table</span>
+
+<span class="c1"># kadi.commands.commands_v2 is also a dependency but encapsulated in the</span>
+<span class="c1"># functions to reduce top-level imports for v1-compatibility</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;get_starcats&#39;</span><span class="p">,</span> <span class="s1">&#39;get_observations&#39;</span><span class="p">]</span>
+
+<span class="n">AGASC_FILE</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;SKA&#39;</span><span class="p">],</span> <span class="s1">&#39;data&#39;</span><span class="p">,</span> <span class="s1">&#39;agasc&#39;</span><span class="p">,</span> <span class="s1">&#39;proseco_agasc_1p7.h5&#39;</span><span class="p">)</span>
+
+<span class="n">TYPE_MAP</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;ACQ&#39;</span><span class="p">,</span> <span class="s1">&#39;GUI&#39;</span><span class="p">,</span> <span class="s1">&#39;BOT&#39;</span><span class="p">,</span> <span class="s1">&#39;FID&#39;</span><span class="p">,</span> <span class="s1">&#39;MON&#39;</span><span class="p">]</span>
+<span class="n">IMGSZ_MAP</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;4x4&#39;</span><span class="p">,</span> <span class="s1">&#39;6x6&#39;</span><span class="p">,</span> <span class="s1">&#39;8x8&#39;</span><span class="p">]</span>
+<span class="n">PAR_MAPS</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">(</span><span class="s1">&#39;imnum&#39;</span><span class="p">,</span> <span class="s1">&#39;slot&#39;</span><span class="p">,</span> <span class="nb">int</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">&#39;type&#39;</span><span class="p">,</span> <span class="s1">&#39;type&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">n</span><span class="p">:</span> <span class="n">TYPE_MAP</span><span class="p">[</span><span class="n">n</span><span class="p">]),</span>
+    <span class="p">(</span><span class="s1">&#39;imgsz&#39;</span><span class="p">,</span> <span class="s1">&#39;sz&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">n</span><span class="p">:</span> <span class="n">IMGSZ_MAP</span><span class="p">[</span><span class="n">n</span><span class="p">]),</span>
+    <span class="p">(</span><span class="s1">&#39;maxmag&#39;</span><span class="p">,</span> <span class="s1">&#39;maxmag&#39;</span><span class="p">,</span> <span class="nb">float</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">&#39;yang&#39;</span><span class="p">,</span> <span class="s1">&#39;yang&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">degrees</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">*</span> <span class="mi">3600</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">&#39;zang&#39;</span><span class="p">,</span> <span class="s1">&#39;zang&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">degrees</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">*</span> <span class="mi">3600</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">&#39;dimdts&#39;</span><span class="p">,</span> <span class="s1">&#39;dim&#39;</span><span class="p">,</span> <span class="nb">int</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">&#39;restrk&#39;</span><span class="p">,</span> <span class="s1">&#39;res&#39;</span><span class="p">,</span> <span class="nb">int</span><span class="p">),</span>
+<span class="p">]</span>
+
+<span class="c1"># Cache of observations by scenario</span>
+<span class="n">OBSERVATIONS</span> <span class="o">=</span> <span class="p">{}</span>
+
+<span class="c1"># Cache of important columns in proseco_agasc_1p7.h5</span>
+<span class="n">STARS_AGASC</span> <span class="o">=</span> <span class="kc">None</span>
+
+
+<span class="k">def</span> <span class="nf">set_detector_and_sim_offset</span><span class="p">(</span><span class="n">aca</span><span class="p">,</span> <span class="n">simpos</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Get detector from SIM position.</span>
+
+<span class="sd">    Finds the detector with nominal SIM position closest to ``simpos``.</span>
+<span class="sd">    Taken from fot_matlab_tools/MissionScheduling/axafutil/getSIFromPosition.m.</span>
+
+<span class="sd">    :param aca: ACATable</span>
+<span class="sd">        Input star catalog</span>
+<span class="sd">    :param simpos: int, SIM position (steps)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">proseco</span> <span class="kn">import</span> <span class="n">characteristics_fid</span> <span class="k">as</span> <span class="n">FID</span>
+    <span class="n">sim_offsets</span> <span class="o">=</span> <span class="p">[</span><span class="n">simpos</span> <span class="o">-</span> <span class="n">simpos_nom</span> <span class="k">for</span> <span class="n">simpos_nom</span> <span class="ow">in</span> <span class="n">FID</span><span class="o">.</span><span class="n">simpos</span><span class="o">.</span><span class="n">values</span><span class="p">()]</span>
+    <span class="n">idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmin</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">sim_offsets</span><span class="p">))</span>
+    <span class="n">detector</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">FID</span><span class="o">.</span><span class="n">simpos</span><span class="o">.</span><span class="n">keys</span><span class="p">())[</span><span class="n">idx</span><span class="p">]</span>
+    <span class="n">sim_offset</span> <span class="o">=</span> <span class="n">sim_offsets</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+    <span class="n">aca</span><span class="o">.</span><span class="n">detector</span> <span class="o">=</span> <span class="n">detector</span>
+    <span class="n">aca</span><span class="o">.</span><span class="n">sim_offset</span> <span class="o">=</span> <span class="n">sim_offset</span>
+
+
+<span class="k">def</span> <span class="nf">set_fid_ids</span><span class="p">(</span><span class="n">aca</span><span class="p">):</span>
+    <span class="kn">from</span> <span class="nn">proseco.fid</span> <span class="kn">import</span> <span class="n">get_fid_positions</span>
+    <span class="kn">from</span> <span class="nn">kadi.commands</span> <span class="kn">import</span> <span class="n">conf</span>
+    <span class="n">fid_yangs</span><span class="p">,</span> <span class="n">fid_zangs</span> <span class="o">=</span> <span class="n">get_fid_positions</span><span class="p">(</span>
+        <span class="n">detector</span><span class="o">=</span><span class="n">aca</span><span class="o">.</span><span class="n">detector</span><span class="p">,</span> <span class="n">focus_offset</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">sim_offset</span><span class="o">=</span><span class="n">aca</span><span class="o">.</span><span class="n">sim_offset</span><span class="p">)</span>
+
+    <span class="n">idxs_aca</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">aca</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;FID&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">idx_aca</span> <span class="ow">in</span> <span class="n">idxs_aca</span><span class="p">:</span>
+        <span class="n">yang</span> <span class="o">=</span> <span class="n">aca</span><span class="p">[</span><span class="s1">&#39;yang&#39;</span><span class="p">][</span><span class="n">idx_aca</span><span class="p">]</span>
+        <span class="n">zang</span> <span class="o">=</span> <span class="n">aca</span><span class="p">[</span><span class="s1">&#39;zang&#39;</span><span class="p">][</span><span class="n">idx_aca</span><span class="p">]</span>
+        <span class="n">dys</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">yang</span> <span class="o">-</span> <span class="n">fid_yangs</span><span class="p">)</span>
+        <span class="n">dzs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">zang</span> <span class="o">-</span> <span class="n">fid_zangs</span><span class="p">)</span>
+        <span class="c1"># Match fid positions in a box. Default is a very loose tolerance of 40</span>
+        <span class="c1"># arcsec. The fids are widely spaced and there was a ~20 arcsec change</span>
+        <span class="c1"># in fid positions in 2007.</span>
+        <span class="n">halfw</span> <span class="o">=</span> <span class="n">conf</span><span class="o">.</span><span class="n">fid_id_match_halfwidth</span>
+        <span class="n">idxs_fid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">((</span><span class="n">dys</span> <span class="o">&lt;</span> <span class="n">halfw</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">dzs</span> <span class="o">&lt;</span> <span class="n">halfw</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">n_idxs_fid</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">idxs_fid</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">n_idxs_fid</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">aca</span><span class="p">[</span><span class="n">idx_aca</span><span class="p">][</span><span class="s1">&#39;id&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">idxs_fid</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span>
+            <span class="n">aca</span><span class="p">[</span><span class="n">idx_aca</span><span class="p">][</span><span class="s1">&#39;mag&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">7.0</span>
+        <span class="k">elif</span> <span class="n">n_idxs_fid</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;WARNING: found </span><span class="si">{</span><span class="n">n_idxs_fid</span><span class="si">}</span><span class="s1"> fids in obsid </span><span class="si">{</span><span class="n">aca</span><span class="o">.</span><span class="n">obsid</span><span class="si">}</span><span class="s1"> at &#39;</span>
+                           <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">aca</span><span class="o">.</span><span class="n">date</span><span class="si">}</span><span class="se">\n</span><span class="si">{</span><span class="n">aca</span><span class="p">[</span><span class="n">idx_aca</span><span class="p">]</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="c1"># Note that no fids found happens normally for post SCS-107 observations</span>
+        <span class="c1"># because the SIM is translated so don&#39;t warn in this case.</span>
+
+
+<span class="k">def</span> <span class="nf">set_star_ids</span><span class="p">(</span><span class="n">aca</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Find the star ID for each star in the ACA.</span>
+
+<span class="sd">    This set the ID in-place to the brightest star within 1.5 arcsec of the</span>
+<span class="sd">    commanded position.</span>
+
+<span class="sd">    :param aca: ACATable</span>
+<span class="sd">        Input star catalog</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">chandra_aca.transform</span> <span class="kn">import</span> <span class="n">radec_to_yagzag</span>
+    <span class="kn">from</span> <span class="nn">Quaternion</span> <span class="kn">import</span> <span class="n">Quat</span>
+    <span class="kn">from</span> <span class="nn">kadi.commands</span> <span class="kn">import</span> <span class="n">conf</span>
+    <span class="n">q_att</span> <span class="o">=</span> <span class="n">Quat</span><span class="p">(</span><span class="n">aca</span><span class="o">.</span><span class="n">att</span><span class="p">)</span>
+    <span class="n">stars</span> <span class="o">=</span> <span class="n">get_agasc_cone_fast</span><span class="p">(</span><span class="n">q_att</span><span class="o">.</span><span class="n">ra</span><span class="p">,</span> <span class="n">q_att</span><span class="o">.</span><span class="n">dec</span><span class="p">,</span> <span class="n">radius</span><span class="o">=</span><span class="mf">1.2</span><span class="p">,</span> <span class="n">date</span><span class="o">=</span><span class="n">aca</span><span class="o">.</span><span class="n">date</span><span class="p">)</span>
+    <span class="n">yang_stars</span><span class="p">,</span> <span class="n">zang_stars</span> <span class="o">=</span> <span class="n">radec_to_yagzag</span><span class="p">(</span><span class="n">stars</span><span class="p">[</span><span class="s1">&#39;RA_PMCORR&#39;</span><span class="p">],</span> <span class="n">stars</span><span class="p">[</span><span class="s1">&#39;DEC_PMCORR&#39;</span><span class="p">],</span> <span class="n">q_att</span><span class="p">)</span>
+    <span class="n">idxs_aca</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">aca</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">],</span> <span class="p">(</span><span class="s1">&#39;ACQ&#39;</span><span class="p">,</span> <span class="s1">&#39;GUI&#39;</span><span class="p">,</span> <span class="s1">&#39;BOT&#39;</span><span class="p">)))[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">idx_aca</span> <span class="ow">in</span> <span class="n">idxs_aca</span><span class="p">:</span>
+        <span class="n">yang</span> <span class="o">=</span> <span class="n">aca</span><span class="p">[</span><span class="s1">&#39;yang&#39;</span><span class="p">][</span><span class="n">idx_aca</span><span class="p">]</span>
+        <span class="n">zang</span> <span class="o">=</span> <span class="n">aca</span><span class="p">[</span><span class="s1">&#39;zang&#39;</span><span class="p">][</span><span class="n">idx_aca</span><span class="p">]</span>
+        <span class="n">dys</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">yang</span> <span class="o">-</span> <span class="n">yang_stars</span><span class="p">)</span>
+        <span class="n">dzs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">zang</span> <span class="o">-</span> <span class="n">zang_stars</span><span class="p">)</span>
+
+        <span class="c1"># Get the brightest star within a box (default = 1.5 arcsec halfwidth)</span>
+        <span class="n">halfw</span> <span class="o">=</span> <span class="n">conf</span><span class="o">.</span><span class="n">star_id_match_halfwidth</span>
+        <span class="n">ok</span> <span class="o">=</span> <span class="p">(</span><span class="n">dys</span> <span class="o">&lt;</span> <span class="n">halfw</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">dzs</span> <span class="o">&lt;</span> <span class="n">halfw</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">ok</span><span class="p">):</span>
+            <span class="n">idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmin</span><span class="p">(</span><span class="n">stars</span><span class="p">[</span><span class="s1">&#39;MAG_ACA&#39;</span><span class="p">][</span><span class="n">ok</span><span class="p">])</span>
+            <span class="n">aca</span><span class="p">[</span><span class="n">idx_aca</span><span class="p">][</span><span class="s1">&#39;id&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">stars</span><span class="p">[</span><span class="s1">&#39;AGASC_ID&#39;</span><span class="p">][</span><span class="n">ok</span><span class="p">][</span><span class="n">idx</span><span class="p">]</span>
+            <span class="n">aca</span><span class="p">[</span><span class="n">idx_aca</span><span class="p">][</span><span class="s1">&#39;mag&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">stars</span><span class="p">[</span><span class="s1">&#39;MAG_ACA&#39;</span><span class="p">][</span><span class="n">ok</span><span class="p">][</span><span class="n">idx</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;WARNING: star idx </span><span class="si">{</span><span class="n">idx_aca</span> <span class="o">+</span> <span class="mi">1</span><span class="si">}</span><span class="s1"> not found in obsid </span><span class="si">{</span><span class="n">aca</span><span class="o">.</span><span class="n">obsid</span><span class="si">}</span><span class="s1"> at &#39;</span>
+                        <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">aca</span><span class="o">.</span><span class="n">date</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">convert_aostrcat_to_acatable</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Convert dict of AOSTRCAT parameters to an ACATable.</span>
+
+<span class="sd">    The dict looks like::</span>
+
+<span class="sd">       2009:032:11:13:42.800 | 8023994 0 | MP_STARCAT | TLMSID= AOSTRCAT, CMDS=</span>
+<span class="sd">       49, IMNUM1= 0, YANG1= -3.74826751e-03, ZANG1= -8.44541515e-03, MAXMAG1=</span>
+<span class="sd">       8.00000000e+00, MINMAG1= 5.79687500e+00, DIMDTS1= 1, RESTRK1= 1, IMGSZ1=2,</span>
+<span class="sd">       TYPE1= 3, ...</span>
+
+<span class="sd">       IMNUM: slot</span>
+<span class="sd">       RESTRK: box size resolution, always 1 (high) in loads for non-MON slot</span>
+<span class="sd">       DIMDTS: (halfwidth - 20) / 5  # assumes AQRES=&#39;H&#39;</span>
+<span class="sd">       TYPE: 4 =&gt; mon, 3 =&gt; fid, 2 =&gt; bot, 1 =&gt; gui, 0 =&gt; acq</span>
+<span class="sd">       YANG: yang in radians</span>
+<span class="sd">       ZANG: zang in radians</span>
+<span class="sd">       IMGSZ: 0=4x4, 1=6x6, 2=8x8</span>
+<span class="sd">       MINMAG = min mag</span>
+<span class="sd">       MAXMAG = max mag</span>
+
+<span class="sd">    :param obs: dict of observation (OBS command) parameters</span>
+<span class="sd">    :param params: dict of AOSTRCAT parameters</span>
+<span class="sd">    :returns: ACATable</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">proseco.catalog</span> <span class="kn">import</span> <span class="n">ACATable</span>
+    <span class="kn">from</span> <span class="nn">proseco.acq</span> <span class="kn">import</span> <span class="n">AcqTable</span>
+    <span class="kn">from</span> <span class="nn">proseco.guide</span> <span class="kn">import</span> <span class="n">GuideTable</span>
+    <span class="kn">from</span> <span class="nn">Chandra.Time</span> <span class="kn">import</span> <span class="n">date2secs</span>
+
+    <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">17</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">params</span><span class="p">[</span><span class="sa">f</span><span class="s1">&#39;minmag</span><span class="si">{</span><span class="n">idx</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">params</span><span class="p">[</span><span class="sa">f</span><span class="s1">&#39;maxmag</span><span class="si">{</span><span class="n">idx</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">break</span>
+
+    <span class="n">max_idx</span> <span class="o">=</span> <span class="n">idx</span>
+    <span class="n">cols</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">par_name</span><span class="p">,</span> <span class="n">col_name</span><span class="p">,</span> <span class="n">func</span> <span class="ow">in</span> <span class="n">PAR_MAPS</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">max_idx</span><span class="p">):</span>
+            <span class="n">cols</span><span class="p">[</span><span class="n">col_name</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">func</span><span class="p">(</span><span class="n">params</span><span class="p">[</span><span class="n">par_name</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">idx</span><span class="p">)]))</span>
+
+    <span class="n">aca</span> <span class="o">=</span> <span class="n">ACATable</span><span class="p">(</span><span class="n">cols</span><span class="p">)</span>
+    <span class="n">aca</span><span class="o">.</span><span class="n">acqs</span> <span class="o">=</span> <span class="n">AcqTable</span><span class="p">()</span>
+    <span class="n">aca</span><span class="o">.</span><span class="n">guides</span> <span class="o">=</span> <span class="n">GuideTable</span><span class="p">()</span>
+    <span class="n">aca</span><span class="o">.</span><span class="n">add_column</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">max_idx</span><span class="p">),</span> <span class="n">index</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;idx&#39;</span><span class="p">)</span>
+
+    <span class="n">aca</span><span class="o">.</span><span class="n">obsid</span> <span class="o">=</span> <span class="n">obs</span><span class="p">[</span><span class="s1">&#39;obsid&#39;</span><span class="p">]</span>
+    <span class="n">aca</span><span class="o">.</span><span class="n">att</span> <span class="o">=</span> <span class="n">obs</span><span class="p">[</span><span class="s1">&#39;targ_att&#39;</span><span class="p">]</span>
+    <span class="n">aca</span><span class="o">.</span><span class="n">date</span> <span class="o">=</span> <span class="n">obs</span><span class="p">[</span><span class="s1">&#39;obs_start&#39;</span><span class="p">]</span>
+    <span class="n">aca</span><span class="o">.</span><span class="n">duration</span> <span class="o">=</span> <span class="n">date2secs</span><span class="p">(</span><span class="n">obs</span><span class="p">[</span><span class="s1">&#39;obs_stop&#39;</span><span class="p">])</span> <span class="o">-</span> <span class="n">date2secs</span><span class="p">(</span><span class="n">obs</span><span class="p">[</span><span class="s1">&#39;obs_start&#39;</span><span class="p">])</span>
+
+    <span class="c1"># Make the catalog more complete and provide stuff temps needed for plot()</span>
+    <span class="n">aca</span><span class="o">.</span><span class="n">t_ccd</span> <span class="o">=</span> <span class="o">-</span><span class="mf">20.0</span>
+    <span class="n">aca</span><span class="o">.</span><span class="n">acqs</span><span class="o">.</span><span class="n">t_ccd</span> <span class="o">=</span> <span class="o">-</span><span class="mf">20.0</span>
+    <span class="n">aca</span><span class="o">.</span><span class="n">guides</span><span class="o">.</span><span class="n">t_ccd</span> <span class="o">=</span> <span class="o">-</span><span class="mf">20.0</span>
+
+    <span class="n">halfws</span> <span class="o">=</span> <span class="mi">20</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">aca</span><span class="p">[</span><span class="s1">&#39;res&#39;</span><span class="p">],</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">40</span><span class="p">)</span> <span class="o">*</span> <span class="n">aca</span><span class="p">[</span><span class="s1">&#39;dim&#39;</span><span class="p">]</span>
+    <span class="n">halfws</span><span class="p">[</span><span class="n">aca</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;MON&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">25</span>
+    <span class="n">aca</span><span class="p">[</span><span class="s1">&#39;halfw&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">halfws</span>
+
+    <span class="k">return</span> <span class="n">aca</span>
+
+
+<div class="viewcode-block" id="get_starcats"><a class="viewcode-back" href="../../../api.html#kadi.commands.observations.get_starcats">[docs]</a><span class="k">def</span> <span class="nf">get_starcats</span><span class="p">(</span><span class="n">obsid</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">stop</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">set_ids</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">scenario</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cmds</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Get star catalogs corresponding to input parameters.</span>
+
+<span class="sd">    The ``obsid``, ``start``, and ``stop`` parameters serve as matching filters</span>
+<span class="sd">    on the list of star catalogs that is returned.</span>
+
+<span class="sd">    The ``set_ids`` parameter controls whether the star and fid IDs are set.</span>
+<span class="sd">    This increases run time by about a factor of 4 (mostly due to identifying</span>
+<span class="sd">    stars from position), so if you don&#39;t need the IDs then set ``set_ids`` to</span>
+<span class="sd">    ``False``.</span>
+
+<span class="sd">    There are numerous instances of multiple observations with the same obsid,</span>
+<span class="sd">    so this function always returns a list of star catalogs even when ``obsid``</span>
+<span class="sd">    is specified. In most cases you can just use the first element.</span>
+
+<span class="sd">    The ``mag`` column corresponds to the AGASC magnitude *without* the AGASC</span>
+<span class="sd">    supplement.</span>
+
+<span class="sd">    Star ID&#39;s are determined by finding the brightest AGASC star within a search</span>
+<span class="sd">    box centered at the catalog location. The search box is 1.5 arcsec halfwidth</span>
+<span class="sd">    in size, but it can be changed by setting the ``star_id_match_halfwidth``</span>
+<span class="sd">    configuration parameter. Fid ID&#39;s are determined similarly by computing fid</span>
+<span class="sd">    locations given the commanded SIM-Z position. The default box size is 40</span>
+<span class="sd">    arcsec halfwidth, but it can be changed by setting the</span>
+<span class="sd">    ``fid_id_match_halfwidth`` configuration parameter.</span>
+
+<span class="sd">    Note that the first instance of running this will be slow because it caches</span>
+<span class="sd">    various data structures. Subsequent calls are much faster.</span>
+
+<span class="sd">    Example::</span>
+
+<span class="sd">        &gt;&gt;&gt; from kadi.commands import get_starcats</span>
+<span class="sd">        &gt;&gt;&gt; cat = get_starcats(obsid=8008)[0]</span>
+<span class="sd">        &gt;&gt;&gt; cat</span>
+<span class="sd">        [&lt;ACATable length=11&gt;</span>
+<span class="sd">        slot  idx     id    type  sz    mag    maxmag   yang     zang    dim   res</span>
+<span class="sd">        int64 int64  int64   str3 str3 float64 float64 float64  float64  int64 int64</span>
+<span class="sd">        ----- ----- -------- ---- ---- ------- ------- -------- -------- ----- -----</span>
+<span class="sd">            0     1        1  FID  8x8    7.00    8.00   937.71  -829.17     1     1</span>
+<span class="sd">            1     2        5  FID  8x8    7.00    8.00 -1810.42  1068.87     1     1</span>
+<span class="sd">            2     3        6  FID  8x8    7.00    8.00   403.68  1712.93     1     1</span>
+<span class="sd">            3     4 31075128  BOT  6x6    9.35   10.86  -318.22  1202.41    20     1</span>
+<span class="sd">            4     5 31076560  BOT  6x6    9.70   11.20  -932.79  -354.55    20     1</span>
+<span class="sd">            5     6 31463496  BOT  6x6    9.46   10.97  2026.85  1399.61    20     1</span>
+<span class="sd">            6     7 31983336  BOT  6x6    8.64   10.14   890.71 -1600.39    20     1</span>
+<span class="sd">            7     8 32374896  BOT  6x6    9.17   10.66  2023.08 -2021.72    13     1</span>
+<span class="sd">            0     9 31075368  ACQ  6x6    9.13   10.64    54.04   754.79    20     1</span>
+<span class="sd">            1    10 31982136  ACQ  6x6   10.19   11.70   562.06  -186.39    20     1</span>
+<span class="sd">            2    11 32375384  ACQ  6x6    9.79   11.30  1612.28  -428.24    20     1]</span>
+
+<span class="sd">    :param obsid: int, None ObsID</span>
+<span class="sd">    :param start: CxoTime-like, None Start time (default=beginning of commands)</span>
+<span class="sd">    :param stop: CxoTime-like, None Stop time (default=end of commands)</span>
+<span class="sd">    :param set_ids: bool, True Set star and fid IDs</span>
+<span class="sd">    :param scenario: str, None Scenario</span>
+<span class="sd">    :param cmds: CommandTable, None Use this command table instead of querying</span>
+<span class="sd">        the archive.</span>
+<span class="sd">    :returns: list of ACATable List star catalogs for matching observations.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">kadi.commands.commands_v2</span> <span class="kn">import</span> <span class="n">REV_PARS_DICT</span>
+    <span class="kn">from</span> <span class="nn">kadi.commands.core</span> <span class="kn">import</span> <span class="n">decode_starcat_params</span>
+
+    <span class="n">obss</span> <span class="o">=</span> <span class="n">get_observations</span><span class="p">(</span><span class="n">obsid</span><span class="o">=</span><span class="n">obsid</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="o">=</span><span class="n">stop</span><span class="p">,</span>
+                            <span class="n">scenario</span><span class="o">=</span><span class="n">scenario</span><span class="p">,</span> <span class="n">cmds</span><span class="o">=</span><span class="n">cmds</span><span class="p">)</span>
+    <span class="n">starcats</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">rev_pars_dict</span> <span class="o">=</span> <span class="n">REV_PARS_DICT</span> <span class="k">if</span> <span class="n">cmds</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">cmds</span><span class="o">.</span><span class="n">rev_pars_dict</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">obs</span> <span class="ow">in</span> <span class="n">obss</span><span class="p">:</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">idx</span> <span class="o">:=</span> <span class="n">obs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;starcat_idx&#39;</span><span class="p">))</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="n">params</span> <span class="o">=</span> <span class="n">rev_pars_dict</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">):</span>
+            <span class="n">params</span> <span class="o">=</span> <span class="n">decode_starcat_params</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
+        <span class="n">starcat</span> <span class="o">=</span> <span class="n">convert_aostrcat_to_acatable</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
+        <span class="n">starcats</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">starcat</span><span class="p">)</span>
+        <span class="n">set_detector_and_sim_offset</span><span class="p">(</span><span class="n">starcat</span><span class="p">,</span> <span class="n">obs</span><span class="p">[</span><span class="s1">&#39;simpos&#39;</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">set_ids</span><span class="p">:</span>
+            <span class="n">starcat</span><span class="o">.</span><span class="n">add_column</span><span class="p">(</span><span class="o">-</span><span class="mi">999</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;id&#39;</span><span class="p">)</span>
+            <span class="n">starcat</span><span class="o">.</span><span class="n">add_column</span><span class="p">(</span><span class="o">-</span><span class="mf">999.0</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;mag&#39;</span><span class="p">)</span>
+            <span class="n">set_fid_ids</span><span class="p">(</span><span class="n">starcat</span><span class="p">)</span>
+            <span class="n">set_star_ids</span><span class="p">(</span><span class="n">starcat</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">starcats</span></div>
+
+
+<div class="viewcode-block" id="get_observations"><a class="viewcode-back" href="../../../api.html#kadi.commands.observations.get_observations">[docs]</a><span class="k">def</span> <span class="nf">get_observations</span><span class="p">(</span><span class="n">obsid</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">stop</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">scenario</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cmds</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Get observations corresponding to input parameters.</span>
+
+<span class="sd">    The ``obsid``, ``start``, and ``stop`` parameters serve as matching filters</span>
+<span class="sd">    on the list of observations that is returned.</span>
+
+<span class="sd">    Over the mission there are thousands of instances of multiple observations</span>
+<span class="sd">    with the same obsid, so this function always returns a list of observation</span>
+<span class="sd">    parameters even when ``obsid`` is specified. This most frequently occurs</span>
+<span class="sd">    after any unexpected stoppage of the observng loads (SCS-107) which</span>
+<span class="sd">    therefore cancels subsequent obsid commanding. In many cases you can just</span>
+<span class="sd">    use the first element.</span>
+
+<span class="sd">    Examples::</span>
+
+<span class="sd">        &gt;&gt;&gt; from kadi.commands import get_observations</span>
+<span class="sd">        &gt;&gt;&gt; obs = get_observations(obsid=8008)[0]</span>
+<span class="sd">        &gt;&gt;&gt; obs</span>
+<span class="sd">        {&#39;obsid&#39;: 8008,</span>
+<span class="sd">        &#39;simpos&#39;: 92904,</span>
+<span class="sd">        &#39;obs_stop&#39;: &#39;2007:002:18:04:28.965&#39;,</span>
+<span class="sd">        &#39;manvr_start&#39;: &#39;2007:002:04:31:48.216&#39;,</span>
+<span class="sd">        &#39;targ_att&#39;: (0.149614271, 0.490896707, 0.831470649, 0.21282047),</span>
+<span class="sd">        &#39;npnt_enab&#39;: True,</span>
+<span class="sd">        &#39;obs_start&#39;: &#39;2007:002:04:46:58.056&#39;,</span>
+<span class="sd">        &#39;prev_att&#39;: (0.319214732, 0.535685207, 0.766039803, 0.155969017),</span>
+<span class="sd">        &#39;starcat_idx&#39;: 144398,</span>
+<span class="sd">        &#39;source&#39;: &#39;DEC2506C&#39;}</span>
+
+<span class="sd">        &gt;&gt;&gt; obs_all = get_observations()  # All observations in commands archive</span>
+
+<span class="sd">        # Might be convenient to handle this as a Table</span>
+<span class="sd">        &gt;&gt;&gt; from astropy.table import Table</span>
+<span class="sd">        &gt;&gt;&gt; obs_all = Table(obs_all)</span>
+
+<span class="sd">    :param obsid: int, None</span>
+<span class="sd">        ObsID</span>
+<span class="sd">    :param start: CxoTime-like, None</span>
+<span class="sd">        Start time (default=beginning of commands)</span>
+<span class="sd">    :param stop: CxoTime-like, None</span>
+<span class="sd">        Stop time (default=end of commands)</span>
+<span class="sd">    :param scenario: str, None</span>
+<span class="sd">        Scenario</span>
+<span class="sd">    :param cmds: CommandTable, None</span>
+<span class="sd">        Use this command table instead of querying the archive.</span>
+<span class="sd">    :returns: list of dict</span>
+<span class="sd">        Observation parameters for matching observations.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">kadi.commands.commands_v2</span> <span class="kn">import</span> <span class="n">get_cmds</span>
+    <span class="n">start</span> <span class="o">=</span> <span class="n">CxoTime</span><span class="p">(</span><span class="s1">&#39;1999:001&#39;</span> <span class="k">if</span> <span class="n">start</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">start</span><span class="p">)</span>
+    <span class="n">stop</span> <span class="o">=</span> <span class="p">(</span><span class="n">CxoTime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">*</span> <span class="n">u</span><span class="o">.</span><span class="n">year</span><span class="p">)</span> <span class="k">if</span> <span class="n">stop</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">CxoTime</span><span class="p">(</span><span class="n">stop</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">cmds</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">scenario</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">OBSERVATIONS</span><span class="p">:</span>
+            <span class="n">cmds</span> <span class="o">=</span> <span class="n">get_cmds</span><span class="p">(</span><span class="n">scenario</span><span class="o">=</span><span class="n">scenario</span><span class="p">)</span>
+            <span class="n">cmds_obs</span> <span class="o">=</span> <span class="n">cmds</span><span class="p">[</span><span class="n">cmds</span><span class="p">[</span><span class="s1">&#39;tlmsid&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;OBS&#39;</span><span class="p">]</span>
+            <span class="n">obsids</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">cmd</span> <span class="ow">in</span> <span class="n">cmds_obs</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">cmd</span><span class="p">[</span><span class="s1">&#39;params&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">_obsid</span> <span class="o">=</span> <span class="n">cmd</span><span class="p">[</span><span class="s1">&#39;obsid&#39;</span><span class="p">]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">_obsid</span> <span class="o">=</span> <span class="n">cmd</span><span class="p">[</span><span class="s1">&#39;params&#39;</span><span class="p">][</span><span class="s1">&#39;obsid&#39;</span><span class="p">]</span>
+                <span class="n">obsids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_obsid</span><span class="p">)</span>
+
+            <span class="n">cmds_obs</span><span class="p">[</span><span class="s1">&#39;obsid&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">obsids</span>
+            <span class="n">OBSERVATIONS</span><span class="p">[</span><span class="n">scenario</span><span class="p">]</span> <span class="o">=</span> <span class="n">cmds_obs</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">cmds_obs</span> <span class="o">=</span> <span class="n">OBSERVATIONS</span><span class="p">[</span><span class="n">scenario</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">cmds_obs</span> <span class="o">=</span> <span class="n">cmds</span><span class="p">[</span><span class="n">cmds</span><span class="p">[</span><span class="s1">&#39;tlmsid&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;OBS&#39;</span><span class="p">]</span>
+
+    <span class="n">i0</span><span class="p">,</span> <span class="n">i1</span> <span class="o">=</span> <span class="n">cmds_obs</span><span class="o">.</span><span class="n">find_date</span><span class="p">([</span><span class="n">start</span><span class="o">.</span><span class="n">date</span><span class="p">,</span> <span class="n">stop</span><span class="o">.</span><span class="n">date</span><span class="p">])</span>
+    <span class="n">cmds_obs</span> <span class="o">=</span> <span class="n">cmds_obs</span><span class="p">[</span><span class="n">i0</span><span class="p">:</span><span class="n">i1</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">obsid</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">cmds_obs</span> <span class="o">=</span> <span class="n">cmds_obs</span><span class="p">[</span><span class="n">cmds_obs</span><span class="p">[</span><span class="s1">&#39;obsid&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">obsid</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">cmds_obs</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;No matching observations for </span><span class="si">{</span><span class="n">obsid</span><span class="si">=}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+    <span class="n">obss</span> <span class="o">=</span> <span class="p">[</span><span class="n">cmd</span><span class="p">[</span><span class="s1">&#39;params&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">cmd</span> <span class="ow">in</span> <span class="n">cmds_obs</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">obs</span><span class="p">,</span> <span class="n">cmd_obs</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">obss</span><span class="p">,</span> <span class="n">cmds_obs</span><span class="p">):</span>
+        <span class="n">obs</span><span class="p">[</span><span class="s1">&#39;source&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cmd_obs</span><span class="p">[</span><span class="s1">&#39;source&#39;</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">obss</span></div>
+
+
+<span class="k">def</span> <span class="nf">get_agasc_cone_fast</span><span class="p">(</span><span class="n">ra</span><span class="p">,</span> <span class="n">dec</span><span class="p">,</span> <span class="n">radius</span><span class="o">=</span><span class="mf">1.5</span><span class="p">,</span> <span class="n">date</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Get AGASC catalog entries within ``radius`` degrees of ``ra``, ``dec``.</span>
+
+<span class="sd">    This is a fast version of agasc.get_agasc_cone() that keeps the key columns</span>
+<span class="sd">    in memory instead of accessing the H5 file each time.</span>
+
+<span class="sd">    :param dec: Declination (deg)</span>
+<span class="sd">    :param radius: Cone search radius (deg)</span>
+<span class="sd">    :param date: Date for proper motion (default=Now)</span>
+
+<span class="sd">    :returns: astropy Table of AGASC entries</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">global</span> <span class="n">STARS_AGASC</span>
+
+    <span class="n">agasc_file</span> <span class="o">=</span> <span class="n">AGASC_FILE</span>
+    <span class="kn">from</span> <span class="nn">agasc.agasc</span> <span class="kn">import</span> <span class="n">get_ra_decs</span><span class="p">,</span> <span class="n">sphere_dist</span><span class="p">,</span> <span class="n">add_pmcorr_columns</span>
+    <span class="kn">import</span> <span class="nn">tables</span>
+
+    <span class="n">ra_decs</span> <span class="o">=</span> <span class="n">get_ra_decs</span><span class="p">(</span><span class="n">agasc_file</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">STARS_AGASC</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">tables</span><span class="o">.</span><span class="n">open_file</span><span class="p">(</span><span class="n">agasc_file</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">h5</span><span class="p">:</span>
+            <span class="n">dat</span> <span class="o">=</span> <span class="n">h5</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">data</span><span class="p">[:]</span>
+            <span class="n">cols</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;AGASC_ID&#39;</span><span class="p">:</span> <span class="n">dat</span><span class="p">[</span><span class="s1">&#39;AGASC_ID&#39;</span><span class="p">],</span>
+                    <span class="s1">&#39;RA&#39;</span><span class="p">:</span> <span class="n">dat</span><span class="p">[</span><span class="s1">&#39;RA&#39;</span><span class="p">],</span>
+                    <span class="s1">&#39;DEC&#39;</span><span class="p">:</span> <span class="n">dat</span><span class="p">[</span><span class="s1">&#39;DEC&#39;</span><span class="p">],</span>
+                    <span class="s1">&#39;PM_RA&#39;</span><span class="p">:</span> <span class="n">dat</span><span class="p">[</span><span class="s1">&#39;PM_RA&#39;</span><span class="p">],</span>
+                    <span class="s1">&#39;PM_DEC&#39;</span><span class="p">:</span> <span class="n">dat</span><span class="p">[</span><span class="s1">&#39;PM_DEC&#39;</span><span class="p">],</span>
+                    <span class="s1">&#39;EPOCH&#39;</span><span class="p">:</span> <span class="n">dat</span><span class="p">[</span><span class="s1">&#39;EPOCH&#39;</span><span class="p">],</span>
+                    <span class="s1">&#39;MAG_ACA&#39;</span><span class="p">:</span> <span class="n">dat</span><span class="p">[</span><span class="s1">&#39;MAG_ACA&#39;</span><span class="p">]}</span>
+            <span class="n">STARS_AGASC</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="n">cols</span><span class="p">)</span>
+            <span class="k">del</span> <span class="n">dat</span>  <span class="c1"># Explicitly delete to free memory (?)</span>
+
+    <span class="n">idx0</span><span class="p">,</span> <span class="n">idx1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">searchsorted</span><span class="p">(</span><span class="n">ra_decs</span><span class="o">.</span><span class="n">dec</span><span class="p">,</span> <span class="p">[</span><span class="n">dec</span> <span class="o">-</span> <span class="n">radius</span><span class="p">,</span> <span class="n">dec</span> <span class="o">+</span> <span class="n">radius</span><span class="p">])</span>
+
+    <span class="n">dists</span> <span class="o">=</span> <span class="n">sphere_dist</span><span class="p">(</span><span class="n">ra</span><span class="p">,</span> <span class="n">dec</span><span class="p">,</span> <span class="n">ra_decs</span><span class="o">.</span><span class="n">ra</span><span class="p">[</span><span class="n">idx0</span><span class="p">:</span><span class="n">idx1</span><span class="p">],</span> <span class="n">ra_decs</span><span class="o">.</span><span class="n">dec</span><span class="p">[</span><span class="n">idx0</span><span class="p">:</span><span class="n">idx1</span><span class="p">])</span>
+    <span class="n">ok</span> <span class="o">=</span> <span class="n">dists</span> <span class="o">&lt;=</span> <span class="n">radius</span>
+    <span class="n">stars</span> <span class="o">=</span> <span class="n">STARS_AGASC</span><span class="p">[</span><span class="n">idx0</span><span class="p">:</span><span class="n">idx1</span><span class="p">][</span><span class="n">ok</span><span class="p">]</span>
+
+    <span class="n">add_pmcorr_columns</span><span class="p">(</span><span class="n">stars</span><span class="p">,</span> <span class="n">date</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">stars</span>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../index.html">
+              <img class="logo" src="../../../_static/ska.png" alt="Logo"/>
+            </a></p><h3>Page Contents</h3>
+
+
+<form action="../../../search.html" method="get">
+  <input type="text" name="q" placeholder="Search" />
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+<footer class="footer">
+  <p class="pull-right"> &nbsp;
+    <a href="#">Back to Top</a></p>
+  <p>
+    &copy; Copyright 2013, Tom Aldcroft.<br/>
+    Created using <a href="http://www.sphinx-doc.org/en/stable/">Sphinx</a> 4.2.0. &nbsp;
+  </p>
+</footer>
+  </body>
+</html>

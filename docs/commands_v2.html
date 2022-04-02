@@ -1,0 +1,435 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Commands archive v2 details &#8212; kadi 5.9.1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/bootstrap-astropy.css" />
+    <link rel="stylesheet" type="text/css" href="_static/plot_directive.css" />
+    
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/sidebar.js"></script>
+    <script type="text/javascript" src="_static/copybutton.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="API documentation" href="api.html" />
+    <link rel="prev" title="Commands and states" href="commands_states.html" />
+    <link href='https://fonts.googleapis.com/css?family=Source+Sans+Pro:200,600' rel='stylesheet' type='text/css'/>
+
+  </head><body>
+<div class="topbar">
+  <a class="brand" title="Documentation Home" href="index.html"><span id="logotext1">Ska!</span><span id="logotext2">Kadi</span><span id="logotext3"></span></a>
+  <ul>
+    
+    <li><a class="home" title="Homepage" href="https://cxc.cfa.harvard.edu/mta/ASPECT/tool_doc">
+        <span id="logotext1">ska</span><span id="logotext2">tools</span>
+    </a></li>
+    <li><a title="General Index" href="genindex.html">Index</a></li>
+    <li><a title="Module Index" href="py-modindex.html">Modules</a></li>
+    <li>
+      
+      
+<form action="search.html" method="get">
+  <input type="text" name="q" placeholder="Search" />
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+      
+    </li>
+  </ul>
+</div>
+
+<div class="related">
+    <h3>Navigation</h3>
+    <ul>
+      <li class="right">
+	<a href="api.html" title="API documentation">
+	  next &raquo;
+	</a>
+      </li>
+      <li class="right">
+	<a href="commands_states.html" title="Commands and states">
+	  &laquo; previous
+	</a>
+	 |
+      </li>
+      <li>
+	<a href="index.html">kadi 5.9.1 documentation</a>
+	 &#187;
+      </li>
+      <li><a href="commands_states.html" accesskey="U">Commands and states</a> &#187;</li>
+      
+      <li>Commands archive v2 details</li> 
+    </ul>
+</div>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="commands-archive-v2-details">
+<h1>Commands archive v2 details<a class="headerlink" href="#commands-archive-v2-details" title="Permalink to this headline">¶</a></h1>
+<section id="concept-overview">
+<h2>Concept overview<a class="headerlink" href="#concept-overview" title="Permalink to this headline">¶</a></h2>
+<p>The key concept underlying version 2 is that it uses web resources to always
+provide the most current set of executed and planned load and non-load commands.
+This is true even in rapidly changing circumstances such as anomaly recovery or
+a fast TOO. The code provides correct results without need for the user to worry
+about syncing any files. Working without a network is possible, see the
+<a class="reference internal" href="#flight-scenario-no-network">Flight scenario (no network)</a> section for details.</p>
+<p>The <a class="reference external" href="https://docs.google.com/spreadsheets/d/19d6XqBhWoFjC-z1lS1nM6wLE_zjr4GYB1lOvrEGCbKQ">Chandra Command Events</a>
+Google sheet is the foundation of this infrastructure. It provides a centralized
+repository which contains information about “command events” that impact the
+as-run commanding on Chandra. This document is viewable by anyone with the link
+but can be edited only by FOT mission planning, Flight Directors and a small set
+of managers. This spreadsheet will be maintained by FOT MP in a timely manner
+(typically within one hour during anomalies) following a <a class="reference external" href="https://occweb.cfa.harvard.edu/twiki/bin/view/MissionPlanning/CommandEvents">defined process</a>.</p>
+<p>The other key web resource is the OCCweb <a class="reference external" href="https://occweb.cfa.harvard.edu/occweb/FOT/mission_planning/PRODUCTS/APPR_LOADS/">FOT mission planning approved load products</a>
+directory tree. This is used to automatically find all recent approved loads
+and incorporate them into the load commands archive.</p>
+</section>
+<section id="differences-from-v1">
+<h2>Differences from v1<a class="headerlink" href="#differences-from-v1" title="Permalink to this headline">¶</a></h2>
+<p>Apart from the fundamental change in data sources mentioned above, some key
+changes from v1 are as follows:</p>
+<ul class="simple">
+<li><p>Commands table includes a <code class="docutils literal notranslate"><span class="pre">source</span></code> column that defines the source of the
+command. Most commonly this is a weekly load name, but it can also indicate
+a non-load command event for which further details are provided in the command
+parameters.</p></li>
+<li><p>Information about each distinct observation is embedded into the command
+archive as <code class="docutils literal notranslate"><span class="pre">LOAD_EVENT</span></code> pseudo-commands. The
+<a class="reference internal" href="api.html#kadi.commands.observations.get_observations" title="kadi.commands.observations.get_observations"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_observations()</span></code></a> provides a fast and
+convenient way to find observations, both past and planned. See the
+<a class="reference internal" href="commands_states.html#getting-observations"><span class="std std-ref">Getting observations</span></a> section for more details.</p></li>
+<li><p>Information about each ACA star catalog is stored in the command
+archive. The <a class="reference internal" href="api.html#kadi.commands.observations.get_observations" title="kadi.commands.observations.get_observations"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_observations()</span></code></a> provides a
+convenient way to find ACA star catalogs, both past and planned. See the
+<a class="reference internal" href="commands_states.html#getting-star-catalogs"><span class="std std-ref">Getting star catalogs</span></a> section for more details.</p></li>
+<li><p>There are configuration options which can be set programmatically or in a fixed
+configuration file to control behavior of the package. See the
+<a class="reference internal" href="#configuration-options">Configuration options</a> section for more details.</p></li>
+</ul>
+</section>
+<section id="scenarios">
+<h2>Scenarios<a class="headerlink" href="#scenarios" title="Permalink to this headline">¶</a></h2>
+<p>A scenario is an specific version of events that you like to evaluate. The
+default scenario is the <a class="reference external" href="https://docs.google.com/spreadsheets/d/19d6XqBhWoFjC-z1lS1nM6wLE_zjr4GYB1lOvrEGCbKQ">Chandra Command Events</a> sheet.</p>
+<p>Providing for alternate scenarios is a key feature of the commands archive v2.
+An example is checking for thermal propagation for assuming an ACIS CTI using
+either 3-chips or 4-chips, or no CTI at all. Such scenarios are considered
+“custom” scenarios and can be created and easily manipulated by the user.
+Examples include:</p>
+<ul class="simple">
+<li><p>Different CTI options</p></li>
+<li><p>Different “cold attitude” options</p></li>
+<li><p>What if’s, like what if we didn’t manage to start the maneuver to 135 pitch in a NSM recovery?</p></li>
+</ul>
+<p>One special scenario is the “flight” scenario, discussed below.</p>
+<section id="flight-scenario-no-network">
+<h3>Flight scenario (no network)<a class="headerlink" href="#flight-scenario-no-network" title="Permalink to this headline">¶</a></h3>
+<p>In the case of production applications that are running on the HEAD or GRETA
+networks or where it is not possible or desirable to access the network to
+update the local loads, the special <code class="docutils literal notranslate"><span class="pre">&quot;flight&quot;</span></code> scenario can be used.</p>
+<p>The impact of selecting <code class="docutils literal notranslate"><span class="pre">scenario=&quot;flight&quot;</span></code> in a commands query is that it
+disables access to network resources (Google sheets and OCCweb). This means that
+results will depend strictly on the production commands archive files
+<code class="docutils literal notranslate"><span class="pre">${SKA}/data/kadi/cmds2.h5</span></code> and <code class="docutils literal notranslate"><span class="pre">${SKA}/data/kadi/cmds2.pkl</span></code>. On the HEAD
+network these files are brought up to date each 10 minutes by a cron jobs, so
+using <code class="docutils literal notranslate"><span class="pre">&quot;flight&quot;</span></code> in this case is a reliable way to eliminate dependence on the
+kadi external web resources.</p>
+<p>Using the <code class="docutils literal notranslate"><span class="pre">&quot;flight&quot;</span></code> scenario is also recommended for use on GRETA
+workstations since they cannot access the Chandra Command Events Google sheet.</p>
+</section>
+<section id="custom-scenario-example">
+<h3>Custom scenario example<a class="headerlink" href="#custom-scenario-example" title="Permalink to this headline">¶</a></h3>
+<p>This example shows the steps to programmatically add an ACIS CTI in the midst
+of the 2021:296 NSM recovery:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">kadi</span> <span class="kn">import</span> <span class="n">paths</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">kadi.commands</span> <span class="kn">import</span> <span class="n">conf</span><span class="p">,</span> <span class="n">get_cmds</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">conf</span><span class="o">.</span><span class="n">commands_version</span> <span class="o">=</span> <span class="s1">&#39;2&#39;</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cmds</span> <span class="o">=</span> <span class="n">get_cmds</span><span class="p">(</span><span class="n">start</span><span class="o">=</span><span class="s1">&#39;2022:001&#39;</span><span class="p">)</span>  <span class="c1"># Ensure local cmd_events.csv is up to date</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">path_flight</span> <span class="o">=</span> <span class="n">paths</span><span class="o">.</span><span class="n">CMD_EVENTS_PATH</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">path_flight</span>
+<span class="go">PosixPath(&#39;/Users/aldcroft/.kadi/cmd_events.csv&#39;)</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">path_cti</span> <span class="o">=</span> <span class="n">paths</span><span class="o">.</span><span class="n">CMD_EVENTS_PATH</span><span class="p">(</span><span class="n">scenario</span><span class="o">=</span><span class="s1">&#39;nsm-cti&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">path_cti</span>
+<span class="go">PosixPath(&#39;/Users/aldcroft/.kadi/nsm-cti/cmd_events.csv&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">path_cti</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">astropy.table</span> <span class="kn">import</span> <span class="n">Table</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">events_flight</span> <span class="o">=</span> <span class="n">Table</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">path_flight</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">events_flight</span><span class="o">.</span><span class="n">colnames</span>
+<span class="go">[&#39;State&#39;, &#39;Date&#39;, &#39;Event&#39;, &#39;Params&#39;, &#39;Author&#39;, &#39;Reviewer&#39;, &#39;Comment&#39;]</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cti_event</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;State&#39;</span><span class="p">:</span> <span class="s1">&#39;definitive&#39;</span><span class="p">,</span> <span class="s1">&#39;Date&#39;</span><span class="p">:</span> <span class="s1">&#39;2021:297:13:00:00&#39;</span><span class="p">,</span>
+<span class="gp">... </span>             <span class="s1">&#39;Event&#39;</span><span class="p">:</span> <span class="s1">&#39;RTS&#39;</span><span class="p">,</span> <span class="s1">&#39;Params&#39;</span><span class="p">:</span> <span class="s1">&#39;RTSLOAD,1_CTI06,NUM_HOURS=12:00:00,SCS_NUM=135&#39;</span><span class="p">,</span>
+<span class="gp">... </span>             <span class="s1">&#39;Author&#39;</span><span class="p">:</span> <span class="s1">&#39;Tom Aldcroft&#39;</span><span class="p">,</span> <span class="s1">&#39;Reviewer&#39;</span><span class="p">:</span> <span class="s1">&#39;John Scott&#39;</span><span class="p">,</span> <span class="s1">&#39;Comment&#39;</span><span class="p">:</span> <span class="s1">&#39;&#39;</span><span class="p">}</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">events_cti</span> <span class="o">=</span> <span class="n">events_flight</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">events_cti</span><span class="o">.</span><span class="n">add_row</span><span class="p">(</span><span class="n">cti_event</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">events_cti</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">path_cti</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;KADI_COMMANDS_DEFAULT_STOP&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;2021:299&#39;</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cmds</span> <span class="o">=</span> <span class="n">get_cmds</span><span class="p">(</span><span class="s1">&#39;2021:296:10:35:00&#39;</span><span class="p">,</span> <span class="s1">&#39;2021:298:01:58:00&#39;</span><span class="p">,</span> <span class="n">scenario</span><span class="o">=</span><span class="s1">&#39;nsm-cti&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cmds</span><span class="p">[</span><span class="n">cmds</span><span class="p">[</span><span class="s1">&#39;event&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;RTS&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">pprint_like_backstop</span><span class="p">()</span>
+<span class="go">2021:297:13:00:00.000 | COMMAND_SW       | OORMPEN    | CMD_EVT  | event=RTS, event_date=2021:297:13:00:00, msid=OORMPEN, scs=135</span>
+<span class="go">2021:297:13:00:01.000 | ACISPKT          | WSVIDALLDN | CMD_EVT  | event=RTS, event_date=2021:297:13:00:00, scs=135</span>
+<span class="go">2021:297:13:00:02.000 | COMMAND_HW       | 2S2STHV    | CMD_EVT  | event=RTS, event_date=2021:297:13:00:00, 2s2sthv2=0 , msid=2S2STHV, scs=135</span>
+<span class="go">2021:297:13:00:03.000 | COMMAND_HW       | 2S2HVON    | CMD_EVT  | event=RTS, event_date=2021:297:13:00:00, msid=2S2HVON, scs=135</span>
+<span class="go">2021:297:13:00:13.000 | COMMAND_HW       | 2S2STHV    | CMD_EVT  | event=RTS, event_date=2021:297:13:00:00, 2s2sthv2=4 , msid=2S2STHV, scs=135</span>
+<span class="go">2021:297:13:00:23.000 | COMMAND_HW       | 2S2STHV    | CMD_EVT  | event=RTS, event_date=2021:297:13:00:00, 2s2sthv2=8 , msid=2S2STHV, scs=135</span>
+<span class="go">2021:297:13:00:24.000 | ACISPKT          | WSPOW0CF3F | CMD_EVT  | event=RTS, event_date=2021:297:13:00:00, scs=135</span>
+<span class="go">2021:297:13:01:27.000 | ACISPKT          | WT007AC024 | CMD_EVT  | event=RTS, event_date=2021:297:13:00:00, scs=135</span>
+<span class="go">2021:297:13:01:31.000 | ACISPKT          | XTZ0000005 | CMD_EVT  | event=RTS, event_date=2021:297:13:00:00, scs=135</span>
+<span class="go">2021:297:13:01:35.000 | ACISPKT          | RS_0000001 | CMD_EVT  | event=RTS, event_date=2021:297:13:00:00, scs=135</span>
+<span class="go">2021:297:13:01:39.000 | ACISPKT          | RH_0000001 | CMD_EVT  | event=RTS, event_date=2021:297:13:00:00, scs=135</span>
+</pre></div>
+</div>
+<p>Then from the bash command line:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ export KADI_SCENARIO=nsm-cti
+$ export PYTHONPATH=$HOME/git/kadi:$HOME/git/parse_cm  # for Ska3 2022.2
+$ dpa_check \
+    --outdir=out-cti \
+    --oflsdir=DAWG-demo/OCT2521/oflsb \
+    --state-builder=sql \
+    --run-start=2021:296:18:00:00
+</pre></div>
+</div>
+</section>
+</section>
+<section id="configuration-options">
+<h2>Configuration options<a class="headerlink" href="#configuration-options" title="Permalink to this headline">¶</a></h2>
+<p>The kadi commands configuration options are stored in the file
+<code class="docutils literal notranslate"><span class="pre">~/.kadi/config/kadi.cfg</span></code>. The location of this file is fixed.</p>
+<p>The available options with the default settings are as follows:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">commands</span><span class="p">]</span>
+<span class="c1">## Default lookback for previous approved loads (days).</span>
+<span class="n">default_lookback</span> <span class="o">=</span> <span class="mi">30</span>
+
+<span class="c1">## Cache backstop downloads in the astropy cache. Should typically be False,</span>
+<span class="c1">## but useful during development to avoid re-downloading backstops.</span>
+<span class="n">cache_loads_in_astropy_cache</span> <span class="o">=</span> <span class="kc">False</span>
+
+<span class="c1">## Clean backstop loads (like APR1421B.pkl.gz) in the loads directory that are</span>
+<span class="c1">## older than the default lookback. Most users will want this to be True, but</span>
+<span class="c1">## for development or if you always want a copy of the loads set to False.</span>
+<span class="n">clean_loads_dir</span> <span class="o">=</span> <span class="kc">True</span>
+
+<span class="c1">## Directory where command loads and command events are stored after</span>
+<span class="c1">## downloading from Google Sheets and OCCweb.</span>
+<span class="n">commands_dir</span> <span class="o">=</span> <span class="o">~/.</span><span class="n">kadi</span>
+
+<span class="c1">## Default version of kadi commands (&quot;1&quot; or &quot;2&quot;).  Overridden by</span>
+<span class="c1">## KADI_COMMANDS_VERSION environment variable.</span>
+<span class="n">commands_version</span> <span class="o">=</span> <span class="mi">1</span>
+
+<span class="c1">## Google Sheet ID for command events (flight scenario).</span>
+<span class="n">cmd_events_flight_id</span> <span class="o">=</span> <span class="mi">19</span><span class="n">d6XqBhWoFjC</span><span class="o">-</span><span class="n">z1lS1nM6wLE_zjr4GYB1lOvrEGCbKQ</span>
+
+<span class="c1">## Half-width box size of star ID match for get_starcats() (arcsec).</span>
+<span class="n">star_id_match_halfwidth</span> <span class="o">=</span> <span class="mi">5</span>
+
+<span class="c1">## Half-width box size of fid ID match for get_starcats() (arcsec).</span>
+<span class="n">fid_id_match_halfwidth</span> <span class="o">=</span> <span class="mi">40</span>
+</pre></div>
+</div>
+<section id="modify-options">
+<h3>Modify options<a class="headerlink" href="#modify-options" title="Permalink to this headline">¶</a></h3>
+<p>To modify a configuration there a few options. First is programmatically within
+Python to change a parameter for all subsequent code:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">kadi.commands</span> <span class="kn">import</span> <span class="n">conf</span><span class="p">,</span> <span class="n">get_cmds</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">conf</span><span class="o">.</span><span class="n">default_lookback</span>
+<span class="go">30</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">conf</span><span class="o">.</span><span class="n">default_lookback</span> <span class="o">=</span> <span class="mi">60</span>
+</pre></div>
+</div>
+<p>You can also temporarily change an option within a context manager:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">conf</span><span class="o">.</span><span class="n">set_temp</span><span class="p">(</span><span class="s1">&#39;commands_version&#39;</span><span class="p">,</span> <span class="s1">&#39;2&#39;</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="n">cmds2</span> <span class="o">=</span> <span class="n">get_cmds</span><span class="p">(</span><span class="s1">&#39;2022:001&#39;</span><span class="p">,</span> <span class="s1">&#39;2022:002&#39;</span><span class="p">)</span>  <span class="c1"># Use commands v2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cmds1</span> <span class="o">=</span> <span class="n">get_cmds</span><span class="p">(</span><span class="s1">&#39;2022:001&#39;</span><span class="p">,</span> <span class="s1">&#39;2022:002&#39;</span><span class="p">)</span>  <span class="c1"># Use commands v1</span>
+</pre></div>
+</div>
+<p>For an even-more permanent solution you can write out the configuration file
+to disk and then edit it. This could be a good option if you want to always
+use commands version v2 for testing purposes.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">kadi</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">status</span> <span class="o">=</span> <span class="n">kadi</span><span class="o">.</span><span class="n">create_config_file</span><span class="p">()</span>
+<span class="go">INFO: The configuration file has been successfully written to</span>
+<span class="go">~/.kadi/config/kadi.cfg [astropy.config.configuration]</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="environment-variables">
+<h2>Environment variables<a class="headerlink" href="#environment-variables" title="Permalink to this headline">¶</a></h2>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">KADI</span></code></dt><dd><p>Override the default location of kadi flight data files <code class="docutils literal notranslate"><span class="pre">cmds2.h5</span></code> and
+<code class="docutils literal notranslate"><span class="pre">cmds2.pkl</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">KADI_COMMANDS_VERSION</span></code></dt><dd><p>Override the default kadi commands version. In order to use the commands
+archive v2 you should set this to <code class="docutils literal notranslate"><span class="pre">2</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">KADI_COMMANDS_DEFAULT_STOP</span></code></dt><dd><p>For testing and demonstration purposes, this environment variable can be set
+to a date which is used as the default stop time for commands. In effect this
+makes the code believe that this is the current time and that there are no
+command loads available after this time.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">KADI_SCENARIO</span></code></dt><dd><p>Set the default scenario. This can be used to set the scenario in an
+application that is not aware of kadi scenarios, effectively a back door to
+override the flight commands.</p>
+</dd>
+</dl>
+</section>
+<section id="data-files-and-resources">
+<h2>Data files and resources<a class="headerlink" href="#data-files-and-resources" title="Permalink to this headline">¶</a></h2>
+<section id="flight-archive-files">
+<h3>Flight archive files<a class="headerlink" href="#flight-archive-files" title="Permalink to this headline">¶</a></h3>
+<p>The flight archive of commands and associated parameters are stored in the two
+files listed below. These files are kept up to date each 10 minutes on the
+HEAD server and must synced at least once each 3 weeks to GRETA and other
+computers using either <code class="docutils literal notranslate"><span class="pre">ska_sync</span></code> or by other means.</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">${SKA}/data/kadi/cmds2.h5</span></code></dt><dd><p>HDF5 table of commands</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">${SKA}/data/kadi/cmds2.pkl</span></code></dt><dd><p>Python pickle file containing a dict of command parameters. Since the command
+parameters are often the same this significantly reduces the same of the
+archive data files.</p>
+</dd>
+</dl>
+</section>
+<section id="local-archive-files">
+<h3>Local archive files<a class="headerlink" href="#local-archive-files" title="Permalink to this headline">¶</a></h3>
+<p>The local archive is maintain by using the <a class="reference internal" href="#web-resources">Web resources</a> below. These files
+are stored in <code class="docutils literal notranslate"><span class="pre">~/.kadi</span></code> by default but the location is configurable.</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">cmd_events.csv</span></code></dt><dd><p>Local copy of the Chandra Command Events Google sheet as a CSV file.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">loads.csv</span></code></dt><dd><p>CSV file with information about recent approved loads that have been retrieved
+from OCCweb. This includes the command start and stop times, interrupt times,
+and the RLTT, scheduled stop time.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">loads.dat</span></code></dt><dd><p>Same as <code class="docutils literal notranslate"><span class="pre">loads.csv</span></code> but in a fixed-width human-readable format.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">loads/</span></code></dt><dd><p>Directory containing backstop commands for recent approved loads stored as a
+Python pickle file, e.g. <code class="docutils literal notranslate"><span class="pre">MAR0722A.pkl.gz</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">&lt;scenario&gt;/</span></code></dt><dd><p>Directory containing files for a custom scenario. The files are
+<code class="docutils literal notranslate"><span class="pre">cmd_events.csv</span></code>, <code class="docutils literal notranslate"><span class="pre">loads.csv</span></code>, <code class="docutils literal notranslate"><span class="pre">loads.dat</span></code>. Note that the <code class="docutils literal notranslate"><span class="pre">loads/</span></code>
+directory is not specific to a scenario and so the top-level version is used.</p>
+</dd>
+</dl>
+</section>
+<section id="web-resources">
+<h3>Web resources<a class="headerlink" href="#web-resources" title="Permalink to this headline">¶</a></h3>
+<dl class="simple">
+<dt><a class="reference external" href="https://docs.google.com/spreadsheets/d/19d6XqBhWoFjC-z1lS1nM6wLE_zjr4GYB1lOvrEGCbKQ">Chandra Command Events</a> Google sheet</dt><dd><p>Centralized repository which contains information about “command events” that
+impact the as-run commanding on Chandra. This document is viewable by anyone
+with the link but can be edited only by FOT mission planning, Flight Directors
+and a small set of managers. This spreadsheet is maintained by FOT MP in
+a timely manner (typically within one hour during anomalies) following a
+<a class="reference external" href="https://occweb.cfa.harvard.edu/twiki/bin/view/MissionPlanning/CommandEvents">defined process</a>.</p>
+</dd>
+<dt><a class="reference external" href="https://occweb.cfa.harvard.edu/occweb/FOT/mission_planning/PRODUCTS/APPR_LOADS/">FOT mission planning approved load products</a></dt><dd><p>This is used to automatically find all recent approved loads
+and incorporate them into the load commands archive.</p>
+</dd>
+</dl>
+</section>
+<section id="configuration-and-other-files">
+<h3>Configuration and other files<a class="headerlink" href="#configuration-and-other-files" title="Permalink to this headline">¶</a></h3>
+<p>These files are in the user home directory <code class="docutils literal notranslate"><span class="pre">~/.kadi</span></code>. This directory location
+is not configurable as they are set by the <a class="reference external" href="https://docs.astropy.org/en/stable/config/index.html">astropy configuration sub-package</a>.</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">~/.kadi/config/kadi.cfg</span></code></dt><dd><p>Kadi configuration file.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">~/.kadi/cache</span></code></dt><dd><p>Cache download files. This can be removed at any time if needed.</p>
+</dd>
+</dl>
+</section>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/ska.png" alt="Logo"/>
+            </a></p><h3>Page Contents</h3>
+<ul>
+<li><a class="reference internal" href="#">Commands archive v2 details</a><ul>
+<li><a class="reference internal" href="#concept-overview">Concept overview</a></li>
+<li><a class="reference internal" href="#differences-from-v1">Differences from v1</a></li>
+<li><a class="reference internal" href="#scenarios">Scenarios</a><ul>
+<li><a class="reference internal" href="#flight-scenario-no-network">Flight scenario (no network)</a></li>
+<li><a class="reference internal" href="#custom-scenario-example">Custom scenario example</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#configuration-options">Configuration options</a><ul>
+<li><a class="reference internal" href="#modify-options">Modify options</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#environment-variables">Environment variables</a></li>
+<li><a class="reference internal" href="#data-files-and-resources">Data files and resources</a><ul>
+<li><a class="reference internal" href="#flight-archive-files">Flight archive files</a></li>
+<li><a class="reference internal" href="#local-archive-files">Local archive files</a></li>
+<li><a class="reference internal" href="#web-resources">Web resources</a></li>
+<li><a class="reference internal" href="#configuration-and-other-files">Configuration and other files</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="commands_states.html"
+                        title="previous chapter">Commands and states</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="api.html"
+                        title="next chapter">API documentation</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/commands_v2.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<form action="search.html" method="get">
+  <input type="text" name="q" placeholder="Search" />
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+<footer class="footer">
+  <p class="pull-right">
+    <a href="_sources/commands_v2.rst.txt"
+       rel="nofollow">Page Source</a> &nbsp;
+    <a href="#">Back to Top</a></p>
+  <p>
+    &copy; Copyright 2013, Tom Aldcroft.<br/>
+    Created using <a href="http://www.sphinx-doc.org/en/stable/">Sphinx</a> 4.2.0. &nbsp;
+  </p>
+</footer>
+  </body>
+</html>
