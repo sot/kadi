@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-    <title>API documentation &#8212; kadi 5.9.1 documentation</title>
+    <title>API documentation &#8212; kadi 0.1.dev1+gb91afc3 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/bootstrap-astropy.css" />
     <link rel="stylesheet" type="text/css" href="_static/plot_directive.css" />
@@ -28,7 +28,7 @@
   <a class="brand" title="Documentation Home" href="index.html"><span id="logotext1">Ska!</span><span id="logotext2">Kadi</span><span id="logotext3"></span></a>
   <ul>
     
-    <li><a class="home" title="Homepage" href="https://cxc.cfa.harvard.edu/mta/ASPECT/tool_doc">
+    <li><a class="home" title="Homepage" href="https://sot.github.io/">
         <span id="logotext1">ska</span><span id="logotext2">tools</span>
     </a></li>
     <li><a title="General Index" href="genindex.html">Index</a></li>
@@ -61,7 +61,7 @@
 	 |
       </li>
       <li>
-	<a href="index.html">kadi 5.9.1 documentation</a>
+	<a href="index.html">kadi 0.1.dev1+gb91afc3 documentation</a>
 	 &#187;
       </li>
       
@@ -2531,7 +2531,7 @@ based entirely on known history of commands.</p>
 ACIS FP setpoint temperature is <code class="docutils literal notranslate"><span class="pre">-&lt;number&gt;</span></code>.</p>
 <p><em>State keys</em>: acisfp_setpoint</p>
 <p><em>Commands</em>: type=ACISPKT</p>
-<p><em>Others</em>: default_value=-121.0, set_transitions=&lt;classmethod object at 0x7fce88d5d4f0&gt;</p>
+<p><em>Others</em>: default_value=-121.0, set_transitions=&lt;classmethod object at 0x7f8533c8aa30&gt;</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="kadi.commands.states.ACISFP_SetPointTransition.set_transitions">
 <em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">set_transitions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">transitions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stop</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/commands/states.html#ACISFP_SetPointTransition.set_transitions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.commands.states.ACISFP_SetPointTransition.set_transitions" title="Permalink to this definition">¶</a></dt>
@@ -2560,7 +2560,7 @@ ACIS FP setpoint temperature is <code class="docutils literal notranslate"><span
 <p>Implement transitions for ACIS states.</p>
 <p><em>State keys</em>: clocking, power_cmd, vid_board, fep_count, si_mode, ccd_count</p>
 <p><em>Commands</em>: type=ACISPKT</p>
-<p><em>Others</em>: set_transitions=&lt;classmethod object at 0x7fce88d5d280&gt;</p>
+<p><em>Others</em>: set_transitions=&lt;classmethod object at 0x7f8533c8aa00&gt;</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="kadi.commands.states.ACISTransition.set_transitions">
 <em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">set_transitions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">transitions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stop</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/commands/states.html#ACISTransition.set_transitions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.commands.states.ACISTransition.set_transitions" title="Permalink to this definition">¶</a></dt>
@@ -2660,7 +2660,7 @@ or a list of required values (where at least one must match).</p>
 <p>Dither parameters</p>
 <p><em>State keys</em>: dither_phase_pitch, dither_phase_yaw, dither_ampl_pitch, dither_ampl_yaw, dither_period_pitch, dither_period_yaw</p>
 <p><em>Commands</em>: tlmsid=AODITPAR</p>
-<p><em>Others</em>: set_transitions=&lt;classmethod object at 0x7fce88d5d670&gt;</p>
+<p><em>Others</em>: set_transitions=&lt;classmethod object at 0x7f8533c8a8b0&gt;</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="kadi.commands.states.DitherParamsTransition.set_transitions">
 <em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">set_transitions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">transitions_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stop</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/commands/states.html#DitherParamsTransition.set_transitions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.commands.states.DitherParamsTransition.set_transitions" title="Permalink to this definition">¶</a></dt>
@@ -2750,7 +2750,7 @@ or a list of required values (where at least one must match).</p>
 processing.</p>
 <p><em>State keys</em>: ephem_update</p>
 <p><em>Commands</em>: tlmsid=AOEPHUPS</p>
-<p><em>Others</em>: set_transitions=&lt;classmethod object at 0x7fce88d5d460&gt;</p>
+<p><em>Others</em>: set_transitions=&lt;classmethod object at 0x7f8533f66f40&gt;</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="kadi.commands.states.EphemerisUpdateTransition.set_transitions">
 <em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">set_transitions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">transitions_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stop</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/commands/states.html#EphemerisUpdateTransition.set_transitions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.commands.states.EphemerisUpdateTransition.set_transitions" title="Permalink to this definition">¶</a></dt>
@@ -2918,7 +2918,7 @@ perform attitude quaternion updated accordingly.  At the end of the maneuver it
 schedules a NPM transition if <code class="docutils literal notranslate"><span class="pre">auto_npnt</span></code> is enabled.</p>
 <p><em>State keys</em>: q1, q2, q3, q4, targ_q1, targ_q2, targ_q3, targ_q4, ra, dec, roll, auto_npnt, pcad_mode, pitch, off_nom_roll</p>
 <p><em>Commands</em>: tlmsid=AOMANUVR</p>
-<p><em>Others</em>: set_transitions=&lt;classmethod object at 0x7fce88d5d610&gt;, callback=&lt;classmethod object at 0x7fce88d5d3a0&gt;, add_manvr_transitions=&lt;classmethod object at 0x7fce88d5d1f0&gt;</p>
+<p><em>Others</em>: set_transitions=&lt;classmethod object at 0x7f8533c8ac40&gt;, callback=&lt;classmethod object at 0x7f8533c8ab80&gt;, add_manvr_transitions=&lt;classmethod object at 0x7f8533c8ae80&gt;</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="kadi.commands.states.ManeuverTransition.add_manvr_transitions">
 <em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">add_manvr_transitions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">date</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transitions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">state</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/commands/states.html#ManeuverTransition.add_manvr_transitions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.commands.states.ManeuverTransition.add_manvr_transitions" title="Permalink to this definition">¶</a></dt>
@@ -3014,7 +3014,7 @@ to a normal sun pointed attitude (based on a pure-pitch maneuver from
 current attitude).  It also changes <code class="docutils literal notranslate"><span class="pre">pcad_mode</span></code> to NSUN.</p>
 <p><em>State keys</em>: q1, q2, q3, q4, targ_q1, targ_q2, targ_q3, targ_q4, ra, dec, roll, auto_npnt, pcad_mode, pitch, off_nom_roll</p>
 <p><em>Commands</em>: tlmsid=AONSMSAF</p>
-<p><em>Others</em>: callback=&lt;classmethod object at 0x7fce88d5d310&gt;</p>
+<p><em>Others</em>: callback=&lt;classmethod object at 0x7f8533c8aee0&gt;</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="kadi.commands.states.NormalSunTransition.callback">
 <em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">callback</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">date</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transitions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">state</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/commands/states.html#NormalSunTransition.callback"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.commands.states.NormalSunTransition.callback" title="Permalink to this definition">¶</a></dt>
@@ -3163,7 +3163,7 @@ Eclipse entry is event type ORBPOINT with TYPE=PENTRY or TYPE=LSPENTRY
 Eclipse exit is event type ORBPOINT with TYPE=PEXIT or TYPE=LSPEXIT</p>
 <p><em>State keys</em>: sun_pos_mon</p>
 <p><em>Commands</em>: type=ORBPOINT, event_type=PEXIT or LSPEXIT</p>
-<p><em>Others</em>: set_transitions=&lt;classmethod object at 0x7fce88d5d940&gt;</p>
+<p><em>Others</em>: set_transitions=&lt;classmethod object at 0x7f8533c85a00&gt;</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="kadi.commands.states.SPMEclipseEnableTransition.set_transitions">
 <em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">set_transitions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">transitions_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stop</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/commands/states.html#SPMEclipseEnableTransition.set_transitions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.commands.states.SPMEclipseEnableTransition.set_transitions" title="Permalink to this definition">¶</a></dt>
@@ -3277,7 +3277,7 @@ in the trans_keys attribute.</p>
 roll during NPNT.  These are function transitions which check to see that
 <code class="docutils literal notranslate"><span class="pre">pcad_mode</span> <span class="pre">==</span> <span class="pre">'NPNT'</span></code> before changing the pitch / off_nominal_roll.</p>
 <p><em>State keys</em>: q1, q2, q3, q4, targ_q1, targ_q2, targ_q3, targ_q4, ra, dec, roll, auto_npnt, pcad_mode, pitch, off_nom_roll</p>
-<p><em>Others</em>: set_transitions=&lt;classmethod object at 0x7fce88d5d850&gt;, update_sun_vector_state=&lt;classmethod object at 0x7fce88d5d730&gt;</p>
+<p><em>Others</em>: set_transitions=&lt;classmethod object at 0x7f8533f66e80&gt;, update_sun_vector_state=&lt;classmethod object at 0x7f8533f66fa0&gt;</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="kadi.commands.states.SunVectorTransition.set_transitions">
 <em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">set_transitions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">transitions_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stop</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/commands/states.html#SunVectorTransition.set_transitions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.commands.states.SunVectorTransition.set_transitions" title="Permalink to this definition">¶</a></dt>
@@ -3323,7 +3323,7 @@ roll during NPNT.  These are function transitions which check to see that
 <p>Commanded target quaternion</p>
 <p><em>State keys</em>: q1, q2, q3, q4, targ_q1, targ_q2, targ_q3, targ_q4, ra, dec, roll, auto_npnt, pcad_mode, pitch, off_nom_roll</p>
 <p><em>Commands</em>: type=MP_TARGQUAT</p>
-<p><em>Others</em>: set_transitions=&lt;classmethod object at 0x7fce88d5d5e0&gt;</p>
+<p><em>Others</em>: set_transitions=&lt;classmethod object at 0x7f8533c8abb0&gt;</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="kadi.commands.states.TargQuatTransition.set_transitions">
 <em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">set_transitions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">transitions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stop</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/commands/states.html#TargQuatTransition.set_transitions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.commands.states.TargQuatTransition.set_transitions" title="Permalink to this definition">¶</a></dt>
