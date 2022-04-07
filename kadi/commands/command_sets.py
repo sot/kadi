@@ -194,7 +194,7 @@ def get_cmds_from_event(date, event, params_str):
     if isinstance(params_str, str):
         if event == 'RTS':
             args = [params_str]
-        elif event == 'Command':
+        elif event in ('Command', 'Command not run'):
             # Delegate parsing to cmd_set_command
             args = [params_str]
         else:
