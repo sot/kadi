@@ -616,6 +616,7 @@ def get_cmds_obs_final(cmds, pars_dict, rev_pars_dict, schedule_stop_time):
     for cmd in cmds:
         tlmsid = cmd['tlmsid']
         if tlmsid == 'AOSTRCAT':
+            starcat_date = cmd['date']
             if cmd['idx'] == -1:
                 # OBS command only stores the index of the starcat params, so at
                 # this point we need to put those params into the pars_dict and
@@ -655,6 +656,7 @@ def get_cmds_obs_final(cmds, pars_dict, rev_pars_dict, schedule_stop_time):
             obs_params['obs_start'] = cmd['date']
             if obs_params['npnt_enab']:
                 obs_params['starcat_idx'] = starcat_idx
+                obs_params['starcat_date'] = starcat_date
 
         elif (tlmsid in ('AONMMODE', 'AONSMSAF')
               or (tlmsid == 'AONM2NPE' and cmd['vcdu'] == -1)):

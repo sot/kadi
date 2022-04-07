@@ -166,7 +166,7 @@ def convert_aostrcat_to_acatable(obs, params):
 
     aca.obsid = obs['obsid']
     aca.att = obs['targ_att']
-    aca.date = obs['obs_start']
+    aca.date = obs['starcat_date']
     aca.duration = date2secs(obs['obs_stop']) - date2secs(obs['obs_start'])
 
     # Make the catalog more complete and provide stuff temps needed for plot()
