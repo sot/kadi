@@ -73,6 +73,9 @@ def clear_caches():
         except AttributeError:
             pass
 
+    from kadi.commands.observations import OBSERVATIONS
+    OBSERVATIONS.clear()
+
 
 def interrupt_load_commands(load, cmds):
     """Cut commands beyond observing or vehicle stop times.

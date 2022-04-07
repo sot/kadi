@@ -262,6 +262,7 @@ def test_commands_create_archive_regress(tmpdir, version_env):
             del commands.IDX_CMDS._val
             del commands.PARS_DICT._val
             del commands.REV_PARS_DICT._val
+            commands_v2.clear_caches()
 
 
 def stop_date_fixture_factory(stop_date):
@@ -288,6 +289,7 @@ def test_get_cmds_v2_arch_only(stop_date_2020_12_03):
     # Also do a zero-length query
     cmds = commands_v2.get_cmds(start='2020-01-01', stop='2020-01-01')
     assert len(cmds) == 0
+    commands_v2.clear_caches()
 
 
 @pytest.mark.skipif(not HAS_INTERNET, reason="No internet connection")
@@ -311,6 +313,7 @@ def test_get_cmds_v2_arch_recent(stop_date_2020_12_03):
         'NOV2320A 2020:327:19:23:00.000 2020:334:20:44:27.758             --           -- 2020:327:19:26:00.000 2020:334:20:44:27.758',  # noqa
         'NOV3020A 2020:334:20:41:27.758 2020:342:06:04:34.287             --           -- 2020:334:20:44:27.758 2020:342:06:04:34.287'  # noqa
     ]
+    commands_v2.clear_caches()
 
 
 @pytest.mark.skipif(not HAS_INTERNET, reason="No internet connection")
@@ -349,6 +352,7 @@ def test_get_cmds_v2_recent_only(stop_date_2020_12_03):
     # zero-length query
     cmds = commands_v2.get_cmds(start='2020-12-01', stop='2020-12-01')
     assert len(cmds) == 0
+    commands_v2.clear_caches()
 
 
 @pytest.mark.skipif(not HAS_INTERNET, reason="No internet connection")
@@ -411,6 +415,7 @@ def test_get_cmds_nsm_2021(stop_date_2021_10_24):
            '2021:297:13:59:39.602 | ORBPOINT         | None       | OCT1821A | '
            'event_type=EEF1000, scs=0']
     assert cmds.pformat_like_backstop(max_params_width=200) == exp
+    commands_v2.clear_caches()
 
 
 @pytest.mark.skipif(not HAS_INTERNET, reason="No internet connection")
@@ -439,6 +444,7 @@ Date,Event,Params,Author,Comment
         '2020:336:00:08:39.635 | COMMAND_HW       | CNOOP      | NOV3020A | hex=7E00000, msid=CNOOPLR, scs=128'  # noqa
     ]
     assert cmds.pformat_like_backstop() == exp
+    commands_v2.clear_caches()
 
 
 def test_command_set_bsh():
@@ -460,6 +466,7 @@ def test_command_set_bsh():
         'event=Bright_star_hold, event_date=2000:001:00:00:00, scs=0']
 
     assert cmds.pformat_like_backstop() == exp
+    commands_v2.clear_caches()
 
 
 def test_command_set_safe_mode():
@@ -487,6 +494,7 @@ def test_command_set_safe_mode():
         'event=Safe_mode, event_date=2000:001:00:00:00, scs=0']
 
     assert cmds.pformat_like_backstop() == exp
+    commands_v2.clear_caches()
 
 
 @pytest.mark.skipif(not HAS_INTERNET, reason="No internet connection")
@@ -538,11 +546,14 @@ Definitive,2020:337:00:00:00,Bright star hold,,Tom Aldcroft,
         '2020:337:21:15:46.227 | ORBPOINT         | None       | NOV3020A | '
         'event_type=XALT1, scs=0']
     assert cmds.pformat_like_backstop() == exp
+    commands_v2.clear_caches()
 
 
+@pytest.mark.skipif(not HAS_INTERNET, reason="No internet connection")
 def test_get_observations_by_obsid_single():
     obss = get_observations(8008)
     assert len(obss) == 1
+    del obss[0]['starcat_idx']
     assert obss == [
         {'obsid': 8008,
          'simpos': 92904,
@@ -552,13 +563,17 @@ def test_get_observations_by_obsid_single():
          'npnt_enab': True,
          'obs_start': '2007:002:04:46:58.056',
          'prev_att': (0.319214732, 0.535685207, 0.766039803, 0.155969017),
-         'starcat_idx': 144398,
+         'starcat_date': '2007:002:04:31:43.965',
          'source': 'DEC2506C'}
     ]
 
 
 def test_get_observations_by_obsid_multi():
-    obss = get_observations(47912)  # Following ACA high background NSM 2019:248
+    obss = get_observations(47912, scenario='flight')  # Following ACA high background NSM 2019:248
+    # Don't compare starcat_idx because it might change with a repro
+    for obs in obss:
+        obs.pop('starcat_idx', None)
+
     assert obss == [
         {'obsid': 47912,
          'simpos': -99616,
@@ -568,7 +583,7 @@ def test_get_observations_by_obsid_multi():
          'npnt_enab': True,
          'obs_start': '2019:248:15:27:35.289',
          'prev_att': (-0.218410783, 0.748632452, -0.580771797, 0.233560059),
-         'starcat_idx': 165938,
+         'starcat_date': '2019:248:14:52:31.156',
          'source': 'SEP0219B'},
         {'obsid': 47912,
          'simpos': -99616,
@@ -593,14 +608,14 @@ def test_get_observations_by_obsid_multi():
                       0.6553454859043244,
                       -0.4661410647781301,
                       0.47332803366853643),
-         'starcat_idx': 165938,
+         'starcat_date': '2019:248:14:52:31.156',
          'source': 'CMD_EVT'}
     ]
 
 
 def test_get_observations_by_start_date():
     # Test observations from a 6 months ago onward
-    obss = get_observations(start=CxoTime.now() - 180 * u.day)
+    obss = get_observations(start=CxoTime.now() - 180 * u.day, scenario='flight')
     assert len(obss) > 500
     # Latest obs should also be no less than 14 days old
     assert obss[-1]['obs_start'] > (CxoTime.now() - 14 * u.day).date
@@ -629,7 +644,7 @@ years = np.arange(2003, CxoTime.now().ymdhms.year + 1)
 
 @pytest.mark.parametrize('year', years)
 def test_get_starcats_each_year(year):
-    starcats = get_starcats(start=f'{year}:001', stop=f'{year}:004')
+    starcats = get_starcats(start=f'{year}:001', stop=f'{year}:004', scenario='flight')
     assert len(starcats) > 2
     for starcat in starcats:
         # Make sure fids and stars are all ID'd
@@ -638,7 +653,7 @@ def test_get_starcats_each_year(year):
 
 
 def test_get_starcats_with_cmds():
-    cmds = commands_v2.get_cmds(start='2022:001', stop='2022:002')
+    cmds = commands_v2.get_cmds(start='2022:001', stop='2022:002', scenario='flight')
     starcats0 = get_starcats(start='2022:001', stop='2022:002')
     starcats1 = get_starcats(cmds=cmds)
     assert len(starcats0) == len(starcats1)
@@ -650,7 +665,7 @@ def test_get_starcats_with_cmds():
 
 def test_get_starcats_obsid():
     from mica.starcheck import get_starcat
-    sc_kadi = get_starcats(obsid=26330)[0]
+    sc_kadi = get_starcats(obsid=26330, scenario='flight')[0]
     sc_mica = get_starcat(26330)
     assert len(sc_kadi) == len(sc_mica)
     assert sc_kadi.colnames == ['slot', 'idx', 'id', 'type', 'sz', 'mag',
@@ -673,8 +688,8 @@ def test_get_starcats_date():
     Note: from https://icxc.harvard.edu//mp/mplogs/2006/DEC2506/oflsc/starcheck.html#obsid8008
     MP_STARCAT at 2007:002:04:31:43.965 (VCDU count = 7477935)
     """
-    sc = get_starcats(obsid=8008)[0]
-    obs = get_observations(obsid=8008)[0]
+    sc = get_starcats(obsid=8008, scenario='flight')[0]
+    obs = get_observations(obsid=8008, scenario='flight')[0]
     assert sc.date == obs['starcat_date'] == '2007:002:04:31:43.965'
     cmds = commands_v2.get_cmds('2007:002', '2007:003')
     sc_cmd = cmds[cmds['date'] == obs['starcat_date']][0]
@@ -685,7 +700,7 @@ def test_get_starcats_date():
     'par_str', ['ACISPKT|  TLmSID= aa0000000 par1 = 1    par2=-1.0',
                 'AcisPKT|TLmSID=AA0000000 par1=1 par2=-1.0',
                 'ACISPKT|  TLmSID = aa0000000  par1  =1    par2 =  -1.0'])
-def test_get_cmds_from_event(par_str):
+def test_get_cmds_from_event_case(par_str):
     cmds = get_cmds_from_event('2022:001', 'Command', par_str)
     assert len(cmds) == 1
     cmd = cmds[0]
