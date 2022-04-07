@@ -666,6 +666,21 @@ def test_get_starcats_obsid():
             assert np.all(sc_kadi[name] == sc_mica[name])
 
 
+def test_get_starcats_date():
+    """Test that the starcat `date` is set to obs `starcat_date` and that
+    this matches the time of the corresponding MP_STARCAT AOSTRCAT command.
+
+    Note: from https://icxc.harvard.edu//mp/mplogs/2006/DEC2506/oflsc/starcheck.html#obsid8008
+    MP_STARCAT at 2007:002:04:31:43.965 (VCDU count = 7477935)
+    """
+    sc = get_starcats(obsid=8008)[0]
+    obs = get_observations(obsid=8008)[0]
+    assert sc.date == obs['starcat_date'] == '2007:002:04:31:43.965'
+    cmds = commands_v2.get_cmds('2007:002', '2007:003')
+    sc_cmd = cmds[cmds['date'] == obs['starcat_date']][0]
+    assert sc_cmd['type'] == 'MP_STARCAT'
+
+
 @pytest.mark.parametrize(
     'par_str', ['ACISPKT|  TLmSID= aa0000000 par1 = 1    par2=-1.0',
                 'AcisPKT|TLmSID=AA0000000 par1=1 par2=-1.0',
