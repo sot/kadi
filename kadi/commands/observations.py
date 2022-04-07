@@ -343,7 +343,7 @@ def get_observations(obsid=None, *, start=None, stop=None, scenario=None, cmds=N
         if len(cmds_obs) == 0:
             raise ValueError(f'No matching observations for {obsid=}')
 
-    obss = [cmd['params'] for cmd in cmds_obs]
+    obss = [cmd['params'].copy() for cmd in cmds_obs]
     for obs, cmd_obs in zip(obss, cmds_obs):
         obs['source'] = cmd_obs['source']
 
