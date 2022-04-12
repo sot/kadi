@@ -240,6 +240,7 @@ def get_starcats(obsid=None, *, start=None, stop=None, set_ids=True, scenario=No
         the archive.
     :returns: list of ACATable List star catalogs for matching observations.
     """
+    import shelve
     from kadi.commands.commands_v2 import REV_PARS_DICT
     from kadi.commands.core import decode_starcat_params
 
@@ -247,20 +248,32 @@ def get_starcats(obsid=None, *, start=None, stop=None, set_ids=True, scenario=No
                             scenario=scenario, cmds=cmds)
     starcats = []
     rev_pars_dict = REV_PARS_DICT if cmds is None else cmds.rev_pars_dict()
-    for obs in obss:
-        if (idx := obs.get('starcat_idx')) is None:
-            continue
-        params = rev_pars_dict[idx]
-        if isinstance(params, bytes):
-            params = decode_starcat_params(params)
-        starcat = convert_aostrcat_to_acatable(obs, params)
-        starcats.append(starcat)
-        set_detector_and_sim_offset(starcat, obs['simpos'])
-        if set_ids:
-            starcat.add_column(-999, index=2, name='id')
-            starcat.add_column(-999.0, index=5, name='mag')
-            set_fid_ids(starcat)
-            set_star_ids(starcat)
+
+    with shelve.open('starcats') as starcats_db:
+        for obs in obss:
+            if (idx := obs.get('starcat_idx')) is None:
+                continue
+            if obs['starcat_date'] in starcats_db:
+                # From the disk cache
+                starcat = starcats_db[str(idx)]
+            else:
+                # From the commands archive, building ACATable from backstop params
+                params = rev_pars_dict[idx]
+                if isinstance(params, bytes):
+                    params = decode_starcat_params(params)
+                starcat = convert_aostrcat_to_acatable(obs, params)
+                set_detector_and_sim_offset(starcat, obs['simpos'])
+                if set_ids:
+                    starcat.add_column(-999, index=2, name='id')
+                    starcat.add_column(-999.0, index=5, name='mag')
+                    set_fid_ids(starcat)
+                    set_star_ids(starcat)
+
+                # Cache the starcat
+                starcats_db[obs['starcat_date']] = starcat
+
+            starcats.append(starcat)
+
     return starcats
 
 
