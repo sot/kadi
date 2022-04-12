@@ -1459,6 +1459,7 @@ def reduce_states(states, state_keys, merge_identical=False):
         has_transition |= has_transitions[key]
 
     # Create output with only desired state keys and only states with a transition
+
     out = states[['datestart', 'datestop', 'tstart', 'tstop'] + list(state_keys)][has_transition]
     for dt in ('date', 't'):
         out[f'{dt}stop'][:-1] = out[f'{dt}start'][1:]
