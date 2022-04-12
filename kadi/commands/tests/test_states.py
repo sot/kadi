@@ -1,3 +1,4 @@
+import functools
 import os
 import hashlib
 from pathlib import Path
@@ -477,26 +478,37 @@ def test_get_continuity_fail():
     assert 'did not find transitions' in str(err)
 
 
-def test_reduce_states_merge_identical():
+@pytest.mark.parametrize('all_keys', [True, False])
+def test_reduce_states_merge_identical(all_keys):
     tstart = np.arange(0, 5)
     tstop = np.arange(1, 6)
     datestart = DateTime(tstart).date
     datestop = DateTime(tstop).date
     dat0 = Table([datestart, datestop, tstart, tstop],
                  names=['datestart', 'datestop', 'tstart', 'tstop'])
+    reduce_states = functools.partial(states.reduce_states, all_keys=all_keys)
 
     # Table with something that changes every time
     dat = dat0.copy()
     dat['vals'] = np.arange(5)
     dat['val1'] = 1
-    dr = states.reduce_states(dat, ['vals', 'val1'], merge_identical=True)
-    assert np.all(dr[dat.colnames] == dat)
+    dat['val_not_key'] = 2  # Not part of the key
+    dr = reduce_states(dat, ['vals', 'val1'], merge_identical=True)
+    reduce_names = ['datestart', 'datestop', 'tstart', 'tstop', 'vals', 'val1']
+    if all_keys:
+        # All the original cols + trans_keys
+        assert dr.colnames == dat.colnames + ['trans_keys']
+        assert np.all(dr[dat.colnames] == dat)
+    else:
+        # No `val_not_key` column
+        assert dr.colnames == reduce_names + ['trans_keys']
+        assert np.all(dr[reduce_names] == dat[reduce_names])
 
     # Table with nothing that changes
     dat = dat0.copy()
     dat['vals'] = 1
     dat['val1'] = 1
-    dr = states.reduce_states(dat, ['vals', 'val1'], merge_identical=True)
+    dr = reduce_states(dat, ['vals', 'val1'], merge_identical=True)
     assert len(dr) == 1
     assert dr['datestart'][0] == dat['datestart'][0]
     assert dr['datestop'][0] == dat['datestop'][-1]
@@ -504,7 +516,7 @@ def test_reduce_states_merge_identical():
     # Table with edge changes
     dat = dat0.copy()
     dat['vals'] = [1, 0, 0, 0, 1]
-    dr = states.reduce_states(dat, ['vals'], merge_identical=True)
+    dr = reduce_states(dat, ['vals'], merge_identical=True)
     assert len(dr) == 3
     assert np.all(dr['datestart'] == dat['datestart'][[0, 1, 4]])
     assert np.all(dr['datestop'] == dat['datestop'][[0, 3, 4]])
@@ -514,7 +526,7 @@ def test_reduce_states_merge_identical():
     dat = dat0.copy()
     dat['val1'] = [1, 0, 1, 1, 1]
     dat['val2'] = [1, 1, 1, 1, 0]
-    dr = states.reduce_states(dat, ['val1', 'val2'], merge_identical=True)
+    dr = reduce_states(dat, ['val1', 'val2'], merge_identical=True)
     assert len(dr) == 4
     assert np.all(dr['datestart'] == dat['datestart'][[0, 1, 2, 4]])
     assert np.all(dr['datestop'] == dat['datestop'][[0, 1, 3, 4]])
