@@ -15,7 +15,7 @@ from astropy.table import Table
 logger = logging.getLogger(__name__)
 
 
-__all__ = ['get_starcats', 'get_observations']
+__all__ = ['get_starcats', 'get_observations', 'get_stars']
 
 AGASC_FILE = Path(os.environ['SKA'], 'data', 'agasc', 'proseco_agasc_1p7.h5')
 
@@ -181,6 +181,22 @@ def convert_aostrcat_to_acatable(obs, params):
     return aca
 
 
+def get_stars(obsid=None, *, start=None, stop=None, set_ids=True, scenario=None,
+              cmds=None):
+    starcats = get_starcats(obsid=obsid, start=start, stop=stop, scenario=scenario,
+                            cmds=cmds, as_dict=True)
+    out = defaultdict(list)
+    for starcat in starcats:
+        for name, vals in starcat.items():
+            if name != 'meta':
+                out[name].append(vals)
+
+    for name in out:
+        out[name] = np.concatenate(out[name])
+
+    return Table(out)
+
+
 def get_starcats(obsid=None, *, start=None, stop=None, set_ids=True, scenario=None,
                  cmds=None, as_dict=False):
     """Get star catalogs corresponding to input parameters.
@@ -245,6 +261,8 @@ def get_starcats(obsid=None, *, start=None, stop=None, set_ids=True, scenario=No
     from kadi.commands.commands_v2 import REV_PARS_DICT
     from kadi.commands.core import decode_starcat_params
     from proseco.catalog import ACATable
+    from proseco.acq import AcqTable
+    from proseco.guide import GuideTable
 
     obss = get_observations(obsid=obsid, start=start, stop=stop,
                             scenario=scenario, cmds=cmds)
@@ -266,6 +284,8 @@ def get_starcats(obsid=None, *, start=None, stop=None, set_ids=True, scenario=No
                     meta = starcat_dict.pop('meta')
                     starcat = ACATable(starcat_dict)
                     starcat.meta = meta
+                    starcat.acqs = AcqTable()
+                    starcat.guides = GuideTable()
             else:
                 # From the commands archive, building ACATable from backstop params
                 params = rev_pars_dict[idx]
@@ -282,6 +302,8 @@ def get_starcats(obsid=None, *, start=None, stop=None, set_ids=True, scenario=No
                     # Cache the starcat (only if set_ids is True)
                     starcat_dict = {name: starcat[name].tolist() for name in starcat.colnames}
                     starcat_dict['meta'] = starcat.meta
+                    del starcat_dict['meta']['acqs']
+                    del starcat_dict['meta']['guides']
                     starcats_db[db_key] = starcat_dict
 
             starcats.append(starcat)
