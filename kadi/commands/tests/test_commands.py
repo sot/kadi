@@ -711,6 +711,95 @@ def test_get_cmds_from_event_case(par_str):
                              'par2': -1.0}
 
 
+cmd_events_all_text = """\
+    Event,Params
+    Observing not run,FEB1422A
+    Load not run,OCT2521A
+    Command,ACISPKT | TLMSID=AA00000000
+    Command not run,COMMAND_SW | TLMSID=4OHETGIN
+    RTS,"RTSLOAD,1_4_CTI,NUM_HOURS=39:00:00,SCS_NUM=135"
+    Obsid,65527
+    Maneuver,0.70546907 0.32988307 0.53440901 0.32847766
+    Safe mode,
+    NSM,
+    SCS-107,
+    Bright star hold,
+    Dither,ON
+    """
+cmd_events_all = Table.read(cmd_events_all_text, format='ascii.csv')
+cmd_events_all_exps = [
+    None,
+    None,
+    ['2020:001:00:00:00.000 | ACISPKT          | AA00000000 | CMD_EVT  | event=Command, event_date=2020:001:00:00:00, scs=0'],  # noqa
+    ['2020:001:00:00:00.000 | NOT_RUN          | 4OHETGIN   | CMD_EVT  | event=Command_not_run, event_date=2020:001:00:00:00, scs=0'],  # noqa
+    ['2020:001:00:00:00.000 | COMMAND_SW       | OORMPEN    | CMD_EVT  | event=RTS, event_date=2020:001:00:00:00, msid=OORMPEN, scs=135',  # noqa
+        '2020:001:00:00:01.000 | ACISPKT          | WSVIDALLDN | CMD_EVT  | event=RTS, event_date=2020:001:00:00:00, scs=135',  # noqa
+        '2020:001:00:00:02.000 | COMMAND_HW       | 2S2STHV    | CMD_EVT  | event=RTS, event_date=2020:001:00:00:00, 2s2sthv2=0 , msid=2S2STHV, scs=135',  # noqa
+        '2020:001:00:00:03.000 | COMMAND_HW       | 2S2HVON    | CMD_EVT  | event=RTS, event_date=2020:001:00:00:00, msid=2S2HVON, scs=135',  # noqa
+        '2020:001:00:00:13.000 | COMMAND_HW       | 2S2STHV    | CMD_EVT  | event=RTS, event_date=2020:001:00:00:00, 2s2sthv2=4 , msid=2S2STHV, scs=135',  # noqa
+        '2020:001:00:00:23.000 | COMMAND_HW       | 2S2STHV    | CMD_EVT  | event=RTS, event_date=2020:001:00:00:00, 2s2sthv2=8 , msid=2S2STHV, scs=135',  # noqa
+        '2020:001:00:00:24.000 | ACISPKT          | WSPOW08E1E | CMD_EVT  | event=RTS, event_date=2020:001:00:00:00, scs=135',  # noqa
+        '2020:001:00:01:27.000 | ACISPKT          | WT00C62014 | CMD_EVT  | event=RTS, event_date=2020:001:00:00:00, scs=135',  # noqa
+        '2020:001:00:01:31.000 | ACISPKT          | XTZ0000005 | CMD_EVT  | event=RTS, event_date=2020:001:00:00:00, scs=135',  # noqa
+        '2020:001:00:01:35.000 | ACISPKT          | RS_0000001 | CMD_EVT  | event=RTS, event_date=2020:001:00:00:00, scs=135',  # noqa
+        '2020:001:00:01:39.000 | ACISPKT          | RH_0000001 | CMD_EVT  | event=RTS, event_date=2020:001:00:00:00, scs=135',  # noqa
+        '2020:002:15:01:39.000 | COMMAND_HW       | 2S2HVOF    | CMD_EVT  | event=RTS, event_date=2020:001:00:00:00, msid=2S2HVOF, scs=135',  # noqa
+        '2020:002:15:01:39.000 | COMMAND_SW       | OORMPDS    | CMD_EVT  | event=RTS, event_date=2020:001:00:00:00, msid=OORMPDS, scs=135',  # noqa
+        '2020:002:15:01:40.000 | COMMAND_HW       | 2S2STHV    | CMD_EVT  | event=RTS, event_date=2020:001:00:00:00, 2s2sthv2=0 , msid=2S2STHV, scs=135',  # noqa
+        '2020:002:17:40:00.000 | ACISPKT          | AA00000000 | CMD_EVT  | event=RTS, event_date=2020:001:00:00:00, scs=135',  # noqa
+        '2020:002:17:40:10.000 | ACISPKT          | AA00000000 | CMD_EVT  | event=RTS, event_date=2020:001:00:00:00, scs=135',  # noqa
+        '2020:002:17:40:14.000 | ACISPKT          | WSPOW00000 | CMD_EVT  | event=RTS, event_date=2020:001:00:00:00, scs=135',  # noqa
+        '2020:002:17:40:18.000 | ACISPKT          | RS_0000001 | CMD_EVT  | event=RTS, event_date=2020:001:00:00:00, scs=135'],  # noqa
+    ['2020:001:00:00:00.000 | MP_OBSID         | COAOSQID   | CMD_EVT  | event=Obsid, event_date=2020:001:00:00:00, id=65527, scs=0'],  # noqa
+    ['2020:001:00:00:00.000 | COMMAND_SW       | AONMMODE   | CMD_EVT  | event=Maneuver, event_date=2020:001:00:00:00, msid=AONMMODE, scs=0',  # noqa
+        '2020:001:00:00:00.256 | COMMAND_SW       | AONM2NPE   | CMD_EVT  | event=Maneuver, event_date=2020:001:00:00:00, msid=AONM2NPE, scs=0',  # noqa
+        '2020:001:00:00:04.356 | MP_TARGQUAT      | AOUPTARQ   | CMD_EVT  | event=Maneuver, event_date=2020:001:00:00:00, q1=7.05469070e-01, q2=3.29883070e-01, q3=5.34409010e-01, q4=3.28477660e-01, scs=0',  # noqa
+        '2020:001:00:00:10.250 | COMMAND_SW       | AOMANUVR   | CMD_EVT  | event=Maneuver, event_date=2020:001:00:00:00, msid=AOMANUVR, scs=0'],  # noqa
+    ['2020:001:00:00:00.000 | COMMAND_SW       | ACPCSFSU   | CMD_EVT  | event=Safe_mode, event_date=2020:001:00:00:00, scs=0',  # noqa
+        '2020:001:00:00:00.000 | COMMAND_SW       | CSELFMT5   | CMD_EVT  | event=Safe_mode, event_date=2020:001:00:00:00, scs=0',  # noqa
+        '2020:001:00:00:00.000 | COMMAND_SW       | AONSMSAF   | CMD_EVT  | event=Safe_mode, event_date=2020:001:00:00:00, scs=0',  # noqa
+        '2020:001:00:00:00.000 | COMMAND_SW       | OORMPDS    | CMD_EVT  | event=Safe_mode, event_date=2020:001:00:00:00, scs=0',  # noqa
+        '2020:001:00:00:01.025 | COMMAND_HW       | AFIDP      | CMD_EVT  | event=Safe_mode, event_date=2020:001:00:00:00, msid=AFLCRSET, scs=0',  # noqa
+        '2020:001:00:00:01.025 | SIMTRANS         | None       | CMD_EVT  | event=Safe_mode, event_date=2020:001:00:00:00, pos=-99616, scs=0',  # noqa
+        '2020:001:00:01:06.685 | ACISPKT          | AA00000000 | CMD_EVT  | event=Safe_mode, event_date=2020:001:00:00:00, scs=0',  # noqa
+        '2020:001:00:01:07.710 | ACISPKT          | AA00000000 | CMD_EVT  | event=Safe_mode, event_date=2020:001:00:00:00, scs=0',  # noqa
+        '2020:001:00:01:17.960 | ACISPKT          | WSPOW00000 | CMD_EVT  | event=Safe_mode, event_date=2020:001:00:00:00, scs=0',  # noqa
+        '2020:001:00:01:17.960 | COMMAND_SW       | AODSDITH   | CMD_EVT  | event=Safe_mode, event_date=2020:001:00:00:00, scs=0'],  # noqa
+    ['2020:001:00:00:00.000 | COMMAND_SW       | AONSMSAF   | CMD_EVT  | event=NSM, event_date=2020:001:00:00:00, scs=0',  # noqa
+        '2020:001:00:00:00.000 | COMMAND_SW       | OORMPDS    | CMD_EVT  | event=NSM, event_date=2020:001:00:00:00, scs=0',  # noqa
+        '2020:001:00:00:01.025 | COMMAND_HW       | AFIDP      | CMD_EVT  | event=NSM, event_date=2020:001:00:00:00, msid=AFLCRSET, scs=0',  # noqa
+        '2020:001:00:00:01.025 | SIMTRANS         | None       | CMD_EVT  | event=NSM, event_date=2020:001:00:00:00, pos=-99616, scs=0',  # noqa
+        '2020:001:00:01:06.685 | ACISPKT          | AA00000000 | CMD_EVT  | event=NSM, event_date=2020:001:00:00:00, scs=0',  # noqa
+        '2020:001:00:01:07.710 | ACISPKT          | AA00000000 | CMD_EVT  | event=NSM, event_date=2020:001:00:00:00, scs=0',  # noqa
+        '2020:001:00:01:17.960 | ACISPKT          | WSPOW00000 | CMD_EVT  | event=NSM, event_date=2020:001:00:00:00, scs=0',  # noqa
+        '2020:001:00:01:17.960 | COMMAND_SW       | AODSDITH   | CMD_EVT  | event=NSM, event_date=2020:001:00:00:00, scs=0'],  # noqa
+    ['2020:001:00:00:00.000 | COMMAND_SW       | OORMPDS    | CMD_EVT  | event=SCS-107, event_date=2020:001:00:00:00, scs=0',  # noqa
+        '2020:001:00:00:01.025 | COMMAND_HW       | AFIDP      | CMD_EVT  | event=SCS-107, event_date=2020:001:00:00:00, msid=AFLCRSET, scs=0',  # noqa
+        '2020:001:00:00:01.025 | SIMTRANS         | None       | CMD_EVT  | event=SCS-107, event_date=2020:001:00:00:00, pos=-99616, scs=0',  # noqa
+        '2020:001:00:01:06.685 | ACISPKT          | AA00000000 | CMD_EVT  | event=SCS-107, event_date=2020:001:00:00:00, scs=0',  # noqa
+        '2020:001:00:01:07.710 | ACISPKT          | AA00000000 | CMD_EVT  | event=SCS-107, event_date=2020:001:00:00:00, scs=0',  # noqa
+        '2020:001:00:01:17.960 | ACISPKT          | WSPOW00000 | CMD_EVT  | event=SCS-107, event_date=2020:001:00:00:00, scs=0'],  # noqa
+    ['2020:001:00:00:00.000 | COMMAND_SW       | OORMPDS    | CMD_EVT  | event=Bright_star_hold, event_date=2020:001:00:00:00, scs=0',  # noqa
+        '2020:001:00:00:01.025 | COMMAND_HW       | AFIDP      | CMD_EVT  | event=Bright_star_hold, event_date=2020:001:00:00:00, msid=AFLCRSET, scs=0',  # noqa
+        '2020:001:00:00:01.025 | SIMTRANS         | None       | CMD_EVT  | event=Bright_star_hold, event_date=2020:001:00:00:00, pos=-99616, scs=0',  # noqa
+        '2020:001:00:01:06.685 | ACISPKT          | AA00000000 | CMD_EVT  | event=Bright_star_hold, event_date=2020:001:00:00:00, scs=0',  # noqa
+        '2020:001:00:01:07.710 | ACISPKT          | AA00000000 | CMD_EVT  | event=Bright_star_hold, event_date=2020:001:00:00:00, scs=0',  # noqa
+        '2020:001:00:01:17.960 | ACISPKT          | WSPOW00000 | CMD_EVT  | event=Bright_star_hold, event_date=2020:001:00:00:00, scs=0',  # noqa
+        '2020:001:00:01:17.960 | COMMAND_SW       | AODSDITH   | CMD_EVT  | event=Bright_star_hold, event_date=2020:001:00:00:00, scs=0'],  # noqa
+    ['2020:001:00:00:00.000 | COMMAND_SW       | AOENDITH   | CMD_EVT  | event=Dither, event_date=2020:001:00:00:00, scs=0']]  # noqa
+
+
+@pytest.mark.parametrize('idx', range(len(cmd_events_all_exps)))
+def test_get_cmds_from_event_all(idx):
+    """Test getting commands from every event type in the Command Events sheet"""
+    cevt = cmd_events_all[idx]
+    exp = cmd_events_all_exps[idx]
+    cmds = get_cmds_from_event('2020:001:00:00:00', cevt['Event'], cevt['Params'])
+    if cmds is not None:
+        cmds = cmds.pformat_like_backstop(max_params_width=None)
+    assert cmds == exp
+
+
 @pytest.mark.skipif(not HAS_INTERNET, reason='No internet connection')
 def test_scenario_with_rts(monkeypatch):
     """Test a custom scenario with RTS. This is basically the same as the
