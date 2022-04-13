@@ -181,7 +181,8 @@ def convert_aostrcat_to_acatable(obs, params):
     return aca
 
 
-def get_starcats(obsid=None, *, start=None, stop=None, set_ids=True, scenario=None, cmds=None):
+def get_starcats(obsid=None, *, start=None, stop=None, set_ids=True, scenario=None,
+                 cmds=None, as_dict=False):
     """Get star catalogs corresponding to input parameters.
 
     The ``obsid``, ``start``, and ``stop`` parameters serve as matching filters
@@ -243,6 +244,7 @@ def get_starcats(obsid=None, *, start=None, stop=None, set_ids=True, scenario=No
     import shelve
     from kadi.commands.commands_v2 import REV_PARS_DICT
     from kadi.commands.core import decode_starcat_params
+    from proseco.catalog import ACATable
 
     obss = get_observations(obsid=obsid, start=start, stop=stop,
                             scenario=scenario, cmds=cmds)
@@ -253,9 +255,16 @@ def get_starcats(obsid=None, *, start=None, stop=None, set_ids=True, scenario=No
         for obs in obss:
             if (idx := obs.get('starcat_idx')) is None:
                 continue
+
             if obs['starcat_date'] in starcats_db:
                 # From the disk cache
-                starcat = starcats_db[str(idx)]
+                starcat_dict = starcats_db[str(idx)]
+                if as_dict:
+                    starcat = starcat_dict
+                else:
+                    meta = starcat_dict.pop('meta')
+                    starcat = ACATable(starcat_dict)
+                    starcat.meta = meta
             else:
                 # From the commands archive, building ACATable from backstop params
                 params = rev_pars_dict[idx]
@@ -269,8 +278,10 @@ def get_starcats(obsid=None, *, start=None, stop=None, set_ids=True, scenario=No
                     set_fid_ids(starcat)
                     set_star_ids(starcat)
 
-                # Cache the starcat
-                starcats_db[obs['starcat_date']] = starcat
+                    # Cache the starcat (only if set_ids is True)
+                    starcat_dict = {name: starcat[name].tolist() for name in starcat.colnames}
+                    starcat_dict['meta'] = starcat.meta
+                    starcats_db[obs['starcat_date']] = starcat_dict
 
             starcats.append(starcat)
 
