@@ -256,9 +256,10 @@ def get_starcats(obsid=None, *, start=None, stop=None, set_ids=True, scenario=No
             if (idx := obs.get('starcat_idx')) is None:
                 continue
 
-            if obs['starcat_date'] in starcats_db:
+            db_key = obs['starcat_date'] + obs['source']
+            if db_key in starcats_db:
                 # From the disk cache
-                starcat_dict = starcats_db[str(idx)]
+                starcat_dict = starcats_db[db_key]
                 if as_dict:
                     starcat = starcat_dict
                 else:
@@ -281,7 +282,7 @@ def get_starcats(obsid=None, *, start=None, stop=None, set_ids=True, scenario=No
                     # Cache the starcat (only if set_ids is True)
                     starcat_dict = {name: starcat[name].tolist() for name in starcat.colnames}
                     starcat_dict['meta'] = starcat.meta
-                    starcats_db[obs['starcat_date']] = starcat_dict
+                    starcats_db[db_key] = starcat_dict
 
             starcats.append(starcat)
 
