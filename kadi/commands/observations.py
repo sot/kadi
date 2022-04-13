@@ -15,7 +15,7 @@ from astropy.table import Table
 logger = logging.getLogger(__name__)
 
 
-__all__ = ['get_starcats', 'get_observations', 'get_stars']
+__all__ = ['get_starcats', 'get_observations', 'get_starcats_as_table']
 
 AGASC_FILE = Path(os.environ['SKA'], 'data', 'agasc', 'proseco_agasc_1p7.h5')
 
@@ -181,12 +181,15 @@ def convert_aostrcat_to_acatable(obs, params):
     return aca
 
 
-def get_stars(obsid=None, *, start=None, stop=None, set_ids=True, scenario=None,
-              cmds=None):
+def get_starcats_as_table(obsid=None, *, start=None, stop=None, set_ids=True,
+                          scenario=None, cmds=None):
     starcats = get_starcats(obsid=obsid, start=start, stop=stop, scenario=scenario,
                             cmds=cmds, as_dict=True)
     out = defaultdict(list)
     for starcat in starcats:
+        n_cat = len(starcat['slot'])
+        out['obsid'].append([starcat['meta']['obsid']] * n_cat)
+        out['starcat_date'].append([starcat['meta']['date']] * n_cat)
         for name, vals in starcat.items():
             if name != 'meta':
                 out[name].append(vals)
