@@ -7,7 +7,7 @@ from pathlib import Path
 import numpy as np
 from cxotime import CxoTime
 import astropy.units as u
-from astropy.table import Table
+from astropy.table import Table, unique as table_unique
 
 # kadi.commands.commands_v2 is also a dependency but encapsulated in the
 # functions to reduce top-level imports for v1-compatibility
@@ -183,6 +183,42 @@ def convert_aostrcat_to_acatable(obs, params):
 
 def get_starcats_as_table(start=None, stop=None, *, obsid=None, unique=False,
                           scenario=None, cmds=None):
+    """Get a single table of star catalog entries corresponding to input parameters.
+
+    This function calls ``get_starcats`` with the same parameters and then
+    concatenates the results into a single table for convenience. In addition
+    to the usual star catalog columns, the ``obsid`` and ``starcat_date`` are
+    included.
+
+    The ``unique`` parameter can be set to ``True`` to only return unique star
+    catalog entries. There are numerous instances of a single commanded star
+    catalogs that is associated with two ObsIDs, for instance ACIS undercover
+    observations. To get only the first one, set ``unique=True``.
+
+    In the following example we get every unique commanded guide star in 2020
+    and then join that with the corresponding observation information::
+
+      >>> from kadi.commands import get_starcats_as_table, get_observations
+      >>> from astropy import table
+      >>> start='2020:001'
+      >>> stop='2021:001'
+      >>> cats = get_starcats_as_table(start, stop, unique=True)
+      >>> ok = np.isin(cats['type'], ['GUI', 'BOT'])
+      >>> guides = cats[ok]
+      >>> obss = table.Table(get_observations(start, stop))
+      >>> obss = obss[~obss['starcat_date'].mask]  # keep only obs with starcat
+      >>> guides = table.join(guides, obss, keys=['starcat_date', 'obsid'])
+
+    :param start: CxoTime-like, None Start time (default=beginning of commands)
+    :param stop: CxoTime-like, None Stop time (default=end of commands)
+    :param obsid: int, None ObsID
+    :param unique: bool, if True return remove duplicate entries
+    :param scenario: str, None Scenario
+    :param cmds: CommandTable, None Use this command table instead of querying
+        the archive.
+    :returns: astropy ``Table`` star catalog entries for matching observations.
+
+    """
     starcats = get_starcats(obsid=obsid, start=start, stop=stop, scenario=scenario,
                             cmds=cmds, as_dict=True)
     out = defaultdict(list)
@@ -197,7 +233,11 @@ def get_starcats_as_table(start=None, stop=None, *, obsid=None, unique=False,
     for name in out:
         out[name] = np.concatenate(out[name])
 
-    return Table(out)
+    out = Table(out)
+    if unique:
+        out = table_unique(out, keys=['starcat_date', 'idx'])
+
+    return out
 
 
 def get_starcats(start=None, stop=None, *, obsid=None, set_ids=True, scenario=None,
@@ -211,6 +251,11 @@ def get_starcats(start=None, stop=None, *, obsid=None, set_ids=True, scenario=No
     This increases run time by about a factor of 4 (mostly due to identifying
     stars from position), so if you don't need the IDs then set ``set_ids`` to
     ``False``.
+
+    By default the result is a list of ``ACATable`` objects similar to the
+    output of ``proseco.get_aca_catalog``. If ``as_dict`` is ``True`` then the
+    the result is a list of dictionaries with the same keys as the table columns.
+    This is substantially faster than the default.
 
     There are numerous instances of multiple observations with the same obsid,
     so this function always returns a list of star catalogs even when ``obsid``
@@ -227,8 +272,10 @@ def get_starcats(start=None, stop=None, *, obsid=None, set_ids=True, scenario=No
     arcsec halfwidth, but it can be changed by setting the
     ``fid_id_match_halfwidth`` configuration parameter.
 
-    Note that the first instance of running this will be slow because it caches
-    various data structures. Subsequent calls are much faster.
+    The first time each particular star catalog is fetched, the star and fid
+    ID's are computed which is relatively slow. The resulting star catalog is
+    (by default) cached in the ``~/.kadi/starcats.db`` file. Subsequent calls
+    are significantly faster.
 
     Example::
 
