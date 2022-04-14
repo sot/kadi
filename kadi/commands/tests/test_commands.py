@@ -15,7 +15,7 @@ from cxotime import CxoTime
 
 from kadi import commands
 from kadi.commands import (core, commands_v1, commands_v2, conf, get_starcats,
-                           get_observations)
+                           get_observations, get_starcats_as_table)
 from kadi.scripts import update_cmds_v1, update_cmds_v2
 from kadi.commands.command_sets import get_cmds_from_event
 
@@ -624,9 +624,9 @@ def test_get_observations_by_start_date():
 def test_get_observations_by_start_stop_date_with_scenario():
     # Test observations in a range and use the scenario keyword
     obss = get_observations(start='2022:001', stop='2022:002', scenario='flight')
-    assert len(obss) == 6
-    assert obss[0]['obsid'] == 45814
-    assert obss[0]['obs_start'] == '2022:001:05:48:44.808'
+    assert len(obss) == 7
+    assert obss[1]['obsid'] == 45814
+    assert obss[1]['obs_start'] == '2022:001:05:48:44.808'
     assert obss[-1]['obsid'] == 23800
     assert obss[-1]['obs_start'] == '2022:001:17:33:53.255'
 
@@ -635,7 +635,18 @@ def test_get_observations_no_match():
     with pytest.raises(ValueError, match='No matching observations for obsid=8008'):
         get_observations(obsid=8008, start='2022:001', stop='2022:002', scenario='flight')
 
-    obss = get_observations(start='2022:001', stop='2022:001', scenario='flight')
+
+def test_get_observations_start_stop_inclusion():
+    # Covers time from the middle of obsid 8008 to the middle of obsid 8009
+    obss = get_observations('2007:002:05:00:00', '2007:002:20:00:01', scenario='flight')
+    assert len(obss) == 2
+
+    # One second in the middle of obsid 8008
+    obss = get_observations('2007:002:05:00:00', '2007:002:05:00:01', scenario='flight')
+    assert len(obss) == 1
+
+    # During a maneuver
+    obss = get_observations('2007:002:18:05:00', '2007:002:18:08:00', scenario='flight')
     assert len(obss) == 0
 
 
@@ -694,6 +705,12 @@ def test_get_starcats_date():
     cmds = commands_v2.get_cmds('2007:002', '2007:003')
     sc_cmd = cmds[cmds['date'] == obs['starcat_date']][0]
     assert sc_cmd['type'] == 'MP_STARCAT'
+
+
+def test_get_starcats_as_table():
+    cats = get_starcats_as_table(obsid=8008, scenario='flight')
+    exp = []
+    assert cats.pformat_all() == exp
 
 
 @pytest.mark.parametrize(
