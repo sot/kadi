@@ -202,9 +202,9 @@ def get_starcats_as_table(start=None, stop=None, *, obsid=None, unique=False,
       >>> from astropy import table
       >>> start='2020:001'
       >>> stop='2021:001'
-      >>> cats = get_starcats_as_table(start, stop, unique=True)
-      >>> ok = np.isin(cats['type'], ['GUI', 'BOT'])
-      >>> guides = cats[ok]
+      >>> aces = get_starcats_as_table(start, stop, unique=True)
+      >>> ok = np.isin(aces['type'], ['GUI', 'BOT'])
+      >>> guides = aces[ok]
       >>> obss = table.Table(get_observations(start, stop))
       >>> obss = obss[~obss['starcat_date'].mask]  # keep only obs with starcat
       >>> guides = table.join(guides, obss, keys=['starcat_date', 'obsid'])
@@ -432,7 +432,9 @@ def get_observations(start=None, stop=None, *, obsid=None, scenario=None, cmds=N
     else:
         cmds_obs = cmds[cmds['tlmsid'] == 'OBS']
 
-    i0, i1 = cmds_obs.find_date([start.date, stop.date])
+    # Get observations in date range with padding
+    i0, i1 = cmds_obs.find_date([(start - 7 * u.day).date,
+                                 (stop + 7 * u.day).date])
     cmds_obs = cmds_obs[i0:i1]
 
     if obsid is not None:
@@ -443,6 +445,13 @@ def get_observations(start=None, stop=None, *, obsid=None, scenario=None, cmds=N
     obss = [cmd['params'].copy() for cmd in cmds_obs]
     for obs, cmd_obs in zip(obss, cmds_obs):
         obs['source'] = cmd_obs['source']
+
+    # Filter observations by date to include any observation that intersects
+    # the date range.
+    datestart = start.date
+    datestop = stop.date
+    obss = [obs for obs in obss
+            if obs['obs_start'] <= datestop and obs['obs_stop'] >= datestart]
 
     return obss
 
