@@ -181,7 +181,7 @@ def convert_aostrcat_to_acatable(obs, params):
     return aca
 
 
-def get_starcats_as_table(obsid=None, *, start=None, stop=None, set_ids=True,
+def get_starcats_as_table(start=None, stop=None, *, obsid=None, unique=False,
                           scenario=None, cmds=None):
     starcats = get_starcats(obsid=obsid, start=start, stop=stop, scenario=scenario,
                             cmds=cmds, as_dict=True)
@@ -200,11 +200,11 @@ def get_starcats_as_table(obsid=None, *, start=None, stop=None, set_ids=True,
     return Table(out)
 
 
-def get_starcats(obsid=None, *, start=None, stop=None, set_ids=True, scenario=None,
+def get_starcats(start=None, stop=None, *, obsid=None, set_ids=True, scenario=None,
                  cmds=None, as_dict=False):
-    """Get star catalogs corresponding to input parameters.
+    """Get a list of star catalogs corresponding to input parameters.
 
-    The ``obsid``, ``start``, and ``stop`` parameters serve as matching filters
+    The ``start``, ``stop`` and ``obsid`` parameters serve as matching filters
     on the list of star catalogs that is returned.
 
     The ``set_ids`` parameter controls whether the star and fid IDs are set.
@@ -251,9 +251,9 @@ def get_starcats(obsid=None, *, start=None, stop=None, set_ids=True, scenario=No
             1    10 31982136  ACQ  6x6   10.19   11.70   562.06  -186.39    20     1
             2    11 32375384  ACQ  6x6    9.79   11.30  1612.28  -428.24    20     1]
 
-    :param obsid: int, None ObsID
     :param start: CxoTime-like, None Start time (default=beginning of commands)
     :param stop: CxoTime-like, None Stop time (default=end of commands)
+    :param obsid: int, None ObsID
     :param set_ids: bool, True Set star and fid IDs
     :param scenario: str, None Scenario
     :param cmds: CommandTable, None Use this command table instead of querying
@@ -314,10 +314,10 @@ def get_starcats(obsid=None, *, start=None, stop=None, set_ids=True, scenario=No
     return starcats
 
 
-def get_observations(obsid=None, *, start=None, stop=None, scenario=None, cmds=None):
+def get_observations(start=None, stop=None, *, obsid=None, scenario=None, cmds=None):
     """Get observations corresponding to input parameters.
 
-    The ``obsid``, ``start``, and ``stop`` parameters serve as matching filters
+    The ``start``, ``stop`` and ``obsid`` parameters serve as matching filters
     on the list of observations that is returned.
 
     Over the mission there are thousands of instances of multiple observations
@@ -349,12 +349,12 @@ def get_observations(obsid=None, *, start=None, stop=None, scenario=None, cmds=N
         >>> from astropy.table import Table
         >>> obs_all = Table(obs_all)
 
-    :param obsid: int, None
-        ObsID
     :param start: CxoTime-like, None
         Start time (default=beginning of commands)
     :param stop: CxoTime-like, None
         Stop time (default=end of commands)
+    :param obsid: int, None
+        ObsID
     :param scenario: str, None
         Scenario
     :param cmds: CommandTable, None

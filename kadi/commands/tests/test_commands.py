@@ -551,7 +551,7 @@ Definitive,2020:337:00:00:00,Bright star hold,,Tom Aldcroft,
 
 @pytest.mark.skipif(not HAS_INTERNET, reason="No internet connection")
 def test_get_observations_by_obsid_single():
-    obss = get_observations(8008)
+    obss = get_observations(obsid=8008)
     assert len(obss) == 1
     del obss[0]['starcat_idx']
     assert obss == [
@@ -569,7 +569,7 @@ def test_get_observations_by_obsid_single():
 
 
 def test_get_observations_by_obsid_multi():
-    obss = get_observations(47912, scenario='flight')  # Following ACA high background NSM 2019:248
+    obss = get_observations(obsid=47912, scenario='flight')  # Following ACA high background NSM 2019:248
     # Don't compare starcat_idx because it might change with a repro
     for obs in obss:
         obs.pop('starcat_idx', None)
