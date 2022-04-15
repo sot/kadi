@@ -2,7 +2,7 @@ from pathlib import Path
 import os
 
 import numpy as np
-from astropy.table import Table
+from astropy.table import Table, vstack
 import astropy.units as u
 import pytest
 
@@ -569,7 +569,8 @@ def test_get_observations_by_obsid_single():
 
 
 def test_get_observations_by_obsid_multi():
-    obss = get_observations(obsid=47912, scenario='flight')  # Following ACA high background NSM 2019:248
+    # Following ACA high background NSM 2019:248
+    obss = get_observations(obsid=47912, scenario='flight')
     # Don't compare starcat_idx because it might change with a repro
     for obs in obss:
         obs.pop('starcat_idx', None)
@@ -664,8 +665,9 @@ def test_get_starcats_each_year(year):
 
 
 def test_get_starcats_with_cmds():
-    cmds = commands_v2.get_cmds(start='2022:001', stop='2022:002', scenario='flight')
-    starcats0 = get_starcats(start='2022:001', stop='2022:002')
+    start, stop = '2021:365:19:00:00', '2022:002:01:25:00'
+    cmds = commands_v2.get_cmds(start, stop, scenario='flight')
+    starcats0 = get_starcats(start, stop)
     starcats1 = get_starcats(cmds=cmds)
     assert len(starcats0) == len(starcats1)
     for starcat0, starcat1 in zip(starcats0, starcats1):
@@ -708,9 +710,22 @@ def test_get_starcats_date():
 
 
 def test_get_starcats_as_table():
-    cats = get_starcats_as_table(obsid=8008, scenario='flight')
-    exp = []
-    assert cats.pformat_all() == exp
+    """Test that get_starcats_as_table returns the same as vstacked get_starcats"""
+    start, stop = '2020:001', '2020:002'
+    starcats = get_starcats(start, stop, scenario='flight')
+    obsids = []
+    dates = []
+    for starcat in starcats:
+        obsids.extend([starcat.obsid] * len(starcat))
+        dates.extend([starcat.date] * len(starcat))
+        # Meta causes warnings in vstack, just ignore here
+        starcat.meta = {}
+    aces = get_starcats_as_table(start, stop, scenario='flight')
+    aces_from_starcats = vstack(starcats)
+    assert np.all(aces['obsid'] == obsids)
+    assert np.all(aces['starcat_date'] == dates)
+    for name in aces_from_starcats.colnames:
+        assert np.all(aces[name] == aces_from_starcats[name])
 
 
 @pytest.mark.parametrize(

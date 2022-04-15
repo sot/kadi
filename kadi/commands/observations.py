@@ -308,8 +308,11 @@ def get_starcats(start=None, stop=None, *, obsid=None, set_ids=True, scenario=No
     :returns: list of ACATable List star catalogs for matching observations.
     """
     import shelve
+    from contextlib import ExitStack
     from kadi.commands.commands_v2 import REV_PARS_DICT
     from kadi.commands.core import decode_starcat_params
+    from kadi.paths import STARCATS_CACHE_PATH
+    from kadi.commands import conf
     from proseco.catalog import ACATable
     from proseco.acq import AcqTable
     from proseco.guide import GuideTable
@@ -319,14 +322,22 @@ def get_starcats(start=None, stop=None, *, obsid=None, set_ids=True, scenario=No
     starcats = []
     rev_pars_dict = REV_PARS_DICT if cmds is None else cmds.rev_pars_dict()
 
-    with shelve.open('starcats') as starcats_db:
+    with ExitStack() as context_stack:
+        if conf.cache_starcats:
+            starcats_db = context_stack.enter_context(
+                shelve.open(str(STARCATS_CACHE_PATH())))
+        else:
+            # Defining as a dict provides the same interface as shelve but
+            # precludes caching.
+            starcats_db = {}
+
         for obs in obss:
             if (idx := obs.get('starcat_idx')) is None:
                 continue
 
             db_key = obs['starcat_date'] + obs['source']
             if db_key in starcats_db:
-                # From the disk cache
+                # From the cache
                 starcat_dict = starcats_db[db_key]
                 if as_dict:
                     starcat = starcat_dict

@@ -148,6 +148,8 @@ Then from the bash command line::
         --state-builder=sql \
         --run-start=2021:296:18:00:00
 
+.. _configuration-options:
+
 Configuration options
 ---------------------
 

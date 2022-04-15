@@ -68,3 +68,8 @@ def LOADS_TABLE_PATH(scenario=None):
 
 def CMD_EVENTS_PATH(scenario=None):
     return SCENARIO_DIR(scenario) / 'cmd_events.csv'
+
+
+def STARCATS_CACHE_PATH():
+    from kadi.commands import conf
+    return Path(conf.commands_dir).expanduser() / 'starcats'
