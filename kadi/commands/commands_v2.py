@@ -447,10 +447,16 @@ def get_state_cmds(cmds):
     ok = np.isin(cmds['tlmsid'], vals)
     ok |= cmds['type'] == 'SIMTRANS'
     cmds = cmds[ok]
-    cmds.sort(['date', 'scs'])
+    cmds.sort(['date', 'scs', 'tlmsid'])
 
-    # Deal with this issue where the obsid command is at exactly the same time
-    # as the AONMMODE commands instead of just after it (e.g. in a null maneuver).
+    # Note about sorting by 'tlmsid': this relates to an issue where the obsid
+    # command COAOSQID is at exactly the same time as the AONMMODE commands
+    # instead of just after it (e.g. in a null maneuver). In this case we need
+    # to ensure that the AONMMODE commands are before the COAOSQID command in
+    # the table order. The order of other commands is not important, so we rely
+    # on the lucky fact that AONMMODE is alphabetically before COAOSQID to just
+    # include `tlmsid`` in the lexical sort.
+    #
     #  idx            date             type     tlmsid
     # ------ --------------------- ----------- --------
     #      6 2005:177:09:14:38.119  COMMAND_SW AOMANUVR
@@ -458,17 +464,6 @@ def get_state_cmds(cmds):
     #  10621 2005:177:10:04:15.740    MP_OBSID COAOSQID
     #      1 2005:177:10:04:15.740  COMMAND_SW AONMMODE
     #      2 2005:177:10:04:15.997  COMMAND_SW AONM2NPE
-    c0 = cmds[:-1]
-    c1 = cmds[1:]
-    ok = ((c0['date'] == c1['date'])
-          & (c0['tlmsid'] == 'COAOSQID')
-          & (c1['tlmsid'] == 'AONMMODE'))
-    idxs_swap = np.where(ok)[0]
-    if len(idxs_swap) > 0:
-        idxs = np.arange(len(cmds))
-        idxs[idxs_swap] += 1
-        idxs[idxs_swap + 1] -= 1
-        cmds = cmds[idxs]
 
     return cmds
 
