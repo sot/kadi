@@ -21,13 +21,14 @@ AGASC_FILE = Path(os.environ['SKA'], 'data', 'agasc', 'proseco_agasc_1p7.h5')
 
 TYPE_MAP = ['ACQ', 'GUI', 'BOT', 'FID', 'MON']
 IMGSZ_MAP = ['4x4', '6x6', '8x8']
+RAD_TO_DEG = 180 / np.pi * 3600
 PAR_MAPS = [
     ('imnum', 'slot', int),
     ('type', 'type', lambda n: TYPE_MAP[n]),
     ('imgsz', 'sz', lambda n: IMGSZ_MAP[n]),
     ('maxmag', 'maxmag', float),
-    ('yang', 'yang', lambda x: np.degrees(x) * 3600),
-    ('zang', 'zang', lambda x: np.degrees(x) * 3600),
+    ('yang', 'yang', lambda x: x * RAD_TO_DEG),
+    ('zang', 'zang', lambda x: x * RAD_TO_DEG),
     ('dimdts', 'dim', int),
     ('restrk', 'res', int),
 ]
@@ -120,7 +121,7 @@ def set_star_ids(aca):
                         f'{aca.date}')
 
 
-def convert_aostrcat_to_acatable(obs, params):
+def convert_aostrcat_to_acatable(obs, params, as_dict=False):
     """Convert dict of AOSTRCAT parameters to an ACATable.
 
     The dict looks like::
@@ -360,11 +361,17 @@ def get_starcats(start=None, stop=None, *, obsid=None, set_ids=True, scenario=No
                     set_fid_ids(starcat)
                     set_star_ids(starcat)
 
-                    # Cache the starcat (only if set_ids is True)
+                if as_dict or set_ids:
                     starcat_dict = {name: starcat[name].tolist() for name in starcat.colnames}
                     starcat_dict['meta'] = starcat.meta
                     del starcat_dict['meta']['acqs']
                     del starcat_dict['meta']['guides']
+
+                if as_dict:
+                    starcat = starcat_dict
+
+                if set_ids:
+                    # Cache the starcat (only if set_ids is True)
                     starcats_db[db_key] = starcat_dict
 
             starcats.append(starcat)
