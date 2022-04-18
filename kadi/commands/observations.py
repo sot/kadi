@@ -306,6 +306,8 @@ def get_starcats(start=None, stop=None, *, obsid=None, set_ids=True, scenario=No
     :param scenario: str, None Scenario
     :param cmds: CommandTable, None Use this command table instead of querying
         the archive.
+    :param as_dict: bool, False Return a list of dictionaries instead of a list
+        of ACATable objects.
     :returns: list of ACATable List star catalogs for matching observations.
     """
     import shelve
