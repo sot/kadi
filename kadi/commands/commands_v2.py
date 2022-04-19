@@ -838,8 +838,12 @@ def update_loads(scenario=None, *, cmd_events=None, lookback=None, stop=None):
         # Get directory listing for Year/Month
         try:
             contents = occweb.get_occweb_dir(dir_year_month)
-        except requests.exceptions.HTTPError:
-            continue
+        except requests.exceptions.HTTPError as exc:
+            if str(exc).startswith('404'):
+                logger.debug(f'No OCCweb directory for {dir_year_month}')
+                continue
+            else:
+                raise
 
         # Find each valid load name in the directory listing and process:
         # - Find and download the backstop file
@@ -858,6 +862,9 @@ def update_loads(scenario=None, *, cmd_events=None, lookback=None, stop=None):
                     cmds = get_load_cmds_from_occweb_or_local(dir_year_month, load_name)
                     load = get_load_dict_from_cmds(load_name, cmds, cmd_events)
                     loads_rows.append(load)
+
+    if not loads_rows:
+        raise ValueError(f'No loads found in {lookback} days')
 
     # Finally, save the table to file
     loads_table = Table(loads_rows)
