@@ -241,17 +241,12 @@ def get_starcats_as_table(start=None, stop=None, *, obsid=None, unique=False,
     return out
 
 
-def get_starcats(start=None, stop=None, *, obsid=None, set_ids=True, scenario=None,
+def get_starcats(start=None, stop=None, *, obsid=None, scenario=None,
                  cmds=None, as_dict=False):
     """Get a list of star catalogs corresponding to input parameters.
 
     The ``start``, ``stop`` and ``obsid`` parameters serve as matching filters
     on the list of star catalogs that is returned.
-
-    The ``set_ids`` parameter controls whether the star and fid IDs are set.
-    This increases run time by about a factor of 4 (mostly due to identifying
-    stars from position), so if you don't need the IDs then set ``set_ids`` to
-    ``False``.
 
     By default the result is a list of ``ACATable`` objects similar to the
     output of ``proseco.get_aca_catalog``. If ``as_dict`` is ``True`` then the
@@ -302,7 +297,6 @@ def get_starcats(start=None, stop=None, *, obsid=None, set_ids=True, scenario=No
     :param start: CxoTime-like, None Start time (default=beginning of commands)
     :param stop: CxoTime-like, None Stop time (default=end of commands)
     :param obsid: int, None ObsID
-    :param set_ids: bool, True Set star and fid IDs
     :param scenario: str, None Scenario
     :param cmds: CommandTable, None Use this command table instead of querying
         the archive.
@@ -357,24 +351,20 @@ def get_starcats(start=None, stop=None, *, obsid=None, set_ids=True, scenario=No
                     params = decode_starcat_params(params)
                 starcat = convert_aostrcat_to_acatable(obs, params)
                 set_detector_and_sim_offset(starcat, obs['simpos'])
-                if set_ids:
-                    starcat.add_column(-999, index=2, name='id')
-                    starcat.add_column(-999.0, index=5, name='mag')
-                    set_fid_ids(starcat)
-                    set_star_ids(starcat)
+                starcat.add_column(-999, index=2, name='id')
+                starcat.add_column(-999.0, index=5, name='mag')
+                set_fid_ids(starcat)
+                set_star_ids(starcat)
 
-                if as_dict or set_ids:
-                    starcat_dict = {name: starcat[name].tolist() for name in starcat.colnames}
-                    starcat_dict['meta'] = starcat.meta
-                    del starcat_dict['meta']['acqs']
-                    del starcat_dict['meta']['guides']
+                starcat_dict = {name: starcat[name].tolist() for name in starcat.colnames}
+                starcat_dict['meta'] = starcat.meta
+                del starcat_dict['meta']['acqs']
+                del starcat_dict['meta']['guides']
 
                 if as_dict:
                     starcat = starcat_dict
 
-                if set_ids:
-                    # Cache the starcat (only if set_ids is True)
-                    starcats_db[db_key] = starcat_dict
+                starcats_db[db_key] = starcat_dict
 
             starcats.append(starcat)
 
