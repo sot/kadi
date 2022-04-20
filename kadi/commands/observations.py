@@ -332,7 +332,8 @@ def get_starcats(start=None, stop=None, *, obsid=None, scenario=None,
             if (idx := obs.get('starcat_idx')) is None:
                 continue
 
-            db_key = obs['starcat_date'] + obs['source']
+            db_key = '{}-{}-{:05d}'.format(
+                obs['starcat_date'], obs['source'], obs['obsid'])
             if db_key in starcats_db:
                 # From the cache
                 starcat_dict = starcats_db[db_key]
