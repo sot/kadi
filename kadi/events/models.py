@@ -1818,7 +1818,7 @@ class MajorEvent(BaseEvent):
     note = models.TextField(help_text='Note (comments or CAP # or FSW PR #)')
     source = models.CharField(max_length=3, help_text='Event source (FDB or FOT)')
 
-    # Allow for hand-edits of the source HTML tales back about two years. Make
+    # Allow for hand-edits of the source HTML tables back about two years. Make
     # sure the lookback for getting new events is a bit further back than delete
     # lookback.
     lookback = 365 * 2 + 10
