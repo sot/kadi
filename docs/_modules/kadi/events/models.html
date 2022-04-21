@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>kadi.events.models &#8212; kadi 5.9.2 documentation</title>
+    <title>kadi.events.models &#8212; kadi 5.10.0 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/bootstrap-astropy.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/plot_directive.css" />
@@ -47,7 +47,7 @@
     <h3>Navigation</h3>
     <ul>
       <li>
-	<a href="../../../index.html">kadi 5.9.2 documentation</a>
+	<a href="../../../index.html">kadi 5.10.0 documentation</a>
 	 &#187;
       </li>
       <li><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
@@ -1882,6 +1882,12 @@
     <span class="n">descr</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">TextField</span><span class="p">(</span><span class="n">help_text</span><span class="o">=</span><span class="s1">&#39;Event description&#39;</span><span class="p">)</span>
     <span class="n">note</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">TextField</span><span class="p">(</span><span class="n">help_text</span><span class="o">=</span><span class="s1">&#39;Note (comments or CAP # or FSW PR #)&#39;</span><span class="p">)</span>
     <span class="n">source</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">help_text</span><span class="o">=</span><span class="s1">&#39;Event source (FDB or FOT)&#39;</span><span class="p">)</span>
+
+    <span class="c1"># Allow for hand-edits of the source HTML tables back about two years. Make</span>
+    <span class="c1"># sure the lookback for getting new events is a bit further back than delete</span>
+    <span class="c1"># lookback.</span>
+    <span class="n">lookback</span> <span class="o">=</span> <span class="mi">365</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">10</span>
+    <span class="n">lookback_delete</span> <span class="o">=</span> <span class="mi">365</span> <span class="o">*</span> <span class="mi">2</span>
 
     <span class="k">class</span> <span class="nc">Meta</span><span class="p">:</span>
         <span class="n">ordering</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;key&#39;</span><span class="p">]</span>

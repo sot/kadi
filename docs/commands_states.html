@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-    <title>Commands and states &#8212; kadi 5.9.2 documentation</title>
+    <title>Commands and states &#8212; kadi 5.10.0 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/bootstrap-astropy.css" />
     <link rel="stylesheet" type="text/css" href="_static/plot_directive.css" />
@@ -61,7 +61,7 @@
 	 |
       </li>
       <li>
-	<a href="index.html">kadi 5.9.2 documentation</a>
+	<a href="index.html">kadi 5.10.0 documentation</a>
 	 &#187;
       </li>
       
@@ -503,24 +503,6 @@ select a custom or <code class="docutils literal notranslate"><span class="pre">
 <span class="go">    7    11 263196576  ACQ  6x6   10.56   11.20 -1046.29   258.97    16     1   100</span>
 </pre></div>
 </div>
-<p>This function can be used to get star catalogs over a range of time. Depending
-on your specific needs, you might want to specify <code class="docutils literal notranslate"><span class="pre">set_ids=False</span></code> in the call,
-which disables the time-consuming step of finding the star and fid ids by
-cross-matching with expected star / fid locations. For example, to find catalogs
-between 2015 and 2022 with MON windows commanded:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="o">%</span><span class="n">time</span> <span class="n">acas</span> <span class="o">=</span> <span class="n">get_starcats</span><span class="p">(</span><span class="n">start</span><span class="o">=</span><span class="s1">&#39;2015:001&#39;</span><span class="p">,</span> <span class="n">stop</span><span class="o">=</span><span class="s1">&#39;2022:001&#39;</span><span class="p">,</span> <span class="n">set_ids</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-<span class="go">CPU times: user 13.4 s, sys: 91.8 ms, total: 13.5 s</span>
-<span class="go">Wall time: 13.5 s</span>
-
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">len</span><span class="p">(</span><span class="n">acas</span><span class="p">)</span>
-<span class="go">13261</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">acas_with_mon</span> <span class="o">=</span> <span class="p">[</span><span class="n">aca</span> <span class="k">for</span> <span class="n">aca</span> <span class="ow">in</span> <span class="n">acas</span> <span class="k">if</span> <span class="s1">&#39;MON&#39;</span> <span class="ow">in</span> <span class="n">aca</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">len</span><span class="p">(</span><span class="n">acas_with_mon</span><span class="p">)</span>
-<span class="go">119</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">acas_with_mon</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">obsid</span>
-<span class="go">17320</span>
-</pre></div>
-</div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>The <code class="docutils literal notranslate"><span class="pre">ACATable</span></code> objects that are returned can be plotted but they
@@ -528,6 +510,36 @@ are not fully equivalent to the catalogs that <code class="docutils literal notr
 CCD temperatures are set to -20 C and the <code class="docutils literal notranslate"><span class="pre">.acqs</span></code> and <code class="docutils literal notranslate"><span class="pre">.guides</span></code> attributes
 are stubbed with empty tables.</p>
 </div>
+<section id="getting-dicts-instead-of-aca-tables">
+<h4>Getting dicts instead of ACA tables<a class="headerlink" href="#getting-dicts-instead-of-aca-tables" title="Permalink to this headline">¶</a></h4>
+<p>Another performance option which can be useful in some cases is to set the
+<code class="docutils literal notranslate"><span class="pre">as_dict</span></code> keyword to <code class="docutils literal notranslate"><span class="pre">True</span></code>. This will return a list of dictionaries instead
+of converting each catalog into an <code class="docutils literal notranslate"><span class="pre">ACATable</span></code> object.</p>
+</section>
+<section id="getting-a-table-of-catalog-entries">
+<h4>Getting a Table of catalog entries<a class="headerlink" href="#getting-a-table-of-catalog-entries" title="Permalink to this headline">¶</a></h4>
+<p>For some use cases you want a single table of all star catalog entries matching
+the specified criteria. This can be done with the
+<a class="reference internal" href="api.html#kadi.commands.observations.get_starcats_as_table" title="kadi.commands.observations.get_starcats_as_table"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_starcats_as_table()</span></code></a> function. This is
+roughly the equivalent of doing a Table <code class="docutils literal notranslate"><span class="pre">vstack</span></code> of the individual
+<code class="docutils literal notranslate"><span class="pre">ACATable</span></code> catalogs but is much faster. In addition two columns <code class="docutils literal notranslate"><span class="pre">obsid</span></code> and
+<code class="docutils literal notranslate"><span class="pre">starcat_date</span></code> are added to provide this information for each entry.</p>
+</section>
+<section id="caching">
+<h4>Caching<a class="headerlink" href="#caching" title="Permalink to this headline">¶</a></h4>
+<p>In order to significantly speed up the retrieval of historical star catalogs for
+typical ACA operations analysis, the results of each call to <code class="docutils literal notranslate"><span class="pre">get_starcats()</span></code>
+are (by default) cached in a file <code class="docutils literal notranslate"><span class="pre">~/.kadi/starcats.db</span></code>.</p>
+<p>This caching is controlled by a configuration parameter <code class="docutils literal notranslate"><span class="pre">cache_starcats</span></code>. To
+permanently disable caching you can edit your configuration file (see
+<a class="reference internal" href="commands_v2.html#configuration-options"><span class="std std-ref">Configuration options</span></a>). To disable caching for a single call to
+<code class="docutils literal notranslate"><span class="pre">get_starcats()</span></code>, you can do something like:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">kadi.commands</span> <span class="kn">import</span> <span class="n">get_starcats</span><span class="p">,</span> <span class="n">conf</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">conf</span><span class="o">.</span><span class="n">set_temp</span><span class="p">(</span><span class="s1">&#39;cache_starcats&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
+<span class="gp">... </span>   <span class="n">starcats</span> <span class="o">=</span> <span class="n">get_starcats</span><span class="p">(</span><span class="s1">&#39;2022:001&#39;</span><span class="p">,</span> <span class="s1">&#39;2022:002&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
 </section>
 </section>
 <section id="chandra-states-and-continuity">
@@ -1112,7 +1124,12 @@ you if this is not enough.</p>
 <li><a class="reference internal" href="#under-the-hood">Under the hood</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#getting-star-catalogs">Getting star catalogs</a></li>
+<li><a class="reference internal" href="#getting-star-catalogs">Getting star catalogs</a><ul>
+<li><a class="reference internal" href="#getting-dicts-instead-of-aca-tables">Getting dicts instead of ACA tables</a></li>
+<li><a class="reference internal" href="#getting-a-table-of-catalog-entries">Getting a Table of catalog entries</a></li>
+<li><a class="reference internal" href="#caching">Caching</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li><a class="reference internal" href="#chandra-states-and-continuity">Chandra states and continuity</a><ul>

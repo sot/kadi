@@ -450,29 +450,42 @@ The ACA star catalogs associated with observations can be retrieved using the
         2    10 263201064  ACQ  6x6   10.44   11.20   529.26   324.30     8     1    60
         7    11 263196576  ACQ  6x6   10.56   11.20 -1046.29   258.97    16     1   100
 
-This function can be used to get star catalogs over a range of time. Depending
-on your specific needs, you might want to specify ``set_ids=False`` in the call,
-which disables the time-consuming step of finding the star and fid ids by
-cross-matching with expected star / fid locations. For example, to find catalogs
-between 2015 and 2022 with MON windows commanded::
-
-    >>> %time acas = get_starcats(start='2015:001', stop='2022:001', set_ids=False)
-    CPU times: user 13.4 s, sys: 91.8 ms, total: 13.5 s
-    Wall time: 13.5 s
-
-    >>> len(acas)
-    13261
-    >>> acas_with_mon = [aca for aca in acas if 'MON' in aca['type']]
-    >>> len(acas_with_mon)
-    119
-    >>> acas_with_mon[0].obsid
-    17320
-
 .. Note::
    The ``ACATable`` objects that are returned can be plotted but they
    are not fully equivalent to the catalogs that ``proseco`` would return. The
    CCD temperatures are set to -20 C and the ``.acqs`` and ``.guides`` attributes
    are stubbed with empty tables.
+
+Getting dicts instead of ACA tables
+"""""""""""""""""""""""""""""""""""
+Another performance option which can be useful in some cases is to set the
+``as_dict`` keyword to ``True``. This will return a list of dictionaries instead
+of converting each catalog into an ``ACATable`` object.
+
+Getting a Table of catalog entries
+""""""""""""""""""""""""""""""""""
+For some use cases you want a single table of all star catalog entries matching
+the specified criteria. This can be done with the
+:func:`~kadi.commands.observations.get_starcats_as_table` function. This is
+roughly the equivalent of doing a Table ``vstack`` of the individual
+``ACATable`` catalogs but is much faster. In addition two columns ``obsid`` and
+``starcat_date`` are added to provide this information for each entry.
+
+Caching
+"""""""
+
+In order to significantly speed up the retrieval of historical star catalogs for
+typical ACA operations analysis, the results of each call to ``get_starcats()``
+are (by default) cached in a file ``~/.kadi/starcats.db``.
+
+This caching is controlled by a configuration parameter ``cache_starcats``. To
+permanently disable caching you can edit your configuration file (see
+:ref:`configuration-options`). To disable caching for a single call to
+``get_starcats()``, you can do something like::
+
+    >>> from kadi.commands import get_starcats, conf
+    >>> with conf.set_temp('cache_starcats', False):
+    ...    starcats = get_starcats('2022:001', '2022:002')
 
 Chandra states and continuity
 ------------------------------
