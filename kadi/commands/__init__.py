@@ -20,6 +20,12 @@ class Conf(ConfigNamespace):
         'Cache backstop downloads in the astropy cache. Should typically be False, '
         'but useful during development to avoid re-downloading backstops.'
     )
+    cache_starcats = ConfigItem(
+        True,
+        'Cache star catalogs that are retrieved to a file to avoid repeating the '
+        'slow process of identifying fid and stars in catalogs. The cache file is '
+        'conf.commands_dir/starcats.db.'
+    )
     clean_loads_dir = ConfigItem(
         True,
         'Clean backstop loads (like APR1421B.pkl.gz) in the loads directory that are '

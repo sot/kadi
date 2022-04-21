@@ -73,6 +73,9 @@ def clear_caches():
         except AttributeError:
             pass
 
+    from kadi.commands.observations import OBSERVATIONS
+    OBSERVATIONS.clear()
+
 
 def interrupt_load_commands(load, cmds):
     """Cut commands beyond observing or vehicle stop times.
@@ -444,7 +447,24 @@ def get_state_cmds(cmds):
     ok = np.isin(cmds['tlmsid'], vals)
     ok |= cmds['type'] == 'SIMTRANS'
     cmds = cmds[ok]
-    cmds.sort(['date', 'scs'])
+    cmds.sort(['date', 'scs', 'tlmsid'])
+
+    # Note about sorting by 'tlmsid': this relates to an issue where the obsid
+    # command COAOSQID is at exactly the same time as the AONMMODE commands
+    # instead of just after it (e.g. in a null maneuver). In this case we need
+    # to ensure that the AONMMODE commands are before the COAOSQID command in
+    # the table order. The order of other commands is not important, so we rely
+    # on the lucky fact that AONMMODE is alphabetically before COAOSQID to just
+    # include `tlmsid`` in the lexical sort.
+    #
+    #  idx            date             type     tlmsid
+    # ------ --------------------- ----------- --------
+    #      6 2005:177:09:14:38.119  COMMAND_SW AOMANUVR
+    #  10620 2005:177:09:17:27.868    MP_OBSID COAOSQID
+    #  10621 2005:177:10:04:15.740    MP_OBSID COAOSQID
+    #      1 2005:177:10:04:15.740  COMMAND_SW AONMMODE
+    #      2 2005:177:10:04:15.997  COMMAND_SW AONM2NPE
+
     return cmds
 
 
@@ -616,6 +636,7 @@ def get_cmds_obs_final(cmds, pars_dict, rev_pars_dict, schedule_stop_time):
     for cmd in cmds:
         tlmsid = cmd['tlmsid']
         if tlmsid == 'AOSTRCAT':
+            starcat_date = cmd['date']
             if cmd['idx'] == -1:
                 # OBS command only stores the index of the starcat params, so at
                 # this point we need to put those params into the pars_dict and
@@ -655,6 +676,7 @@ def get_cmds_obs_final(cmds, pars_dict, rev_pars_dict, schedule_stop_time):
             obs_params['obs_start'] = cmd['date']
             if obs_params['npnt_enab']:
                 obs_params['starcat_idx'] = starcat_idx
+                obs_params['starcat_date'] = starcat_date
 
         elif (tlmsid in ('AONMMODE', 'AONSMSAF')
               or (tlmsid == 'AONM2NPE' and cmd['vcdu'] == -1)):
@@ -833,8 +855,12 @@ def update_loads(scenario=None, *, cmd_events=None, lookback=None, stop=None):
         # Get directory listing for Year/Month
         try:
             contents = occweb.get_occweb_dir(dir_year_month)
-        except requests.exceptions.HTTPError:
-            continue
+        except requests.exceptions.HTTPError as exc:
+            if str(exc).startswith('404'):
+                logger.debug(f'No OCCweb directory for {dir_year_month}')
+                continue
+            else:
+                raise
 
         # Find each valid load name in the directory listing and process:
         # - Find and download the backstop file
@@ -853,6 +879,9 @@ def update_loads(scenario=None, *, cmd_events=None, lookback=None, stop=None):
                     cmds = get_load_cmds_from_occweb_or_local(dir_year_month, load_name)
                     load = get_load_dict_from_cmds(load_name, cmds, cmd_events)
                     loads_rows.append(load)
+
+    if not loads_rows:
+        raise ValueError(f'No loads found in {lookback} days')
 
     # Finally, save the table to file
     loads_table = Table(loads_rows)

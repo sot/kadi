@@ -7,7 +7,7 @@ from pathlib import Path
 import numpy as np
 from cxotime import CxoTime
 import astropy.units as u
-from astropy.table import Table
+from astropy.table import Table, unique as table_unique
 
 # kadi.commands.commands_v2 is also a dependency but encapsulated in the
 # functions to reduce top-level imports for v1-compatibility
@@ -15,19 +15,20 @@ from astropy.table import Table
 logger = logging.getLogger(__name__)
 
 
-__all__ = ['get_starcats', 'get_observations']
+__all__ = ['get_starcats', 'get_observations', 'get_starcats_as_table']
 
 AGASC_FILE = Path(os.environ['SKA'], 'data', 'agasc', 'proseco_agasc_1p7.h5')
 
 TYPE_MAP = ['ACQ', 'GUI', 'BOT', 'FID', 'MON']
 IMGSZ_MAP = ['4x4', '6x6', '8x8']
+RAD_TO_DEG = 180 / np.pi * 3600
 PAR_MAPS = [
     ('imnum', 'slot', int),
     ('type', 'type', lambda n: TYPE_MAP[n]),
     ('imgsz', 'sz', lambda n: IMGSZ_MAP[n]),
     ('maxmag', 'maxmag', float),
-    ('yang', 'yang', lambda x: np.degrees(x) * 3600),
-    ('zang', 'zang', lambda x: np.degrees(x) * 3600),
+    ('yang', 'yang', lambda x: x * RAD_TO_DEG),
+    ('zang', 'zang', lambda x: x * RAD_TO_DEG),
     ('dimdts', 'dim', int),
     ('restrk', 'res', int),
 ]
@@ -120,7 +121,7 @@ def set_star_ids(aca):
                         f'{aca.date}')
 
 
-def convert_aostrcat_to_acatable(obs, params):
+def convert_aostrcat_to_acatable(obs, params, as_dict=False):
     """Convert dict of AOSTRCAT parameters to an ACATable.
 
     The dict looks like::
@@ -166,7 +167,7 @@ def convert_aostrcat_to_acatable(obs, params):
 
     aca.obsid = obs['obsid']
     aca.att = obs['targ_att']
-    aca.date = obs['obs_start']
+    aca.date = obs['starcat_date']
     aca.duration = date2secs(obs['obs_stop']) - date2secs(obs['obs_start'])
 
     # Make the catalog more complete and provide stuff temps needed for plot()
@@ -181,16 +182,76 @@ def convert_aostrcat_to_acatable(obs, params):
     return aca
 
 
-def get_starcats(obsid=None, *, start=None, stop=None, set_ids=True, scenario=None, cmds=None):
-    """Get star catalogs corresponding to input parameters.
+def get_starcats_as_table(start=None, stop=None, *, obsid=None, unique=False,
+                          scenario=None, cmds=None):
+    """Get a single table of star catalog entries corresponding to input parameters.
 
-    The ``obsid``, ``start``, and ``stop`` parameters serve as matching filters
+    This function calls ``get_starcats`` with the same parameters and then
+    concatenates the results into a single table for convenience. In addition
+    to the usual star catalog columns, the ``obsid`` and ``starcat_date`` are
+    included.
+
+    The ``unique`` parameter can be set to ``True`` to only return unique star
+    catalog entries. There are numerous instances of a single commanded star
+    catalogs that is associated with two ObsIDs, for instance ACIS undercover
+    observations. To get only the first one, set ``unique=True``.
+
+    In the following example we get every unique commanded guide star in 2020
+    and then join that with the corresponding observation information::
+
+      >>> from kadi.commands import get_starcats_as_table, get_observations
+      >>> from astropy import table
+      >>> start='2020:001'
+      >>> stop='2021:001'
+      >>> aces = get_starcats_as_table(start, stop, unique=True)
+      >>> ok = np.isin(aces['type'], ['GUI', 'BOT'])
+      >>> guides = aces[ok]
+      >>> obss = table.Table(get_observations(start, stop))
+      >>> obss = obss[~obss['starcat_date'].mask]  # keep only obs with starcat
+      >>> guides = table.join(guides, obss, keys=['starcat_date', 'obsid'])
+
+    :param start: CxoTime-like, None Start time (default=beginning of commands)
+    :param stop: CxoTime-like, None Stop time (default=end of commands)
+    :param obsid: int, None ObsID
+    :param unique: bool, if True return remove duplicate entries
+    :param scenario: str, None Scenario
+    :param cmds: CommandTable, None Use this command table instead of querying
+        the archive.
+    :returns: astropy ``Table`` star catalog entries for matching observations.
+
+    """
+    starcats = get_starcats(obsid=obsid, start=start, stop=stop, scenario=scenario,
+                            cmds=cmds, as_dict=True)
+    out = defaultdict(list)
+    for starcat in starcats:
+        n_cat = len(starcat['slot'])
+        out['obsid'].append([starcat['meta']['obsid']] * n_cat)
+        out['starcat_date'].append([starcat['meta']['date']] * n_cat)
+        for name, vals in starcat.items():
+            if name != 'meta':
+                out[name].append(vals)
+
+    for name in out:
+        out[name] = np.concatenate(out[name])
+
+    out = Table(out)
+    if unique:
+        out = table_unique(out, keys=['starcat_date', 'idx'])
+
+    return out
+
+
+def get_starcats(start=None, stop=None, *, obsid=None, scenario=None,
+                 cmds=None, as_dict=False):
+    """Get a list of star catalogs corresponding to input parameters.
+
+    The ``start``, ``stop`` and ``obsid`` parameters serve as matching filters
     on the list of star catalogs that is returned.
 
-    The ``set_ids`` parameter controls whether the star and fid IDs are set.
-    This increases run time by about a factor of 4 (mostly due to identifying
-    stars from position), so if you don't need the IDs then set ``set_ids`` to
-    ``False``.
+    By default the result is a list of ``ACATable`` objects similar to the
+    output of ``proseco.get_aca_catalog``. If ``as_dict`` is ``True`` then the
+    the result is a list of dictionaries with the same keys as the table columns.
+    This is substantially faster than the default.
 
     There are numerous instances of multiple observations with the same obsid,
     so this function always returns a list of star catalogs even when ``obsid``
@@ -207,8 +268,10 @@ def get_starcats(obsid=None, *, start=None, stop=None, set_ids=True, scenario=No
     arcsec halfwidth, but it can be changed by setting the
     ``fid_id_match_halfwidth`` configuration parameter.
 
-    Note that the first instance of running this will be slow because it caches
-    various data structures. Subsequent calls are much faster.
+    The first time each particular star catalog is fetched, the star and fid
+    ID's are computed which is relatively slow. The resulting star catalog is
+    (by default) cached in the ``~/.kadi/starcats.db`` file. Subsequent calls
+    are significantly faster.
 
     Example::
 
@@ -231,43 +294,88 @@ def get_starcats(obsid=None, *, start=None, stop=None, set_ids=True, scenario=No
             1    10 31982136  ACQ  6x6   10.19   11.70   562.06  -186.39    20     1
             2    11 32375384  ACQ  6x6    9.79   11.30  1612.28  -428.24    20     1]
 
-    :param obsid: int, None ObsID
     :param start: CxoTime-like, None Start time (default=beginning of commands)
     :param stop: CxoTime-like, None Stop time (default=end of commands)
-    :param set_ids: bool, True Set star and fid IDs
+    :param obsid: int, None ObsID
     :param scenario: str, None Scenario
     :param cmds: CommandTable, None Use this command table instead of querying
         the archive.
+    :param as_dict: bool, False Return a list of dictionaries instead of a list
+        of ACATable objects.
     :returns: list of ACATable List star catalogs for matching observations.
     """
+    import shelve
+    from contextlib import ExitStack
     from kadi.commands.commands_v2 import REV_PARS_DICT
     from kadi.commands.core import decode_starcat_params
+    from kadi.paths import STARCATS_CACHE_PATH
+    from kadi.commands import conf
+    from proseco.catalog import ACATable
+    from proseco.acq import AcqTable
+    from proseco.guide import GuideTable
 
     obss = get_observations(obsid=obsid, start=start, stop=stop,
                             scenario=scenario, cmds=cmds)
     starcats = []
     rev_pars_dict = REV_PARS_DICT if cmds is None else cmds.rev_pars_dict()
-    for obs in obss:
-        if (idx := obs.get('starcat_idx')) is None:
-            continue
-        params = rev_pars_dict[idx]
-        if isinstance(params, bytes):
-            params = decode_starcat_params(params)
-        starcat = convert_aostrcat_to_acatable(obs, params)
-        starcats.append(starcat)
-        set_detector_and_sim_offset(starcat, obs['simpos'])
-        if set_ids:
-            starcat.add_column(-999, index=2, name='id')
-            starcat.add_column(-999.0, index=5, name='mag')
-            set_fid_ids(starcat)
-            set_star_ids(starcat)
+
+    with ExitStack() as context_stack:
+        if conf.cache_starcats:
+            starcats_db = context_stack.enter_context(
+                shelve.open(str(STARCATS_CACHE_PATH())))
+        else:
+            # Defining as a dict provides the same interface as shelve but
+            # precludes caching.
+            starcats_db = {}
+
+        for obs in obss:
+            if (idx := obs.get('starcat_idx')) is None:
+                continue
+
+            db_key = '{}-{}-{:05d}'.format(
+                obs['starcat_date'], obs['source'], obs['obsid'])
+            if db_key in starcats_db:
+                # From the cache
+                starcat_dict = starcats_db[db_key]
+                if as_dict:
+                    starcat = starcat_dict
+                else:
+                    meta = starcat_dict.pop('meta')
+                    starcat = ACATable(starcat_dict)
+                    starcat.meta = meta
+                    starcat.acqs = AcqTable()
+                    starcat.guides = GuideTable()
+            else:
+                # From the commands archive, building ACATable from backstop params
+                params = rev_pars_dict[idx]
+                if isinstance(params, bytes):
+                    params = decode_starcat_params(params)
+                starcat = convert_aostrcat_to_acatable(obs, params)
+                set_detector_and_sim_offset(starcat, obs['simpos'])
+                starcat.add_column(-999, index=2, name='id')
+                starcat.add_column(-999.0, index=5, name='mag')
+                set_fid_ids(starcat)
+                set_star_ids(starcat)
+
+                starcat_dict = {name: starcat[name].tolist() for name in starcat.colnames}
+                starcat_dict['meta'] = starcat.meta
+                del starcat_dict['meta']['acqs']
+                del starcat_dict['meta']['guides']
+
+                if as_dict:
+                    starcat = starcat_dict
+
+                starcats_db[db_key] = starcat_dict
+
+            starcats.append(starcat)
+
     return starcats
 
 
-def get_observations(obsid=None, *, start=None, stop=None, scenario=None, cmds=None):
+def get_observations(start=None, stop=None, *, obsid=None, scenario=None, cmds=None):
     """Get observations corresponding to input parameters.
 
-    The ``obsid``, ``start``, and ``stop`` parameters serve as matching filters
+    The ``start``, ``stop`` and ``obsid`` parameters serve as matching filters
     on the list of observations that is returned.
 
     Over the mission there are thousands of instances of multiple observations
@@ -299,12 +407,12 @@ def get_observations(obsid=None, *, start=None, stop=None, scenario=None, cmds=N
         >>> from astropy.table import Table
         >>> obs_all = Table(obs_all)
 
-    :param obsid: int, None
-        ObsID
     :param start: CxoTime-like, None
         Start time (default=beginning of commands)
     :param stop: CxoTime-like, None
         Stop time (default=end of commands)
+    :param obsid: int, None
+        ObsID
     :param scenario: str, None
         Scenario
     :param cmds: CommandTable, None
@@ -335,7 +443,9 @@ def get_observations(obsid=None, *, start=None, stop=None, scenario=None, cmds=N
     else:
         cmds_obs = cmds[cmds['tlmsid'] == 'OBS']
 
-    i0, i1 = cmds_obs.find_date([start.date, stop.date])
+    # Get observations in date range with padding
+    i0, i1 = cmds_obs.find_date([(start - 7 * u.day).date,
+                                 (stop + 7 * u.day).date])
     cmds_obs = cmds_obs[i0:i1]
 
     if obsid is not None:
@@ -343,9 +453,16 @@ def get_observations(obsid=None, *, start=None, stop=None, scenario=None, cmds=N
         if len(cmds_obs) == 0:
             raise ValueError(f'No matching observations for {obsid=}')
 
-    obss = [cmd['params'] for cmd in cmds_obs]
+    obss = [cmd['params'].copy() for cmd in cmds_obs]
     for obs, cmd_obs in zip(obss, cmds_obs):
         obs['source'] = cmd_obs['source']
+
+    # Filter observations by date to include any observation that intersects
+    # the date range.
+    datestart = start.date
+    datestop = stop.date
+    obss = [obs for obs in obss
+            if obs['obs_start'] <= datestop and obs['obs_stop'] >= datestart]
 
     return obss
 
