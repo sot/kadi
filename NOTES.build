@@ -1,4 +1,4 @@
-#################################################################
+./#################################################################
 # Events from scratch
 #################################################################
 
@@ -12,8 +12,8 @@ rm -rf kadi/events/migrations
 # First line is just to see that every model works.  One can just drop the
 # --stop=2000:001 if you are sure it will work.
 # Note: use kadi_update_events for the installed version.
-python -m kadi.update_events --start=1999:001 --stop=2000:001
-python -m kadi.update_events --start=2000:001
+python -m kadi.scripts.update_events --start=1999:001 --stop=2000:001
+python -m kadi.scripts.update_events --start=2000:001
 
 #################################################################
 # Remove bad momentum dump (bad telem just before safe mode)
@@ -29,7 +29,7 @@ sqlite> delete from events_dump where start='2020:145:14:17:22.641';
 
 % export KADI=$PWD
 % cp /proj/sot/ska/data/kadi/events.db3 ./
-% python -m kadi.update_events --start=1999:001 --model=CAP --delete-from-start
+% python -m kadi.scripts.update_events --start=1999:001 --model=CAP --delete-from-start
 
 #################################################################
 # Commands from scratch
