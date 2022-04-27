@@ -8,8 +8,6 @@ https://docs.djangoproject.com/en/1.6/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/1.6/ref/settings/
 """
-from __future__ import print_function
-
 # Build paths inside the project like this: join(BASE_DIR, ...)
 import os
 from os.path import join, dirname, realpath
@@ -65,15 +63,7 @@ except IOError:
 
 # Application definition
 INSTALLED_APPS = (
-    # 'django.contrib.admin',
-    # 'django.contrib.auth',
-    # 'django.contrib.contenttypes',
-    # 'django.contrib.sessions',
-    # 'django.contrib.messages',
-    # 'django.contrib.staticfiles',
     'kadi.events',
-    'mica.web',
-    'find_attitude.web_find_attitude',  # app label (last module) must be unique
 )
 
 # Database

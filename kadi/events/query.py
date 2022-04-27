@@ -6,6 +6,9 @@ import numpy as np
 
 from Chandra.Time import DateTime
 
+import django
+django.setup()
+
 from . import models
 from .models import IntervalPad
 

@@ -42,7 +42,7 @@ More help available at:
 """
 
 import os
-import django
+import importlib
 
 # In addition, set DJANGO_ALLOW_ASYNC_UNSAFE, to avoid exception seen running in
 # Jupyter notebook: SynchronousOnlyOperation: You cannot call this from an async
@@ -50,5 +50,39 @@ import django
 
 os.environ['DJANGO_SETTINGS_MODULE'] = 'kadi.settings'
 os.environ["DJANGO_ALLOW_ASYNC_UNSAFE"] = "true"
-django.setup()
-from .query import *  # noqa
+
+__all__ = [
+    'obsids',
+    'tsc_moves',
+    'dark_cal_replicas',
+    'dark_cals',
+    'scs107s',
+    'fa_moves',
+    'grating_moves',
+    'dumps',
+    'eclipses',
+    'manvrs',
+    'dwells',
+    'safe_suns',
+    'normal_suns',
+    'major_events',
+    'caps',
+    'load_segments',
+    'pass_plans',
+    'dsn_comms',
+    'orbits',
+    'rad_zones',
+    'ltt_bads'
+]
+
+
+def __getattr__(name):
+    """
+    Get the attribute from the query module.
+    """
+    if name in __all__:
+        query = importlib.import_module('kadi.events.query')
+        out = globals()[name] = getattr(query, name)
+        return out
+    else:
+        raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
