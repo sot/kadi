@@ -1,4 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+import sys
 import operator
 import warnings
 
@@ -7,7 +8,13 @@ import numpy as np
 from Chandra.Time import DateTime
 
 import django
-django.setup()
+try:
+    django.setup()
+except RuntimeError as exc:
+    if "populate() isn't reentrant" in str(exc):
+        print(f'Warning: {exc}', file=sys.stderr)
+    else:
+        raise
 
 from . import models
 from .models import IntervalPad
