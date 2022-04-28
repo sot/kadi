@@ -113,6 +113,26 @@ def test_get_occweb_dir(str_or_Path, cache):
 
 
 @pytest.mark.skipif(not HAS_OCCWEB, reason='No access to OCCweb')
+@pytest.mark.parametrize('backslash', [True, False])
+def test_get_occweb_noodle(backslash):
+    """Test get_occweb_dir and get_occweb_page (which is called in the process)
+    for a noodle directory"""
+    path = '//noodle/FOT/mission_planning/PRODUCTS/APPR_LOADS/2000/MAR'
+    if backslash:
+        path = path.replace('/', '\\')
+    files_path = occweb.get_occweb_dir(path)
+    exp = [
+        '      Name        Last modified   Size',
+        '---------------- ---------------- ----',
+        'Parent Directory               --    -',
+        '       MAR0500D/ 2002-04-30 13:38    -',
+        '       MAR1200D/ 2002-04-30 13:38    -',
+        '       MAR1900E/ 2004-03-18 13:44    -',
+        '       MAR2600C/ 2002-04-30 13:38    -']
+    assert files_path.pformat_all() == exp
+
+
+@pytest.mark.skipif(not HAS_OCCWEB, reason='No access to OCCweb')
 @pytest.mark.parametrize('cache', [False, True])
 def test_get_occweb_dir_fail(cache):
     """Test get_occweb_dir and get_occweb_page (which is called in the process)"""
