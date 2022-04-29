@@ -58,7 +58,7 @@ os.environ["DJANGO_ALLOW_ASYNC_UNSAFE"] = "true"
 # https://github.com/sot/kadi/pull/231, but the upshot is that we need
 # `from kadi.events import models` to run `django.setup()`. This syntax is what
 # gets used in `update_events.py`. By including 'models' in `__all__` that
-# imports it very `query.py` and thus runs django setup.
+# imports it via `query.py` and thus runs django setup.
 #
 # `manage.py` imports the same module but runs `django.setup()` before importing
 # it. However, it appears to import this via the equivalent of
