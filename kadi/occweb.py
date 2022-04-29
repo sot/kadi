@@ -32,6 +32,12 @@ URLS = {'fdb_major_events': '/occweb/web/fdb_web/Major_Events.html',
         'ifot': '/occweb/web/webapps/ifot/ifot.php',
         }
 
+NOODLE_OCCWEB_MAP = {
+    'FOT': 'occweb/FOT',
+    'GRETA/mission/Backstop': 'Backstop',
+    'vweb': 'occweb/web',
+}
+
 # Initialize 'kadi.occweb' logger.
 logger = logging.getLogger(__name__)
 
@@ -192,13 +198,21 @@ def get_auth_http_headers(username, password):
 
 def get_occweb_page(path, timeout=30, cache=False, binary=False,
                     user=None, password=None):
-    """Get contents of ``path`` on OCCweb.
+    r"""Get contents of ``path`` on OCCweb.
 
     This returns the contents of the OCCweb page at ``path`` where it assumed
     that ``path`` is either a URL (which starts with 'https://occweb') or a
     relative path::
 
       https://occweb.cfa.harvard.edu/occweb/<path>
+
+    In addition ``path`` can be a file or directory path starting with one of
+    the following Noodle directory paths. These get translated to an equivalent
+    location on OCCweb::
+
+      \\noodle\FOT
+      \\noodle\GRETA\mission\Backstop
+      \\noodle\vweb
 
     If ``user`` and ``password`` are not provided then it is required that
     credentials are stored in the file ``~/.netrc``. See the ``Ska.ftp`` package
@@ -221,6 +235,16 @@ def get_occweb_page(path, timeout=30, cache=False, binary=False,
     :returns: str, bytes
         File contents (str if ``binary`` is False, bytes if ``binary`` is True)
     """
+    if isinstance(path, str):
+        path = path.replace('\\', '/')
+        if path.startswith('//noodle/'):
+            for noodle_prefix, occweb_prefix in NOODLE_OCCWEB_MAP.items():
+                if path.startswith(noodle := '//noodle/' + noodle_prefix):
+                    path = path.replace(noodle, ROOTURL + '/' + occweb_prefix)
+                    break
+            else:
+                raise ValueError(f'unrecognized noodle path: {path}')
+
     if isinstance(path, str) and path.startswith('https://occweb'):
         url = path
     else:
