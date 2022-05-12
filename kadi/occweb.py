@@ -31,6 +31,7 @@ URLS = {'fdb_major_events': '/occweb/web/fdb_web/Major_Events.html',
         'fot_major_events': '/occweb/web/fot_web/eng/reports/Chandra_major_events.htm',
         'ifot': '/occweb/web/webapps/ifot/ifot.php',
         }
+LUCKY = 'lucky.cfa.harvard.edu'
 
 # Initialize 'kadi.occweb' logger.
 logger = logging.getLogger(__name__)
@@ -132,7 +133,7 @@ def ftp_put_to_lucky(ftp_dirname, local_files, user=None, logger=None):
     import Ska.ftp
     import uuid
 
-    ftp = Ska.ftp.SFTP('lucky', logger=logger, user=user)
+    ftp = Ska.ftp.SFTP(LUCKY, logger=logger, user=user)
     if user is None:
         user = ftp.ftp.get_channel().transport.get_username()
     ftp.cd('/home/{}'.format(user))
@@ -167,7 +168,7 @@ def ftp_get_from_lucky(ftp_dirname, local_files, user=None, logger=None):
     import Ska.ftp
     import Ska.File
 
-    ftp = Ska.ftp.SFTP('lucky', logger=logger, user=user)
+    ftp = Ska.ftp.SFTP(LUCKY, logger=logger, user=user)
     if user is None:
         user = ftp.ftp.get_channel().transport.get_username()
     ftp.cd('/home/{}/{}'.format(user, ftp_dirname))
