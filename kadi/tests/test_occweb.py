@@ -13,7 +13,7 @@ from kadi import occweb
 
 try:
     Ska.ftp.parse_netrc()['lucky']['login']
-    lucky = Ska.ftp.SFTP('lucky')
+    lucky = Ska.ftp.SFTP(occweb.LUCKY)
 except Exception:
     HAS_LUCKY = False
 else:
@@ -40,7 +40,7 @@ def _test_put_get(user):
     occweb.ftp_get_from_lucky(remote_tmpdir, local_filenames, user=user)
 
     # Clean up remote temp dir
-    lucky = Ska.ftp.SFTP('lucky')
+    lucky = Ska.ftp.SFTP(occweb.LUCKY)
     if user is None:
         user = lucky.ftp.get_channel().transport.get_username()
     lucky.rmdir('/home/{}/{}'.format(user, remote_tmpdir))
