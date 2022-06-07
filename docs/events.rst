@@ -395,8 +395,8 @@ you of syntax here::
     >>> events.manvrs.filter('2011:001', '2012:001', subset=slice(None, 5))  # first 5
     >>> events.manvrs.filter(obsid=14305)
 
-  [1]: https://docs.djangoproject.com/en/1.5/topics/db/queries/
-  [2]: https://docs.djangoproject.com/en/1.5/ref/models/querysets/#field-lookups
+  [1]: https://docs.djangoproject.com/en/3.1/topics/db/queries/
+  [2]: https://docs.djangoproject.com/en/3.1/ref/models/querysets/#field-lookups
 
   :param start: start time (DateTime compatible format)
   :param stop: stop time (DateTime compatible format)
@@ -778,7 +778,7 @@ available data.  The optional ``subset`` arg must be a Python slice() object and
 allows slicing of the filtered output.
 
 This method allows for the use of `Django field lookups
-<https://docs.djangoproject.com/en/1.5/ref/models/querysets/#field-lookups>`_ from the
+<https://docs.djangoproject.com/en/3.1/ref/models/querysets/#field-lookups>`_ from the
 underlying Django model implementation.  A field lookup is similar to an SQL ``WHERE``
 clause with the form ``<field_name>__<filter_type>=<value>`` (with a double underscore
 between).  For instance ``n_dwell__lte=1`` would be the same as ``SELECT ... WHERE n_dwell
@@ -792,7 +792,7 @@ between).  For instance ``n_dwell__lte=1`` would be the same as ``SELECT ... WHE
 For the common case of testing equality (``exact``) there is a shortcut where
 the ``__exact`` can be skipped, so for instance ``n_dwell=1`` selects
 maneuver events with one dwell.  For a full list of field lookups see the general
-Django documentation on `Making queries <https://docs.djangoproject.com/en/1.5/topics/db/queries/>`_
+Django documentation on `Making queries <https://docs.djangoproject.com/en/3.1/topics/db/queries/>`_
 
 Examples::
 
@@ -816,7 +816,7 @@ Advanced filtering
 The result of a :func:`~kadi.events.query.EventQuery.filter` query is a Django
 ``QuerySet`` object.  From this starting point you can chain additional queries
 or take advantage of any of the ``QuerySet`` functionality described in
-`Making queries <https://docs.djangoproject.com/en/1.5/topics/db/queries/>`_.
+`Making queries <https://docs.djangoproject.com/en/3.1/topics/db/queries/>`_.
 
 For example if you wanted to find all maneuvers in 2011-Jan that were not "normal"
 and did not have an intermediate attitude, you could do::
@@ -830,4 +830,4 @@ and did not have an intermediate attitude, you could do::
   <Manvr: start=2011:298:22:07:37.432 dur=492 n_dwell=3 template=unknown>
 
 To go really crazy and allow for even more complex queries, like those requiring ``OR``
-logic, you can use `Django Q objects <https://docs.djangoproject.com/en/1.5/topics/db/queries/#complex-lookups-with-q-objects>`_.
+logic, you can use `Django Q objects <https://docs.djangoproject.com/en/3.1/topics/db/queries/#complex-lookups-with-q-objects>`_.

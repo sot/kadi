@@ -255,7 +255,7 @@ class MyManager(models.Manager):
     The purpose is to make a more user friendly output for event queries.
 
     http://stackoverflow.com/questions/2163151/custom-queryset-and-manager-without-breaking-dry
-    https://docs.djangoproject.com/en/1.5/topics/db/managers/#custom-managers
+    https://docs.djangoproject.com/en/3.1/topics/db/managers/#custom-managers
     """
 
     def get_query_set(self):
@@ -821,6 +821,7 @@ class TscMove(TlmEvent):
             tstart      Float                        Start time (CXC secs)
              tstop      Float                         Stop time (CXC secs)
                dur      Float                              Duration (secs)
+             obsid    Integer                    Observation ID (COBSRQID)
      start_3tscpos    Integer                   Start TSC position (steps)
       stop_3tscpos    Integer                    Stop TSC position (steps)
          start_det    Char(6)   Start detector (ACIS-I ACIS-S HRC-I HRC-S)
@@ -877,6 +878,7 @@ class DarkCalReplica(TlmEvent):
      tstart      Float            Start time (CXC secs)
       tstop      Float             Stop time (CXC secs)
         dur      Float                  Duration (secs)
+      obsid    Integer        Observation ID (COBSRQID)
     ======== ========== ================================
     """
     event_msids = ['ciumacac']
@@ -903,6 +905,7 @@ class DarkCal(TlmEvent):
      tstart      Float            Start time (CXC secs)
       tstop      Float             Stop time (CXC secs)
         dur      Float                  Duration (secs)
+      obsid    Integer        Observation ID (COBSRQID)
     ======== ========== ================================
     """
     event_msids = ['ciumacac']
@@ -938,6 +941,7 @@ class Scs107(TlmEvent):
      tstart      Float            Start time (CXC secs)
       tstop      Float             Stop time (CXC secs)
         dur      Float                  Duration (secs)
+      obsid    Integer        Observation ID (COBSRQID)
       notes       Text               Supplemental notes
     ======== ========== ================================
     """
@@ -977,6 +981,7 @@ class FaMove(TlmEvent):
            tstart      Float            Start time (CXC secs)
             tstop      Float             Stop time (CXC secs)
               dur      Float                  Duration (secs)
+            obsid    Integer        Observation ID (COBSRQID)
      start_3fapos    Integer        Start FA position (steps)
       stop_3fapos    Integer         Stop FA position (steps)
     ============== ========== ================================
@@ -1025,6 +1030,7 @@ class GratingMove(TlmEvent):
              tstart      Float                     Start time (CXC secs)
               tstop      Float                      Stop time (CXC secs)
                 dur      Float                           Duration (secs)
+              obsid    Integer                 Observation ID (COBSRQID)
      start_4lposaro      Float             Start LETG position (degrees)
       stop_4lposaro      Float              Stop LETG position (degrees)
      start_4hposaro      Float             Start HETG position (degrees)
@@ -1102,6 +1108,7 @@ class Dump(TlmEvent):
      tstart      Float            Start time (CXC secs)
       tstop      Float             Stop time (CXC secs)
         dur      Float                  Duration (secs)
+      obsid    Integer        Observation ID (COBSRQID)
     ======== ========== ================================
     """
     event_msids = ['aounload']
@@ -1124,6 +1131,7 @@ class Eclipse(TlmEvent):
      tstart      Float            Start time (CXC secs)
       tstop      Float             Stop time (CXC secs)
         dur      Float                  Duration (secs)
+      obsid    Integer        Observation ID (COBSRQID)
     ======== ========== ================================
     """
     event_msids = ['aoeclips']
@@ -1173,6 +1181,7 @@ class Manvr(TlmEvent):
                  tstart      Float                                        Start time (CXC secs)
                   tstop      Float                                         Stop time (CXC secs)
                     dur      Float                                              Duration (secs)
+                  obsid    Integer                                    Observation ID (COBSRQID)
         prev_manvr_stop   Char(21)             Stop time of previous AOFATTMD=MNVR before manvr
         prev_npnt_start   Char(21)            Start time of previous AOPCADMD=NPNT before manvr
              nman_start   Char(21)                        Start time of AOPCADMD=NMAN for manvr
@@ -1703,6 +1712,7 @@ class SafeSun(TlmEvent):
      tstart      Float            Start time (CXC secs)
       tstop      Float             Stop time (CXC secs)
         dur      Float                  Duration (secs)
+      obsid    Integer        Observation ID (COBSRQID)
       notes       Text
     ======== ========== ================================
     """
@@ -1767,6 +1777,7 @@ class NormalSun(TlmEvent):
      tstart      Float            Start time (CXC secs)
       tstop      Float             Stop time (CXC secs)
         dur      Float                  Duration (secs)
+      obsid    Integer        Observation ID (COBSRQID)
     ======== ========== ================================
     """
     event_msids = ['aopcadmd']

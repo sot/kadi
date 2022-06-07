@@ -373,6 +373,9 @@ to the start of the next maneuver::
           stop_roll      Float                                  Stop roll angle after manvr
               angle      Float                                         Maneuver angle (deg)
            one_shot      Float                            One shot attitude update (arcsec)
+      one_shot_roll      Float                       One shot attitude update roll (arcsec)
+     one_shot_pitch      Float                      One shot attitude update pitch (arcsec)
+       one_shot_yaw      Float                        One shot attitude update yaw (arcsec)
 ==================== ========== ============================================================
 
 ``n_acq``, ``n_guide``, and ``n_kalman``: these provide a count of the number of times
@@ -394,6 +397,12 @@ to the start of the next maneuver::
 
 ``template``: this indicates which of the pre-defined maneuver sequence templates were
     matched by this maneuver.  For details see :ref:`maneuver_templates`.
+
+``one_shot``: one shot attitude update following maneuver.  This is -99.0 for maneuvers
+    with no corresponding transition to NPM.
+
+``one_shot_roll``, ``one_shot_pitch``, and ``one_shot_yaw`` are the values of AOATTER1, 2, and 3
+    from samples after the guide transition.
 
 .. _event_manvr_seq:
 

@@ -54,7 +54,7 @@ def get_fields_table(model):
             field_type += '({})'.format(field.max_length)
         row = [' {} '.format(x) for x in (field.name, field_type, field.help_text)]
         rows.append(row)
-    dat = Table(zip(*rows), names=('Field', 'Type', 'Description'))
+    dat = Table(list(zip(*rows)), names=('Field', 'Type', 'Description'))
     out_lines = table_to_rst(dat)
     return out_lines
 
@@ -65,7 +65,7 @@ def write_lines(lines, outfile):
         with open(outfile, 'w') as f:
             f.write(out)
     else:
-        print out
+        print(out)
 
 
 def get_docstring(model, docstring=None):
@@ -102,7 +102,7 @@ def update_models_docstrings(outfile=None):
     """
     model_file = re.sub(r'\.pyc$', '.py', kadi.events.models.__file__)
     lines = open(model_file, 'r').read().splitlines()
-    for model in models.values():
+    for model in list(models.values()):
         class_start = 'class {}('.format(model.__name__)
         idxs = [ii for ii, line in enumerate(lines) if line.strip() == '"""']
         for idx, idx2 in zip(idxs, idxs[1:]):
@@ -150,7 +150,7 @@ def make_events_tables(outfile=None):
                ':ref:`event_{}`'.format(model_name),
                '``{}``'.format(query_name))
         rows.append(row)
-    dat = Table(zip(*rows), names=('Event class', 'Description', 'Query name'))
+    dat = Table(list(zip(*rows)), names=('Event class', 'Description', 'Query name'))
     out_lines.append('')
     out_lines.extend(table_to_rst(dat))
 
@@ -164,7 +164,7 @@ def make_events_tables(outfile=None):
         row = (query_name, description, model.__name__)
         rows.append(row)
 
-    dat = Table(zip(*rows), names=['Query name', 'Description', 'Event class'])
+    dat = Table(list(zip(*rows)), names=['Query name', 'Description', 'Event class'])
     out_lines.append('')
     out_lines.extend(table_to_rst(dat))
 
