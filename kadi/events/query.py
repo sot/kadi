@@ -245,8 +245,8 @@ class EventQuery(object):
           >>> events.manvrs.filter('2011:001', '2012:001', subset=slice(None, 5))  # first 5
           >>> events.manvrs.filter(obsid=14305)
 
-        [1]: https://docs.djangoproject.com/en/1.5/topics/db/queries/
-        [2]: https://docs.djangoproject.com/en/1.5/ref/models/querysets/#field-lookups
+        [1]: https://docs.djangoproject.com/en/3.1/topics/db/queries/
+        [2]: https://docs.djangoproject.com/en/3.1/ref/models/querysets/#field-lookups
 
         :param start: start time (DateTime compatible format)
         :param stop: stop time (DateTime compatible format)
