@@ -183,7 +183,7 @@ def convert_aostrcat_to_acatable(obs, params, as_dict=False):
 
 
 def get_starcats_as_table(start=None, stop=None, *, obsid=None, unique=False,
-                          scenario=None, cmds=None):
+                          scenario=None, cmds=None, starcat_date=None):
     """Get a single table of star catalog entries corresponding to input parameters.
 
     This function calls ``get_starcats`` with the same parameters and then
@@ -217,11 +217,12 @@ def get_starcats_as_table(start=None, stop=None, *, obsid=None, unique=False,
     :param scenario: str, None Scenario
     :param cmds: CommandTable, None Use this command table instead of querying
         the archive.
+    :param starcat_date: CxoTime-like, None
     :returns: astropy ``Table`` star catalog entries for matching observations.
 
     """
     starcats = get_starcats(obsid=obsid, start=start, stop=stop, scenario=scenario,
-                            cmds=cmds, as_dict=True)
+                            cmds=cmds, starcat_date=starcat_date, as_dict=True)
     out = defaultdict(list)
     for starcat in starcats:
         n_cat = len(starcat['slot'])
@@ -242,7 +243,7 @@ def get_starcats_as_table(start=None, stop=None, *, obsid=None, unique=False,
 
 
 def get_starcats(start=None, stop=None, *, obsid=None, scenario=None,
-                 cmds=None, as_dict=False):
+                 cmds=None, as_dict=False, starcat_date=None):
     """Get a list of star catalogs corresponding to input parameters.
 
     The ``start``, ``stop`` and ``obsid`` parameters serve as matching filters
@@ -302,6 +303,7 @@ def get_starcats(start=None, stop=None, *, obsid=None, scenario=None,
         the archive.
     :param as_dict: bool, False Return a list of dictionaries instead of a list
         of ACATable objects.
+    :param starcat_date: CxoTime-like, None
     :returns: list of ACATable List star catalogs for matching observations.
     """
     import shelve
@@ -315,7 +317,7 @@ def get_starcats(start=None, stop=None, *, obsid=None, scenario=None,
     from proseco.guide import GuideTable
 
     obss = get_observations(obsid=obsid, start=start, stop=stop,
-                            scenario=scenario, cmds=cmds)
+                            scenario=scenario, cmds=cmds, starcat_date=starcat_date)
     starcats = []
     rev_pars_dict = REV_PARS_DICT if cmds is None else cmds.rev_pars_dict()
 
@@ -372,10 +374,12 @@ def get_starcats(start=None, stop=None, *, obsid=None, scenario=None,
     return starcats
 
 
-def get_observations(start=None, stop=None, *, obsid=None, scenario=None, cmds=None):
+def get_observations(
+    start=None, stop=None, *, obsid=None, scenario=None, cmds=None, starcat_date=None
+):
     """Get observations corresponding to input parameters.
 
-    The ``start``, ``stop`` and ``obsid`` parameters serve as matching filters
+    The ``start``, ``stop``, ``starcat_date`` and ``obsid`` parameters serve as matching filters
     on the list of observations that is returned.
 
     Over the mission there are thousands of instances of multiple observations
@@ -407,6 +411,20 @@ def get_observations(start=None, stop=None, *, obsid=None, scenario=None, cmds=N
         >>> from astropy.table import Table
         >>> obs_all = Table(obs_all)
 
+        >>> from kadi.commands import get_observations
+        >>> get_observations(starcat_date='2022:001:17:00:58.521')
+        [{'obsid': 23800,
+        'simpos': 75624,
+        'obs_stop': '2022:002:01:24:53.004',
+        'manvr_start': '2022:001:17:01:02.772',
+        'targ_att': (0.177875061, 0.452625075, 0.827436517, 0.280784286),
+        'npnt_enab': True,
+        'obs_start': '2022:001:17:33:53.255',
+        'prev_att': (0.116555575, -0.407948573, -0.759717367, 0.492770009),
+        'starcat_date': '2022:001:17:00:58.521',
+        'starcat_idx': 171677,
+        'source': 'DEC3021A'}]
+
     :param start: CxoTime-like, None
         Start time (default=beginning of commands)
     :param stop: CxoTime-like, None
@@ -417,10 +435,15 @@ def get_observations(start=None, stop=None, *, obsid=None, scenario=None, cmds=N
         Scenario
     :param cmds: CommandTable, None
         Use this command table instead of querying the archive.
+    :param starcat_date: CxoTime-like, None
+        Date of the observation's star catalog
     :returns: list of dict
         Observation parameters for matching observations.
     """
     from kadi.commands.commands_v2 import get_cmds
+    if starcat_date is not None:
+        start = starcat_date if start is None else start
+        stop = CxoTime(starcat_date) + 7 * u.day if stop is None else stop
     start = CxoTime('1999:001' if start is None else start)
     stop = (CxoTime.now() + 1 * u.year) if stop is None else CxoTime(stop)
 
@@ -447,6 +470,11 @@ def get_observations(start=None, stop=None, *, obsid=None, scenario=None, cmds=N
     i0, i1 = cmds_obs.find_date([(start - 7 * u.day).date,
                                  (stop + 7 * u.day).date])
     cmds_obs = cmds_obs[i0:i1]
+
+    if starcat_date is not None:
+        cmds_obs = cmds_obs[cmds_obs['starcat_date'] == starcat_date]
+        if len(cmds_obs) == 0:
+            raise ValueError(f'No matching observations for {starcat_date=}')
 
     if obsid is not None:
         cmds_obs = cmds_obs[cmds_obs['obsid'] == obsid]
