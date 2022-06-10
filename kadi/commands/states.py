@@ -1328,7 +1328,17 @@ def get_states(start=None, stop=None, state_keys=None, cmds=None, continuity=Non
 
     # Get initial state at start of commands
     if continuity is None:
-        continuity = get_continuity(start, state_keys, scenario=scenario)
+        try:
+            continuity = get_continuity(start, state_keys, scenario=scenario)
+        except ValueError as exc:
+            if 'did not find transitions' in str(exc):
+                raise ValueError(
+                    f'no continuity found for {start=}. Need to have state '
+                    f'transitions following first command at {cmds[0]["date"]} '
+                    'so use a later start date.'
+                )
+            else:
+                raise
 
     # Get transitions, which is a list of dict (state key
     # and new state value at that date).  This goes through each active

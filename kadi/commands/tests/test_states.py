@@ -1507,3 +1507,8 @@ def test_grating_motion_states():
            '2021:230:00:37:56.002 2021:230:00:41:19.002 RETR_MOVE      RETR    NONE grating,letg',
            '2021:230:00:41:19.002 2021:230:12:00:00.000      RETR      RETR    NONE         letg']
     assert sts.pformat_all() == exp
+
+
+def test_early_start_exception():
+    with pytest.raises(ValueError, match="no continuity found for start='2002:001:00:00:00.000'"):
+        states.get_states('2002:001', '2003:001', state_keys=['orbit_point'])
