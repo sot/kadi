@@ -218,6 +218,7 @@ def get_starcats_as_table(start=None, stop=None, *, obsid=None, unique=False,
     :param cmds: CommandTable, None Use this command table instead of querying
         the archive.
     :param starcat_date: CxoTime-like, None
+        Date of the observation's star catalog
     :returns: astropy ``Table`` star catalog entries for matching observations.
 
     """
@@ -304,6 +305,7 @@ def get_starcats(start=None, stop=None, *, obsid=None, scenario=None,
     :param as_dict: bool, False Return a list of dictionaries instead of a list
         of ACATable objects.
     :param starcat_date: CxoTime-like, None
+        Date of the observation's star catalog
     :returns: list of ACATable List star catalogs for matching observations.
     """
     import shelve
@@ -467,6 +469,8 @@ def get_observations(
         cmds_obs = cmds[cmds['tlmsid'] == 'OBS']
 
     # Get observations in date range with padding
+    # _some_ padding is necessary because start/stop are used to filter observations based on
+    # obs_start, which can be more than 30 minutes after starcat_date. I was generous with padding.
     i0, i1 = cmds_obs.find_date([(start - 7 * u.day).date,
                                  (stop + 7 * u.day).date])
     cmds_obs = cmds_obs[i0:i1]
