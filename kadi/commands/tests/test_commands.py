@@ -1,3 +1,4 @@
+from multiprocessing.sharedctypes import Value
 from pathlib import Path
 import os
 
@@ -716,6 +717,8 @@ def test_get_starcats_by_date():
     sc = get_starcats(obsid=8008, scenario='flight')[0]
     sc_by_date = get_starcats(starcat_date='2007:002:04:31:43.965', scenario='flight')[0]
     assert np.all(sc == sc_by_date)
+    with pytest.raises(ValueError, match='No matching observations for starcat_date'):
+        get_starcats(starcat_date='2007:002:04:31:43.966', scenario='flight')
 
 
 def test_get_starcats_as_table():
