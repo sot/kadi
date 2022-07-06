@@ -55,14 +55,14 @@ os.environ["DJANGO_ALLOW_ASYNC_UNSAFE"] = "true"
 # module that is imported in `kadi.events.query`.
 #
 # There is a little subtlety here. See discussion in
-# https://github.com/sot/kadi/pull/231, but the upshot is that we need
-# `from kadi.events import models` to run `django.setup()`. This syntax is what
-# gets used in `update_events.py`. By including 'models' in `__all__` that
-# imports it via `query.py` and thus runs django setup.
+# https://github.com/sot/kadi/pull/231, but the upshot is that `django.setup()` 
+# must be called only once. Within kadi, `django.setup()` is called in `kadi.query`. 
+# Where the call to `django.setup()` actually happens depends on the application:
 #
-# `manage.py` imports the same module but runs `django.setup()` before importing
-# it. However, it appears to import this via the equivalent of
-# `import kadi.events.models`, which does NOT go through `query.py`.
+# - `manage.py` calls `django.setup()` and then imports kadi.models (and it never imports `kadi.query`)
+# - `update_events.py` does `from kadi.events import models`, which calls `events. __getattr__`, 
+#     which in turn imports `kadi.query` (only if it is in `kadi.__all__`)
+# - in any case, `kadi.query` should be imported before models can be used.
 # With this trick of lazy loading, both pathways work!
 
 __all__ = [
