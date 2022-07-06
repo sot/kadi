@@ -709,6 +709,17 @@ def test_get_starcats_date():
     assert sc_cmd['type'] == 'MP_STARCAT'
 
 
+def test_get_starcats_by_date():
+    """Test that the getting a starcat using the starcat_date as argument returns the same catalog
+    as using the OBSID.
+    """
+    sc = get_starcats(obsid=8008, scenario='flight')[0]
+    sc_by_date = get_starcats(starcat_date='2007:002:04:31:43.965', scenario='flight')[0]
+    assert np.all(sc == sc_by_date)
+    with pytest.raises(ValueError, match='No matching observations for starcat_date'):
+        get_starcats(starcat_date='2007:002:04:31:43.966', scenario='flight')
+
+
 def test_get_starcats_as_table():
     """Test that get_starcats_as_table returns the same as vstacked get_starcats"""
     start, stop = '2020:001', '2020:002'
