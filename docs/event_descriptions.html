@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-    <title>Event Descriptions &#8212; kadi 5.11.0 documentation</title>
+    <title>Event Descriptions &#8212; kadi 6.0.0 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/bootstrap-astropy.css" />
     <link rel="stylesheet" type="text/css" href="_static/plot_directive.css" />
@@ -61,7 +61,7 @@
 	 |
       </li>
       <li>
-	<a href="index.html">kadi 5.11.0 documentation</a>
+	<a href="index.html">kadi 6.0.0 documentation</a>
 	 &#187;
       </li>
       
@@ -923,6 +923,18 @@ to the start of the next maneuver:</p>
 <td><p>Float</p></td>
 <td><p>One shot attitude update (arcsec)</p></td>
 </tr>
+<tr class="row-even"><td><p>one_shot_roll</p></td>
+<td><p>Float</p></td>
+<td><p>One shot attitude update roll (arcsec)</p></td>
+</tr>
+<tr class="row-odd"><td><p>one_shot_pitch</p></td>
+<td><p>Float</p></td>
+<td><p>One shot attitude update pitch (arcsec)</p></td>
+</tr>
+<tr class="row-even"><td><p>one_shot_yaw</p></td>
+<td><p>Float</p></td>
+<td><p>One shot attitude update yaw (arcsec)</p></td>
+</tr>
 </tbody>
 </table>
 <dl>
@@ -960,6 +972,10 @@ to the start of the next maneuver:</p>
 </table>
 </dd>
 <dt><code class="docutils literal notranslate"><span class="pre">template</span></code>: this indicates which of the pre-defined maneuver sequence templates were</dt><dd><p>matched by this maneuver.  For details see <a class="reference internal" href="maneuver_templates.html#maneuver-templates"><span class="std std-ref">Maneuver sequence templates</span></a>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">one_shot</span></code>: one shot attitude update following maneuver.  This is -99.0 for maneuvers</dt><dd><p>with no corresponding transition to NPM.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">one_shot_roll</span></code>, <code class="docutils literal notranslate"><span class="pre">one_shot_pitch</span></code>, and <code class="docutils literal notranslate"><span class="pre">one_shot_yaw</span></code> are the values of AOATTER1, 2, and 3</dt><dd><p>from samples after the guide transition.</p>
 </dd>
 </dl>
 </section>

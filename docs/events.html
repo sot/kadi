@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-    <title>Chandra events &#8212; kadi 5.11.0 documentation</title>
+    <title>Chandra events &#8212; kadi 6.0.0 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/bootstrap-astropy.css" />
     <link rel="stylesheet" type="text/css" href="_static/plot_directive.css" />
@@ -61,7 +61,7 @@
 	 |
       </li>
       <li>
-	<a href="index.html">kadi 5.11.0 documentation</a>
+	<a href="index.html">kadi 6.0.0 documentation</a>
 	 &#187;
       </li>
       
@@ -531,8 +531,8 @@ Examples::
   &gt;&gt;&gt; events.manvrs.filter(&#39;2011:001&#39;, &#39;2012:001&#39;, subset=slice(None, 5))  # first 5
   &gt;&gt;&gt; events.manvrs.filter(obsid=14305)
 
-[1]: https://docs.djangoproject.com/en/1.5/topics/db/queries/
-[2]: https://docs.djangoproject.com/en/1.5/ref/models/querysets/#field-lookups
+[1]: https://docs.djangoproject.com/en/3.1/topics/db/queries/
+[2]: https://docs.djangoproject.com/en/3.1/ref/models/querysets/#field-lookups
 
 :param start: start time (DateTime compatible format)
 :param stop: stop time (DateTime compatible format)
@@ -973,7 +973,7 @@ matching events are returned as a Django query set [1].</p>
 <p>If <code class="docutils literal notranslate"><span class="pre">start</span></code> or <code class="docutils literal notranslate"><span class="pre">stop</span></code> are not supplied they default to the beginning / end of
 available data.  The optional <code class="docutils literal notranslate"><span class="pre">subset</span></code> arg must be a Python slice() object and
 allows slicing of the filtered output.</p>
-<p>This method allows for the use of <a class="reference external" href="https://docs.djangoproject.com/en/1.5/ref/models/querysets/#field-lookups">Django field lookups</a> from the
+<p>This method allows for the use of <a class="reference external" href="https://docs.djangoproject.com/en/3.1/ref/models/querysets/#field-lookups">Django field lookups</a> from the
 underlying Django model implementation.  A field lookup is similar to an SQL <code class="docutils literal notranslate"><span class="pre">WHERE</span></code>
 clause with the form <code class="docutils literal notranslate"><span class="pre">&lt;field_name&gt;__&lt;filter_type&gt;=&lt;value&gt;</span></code> (with a double underscore
 between).  For instance <code class="docutils literal notranslate"><span class="pre">n_dwell__lte=1</span></code> would be the same as <code class="docutils literal notranslate"><span class="pre">SELECT</span> <span class="pre">...</span> <span class="pre">WHERE</span> <span class="pre">n_dwell</span>
@@ -987,7 +987,7 @@ between).  For instance <code class="docutils literal notranslate"><span class="
 <p>For the common case of testing equality (<code class="docutils literal notranslate"><span class="pre">exact</span></code>) there is a shortcut where
 the <code class="docutils literal notranslate"><span class="pre">__exact</span></code> can be skipped, so for instance <code class="docutils literal notranslate"><span class="pre">n_dwell=1</span></code> selects
 maneuver events with one dwell.  For a full list of field lookups see the general
-Django documentation on <a class="reference external" href="https://docs.djangoproject.com/en/1.5/topics/db/queries/">Making queries</a></p>
+Django documentation on <a class="reference external" href="https://docs.djangoproject.com/en/3.1/topics/db/queries/">Making queries</a></p>
 <p>Examples:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">kadi</span> <span class="kn">import</span> <span class="n">events</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">events</span><span class="o">.</span><span class="n">manvrs</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="s1">&#39;2011:001&#39;</span><span class="p">,</span> <span class="s1">&#39;2012:001&#39;</span><span class="p">,</span> <span class="n">n_dwell</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">angle__gte</span><span class="o">=</span><span class="mi">140</span><span class="p">)</span>
@@ -1009,7 +1009,7 @@ Django documentation on <a class="reference external" href="https://docs.djangop
 <p>The result of a <a class="reference internal" href="api.html#kadi.events.query.EventQuery.filter" title="kadi.events.query.EventQuery.filter"><code class="xref py py-func docutils literal notranslate"><span class="pre">filter()</span></code></a> query is a Django
 <code class="docutils literal notranslate"><span class="pre">QuerySet</span></code> object.  From this starting point you can chain additional queries
 or take advantage of any of the <code class="docutils literal notranslate"><span class="pre">QuerySet</span></code> functionality described in
-<a class="reference external" href="https://docs.djangoproject.com/en/1.5/topics/db/queries/">Making queries</a>.</p>
+<a class="reference external" href="https://docs.djangoproject.com/en/3.1/topics/db/queries/">Making queries</a>.</p>
 <p>For example if you wanted to find all maneuvers in 2011-Jan that were not “normal”
 and did not have an intermediate attitude, you could do:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">manvrs_2011</span> <span class="o">=</span> <span class="n">events</span><span class="o">.</span><span class="n">manvrs</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="s1">&#39;2011-01-01T00:00:00&#39;</span><span class="p">,</span> <span class="s1">&#39;2012-01-01T00:00:00&#39;</span><span class="p">)</span>
@@ -1022,7 +1022,7 @@ and did not have an intermediate attitude, you could do:</p>
 </pre></div>
 </div>
 <p>To go really crazy and allow for even more complex queries, like those requiring <code class="docutils literal notranslate"><span class="pre">OR</span></code>
-logic, you can use <a class="reference external" href="https://docs.djangoproject.com/en/1.5/topics/db/queries/#complex-lookups-with-q-objects">Django Q objects</a>.</p>
+logic, you can use <a class="reference external" href="https://docs.djangoproject.com/en/3.1/topics/db/queries/#complex-lookups-with-q-objects">Django Q objects</a>.</p>
 </section>
 </section>
 </section>

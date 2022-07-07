@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>kadi.events.models &#8212; kadi 5.11.0 documentation</title>
+    <title>kadi.events.models &#8212; kadi 6.0.0 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/bootstrap-astropy.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/plot_directive.css" />
@@ -47,7 +47,7 @@
     <h3>Navigation</h3>
     <ul>
       <li>
-	<a href="../../../index.html">kadi 5.11.0 documentation</a>
+	<a href="../../../index.html">kadi 6.0.0 documentation</a>
 	 &#187;
       </li>
       <li><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
@@ -320,7 +320,7 @@
 <span class="sd">    The purpose is to make a more user friendly output for event queries.</span>
 
 <span class="sd">    http://stackoverflow.com/questions/2163151/custom-queryset-and-manager-without-breaking-dry</span>
-<span class="sd">    https://docs.djangoproject.com/en/1.5/topics/db/managers/#custom-managers</span>
+<span class="sd">    https://docs.djangoproject.com/en/3.1/topics/db/managers/#custom-managers</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="nf">get_query_set</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -886,6 +886,7 @@
 <span class="sd">            tstart      Float                        Start time (CXC secs)</span>
 <span class="sd">             tstop      Float                         Stop time (CXC secs)</span>
 <span class="sd">               dur      Float                              Duration (secs)</span>
+<span class="sd">             obsid    Integer                    Observation ID (COBSRQID)</span>
 <span class="sd">     start_3tscpos    Integer                   Start TSC position (steps)</span>
 <span class="sd">      stop_3tscpos    Integer                    Stop TSC position (steps)</span>
 <span class="sd">         start_det    Char(6)   Start detector (ACIS-I ACIS-S HRC-I HRC-S)</span>
@@ -942,6 +943,7 @@
 <span class="sd">     tstart      Float            Start time (CXC secs)</span>
 <span class="sd">      tstop      Float             Stop time (CXC secs)</span>
 <span class="sd">        dur      Float                  Duration (secs)</span>
+<span class="sd">      obsid    Integer        Observation ID (COBSRQID)</span>
 <span class="sd">    ======== ========== ================================</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">event_msids</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;ciumacac&#39;</span><span class="p">]</span>
@@ -968,6 +970,7 @@
 <span class="sd">     tstart      Float            Start time (CXC secs)</span>
 <span class="sd">      tstop      Float             Stop time (CXC secs)</span>
 <span class="sd">        dur      Float                  Duration (secs)</span>
+<span class="sd">      obsid    Integer        Observation ID (COBSRQID)</span>
 <span class="sd">    ======== ========== ================================</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">event_msids</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;ciumacac&#39;</span><span class="p">]</span>
@@ -1003,6 +1006,7 @@
 <span class="sd">     tstart      Float            Start time (CXC secs)</span>
 <span class="sd">      tstop      Float             Stop time (CXC secs)</span>
 <span class="sd">        dur      Float                  Duration (secs)</span>
+<span class="sd">      obsid    Integer        Observation ID (COBSRQID)</span>
 <span class="sd">      notes       Text               Supplemental notes</span>
 <span class="sd">    ======== ========== ================================</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -1042,6 +1046,7 @@
 <span class="sd">           tstart      Float            Start time (CXC secs)</span>
 <span class="sd">            tstop      Float             Stop time (CXC secs)</span>
 <span class="sd">              dur      Float                  Duration (secs)</span>
+<span class="sd">            obsid    Integer        Observation ID (COBSRQID)</span>
 <span class="sd">     start_3fapos    Integer        Start FA position (steps)</span>
 <span class="sd">      stop_3fapos    Integer         Stop FA position (steps)</span>
 <span class="sd">    ============== ========== ================================</span>
@@ -1090,6 +1095,7 @@
 <span class="sd">             tstart      Float                     Start time (CXC secs)</span>
 <span class="sd">              tstop      Float                      Stop time (CXC secs)</span>
 <span class="sd">                dur      Float                           Duration (secs)</span>
+<span class="sd">              obsid    Integer                 Observation ID (COBSRQID)</span>
 <span class="sd">     start_4lposaro      Float             Start LETG position (degrees)</span>
 <span class="sd">      stop_4lposaro      Float              Stop LETG position (degrees)</span>
 <span class="sd">     start_4hposaro      Float             Start HETG position (degrees)</span>
@@ -1167,6 +1173,7 @@
 <span class="sd">     tstart      Float            Start time (CXC secs)</span>
 <span class="sd">      tstop      Float             Stop time (CXC secs)</span>
 <span class="sd">        dur      Float                  Duration (secs)</span>
+<span class="sd">      obsid    Integer        Observation ID (COBSRQID)</span>
 <span class="sd">    ======== ========== ================================</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">event_msids</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;aounload&#39;</span><span class="p">]</span>
@@ -1189,6 +1196,7 @@
 <span class="sd">     tstart      Float            Start time (CXC secs)</span>
 <span class="sd">      tstop      Float             Stop time (CXC secs)</span>
 <span class="sd">        dur      Float                  Duration (secs)</span>
+<span class="sd">      obsid    Integer        Observation ID (COBSRQID)</span>
 <span class="sd">    ======== ========== ================================</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">event_msids</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;aoeclips&#39;</span><span class="p">]</span>
@@ -1238,6 +1246,7 @@
 <span class="sd">                 tstart      Float                                        Start time (CXC secs)</span>
 <span class="sd">                  tstop      Float                                         Stop time (CXC secs)</span>
 <span class="sd">                    dur      Float                                              Duration (secs)</span>
+<span class="sd">                  obsid    Integer                                    Observation ID (COBSRQID)</span>
 <span class="sd">        prev_manvr_stop   Char(21)             Stop time of previous AOFATTMD=MNVR before manvr</span>
 <span class="sd">        prev_npnt_start   Char(21)            Start time of previous AOPCADMD=NPNT before manvr</span>
 <span class="sd">             nman_start   Char(21)                        Start time of AOPCADMD=NMAN for manvr</span>
@@ -1768,6 +1777,7 @@
 <span class="sd">     tstart      Float            Start time (CXC secs)</span>
 <span class="sd">      tstop      Float             Stop time (CXC secs)</span>
 <span class="sd">        dur      Float                  Duration (secs)</span>
+<span class="sd">      obsid    Integer        Observation ID (COBSRQID)</span>
 <span class="sd">      notes       Text</span>
 <span class="sd">    ======== ========== ================================</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -1832,6 +1842,7 @@
 <span class="sd">     tstart      Float            Start time (CXC secs)</span>
 <span class="sd">      tstop      Float             Stop time (CXC secs)</span>
 <span class="sd">        dur      Float                  Duration (secs)</span>
+<span class="sd">      obsid    Integer        Observation ID (COBSRQID)</span>
 <span class="sd">    ======== ========== ================================</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">event_msids</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;aopcadmd&#39;</span><span class="p">]</span>

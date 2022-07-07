@@ -207,6 +207,24 @@ please see:
 
    commands_v2.rst
 
+Initial setup
+^^^^^^^^^^^^^
+
+In order to use commands archive v2 to always get the most up-to-date commands,
+you need to set up automated access to OCCweb so the code can fetch recent
+command loads. This is done by creating a file at the top level of your home
+directory called ``.netrc`` which includes the following contents::
+
+    machine  occweb
+    login    <OCCweb username>
+    password <OCCweb password>
+
+If you have other authentication entries in the same file (e.g. for ``lucky``)
+then there needs to be a blank line between entries.
+
+.. Important::
+   If you are on a machine with other users make sure the file is readable only
+   by you. On linux this is done with ``chmod og-rwx ~/.netrc``.
 
 Getting commands
 ^^^^^^^^^^^^^^^^

@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>kadi.commands.states &#8212; kadi 5.11.0 documentation</title>
+    <title>kadi.commands.states &#8212; kadi 6.0.0 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/bootstrap-astropy.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/plot_directive.css" />
@@ -47,7 +47,7 @@
     <h3>Navigation</h3>
     <ul>
       <li>
-	<a href="../../../index.html">kadi 5.11.0 documentation</a>
+	<a href="../../../index.html">kadi 6.0.0 documentation</a>
 	 &#187;
       </li>
       <li><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
@@ -1393,7 +1393,17 @@
 
     <span class="c1"># Get initial state at start of commands</span>
     <span class="k">if</span> <span class="n">continuity</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">continuity</span> <span class="o">=</span> <span class="n">get_continuity</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">state_keys</span><span class="p">,</span> <span class="n">scenario</span><span class="o">=</span><span class="n">scenario</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">continuity</span> <span class="o">=</span> <span class="n">get_continuity</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">state_keys</span><span class="p">,</span> <span class="n">scenario</span><span class="o">=</span><span class="n">scenario</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s1">&#39;did not find transitions&#39;</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">exc</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s1">&#39;no continuity found for </span><span class="si">{</span><span class="n">start</span><span class="si">=}</span><span class="s1">. Need to have state &#39;</span>
+                    <span class="sa">f</span><span class="s1">&#39;transitions following first command at </span><span class="si">{</span><span class="n">cmds</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;date&quot;</span><span class="p">]</span><span class="si">}</span><span class="s1"> &#39;</span>
+                    <span class="s1">&#39;so use a later start date.&#39;</span>
+                <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span>
 
     <span class="c1"># Get transitions, which is a list of dict (state key</span>
     <span class="c1"># and new state value at that date).  This goes through each active</span>
