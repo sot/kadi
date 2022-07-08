@@ -68,6 +68,7 @@ os.environ["DJANGO_ALLOW_ASYNC_UNSAFE"] = "true"
 # With this trick of lazy loading, both pathways work!
 
 __all__ = [
+    'EventQuery',
     'models',
     'obsids',
     'tsc_moves',
