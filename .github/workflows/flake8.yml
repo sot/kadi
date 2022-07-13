@@ -18,4 +18,4 @@ jobs:
         pip install flake8
         # Note: only check files in Ska.engarchive package.  Many other files in
         # the repo are not maintained as PEP8 compliant.
-        flake8 . --count --exclude=docs,validate --ignore=E402,W503,W504,F541 --max-line-length=100 --show-source --statistics
+        flake8 . --count --exclude=docs,validate --ignore=E402,W503,W504,F541,E203 --max-line-length=100 --show-source --statistics
