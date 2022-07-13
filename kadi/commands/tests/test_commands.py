@@ -859,10 +859,10 @@ cmd_events_all_exps = [
     None,
     None,
     [
-        "2020:001:00:00:00.000 | ACISPKT          | AA00000000 | CMD_EVT  | event=Command, event_date=2020:001:00:00:00, scs=0"
-    ],  # noqa
+        "2020:001:00:00:00.000 | ACISPKT          | AA00000000 | CMD_EVT  | event=Command, event_date=2020:001:00:00:00, scs=0"  # noqa
+    ],
     [
-        "2020:001:00:00:00.000 | NOT_RUN          | 4OHETGIN   | CMD_EVT  | event=Command_not_run, event_date=2020:001:00:00:00, scs=0"
+        "2020:001:00:00:00.000 | NOT_RUN          | 4OHETGIN   | CMD_EVT  | event=Command_not_run, event_date=2020:001:00:00:00, scs=0"  # noqa
     ],  # noqa
     [
         "2020:001:00:00:00.000 | COMMAND_SW       | OORMPEN    | CMD_EVT  | event=RTS, event_date=2020:001:00:00:00, msid=OORMPEN, scs=135",  # noqa
@@ -882,16 +882,16 @@ cmd_events_all_exps = [
         "2020:002:17:40:00.000 | ACISPKT          | AA00000000 | CMD_EVT  | event=RTS, event_date=2020:001:00:00:00, scs=135",  # noqa
         "2020:002:17:40:10.000 | ACISPKT          | AA00000000 | CMD_EVT  | event=RTS, event_date=2020:001:00:00:00, scs=135",  # noqa
         "2020:002:17:40:14.000 | ACISPKT          | WSPOW00000 | CMD_EVT  | event=RTS, event_date=2020:001:00:00:00, scs=135",  # noqa
-        "2020:002:17:40:18.000 | ACISPKT          | RS_0000001 | CMD_EVT  | event=RTS, event_date=2020:001:00:00:00, scs=135",
+        "2020:002:17:40:18.000 | ACISPKT          | RS_0000001 | CMD_EVT  | event=RTS, event_date=2020:001:00:00:00, scs=135",  # noqa
     ],  # noqa
     [
-        "2020:001:00:00:00.000 | MP_OBSID         | COAOSQID   | CMD_EVT  | event=Obsid, event_date=2020:001:00:00:00, id=65527, scs=0"
+        "2020:001:00:00:00.000 | MP_OBSID         | COAOSQID   | CMD_EVT  | event=Obsid, event_date=2020:001:00:00:00, id=65527, scs=0"  # noqa
     ],  # noqa
     [
         "2020:001:00:00:00.000 | COMMAND_SW       | AONMMODE   | CMD_EVT  | event=Maneuver, event_date=2020:001:00:00:00, msid=AONMMODE, scs=0",  # noqa
         "2020:001:00:00:00.256 | COMMAND_SW       | AONM2NPE   | CMD_EVT  | event=Maneuver, event_date=2020:001:00:00:00, msid=AONM2NPE, scs=0",  # noqa
         "2020:001:00:00:04.356 | MP_TARGQUAT      | AOUPTARQ   | CMD_EVT  | event=Maneuver, event_date=2020:001:00:00:00, q1=7.05469070e-01, q2=3.29883070e-01, q3=5.34409010e-01, q4=3.28477660e-01, scs=0",  # noqa
-        "2020:001:00:00:10.250 | COMMAND_SW       | AOMANUVR   | CMD_EVT  | event=Maneuver, event_date=2020:001:00:00:00, msid=AOMANUVR, scs=0",
+        "2020:001:00:00:10.250 | COMMAND_SW       | AOMANUVR   | CMD_EVT  | event=Maneuver, event_date=2020:001:00:00:00, msid=AOMANUVR, scs=0",  # noqa
     ],  # noqa
     [
         "2020:001:00:00:00.000 | COMMAND_SW       | ACPCSFSU   | CMD_EVT  | event=Safe_mode, event_date=2020:001:00:00:00, scs=0",  # noqa
@@ -903,7 +903,7 @@ cmd_events_all_exps = [
         "2020:001:00:01:06.685 | ACISPKT          | AA00000000 | CMD_EVT  | event=Safe_mode, event_date=2020:001:00:00:00, scs=0",  # noqa
         "2020:001:00:01:07.710 | ACISPKT          | AA00000000 | CMD_EVT  | event=Safe_mode, event_date=2020:001:00:00:00, scs=0",  # noqa
         "2020:001:00:01:17.960 | ACISPKT          | WSPOW00000 | CMD_EVT  | event=Safe_mode, event_date=2020:001:00:00:00, scs=0",  # noqa
-        "2020:001:00:01:17.960 | COMMAND_SW       | AODSDITH   | CMD_EVT  | event=Safe_mode, event_date=2020:001:00:00:00, scs=0",
+        "2020:001:00:01:17.960 | COMMAND_SW       | AODSDITH   | CMD_EVT  | event=Safe_mode, event_date=2020:001:00:00:00, scs=0",  # noqa
     ],  # noqa
     [
         "2020:001:00:00:00.000 | COMMAND_SW       | AONSMSAF   | CMD_EVT  | event=NSM, event_date=2020:001:00:00:00, scs=0",  # noqa
@@ -913,7 +913,7 @@ cmd_events_all_exps = [
         "2020:001:00:01:06.685 | ACISPKT          | AA00000000 | CMD_EVT  | event=NSM, event_date=2020:001:00:00:00, scs=0",  # noqa
         "2020:001:00:01:07.710 | ACISPKT          | AA00000000 | CMD_EVT  | event=NSM, event_date=2020:001:00:00:00, scs=0",  # noqa
         "2020:001:00:01:17.960 | ACISPKT          | WSPOW00000 | CMD_EVT  | event=NSM, event_date=2020:001:00:00:00, scs=0",  # noqa
-        "2020:001:00:01:17.960 | COMMAND_SW       | AODSDITH   | CMD_EVT  | event=NSM, event_date=2020:001:00:00:00, scs=0",
+        "2020:001:00:01:17.960 | COMMAND_SW       | AODSDITH   | CMD_EVT  | event=NSM, event_date=2020:001:00:00:00, scs=0",  # noqa
     ],  # noqa
     [
         "2020:001:00:00:00.000 | COMMAND_SW       | OORMPDS    | CMD_EVT  | event=SCS-107, event_date=2020:001:00:00:00, scs=0",  # noqa
@@ -921,7 +921,7 @@ cmd_events_all_exps = [
         "2020:001:00:00:01.025 | SIMTRANS         | None       | CMD_EVT  | event=SCS-107, event_date=2020:001:00:00:00, pos=-99616, scs=0",  # noqa
         "2020:001:00:01:06.685 | ACISPKT          | AA00000000 | CMD_EVT  | event=SCS-107, event_date=2020:001:00:00:00, scs=0",  # noqa
         "2020:001:00:01:07.710 | ACISPKT          | AA00000000 | CMD_EVT  | event=SCS-107, event_date=2020:001:00:00:00, scs=0",  # noqa
-        "2020:001:00:01:17.960 | ACISPKT          | WSPOW00000 | CMD_EVT  | event=SCS-107, event_date=2020:001:00:00:00, scs=0",
+        "2020:001:00:01:17.960 | ACISPKT          | WSPOW00000 | CMD_EVT  | event=SCS-107, event_date=2020:001:00:00:00, scs=0",  # noqa
     ],  # noqa
     [
         "2020:001:00:00:00.000 | COMMAND_SW       | OORMPDS    | CMD_EVT  | event=Bright_star_hold, event_date=2020:001:00:00:00, scs=0",  # noqa
@@ -930,10 +930,10 @@ cmd_events_all_exps = [
         "2020:001:00:01:06.685 | ACISPKT          | AA00000000 | CMD_EVT  | event=Bright_star_hold, event_date=2020:001:00:00:00, scs=0",  # noqa
         "2020:001:00:01:07.710 | ACISPKT          | AA00000000 | CMD_EVT  | event=Bright_star_hold, event_date=2020:001:00:00:00, scs=0",  # noqa
         "2020:001:00:01:17.960 | ACISPKT          | WSPOW00000 | CMD_EVT  | event=Bright_star_hold, event_date=2020:001:00:00:00, scs=0",  # noqa
-        "2020:001:00:01:17.960 | COMMAND_SW       | AODSDITH   | CMD_EVT  | event=Bright_star_hold, event_date=2020:001:00:00:00, scs=0",
+        "2020:001:00:01:17.960 | COMMAND_SW       | AODSDITH   | CMD_EVT  | event=Bright_star_hold, event_date=2020:001:00:00:00, scs=0",  # noqa
     ],  # noqa
     [
-        "2020:001:00:00:00.000 | COMMAND_SW       | AOENDITH   | CMD_EVT  | event=Dither, event_date=2020:001:00:00:00, scs=0"
+        "2020:001:00:00:00.000 | COMMAND_SW       | AOENDITH   | CMD_EVT  | event=Dither, event_date=2020:001:00:00:00, scs=0"  # noqa
     ],
 ]  # noqa
 
