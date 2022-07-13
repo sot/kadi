@@ -2,22 +2,21 @@
 This module provides the functions for dynamically determining Chandra commanded states
 based entirely on known history of commands.
 """
-import contextlib
-import re
 import collections
-import itertools
+import contextlib
 import inspect
+import itertools
+import re
 
-import numpy as np
-
-from astropy.table import Table, Column
 import astropy.units as u
-
+import Chandra.Maneuver
+import numpy as np
+import Ska.Sun
+from astropy.table import Column, Table
 from Chandra.Time import DateTime, date2secs, secs2date
 from cxotime import CxoTime
-import Chandra.Maneuver
 from Quaternion import Quat
-import Ska.Sun
+
 from . import commands
 
 # Registry of Transition classes with state transition name as key.  A state transition
@@ -1831,6 +1830,7 @@ def get_chandra_states(main_args=None):
     to stdout or a file.
     """
     import argparse
+
     from astropy.io import ascii
 
     descr = (

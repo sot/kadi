@@ -2,8 +2,8 @@
 import re
 
 from bs4 import BeautifulSoup as parse_html
-
 from Chandra.Time import DateTime
+
 from .. import occweb
 
 REPLACES = (

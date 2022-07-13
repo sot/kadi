@@ -1,9 +1,9 @@
 import weakref
 
 from astropy.table import Column
-from kadi.commands.core import LazyVal, _find, load_idx_cmds, load_pars_dict
 from cxotime import CxoTime
 
+from kadi.commands.core import LazyVal, _find, load_idx_cmds, load_pars_dict
 
 # Globals that contain the entire commands table and the parameters index
 # dictionary.

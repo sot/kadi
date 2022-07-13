@@ -1,12 +1,12 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from copy import deepcopy
 import os
 import sys
+from copy import deepcopy
 
 import numpy as np
+from Chandra.Time import DateTime
 
 from .. import events
-from Chandra.Time import DateTime
 
 
 def test_xdg_config_home_env_var():

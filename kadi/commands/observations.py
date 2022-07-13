@@ -1,13 +1,14 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+import logging
 import os
 from collections import defaultdict
-import logging
 from pathlib import Path
 
-import numpy as np
-from cxotime import CxoTime
 import astropy.units as u
-from astropy.table import Table, unique as table_unique
+import numpy as np
+from astropy.table import Table
+from astropy.table import unique as table_unique
+from cxotime import CxoTime
 
 # kadi.commands.commands_v2 is also a dependency but encapsulated in the
 # functions to reduce top-level imports for v1-compatibility
@@ -62,6 +63,7 @@ def set_detector_and_sim_offset(aca, simpos):
 
 def set_fid_ids(aca):
     from proseco.fid import get_fid_positions
+
     from kadi.commands import conf
 
     fid_yangs, fid_zangs = get_fid_positions(
@@ -103,6 +105,7 @@ def set_star_ids(aca):
     """
     from chandra_aca.transform import radec_to_yagzag
     from Quaternion import Quat
+
     from kadi.commands import conf
 
     q_att = Quat(aca.att)
@@ -155,10 +158,10 @@ def convert_aostrcat_to_acatable(obs, params, as_dict=False):
     :param params: dict of AOSTRCAT parameters
     :returns: ACATable
     """
-    from proseco.catalog import ACATable
-    from proseco.acq import AcqTable
-    from proseco.guide import GuideTable
     from Chandra.Time import date2secs
+    from proseco.acq import AcqTable
+    from proseco.catalog import ACATable
+    from proseco.guide import GuideTable
 
     for idx in range(1, 17):
         if params[f"minmag{idx}"] == params[f"maxmag{idx}"] == 0:
@@ -343,13 +346,15 @@ def get_starcats(
     """
     import shelve
     from contextlib import ExitStack
+
+    from proseco.acq import AcqTable
+    from proseco.catalog import ACATable
+    from proseco.guide import GuideTable
+
+    from kadi.commands import conf
     from kadi.commands.commands_v2 import REV_PARS_DICT
     from kadi.commands.core import decode_starcat_params
     from kadi.paths import STARCATS_CACHE_PATH
-    from kadi.commands import conf
-    from proseco.catalog import ACATable
-    from proseco.acq import AcqTable
-    from proseco.guide import GuideTable
 
     obss = get_observations(
         obsid=obsid,
@@ -561,8 +566,8 @@ def get_agasc_cone_fast(ra, dec, radius=1.5, date=None):
     global STARS_AGASC
 
     agasc_file = AGASC_FILE
-    from agasc.agasc import get_ra_decs, sphere_dist, add_pmcorr_columns
     import tables
+    from agasc.agasc import add_pmcorr_columns, get_ra_decs, sphere_dist
 
     ra_decs = get_ra_decs(agasc_file)
 

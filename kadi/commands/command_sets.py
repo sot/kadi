@@ -3,10 +3,10 @@ import re
 from pathlib import Path
 
 import astropy.units as u
-
-from Quaternion import Quat
 from cxotime import CxoTime
 from parse_cm.common import _coerce_type as coerce_type
+from Quaternion import Quat
+
 from kadi.commands.core import CommandTable
 
 RTS_PATH = Path("FOT/configuration/products/rts")

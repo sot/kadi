@@ -1,16 +1,16 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """Update the events database"""
 
+import argparse
 import os
 import re
-import argparse
 import time
 
 import numpy as np
-
 import pyyaks.logger
 from Chandra.Time import DateTime
 from ska_helpers.run_info import log_run_info
+
 from kadi import __version__  # noqa
 
 logger = None  # for pyflakes
@@ -115,6 +115,7 @@ def delete_from_date(EventModel, start, set_update_date=True):
 def update(EventModel, date_stop):
     import django.db
     from django.core.exceptions import ObjectDoesNotExist
+
     from kadi.events import models
 
     date_stop = DateTime(date_stop)

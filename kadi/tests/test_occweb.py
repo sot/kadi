@@ -1,15 +1,14 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from pathlib import Path
 import os
 import uuid
-import requests
+from pathlib import Path
 
-import Ska.ftp
-import Ska.File
 import pytest
+import requests
+import Ska.File
+import Ska.ftp
 
 from kadi import occweb
-
 
 try:
     Ska.ftp.parse_netrc()["lucky"]["login"]

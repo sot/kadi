@@ -17,8 +17,9 @@ https://github.com/django-extensions/django-extensions/
 
 import datetime
 from decimal import Decimal
-from django.db import models
+
 from django.conf import settings
+from django.db import models
 from django.utils import simplejson
 
 

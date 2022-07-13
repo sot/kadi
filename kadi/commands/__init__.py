@@ -4,6 +4,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 from astropy.config import ConfigNamespace
+
 from kadi.config import ConfigItem
 
 
@@ -61,5 +62,5 @@ class Conf(ConfigNamespace):
 conf = Conf()
 
 
-from .core import *  # noqa
 from .commands import *  # noqa
+from .core import *  # noqa

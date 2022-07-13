@@ -1,13 +1,12 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 from __future__ import division
 
-import re
-import os
 import logging
+import os
+import re
 from pathlib import Path
 
 import numpy as np
-
 from Chandra.Time import DateTime
 
 

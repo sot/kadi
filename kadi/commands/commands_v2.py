@@ -1,41 +1,33 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from collections import defaultdict
-import math
-import difflib
-import os
-from pathlib import Path
 import calendar
-import re
-import gzip
-import pickle
-import itertools
+import difflib
 import functools
-import weakref
+import gzip
+import itertools
 import logging
+import math
+import os
+import pickle
+import re
+import weakref
+from collections import defaultdict
+from pathlib import Path
 
-import numpy as np
-from astropy.table import Table
 import astropy.units as u
+import numpy as np
 import requests
+from astropy.table import Table
+from Chandra.Maneuver import NSM_attitude
 from cxotime import CxoTime
 from testr.test_helper import has_internet
-from Chandra.Maneuver import NSM_attitude
 
-
-from kadi.commands import get_cmds_from_backstop, conf
-from kadi.commands.core import (
-    load_idx_cmds,
-    load_pars_dict,
-    LazyVal,
-    get_par_idx_update_pars_dict,
-    _find,
-    vstack_exact,
-    ska_load_dir,
-    CommandTable,
-    load_name_to_cxotime,
-)
-from kadi.commands.command_sets import get_cmds_from_event
 from kadi import occweb, paths
+from kadi.commands import conf, get_cmds_from_backstop
+from kadi.commands.command_sets import get_cmds_from_event
+from kadi.commands.core import (CommandTable, LazyVal, _find,
+                                get_par_idx_update_pars_dict, load_idx_cmds,
+                                load_name_to_cxotime, load_pars_dict,
+                                ska_load_dir, vstack_exact)
 
 # TODO configuration options, but use DEFAULT_* in the mean time
 # - commands_version (v1, v2)

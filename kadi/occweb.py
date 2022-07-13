@@ -4,22 +4,21 @@ Provide an interface for getting pages from the OCCweb.  For good measure leave
 this off of github.
 """
 
-import re
-import os
-import configobj
 import hashlib
+import logging
+import os
+import re
 import time
 from collections import OrderedDict as odict
 from pathlib import Path
-import logging
 
+import configobj
 import numpy as np
 import requests
-
-from Chandra.Time import DateTime
 from astropy.io import ascii
 from astropy.table import Table
 from astropy.utils.data import download_file
+from Chandra.Time import DateTime
 
 # This is for deprecated functionality to cache to a local directory
 CACHE_DIR = "cache"
@@ -144,9 +143,10 @@ def ftp_put_to_lucky(ftp_dirname, local_files, user=None, logger=None):
     The directory paths of ``local_files`` are stripped off so they all wind up
     in a flat structure within ``ftp_dirname``.
     """
+    import uuid
+
     import Ska.File
     import Ska.ftp
-    import uuid
 
     ftp = Ska.ftp.SFTP(LUCKY, logger=logger, user=user)
     if user is None:
@@ -180,8 +180,8 @@ def ftp_get_from_lucky(ftp_dirname, local_files, user=None, logger=None):
     are copied to the corresponding local_files names.  This is the converse
     of ftp_put_to_lucky and thus requires unique basenames for all files.
     """
-    import Ska.ftp
     import Ska.File
+    import Ska.ftp
 
     ftp = Ska.ftp.SFTP(LUCKY, logger=logger, user=user)
     if user is None:

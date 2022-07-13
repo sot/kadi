@@ -41,8 +41,8 @@ More help available at:
     http://cxc.cfa.harvard.edu/mta/ASPECT/tool_doc/kadi/#details
 """
 
-import os
 import importlib
+import os
 
 # In addition, set DJANGO_ALLOW_ASYNC_UNSAFE, to avoid exception seen running in
 # Jupyter notebook: SynchronousOnlyOperation: You cannot call this from an async

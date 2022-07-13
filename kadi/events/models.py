@@ -1,12 +1,12 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-import sys
 import operator
+import sys
+from itertools import count
 from pathlib import Path
 
-from itertools import count
-
-from django.db import models
 import pyyaks.logger
+from django.db import models
+
 from .manvr_templates import get_manvr_templates
 
 models.query.REPR_OUTPUT_SIZE = 1000  # Increase default number of rows printed
@@ -151,13 +151,13 @@ def import_ska(func):
 
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
-        from Chandra.Time import DateTime
-        from Ska.Numpy import interpolate
-        from Quaternion import Quat
-        import Ska.engarchive.fetch_eng as fetch
-        from Ska.engarchive import utils
         import numpy as np
+        import Ska.engarchive.fetch_eng as fetch
         from astropy import table
+        from Chandra.Time import DateTime
+        from Quaternion import Quat
+        from Ska.engarchive import utils
+        from Ska.Numpy import interpolate
 
         globals()["interpolate"] = interpolate
         globals()["DateTime"] = DateTime
@@ -356,6 +356,7 @@ class BaseModel(models.Model):
             :returns: list of overlapping events
             """
             from Chandra.Time import DateTime
+
             from .query import combine_intervals
 
             # First find the intervals corresponding to overlaps between self events and
@@ -2045,8 +2046,9 @@ class MajorEvent(BaseEvent):
         """
         Get Major Events from FDB and FOT tables on the OCCweb
         """
-        from . import scrape
         import hashlib
+
+        from . import scrape
 
         tstart = DateTime(start).secs
         tstop = DateTime(stop).secs

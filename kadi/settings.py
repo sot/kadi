@@ -10,12 +10,12 @@ https://docs.djangoproject.com/en/1.6/ref/settings/
 """
 # Build paths inside the project like this: join(BASE_DIR, ...)
 import os
-from os.path import join, dirname, realpath
+from os.path import dirname, join, realpath
 
 BASE_DIR = dirname(dirname(realpath(__file__)))
 
 # Data paths for kadi project
-from kadi.paths import EVENTS_DB_PATH, DATA_DIR  # noqa
+from kadi.paths import DATA_DIR, EVENTS_DB_PATH  # noqa
 
 # Make sure there is an events database
 if not os.path.exists(EVENTS_DB_PATH()):

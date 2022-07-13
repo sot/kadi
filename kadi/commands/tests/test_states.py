@@ -1,19 +1,19 @@
 import functools
-import os
-import hashlib
-from pathlib import Path
 import gzip
+import hashlib
+import os
+from pathlib import Path
+
 import numpy as np
+import pytest
+from astropy.io import ascii
+from astropy.table import Table
+from Chandra.Time import DateTime
+from Ska.engarchive import fetch
+from testr.test_helper import has_internet
 
 from kadi import commands
 from kadi.commands import states
-import pytest
-from testr.test_helper import has_internet
-
-from Chandra.Time import DateTime
-from Ska.engarchive import fetch
-from astropy.io import ascii
-from astropy.table import Table
 
 try:
     fetch.get_time_range("dp_pitch")

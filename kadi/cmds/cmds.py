@@ -1,12 +1,11 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-import tables
-
-import numpy as np
-
-from astropy.table import Table
-from Chandra.Time import DateTime
 import pickle
 import warnings
+
+import numpy as np
+import tables
+from astropy.table import Table
+from Chandra.Time import DateTime
 
 from kadi.paths import IDX_CMDS_PATH, PARS_DICT_PATH
 

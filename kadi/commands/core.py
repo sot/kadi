@@ -1,18 +1,17 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import calendar
 import functools
-import os
-import tables
-from pathlib import Path
 import logging
+import os
 import pickle
 import struct
+from pathlib import Path
 
 import numpy as np
-from ska_helpers import retry
-
-from astropy.table import Table, Row, Column, vstack, TableAttribute
+import tables
+from astropy.table import Column, Row, Table, TableAttribute, vstack
 from cxotime import CxoTime
+from ska_helpers import retry
 
 from kadi.paths import IDX_CMDS_PATH, PARS_DICT_PATH
 
@@ -423,6 +422,7 @@ class CommandTable(Table):
 
         elif isinstance(item, (tuple, list)) and all(x in self.colnames for x in item):
             from copy import deepcopy
+
             from astropy.table import groups
 
             out = self.__class__([self[x] for x in item], meta=deepcopy(self.meta))

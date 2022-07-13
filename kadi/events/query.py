@@ -1,13 +1,11 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-import sys
 import operator
+import sys
 import warnings
 
-import numpy as np
-
-from Chandra.Time import DateTime
-
 import django
+import numpy as np
+from Chandra.Time import DateTime
 
 try:
     django.setup()

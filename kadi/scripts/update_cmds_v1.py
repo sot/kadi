@@ -1,22 +1,21 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-import os
 import argparse
 import difflib
+import os
 import pickle
 from pathlib import Path
 
 import numpy as np
-import tables
-
 import pyyaks.logger
 import Ska.DBI
 import Ska.File
+import tables
 from Chandra.Time import DateTime
-from ska_helpers.run_info import log_run_info
 from ska_helpers.retry import retry_call
+from ska_helpers.run_info import log_run_info
 
-from kadi.paths import IDX_CMDS_PATH, PARS_DICT_PATH
 from kadi import __version__
+from kadi.paths import IDX_CMDS_PATH, PARS_DICT_PATH
 
 MPLOGS_DIR = Path(os.environ["SKA"], "data", "mpcrit1", "mplogs")
 
