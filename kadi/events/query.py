@@ -8,11 +8,12 @@ import numpy as np
 from Chandra.Time import DateTime
 
 import django
+
 try:
     django.setup()
 except RuntimeError as exc:
     if "populate() isn't reentrant" in str(exc):
-        print(f'Warning: {exc}', file=sys.stderr)
+        print(f"Warning: {exc}", file=sys.stderr)
     else:
         raise
 
@@ -20,12 +21,12 @@ from . import models
 from .models import IntervalPad
 
 # This gets updated dynamically by code at the end
-__all__ = ['get_dates_vals', 'EventQuery']
+__all__ = ["get_dates_vals", "EventQuery"]
 
 
 def un_unicode(vals):
     # I think this code is orphaned and should never be called.
-    warnings.warn('unexpected call to query.un_unicode', stacklevel=2)
+    warnings.warn("unexpected call to query.un_unicode", stacklevel=2)
     out = tuple(vals)
 
     return out
@@ -52,9 +53,9 @@ def get_true_intervals(dates, vals):
     datestops = dates[transitions[1:]]
 
     intervals_iter = zip(state_vals, datestarts, datestops)
-    intervals = [(date0, date1)
-                 for state_val, date0, date1 in intervals_iter
-                 if state_val]
+    intervals = [
+        (date0, date1) for state_val, date0, date1 in intervals_iter if state_val
+    ]
 
     return intervals
 
@@ -125,7 +126,7 @@ def combine_intervals(op, intervals0, intervals1, start, stop):
     merge_dates0, merge_vals0 = merge_dates_vals(vals0, dates0, dates1)
     merge_dates1, merge_vals1 = merge_dates_vals(vals1, dates1, dates0)
     if np.any(merge_dates0 != merge_dates1):
-        raise ValueError('Failure to properly merge intervals')
+        raise ValueError("Failure to properly merge intervals")
 
     intervals = get_true_intervals(merge_dates0, op(merge_vals0, merge_vals1))
 
@@ -154,7 +155,9 @@ class EventQuery(object):
 
     interval_pad = IntervalPad()  # descriptor defining a Pad for intervals
 
-    def __init__(self, cls=None, left=None, right=None, op=None, pad=None, **filter_kwargs):
+    def __init__(
+        self, cls=None, left=None, right=None, op=None, pad=None, **filter_kwargs
+    ):
         self.cls = cls
         self.left = left
         self.right = right
@@ -164,26 +167,32 @@ class EventQuery(object):
 
     def __repr__(self):
         if self.cls is None:
-            op_name = {'and_': 'AND',
-                       'or_': 'OR'}.get(self.op.__name__, 'UNKNOWN_OP')
+            op_name = {"and_": "AND", "or_": "OR"}.get(self.op.__name__, "UNKNOWN_OP")
             if self.right is None:
                 # This assumes any unary operator is ~.  FIX ME!
-                return 'NOT {}'.format(self.left)
+                return "NOT {}".format(self.left)
             else:
-                return '({} {} {})'.format(self.left, op_name, self.right)
+                return "({} {} {})".format(self.left, op_name, self.right)
         else:
-            bits = ['<EventQuery: ', self.cls.__name__]
+            bits = ["<EventQuery: ", self.cls.__name__]
             if self.interval_pad.start != self.interval_pad.stop:
-                bits.append(' pad=({}, {})'.format(self.interval_pad.start, self.interval_pad.stop))
+                bits.append(
+                    " pad=({}, {})".format(
+                        self.interval_pad.start, self.interval_pad.stop
+                    )
+                )
             else:
                 if self.interval_pad.start != 0:
-                    bits.append(' pad={}'.format(self.interval_pad.start))
+                    bits.append(" pad={}".format(self.interval_pad.start))
             if self.filter_kwargs:
                 bits.append(
-                    ' ' + ' '.join('{}={!r}'.format(k, v)
-                                   for k, v in self.filter_kwargs.items()))
-            bits.append('>')
-            return ''.join(bits)
+                    " "
+                    + " ".join(
+                        "{}={!r}".format(k, v) for k, v in self.filter_kwargs.items()
+                    )
+                )
+            bits.append(">")
+            return "".join(bits)
 
     def __call__(self, pad=None, **filter_kwargs):
         """
@@ -210,13 +219,16 @@ class EventQuery(object):
             if self.right is None:
                 # This assumes any unary operator is ~.  FIX ME!
                 intervals1 = [(DateTime(start).date, DateTime(stop).date)]
-                return combine_intervals(operator.xor, intervals0, intervals1, start, stop)
+                return combine_intervals(
+                    operator.xor, intervals0, intervals1, start, stop
+                )
             else:
                 intervals1 = self.right.intervals(start, stop)
                 return combine_intervals(self.op, intervals0, intervals1, start, stop)
         else:
-            date_intervals = self.cls.get_date_intervals(start, stop, self.interval_pad,
-                                                         **self.filter_kwargs)
+            date_intervals = self.cls.get_date_intervals(
+                start, stop, self.interval_pad, **self.filter_kwargs
+            )
             return date_intervals
 
     @property
@@ -275,14 +287,17 @@ class EventQuery(object):
 
         if obsid is not None:
             if start or stop:
-                raise ValueError('Cannot set both obsid and start or stop')
+                raise ValueError("Cannot set both obsid and start or stop")
 
             # If obsid is set then define a filter so that the start of the event occurs
             # in the interval of the requested obsid.  First get the interval.
             obsid_events = obsids.filter(obsid__exact=obsid)
             if len(obsid_events) != 1:
-                raise ValueError('Error: Found {} events matching obsid={}'
-                                 .format(len(obsid_events), obsid))
+                raise ValueError(
+                    "Error: Found {} events matching obsid={}".format(
+                        len(obsid_events), obsid
+                    )
+                )
             start = obsid_events[0].start
             stop = obsid_events[0].stop
 
@@ -291,22 +306,22 @@ class EventQuery(object):
             # Notable exception in Manvr where the obsid is taken at the
             # end of the maneuver to correspond to the contained dwells.
             obsid_attr = cls._get_obsid_start_attr
-            kwargs[obsid_attr + '__gte'] = start
-            kwargs[obsid_attr + '__lt'] = stop
+            kwargs[obsid_attr + "__gte"] = start
+            kwargs[obsid_attr + "__lt"] = stop
 
         if stop is not None:
-            kwargs['start__lte'] = DateTime(stop).date
+            kwargs["start__lte"] = DateTime(stop).date
 
         if start is not None:
             field_names = [x.name for x in cls.get_model_fields()]
-            attr = ('stop__gt' if 'stop' in field_names else 'start__gt')
+            attr = "stop__gt" if "stop" in field_names else "start__gt"
             kwargs[attr] = DateTime(start).date
 
         if kwargs:
             objs = objs.filter(**kwargs)
         if subset:
             if not isinstance(subset, slice):
-                raise ValueError('subset parameter must be a slice() object')
+                raise ValueError("subset parameter must be a slice() object")
             objs = objs[subset]
 
         return objs
@@ -342,8 +357,8 @@ class LttBadEventQuery(EventQuery):
         """
         Generate new EventQuery event for the same model class but with different pad.
         """
-        if 'msid' in filter_kwargs:
-            filter_kwargs['msid__in'] = ['*', filter_kwargs.pop('msid')]
+        if "msid" in filter_kwargs:
+            filter_kwargs["msid__in"] = ["*", filter_kwargs.pop("msid")]
 
         return EventQuery(cls=self.cls, pad=pad, **filter_kwargs)
 
@@ -352,8 +367,8 @@ class LttBadEventQuery(EventQuery):
 obsids = None  # silence pyflakes
 event_models = models.get_event_models()
 for model_name, model_class in event_models.items():
-    query_name = model_name + 's'  # simple pluralization
-    event_query_class = LttBadEventQuery if model_name == 'ltt_bad' else EventQuery
+    query_name = model_name + "s"  # simple pluralization
+    event_query_class = LttBadEventQuery if model_name == "ltt_bad" else EventQuery
     query_instance = event_query_class(cls=model_class)
     query_instance.__doc__ = model_class.__doc__
     globals()[query_name] = query_instance

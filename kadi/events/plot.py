@@ -39,13 +39,18 @@ def tlm_event(evt, figsize=None, fig=None):
             continue
 
         ax.set_ymargin(0.15)
-        plot_cxctime(ms[msid].times, ms[msid].raw_vals, state_codes=ms[msid].state_codes,
-                     label=msid, ax=ax)
+        plot_cxctime(
+            ms[msid].times,
+            ms[msid].raw_vals,
+            state_codes=ms[msid].state_codes,
+            label=msid,
+            ax=ax,
+        )
         ax.set_ymargin(0)
-        plot_cxctime([evt.tstart, evt.tstart], ax.get_ylim(), 'm--', ax=ax)
-        plot_cxctime([evt.tstop, evt.tstop], ax.get_ylim(), 'm--', ax=ax)
+        plot_cxctime([evt.tstart, evt.tstart], ax.get_ylim(), "m--", ax=ax)
+        plot_cxctime([evt.tstop, evt.tstop], ax.get_ylim(), "m--", ax=ax)
         ax.grid()
-        leg = ax.legend(loc='upper left', fontsize='small', fancybox=True)
+        leg = ax.legend(loc="upper left", fontsize="small", fancybox=True)
         if leg is not None:
             leg.get_frame().set_alpha(0.7)
 
@@ -65,40 +70,63 @@ def manvr(evt, figsize=(8, 10), fig=None):
     fig.clf()
     tstarts = [evt.tstart, evt.tstart]
     tstops = [evt.tstop, evt.tstop]
-    colors = ['r', 'b', 'g', 'm']
+    colors = ["r", "b", "g", "m"]
 
     # AOATTQT estimated quaternion
     ax1 = fig.add_subplot(3, 1, 1)
     for i, color in zip(range(1, 5), colors):
-        msid = 'aoattqt{}'.format(i)
-        plot_cxctime(ms[msid].times, ms[msid].vals, fig=fig, ax=ax1,
-                     color=color, linestyle='-', label=msid, interactive=False)
+        msid = "aoattqt{}".format(i)
+        plot_cxctime(
+            ms[msid].times,
+            ms[msid].vals,
+            fig=fig,
+            ax=ax1,
+            color=color,
+            linestyle="-",
+            label=msid,
+            interactive=False,
+        )
     ax1.set_ylim(-1.05, 1.05)
-    ax1.set_title('Maneuver at {}'.format(evt.start[:-4]))
+    ax1.set_title("Maneuver at {}".format(evt.start[:-4]))
 
     # AOATTER attitude error (arcsec)
     ax2 = fig.add_subplot(3, 1, 2, sharex=ax1)
-    msids = ['aoatter{}'.format(i) for i in range(1, 4)] + ['one_shot']
+    msids = ["aoatter{}".format(i) for i in range(1, 4)] + ["one_shot"]
     scales = [R2A, R2A, R2A, 1.0]
     for color, msid, scale in zip(colors, msids, scales):
-        plot_cxctime(ms[msid].times, ms[msid].vals * scale, fig=fig, ax=ax2,
-                     color=color, linestyle='-', label=msid, interactive=False)
-    ax2.set_ylabel('Attitude error (arcsec)')
+        plot_cxctime(
+            ms[msid].times,
+            ms[msid].vals * scale,
+            fig=fig,
+            ax=ax2,
+            color=color,
+            linestyle="-",
+            label=msid,
+            interactive=False,
+        )
+    ax2.set_ylabel("Attitude error (arcsec)")
     fix_ylim(ax2, 10)
 
     # ACA sequence
     ax3 = fig.add_subplot(3, 1, 3, sharex=ax1)
-    msid = ms['aoacaseq']
-    plot_cxctime(msid.times, msid.raw_vals, state_codes=msid.state_codes, fig=fig, ax=ax3,
-                 interactive=False, label='aoacaseq')
+    msid = ms["aoacaseq"]
+    plot_cxctime(
+        msid.times,
+        msid.raw_vals,
+        state_codes=msid.state_codes,
+        fig=fig,
+        ax=ax3,
+        interactive=False,
+        label="aoacaseq",
+    )
     fix_ylim(ax3, 2.2)
 
     for ax in [ax1, ax2, ax3]:
-        ax.callbacks.connect('xlim_changed', remake_ticks)
-        plot_cxctime(tstarts, ax.get_ylim(), '--r', fig=fig, ax=ax, interactive=False)
-        plot_cxctime(tstops, ax.get_ylim(), '--r', fig=fig, ax=ax, interactive=False)
+        ax.callbacks.connect("xlim_changed", remake_ticks)
+        plot_cxctime(tstarts, ax.get_ylim(), "--r", fig=fig, ax=ax, interactive=False)
+        plot_cxctime(tstops, ax.get_ylim(), "--r", fig=fig, ax=ax, interactive=False)
         ax.grid()
-        leg = ax.legend(loc='upper left', fontsize='small', fancybox=True)
+        leg = ax.legend(loc="upper left", fontsize="small", fancybox=True)
         if leg is not None:
             leg.get_frame().set_alpha(0.7)
 

@@ -50,10 +50,10 @@ def get_cmds(start=None, stop=None, inclusive_stop=False, **kwargs):
     """
     out = _find(start, stop, inclusive_stop, IDX_CMDS, PARS_DICT, **kwargs)
     out.rev_pars_dict = weakref.ref(REV_PARS_DICT)
-    out['params'] = None if len(out) > 0 else Column([], dtype=object)
+    out["params"] = None if len(out) > 0 else Column([], dtype=object)
 
-    out.add_column(CxoTime(out['date'], format='date').secs, name='time', index=6)
-    out['time'].info.format = '.3f'
+    out.add_column(CxoTime(out["date"], format="date").secs, name="time", index=6)
+    out["time"].info.format = ".3f"
 
     # Convert 'date' from bytestring to unicode. This is for compatibility with
     # the legacy V1 API.

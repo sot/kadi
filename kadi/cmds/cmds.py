@@ -10,12 +10,14 @@ import warnings
 
 from kadi.paths import IDX_CMDS_PATH, PARS_DICT_PATH
 
-__all__ = ['filter']
+__all__ = ["filter"]
 
 # Warn about deprecation but use FutureWarning so it actually shows up (since
 # DeprecationWarning is ignored by default)
-warnings.warn('kadi.cmds is deprecated and no longer tested, use kadi.commands instead',
-              FutureWarning)
+warnings.warn(
+    "kadi.cmds is deprecated and no longer tested, use kadi.commands instead",
+    FutureWarning,
+)
 
 
 class LazyVal(object):
@@ -24,12 +26,12 @@ class LazyVal(object):
 
     def __getattribute__(self, name):
         try:
-            val = object.__getattribute__(self, '_val')
+            val = object.__getattribute__(self, "_val")
         except AttributeError:
-            val = object.__getattribute__(self, '_load_func')()
+            val = object.__getattribute__(self, "_load_func")()
             self._val = val
 
-        if name == '_val':
+        if name == "_val":
             return val
         else:
             return val.__getattribute__(name)
@@ -48,15 +50,15 @@ class LazyVal(object):
 
 
 def load_idx_cmds():
-    h5 = tables.open_file(IDX_CMDS_PATH(), mode='r')
+    h5 = tables.open_file(IDX_CMDS_PATH(), mode="r")
     idx_cmds = Table(h5.root.data[:])
     h5.close()
     return idx_cmds
 
 
 def load_pars_dict():
-    with open(PARS_DICT_PATH(), 'rb') as fh:
-        pars_dict = pickle.load(fh, encoding='ascii')
+    with open(PARS_DICT_PATH(), "rb") as fh:
+        pars_dict = pickle.load(fh, encoding="ascii")
     return pars_dict
 
 
@@ -140,9 +142,9 @@ def _find(start=None, stop=None, **kwargs):
     par_ok = np.zeros(len(idx_cmds), dtype=bool)
 
     if start:
-        ok &= idx_cmds['date'] >= DateTime(start).date
+        ok &= idx_cmds["date"] >= DateTime(start).date
     if stop:
-        ok &= idx_cmds['date'] < DateTime(stop).date
+        ok &= idx_cmds["date"] < DateTime(stop).date
     for key, val in kwargs.items():
         key = key.lower()
         if isinstance(val, str):
@@ -154,7 +156,7 @@ def _find(start=None, stop=None, **kwargs):
             for pars_tuple, idx in pars_dict.items():
                 pars = dict(pars_tuple)
                 if pars.get(key) == val:
-                    par_ok |= (idx_cmds['idx'] == idx)
+                    par_ok |= idx_cmds["idx"] == idx
             ok &= par_ok
     cmds = idx_cmds[ok]
     return cmds
@@ -172,22 +174,25 @@ class Cmd(dict):
                 self[name] = value.item()
             except AttributeError:
                 self[name] = value
-        self.update(rev_pars_dict[cmd['idx']])
+        self.update(rev_pars_dict[cmd["idx"]])
 
-        if self['tlmsid'] == 'None':
-            colnames.remove('tlmsid')
+        if self["tlmsid"] == "None":
+            colnames.remove("tlmsid")
 
-        self._ordered_keys = (colnames[1:]
-                              + [par[0] for par in rev_pars_dict[cmd['idx']]])
+        self._ordered_keys = colnames[1:] + [
+            par[0] for par in rev_pars_dict[cmd["idx"]]
+        ]
 
     def __repr__(self):
-        out = ('<{} '.format(self.__class__.__name__) + str(self) + '>')
+        out = "<{} ".format(self.__class__.__name__) + str(self) + ">"
         return out
 
     def __str__(self):
-        out = ('{} {:11s} '.format(self['date'], self['type'])
-               + ' '.join('{}={}'.format(key, self[key]) for key in self._ordered_keys
-                          if key not in ('type', 'date')))
+        out = "{} {:11s} ".format(self["date"], self["type"]) + " ".join(
+            "{}={}".format(key, self[key])
+            for key in self._ordered_keys
+            if key not in ("type", "date")
+        )
         return out
 
 
@@ -197,9 +202,9 @@ class CmdList(object):
 
     @property
     def table(self):
-        if not hasattr(self, '_table'):
+        if not hasattr(self, "_table"):
             self._table = Table(self.cmds, copy=False)
-            self._table.remove_column('idx')
+            self._table.remove_column("idx")
         return self._table
 
     def __len__(self):
@@ -212,7 +217,7 @@ class CmdList(object):
                 return cmds[item]
 
             out = []
-            for idx in cmds['idx']:
+            for idx in cmds["idx"]:
                 # Find the parameters dict for this command from the reverse
                 # lookup table which maps index to the params tuple.
                 out.append(dict(rev_pars_dict[idx]).get(item))
@@ -227,7 +232,7 @@ class CmdList(object):
         return out
 
     def __repr__(self):
-        return '\n'.join(str(Cmd(cmd)) for cmd in self.cmds)
+        return "\n".join(str(Cmd(cmd)) for cmd in self.cmds)
 
     def __str__(self):
         return repr(self)

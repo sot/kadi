@@ -48,7 +48,7 @@ import importlib
 # Jupyter notebook: SynchronousOnlyOperation: You cannot call this from an async
 # context. See: https://stackoverflow.com/questions/59119396
 
-os.environ['DJANGO_SETTINGS_MODULE'] = 'kadi.settings'
+os.environ["DJANGO_SETTINGS_MODULE"] = "kadi.settings"
 os.environ["DJANGO_ALLOW_ASYNC_UNSAFE"] = "true"
 
 # Below is a list of every event query function + the `kadi.events.models`
@@ -68,29 +68,29 @@ os.environ["DJANGO_ALLOW_ASYNC_UNSAFE"] = "true"
 # With this trick of lazy loading, both pathways work!
 
 __all__ = [
-    'EventQuery',
-    'models',
-    'obsids',
-    'tsc_moves',
-    'dark_cal_replicas',
-    'dark_cals',
-    'scs107s',
-    'fa_moves',
-    'grating_moves',
-    'dumps',
-    'eclipses',
-    'manvrs',
-    'dwells',
-    'safe_suns',
-    'normal_suns',
-    'major_events',
-    'caps',
-    'load_segments',
-    'pass_plans',
-    'dsn_comms',
-    'orbits',
-    'rad_zones',
-    'ltt_bads'
+    "EventQuery",
+    "models",
+    "obsids",
+    "tsc_moves",
+    "dark_cal_replicas",
+    "dark_cals",
+    "scs107s",
+    "fa_moves",
+    "grating_moves",
+    "dumps",
+    "eclipses",
+    "manvrs",
+    "dwells",
+    "safe_suns",
+    "normal_suns",
+    "major_events",
+    "caps",
+    "load_segments",
+    "pass_plans",
+    "dsn_comms",
+    "orbits",
+    "rad_zones",
+    "ltt_bads",
 ]
 
 
@@ -99,7 +99,7 @@ def __getattr__(name):
     Get the attribute from the query module.
     """
     if name in __all__:
-        query = importlib.import_module('kadi.events.query')
+        query = importlib.import_module("kadi.events.query")
         out = globals()[name] = getattr(query, name)
         return out
     else:

@@ -11,4 +11,4 @@ from astropy import config
 
 
 class ConfigItem(config.ConfigItem):
-    rootname = 'kadi'
+    rootname = "kadi"
