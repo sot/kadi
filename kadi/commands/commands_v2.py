@@ -69,7 +69,7 @@ def clear_caches():
     MATCHING_BLOCKS.clear()
     for var in [IDX_CMDS, PARS_DICT, REV_PARS_DICT]:
         try:
-            del IDX_CMDS._val
+            del var._val
         except AttributeError:
             pass
 
