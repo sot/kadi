@@ -3,6 +3,7 @@ from pathlib import Path
 
 import astropy.units as u
 import numpy as np
+
 # Use data file from parse_cm.test for get_cmds_from_backstop test.
 # This package is a dependency
 import parse_cm.tests
@@ -13,9 +14,15 @@ from cxotime import CxoTime
 from testr.test_helper import has_internet
 
 from kadi import commands
-from kadi.commands import (commands_v1, commands_v2, conf, core,
-                           get_observations, get_starcats,
-                           get_starcats_as_table)
+from kadi.commands import (
+    commands_v1,
+    commands_v2,
+    conf,
+    core,
+    get_observations,
+    get_starcats,
+    get_starcats_as_table,
+)
 from kadi.commands.command_sets import get_cmds_from_event
 from kadi.scripts import update_cmds_v1, update_cmds_v2
 
