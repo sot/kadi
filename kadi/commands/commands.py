@@ -43,17 +43,15 @@ def get_cmds(start=None, stop=None, inclusive_stop=False, scenario=None, **kwarg
 
     :returns: :class:`~kadi.commands.commands.CommandTable` of commands
     """
-    commands_version = os.environ.get('KADI_COMMANDS_VERSION',
-                                      conf.commands_version)
-    if commands_version == '2':
+    commands_version = os.environ.get("KADI_COMMANDS_VERSION", conf.commands_version)
+    if commands_version == "2":
         from kadi.commands.commands_v2 import get_cmds as get_cmds_
+
         get_cmds_ = functools.partial(get_cmds_, scenario=scenario)
     else:
         from kadi.commands.commands_v1 import get_cmds as get_cmds_
 
-    cmds = get_cmds_(start=start, stop=stop,
-                     inclusive_stop=inclusive_stop,
-                     **kwargs)
+    cmds = get_cmds_(start=start, stop=stop, inclusive_stop=inclusive_stop, **kwargs)
     return cmds
 
 
@@ -63,9 +61,8 @@ def clear_caches():
     This is useful for testing and in case upstream products like the Command
     Events sheet have changed during a session.
     """
-    commands_version = os.environ.get('KADI_COMMANDS_VERSION',
-                                      conf.commands_version)
-    if commands_version == '2':
+    commands_version = os.environ.get("KADI_COMMANDS_VERSION", conf.commands_version)
+    if commands_version == "2":
         from kadi.commands.commands_v2 import clear_caches as clear_caches_vN
     else:
         from kadi.commands.commands_v1 import clear_caches as clear_caches_vN

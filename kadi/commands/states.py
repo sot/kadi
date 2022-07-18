@@ -2,22 +2,21 @@
 This module provides the functions for dynamically determining Chandra commanded states
 based entirely on known history of commands.
 """
-import contextlib
-import re
 import collections
-import itertools
+import contextlib
 import inspect
+import itertools
+import re
 
-import numpy as np
-
-from astropy.table import Table, Column
 import astropy.units as u
-
+import Chandra.Maneuver
+import numpy as np
+import Ska.Sun
+from astropy.table import Column, Table
 from Chandra.Time import DateTime, date2secs, secs2date
 from cxotime import CxoTime
-import Chandra.Maneuver
 from Quaternion import Quat
-import Ska.Sun
+
 from . import commands
 
 # Registry of Transition classes with state transition name as key.  A state transition
@@ -31,21 +30,46 @@ TRANSITION_CLASSES = set()
 STATE_KEYS = []
 
 # Quaternion componenent names
-QUAT_COMPS = ['q1', 'q2', 'q3', 'q4']
+QUAT_COMPS = ["q1", "q2", "q3", "q4"]
 
 # State keys for PCAD-related transitions.  If *any* of these are requested then
 # *all* of them need to be processed to get the correct answer.
-PCAD_STATE_KEYS = (QUAT_COMPS
-                   + ['targ_' + qc for qc in QUAT_COMPS]
-                   + ['ra', 'dec', 'roll']
-                   + ['auto_npnt', 'pcad_mode', 'pitch', 'off_nom_roll'])
+PCAD_STATE_KEYS = (
+    QUAT_COMPS
+    + ["targ_" + qc for qc in QUAT_COMPS]
+    + ["ra", "dec", "roll"]
+    + ["auto_npnt", "pcad_mode", "pitch", "off_nom_roll"]
+)
 
 # Default state keys (mostly matches classic command states list)
-DEFAULT_STATE_KEYS = ('ccd_count', 'clocking', 'dec', 'dither', 'fep_count',
-                      'hetg', 'letg', 'obsid', 'off_nom_roll', 'pcad_mode', 'pitch', 'power_cmd',
-                      'q1', 'q2', 'q3', 'q4', 'ra', 'roll', 'si_mode', 'simfa_pos', 'simpos',
-                      'targ_q1', 'targ_q2', 'targ_q3', 'targ_q4',
-                      'vid_board')
+DEFAULT_STATE_KEYS = (
+    "ccd_count",
+    "clocking",
+    "dec",
+    "dither",
+    "fep_count",
+    "hetg",
+    "letg",
+    "obsid",
+    "off_nom_roll",
+    "pcad_mode",
+    "pitch",
+    "power_cmd",
+    "q1",
+    "q2",
+    "q3",
+    "q4",
+    "ra",
+    "roll",
+    "si_mode",
+    "simfa_pos",
+    "simpos",
+    "targ_q1",
+    "targ_q2",
+    "targ_q3",
+    "targ_q4",
+    "vid_board",
+)
 
 
 @contextlib.contextmanager
@@ -61,6 +85,7 @@ def disable_grating_move_duration():
 
 class NoTransitionsError(ValueError):
     """No transitions found within commands"""
+
     pass
 
 
@@ -68,7 +93,7 @@ class TransKeysSet(set):
     """Like set() but with more compact str output for table printing"""
 
     def __str__(self):
-        return ','.join(sorted(self))
+        return ",".join(sorted(self))
 
     def __and__(self, other):
         return TransKeysSet(super(TransKeysSet, self).__and__(other))
@@ -97,17 +122,19 @@ class StateDict(dict):
 # Transition base classes
 ###################################################################
 
+
 class TransitionMeta(type):
     """
     Metaclass that adds the class to the TRANSITIONS dict (keyed by state_key),
     the TRANSITIONS_CLASSES set, and makes the complete list of STATE_KEYS.
     """
+
     def __new__(mcls, name, bases, members):
         cls = super(TransitionMeta, mcls).__new__(mcls, name, bases, members)
 
         # Register transition classes that have a `state_keys` (base classes do
         # not have this attribute set).
-        if hasattr(cls, 'state_keys'):
+        if hasattr(cls, "state_keys"):
             for state_key in cls.state_keys:
                 if state_key not in STATE_KEYS:
                     STATE_KEYS.append(state_key)
@@ -124,6 +151,7 @@ class BaseTransition(object, metaclass=TransitionMeta):
     """
     Base transition class from which all actual transition classes are derived.
     """
+
     @classmethod
     def get_state_changing_commands(cls, cmds):
         """
@@ -154,16 +182,18 @@ class BaseTransition(object, metaclass=TransitionMeta):
         # Second do command_params.  Note could use `cmds[attr] == val`for "vectorized"
         # compare, but unrolling the loop here is more efficient since the CmdList class
         # would internally assemble a pure-Python version of the column first.
-        if hasattr(cls, 'command_params'):
+        if hasattr(cls, "command_params"):
             attrs_list = list(cls.command_params.keys())
-            vals_list = [val if isinstance(val, list) else [val]
-                         for val in cls.command_params.values()]
+            vals_list = [
+                val if isinstance(val, list) else [val]
+                for val in cls.command_params.values()
+            ]
             ok = np.ones(len(out_cmds), dtype=bool)
             for idx, cmd in enumerate(out_cmds):
                 for attr, vals in zip(attrs_list, vals_list):
                     ok_idx = False
                     for val in vals:
-                        ok_idx |= (cmd[attr] == val)
+                        ok_idx |= cmd[attr] == val
                     ok[idx] = ok[idx] & ok_idx
 
             out_cmds = out_cmds[ok]
@@ -176,43 +206,48 @@ class BaseTransition(object, metaclass=TransitionMeta):
         Put some useful information at the top of docstring.
         """
         docs = []
-        docs.append('*State keys*: ' + ', '.join(cls.state_keys))
+        docs.append("*State keys*: " + ", ".join(cls.state_keys))
 
-        if hasattr(cls, 'command_attributes'):
+        if hasattr(cls, "command_attributes"):
             cmd_attrs = []
             for key, val in cls.command_attributes.items():
-                cmd_attrs.append('{}={}'.format(key, val))
+                cmd_attrs.append("{}={}".format(key, val))
 
-            if hasattr(cls, 'command_params'):
+            if hasattr(cls, "command_params"):
                 keys_list = list(cls.command_params.keys())
-                vals_list = [val if isinstance(val, list) else [val]
-                             for val in cls.command_params.values()]
+                vals_list = [
+                    val if isinstance(val, list) else [val]
+                    for val in cls.command_params.values()
+                ]
                 for key, vals in zip(keys_list, vals_list):
-                    valstr = ' or '.join(str(val) for val in vals)
-                    cmd_attrs.append('{}={}'.format(key, valstr))
+                    valstr = " or ".join(str(val) for val in vals)
+                    cmd_attrs.append("{}={}".format(key, valstr))
 
-            docs.append('')
-            docs.append('*Commands*: ' + ', '.join(cmd_attrs))
+            docs.append("")
+            docs.append("*Commands*: " + ", ".join(cmd_attrs))
 
         others = []
         for attr, val in cls.__dict__.items():
-            if (attr.startswith('_') or inspect.ismethod(val)
-                    or attr in ('state_keys', 'command_attributes', 'command_params')):
+            if (
+                attr.startswith("_")
+                or inspect.ismethod(val)
+                or attr in ("state_keys", "command_attributes", "command_params")
+            ):
                 continue
-            others.append('{}={}'.format(attr, val))
+            others.append("{}={}".format(attr, val))
         if others:
-            docs.append('')
-            docs.append('*Others*: ' + ', '.join(others))
+            docs.append("")
+            docs.append("*Others*: " + ", ".join(others))
 
         # Common 4-space indent
-        docs = ['    ' + doc for doc in docs]
+        docs = ["    " + doc for doc in docs]
 
         if cls.__doc__:
             # Get rid of initial new line and any trailing whitespace/newlines
-            docs.insert(0, cls.__doc__.lstrip('\n').rstrip())
-            docs.insert(1, '    ')
+            docs.insert(0, cls.__doc__.lstrip("\n").rstrip())
+            docs.insert(1, "    ")
 
-        cls.__doc__ = '\n'.join(docs)
+        cls.__doc__ = "\n".join(docs)
 
 
 class FixedTransition(BaseTransition):
@@ -225,6 +260,7 @@ class FixedTransition(BaseTransition):
     :param transition_key: single transition key or list of transition keys
     :param transition_val: single transition value or list of values
     """
+
     @classmethod
     def set_transitions(cls, transitions_dict, cmds, start, stop):
         """
@@ -247,7 +283,7 @@ class FixedTransition(BaseTransition):
             attrs = [attrs]
 
         for cmd in state_cmds:
-            date = cmd['date']
+            date = cmd["date"]
             for val, attr in zip(vals, attrs):
                 transitions_dict[date][attr] = val
 
@@ -263,6 +299,7 @@ class ParamTransition(BaseTransition):
     :param transition_key: single transition key or list of transition keys
     :param cmd_param_key: command parameter name (str or list of str)
     """
+
     @classmethod
     def set_transitions(cls, transitions_dict, cmds, start, stop):
         """
@@ -287,12 +324,12 @@ class ParamTransition(BaseTransition):
             names = [names]
 
         for cmd in state_cmds:
-            date = cmd['date']
-            cmd_idx = cmd['idx']
+            date = cmd["date"]
+            cmd_idx = cmd["idx"]
             if rev_pars_dict is None or cmd_idx == -1:
-                params = cmd['params']
+                params = cmd["params"]
             else:
-                params = dict(rev_pars_dict[cmd['idx']])
+                params = dict(rev_pars_dict[cmd["idx"]])
 
             for name, param_key in zip(names, param_keys):
                 transitions_dict[date][name] = params[param_key]
@@ -302,89 +339,101 @@ class ParamTransition(BaseTransition):
 # CCDM format and subformat transitions
 ###################################################################
 
+
 class Format1_Transition(FixedTransition):
     """Transition to telemetry format 1"""
-    command_attributes = {'tlmsid': 'CSELFMT1'}
-    state_keys = ['format']
-    transition_key = 'format'
-    transition_val = 'FMT1'
+
+    command_attributes = {"tlmsid": "CSELFMT1"}
+    state_keys = ["format"]
+    transition_key = "format"
+    transition_val = "FMT1"
 
 
 class Format2_Transition(FixedTransition):
     """Transition to telemetry format 2"""
-    command_attributes = {'tlmsid': 'CSELFMT2'}
-    state_keys = ['format']
-    transition_key = 'format'
-    transition_val = 'FMT2'
+
+    command_attributes = {"tlmsid": "CSELFMT2"}
+    state_keys = ["format"]
+    transition_key = "format"
+    transition_val = "FMT2"
 
 
 class Format3_Transition(FixedTransition):
     """Transition to telemetry format 3"""
-    command_attributes = {'tlmsid': 'CSELFMT3'}
-    state_keys = ['format']
-    transition_key = 'format'
-    transition_val = 'FMT3'
+
+    command_attributes = {"tlmsid": "CSELFMT3"}
+    state_keys = ["format"]
+    transition_key = "format"
+    transition_val = "FMT3"
 
 
 class Format4_Transition(FixedTransition):
     """Transition to telemetry format 4"""
-    command_attributes = {'tlmsid': 'CSELFMT4'}
-    state_keys = ['format']
-    transition_key = 'format'
-    transition_val = 'FMT4'
+
+    command_attributes = {"tlmsid": "CSELFMT4"}
+    state_keys = ["format"]
+    transition_key = "format"
+    transition_val = "FMT4"
 
 
 class Format5_Transition(FixedTransition):
     """Transition to telemetry format 5"""
-    command_attributes = {'tlmsid': 'CSELFMT5'}
-    state_keys = ['format']
-    transition_key = 'format'
-    transition_val = 'FMT5'
+
+    command_attributes = {"tlmsid": "CSELFMT5"}
+    state_keys = ["format"]
+    transition_key = "format"
+    transition_val = "FMT5"
 
 
 class Format6_Transition(FixedTransition):
     """Transition to telemetry format 6"""
-    command_attributes = {'tlmsid': 'CSELFMT6'}
-    state_keys = ['format']
-    transition_key = 'format'
-    transition_val = 'FMT6'
+
+    command_attributes = {"tlmsid": "CSELFMT6"}
+    state_keys = ["format"]
+    transition_key = "format"
+    transition_val = "FMT6"
 
 
 class SubFormatEPS_Transition(FixedTransition):
     """Transition to telemetry EPS subformat"""
-    command_attributes = {'tlmsid': 'OFMTSEPS'}
-    state_keys = ['subformat']
-    transition_key = 'subformat'
-    transition_val = 'EPS'
+
+    command_attributes = {"tlmsid": "OFMTSEPS"}
+    state_keys = ["subformat"]
+    transition_key = "subformat"
+    transition_val = "EPS"
 
 
 class SubFormatNRM_Transition(FixedTransition):
     """Transition to telemetry NRM subformat"""
-    command_attributes = {'tlmsid': 'OFMTSNRM'}
-    state_keys = ['subformat']
-    transition_key = 'subformat'
-    transition_val = 'NORM'
+
+    command_attributes = {"tlmsid": "OFMTSNRM"}
+    state_keys = ["subformat"]
+    transition_key = "subformat"
+    transition_val = "NORM"
 
 
 class SubFormatPDG_Transition(FixedTransition):
     """Transition to telemetry PDG subformat"""
-    command_attributes = {'tlmsid': 'OFMTSPDG'}
-    state_keys = ['subformat']
-    transition_key = 'subformat'
-    transition_val = 'PDG'
+
+    command_attributes = {"tlmsid": "OFMTSPDG"}
+    state_keys = ["subformat"]
+    transition_key = "subformat"
+    transition_val = "PDG"
 
 
 class SubFormatSSR_Transition(FixedTransition):
     """Transition to telemetry SSR subformat"""
-    command_attributes = {'tlmsid': 'OFMTSSSR'}
-    state_keys = ['subformat']
-    transition_key = 'subformat'
-    transition_val = 'SSR'
+
+    command_attributes = {"tlmsid": "OFMTSSSR"}
+    state_keys = ["subformat"]
+    transition_key = "subformat"
+    transition_val = "SSR"
 
 
 ###################################################################
 # Mech transitions
 ###################################################################
+
 
 class MechMove(FixedTransition):
     """
@@ -405,6 +454,7 @@ class MechMove(FixedTransition):
     :param move_duration: duration of the move (astropy time Quantity)
     :param apply_move_duration: if True, apply the move duration to states
     """
+
     apply_move_duration = True
 
     @classmethod
@@ -430,16 +480,16 @@ class MechMove(FixedTransition):
             attrs = [attrs]
 
         for cmd in state_cmds:
-            date_start = CxoTime(cmd['date'])
+            date_start = CxoTime(cmd["date"])
             date_stop = date_start + move_duration
             for val, attr in zip(vals, attrs):
-                if attr == 'grating':
+                if attr == "grating":
                     transitions_dict[date_start.date][attr] = val
                 else:
                     # 'letg' or 'hetg' insert/retract status, include the move
                     # interval here
                     if cls.apply_move_duration:
-                        transitions_dict[date_start.date][attr] = val + '_MOVE'
+                        transitions_dict[date_start.date][attr] = val + "_MOVE"
                         transitions_dict[date_stop.date][attr] = val
                     else:
                         transitions_dict[date_start.date][attr] = val
@@ -447,128 +497,143 @@ class MechMove(FixedTransition):
 
 class HETG_INSR_Transition(MechMove):
     """HETG insertion"""
-    command_attributes = {'tlmsid': '4OHETGIN'}
-    state_keys = ['letg', 'hetg', 'grating']
-    transition_key = ['hetg', 'grating']
-    transition_val = ['INSR', 'HETG']
+
+    command_attributes = {"tlmsid": "4OHETGIN"}
+    state_keys = ["letg", "hetg", "grating"]
+    transition_key = ["hetg", "grating"]
+    transition_val = ["INSR", "HETG"]
     move_duration = 157 * u.s
 
 
 class HETG_RETR_Transition(MechMove):
     """HETG retraction"""
-    command_attributes = {'tlmsid': '4OHETGRE'}
-    state_keys = ['letg', 'hetg', 'grating']
-    transition_key = ['hetg', 'grating']
-    transition_val = ['RETR', 'NONE']
+
+    command_attributes = {"tlmsid": "4OHETGRE"}
+    state_keys = ["letg", "hetg", "grating"]
+    transition_key = ["hetg", "grating"]
+    transition_val = ["RETR", "NONE"]
     move_duration = 153 * u.s
 
 
 class LETG_INSR_Transition(MechMove):
     """LETG insertion"""
-    command_attributes = {'tlmsid': '4OLETGIN'}
-    state_keys = ['letg', 'hetg', 'grating']
-    transition_key = ['letg', 'grating']
-    transition_val = ['INSR', 'LETG']
+
+    command_attributes = {"tlmsid": "4OLETGIN"}
+    state_keys = ["letg", "hetg", "grating"]
+    transition_key = ["letg", "grating"]
+    transition_val = ["INSR", "LETG"]
     move_duration = 203 * u.s
 
 
 class LETG_RETR_Transition(MechMove):
     """LETG retraction"""
-    command_attributes = {'tlmsid': '4OLETGRE'}
-    state_keys = ['letg', 'hetg', 'grating']
-    transition_key = ['letg', 'grating']
-    transition_val = ['RETR', 'NONE']
+
+    command_attributes = {"tlmsid": "4OLETGRE"}
+    state_keys = ["letg", "hetg", "grating"]
+    transition_key = ["letg", "grating"]
+    transition_val = ["RETR", "NONE"]
     move_duration = 203 * u.s
 
 
 class SimTscTransition(ParamTransition):
     """SIM translating science compartment translation"""
-    command_attributes = {'type': 'SIMTRANS'}
-    state_keys = ['simpos']
-    transition_key = 'simpos'
-    cmd_param_key = 'pos'
+
+    command_attributes = {"type": "SIMTRANS"}
+    state_keys = ["simpos"]
+    transition_key = "simpos"
+    cmd_param_key = "pos"
 
 
 class SimFocusTransition(ParamTransition):
     """SIM focus assembly translation"""
-    command_attributes = {'type': 'SIMFOCUS'}
-    state_keys = ['simfa_pos']
-    transition_key = 'simfa_pos'
-    cmd_param_key = 'pos'
+
+    command_attributes = {"type": "SIMFOCUS"}
+    state_keys = ["simfa_pos"]
+    transition_key = "simfa_pos"
+    cmd_param_key = "pos"
 
 
 ###################################################################
 # OBC etc transitions
 ###################################################################
 
+
 class ObsidTransition(ParamTransition):
     """Obsid update"""
-    command_attributes = {'type': 'MP_OBSID'}
-    state_keys = ['obsid']
-    transition_key = 'obsid'
-    cmd_param_key = 'id'
+
+    command_attributes = {"type": "MP_OBSID"}
+    state_keys = ["obsid"]
+    transition_key = "obsid"
+    cmd_param_key = "id"
 
 
 class EclipseEntryTimerTransition(ParamTransition):
     """Eclipse entry timer update"""
-    command_attributes = {'tlmsid': 'EOECLETO'}
-    state_keys = ['eclipse_timer']
-    transition_key = 'eclipse_timer'
-    cmd_param_key = 'timecnt'
+
+    command_attributes = {"tlmsid": "EOECLETO"}
+    state_keys = ["eclipse_timer"]
+    transition_key = "eclipse_timer"
+    cmd_param_key = "timecnt"
 
 
 class EclipsePenumbraEntryTransition(FixedTransition):
     """Eclipse penumbra entry"""
-    command_attributes = {'type': 'ORBPOINT'}
-    command_params = {'event_type': ['PENTRY', 'LSPENTRY']}
-    state_keys = ['eclipse']
-    transition_key = 'eclipse'
-    transition_val = 'PENUMBRA'
+
+    command_attributes = {"type": "ORBPOINT"}
+    command_params = {"event_type": ["PENTRY", "LSPENTRY"]}
+    state_keys = ["eclipse"]
+    transition_key = "eclipse"
+    transition_val = "PENUMBRA"
 
 
 class EclipsePenumbraExitTransition(FixedTransition):
     """Eclipse penumbra exit"""
-    command_attributes = {'type': 'ORBPOINT'}
-    command_params = {'event_type': ['PEXIT', 'LSPEXIT']}
-    state_keys = ['eclipse']
-    transition_key = 'eclipse'
-    transition_val = 'DAY'
+
+    command_attributes = {"type": "ORBPOINT"}
+    command_params = {"event_type": ["PEXIT", "LSPEXIT"]}
+    state_keys = ["eclipse"]
+    transition_key = "eclipse"
+    transition_val = "DAY"
 
 
 class EclipseUmbraEntryTransition(FixedTransition):
     """Eclipse umbra entry"""
-    command_attributes = {'type': 'ORBPOINT'}
-    command_params = {'event_type': 'EONIGHT'}
-    state_keys = ['eclipse']
-    transition_key = 'eclipse'
-    transition_val = 'UMBRA'
+
+    command_attributes = {"type": "ORBPOINT"}
+    command_params = {"event_type": "EONIGHT"}
+    state_keys = ["eclipse"]
+    transition_key = "eclipse"
+    transition_val = "UMBRA"
 
 
 class EclipseUmbraExitTransition(FixedTransition):
     """Eclipse umbra exit"""
-    command_attributes = {'type': 'ORBPOINT'}
-    command_params = {'event_type': 'EODAY'}
-    state_keys = ['eclipse']
-    transition_key = 'eclipse'
-    transition_val = 'PENUMBRA'
+
+    command_attributes = {"type": "ORBPOINT"}
+    command_params = {"event_type": "EODAY"}
+    state_keys = ["eclipse"]
+    transition_key = "eclipse"
+    transition_val = "PENUMBRA"
 
 
 class SPMEnableTransition(FixedTransition):
     """Sun position monitor enable"""
-    command_attributes = {'tlmsid': 'AOFUNCEN'}
-    command_params = {'aopcadse': 30}
-    state_keys = ['sun_pos_mon']
-    transition_key = 'sun_pos_mon'
-    transition_val = 'ENAB'
+
+    command_attributes = {"tlmsid": "AOFUNCEN"}
+    command_params = {"aopcadse": 30}
+    state_keys = ["sun_pos_mon"]
+    transition_key = "sun_pos_mon"
+    transition_val = "ENAB"
 
 
 class SPMDisableTransition(FixedTransition):
     """Sun position monitor disable"""
-    command_attributes = {'tlmsid': 'AOFUNCDS'}
-    command_params = {'aopcadsd': 30}
-    state_keys = ['sun_pos_mon']
-    transition_key = 'sun_pos_mon'
-    transition_val = 'DISA'
+
+    command_attributes = {"tlmsid": "AOFUNCDS"}
+    command_params = {"aopcadsd": 30}
+    state_keys = ["sun_pos_mon"]
+    transition_key = "sun_pos_mon"
+    transition_val = "DISA"
 
 
 class SPMEclipseEnableTransition(BaseTransition):
@@ -580,11 +645,12 @@ class SPMEclipseEnableTransition(BaseTransition):
     Eclipse entry is event type ORBPOINT with TYPE=PENTRY or TYPE=LSPENTRY
     Eclipse exit is event type ORBPOINT with TYPE=PEXIT or TYPE=LSPEXIT
     """
+
     # Command attributes and params are just for docstring, but actual transition
     # command filtering in set_transitions is more complicated.
-    command_attributes = {'type': 'ORBPOINT'}
-    command_params = {'event_type': ['PEXIT', 'LSPEXIT']}
-    state_keys = ['sun_pos_mon']
+    command_attributes = {"type": "ORBPOINT"}
+    command_params = {"event_type": ["PEXIT", "LSPEXIT"]}
+    state_keys = ["sun_pos_mon"]
 
     @classmethod
     def set_transitions(cls, transitions_dict, cmds, start, stop):
@@ -599,94 +665,118 @@ class SPMEclipseEnableTransition(BaseTransition):
         :returns: None
         """
         # Preselect only commands that might have an impact here.
-        ok = (cmds['tlmsid'] == 'EOESTECN') | (cmds['type'] == 'ORBPOINT')
+        ok = (cmds["tlmsid"] == "EOESTECN") | (cmds["type"] == "ORBPOINT")
         cmds = cmds[ok]
 
         connect_time = 0
         connect_flag = False
 
         for cmd in cmds:
-            if cmd['tlmsid'] == 'EOESTECN':
-                connect_time = DateTime(cmd['date']).secs
+            if cmd["tlmsid"] == "EOESTECN":
+                connect_time = DateTime(cmd["date"]).secs
 
-            elif cmd['type'] == 'ORBPOINT':
-                if cmd['event_type'] in ('PENTRY', 'LSPENTRY'):
-                    entry_time = DateTime(cmd['date']).secs
-                    connect_flag = (entry_time - connect_time < 125)
+            elif cmd["type"] == "ORBPOINT":
+                if cmd["event_type"] in ("PENTRY", "LSPENTRY"):
+                    entry_time = DateTime(cmd["date"]).secs
+                    connect_flag = entry_time - connect_time < 125
 
-                elif cmd['event_type'] in ('PEXIT', 'LSPEXIT') and connect_flag:
-                    scs33 = DateTime(cmd['date']) + 11 * 60 / 86400  # 11 minutes in days
-                    transitions_dict[scs33.date]['sun_pos_mon'] = 'ENAB'
+                elif cmd["event_type"] in ("PEXIT", "LSPEXIT") and connect_flag:
+                    scs33 = (
+                        DateTime(cmd["date"]) + 11 * 60 / 86400
+                    )  # 11 minutes in days
+                    transitions_dict[scs33.date]["sun_pos_mon"] = "ENAB"
                     connect_flag = False
 
 
 class SCS84EnableTransition(FixedTransition):
     """SCS-84 enable"""
-    command_attributes = {'tlmsid': 'COENASX'}
-    command_params = {'coenas1': 84}
-    state_keys = ['scs84']
-    transition_key = 'scs84'
-    transition_val = 'ENAB'
-    default_value = 'DISA'
+
+    command_attributes = {"tlmsid": "COENASX"}
+    command_params = {"coenas1": 84}
+    state_keys = ["scs84"]
+    transition_key = "scs84"
+    transition_val = "ENAB"
+    default_value = "DISA"
 
 
 class SCS84DisableTransition(FixedTransition):
     """SCS-84 disable"""
-    command_attributes = {'tlmsid': 'CODISASX'}
-    command_params = {'codisas1': 84}
-    state_keys = ['scs84']
-    transition_key = 'scs84'
-    transition_val = 'DISA'
+
+    command_attributes = {"tlmsid": "CODISASX"}
+    command_params = {"codisas1": 84}
+    state_keys = ["scs84"]
+    transition_key = "scs84"
+    transition_val = "DISA"
 
 
 class SCS98EnableTransition(FixedTransition):
     """SCS-98 enable"""
-    command_attributes = {'tlmsid': 'COENASX'}
-    command_params = {'coenas1': 98}
-    state_keys = ['scs98']
-    transition_key = 'scs98'
-    transition_val = 'ENAB'
+
+    command_attributes = {"tlmsid": "COENASX"}
+    command_params = {"coenas1": 98}
+    state_keys = ["scs98"]
+    transition_key = "scs98"
+    transition_val = "ENAB"
 
 
 class SCS98DisableTransition(FixedTransition):
     """SCS-98 disable"""
-    command_attributes = {'tlmsid': 'CODISASX'}
-    command_params = {'codisas1': 98}
-    state_keys = ['scs98']
-    transition_key = 'scs98'
-    transition_val = 'DISA'
+
+    command_attributes = {"tlmsid": "CODISASX"}
+    command_params = {"codisas1": 98}
+    state_keys = ["scs98"]
+    transition_key = "scs98"
+    transition_val = "DISA"
 
 
 class RadmonEnableTransition(FixedTransition):
     """RADMON enable"""
-    command_attributes = {'tlmsid': 'OORMPEN'}
-    state_keys = ['radmon']
-    transition_key = 'radmon'
-    transition_val = 'ENAB'
+
+    command_attributes = {"tlmsid": "OORMPEN"}
+    state_keys = ["radmon"]
+    transition_key = "radmon"
+    transition_val = "ENAB"
 
 
 class RadmonDisableTransition(FixedTransition):
     """RADMON disable"""
-    command_attributes = {'tlmsid': 'OORMPDS'}
-    state_keys = ['radmon']
-    transition_key = 'radmon'
-    transition_val = 'DISA'
+
+    command_attributes = {"tlmsid": "OORMPDS"}
+    state_keys = ["radmon"]
+    transition_key = "radmon"
+    transition_val = "DISA"
 
 
 class OrbitPointTransition(ParamTransition):
     """Orbit point state based on backstop ephemeris entries"""
-    command_attributes = {'type': 'ORBPOINT'}
-    state_keys = ['orbit_point']
-    transition_key = 'orbit_point'
-    cmd_param_key = 'event_type'
+
+    command_attributes = {"type": "ORBPOINT"}
+    state_keys = ["orbit_point"]
+    transition_key = "orbit_point"
+    cmd_param_key = "event_type"
 
 
 class EphemerisTransition(ParamTransition):
     """On-board ephemeris update values"""
-    command_attributes = {'tlmsid': 'AOEPHUPS'}
-    state_keys = ['aoephem1', 'aoephem2', 'aoratio', 'aoargper', 'aoeccent',
-                  'ao1minus', 'ao1plus', 'aomotion', 'aoiterat', 'aoorbang',
-                  'aoperige', 'aoascend', 'aosini', 'aoslr', 'aosqrtmu']
+
+    command_attributes = {"tlmsid": "AOEPHUPS"}
+    state_keys = [
+        "aoephem1",
+        "aoephem2",
+        "aoratio",
+        "aoargper",
+        "aoeccent",
+        "ao1minus",
+        "ao1plus",
+        "aomotion",
+        "aoiterat",
+        "aoorbang",
+        "aoperige",
+        "aoascend",
+        "aosini",
+        "aoslr",
+        "aosqrtmu",
+    ]
     transition_key = state_keys
     cmd_param_key = state_keys
 
@@ -696,8 +786,9 @@ class EphemerisUpdateTransition(BaseTransition):
     On-board ephemeris update date.  Mostly useful for the FOT to assist in backstop
     processing.
     """
-    command_attributes = {'tlmsid': 'AOEPHUPS'}
-    state_keys = ['ephem_update']
+
+    command_attributes = {"tlmsid": "AOEPHUPS"}
+    state_keys = ["ephem_update"]
 
     @classmethod
     def set_transitions(cls, transitions_dict, cmds, start, stop):
@@ -714,11 +805,12 @@ class EphemerisUpdateTransition(BaseTransition):
         state_cmds = cls.get_state_changing_commands(cmds)
 
         for cmd in state_cmds:
-            date = cmd['date']
-            transitions_dict[date]['ephem_update'] = date[:8]
+            date = cmd["date"]
+            transitions_dict[date]["ephem_update"] = date[:8]
 
 
 ###################################################################
+
 
 class SunVectorTransition(BaseTransition):
     """
@@ -726,6 +818,7 @@ class SunVectorTransition(BaseTransition):
     roll during NPNT.  These are function transitions which check to see that
     ``pcad_mode == 'NPNT'`` before changing the pitch / off_nominal_roll.
     """
+
     state_keys = PCAD_STATE_KEYS
 
     @classmethod
@@ -752,7 +845,7 @@ class SunVectorTransition(BaseTransition):
         # Now with the dates, finally make all the transition dicts which will
         # call `update_pitch_state` during state processing.
         for date in dates:
-            transitions_dict[date]['update_sun_vector'] = cls.update_sun_vector_state
+            transitions_dict[date]["update_sun_vector"] = cls.update_sun_vector_state
 
     @classmethod
     def update_sun_vector_state(cls, date, transitions, state, idx):
@@ -765,34 +858,42 @@ class SunVectorTransition(BaseTransition):
         :param state: current state (dict)
         :param idx: current index into transitions
         """
-        if state['pcad_mode'] == 'NPNT':
+        if state["pcad_mode"] == "NPNT":
             q_att = Quat([state[qc] for qc in QUAT_COMPS])
-            state['pitch'] = Ska.Sun.pitch(q_att.ra, q_att.dec, date)
-            state['off_nom_roll'] = Ska.Sun.off_nominal_roll(q_att, date)
+            state["pitch"] = Ska.Sun.pitch(q_att.ra, q_att.dec, date)
+            state["off_nom_roll"] = Ska.Sun.off_nominal_roll(q_att, date)
 
 
 class DitherEnableTransition(FixedTransition):
     """Dither enable"""
-    command_attributes = {'tlmsid': 'AOENDITH'}
-    state_keys = ['dither']
-    transition_key = 'dither'
-    transition_val = 'ENAB'
+
+    command_attributes = {"tlmsid": "AOENDITH"}
+    state_keys = ["dither"]
+    transition_key = "dither"
+    transition_val = "ENAB"
 
 
 class DitherDisableTransition(FixedTransition):
     """Dither disable"""
-    command_attributes = {'tlmsid': 'AODSDITH'}
-    state_keys = ['dither']
-    transition_key = 'dither'
-    transition_val = 'DISA'
+
+    command_attributes = {"tlmsid": "AODSDITH"}
+    state_keys = ["dither"]
+    transition_key = "dither"
+    transition_val = "DISA"
 
 
 class DitherParamsTransition(BaseTransition):
     """Dither parameters"""
-    command_attributes = {'tlmsid': 'AODITPAR'}
-    state_keys = ['dither_phase_pitch', 'dither_phase_yaw',
-                  'dither_ampl_pitch', 'dither_ampl_yaw',
-                  'dither_period_pitch', 'dither_period_yaw']
+
+    command_attributes = {"tlmsid": "AODITPAR"}
+    state_keys = [
+        "dither_phase_pitch",
+        "dither_phase_yaw",
+        "dither_ampl_pitch",
+        "dither_ampl_yaw",
+        "dither_period_pitch",
+        "dither_period_yaw",
+    ]
 
     @classmethod
     def set_transitions(cls, transitions_dict, cmds, start, stop):
@@ -809,50 +910,57 @@ class DitherParamsTransition(BaseTransition):
         state_cmds = cls.get_state_changing_commands(cmds)
 
         for cmd in state_cmds:
-            dither = {'dither_phase_pitch': np.degrees(cmd['angp']),
-                      'dither_phase_yaw': np.degrees(cmd['angy']),
-                      'dither_ampl_pitch': np.degrees(cmd['coefp']) * 3600,
-                      'dither_ampl_yaw': np.degrees(cmd['coefy']) * 3600,
-                      'dither_period_pitch': 2 * np.pi / cmd['ratep'],
-                      'dither_period_yaw': 2 * np.pi / cmd['ratey']}
-            transitions_dict[cmd['date']].update(dither)
+            dither = {
+                "dither_phase_pitch": np.degrees(cmd["angp"]),
+                "dither_phase_yaw": np.degrees(cmd["angy"]),
+                "dither_ampl_pitch": np.degrees(cmd["coefp"]) * 3600,
+                "dither_ampl_yaw": np.degrees(cmd["coefy"]) * 3600,
+                "dither_period_pitch": 2 * np.pi / cmd["ratep"],
+                "dither_period_yaw": 2 * np.pi / cmd["ratey"],
+            }
+            transitions_dict[cmd["date"]].update(dither)
 
 
 class NMM_Transition(FixedTransition):
     """Transition to Normal Maneuver Mode"""
-    command_attributes = {'tlmsid': 'AONMMODE'}
+
+    command_attributes = {"tlmsid": "AONMMODE"}
     state_keys = PCAD_STATE_KEYS
-    transition_key = 'pcad_mode'
-    transition_val = 'NMAN'
+    transition_key = "pcad_mode"
+    transition_val = "NMAN"
 
 
 class NPM_Transition(FixedTransition):
     """Transition to Normal Point Mode"""
-    command_attributes = {'tlmsid': 'AONPMODE'}
+
+    command_attributes = {"tlmsid": "AONPMODE"}
     state_keys = PCAD_STATE_KEYS
-    transition_key = 'pcad_mode'
-    transition_val = 'NPNT'
+    transition_key = "pcad_mode"
+    transition_val = "NPNT"
 
 
 class AutoNPMEnableTransition(FixedTransition):
     """Enable automatic transition to Normal Point Mode"""
-    command_attributes = {'tlmsid': 'AONM2NPE'}
+
+    command_attributes = {"tlmsid": "AONM2NPE"}
     state_keys = PCAD_STATE_KEYS
-    transition_key = 'auto_npnt'
-    transition_val = 'ENAB'
+    transition_key = "auto_npnt"
+    transition_val = "ENAB"
 
 
 class AutoNPMDisableTransition(FixedTransition):
     """Disable automatic transition to Normal Point Mode"""
-    command_attributes = {'tlmsid': 'AONM2NPD'}
+
+    command_attributes = {"tlmsid": "AONM2NPD"}
     state_keys = PCAD_STATE_KEYS
-    transition_key = 'auto_npnt'
-    transition_val = 'DISA'
+    transition_key = "auto_npnt"
+    transition_val = "DISA"
 
 
 class TargQuatTransition(BaseTransition):
     """Commanded target quaternion"""
-    command_attributes = {'type': 'MP_TARGQUAT'}
+
+    command_attributes = {"type": "MP_TARGQUAT"}
     state_keys = PCAD_STATE_KEYS
 
     @classmethod
@@ -870,9 +978,9 @@ class TargQuatTransition(BaseTransition):
         state_cmds = cls.get_state_changing_commands(cmds)
 
         for cmd in state_cmds:
-            transition = transitions[cmd['date']]
-            for qc in ('q1', 'q2', 'q3', 'q4'):
-                transition['targ_' + qc] = cmd[qc]
+            transition = transitions[cmd["date"]]
+            for qc in ("q1", "q2", "q3", "q4"):
+                transition["targ_" + qc] = cmd[qc]
 
 
 class ManeuverTransition(BaseTransition):
@@ -882,7 +990,8 @@ class ManeuverTransition(BaseTransition):
     perform attitude quaternion updated accordingly.  At the end of the maneuver it
     schedules a NPM transition if ``auto_npnt`` is enabled.
     """
-    command_attributes = {'tlmsid': 'AOMANUVR'}
+
+    command_attributes = {"tlmsid": "AOMANUVR"}
     state_keys = PCAD_STATE_KEYS
 
     @classmethod
@@ -890,7 +999,7 @@ class ManeuverTransition(BaseTransition):
         state_cmds = cls.get_state_changing_commands(cmds)
 
         for cmd in state_cmds:
-            transitions[cmd['date']]['maneuver_transition'] = cls.callback
+            transitions[cmd["date"]]["maneuver_transition"] = cls.callback
 
     @classmethod
     def callback(cls, date, transitions, state, idx):
@@ -907,8 +1016,8 @@ class ManeuverTransition(BaseTransition):
 
         # If auto-transition to NPM after manvr is enabled (this is
         # normally the case) then back to NPNT at end of maneuver
-        if state['auto_npnt'] == 'ENAB':
-            transition = {'date': end_manvr_date, 'pcad_mode': 'NPNT'}
+        if state["auto_npnt"] == "ENAB":
+            transition = {"date": end_manvr_date, "pcad_mode": "NPNT"}
             add_transition(transitions, idx, transition)
 
     @classmethod
@@ -918,7 +1027,7 @@ class ManeuverTransition(BaseTransition):
         called by the ManeuverTransition and NormalSunTransition classes.
         """
         # Get the current target attitude state
-        targ_att = [state['targ_' + qc] for qc in QUAT_COMPS]
+        targ_att = [state["targ_" + qc] for qc in QUAT_COMPS]
 
         # Check that target attitude is defined. If start time is between
         # AOUPTARQ and AOMANUVR command then this will happen. In this case just
@@ -929,23 +1038,27 @@ class ManeuverTransition(BaseTransition):
 
         # Deal with startup transient where spacecraft attitude is not known.
         # In this case first maneuver is a bogus null maneuver.
-        if state['q1'] is None:
+        if state["q1"] is None:
             for qc in QUAT_COMPS:
-                state[qc] = state['targ_' + qc]
+                state[qc] = state["targ_" + qc]
 
         # Get current spacecraft attitude
         curr_att = [state[qc] for qc in QUAT_COMPS]
 
         # Get attitudes for the maneuver at about 5-minute intervals.
-        atts = Chandra.Maneuver.attitudes(curr_att, targ_att,
-                                          tstart=DateTime(date).secs)
+        atts = Chandra.Maneuver.attitudes(
+            curr_att, targ_att, tstart=DateTime(date).secs
+        )
 
         # Compute pitch and off-nominal roll at the midpoint of each interval, except
         # also include the exact last attitude.
-        pitches = np.hstack([(atts[:-1].pitch + atts[1:].pitch) / 2,
-                             atts[-1].pitch])
-        off_nom_rolls = np.hstack([(atts[:-1].off_nom_roll + atts[1:].off_nom_roll) / 2,
-                                   atts[-1].off_nom_roll])
+        pitches = np.hstack([(atts[:-1].pitch + atts[1:].pitch) / 2, atts[-1].pitch])
+        off_nom_rolls = np.hstack(
+            [
+                (atts[:-1].off_nom_roll + atts[1:].off_nom_roll) / 2,
+                atts[-1].off_nom_roll,
+            ]
+        )
 
         # Add transitions for each bit of the maneuver.  Note that this sets the attitude
         # (q1..q4) at the *beginning* of each state, while setting pitch and
@@ -954,16 +1067,16 @@ class ManeuverTransition(BaseTransition):
         # would probably be better to have the midpoint attitude.
         for att, pitch, off_nom_roll in zip(atts, pitches, off_nom_rolls):
             date = DateTime(att.time).date
-            transition = {'date': date}
+            transition = {"date": date}
             for qc in QUAT_COMPS:
                 transition[qc] = att[qc]
-            transition['pitch'] = pitch
-            transition['off_nom_roll'] = off_nom_roll
+            transition["pitch"] = pitch
+            transition["off_nom_roll"] = off_nom_roll
 
             q_att = Quat([att[x] for x in QUAT_COMPS])
-            transition['ra'] = q_att.ra
-            transition['dec'] = q_att.dec
-            transition['roll'] = q_att.roll
+            transition["ra"] = q_att.ra
+            transition["dec"] = q_att.dec
+            transition["roll"] = q_att.roll
 
             add_transition(transitions, idx, transition)
 
@@ -976,7 +1089,8 @@ class NormalSunTransition(ManeuverTransition):
     to a normal sun pointed attitude (based on a pure-pitch maneuver from
     current attitude).  It also changes ``pcad_mode`` to NSUN.
     """
-    command_attributes = {'tlmsid': 'AONSMSAF'}
+
+    command_attributes = {"tlmsid": "AONSMSAF"}
     state_keys = PCAD_STATE_KEYS
 
     @classmethod
@@ -987,13 +1101,13 @@ class NormalSunTransition(ManeuverTransition):
         attitude.  It then calls the parent method to add the actual maneuver.
         """
         # Transition to NSUN
-        state['pcad_mode'] = 'NSUN'
+        state["pcad_mode"] = "NSUN"
 
         # Setup for maneuver to sun-pointed attitude from current att
         curr_att = [state[qc] for qc in QUAT_COMPS]
         targ_att = Chandra.Maneuver.NSM_attitude(curr_att, date)
         for qc, targ_q in zip(QUAT_COMPS, targ_att.q):
-            state['targ_' + qc] = targ_q
+            state["targ_" + qc] = targ_q
 
         # Do the maneuver
         cls.add_manvr_transitions(date, transitions, state, idx)
@@ -1020,42 +1134,44 @@ def decode_power(mnem):
     :param mnem: power command string
 
     """
-    fep_info = {'fep_count': 0,
-                'ccd_count': 0,
-                'feps': '',
-                'ccds': '',
-                'vid_board': 1,
-                'clocking': 0}
+    fep_info = {
+        "fep_count": 0,
+        "ccd_count": 0,
+        "feps": "",
+        "ccds": "",
+        "vid_board": 1,
+        "clocking": 0,
+    }
 
     # Special case WSPOW000XX to turn off vid_board
-    if mnem.startswith('WSPOW000'):
-        fep_info['vid_board'] = 0
+    if mnem.startswith("WSPOW000"):
+        fep_info["vid_board"] = 0
 
     # the hex for the commanding is after the WSPOW
     powstr = mnem[5:]
-    if (len(powstr) != 5):
+    if len(powstr) != 5:
         raise ValueError("%s in unexpected format" % mnem)
 
     # convert the hex to decimal and "&" it with 63 (binary 111111)
     fepkey = int(powstr, 16) & 63
     # count the true binary bits
     for bit in range(0, 6):
-        if (fepkey & (1 << bit)):
-            fep_info['fep_count'] = fep_info['fep_count'] + 1
-            fep_info['feps'] = fep_info['feps'] + str(bit) + ' '
+        if fepkey & (1 << bit):
+            fep_info["fep_count"] = fep_info["fep_count"] + 1
+            fep_info["feps"] = fep_info["feps"] + str(bit) + " "
 
     # convert the hex to decimal and right shift by 8 places
     vidkey = int(powstr, 16) >> 8
 
     # count the true bits
     for bit in range(0, 10):
-        if (vidkey & (1 << bit)):
-            fep_info['ccd_count'] = fep_info['ccd_count'] + 1
+        if vidkey & (1 << bit):
+            fep_info["ccd_count"] = fep_info["ccd_count"] + 1
             # position indicates I or S chip
-            if (bit < 4):
-                fep_info['ccds'] = fep_info['ccds'] + 'I' + str(bit) + ' '
+            if bit < 4:
+                fep_info["ccds"] = fep_info["ccds"] + "I" + str(bit) + " "
             else:
-                fep_info['ccds'] = fep_info['ccds'] + 'S' + str(bit - 4) + ' '
+                fep_info["ccds"] = fep_info["ccds"] + "S" + str(bit - 4) + " "
 
     return fep_info
 
@@ -1064,8 +1180,16 @@ class ACISTransition(BaseTransition):
     """
     Implement transitions for ACIS states.
     """
-    command_attributes = {'type': 'ACISPKT'}
-    state_keys = ['clocking', 'power_cmd', 'vid_board', 'fep_count', 'si_mode', 'ccd_count']
+
+    command_attributes = {"type": "ACISPKT"}
+    state_keys = [
+        "clocking",
+        "power_cmd",
+        "vid_board",
+        "fep_count",
+        "si_mode",
+        "ccd_count",
+    ]
 
     @classmethod
     def set_transitions(cls, transitions, cmds, start, stop):
@@ -1081,42 +1205,43 @@ class ACISTransition(BaseTransition):
         """
         state_cmds = cls.get_state_changing_commands(cmds)
         for cmd in state_cmds:
-            tlmsid = cmd['tlmsid']
-            date = cmd['date']
+            tlmsid = cmd["tlmsid"]
+            date = cmd["date"]
 
-            if tlmsid.startswith('WSPOW'):
+            if tlmsid.startswith("WSPOW"):
                 pwr = decode_power(tlmsid)
-                transitions[date].update(fep_count=pwr['fep_count'],
-                                         ccd_count=pwr['ccd_count'],
-                                         vid_board=pwr['vid_board'],
-                                         clocking=pwr['clocking'],
-                                         power_cmd=tlmsid)
+                transitions[date].update(
+                    fep_count=pwr["fep_count"],
+                    ccd_count=pwr["ccd_count"],
+                    vid_board=pwr["vid_board"],
+                    clocking=pwr["clocking"],
+                    power_cmd=tlmsid,
+                )
 
-            elif tlmsid in ('XCZ0000005', 'XTZ0000005'):
+            elif tlmsid in ("XCZ0000005", "XTZ0000005"):
                 transitions[date].update(clocking=1, power_cmd=tlmsid)
 
-            elif tlmsid == 'WSVIDALLDN':
-                transitions[date].update(vid_board=0, ccd_count=0,
-                                         power_cmd=tlmsid)
+            elif tlmsid == "WSVIDALLDN":
+                transitions[date].update(vid_board=0, ccd_count=0, power_cmd=tlmsid)
 
-            elif tlmsid == 'AA00000000':
+            elif tlmsid == "AA00000000":
                 transitions[date].update(clocking=0, power_cmd=tlmsid)
 
-            elif tlmsid == 'WSFEPALLUP':
+            elif tlmsid == "WSFEPALLUP":
                 transitions[date].update(fep_count=6, power_cmd=tlmsid)
 
-            elif tlmsid.startswith('WC'):
-                transitions[date].update(si_mode='CC_' + tlmsid[2:7])
+            elif tlmsid.startswith("WC"):
+                transitions[date].update(si_mode="CC_" + tlmsid[2:7])
 
             # Two special-case raw-mode SI modes (https://github.com/sot/cmd_states/issues/23)
-            elif tlmsid == 'WT000B5024':
-                transitions[date].update(si_mode='TN_000B4')
+            elif tlmsid == "WT000B5024":
+                transitions[date].update(si_mode="TN_000B4")
 
-            elif tlmsid == 'WT000B7024':
-                transitions[date].update(si_mode='TN_000B6')
+            elif tlmsid == "WT000B7024":
+                transitions[date].update(si_mode="TN_000B6")
 
-            elif tlmsid.startswith('WT'):
-                transitions[date].update(si_mode='TE_' + tlmsid[2:7])
+            elif tlmsid.startswith("WT"):
+                transitions[date].update(si_mode="TE_" + tlmsid[2:7])
 
 
 class ACISFP_SetPointTransition(BaseTransition):
@@ -1126,8 +1251,9 @@ class ACISFP_SetPointTransition(BaseTransition):
     Looks for ACISPKT commands with TLMSID like ``WSFTNEG<number>``, where the
     ACIS FP setpoint temperature is ``-<number>``.
     """
-    command_attributes = {'type': 'ACISPKT'}
-    state_keys = ['acisfp_setpoint']
+
+    command_attributes = {"type": "ACISPKT"}
+    state_keys = ["acisfp_setpoint"]
     default_value = -121.0
 
     @classmethod
@@ -1144,19 +1270,20 @@ class ACISFP_SetPointTransition(BaseTransition):
         """
         state_cmds = cls.get_state_changing_commands(cmds)
         for cmd in state_cmds:
-            tlmsid = cmd['tlmsid']
-            date = cmd['date']
+            tlmsid = cmd["tlmsid"]
+            date = cmd["date"]
 
-            if tlmsid.startswith('WSFTNEG'):
-                match = re.search(r'(\d+)$', tlmsid)
+            if tlmsid.startswith("WSFTNEG"):
+                match = re.search(r"(\d+)$", tlmsid)
                 if not match:
-                    raise ValueError(f'unable to parse command {tlmsid}')
+                    raise ValueError(f"unable to parse command {tlmsid}")
                 transitions[date].update(acisfp_setpoint=-float(match.group(1)))
 
 
 ###################################################################
 # State transitions processing code
 ###################################################################
+
 
 def get_transition_classes(state_keys=None):
     """
@@ -1168,9 +1295,13 @@ def get_transition_classes(state_keys=None):
     elif state_keys is None:
         state_keys = DEFAULT_STATE_KEYS
 
-    trans_classes = set(itertools.chain.from_iterable(
-        classes for state_key, classes in TRANSITIONS.items()
-        if state_key in state_keys))
+    trans_classes = set(
+        itertools.chain.from_iterable(
+            classes
+            for state_key, classes in TRANSITIONS.items()
+            if state_key in state_keys
+        )
+    )
 
     return trans_classes
 
@@ -1200,9 +1331,9 @@ def get_transitions_list(cmds, state_keys, start, stop, continuity=None):
     # then apply those.  These would be transitions that occur after the the
     # continuity time, e.g. in the case continuity in the middle of a maneuver
     # where we need the remaining attitude and pcad_mode transitions.
-    if continuity is not None and '__transitions__' in continuity:
-        for transition in continuity['__transitions__']:
-            transitions_dict[transition['date']].update(transition)
+    if continuity is not None and "__transitions__" in continuity:
+        for transition in continuity["__transitions__"]:
+            transitions_dict[transition["date"]].update(transition)
 
     # Iterate through Transition classes which depend on or affect ``state_keys``
     # and ask each one to update ``transitions_dict`` in-place to include
@@ -1216,7 +1347,7 @@ def get_transitions_list(cmds, state_keys, start, stop, continuity=None):
     transitions_list = []
     for date in sorted(transitions_dict):
         transition = transitions_dict[date]
-        transition['date'] = date
+        transition["date"] = date
         transitions_list.append(transition)
 
     # In the rest of this module ``transitions`` is always this *list* of transitions.
@@ -1240,24 +1371,32 @@ def add_transition(transitions, idx, transition):
     """
     # Prevent adding command before current command since the command
     # interpreter is a one-pass process.
-    date = transition['date']
-    if date < transitions[idx]['date']:
-        raise ValueError('cannot insert transition prior to current command')
+    date = transition["date"]
+    if date < transitions[idx]["date"]:
+        raise ValueError("cannot insert transition prior to current command")
 
     # Insert transition at first place where new transition date is strictly
     # less than existing transition date.  This implementation is linear, and
     # could be improved, though in practice transitions are often inserted
     # close to the original.
     for ii in range(idx + 1, len(transitions)):
-        if date < transitions[ii]['date']:
+        if date < transitions[ii]["date"]:
             transitions.insert(ii, transition)
             break
     else:
         transitions.append(transition)
 
 
-def get_states(start=None, stop=None, state_keys=None, cmds=None, continuity=None,
-               reduce=True, merge_identical=False, scenario=None):
+def get_states(
+    start=None,
+    stop=None,
+    state_keys=None,
+    cmds=None,
+    continuity=None,
+    reduce=True,
+    merge_identical=False,
+    scenario=None,
+):
     """
     Get table of states corresponding to intervals when ``state_keys`` parameters
     are unchanged given the input commands ``cmds`` or ``start`` date.
@@ -1321,21 +1460,23 @@ def get_states(start=None, stop=None, state_keys=None, cmds=None, continuity=Non
             raise ValueError("must supply either 'cmds' argument or 'start' argument")
         cmds = commands.get_cmds(start, stop, scenario=scenario)
         start = DateTime(start).date
-        stop = DateTime(stop or cmds[-1]['date']).date  # User-supplied stop or last command
+        stop = DateTime(
+            stop or cmds[-1]["date"]
+        ).date  # User-supplied stop or last command
     else:
-        start = cmds[0]['date'] if start is None else DateTime(start).date
-        stop = cmds[-1]['date'] if stop is None else DateTime(stop).date
+        start = cmds[0]["date"] if start is None else DateTime(start).date
+        stop = cmds[-1]["date"] if stop is None else DateTime(stop).date
 
     # Get initial state at start of commands
     if continuity is None:
         try:
             continuity = get_continuity(start, state_keys, scenario=scenario)
         except ValueError as exc:
-            if 'did not find transitions' in str(exc):
+            if "did not find transitions" in str(exc):
                 raise ValueError(
-                    f'no continuity found for {start=}. Need to have state '
+                    f"no continuity found for {start=}. Need to have state "
                     f'transitions following first command at {cmds[0]["date"]} '
-                    'so use a later start date.'
+                    "so use a later start date."
                 )
             else:
                 raise
@@ -1370,7 +1511,7 @@ def get_states(start=None, stop=None, state_keys=None, cmds=None, continuity=Non
     continuity_transitions = []
 
     for idx, transition in enumerate(transitions):
-        date = transition['date']
+        date = transition["date"]
 
         # Some transition classes (e.g. Maneuver) might put in transitions that
         # extend past the stop time.  Add to a list for potential use in continuity.
@@ -1394,33 +1535,33 @@ def get_states(start=None, stop=None, state_keys=None, cmds=None, continuity=Non
                 # instead of directly updating the state.  The function might itself
                 # update the state or it might generate downstream transitions.
                 value(date, transitions, state, idx)
-            elif key != 'date':
+            elif key != "date":
                 # Normal case of just updating current state
                 state[key] = value
 
     # Make into an astropy Table and set up datestart/stop columns
     out = Table(rows=states, names=state_keys)
-    out.add_column(Column(datestarts, name='datestart'), 0)
+    out.add_column(Column(datestarts, name="datestart"), 0)
     # Add datestop which is just the previous datestart.
-    datestop = out['datestart'].copy()
-    datestop[:-1] = out['datestart'][1:]
+    datestop = out["datestart"].copy()
+    datestop[:-1] = out["datestart"][1:]
     # Final datestop far in the future
     datestop[-1] = stop
-    out.add_column(Column(datestop, name='datestop'), 1)
+    out.add_column(Column(datestop, name="datestop"), 1)
 
     # Add corresponding tstart, tstop
-    out.add_column(Column(date2secs(out['datestart']), name='tstart'), 2)
-    out.add_column(Column(date2secs(out['datestop']), name='tstop'), 3)
-    out['tstart'].info.format = '.3f'
-    out['tstop'].info.format = '.3f'
+    out.add_column(Column(date2secs(out["datestart"]), name="tstart"), 2)
+    out.add_column(Column(date2secs(out["datestop"]), name="tstop"), 3)
+    out["tstart"].info.format = ".3f"
+    out["tstop"].info.format = ".3f"
 
-    out['trans_keys'] = [st.trans_keys for st in states]
+    out["trans_keys"] = [st.trans_keys for st in states]
 
     if reduce:
         out = reduce_states(out, orig_state_keys, merge_identical)
 
     # See long comment where continuity_transitions is defined
-    out.meta['continuity_transitions'] = continuity_transitions
+    out.meta["continuity_transitions"] = continuity_transitions
 
     return out
 
@@ -1454,18 +1595,19 @@ def reduce_states(states, state_keys, merge_identical=False, all_keys=False):
     if not isinstance(states, Table):
         states = Table(states)
 
-    has_transitions = {state_key: np.zeros(len(states), dtype=bool)
-                       for state_key in state_keys}
+    has_transitions = {
+        state_key: np.zeros(len(states), dtype=bool) for state_key in state_keys
+    }
     has_transition = np.zeros(len(states), dtype=bool)
 
     for key in state_keys:
         # Get array where this key has transitions
         if merge_identical:
             col = states[key]
-            has_transitions[key][1:] |= (col[:-1] != col[1:])
+            has_transitions[key][1:] |= col[:-1] != col[1:]
         else:
             has_trans = has_transitions[key]
-            for ii, trans_keys in enumerate(states['trans_keys']):
+            for ii, trans_keys in enumerate(states["trans_keys"]):
                 has_trans[ii] = key in trans_keys
         has_transitions[key][0] = True
 
@@ -1476,12 +1618,12 @@ def reduce_states(states, state_keys, merge_identical=False, all_keys=False):
     if all_keys:
         out = states
     else:
-        out = states[['datestart', 'datestop', 'tstart', 'tstop'] + list(state_keys)]
+        out = states[["datestart", "datestop", "tstart", "tstop"] + list(state_keys)]
     out = out[has_transition]
 
-    for dt in ('date', 't'):
-        out[f'{dt}stop'][:-1] = out[f'{dt}start'][1:]
-        out[f'{dt}stop'][-1] = states[f'{dt}stop'][-1]
+    for dt in ("date", "t"):
+        out[f"{dt}stop"][:-1] = out[f"{dt}start"][1:]
+        out[f"{dt}stop"][-1] = states[f"{dt}stop"][-1]
 
     trans_keys_list = [TransKeysSet() for _ in range(len(out))]
     for key in state_keys:
@@ -1494,16 +1636,17 @@ def reduce_states(states, state_keys, merge_identical=False, all_keys=False):
 
     # First state trans_keys is the transition keys from continuity.  Reduce
     # this by set intersection to the output state_keys.
-    if 'trans_keys' in states.colnames:
-        trans_keys_list[0] = states['trans_keys'][0] & set(state_keys)
+    if "trans_keys" in states.colnames:
+        trans_keys_list[0] = states["trans_keys"][0] & set(state_keys)
 
-    out['trans_keys'] = trans_keys_list
+    out["trans_keys"] = trans_keys_list
 
     return out
 
 
-def get_continuity(date=None, state_keys=None, lookbacks=(7, 30, 180, 1000),
-                   scenario=None):
+def get_continuity(
+    date=None, state_keys=None, lookbacks=(7, 30, 180, 1000), scenario=None
+):
     """
     Get the state and transition dates at ``date`` for ``state_keys``.
 
@@ -1569,24 +1712,32 @@ def get_continuity(date=None, state_keys=None, lookbacks=(7, 30, 180, 1000),
                 # Note that we need to specify start and stop to ensure that the states span
                 # the required time range. Without this the time range of cmds is used which
                 # can give unexpected outputs if ``date``` is within a maneuver.
-                states = get_states(state_keys=state_key, cmds=cmds, start=start, stop=stop,
-                                    continuity={}, reduce=False, scenario=scenario)
+                states = get_states(
+                    state_keys=state_key,
+                    cmds=cmds,
+                    start=start,
+                    stop=stop,
+                    continuity={},
+                    reduce=False,
+                    scenario=scenario,
+                )
             except NoTransitionsError:
                 # No transitions within `cmds` for state_key, continue with other keys
                 continue
             else:
                 # get_states() sets this meta value with a list of transitions that were beyond
                 # the stop time and did not get processed.
-                continuity_transitions.extend(states.meta['continuity_transitions'])
+                continuity_transitions.extend(states.meta["continuity_transitions"])
 
-            colnames = set(states.colnames) - set(['datestart', 'datestop',
-                                                   'tstart', 'tstop', 'trans_keys'])
+            colnames = set(states.colnames) - set(
+                ["datestart", "datestop", "tstart", "tstop", "trans_keys"]
+            )
             for colname in colnames:
                 if states[colname][-1] is not None:
                     # Reduce states to only the desired state_key
                     red_states = reduce_states(states, [colname])
                     continuity[colname] = red_states[colname][-1]
-                    dates[colname] = red_states['datestart'][-1]
+                    dates[colname] = red_states["datestart"][-1]
 
         # If we have filled in continuity for every key then we're done.
         # Otherwise bump the lookback and try again.
@@ -1599,25 +1750,28 @@ def get_continuity(date=None, state_keys=None, lookbacks=(7, 30, 180, 1000),
         # Try to get defaults from transition classes
         for missing_key in missing_keys:
             for cls in get_transition_classes(missing_key):
-                if hasattr(cls, 'default_value'):
+                if hasattr(cls, "default_value"):
                     continuity[missing_key] = cls.default_value
-                    dates[missing_key] = 'DEFAULT'
+                    dates[missing_key] = "DEFAULT"
 
         # Try again...
         missing_keys = set(state_keys) - set(continuity)
         if missing_keys:
-            raise ValueError('did not find transitions for state key(s)'
-                             ' {} within {} days of {}.  Maybe adjust the `lookbacks` argument?'
-                             .format(missing_keys, lookbacks[-1], stop.date))
+            raise ValueError(
+                "did not find transitions for state key(s)"
+                " {} within {} days of {}.  Maybe adjust the `lookbacks` argument?".format(
+                    missing_keys, lookbacks[-1], stop.date
+                )
+            )
 
     # Finally reduce down to the state_keys the user requested
     continuity = {key: continuity[key] for key in state_keys}
     dates = {key: dates[key] for key in state_keys}
-    continuity['__dates__'] = dates
+    continuity["__dates__"] = dates
 
     # List of transitions needed to fully express continuity.  See long comment above.
     if continuity_transitions:
-        continuity['__transitions__'] = continuity_transitions
+        continuity["__transitions__"] = continuity_transitions
 
     return continuity
 
@@ -1631,17 +1785,18 @@ def interpolate_states(states, times):
     :returns: ``states`` view at ``times``
     """
     from astropy.table import Column
-    if not isinstance(times, np.ndarray) or times.dtype.kind != 'f':
+
+    if not isinstance(times, np.ndarray) or times.dtype.kind != "f":
         times = DateTime(times).secs
 
     try:
-        tstops = states['tstop']
+        tstops = states["tstop"]
     except (ValueError, KeyError):
-        tstops = date2secs(states['datestop'])
+        tstops = date2secs(states["datestop"])
 
     indexes = np.searchsorted(tstops, times)
     out = states[indexes]
-    out.add_column(Column(secs2date(times), name='date'), index=0)
+    out.add_column(Column(secs2date(times), name="date"), index=0)
 
     return out
 
@@ -1663,9 +1818,9 @@ def print_state_keys_transition_classes_docs():
         state_keys_classes[keys].append(cls)
 
     for keys in sorted(state_keys_classes):
-        print(', '.join('``{}``'.format(key) for key in keys))
+        print(", ".join("``{}``".format(key) for key in keys))
         for cls in sorted(state_keys_classes[keys], key=lambda cls: cls.__name__):
-            print('  - :class:`~{}.{}`'.format(cls.__module__, cls.__name__))
+            print("  - :class:`~{}.{}`".format(cls.__module__, cls.__name__))
         print()
 
 
@@ -1675,33 +1830,33 @@ def get_chandra_states(main_args=None):
     to stdout or a file.
     """
     import argparse
+
     from astropy.io import ascii
 
-    descr = ('Ouput the Chandra commanded states over a date range '
-             'as a space-delimited ASCII table.')
+    descr = (
+        "Ouput the Chandra commanded states over a date range "
+        "as a space-delimited ASCII table."
+    )
     parser = argparse.ArgumentParser(description=descr)
-    parser.add_argument("--start",
-                        help="Start date (default=Now-10 days)")
-    parser.add_argument("--stop",
-                        help="Stop date (default=None)")
-    parser.add_argument("--state-keys",
-                        help="Comma-separated list of state keys")
-    parser.add_argument("--merge-identical",
-                        default=False,
-                        action='store_true',
-                        help="Merge adjacent states that have identical values "
-                        "(default=False)")
-    parser.add_argument("--outfile",
-                        help="Output file (default=stdout)")
+    parser.add_argument("--start", help="Start date (default=Now-10 days)")
+    parser.add_argument("--stop", help="Stop date (default=None)")
+    parser.add_argument("--state-keys", help="Comma-separated list of state keys")
+    parser.add_argument(
+        "--merge-identical",
+        default=False,
+        action="store_true",
+        help="Merge adjacent states that have identical values " "(default=False)",
+    )
+    parser.add_argument("--outfile", help="Output file (default=stdout)")
 
     opt = parser.parse_args(main_args)
 
     start = DateTime() - 10 if opt.start is None else DateTime(opt.start)
     stop = DateTime(opt.stop)
-    state_keys = opt.state_keys.split(',') if opt.state_keys else None
+    state_keys = opt.state_keys.split(",") if opt.state_keys else None
     states = get_states(start, stop, state_keys, merge_identical=opt.merge_identical)
-    del states['trans_keys']
-    del states['tstart']
-    del states['tstop']
+    del states["trans_keys"]
+    del states["tstart"]
+    del states["tstop"]
 
-    ascii.write(states, output=opt.outfile, format='fixed_width', delimiter='')
+    ascii.write(states, output=opt.outfile, format="fixed_width", delimiter="")

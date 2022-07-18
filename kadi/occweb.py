@@ -4,39 +4,39 @@ Provide an interface for getting pages from the OCCweb.  For good measure leave
 this off of github.
 """
 
-import re
-import os
-import configobj
 import hashlib
+import logging
+import os
+import re
 import time
 from collections import OrderedDict as odict
 from pathlib import Path
-import logging
 
+import configobj
 import numpy as np
 import requests
-
-from Chandra.Time import DateTime
 from astropy.io import ascii
 from astropy.table import Table
 from astropy.utils.data import download_file
+from Chandra.Time import DateTime
 
 # This is for deprecated functionality to cache to a local directory
-CACHE_DIR = 'cache'
+CACHE_DIR = "cache"
 CACHE_TIME = 86000
 TIMEOUT = 60
 
-ROOTURL = 'https://occweb.cfa.harvard.edu'
-URLS = {'fdb_major_events': '/occweb/web/fdb_web/Major_Events.html',
-        'fot_major_events': '/occweb/web/fot_web/eng/reports/Chandra_major_events.htm',
-        'ifot': '/occweb/web/webapps/ifot/ifot.php',
-        }
-LUCKY = 'lucky.cfa.harvard.edu'
+ROOTURL = "https://occweb.cfa.harvard.edu"
+URLS = {
+    "fdb_major_events": "/occweb/web/fdb_web/Major_Events.html",
+    "fot_major_events": "/occweb/web/fot_web/eng/reports/Chandra_major_events.htm",
+    "ifot": "/occweb/web/webapps/ifot/ifot.php",
+}
+LUCKY = "lucky.cfa.harvard.edu"
 
 NOODLE_OCCWEB_MAP = {
-    'FOT': 'occweb/FOT',
-    'GRETA/mission/Backstop': 'Backstop',
-    'vweb': 'occweb/web',
+    "FOT": "occweb/FOT",
+    "GRETA/mission/Backstop": "Backstop",
+    "vweb": "occweb/web",
 }
 
 # Initialize 'kadi.occweb' logger.
@@ -47,21 +47,24 @@ def get_auth(username=None, password=None):
     if username and password:
         return (username, password)
 
-    ska = os.environ.get('SKA')
+    ska = os.environ.get("SKA")
     if ska:
-        user = username or os.environ.get('USER') or os.environ.get('LOGNAME')
-        authfile = Path(ska, 'data', 'aspect_authorization', f'occweb-{user}')
+        user = username or os.environ.get("USER") or os.environ.get("LOGNAME")
+        authfile = Path(ska, "data", "aspect_authorization", f"occweb-{user}")
         config = configobj.ConfigObj(str(authfile))
-        username = config.get('username')
-        password = config.get('password')
+        username = config.get("username")
+        password = config.get("password")
 
     # If $SKA doesn't have occweb credentials try .netrc.
     if username is None:
         try:
             import Ska.ftp
+
             # Do this as a tuple so the operation is atomic
-            username, password = (Ska.ftp.parse_netrc()['occweb']['login'],
-                                  Ska.ftp.parse_netrc()['occweb']['password'])
+            username, password = (
+                Ska.ftp.parse_netrc()["occweb"]["login"],
+                Ska.ftp.parse_netrc()["occweb"]["password"],
+            )
         except Exception:
             pass
 
@@ -79,51 +82,56 @@ def get_url(page, timeout=TIMEOUT):
     """
     url = ROOTURL + URLS[page]
 
-    cachefile = os.path.join(CACHE_DIR, hashlib.sha1(url.encode('utf-8')).hexdigest())
+    cachefile = os.path.join(CACHE_DIR, hashlib.sha1(url.encode("utf-8")).hexdigest())
     now = time.time()
     if os.path.exists(cachefile) and now - os.stat(cachefile).st_mtime < CACHE_TIME:
-        with open(cachefile, 'rb') as f:
-            html = f.read().decode('utf8')
+        with open(cachefile, "rb") as f:
+            html = f.read().decode("utf8")
     else:
         response = requests.get(url, auth=get_auth(), timeout=timeout)
         html = response.text
 
         if os.path.exists(CACHE_DIR):
-            with open(cachefile, 'wb') as f:
-                f.write(html.encode('utf8'))
+            with open(cachefile, "wb") as f:
+                f.write(html.encode("utf8"))
 
     return html
 
 
-def get_ifot(event_type, start=None, stop=None, props=[], columns=[], timeout=TIMEOUT, types={}):
-    start = DateTime('1998:001:12:00:00' if start is None else start)
+def get_ifot(
+    event_type, start=None, stop=None, props=[], columns=[], timeout=TIMEOUT, types={}
+):
+    start = DateTime("1998:001:12:00:00" if start is None else start)
     stop = DateTime(stop)
-    event_props = '.'.join([event_type] + props)
+    event_props = ".".join([event_type] + props)
 
-    params = odict(r='home',
-                   t='qserver',
-                   format='tsv',
-                   tstart=start.date,
-                   tstop=stop.date,
-                   e=event_props,
-                   ul='7',
-                   )
+    params = odict(
+        r="home",
+        t="qserver",
+        format="tsv",
+        tstart=start.date,
+        tstop=stop.date,
+        e=event_props,
+        ul="7",
+    )
     if columns:
-        params['columns'] = ','.join(columns)
+        params["columns"] = ",".join(columns)
 
     # Get the TSV data for the iFOT event table
-    url = ROOTURL + URLS['ifot']
+    url = ROOTURL + URLS["ifot"]
     response = requests.get(url, auth=get_auth(), params=params, timeout=timeout)
 
     # For Py2 convert from unicode to ASCII str
     text = response.text
-    text = re.sub(r'\r\n', ' ', text)
-    lines = [x for x in text.split('\t\n') if x.strip()]
+    text = re.sub(r"\r\n", " ", text)
+    lines = [x for x in text.split("\t\n") if x.strip()]
 
-    converters = {key: [ascii.convert_numpy(getattr(np, type_))]
-                  for key, type_ in types.items()}
-    dat = ascii.read(lines, format='tab', guess=False, converters=converters,
-                     fill_values=None)
+    converters = {
+        key: [ascii.convert_numpy(getattr(np, type_))] for key, type_ in types.items()
+    }
+    dat = ascii.read(
+        lines, format="tab", guess=False, converters=converters, fill_values=None
+    )
     return dat
 
 
@@ -135,14 +143,15 @@ def ftp_put_to_lucky(ftp_dirname, local_files, user=None, logger=None):
     The directory paths of ``local_files`` are stripped off so they all wind up
     in a flat structure within ``ftp_dirname``.
     """
+    import uuid
+
     import Ska.File
     import Ska.ftp
-    import uuid
 
     ftp = Ska.ftp.SFTP(LUCKY, logger=logger, user=user)
     if user is None:
         user = ftp.ftp.get_channel().transport.get_username()
-    ftp.cd('/home/{}'.format(user))
+    ftp.cd("/home/{}".format(user))
     files = ftp.ls()
 
     if ftp_dirname not in files:
@@ -171,13 +180,13 @@ def ftp_get_from_lucky(ftp_dirname, local_files, user=None, logger=None):
     are copied to the corresponding local_files names.  This is the converse
     of ftp_put_to_lucky and thus requires unique basenames for all files.
     """
-    import Ska.ftp
     import Ska.File
+    import Ska.ftp
 
     ftp = Ska.ftp.SFTP(LUCKY, logger=logger, user=user)
     if user is None:
         user = ftp.ftp.get_channel().transport.get_username()
-    ftp.cd('/home/{}/{}'.format(user, ftp_dirname))
+    ftp.cd("/home/{}/{}".format(user, ftp_dirname))
     for local_file in local_files:
         file_dir, file_base = os.path.split(os.path.abspath(local_file))
         if file_base in ftp.ls():
@@ -191,14 +200,17 @@ def ftp_get_from_lucky(ftp_dirname, local_files, user=None, logger=None):
 def get_auth_http_headers(username, password):
     """Get HTTP header for basic authentication"""
     from base64 import b64encode
-    authorization = ('Basic '
-                     + b64encode(f'{username}:{password}'.encode('utf-8')).decode('utf-8'))
-    headers = {'Authorization': authorization}
+
+    authorization = "Basic " + b64encode(
+        f"{username}:{password}".encode("utf-8")
+    ).decode("utf-8")
+    headers = {"Authorization": authorization}
     return headers
 
 
-def get_occweb_page(path, timeout=30, cache=False, binary=False,
-                    user=None, password=None):
+def get_occweb_page(
+    path, timeout=30, cache=False, binary=False, user=None, password=None
+):
     r"""Get contents of ``path`` on OCCweb.
 
     This returns the contents of the OCCweb page at ``path`` where it assumed
@@ -237,29 +249,35 @@ def get_occweb_page(path, timeout=30, cache=False, binary=False,
         File contents (str if ``binary`` is False, bytes if ``binary`` is True)
     """
     if isinstance(path, str):
-        path = path.replace('\\', '/')
-        if path.startswith('//noodle/'):
+        path = path.replace("\\", "/")
+        if path.startswith("//noodle/"):
             for noodle_prefix, occweb_prefix in NOODLE_OCCWEB_MAP.items():
-                if path.startswith(noodle := '//noodle/' + noodle_prefix):
-                    path = path.replace(noodle, ROOTURL + '/' + occweb_prefix)
+                if path.startswith(noodle := "//noodle/" + noodle_prefix):
+                    path = path.replace(noodle, ROOTURL + "/" + occweb_prefix)
                     break
             else:
-                raise ValueError(f'unrecognized noodle path: {path}')
+                raise ValueError(f"unrecognized noodle path: {path}")
 
-    if isinstance(path, str) and path.startswith('https://occweb'):
+    if isinstance(path, str) and path.startswith("https://occweb"):
         url = path
     else:
-        url = ROOTURL + (Path('/occweb') / path).as_posix()
+        url = ROOTURL + (Path("/occweb") / path).as_posix()
 
-    logger.info(f'Getting OCCweb {path} with {cache=}')
+    logger.info(f"Getting OCCweb {path} with {cache=}")
     if cache:
         from urllib.request import HTTPError
+
         user, password = get_auth(user, password)
         headers = get_auth_http_headers(user, password)
         try:
-            cachefile = download_file(url, cache=cache, show_progress=False,
-                                      http_headers=headers, timeout=timeout,
-                                      pkgname='kadi')
+            cachefile = download_file(
+                url,
+                cache=cache,
+                show_progress=False,
+                http_headers=headers,
+                timeout=timeout,
+                pkgname="kadi",
+            )
         except HTTPError as err:
             # Re-raise so caller can handle it with one exception class
             raise requests.exceptions.HTTPError(str(err))
@@ -302,7 +320,7 @@ def get_occweb_dir(path, timeout=30, cache=False, user=None, password=None):
         Table of directory entries
     """
     html = get_occweb_page(path, timeout=timeout, cache=cache)
-    out = Table.read(html, format='ascii.html', guess=False)
-    del out['col0']
-    del out['Description']
+    out = Table.read(html, format="ascii.html", guess=False)
+    del out["col0"]
+    del out["Description"]
     return out

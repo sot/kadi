@@ -1,22 +1,21 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import calendar
 import functools
-import os
-import tables
-from pathlib import Path
 import logging
+import os
 import pickle
 import struct
+from pathlib import Path
 
 import numpy as np
-from ska_helpers import retry
-
-from astropy.table import Table, Row, Column, vstack, TableAttribute
+import tables
+from astropy.table import Column, Row, Table, TableAttribute, vstack
 from cxotime import CxoTime
+from ska_helpers import retry
 
 from kadi.paths import IDX_CMDS_PATH, PARS_DICT_PATH
 
-__all__ = ['read_backstop', 'get_cmds_from_backstop', 'CommandTable']
+__all__ = ["read_backstop", "get_cmds_from_backstop", "CommandTable"]
 
 logger = logging.getLogger(__name__)
 
@@ -27,12 +26,12 @@ class LazyVal(object):
 
     def __getattribute__(self, name):
         try:
-            val = object.__getattribute__(self, '_val')
+            val = object.__getattribute__(self, "_val")
         except AttributeError:
-            val = object.__getattribute__(self, '_load_func')()
+            val = object.__getattribute__(self, "_load_func")()
             self._val = val
 
-        if name == '_val':
+        if name == "_val":
             return val
         else:
             return val.__getattribute__(name)
@@ -57,23 +56,23 @@ class LazyVal(object):
 def load_idx_cmds(version=None, file=None):
     """Load the cmds.h5 file, trying up to 3 times
 
-    It seems that one can occasionally get:
+        It seems that one can occasionally get:
 
-    File "tables/hdf5extension.pyx", line 492, in tables.hdf5extension.File._g_new
-tables.exceptions.HDF5ExtError: HDF5 error back trace
-     ...
-    File "H5FDsec2.c", line 941, in H5FD_sec2_lock
-    unable to lock file, errno = 11, error message = 'Resource temporarily unavailable'
+        File "tables/hdf5extension.pyx", line 492, in tables.hdf5extension.File._g_new
+    tables.exceptions.HDF5ExtError: HDF5 error back trace
+         ...
+        File "H5FDsec2.c", line 941, in H5FD_sec2_lock
+        unable to lock file, errno = 11, error message = 'Resource temporarily unavailable'
     """
     if file is None:
         file = IDX_CMDS_PATH(version)
-    with tables.open_file(file, mode='r') as h5:
+    with tables.open_file(file, mode="r") as h5:
         idx_cmds = CommandTable(h5.root.data[:])
-    logger.info(f'Loaded {file} with {len(idx_cmds)} commands')
+    logger.info(f"Loaded {file} with {len(idx_cmds)} commands")
 
     # For V2 add the params column here to make IDX_CMDS be same as regular cmds
     if version == 2:
-        idx_cmds['params'] = None
+        idx_cmds["params"] = None
 
     return idx_cmds
 
@@ -82,9 +81,9 @@ tables.exceptions.HDF5ExtError: HDF5 error back trace
 def load_pars_dict(version=None, file=None):
     if file is None:
         file = PARS_DICT_PATH(version)
-    with open(file, 'rb') as fh:
-        pars_dict = pickle.load(fh, encoding='ascii')
-    logger.info(f'Loaded {file} with {len(pars_dict)} pars')
+    with open(file, "rb") as fh:
+        pars_dict = pickle.load(fh, encoding="ascii")
+    logger.info(f"Loaded {file} with {len(pars_dict)} pars")
     return pars_dict
 
 
@@ -96,11 +95,11 @@ def load_name_to_cxotime(name):
     day = name[3:5]
     yr = name[5:7]
     if int(yr) > 50:
-        year = f'19{yr}'
+        year = f"19{yr}"
     else:
-        year = f'20{yr}'
-    out = CxoTime(f'{year}-{imon:02d}-{day}')
-    out.format = 'date'
+        year = f"20{yr}"
+    out = CxoTime(f"{year}-{imon:02d}-{day}")
+    out.format = "date"
     return out
 
 
@@ -115,7 +114,9 @@ def vstack_exact(tables):
     names0 = table0.colnames
     for table in tables[1:]:
         if set(table.colnames) != set(names0):
-            raise ValueError(f'Tables have different column names: {names0} != {table.colnames}')
+            raise ValueError(
+                f"Tables have different column names: {names0} != {table.colnames}"
+            )
     for name in table0.colnames:
         new_col = np.concatenate([t[name] for t in tables])
         new_cols.append(new_col)
@@ -153,52 +154,55 @@ def get_cmds_from_backstop(backstop, remove_starcat=False):
 
     if isinstance(backstop, (str, list)):
         from parse_cm import read_backstop
+
         bs = read_backstop(backstop)
     elif isinstance(backstop, Table):
         bs = backstop
     else:
-        raise ValueError(f'`backstop` arg must be a string filename or '
-                         f'a backstop Table')
+        raise ValueError(
+            f"`backstop` arg must be a string filename or " f"a backstop Table"
+        )
 
     n_bs = len(bs)
     out = {}
     # Set idx to -1 so it does not match any real idx
-    out['idx'] = np.full(n_bs, fill_value=-1, dtype=np.int32)
-    out['date'] = np.chararray.encode(bs['date'])
-    out['type'] = np.chararray.encode(bs['type'])
-    out['tlmsid'] = np.chararray.encode(bs['tlmsid'])
-    out['scs'] = bs['scs'].astype(np.uint8)
-    out['step'] = bs['step'].astype(np.uint16)
-    out['time'] = CxoTime(bs['date'], format='date').secs
+    out["idx"] = np.full(n_bs, fill_value=-1, dtype=np.int32)
+    out["date"] = np.chararray.encode(bs["date"])
+    out["type"] = np.chararray.encode(bs["type"])
+    out["tlmsid"] = np.chararray.encode(bs["tlmsid"])
+    out["scs"] = bs["scs"].astype(np.uint8)
+    out["step"] = bs["step"].astype(np.uint16)
+    out["time"] = CxoTime(bs["date"], format="date").secs
     # Set timeline_id to 0, does not match any real timeline id
-    out['timeline_id'] = np.zeros(n_bs, dtype=np.uint32)
-    out['vcdu'] = bs['vcdu'].astype(np.int32)
-    out['params'] = bs['params']
+    out["timeline_id"] = np.zeros(n_bs, dtype=np.uint32)
+    out["vcdu"] = bs["vcdu"].astype(np.int32)
+    out["params"] = bs["params"]
 
     if remove_starcat:
         # Remove the lengthy parameters in star catalog but leave the command
-        for idx in np.flatnonzero(bs['type'] == 'MP_STARCAT'):
-            out['params'][idx] = {}
+        for idx in np.flatnonzero(bs["type"] == "MP_STARCAT"):
+            out["params"][idx] = {}
 
     # Backstop has redundant param keys, get rid of them here
-    for params in out['params']:
-        for key in ('tlmsid', 'step', 'scs'):
+    for params in out["params"]:
+        for key in ("tlmsid", "step", "scs"):
             params.pop(key, None)
 
         # Match the hack in update_commands which swaps in "event_type" for "type"
         # for orbit event commands
-        if 'type' in params:
-            params['event_type'] = params['type']
-            del params['type']
+        if "type" in params:
+            params["event_type"] = params["type"]
+            del params["type"]
 
     out = CommandTable(out)
-    out['time'].info.format = '.3f'
+    out["time"].info.format = ".3f"
 
     return out
 
 
-def _find(start=None, stop=None, inclusive_stop=False, idx_cmds=None,
-          pars_dict=None, **kwargs):
+def _find(
+    start=None, stop=None, inclusive_stop=False, idx_cmds=None, pars_dict=None, **kwargs
+):
     """
     Get commands beteween ``start`` and ``stop``.
 
@@ -242,17 +246,17 @@ def _find(start=None, stop=None, inclusive_stop=False, idx_cmds=None,
     ok = np.ones(len(idx_cmds), dtype=bool)
     par_ok = np.zeros(len(idx_cmds), dtype=bool)
 
-    date = kwargs.pop('date', None)
+    date = kwargs.pop("date", None)
     if date:
-        ok &= idx_cmds['date'] == CxoTime(date).date
+        ok &= idx_cmds["date"] == CxoTime(date).date
     else:
         if start:
-            ok &= idx_cmds['date'] >= CxoTime(start).date
+            ok &= idx_cmds["date"] >= CxoTime(start).date
         if stop:
             if inclusive_stop:
-                ok &= idx_cmds['date'] <= CxoTime(stop).date
+                ok &= idx_cmds["date"] <= CxoTime(stop).date
             else:
-                ok &= idx_cmds['date'] < CxoTime(stop).date
+                ok &= idx_cmds["date"] < CxoTime(stop).date
 
     for key, val in kwargs.items():
         key = key.lower()
@@ -269,7 +273,7 @@ def _find(start=None, stop=None, inclusive_stop=False, idx_cmds=None,
                     continue
                 pars = dict(pars_tuple)
                 if pars.get(key) == val:
-                    par_ok |= (idx_cmds['idx'] == idx)
+                    par_ok |= idx_cmds["idx"] == idx
             ok &= par_ok
     cmds = idx_cmds[ok]
 
@@ -277,16 +281,26 @@ def _find(start=None, stop=None, inclusive_stop=False, idx_cmds=None,
 
 
 def get_starcat_keys_types():
-    cat_keys = ['dimdts', 'imgsz', 'imnum', 'maxmag', 'minmag', 'restrk', 'type', 'yang', 'zang']
+    cat_keys = [
+        "dimdts",
+        "imgsz",
+        "imnum",
+        "maxmag",
+        "minmag",
+        "restrk",
+        "type",
+        "yang",
+        "zang",
+    ]
     # Unsigned char (uint8) and float (np.float32)
-    cat_types = ['B', 'B', 'B', 'f', 'f', 'B', 'B', 'f', 'f']
-    keys = ['cmds']
-    types = ['B']
+    cat_types = ["B", "B", "B", "f", "f", "B", "B", "f", "f"]
+    keys = ["cmds"]
+    types = ["B"]
     for idx in range(1, 17):
         for cat_key, cat_type in zip(cat_keys, cat_types):
-            keys.append(f'{cat_key}{idx}')
+            keys.append(f"{cat_key}{idx}")
             types.append(cat_type)
-    return keys, ''.join(types)
+    return keys, "".join(types)
 
 
 STARCAT_KEYS, STARCAT_TYPES = get_starcat_keys_types()
@@ -305,10 +319,10 @@ def decode_starcat_params(params_bytes):
 
 class CommandRow(Row):
     def __getitem__(self, item):
-        if item == 'params':
+        if item == "params":
             out = super().__getitem__(item)
             if out is None:
-                idx = super().__getitem__('idx')
+                idx = super().__getitem__("idx")
                 # self.parent.rev_pars_dict should be a weakref to the reverse
                 # pars dict for this CommandTable. But it might not be defined,
                 # in which case just leave it as None.
@@ -319,20 +333,22 @@ class CommandRow(Row):
                     else:
                         params = dict(parvals)
                 else:
-                    raise KeyError('params cannot be mapped because the rev_pars_dict '
-                                   'attribute is not defined (needs to be a weakref.ref '
-                                   'of REV_PARS_DICT)')
-                out = self['params'] = params
+                    raise KeyError(
+                        "params cannot be mapped because the rev_pars_dict "
+                        "attribute is not defined (needs to be a weakref.ref "
+                        "of REV_PARS_DICT)"
+                    )
+                out = self["params"] = params
         elif item not in self.colnames:
-            out = self['params'][item]
+            out = self["params"][item]
         else:
             out = super().__getitem__(item)
         return out
 
     def keys(self):
-        out = [name for name in self.colnames if name != 'params']
-        if 'params' in self.colnames:
-            params = [key.lower() for key in sorted(self['params'])]
+        out = [name for name in self.colnames if name != "params"]
+        if "params" in self.colnames:
+            params = [key.lower() for key in sorted(self["params"])]
         else:
             params = []
 
@@ -345,23 +361,25 @@ class CommandRow(Row):
         return [(key, value) for key, value in zip(self.keys(), self.values())]
 
     def __repr__(self):
-        out = (f'<Cmd {str(self)}>')
+        out = f"<Cmd {str(self)}>"
         return out
 
     def __str__(self):
         keys = self.keys()
-        keys.remove('date')
-        keys.remove('type')
-        if 'idx' in keys:
-            keys.remove('idx')
+        keys.remove("date")
+        keys.remove("type")
+        if "idx" in keys:
+            keys.remove("idx")
 
-        out = ('{} {} '.format(self['date'], self['type'])
-               + ' '.join('{}={}'.format(key, self[key]) for key in keys
-                          if key not in ('type', 'date', 'time')))
+        out = "{} {} ".format(self["date"], self["type"]) + " ".join(
+            "{}={}".format(key, self[key])
+            for key in keys
+            if key not in ("type", "date", "time")
+        )
         return out
 
     def __sstr__(self):
-        return str(self._table[self.index:self.index + 1])
+        return str(self._table[self.index : self.index + 1])
 
 
 class CommandTable(Table):
@@ -369,19 +387,22 @@ class CommandTable(Table):
     Astropy Table subclass that is specialized to handle commands via a
     ``params`` column that is expected to be ``None`` or a dict of params.
     """
+
     rev_pars_dict = TableAttribute()
 
-    COL_TYPES = {'idx': np.int32,
-                 'date': 'S21',
-                 'type': 'S12',
-                 'tlmsid': 'S10',
-                 'scs': np.uint8,
-                 'step': np.uint16,
-                 'source': 'S8',
-                 'timeline_id': np.uint32,
-                 'vcdu': np.int32,
-                 'time': np.float64,
-                 'params': object}
+    COL_TYPES = {
+        "idx": np.int32,
+        "date": "S21",
+        "type": "S12",
+        "tlmsid": "S10",
+        "scs": np.uint8,
+        "step": np.uint16,
+        "source": "S8",
+        "timeline_id": np.uint32,
+        "vcdu": np.int32,
+        "time": np.float64,
+        "params": object,
+    }
 
     def _convert_data_to_col(self, *args, **kwargs):
         col = super()._convert_data_to_col(*args, **kwargs)
@@ -394,39 +415,44 @@ class CommandTable(Table):
             if item in self.colnames:
                 return self.columns[item]
             else:
-                return Column([cmd['params'].get(item) for cmd in self], name=item)
+                return Column([cmd["params"].get(item) for cmd in self], name=item)
 
         elif isinstance(item, (int, np.integer)):
             return CommandRow(self, item)
 
-        elif isinstance(item, (tuple, list)) and all(x in self.colnames
-                                                     for x in item):
+        elif isinstance(item, (tuple, list)) and all(x in self.colnames for x in item):
             from copy import deepcopy
+
             from astropy.table import groups
+
             out = self.__class__([self[x] for x in item], meta=deepcopy(self.meta))
-            out._groups = groups.TableGroups(out, indices=self.groups._indices,
-                                             keys=self.groups._keys)
+            out._groups = groups.TableGroups(
+                out, indices=self.groups._indices, keys=self.groups._keys
+            )
             return out
 
-        elif (isinstance(item, slice)
-              or isinstance(item, np.ndarray)
-              or isinstance(item, list)
-              or isinstance(item, tuple) and all(isinstance(x, np.ndarray)
-                                                 for x in item)):
+        elif (
+            isinstance(item, slice)
+            or isinstance(item, np.ndarray)
+            or isinstance(item, list)
+            or isinstance(item, tuple)
+            and all(isinstance(x, np.ndarray) for x in item)
+        ):
             # here for the many ways to give a slice; a tuple of ndarray
             # is produced by np.where, as in t[np.where(t['a'] > 2)]
             # For all, a new table is constructed with slice of all columns
             return self._new_from_slice(item)
 
         else:
-            raise ValueError('Illegal type {0} for table item access'
-                             .format(type(item)))
+            raise ValueError(
+                "Illegal type {0} for table item access".format(type(item))
+            )
 
     def __str__(self):
         # Cut out index column for printing
         colnames = self.colnames
-        if 'idx' in colnames:
-            colnames.remove('idx')
+        if "idx" in colnames:
+            colnames.remove("idx")
         return self.__repr__(colnames)
 
     def __repr__(self, colnames=None):
@@ -435,31 +461,33 @@ class CommandTable(Table):
 
         # Nice repr of parameters.
         tmp_params = None
-        if 'params' in colnames:
+        if "params" in colnames:
             params_list = []
-            for params in self['params']:
+            for params in self["params"]:
                 if params is None:
-                    params_list.append('N/A')
+                    params_list.append("N/A")
                 else:
-                    param_strs = ['{}={}'.format(key, val) for key, val in params.items()]
-                    params_str = ' '.join(param_strs)
+                    param_strs = [
+                        "{}={}".format(key, val) for key, val in params.items()
+                    ]
+                    params_str = " ".join(param_strs)
                     if len(params_str) > 40:
-                        params_str = params_str[:40] + ' ...'
+                        params_str = params_str[:40] + " ..."
                     params_list.append(params_str)
             tmp_params = params_list
-            colnames.remove('params')
+            colnames.remove("params")
 
         tmp = self[colnames]
         if tmp_params:
-            tmp['params'] = tmp_params
+            tmp["params"] = tmp_params
 
         lines = tmp.pformat(max_width=-1)
-        return '\n'.join(lines)
+        return "\n".join(lines)
 
     def __bytes__(self):
-        return str(self).encode('utf-8')
+        return str(self).encode("utf-8")
 
-    def find_date(self, date, side='left'):
+    def find_date(self, date, side="left"):
         """Find row in table corresponding to ``date``.
 
         This is a thin wrapper around np.searchsorted that converts ``date`` to
@@ -478,8 +506,8 @@ class CommandTable(Table):
         """
         if isinstance(date, CxoTime):
             date = date.date
-        date = np.char.encode(date, encoding='ascii')
-        idxs = np.searchsorted(self['date'], date, side=side)
+        date = np.char.encode(date, encoding="ascii")
+        idxs = np.searchsorted(self["date"], date, side=side)
         return idxs
 
     def fetch_params(self):
@@ -488,28 +516,32 @@ class CommandTable(Table):
 
         This is handy for printing a command table and seeing all the parameters at once.
         """
-        if 'params' not in self.colnames:
-            self['params'] = None
+        if "params" not in self.colnames:
+            self["params"] = None
         for cmd in self:
-            cmd['params']
+            cmd["params"]
 
     def get_rltt(self):
         # Find the RLTT, which should be near the start of the table.
         for cmd in self:
-            if (cmd['type'] == 'LOAD_EVENT'
-                    and cmd['params']['event_type'] == 'RUNNING_LOAD_TERMINATION_TIME'):
-                return cmd['date']
+            if (
+                cmd["type"] == "LOAD_EVENT"
+                and cmd["params"]["event_type"] == "RUNNING_LOAD_TERMINATION_TIME"
+            ):
+                return cmd["date"]
         else:
-            raise ValueError(f'No RLTT found')
+            raise ValueError(f"No RLTT found")
 
     def get_scheduled_stop_time(self):
         for idx in range(len(self), 0, -1):
             cmd = self[idx - 1]
-            if (cmd['type'] == 'LOAD_EVENT'
-                    and cmd['params']['event_type'] == 'SCHEDULED_STOP_TIME'):
-                return cmd['date']
+            if (
+                cmd["type"] == "LOAD_EVENT"
+                and cmd["params"]["event_type"] == "SCHEDULED_STOP_TIME"
+            ):
+                return cmd["date"]
         else:
-            raise ValueError(f'No scheduled stop time found')
+            raise ValueError(f"No scheduled stop time found")
 
     def add_cmds(self, cmds, rltt=None):
         """
@@ -522,7 +554,7 @@ class CommandTable(Table):
         :returns: :class:`~kadi.commands.commands.CommandTable` of commands
         """
         if rltt is not None:
-            remove_idxs = np.where(self['date'] > rltt)[0]
+            remove_idxs = np.where(self["date"] > rltt)[0]
             self.remove_rows(remove_idxs)
 
         try:
@@ -542,17 +574,17 @@ class CommandTable(Table):
         This matches the order in backstop.
         """
         # Legacy sort for V1 commands archive
-        if 'timeline_id' in self.colnames:
-            self.sort(['date', 'step', 'scs'])
+        if "timeline_id" in self.colnames:
+            self.sort(["date", "step", "scs"])
             return
 
         # For V2 use stable sort just on date, preserving the existing order.
         # Copied verbatim from astropy.table.Table.sort except 'stable' sort.
         # (Astropy sort does not provide `kind` argument for .sort(), hopefully
         # fixed by astropy 5.1).
-        indexes = self.argsort(['date'], kind='stable')
+        indexes = self.argsort(["date"], kind="stable")
 
-        with self.index_mode('freeze'):
+        with self.index_mode("freeze"):
             for name, col in self.columns.items():
                 # Make a new sorted column.  This requires that take() also copies
                 # relevant info attributes for mixin columns.
@@ -590,19 +622,22 @@ class CommandTable(Table):
 
         if ska_parsecm:
             for cmd in cmds_list:
-                if 'type' in cmd:
-                    cmd['cmd'] = cmd['type']
-                if 'params' in cmd:
-                    cmd['params'] = {key.upper(): val for key, val in cmd['params'].items()}
+                if "type" in cmd:
+                    cmd["cmd"] = cmd["type"]
+                if "params" in cmd:
+                    cmd["params"] = {
+                        key.upper(): val for key, val in cmd["params"].items()
+                    }
 
         return cmds_list
 
-    def pformat_like_backstop(self,
-                              show_source=True,
-                              show_nonload_meta=True,
-                              sort_orbit_events=False,
-                              max_params_width=80,
-                              ):
+    def pformat_like_backstop(
+        self,
+        show_source=True,
+        show_nonload_meta=True,
+        sort_orbit_events=False,
+        max_params_width=80,
+    ):
         """Format the table in a human-readable format that is similar to backstop.
 
         :param show_source: bool, optional
@@ -616,21 +651,23 @@ class CommandTable(Table):
         :returns: list of lines
         """
         lines = []
-        has_params = 'params' in self.colnames
+        has_params = "params" in self.colnames
 
         if has_params and sort_orbit_events:
             cmds = self.copy()
-            cmds['cmd_idx'] = np.arange(len(cmds))
-            orb_cmds = cmds[cmds['type'] == 'ORBPOINT']
-            cg = orb_cmds.group_by('date')
+            cmds["cmd_idx"] = np.arange(len(cmds))
+            orb_cmds = cmds[cmds["type"] == "ORBPOINT"]
+            cg = orb_cmds.group_by("date")
             for i0, i1 in zip(cg.groups.indices[:-1], cg.groups.indices[1:]):
                 # For multiple orbit events at the same date, pull them out and
                 # sort the event_type and index and update in place.
                 if i1 - i0 > 1:
-                    vals = sorted([cg[ii]['params']['event_type'] for ii in range(i0, i1)])
-                    idxs = sorted(cg['cmd_idx'][i0:i1])
+                    vals = sorted(
+                        [cg[ii]["params"]["event_type"] for ii in range(i0, i1)]
+                    )
+                    idxs = sorted(cg["cmd_idx"][i0:i1])
                     for idx, val in zip(idxs, vals):
-                        cmds[idx]['params']['event_type'] = val
+                        cmds[idx]["params"]["event_type"] = val
         else:
             cmds = self
 
@@ -638,55 +675,59 @@ class CommandTable(Table):
             if has_params:
                 # Make a single string of params like POS= 75624, SCS= 130, STEP= 9
                 fmtvals = []
-                keys = cmd['params']
+                keys = cmd["params"]
                 for key in keys:
-                    if (not show_nonload_meta
-                            and key in ('nonload_id', 'event', 'event_date')):
+                    if not show_nonload_meta and key in (
+                        "nonload_id",
+                        "event",
+                        "event_date",
+                    ):
                         continue
-                    val = cmd['params'][key]
-                    if key == 'aoperige':
-                        fmt = '{}={:.13e}'
+                    val = cmd["params"][key]
+                    if key == "aoperige":
+                        fmt = "{}={:.13e}"
                     elif isinstance(val, float):
-                        fmt = '{}={:.8e}'
-                    elif key == 'packet(40)':
+                        fmt = "{}={:.8e}"
+                    elif key == "packet(40)":
                         continue
-                    elif (key.startswith('aopcads') or
-                          key.startswith('co')
-                          or key.startswith('afl')
-                          or key.startswith('2s1s')
-                          or key.startswith('2s2s')
-                          ):
-                        fmt = '{}={:d} '
+                    elif (
+                        key.startswith("aopcads")
+                        or key.startswith("co")
+                        or key.startswith("afl")
+                        or key.startswith("2s1s")
+                        or key.startswith("2s2s")
+                    ):
+                        fmt = "{}={:d} "
                     else:
-                        fmt = '{}={}'
+                        fmt = "{}={}"
                     fmtvals.append(fmt.format(key, val))
 
                 fmtvals.append(f'scs={cmd["scs"]}')
 
-                params_str = ', '.join(fmtvals)
+                params_str = ", ".join(fmtvals)
             else:
-                params_str = 'N/A'
+                params_str = "N/A"
 
             if max_params_width is not None:
                 params_str = params_str[:max_params_width]
 
-            fmts = ('{}', '{:16s}', '{:10s}')
-            args = (cmd['date'], cmd['type'], cmd['tlmsid'])
+            fmts = ("{}", "{:16s}", "{:10s}")
+            args = (cmd["date"], cmd["type"], cmd["tlmsid"])
             if show_source:
-                if 'source' in self.colnames:
-                    fmts += ('{:8s}',)
-                    args += (cmd['source'],)
-                elif 'timeline_id' in self.colnames:
-                    fmts += ('{:8d}',)
-                    args += (cmd['timeline_id'],)
-            fmts += ('{}',)
+                if "source" in self.colnames:
+                    fmts += ("{:8s}",)
+                    args += (cmd["source"],)
+                elif "timeline_id" in self.colnames:
+                    fmts += ("{:8d}",)
+                    args += (cmd["timeline_id"],)
+            fmts += ("{}",)
             args += (params_str,)
-            fmt = ' | '.join(fmts)
+            fmt = " | ".join(fmts)
             lines.append(fmt.format(*args))
 
         return lines
 
-    def pprint_like_backstop(self, *, logger_func=None, logger_text='', **kwargs):
+    def pprint_like_backstop(self, *, logger_func=None, logger_text="", **kwargs):
         """Format the table in a human-readable format that is similar to backstop.
 
         :param logger_func: function, optional
@@ -706,7 +747,7 @@ class CommandTable(Table):
             for line in lines:
                 print(line)
         else:
-            logger_func(logger_text + '\n' + '\n'.join(lines) + '\n')
+            logger_func(logger_text + "\n" + "\n".join(lines) + "\n")
 
     def deduplicate_orbit_cmds(self):
         """Remove duplicate orbit commands (ORBPOINT type) in place.
@@ -717,33 +758,35 @@ class CommandTable(Table):
         is within 3 minutes. This code chooses the cmd from the latest loads in
         this case.
         """
-        idxs = np.where(self['type'] == 'ORBPOINT')[0]
+        idxs = np.where(self["type"] == "ORBPOINT")[0]
         orbit_cmds = self[idxs]
-        orbit_cmds['idx'] = idxs
-        orbit_cmds['time'] = CxoTime(orbit_cmds['date']).secs
+        orbit_cmds["idx"] = idxs
+        orbit_cmds["time"] = CxoTime(orbit_cmds["date"]).secs
 
         # Turn into a list of Row's and sort by (event_type, date)
         orbit_cmds = list(orbit_cmds)
-        orbit_cmds.sort(key=lambda y: (y['params']['event_type'], y['date']))
+        orbit_cmds.sort(key=lambda y: (y["params"]["event_type"], y["date"]))
 
         uniq_cmds = [orbit_cmds[0]]
         # Step through one at a time and add to uniq_cmds only if the candidate is
         # "different" from uniq_cmds[-1].
         for cmd in orbit_cmds:
             last_cmd = uniq_cmds[-1]
-            if (cmd['params']['event_type'] == last_cmd['params']['event_type']
-                    and abs(cmd['time'] - last_cmd['time']) < 180):
+            if (
+                cmd["params"]["event_type"] == last_cmd["params"]["event_type"]
+                and abs(cmd["time"] - last_cmd["time"]) < 180
+            ):
                 # Same event as last (even if date is a bit different).  Now if this one
                 # has a larger timeline_id that means it is from a more recent schedule, so
                 # use that one.
-                load_date = load_name_to_cxotime(cmd['source'])
-                load_date_last = load_name_to_cxotime(last_cmd['source'])
+                load_date = load_name_to_cxotime(cmd["source"])
+                load_date_last = load_name_to_cxotime(last_cmd["source"])
                 if load_date > load_date_last:
                     uniq_cmds[-1] = cmd
             else:
                 uniq_cmds.append(cmd)
 
-        uniq_idxs = [uniq_cmd['idx'] for uniq_cmd in uniq_cmds]
+        uniq_idxs = [uniq_cmd["idx"] for uniq_cmd in uniq_cmds]
         remove_idxs = set(idxs) - set(uniq_idxs)
         self.remove_rows(list(remove_idxs))
 
@@ -756,13 +799,13 @@ class CommandTable(Table):
         LETG retract command in the loads after the LETG insert anomaly.
         """
         idxs_remove = set()
-        idxs_not_run = np.where(self['type'] == 'NOT_RUN')[0]
+        idxs_not_run = np.where(self["type"] == "NOT_RUN")[0]
         for idx in idxs_not_run:
             cmd = self[idx]
-            ok = (self['date'] == cmd['date']) & (self['tlmsid'] == cmd['tlmsid'])
+            ok = (self["date"] == cmd["date"]) & (self["tlmsid"] == cmd["tlmsid"])
             idxs_remove.update(np.where(ok)[0])
         if idxs_remove:
-            logger.info(f'Removing {len(idxs_remove)} NOT_RUN cmds')
+            logger.info(f"Removing {len(idxs_remove)} NOT_RUN cmds")
             self.remove_rows(list(idxs_remove))
 
 
@@ -786,16 +829,16 @@ def get_par_idx_update_pars_dict(pars_dict, cmd, params=None, rev_pars_dict=None
     """
     # Define a consistently ordered tuple that has all command parameter information
     if params is None:
-        params = cmd['params']
-    keys = set(params.keys()) - set(('SCS', 'STEP', 'TLMSID'))
+        params = cmd["params"]
+    keys = set(params.keys()) - set(("SCS", "STEP", "TLMSID"))
 
-    if cmd['tlmsid'] == 'AOSTRCAT':
+    if cmd["tlmsid"] == "AOSTRCAT":
         pars_tup = encode_starcat_params(params) if params else ()
     else:
-        if cmd['tlmsid'] == 'OBS':
+        if cmd["tlmsid"] == "OBS":
             # Re-order parameters to a priority order.
-            new_keys = ['obsid', 'simpos', 'obs_stop', 'manvr_start', 'targ_att']
-            for key in sorted(cmd['params']):
+            new_keys = ["obsid", "simpos", "obs_stop", "manvr_start", "targ_att"]
+            for key in sorted(cmd["params"]):
                 if key not in new_keys:
                     new_keys.append(key)
             keys = new_keys
@@ -822,13 +865,13 @@ def get_par_idx_update_pars_dict(pars_dict, cmd, params=None, rev_pars_dict=None
 
 
 def ska_load_dir(load_name):
-    root = Path(os.environ['SKA']) / 'data' / 'mpcrit1' / 'mplogs'
+    root = Path(os.environ["SKA"]) / "data" / "mpcrit1" / "mplogs"
     year = load_name[5:7]
-    if year == '99':
+    if year == "99":
         year = 1999
     else:
         year = 2000 + int(year)
     load_rev = load_name[-1].lower()
     load_dir = load_name[:-1]
-    load_dir = root / str(year) / load_dir / f'ofls{load_rev}'
+    load_dir = root / str(year) / load_dir / f"ofls{load_rev}"
     return load_dir

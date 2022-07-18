@@ -1,27 +1,27 @@
 import functools
-import os
-import hashlib
-from pathlib import Path
 import gzip
+import hashlib
+import os
+from pathlib import Path
+
 import numpy as np
+import pytest
+from astropy.io import ascii
+from astropy.table import Table
+from Chandra.Time import DateTime
+from Ska.engarchive import fetch
+from testr.test_helper import has_internet
 
 from kadi import commands
 from kadi.commands import states
-import pytest
-from testr.test_helper import has_internet
-
-from Chandra.Time import DateTime
-from Ska.engarchive import fetch
-from astropy.io import ascii
-from astropy.table import Table
 
 try:
-    fetch.get_time_range('dp_pitch')
+    fetch.get_time_range("dp_pitch")
     HAS_PITCH = True
 except Exception:
     HAS_PITCH = False
 
-VERSIONS = ['1', '2'] if has_internet() else ['1']
+VERSIONS = ["1", "2"] if has_internet() else ["1"]
 
 
 @pytest.fixture(scope="module", params=VERSIONS)
@@ -32,41 +32,43 @@ def version(request):
 @pytest.fixture(autouse=True)
 def version_env(monkeypatch, version):
     if version is None:
-        monkeypatch.delenv('KADI_COMMANDS_VERSION', raising=False)
+        monkeypatch.delenv("KADI_COMMANDS_VERSION", raising=False)
     else:
-        monkeypatch.setenv('KADI_COMMANDS_VERSION', version)
+        monkeypatch.setenv("KADI_COMMANDS_VERSION", version)
     return version
 
 
 # Canonical state0 giving spacecraft state at beginning of timelines
 # 2002:007:13 fetch --start 2002:007:13:00:00 --stop 2002:007:13:02:00 aoattqt1
 # aoattqt2 aoattqt3 aoattqt4 cobsrqid aopcadmd tscpos
-STATE0 = {'ccd_count': 5,
-          'clocking': 0,
-          'datestart': '2002:007:13:00:00.000',
-          'datestop': '2099:001:00:00:00.000',
-          'dec': -11.500,
-          'fep_count': 0,
-          'hetg': 'RETR',
-          'letg': 'RETR',
-          'obsid': 61358,
-          'pcad_mode': 'NPNT',
-          'pitch': 61.37,
-          'power_cmd': 'AA00000000',
-          'q1': -0.568062,
-          'q2': 0.121674,
-          'q3': 0.00114141,
-          'q4': 0.813941,
-          'ra': 352.000,
-          'roll': 289.37,
-          'si_mode': 'undef',
-          'simfa_pos': -468,
-          'simpos': -99616,
-          'trans_keys': 'undef',
-          'tstart': 127020624.552,
-          'tstop': 3187296066.184,
-          'vid_board': 0,
-          'dither': 'None'}
+STATE0 = {
+    "ccd_count": 5,
+    "clocking": 0,
+    "datestart": "2002:007:13:00:00.000",
+    "datestop": "2099:001:00:00:00.000",
+    "dec": -11.500,
+    "fep_count": 0,
+    "hetg": "RETR",
+    "letg": "RETR",
+    "obsid": 61358,
+    "pcad_mode": "NPNT",
+    "pitch": 61.37,
+    "power_cmd": "AA00000000",
+    "q1": -0.568062,
+    "q2": 0.121674,
+    "q3": 0.00114141,
+    "q4": 0.813941,
+    "ra": 352.000,
+    "roll": 289.37,
+    "si_mode": "undef",
+    "simfa_pos": -468,
+    "simpos": -99616,
+    "trans_keys": "undef",
+    "tstart": 127020624.552,
+    "tstop": 3187296066.184,
+    "vid_board": 0,
+    "dither": "None",
+}
 
 
 def assert_all_close_states(rc, rk, keys):
@@ -76,7 +78,7 @@ def assert_all_close_states(rc, rk, keys):
     """
     for key in keys:
         rcdtype = rc[key].dtype
-        if rcdtype.kind == 'f':
+        if rcdtype.kind == "f":
             assert np.allclose(rk[key].astype(rcdtype), rc[key])
         else:
             assert np.all(rk[key] == rc[key])
@@ -90,23 +92,30 @@ def get_states_test(start, stop, state_keys, continuity=None):
     stop = DateTime(stop)
 
     cstates = cmd_states_fetch_states(start.date, stop.date)
-    trans_keys = [set(val.split(',')) for val in cstates['trans_keys']]
-    cstates.remove_column('trans_keys')  # Necessary for older astropy
-    cstates['trans_keys'] = trans_keys
+    trans_keys = [set(val.split(",")) for val in cstates["trans_keys"]]
+    cstates.remove_column("trans_keys")  # Necessary for older astropy
+    cstates["trans_keys"] = trans_keys
     rcstates = states.reduce_states(cstates, state_keys, merge_identical=True)
     lenr = len(rcstates)
 
     cmds = commands.get_cmds(start - 7, stop)
     with states.disable_grating_move_duration():
-        kstates = states.get_states(state_keys=state_keys, cmds=cmds,
-                                    continuity=continuity, reduce=False)
+        kstates = states.get_states(
+            state_keys=state_keys, cmds=cmds, continuity=continuity, reduce=False
+        )
     rkstates = states.reduce_states(kstates, state_keys, merge_identical=True)[-lenr:]
 
     return rcstates, rkstates
 
 
-def compare_states(start, stop, state_keys, compare_state_keys=None, continuity=None,
-                   compare_dates=True):
+def compare_states(
+    start,
+    stop,
+    state_keys,
+    compare_state_keys=None,
+    continuity=None,
+    compare_dates=True,
+):
     """
     Helper for comparing states from kadi and cmd_states
     """
@@ -118,8 +127,8 @@ def compare_states(start, stop, state_keys, compare_state_keys=None, continuity=
     assert_all_close_states(rcstates, rkstates, compare_state_keys)
 
     if compare_dates:
-        assert np.all(rcstates['datestart'][1:] == rkstates['datestart'][1:])
-        assert np.all(rcstates['datestop'][:-1] == rkstates['datestop'][:-1])
+        assert np.all(rcstates["datestart"][1:] == rkstates["datestart"][1:])
+        assert np.all(rcstates["datestop"][:-1] == rkstates["datestop"][:-1])
 
     return rcstates, rkstates
 
@@ -128,20 +137,30 @@ def test_acis():
     """
     Test all ACIS states include vid_board for late-2017
     """
-    state_keys = ['clocking', 'power_cmd', 'fep_count', 'si_mode', 'vid_board']
-    rc, rk = compare_states('2017:280:12:00:00', '2017:360:12:00:00', state_keys, state_keys)
+    state_keys = ["clocking", "power_cmd", "fep_count", "si_mode", "vid_board"]
+    rc, rk = compare_states(
+        "2017:280:12:00:00", "2017:360:12:00:00", state_keys, state_keys
+    )
 
 
 def test_cmd_line_interface(tmpdir):
     """
     Test command line interface
     """
-    filename = os.path.join(str(tmpdir), 'out.txt')
-    states.get_chandra_states(['--outfile', filename,
-                               '--start', '2017:001:21:00:00',
-                               '--stop', '2017:002:11:30:00',
-                               '--state-keys', 'obsid,si_mode,pcad_mode'])
-    with open(filename, 'r') as fh:
+    filename = os.path.join(str(tmpdir), "out.txt")
+    states.get_chandra_states(
+        [
+            "--outfile",
+            filename,
+            "--start",
+            "2017:001:21:00:00",
+            "--stop",
+            "2017:002:11:30:00",
+            "--state-keys",
+            "obsid,si_mode,pcad_mode",
+        ]
+    )
+    with open(filename, "r") as fh:
         out = fh.read()
 
     # Work around bug in astropy 3.0 where text table output has `\r\r\n` line endings
@@ -149,55 +168,68 @@ def test_cmd_line_interface(tmpdir):
     # at which point python turns the \n into \r\n.
     lines = [line for line in out.splitlines() if line.strip()]
     assert lines == [
-        '             datestart               datestop  obsid   si_mode  pcad_mode ',
-        ' 2017:001:21:00:00.000  2017:001:21:02:06.467  18140  TE_008FC       NPNT ',
-        ' 2017:001:21:02:06.467  2017:001:21:05:06.467  18140  TE_008FC       NMAN ',
-        ' 2017:001:21:05:06.467  2017:001:21:06:41.467  19973  TE_008FC       NMAN ',
-        ' 2017:001:21:06:41.467  2017:001:21:23:02.282  19973  TE_00A58       NMAN ',
-        ' 2017:001:21:23:02.282  2017:002:11:23:43.185  19973  TE_00A58       NPNT ',
-        ' 2017:002:11:23:43.185  2017:002:11:26:43.185  19973  TE_00A58       NMAN ',
-        ' 2017:002:11:26:43.185  2017:002:11:29:29.870  50432  TE_00A58       NMAN ',
-        ' 2017:002:11:29:29.870  2017:002:11:30:00.000  50432  TE_00A58       NPNT ']
+        "             datestart               datestop  obsid   si_mode  pcad_mode ",
+        " 2017:001:21:00:00.000  2017:001:21:02:06.467  18140  TE_008FC       NPNT ",
+        " 2017:001:21:02:06.467  2017:001:21:05:06.467  18140  TE_008FC       NMAN ",
+        " 2017:001:21:05:06.467  2017:001:21:06:41.467  19973  TE_008FC       NMAN ",
+        " 2017:001:21:06:41.467  2017:001:21:23:02.282  19973  TE_00A58       NMAN ",
+        " 2017:001:21:23:02.282  2017:002:11:23:43.185  19973  TE_00A58       NPNT ",
+        " 2017:002:11:23:43.185  2017:002:11:26:43.185  19973  TE_00A58       NMAN ",
+        " 2017:002:11:26:43.185  2017:002:11:29:29.870  50432  TE_00A58       NMAN ",
+        " 2017:002:11:29:29.870  2017:002:11:30:00.000  50432  TE_00A58       NPNT ",
+    ]
 
 
 def test_quick():
     """
     Test for a few days in 2017.  Sanity check for refactoring etc.
     """
-    state_keys = (['obsid', 'clocking', 'power_cmd', 'fep_count', 'vid_board',
-                   'si_mode', 'ccd_count']
-                  + ['q1', 'q2', 'q3', 'q4', 'pcad_mode', 'dither', 'ra', 'dec', 'roll']
-                  + ['letg', 'hetg']
-                  + ['simpos', 'simfa_pos'])
-    continuity = {'letg': 'RETR', 'hetg': 'RETR'}  # Not necessarily set within 7 days
-    rc, rk = compare_states('2018:235:12:00:00', '2018:245:12:00:00', state_keys,
-                            continuity=continuity)
+    state_keys = (
+        [
+            "obsid",
+            "clocking",
+            "power_cmd",
+            "fep_count",
+            "vid_board",
+            "si_mode",
+            "ccd_count",
+        ]
+        + ["q1", "q2", "q3", "q4", "pcad_mode", "dither", "ra", "dec", "roll"]
+        + ["letg", "hetg"]
+        + ["simpos", "simfa_pos"]
+    )
+    continuity = {"letg": "RETR", "hetg": "RETR"}  # Not necessarily set within 7 days
+    rc, rk = compare_states(
+        "2018:235:12:00:00", "2018:245:12:00:00", state_keys, continuity=continuity
+    )
 
     # Now test using start/stop pair with start/stop and no supplied cmds or continuity.
     # This also tests the API kwarg order: datestart, datestop, state_keys, ..)
     with states.disable_grating_move_duration():
-        sts = states.get_states('2018:235:12:00:00', '2018:245:12:00:00',
-                                state_keys, reduce=False)
-    assert np.all(DateTime(sts['tstart']).date == sts['datestart'])
-    assert np.all(DateTime(sts['tstop']).date == sts['datestop'])
+        sts = states.get_states(
+            "2018:235:12:00:00", "2018:245:12:00:00", state_keys, reduce=False
+        )
+    assert np.all(DateTime(sts["tstart"]).date == sts["datestart"])
+    assert np.all(DateTime(sts["tstop"]).date == sts["datestop"])
 
     rk = states.reduce_states(sts, state_keys, merge_identical=True)
     assert len(rc) == len(rk)
 
     assert_all_close_states(rc, rk, state_keys)
 
-    assert np.all(rc['datestart'][1:] == rk['datestart'][1:])
-    assert np.all(rc['datestop'][:-1] == rk['datestop'][:-1])
+    assert np.all(rc["datestart"][1:] == rk["datestart"][1:])
+    assert np.all(rc["datestop"][:-1] == rk["datestop"][:-1])
 
 
 def test_acis_raw_mode():
     """Test ACIS raw-mode SI modes"""
     # Minimal test that they are found in a period of time known to have
     # raw mode commanding.
-    kstates = states.get_states(start='2017:189:12:00:00', stop='2017:197:12:00:00',
-                                state_keys=['si_mode'])
-    assert 'TN_000B4' in kstates['si_mode']
-    assert 'TN_000B6' in kstates['si_mode']
+    kstates = states.get_states(
+        start="2017:189:12:00:00", stop="2017:197:12:00:00", state_keys=["si_mode"]
+    )
+    assert "TN_000B4" in kstates["si_mode"]
+    assert "TN_000B6" in kstates["si_mode"]
 
 
 def test_states_2017():
@@ -219,12 +251,15 @@ def test_states_2017():
     will insert pitch breaks only in NPNT.  (Tested later).
     """
 
-    state_keys = (['obsid', 'clocking', 'power_cmd', 'fep_count']
-                  + ['q1', 'q2', 'q3', 'q4', 'pcad_mode', 'dither', 'ra', 'dec', 'roll']
-                  + ['letg', 'hetg']
-                  + ['simpos', 'simfa_pos'])
-    rcstates, rkstates = compare_states('2017:060:12:00:00', '2017:260:12:00:00',
-                                        state_keys, compare_dates=False)
+    state_keys = (
+        ["obsid", "clocking", "power_cmd", "fep_count"]
+        + ["q1", "q2", "q3", "q4", "pcad_mode", "dither", "ra", "dec", "roll"]
+        + ["letg", "hetg"]
+        + ["simpos", "simfa_pos"]
+    )
+    rcstates, rkstates = compare_states(
+        "2017:060:12:00:00", "2017:260:12:00:00", state_keys, compare_dates=False
+    )
 
     # Check state datestart.  There are 4 known discrepancies of 0.001 sec
     # due to a slight difference in the start time for NSUN maneuvers.  Cmd_states
@@ -234,10 +269,10 @@ def test_states_2017():
     # of the difference in startup between Chandra.cmd_states and kadi.states.
     rkstates = rkstates[1:]
     rcstates = rcstates[1:]
-    bad = np.flatnonzero(rkstates['datestart'] != rcstates['datestart'])
+    bad = np.flatnonzero(rkstates["datestart"] != rcstates["datestart"])
     assert len(bad) == 4
-    tk = DateTime(rkstates['datestart'][bad]).secs
-    tc = DateTime(rcstates['datestart'][bad]).secs
+    tk = DateTime(rkstates["datestart"][bad]).secs
+    tc = DateTime(rcstates["datestart"][bad]).secs
     assert np.all(np.abs(tk - tc) < 0.0015)
 
 
@@ -250,24 +285,25 @@ def test_pitch_2017():
     Make sure that pitch matches to within 0.5 deg in all samples, and 0.05 deg during
     NPNT.
     """
-    rcstates, rkstates = get_states_test('2017:060:12:00:00', '2017:160:12:00:00',
-                                         ['pcad_mode', 'pitch'])
+    rcstates, rkstates = get_states_test(
+        "2017:060:12:00:00", "2017:160:12:00:00", ["pcad_mode", "pitch"]
+    )
 
-    rcstates['tstop'] = DateTime(rcstates['datestop']).secs
-    rkstates['tstop'] = DateTime(rkstates['datestop']).secs
+    rcstates["tstop"] = DateTime(rcstates["datestop"]).secs
+    rkstates["tstop"] = DateTime(rkstates["datestop"]).secs
 
-    times = np.arange(rcstates['tstop'][0], rcstates['tstop'][-2], 200.0)
+    times = np.arange(rcstates["tstop"][0], rcstates["tstop"][-2], 200.0)
     rci = states.interpolate_states(rcstates, times)
     rki = states.interpolate_states(rkstates, times)
 
-    dp = np.abs(rci['pitch'] - rki['pitch'])
+    dp = np.abs(rci["pitch"] - rki["pitch"])
     assert np.all(dp < 0.5)
-    assert np.all(rci['pcad_mode'] == rki['pcad_mode'])
-    ok = rci['pcad_mode'] == 'NPNT'
+    assert np.all(rci["pcad_mode"] == rki["pcad_mode"])
+    ok = rci["pcad_mode"] == "NPNT"
     assert np.all(dp[ok] < 0.05)
 
 
-@pytest.mark.skipif('not HAS_PITCH')
+@pytest.mark.skipif("not HAS_PITCH")
 def test_sun_vec_versus_telemetry():
     """
     Test sun vector values `pitch` and `off_nominal_roll` versus flight telem.  Include
@@ -277,71 +313,101 @@ def test_sun_vec_versus_telemetry():
     State values are within 1.5 degrees of telemetry.
     """
 
-    state_keys = ['pitch', 'off_nom_roll']
-    start, stop = '2017:349:10:00:00', '2017:350:10:00:00'
+    state_keys = ["pitch", "off_nom_roll"]
+    start, stop = "2017:349:10:00:00", "2017:350:10:00:00"
     cmds = commands.get_cmds(start, stop)
-    rk = states.get_states(state_keys=state_keys, cmds=cmds, merge_identical=True)[-20:-1]
+    rk = states.get_states(state_keys=state_keys, cmds=cmds, merge_identical=True)[
+        -20:-1
+    ]
 
-    tstart = DateTime(rk['datestart']).secs
-    tstop = DateTime(rk['datestop']).secs
+    tstart = DateTime(rk["datestart"]).secs
+    tstop = DateTime(rk["datestop"]).secs
     tmid = (tstart + tstop) / 2
 
     # Pitch from telemetry
-    dat = fetch.Msid('pitch', tstart[0] - 100, tstop[-1] + 100)
+    dat = fetch.Msid("pitch", tstart[0] - 100, tstop[-1] + 100)
     dat.interpolate(times=tmid)
-    delta = np.abs(dat.vals - rk['pitch'])
-    assert np.max(rk['pitch']) - np.min(rk['pitch']) > 75  # Big maneuver
+    delta = np.abs(dat.vals - rk["pitch"])
+    assert np.max(rk["pitch"]) - np.min(rk["pitch"]) > 75  # Big maneuver
     assert np.all(delta < 1.5)
 
     # Off nominal roll (not roll from ra,dec,roll) from telemetry
-    dat = fetch.Msid('roll', tstart[0] - 100, tstop[-1] + 100)
+    dat = fetch.Msid("roll", tstart[0] - 100, tstop[-1] + 100)
     dat.interpolate(times=tmid)
-    delta = np.abs(dat.vals - rk['off_nom_roll'])
-    assert np.max(rk['off_nom_roll']) - np.min(rk['off_nom_roll']) > 20  # Large range
+    delta = np.abs(dat.vals - rk["off_nom_roll"])
+    assert np.max(rk["off_nom_roll"]) - np.min(rk["off_nom_roll"]) > 20  # Large range
     assert np.all(delta < 1.5)
 
 
 def test_dither():
     """Values look reasonable given load commands"""
-    cmds = commands.get_cmds('2017:341:21:40:05', '2017:350:00:00:00')
-    rk = states.get_states(state_keys=['dither_phase_pitch', 'dither_phase_yaw',
-                                       'dither_ampl_pitch', 'dither_ampl_yaw',
-                                       'dither_period_pitch', 'dither_period_yaw'],
-                           cmds=cmds)
+    cmds = commands.get_cmds("2017:341:21:40:05", "2017:350:00:00:00")
+    rk = states.get_states(
+        state_keys=[
+            "dither_phase_pitch",
+            "dither_phase_yaw",
+            "dither_ampl_pitch",
+            "dither_ampl_yaw",
+            "dither_period_pitch",
+            "dither_period_yaw",
+        ],
+        cmds=cmds,
+    )
 
-    assert np.all(rk['datestart'] == ['2017:341:21:40:05.265',
-                                      '2017:342:08:26:34.023',
-                                      '2017:345:02:45:50.318',
-                                      '2017:345:09:02:21.704',
-                                      '2017:345:17:18:08.893',
-                                      '2017:346:04:35:44.546',
-                                      '2017:349:21:28:42.426'])
-    assert np.all(rk['dither_phase_pitch'] == 0.0)
-    assert np.all(rk['dither_phase_yaw'] == 0.0)
-    ampls = [20.00149628163879,
-             7.9989482580707696,
-             20.00149628163879,
-             7.9989482580707696,
-             20.00149628163879,
-             7.9989482580707696,
-             20.00149628163879]
-    assert np.allclose(rk['dither_ampl_pitch'], ampls, atol=1e-6, rtol=0)
-    assert np.allclose(rk['dither_ampl_yaw'], ampls, atol=1e-6, rtol=0)
-    assert np.allclose(rk['dither_period_pitch'], [768.5740994184024,
-                                                   707.13038356352104,
-                                                   768.5740994184024,
-                                                   707.13038356352104,
-                                                   768.5740994184024,
-                                                   707.13038356352104,
-                                                   768.5740994184024], atol=1e-6, rtol=0)
+    assert np.all(
+        rk["datestart"]
+        == [
+            "2017:341:21:40:05.265",
+            "2017:342:08:26:34.023",
+            "2017:345:02:45:50.318",
+            "2017:345:09:02:21.704",
+            "2017:345:17:18:08.893",
+            "2017:346:04:35:44.546",
+            "2017:349:21:28:42.426",
+        ]
+    )
+    assert np.all(rk["dither_phase_pitch"] == 0.0)
+    assert np.all(rk["dither_phase_yaw"] == 0.0)
+    ampls = [
+        20.00149628163879,
+        7.9989482580707696,
+        20.00149628163879,
+        7.9989482580707696,
+        20.00149628163879,
+        7.9989482580707696,
+        20.00149628163879,
+    ]
+    assert np.allclose(rk["dither_ampl_pitch"], ampls, atol=1e-6, rtol=0)
+    assert np.allclose(rk["dither_ampl_yaw"], ampls, atol=1e-6, rtol=0)
+    assert np.allclose(
+        rk["dither_period_pitch"],
+        [
+            768.5740994184024,
+            707.13038356352104,
+            768.5740994184024,
+            707.13038356352104,
+            768.5740994184024,
+            707.13038356352104,
+            768.5740994184024,
+        ],
+        atol=1e-6,
+        rtol=0,
+    )
 
-    assert np.allclose(rk['dither_period_yaw'], [1086.9567572759399,
-                                                 999.99938521341483,
-                                                 1086.9567572759399,
-                                                 999.99938521341483,
-                                                 1086.9567572759399,
-                                                 999.99938521341483,
-                                                 1086.9567572759399], atol=1e-6, rtol=0)
+    assert np.allclose(
+        rk["dither_period_yaw"],
+        [
+            1086.9567572759399,
+            999.99938521341483,
+            1086.9567572759399,
+            999.99938521341483,
+            1086.9567572759399,
+            999.99938521341483,
+            1086.9567572759399,
+        ],
+        atol=1e-6,
+        rtol=0,
+    )
 
 
 def test_get_continuity_regress():
@@ -351,74 +417,88 @@ def test_get_continuity_regress():
     tests a bug fix where maneuver transitions were leaking past the stop time.
     It also tests that all continuity times are before the stop time.
     """
-    expected = {'ccd_count': 3,
-                'clocking': 1,
-                'dec': 32.166641023063612,
-                'dither': 'ENAB',
-                'fep_count': 3,
-                'hetg': 'RETR',
-                'letg': 'RETR',
-                'obsid': 20392,
-                'off_nom_roll': -2.0300858116326026,
-                'pcad_mode': 'NMAN',
-                'pitch': 134.5392571808533,
-                'power_cmd': 'XTZ0000005',
-                'q1': -0.32430877626423488,
-                'q2': -0.59794754520454407,
-                'q3': -0.73138983148061287,
-                'q4': 0.048491903554710794,
-                'ra': 158.0145560201608,
-                'roll': 84.946493470873875,
-                'si_mode': 'TE_005C6',
-                'simfa_pos': -468,
-                'simpos': 75624,
-                'targ_q1': 0.304190361,
-                'targ_q2': 0.445053899,
-                'targ_q3': 0.787398757,
-                'targ_q4': 0.298995734,
-                'vid_board': 1}
+    expected = {
+        "ccd_count": 3,
+        "clocking": 1,
+        "dec": 32.166641023063612,
+        "dither": "ENAB",
+        "fep_count": 3,
+        "hetg": "RETR",
+        "letg": "RETR",
+        "obsid": 20392,
+        "off_nom_roll": -2.0300858116326026,
+        "pcad_mode": "NMAN",
+        "pitch": 134.5392571808533,
+        "power_cmd": "XTZ0000005",
+        "q1": -0.32430877626423488,
+        "q2": -0.59794754520454407,
+        "q3": -0.73138983148061287,
+        "q4": 0.048491903554710794,
+        "ra": 158.0145560201608,
+        "roll": 84.946493470873875,
+        "si_mode": "TE_005C6",
+        "simfa_pos": -468,
+        "simpos": 75624,
+        "targ_q1": 0.304190361,
+        "targ_q2": 0.445053899,
+        "targ_q3": 0.787398757,
+        "targ_q4": 0.298995734,
+        "vid_board": 1,
+    }
 
-    dates = {'ccd_count': '2018:001:11:58:21.735',
-             'clocking': '2018:001:11:59:28.735',
-             'dec': '2018:001:11:57:47.798',
-             'dither': '2017:364:11:51:48.955',
-             'fep_count': '2018:001:11:58:21.735',
-             'hetg': '2018:001:02:58:48.143',
-             'letg': '2017:364:10:50:43.995',
-             'obsid': '2018:001:11:55:05.818',
-             'off_nom_roll': '2018:001:11:57:47.798',
-             'pcad_mode': '2018:001:11:52:05.818',
-             'pitch': '2018:001:11:57:47.798',
-             'power_cmd': '2018:001:11:59:28.735',
-             'q1': '2018:001:11:57:47.798',
-             'q2': '2018:001:11:57:47.798',
-             'q3': '2018:001:11:57:47.798',
-             'q4': '2018:001:11:57:47.798',
-             'ra': '2018:001:11:57:47.798',
-             'roll': '2018:001:11:57:47.798',
-             'si_mode': '2018:001:11:59:24.735',
-             'simfa_pos': '2017:364:11:39:00.159',
-             'simpos': '2018:001:02:55:13.804',
-             'targ_q1': '2018:001:11:52:10.175',
-             'targ_q2': '2018:001:11:52:10.175',
-             'targ_q3': '2018:001:11:52:10.175',
-             'targ_q4': '2018:001:11:52:10.175',
-             'vid_board': '2018:001:11:58:21.735'}
+    dates = {
+        "ccd_count": "2018:001:11:58:21.735",
+        "clocking": "2018:001:11:59:28.735",
+        "dec": "2018:001:11:57:47.798",
+        "dither": "2017:364:11:51:48.955",
+        "fep_count": "2018:001:11:58:21.735",
+        "hetg": "2018:001:02:58:48.143",
+        "letg": "2017:364:10:50:43.995",
+        "obsid": "2018:001:11:55:05.818",
+        "off_nom_roll": "2018:001:11:57:47.798",
+        "pcad_mode": "2018:001:11:52:05.818",
+        "pitch": "2018:001:11:57:47.798",
+        "power_cmd": "2018:001:11:59:28.735",
+        "q1": "2018:001:11:57:47.798",
+        "q2": "2018:001:11:57:47.798",
+        "q3": "2018:001:11:57:47.798",
+        "q4": "2018:001:11:57:47.798",
+        "ra": "2018:001:11:57:47.798",
+        "roll": "2018:001:11:57:47.798",
+        "si_mode": "2018:001:11:59:24.735",
+        "simfa_pos": "2017:364:11:39:00.159",
+        "simpos": "2018:001:02:55:13.804",
+        "targ_q1": "2018:001:11:52:10.175",
+        "targ_q2": "2018:001:11:52:10.175",
+        "targ_q3": "2018:001:11:52:10.175",
+        "targ_q4": "2018:001:11:52:10.175",
+        "vid_board": "2018:001:11:58:21.735",
+    }
 
     with states.disable_grating_move_duration():
-        continuity = states.get_continuity('2018:001:12:00:00')
+        continuity = states.get_continuity("2018:001:12:00:00")
 
     for key, val in expected.items():
         if isinstance(val, (int, str)):
             assert continuity[key] == val
         else:
             assert np.isclose(continuity[key], val, rtol=0, atol=1e-7)
-        assert continuity['__dates__'][key] == dates[key]
-        assert continuity['__dates__'][key] < '2018:001:12:00:00.000'
+        assert continuity["__dates__"][key] == dates[key]
+        assert continuity["__dates__"][key] < "2018:001:12:00:00.000"
         # Transitions with no spacecraft command (instead from injected maneuver state breaks)
-        manvr_keys = ('pitch', 'off_nom_roll', 'ra', 'dec', 'roll', 'q1', 'q2', 'q3', 'q4')
+        manvr_keys = (
+            "pitch",
+            "off_nom_roll",
+            "ra",
+            "dec",
+            "roll",
+            "q1",
+            "q2",
+            "q3",
+            "q4",
+        )
         if key not in manvr_keys:
-            cmds = commands.get_cmds(date=continuity['__dates__'][key])
+            cmds = commands.get_cmds(date=continuity["__dates__"][key])
             assert len(cmds) > 0
 
 
@@ -427,14 +507,14 @@ def test_get_continuity_vs_states():
     Functional test: continuity for a certain date should be the same as the last states
     when fed in cmds up through that date.
     """
-    date0 = '2017:014:12:00:00'
+    date0 = "2017:014:12:00:00"
     # Get last state up through `date0`.  Hardwire the lookback here to 21 days.
-    cmds = commands.get_cmds('2016:360:12:00:00', date0)
+    cmds = commands.get_cmds("2016:360:12:00:00", date0)
     sts = states.get_states(cmds=cmds, stop=date0)
     sts0 = sts[-1]
 
     continuity = states.get_continuity(date0)
-    del continuity['__dates__']
+    del continuity["__dates__"]
 
     for key, val in continuity.items():
         if isinstance(val, (int, str)):
@@ -448,95 +528,100 @@ def test_get_states_with_cmds_and_start_stop():
     stop."""
     # Get 6 commands from 2020:001:02:55:00.000 to 2020:001:02:55:01.285
     # (just comm setup commanding)
-    cmds = commands.get_cmds('2020:001:02:00:00', '2020:001:03:00:00')
+    cmds = commands.get_cmds("2020:001:02:00:00", "2020:001:03:00:00")
 
-    sts = states.get_states(cmds=cmds, state_keys=['fep_count'])
+    sts = states.get_states(cmds=cmds, state_keys=["fep_count"])
     assert len(sts) == 1
-    assert sts['datestart'][0] == '2020:001:02:55:00.000'
-    assert sts['datestop'][-1] == '2020:001:02:55:01.285'
-    assert np.all(sts['fep_count'] == 4)
+    assert sts["datestart"][0] == "2020:001:02:55:00.000"
+    assert sts["datestop"][-1] == "2020:001:02:55:01.285"
+    assert np.all(sts["fep_count"] == 4)
 
-    sts = states.get_states(cmds=cmds, state_keys=['fep_count'],
-                            start='2020:001:00:00:00',
-                            stop='2020:002:00:00:00')
+    sts = states.get_states(
+        cmds=cmds,
+        state_keys=["fep_count"],
+        start="2020:001:00:00:00",
+        stop="2020:002:00:00:00",
+    )
     assert len(sts) == 1
-    assert sts['datestart'][0] == '2020:001:00:00:00.000'
-    assert sts['datestop'][-1] == '2020:002:00:00:00.000'
-    assert np.all(sts['fep_count'] == 4)
+    assert sts["datestart"][0] == "2020:001:00:00:00.000"
+    assert sts["datestop"][-1] == "2020:002:00:00:00.000"
+    assert np.all(sts["fep_count"] == 4)
 
 
 def test_get_continuity_keys():
     """Test that output has only the desired state keys. Also test that one can
     provide a string instead of list of state keys"""
-    continuity = states.get_continuity('2017:014:12:00:00', 'clocking')
-    assert set(continuity) == set(['clocking', '__dates__'])
+    continuity = states.get_continuity("2017:014:12:00:00", "clocking")
+    assert set(continuity) == set(["clocking", "__dates__"])
 
 
 def test_get_continuity_fail():
     with pytest.raises(ValueError) as err:
-        states.get_continuity('2017:014:12:00:00', 'letg', lookbacks=[3])
-    assert 'did not find transitions' in str(err)
+        states.get_continuity("2017:014:12:00:00", "letg", lookbacks=[3])
+    assert "did not find transitions" in str(err)
 
 
-@pytest.mark.parametrize('all_keys', [True, False])
+@pytest.mark.parametrize("all_keys", [True, False])
 def test_reduce_states_merge_identical(all_keys):
     tstart = np.arange(0, 5)
     tstop = np.arange(1, 6)
     datestart = DateTime(tstart).date
     datestop = DateTime(tstop).date
-    dat0 = Table([datestart, datestop, tstart, tstop],
-                 names=['datestart', 'datestop', 'tstart', 'tstop'])
+    dat0 = Table(
+        [datestart, datestop, tstart, tstop],
+        names=["datestart", "datestop", "tstart", "tstop"],
+    )
     reduce_states = functools.partial(states.reduce_states, all_keys=all_keys)
 
     # Table with something that changes every time
     dat = dat0.copy()
-    dat['vals'] = np.arange(5)
-    dat['val1'] = 1
-    dat['val_not_key'] = 2  # Not part of the key
-    dr = reduce_states(dat, ['vals', 'val1'], merge_identical=True)
-    reduce_names = ['datestart', 'datestop', 'tstart', 'tstop', 'vals', 'val1']
+    dat["vals"] = np.arange(5)
+    dat["val1"] = 1
+    dat["val_not_key"] = 2  # Not part of the key
+    dr = reduce_states(dat, ["vals", "val1"], merge_identical=True)
+    reduce_names = ["datestart", "datestop", "tstart", "tstop", "vals", "val1"]
     if all_keys:
         # All the original cols + trans_keys
-        assert dr.colnames == dat.colnames + ['trans_keys']
+        assert dr.colnames == dat.colnames + ["trans_keys"]
         assert np.all(dr[dat.colnames] == dat)
     else:
         # No `val_not_key` column
-        assert dr.colnames == reduce_names + ['trans_keys']
+        assert dr.colnames == reduce_names + ["trans_keys"]
         assert np.all(dr[reduce_names] == dat[reduce_names])
 
     # Table with nothing that changes
     dat = dat0.copy()
-    dat['vals'] = 1
-    dat['val1'] = 1
-    dr = reduce_states(dat, ['vals', 'val1'], merge_identical=True)
+    dat["vals"] = 1
+    dat["val1"] = 1
+    dr = reduce_states(dat, ["vals", "val1"], merge_identical=True)
     assert len(dr) == 1
-    assert dr['datestart'][0] == dat['datestart'][0]
-    assert dr['datestop'][0] == dat['datestop'][-1]
+    assert dr["datestart"][0] == dat["datestart"][0]
+    assert dr["datestop"][0] == dat["datestop"][-1]
 
     # Table with edge changes
     dat = dat0.copy()
-    dat['vals'] = [1, 0, 0, 0, 1]
-    dr = reduce_states(dat, ['vals'], merge_identical=True)
+    dat["vals"] = [1, 0, 0, 0, 1]
+    dr = reduce_states(dat, ["vals"], merge_identical=True)
     assert len(dr) == 3
-    assert np.all(dr['datestart'] == dat['datestart'][[0, 1, 4]])
-    assert np.all(dr['datestop'] == dat['datestop'][[0, 3, 4]])
-    assert np.all(dr['vals'] == [1, 0, 1])
+    assert np.all(dr["datestart"] == dat["datestart"][[0, 1, 4]])
+    assert np.all(dr["datestop"] == dat["datestop"][[0, 3, 4]])
+    assert np.all(dr["vals"] == [1, 0, 1])
 
     # Table with multiple changes
     dat = dat0.copy()
-    dat['val1'] = [1, 0, 1, 1, 1]
-    dat['val2'] = [1, 1, 1, 1, 0]
-    dr = reduce_states(dat, ['val1', 'val2'], merge_identical=True)
+    dat["val1"] = [1, 0, 1, 1, 1]
+    dat["val2"] = [1, 1, 1, 1, 0]
+    dr = reduce_states(dat, ["val1", "val2"], merge_identical=True)
     assert len(dr) == 4
-    assert np.all(dr['datestart'] == dat['datestart'][[0, 1, 2, 4]])
-    assert np.all(dr['datestop'] == dat['datestop'][[0, 1, 3, 4]])
-    assert np.all(dr['val1'] == [1, 0, 1, 1])
-    assert np.all(dr['val2'] == [1, 1, 1, 0])
-    assert str(dr['trans_keys'][0]) == 'val1,val2'
-    assert dr['trans_keys'][0] == set(['val1', 'val2'])
-    assert dr['trans_keys'][1] == set(['val1'])
-    assert dr['trans_keys'][2] == set(['val1'])
-    assert dr['trans_keys'][3] == set(['val2'])
+    assert np.all(dr["datestart"] == dat["datestart"][[0, 1, 2, 4]])
+    assert np.all(dr["datestop"] == dat["datestop"][[0, 1, 3, 4]])
+    assert np.all(dr["val1"] == [1, 0, 1, 1])
+    assert np.all(dr["val2"] == [1, 1, 1, 0])
+    assert str(dr["trans_keys"][0]) == "val1,val2"
+    assert dr["trans_keys"][0] == set(["val1", "val2"])
+    assert dr["trans_keys"][1] == set(["val1"])
+    assert dr["trans_keys"][2] == set(["val1"])
+    assert dr["trans_keys"][3] == set(["val2"])
 
 
 def cmd_states_fetch_states(*args, **kwargs):
@@ -547,27 +632,30 @@ def cmd_states_fetch_states(*args, **kwargs):
     the definitive reference for states.
     """
     md5 = hashlib.md5()
-    md5.update(repr(args).encode('utf8'))
-    md5.update(repr(kwargs).encode('utf8'))
+    md5.update(repr(args).encode("utf8"))
+    md5.update(repr(kwargs).encode("utf8"))
     digest = md5.hexdigest()
-    datafile = Path(__file__).parent / 'data' / f'states_{digest}.ecsv'
-    datafile_gz = datafile.parent / (datafile.name + '.gz')
+    datafile = Path(__file__).parent / "data" / f"states_{digest}.ecsv"
+    datafile_gz = datafile.parent / (datafile.name + ".gz")
 
     if datafile_gz.exists():
-        cs = Table.read(datafile_gz, format='ascii.ecsv')
+        cs = Table.read(datafile_gz, format="ascii.ecsv")
     else:
         # Prevent accidentally writing data to flight in case of some packaging problem.
-        if 'KADI_WRITE_TEST_DATA' not in os.environ:
-            raise RuntimeError('cannot find test data. Define KADI_WRITE_TEST_DATA '
-                               'env var to create it.')
+        if "KADI_WRITE_TEST_DATA" not in os.environ:
+            raise RuntimeError(
+                "cannot find test data. Define KADI_WRITE_TEST_DATA "
+                "env var to create it."
+            )
         import Chandra.cmd_states as cmd_states
+
         cs = cmd_states.fetch_states(*args, **kwargs)
         cs = Table(cs)
-        print(f'Writing {datafile_gz} for args={args} kwargs={kwargs}')
-        cs.write(datafile, format='ascii.ecsv')
+        print(f"Writing {datafile_gz} for args={args} kwargs={kwargs}")
+        cs.write(datafile, format="ascii.ecsv")
 
         # Gzip the file
-        with open(datafile, 'rb') as f_in, gzip.open(datafile_gz, 'wb') as f_out:
+        with open(datafile, "rb") as f_in, gzip.open(datafile_gz, "wb") as f_out:
             f_out.writelines(f_in)
         datafile.unlink()
 
@@ -579,43 +667,51 @@ def test_reduce_states_cmd_states():
     Test that simple get_states() call with defaults gives the same results
     as calling cmd_states.fetch_states().
     """
-    cs = cmd_states_fetch_states('2018:235:12:00:00', '2018:245:12:00:00', allow_identical=True)
+    cs = cmd_states_fetch_states(
+        "2018:235:12:00:00", "2018:245:12:00:00", allow_identical=True
+    )
 
-    state_keys = (set(STATE0)
-                  - set(['datestart', 'datestop', 'trans_keys', 'tstart', 'tstop']))
+    state_keys = set(STATE0) - set(
+        ["datestart", "datestop", "trans_keys", "tstart", "tstop"]
+    )
 
     # Default setting is reduce states with merge_identical=False, which is the same
     # as cmd_states.
     with states.disable_grating_move_duration():
-        ksr = states.get_states('2018:235:12:00:00', '2018:245:12:00:00', state_keys)
+        ksr = states.get_states("2018:235:12:00:00", "2018:245:12:00:00", state_keys)
 
     assert len(ksr) == len(cs)
 
-    assert_all_close_states(cs, ksr, set(state_keys) - set(['trans_keys']))
+    assert_all_close_states(cs, ksr, set(state_keys) - set(["trans_keys"]))
 
-    assert np.all(ksr['datestart'][1:] == cs['datestart'][1:])
-    assert np.all(ksr['datestop'][:-1] == cs['datestop'][:-1])
+    assert np.all(ksr["datestart"][1:] == cs["datestart"][1:])
+    assert np.all(ksr["datestop"][:-1] == cs["datestop"][:-1])
 
     # Transition keys after first should match.  cmd_states is a comma-delimited string.
-    for k_trans_keys, c_trans_keys in zip(ksr['trans_keys'][1:], cs['trans_keys'][1:]):
-        assert k_trans_keys == set(c_trans_keys.split(','))
+    for k_trans_keys, c_trans_keys in zip(ksr["trans_keys"][1:], cs["trans_keys"][1:]):
+        assert k_trans_keys == set(c_trans_keys.split(","))
 
 
 ###########################################################################
 # Comparing to backstop history files or regression outputs
 ###########################################################################
 
+
 def compare_backstop_history(history, state_key, compare_val=True):
-    hist = ascii.read(history, guess=False, format='no_header',
-                      converters={'col1': [ascii.convert_numpy(str)]})
-    start = DateTime(hist['col1'][0], format='greta') - 1 / 86400.
-    stop = DateTime(hist['col1'][-1], format='greta') + 1 / 86400.
+    hist = ascii.read(
+        history,
+        guess=False,
+        format="no_header",
+        converters={"col1": [ascii.convert_numpy(str)]},
+    )
+    start = DateTime(hist["col1"][0], format="greta") - 1 / 86400.0
+    stop = DateTime(hist["col1"][-1], format="greta") + 1 / 86400.0
     sts = states.get_states(start=start, stop=stop, state_keys=state_key)
     sts = sts[1:]  # Drop the first state (which is continuity at start time)
     assert len(sts) == len(hist)
-    assert np.all(DateTime(sts['datestart']).greta == hist['col1'])
+    assert np.all(DateTime(sts["datestart"]).greta == hist["col1"])
     if compare_val:
-        assert np.all(sts[state_key] == hist['col3'])
+        assert np.all(sts[state_key] == hist["col3"])
 
 
 def test_backstop_format():
@@ -694,7 +790,7 @@ def test_backstop_format():
 2018209.132330954 | FMT1
 2018209.191502370 | FMT4
 2018209.191920170 | FMT2"""
-    compare_backstop_history(history, 'format')
+    compare_backstop_history(history, "format")
 
 
 def test_backstop_subformat():
@@ -816,7 +912,7 @@ def test_backstop_subformat():
 2018210.210002313 | NORM
 2018211.031002313 | NORM
 """
-    compare_backstop_history(history, 'subformat')
+    compare_backstop_history(history, "subformat")
 
 
 def test_backstop_sun_pos_mon():
@@ -883,7 +979,7 @@ def test_backstop_sun_pos_mon():
 2018006.222954700 | ENAB
 2018007.024422649 | DISA
 """
-    compare_backstop_history(history, 'sun_pos_mon')
+    compare_backstop_history(history, "sun_pos_mon")
 
 
 def test_backstop_sun_pos_mon_lunar():
@@ -907,12 +1003,12 @@ def test_backstop_sun_pos_mon_lunar():
 2017:087:23:59:21.087 2099:365:00:00:00.000        DISA
 """
     spm = ascii.read(history, guess=False)
-    cmds = commands.get_cmds('2017:087:03:04:02', '2017:088:00:00:00')
-    sts = states.get_states(state_keys=['sun_pos_mon'], cmds=cmds)
+    cmds = commands.get_cmds("2017:087:03:04:02", "2017:088:00:00:00")
+    sts = states.get_states(state_keys=["sun_pos_mon"], cmds=cmds)
 
     assert len(sts) == len(spm)
-    assert np.all(sts['datestart'] == spm['datestart'])
-    assert np.all(sts['sun_pos_mon'] == spm['sun_pos_mon'])
+    assert np.all(sts["datestart"] == spm["datestart"])
+    assert np.all(sts["sun_pos_mon"] == spm["sun_pos_mon"])
 
 
 def test_backstop_ephem_update():
@@ -923,7 +1019,7 @@ def test_backstop_ephem_update():
 2017115.034040060 | EPHEMERIS
 2017117.190746809 | EPHEMERIS
 """
-    compare_backstop_history(history, 'ephem_update', compare_val=False)
+    compare_backstop_history(history, "ephem_update", compare_val=False)
 
 
 def test_backstop_radmon_no_scs107():
@@ -959,7 +1055,7 @@ def test_backstop_radmon_no_scs107():
 2017312.131224228 | ENAB OORMPEN
 2017314.122303220 | DISA OORMPDS
 """
-    compare_backstop_history(history, 'radmon')
+    compare_backstop_history(history, "radmon")
 
 
 @pytest.mark.xfail()
@@ -1020,7 +1116,7 @@ def test_backstop_radmon_with_scs107():
 2017097.160524315 | DISA OORMPDS
 2017098.065323315 | ENAB OORMPEN
 """
-    compare_backstop_history(history, 'radmon')
+    compare_backstop_history(history, "radmon")
 
 
 def test_backstop_scs98():
@@ -1061,19 +1157,20 @@ def test_backstop_scs98():
 2017078.102835409 | ENAB
 2017078.172100604 | DISA
 """
-    compare_backstop_history(history, 'scs98')
+    compare_backstop_history(history, "scs98")
 
 
 def test_backstop_scs84():
     """
     SCS 84 has not changed from DISA since 2006 due to a change in operations.
     """
-    sts = states.get_states(start='2017:001:12:00:00', stop='2017:300:12:00:00',
-                            state_keys=['scs84'])
+    sts = states.get_states(
+        start="2017:001:12:00:00", stop="2017:300:12:00:00", state_keys=["scs84"]
+    )
     assert len(sts) == 1
-    assert sts[0]['scs84'] == 'DISA'
-    assert sts[0]['datestart'] == '2017:001:12:00:00.000'
-    assert sts[0]['datestop'] == '2017:300:12:00:00.000'
+    assert sts[0]["scs84"] == "DISA"
+    assert sts[0]["datestart"] == "2017:001:12:00:00.000"
+    assert sts[0]["datestop"] == "2017:300:12:00:00.000"
 
 
 def test_backstop_simpos():
@@ -1112,7 +1209,7 @@ def test_backstop_simpos():
 2017073.210544431 | -99616
 2017074.112120865 | 92904
 """
-    compare_backstop_history(history, 'simpos')
+    compare_backstop_history(history, "simpos")
 
 
 def test_backstop_simfa_pos():
@@ -1148,7 +1245,7 @@ def test_backstop_simfa_pos():
 2017075.041328208 | -991
 2017075.150028950 | -418
 """
-    compare_backstop_history(history, 'simfa_pos')
+    compare_backstop_history(history, "simfa_pos")
 
 
 def test_backstop_grating():
@@ -1172,7 +1269,7 @@ def test_backstop_grating():
 #*****< COMBINED WEEKLY LOAD JUL1017A START @ 2017191.062621188 >*****
 2017191.063255527 | NONE HETGRE
 """
-    compare_backstop_history(history, 'grating')
+    compare_backstop_history(history, "grating")
 
 
 def test_backstop_eclipse_entry():
@@ -1186,15 +1283,15 @@ def test_backstop_eclipse_entry():
 2018003.040001000 | 1405 EOECLETO
 2018005.071227278 | 1171 EOECLETO
 """
-    compare_backstop_history(history, 'eclipse_timer')
+    compare_backstop_history(history, "eclipse_timer")
 
 
 def compare_regress_output(regress, state_key):
-    regr = ascii.read(regress, format='fixed_width_two_line', fill_values=None)
-    start = regr['datestart'][0]
-    stop = regr['datestop'][-1]
+    regr = ascii.read(regress, format="fixed_width_two_line", fill_values=None)
+    start = regr["datestart"][0]
+    stop = regr["datestop"][-1]
     sts = states.get_states(start, stop, state_keys=[state_key])
-    for colname in ('datestart', 'datestop', state_key):
+    for colname in ("datestart", "datestop", state_key):
         assert np.all(regr[colname] == sts[colname])
 
 
@@ -1238,7 +1335,7 @@ def test_regress_eclipse():
 2017:087:07:49:55.838 2017:087:08:10:35.838 PENUMBRA    eclipse
 2017:087:08:10:35.838 2017:090:12:00:00.000      DAY    eclipse
 """
-    compare_regress_output(regress, 'eclipse')
+    compare_regress_output(regress, "eclipse")
 
     regress = """
       datestart              datestop       eclipse  trans_keys
@@ -1274,7 +1371,7 @@ def test_regress_eclipse():
 2018:005:05:09:26.278 2018:005:05:12:26.278 PENUMBRA    eclipse
 2018:005:05:12:26.278 2018:006:12:00:00.000      DAY    eclipse
 """
-    compare_regress_output(regress, 'eclipse')
+    compare_regress_output(regress, "eclipse")
 
 
 def test_continuity_just_after_command():
@@ -1282,12 +1379,12 @@ def test_continuity_just_after_command():
     Fix issue where continuity required having at least one other
     command after the relevant continuity command.
     """
-    cont = states.get_continuity('2018:001:12:00:00', 'targ_q1')
-    assert cont['__dates__']['targ_q1'] == '2018:001:11:52:10.175'
+    cont = states.get_continuity("2018:001:12:00:00", "targ_q1")
+    assert cont["__dates__"]["targ_q1"] == "2018:001:11:52:10.175"
 
     # 1 msec later
-    cont = states.get_continuity('2018:001:11:52:10.176', 'targ_q1')
-    assert cont['__dates__']['targ_q1'] == '2018:001:11:52:10.175'
+    cont = states.get_continuity("2018:001:11:52:10.176", "targ_q1")
+    assert cont["__dates__"]["targ_q1"] == "2018:001:11:52:10.175"
 
 
 def test_continuity_far_future():
@@ -1298,9 +1395,9 @@ def test_continuity_far_future():
     # Now + 150 days.  Don't know the answer but just make sure this
     # runs to completion.  The lookbacks of 7 and 30 days should fail
     # but 180 days will get something.
-    cont = states.get_continuity(DateTime() + 150, 'obsid')
-    assert 'obsid' in cont
-    assert 'obsid' in cont['__dates__']
+    cont = states.get_continuity(DateTime() + 150, "obsid")
+    assert "obsid" in cont
+    assert "obsid" in cont["__dates__"]
 
 
 def test_acis_power_cmds():
@@ -1309,11 +1406,14 @@ def test_acis_power_cmds():
     state_keys = ["power_cmd", "ccd_count", "fep_count", "vid_board"]
     cmds = commands.get_cmds(start, stop)
     continuity = states.get_continuity(start, state_keys)
-    test_states = states.get_states(cmds=cmds, continuity=continuity,
-                                    state_keys=state_keys, reduce=False)
+    test_states = states.get_states(
+        cmds=cmds, continuity=continuity, state_keys=state_keys, reduce=False
+    )
     vid_dn = np.where(test_states["power_cmd"] == "WSVIDALLDN")[0]
     assert (test_states["ccd_count"][vid_dn] == 0).all()
-    assert (test_states["fep_count"][vid_dn] == test_states["fep_count"][vid_dn[0] - 1]).all()
+    assert (
+        test_states["fep_count"][vid_dn] == test_states["fep_count"][vid_dn[0] - 1]
+    ).all()
     pow_zero = np.where(test_states["power_cmd"] == "WSPOW00000")[0]
     assert (test_states["ccd_count"][pow_zero] == 0).all()
     assert (test_states["fep_count"][pow_zero] == 0).all()
@@ -1331,24 +1431,28 @@ def test_continuity_with_transitions_SPM():
     continuity start time.  This will be used by get_states() to get things
     right using this continuity dict.
     """
-    start = '2017:087:08:20:35.838'
-    stop = '2017:087:10:20:35.838'
-    cont = states.get_continuity(start, state_keys=['sun_pos_mon'])
-    assert cont == {'__dates__': {'sun_pos_mon': '2017:087:07:44:55.838'},
-                    '__transitions__': [{'date': '2017:087:08:21:35.838', 'sun_pos_mon': 'ENAB'}],
-                    'sun_pos_mon': 'DISA'}
+    start = "2017:087:08:20:35.838"
+    stop = "2017:087:10:20:35.838"
+    cont = states.get_continuity(start, state_keys=["sun_pos_mon"])
+    assert cont == {
+        "__dates__": {"sun_pos_mon": "2017:087:07:44:55.838"},
+        "__transitions__": [{"date": "2017:087:08:21:35.838", "sun_pos_mon": "ENAB"}],
+        "sun_pos_mon": "DISA",
+    }
 
-    exp = ['      datestart              datestop           tstart        tstop     '
-           'sun_pos_mon  trans_keys',
-           '--------------------- --------------------- ------------- ------------- '
-           '----------- -----------',
-           '2017:087:08:20:35.838 2017:087:08:21:35.838 607076505.022 '
-           '607076565.022        DISA            ',
-           '2017:087:08:21:35.838 2017:087:08:30:50.891 607076565.022 '
-           '607077120.075        ENAB sun_pos_mon',
-           '2017:087:08:30:50.891 2017:087:10:20:35.838 607077120.075 '
-           '607083705.022        DISA sun_pos_mon']
-    sts = states.get_states(start, stop, state_keys=['sun_pos_mon'])
+    exp = [
+        "      datestart              datestop           tstart        tstop     "
+        "sun_pos_mon  trans_keys",
+        "--------------------- --------------------- ------------- ------------- "
+        "----------- -----------",
+        "2017:087:08:20:35.838 2017:087:08:21:35.838 607076505.022 "
+        "607076565.022        DISA            ",
+        "2017:087:08:21:35.838 2017:087:08:30:50.891 607076565.022 "
+        "607077120.075        ENAB sun_pos_mon",
+        "2017:087:08:30:50.891 2017:087:10:20:35.838 607077120.075 "
+        "607083705.022        DISA sun_pos_mon",
+    ]
+    sts = states.get_states(start, stop, state_keys=["sun_pos_mon"])
     assert sts.pformat(max_lines=-1, max_width=-1) == exp
 
 
@@ -1357,9 +1461,11 @@ def test_continuity_with_no_transitions_SPM():
     key set if not needed.  Part of fix for #125.
 
     """
-    cont = states.get_continuity('2017:001:12:00:00', state_keys=['sun_pos_mon'])
-    assert cont == {'sun_pos_mon': 'DISA',
-                    '__dates__': {'sun_pos_mon': '2017:001:04:23:55.764'}}
+    cont = states.get_continuity("2017:001:12:00:00", state_keys=["sun_pos_mon"])
+    assert cont == {
+        "sun_pos_mon": "DISA",
+        "__dates__": {"sun_pos_mon": "2017:001:04:23:55.764"},
+    }
 
 
 def test_get_pitch_from_mid_maneuver():
@@ -1367,25 +1473,27 @@ def test_get_pitch_from_mid_maneuver():
     the Maneuver transition class.
 
     """
-    start = '2019:039:14:16:25.002'  # Mid-maneuver
-    stop = '2019:039:16:00:00.000'
-    exp = ['      datestart              datestop           pitch     pcad_mode',
-           '--------------------- --------------------- ------------- ---------',
-           '2019:039:14:16:25.002 2019:039:14:16:54.364 63.2696565838      NMAN',
-           '2019:039:14:16:54.364 2019:039:14:22:01.825 83.0388345752      NMAN',
-           '2019:039:14:22:01.825 2019:039:14:27:09.285 106.057258631      NMAN',
-           '2019:039:14:27:09.285 2019:039:14:32:16.745 129.079427541      NMAN',
-           '2019:039:14:32:16.745 2019:039:14:37:24.205 148.857427163      NMAN',
-           '2019:039:14:37:24.205 2019:039:14:42:31.665 159.541502291      NMAN',
-           '2019:039:14:42:31.665 2019:039:16:00:00.000 161.950922135      NPNT']
-    exp = Table.read(exp, format='ascii')
+    start = "2019:039:14:16:25.002"  # Mid-maneuver
+    stop = "2019:039:16:00:00.000"
+    exp = [
+        "      datestart              datestop           pitch     pcad_mode",
+        "--------------------- --------------------- ------------- ---------",
+        "2019:039:14:16:25.002 2019:039:14:16:54.364 63.2696565838      NMAN",
+        "2019:039:14:16:54.364 2019:039:14:22:01.825 83.0388345752      NMAN",
+        "2019:039:14:22:01.825 2019:039:14:27:09.285 106.057258631      NMAN",
+        "2019:039:14:27:09.285 2019:039:14:32:16.745 129.079427541      NMAN",
+        "2019:039:14:32:16.745 2019:039:14:37:24.205 148.857427163      NMAN",
+        "2019:039:14:37:24.205 2019:039:14:42:31.665 159.541502291      NMAN",
+        "2019:039:14:42:31.665 2019:039:16:00:00.000 161.950922135      NPNT",
+    ]
+    exp = Table.read(exp, format="ascii")
 
-    sts = states.get_states(start, stop, state_keys=['pitch', 'pcad_mode'])
+    sts = states.get_states(start, stop, state_keys=["pitch", "pcad_mode"])
 
-    assert np.all(exp['datestart'] == sts['datestart'])
-    assert np.all(exp['datestop'] == sts['datestop'])
-    assert np.all(exp['pcad_mode'] == sts['pcad_mode'])
-    assert np.all(np.isclose(exp['pitch'], sts['pitch'], rtol=0, atol=1e-8))
+    assert np.all(exp["datestart"] == sts["datestart"])
+    assert np.all(exp["datestop"] == sts["datestop"])
+    assert np.all(exp["pcad_mode"] == sts["pcad_mode"])
+    assert np.all(np.isclose(exp["pitch"], sts["pitch"], rtol=0, atol=1e-8))
 
 
 def test_get_states_start_between_aouptarg_aomanuvr_cmds():
@@ -1405,26 +1513,32 @@ def test_get_states_start_between_aouptarg_aomanuvr_cmds():
     """
     # This fails prior to the fix with ValueError: cannot convert float NaN to
     # integer in Chandra.Maneuver.
-    sts = states.get_states('2021:025:13:56:00.000', '2021:026:00:00:00',
-                            state_keys=('q1', 'pcad_mode'), continuity={})
-    exp = ['      datestart              datestop            q1     pcad_mode',
-           '--------------------- --------------------- ----------- ---------',
-           '2021:025:13:56:00.000 2021:025:23:43:14.731        None      None',
-           '2021:025:23:43:14.731 2021:025:23:43:24.982        None      NMAN',
-           '2021:025:23:43:24.982 2021:025:23:47:24.982 0.129399482      NMAN',
-           '2021:025:23:47:24.982 2021:026:00:00:00.000 0.129399482      NPNT']  # noqa
+    sts = states.get_states(
+        "2021:025:13:56:00.000",
+        "2021:026:00:00:00",
+        state_keys=("q1", "pcad_mode"),
+        continuity={},
+    )
+    exp = [
+        "      datestart              datestop            q1     pcad_mode",
+        "--------------------- --------------------- ----------- ---------",
+        "2021:025:13:56:00.000 2021:025:23:43:14.731        None      None",
+        "2021:025:23:43:14.731 2021:025:23:43:24.982        None      NMAN",
+        "2021:025:23:43:24.982 2021:025:23:47:24.982 0.129399482      NMAN",
+        "2021:025:23:47:24.982 2021:026:00:00:00.000 0.129399482      NPNT",
+    ]  # noqa
 
-    exp = Table.read(exp, format='ascii', fill_values=[('None', '0')])
-    for name in ('datestart', 'datestop', 'pcad_mode'):
+    exp = Table.read(exp, format="ascii", fill_values=[("None", "0")])
+    for name in ("datestart", "datestop", "pcad_mode"):
         assert np.all(sts[name] == exp[name])
-    assert np.allclose(sts['q1'][2:].astype(float), exp['q1'][2:])
-    assert sts['q1'][0] is None
-    assert sts['q1'][1] is None
-    assert sts['pcad_mode'][0] is None
+    assert np.allclose(sts["q1"][2:].astype(float), exp["q1"][2:])
+    assert sts["q1"][0] is None
+    assert sts["q1"][1] is None
+    assert sts["pcad_mode"][0] is None
 
     # Failure example from #198
-    cont = states.get_continuity('2021:032:13:56:00.000')
-    assert cont['__dates__']['q1'] == '2021:032:12:49:45.458'
+    cont = states.get_continuity("2021:032:13:56:00.000")
+    assert cont["__dates__"]["q1"] == "2021:032:12:49:45.458"
 
 
 def test_get_continuity_and_pitch_from_mid_maneuver():
@@ -1433,9 +1547,9 @@ def test_get_continuity_and_pitch_from_mid_maneuver():
 
     Continuity during mid-maneuver was incorrect.
     """
-    start = '2017:207:23:35:00'
-    stop = '2017:208:00:00:00'
-    sts = states.get_states(start, stop, state_keys=['pitch', 'pcad_mode'])
+    start = "2017:207:23:35:00"
+    stop = "2017:208:00:00:00"
+    sts = states.get_states(start, stop, state_keys=["pitch", "pcad_mode"])
     exp = """
     datestart              datestop                   pitch        pcad_mode
     --------------------- --------------------- ------------------ ---------
@@ -1444,71 +1558,80 @@ def test_get_continuity_and_pitch_from_mid_maneuver():
     2017:207:23:42:25.863 2017:207:23:45:30.816  57.13454809508824      NPNT
     2017:207:23:45:30.816 2017:208:00:00:00.000 57.132522367348834      NPNT
     """
-    exp = Table.read(exp, format='ascii')
+    exp = Table.read(exp, format="ascii")
 
-    assert np.all(exp['datestart'] == sts['datestart'])
-    assert np.all(exp['datestop'] == sts['datestop'])
-    assert np.all(exp['pcad_mode'] == sts['pcad_mode'])
-    assert np.all(np.isclose(exp['pitch'], sts['pitch'], rtol=0, atol=1e-8))
+    assert np.all(exp["datestart"] == sts["datestart"])
+    assert np.all(exp["datestop"] == sts["datestop"])
+    assert np.all(exp["pcad_mode"] == sts["pcad_mode"])
+    assert np.all(np.isclose(exp["pitch"], sts["pitch"], rtol=0, atol=1e-8))
 
-    cont = states.get_continuity(start, state_keys=['pitch', 'pcad_mode'])
-    assert np.isclose(cont['pitch'], sts['pitch'][0], rtol=0, atol=1e-8)
-    assert cont['pcad_mode'] == sts['pcad_mode'][0]
+    cont = states.get_continuity(start, state_keys=["pitch", "pcad_mode"])
+    assert np.isclose(cont["pitch"], sts["pitch"][0], rtol=0, atol=1e-8)
+    assert cont["pcad_mode"] == sts["pcad_mode"][0]
 
 
 def test_acisfp_setpoint_state():
-    sts = states.get_states('1999-01-01 12:00:00', '2004-01-01 12:00:00',
-                            state_keys='acisfp_setpoint')
-    del sts['tstart']
-    del sts['tstop']
+    sts = states.get_states(
+        "1999-01-01 12:00:00", "2004-01-01 12:00:00", state_keys="acisfp_setpoint"
+    )
+    del sts["tstart"]
+    del sts["tstop"]
 
     assert repr(sts).splitlines() == [
-        '<Table length=5>',
-        '      datestart              datestop       acisfp_setpoint    trans_keys  ',
-        '        str21                 str21             float64          object    ',
-        '--------------------- --------------------- --------------- ---------------',
-        '1999:001:12:00:00.000 2003:130:05:07:28.341          -121.0                ',
-        '2003:130:05:07:28.341 2003:130:19:09:28.930          -130.0 acisfp_setpoint',
-        '2003:130:19:09:28.930 2003:132:14:22:33.782          -121.0 acisfp_setpoint',
-        '2003:132:14:22:33.782 2003:133:22:04:22.425          -130.0 acisfp_setpoint',
-        '2003:133:22:04:22.425 2004:001:12:00:00.000          -121.0 acisfp_setpoint']
+        "<Table length=5>",
+        "      datestart              datestop       acisfp_setpoint    trans_keys  ",
+        "        str21                 str21             float64          object    ",
+        "--------------------- --------------------- --------------- ---------------",
+        "1999:001:12:00:00.000 2003:130:05:07:28.341          -121.0                ",
+        "2003:130:05:07:28.341 2003:130:19:09:28.930          -130.0 acisfp_setpoint",
+        "2003:130:19:09:28.930 2003:132:14:22:33.782          -121.0 acisfp_setpoint",
+        "2003:132:14:22:33.782 2003:133:22:04:22.425          -130.0 acisfp_setpoint",
+        "2003:133:22:04:22.425 2004:001:12:00:00.000          -121.0 acisfp_setpoint",
+    ]
 
-    sts = states.get_states('2018-01-01 12:00:00', '2020-03-01 12:00:00',
-                            state_keys='acisfp_setpoint')
-    del sts['tstart']
-    del sts['tstop']
+    sts = states.get_states(
+        "2018-01-01 12:00:00", "2020-03-01 12:00:00", state_keys="acisfp_setpoint"
+    )
+    del sts["tstart"]
+    del sts["tstop"]
     assert repr(sts).splitlines() == [
-        '<Table length=6>',
-        '      datestart              datestop       acisfp_setpoint    trans_keys  ',
-        '        str21                 str21             float64          object    ',
-        '--------------------- --------------------- --------------- ---------------',
-        '2018:001:12:00:00.000 2018:249:20:16:04.603          -121.0                ',
-        '2018:249:20:16:04.603 2018:250:07:19:51.657          -126.0 acisfp_setpoint',
-        '2018:250:07:19:51.657 2018:294:22:29:00.000          -121.0 acisfp_setpoint',
-        '2018:294:22:29:00.000 2020:048:20:59:22.304          -121.0 acisfp_setpoint',
-        '2020:048:20:59:22.304 2020:049:13:05:52.537          -126.0 acisfp_setpoint',
-        '2020:049:13:05:52.537 2020:061:12:00:00.000          -121.0 acisfp_setpoint']
+        "<Table length=6>",
+        "      datestart              datestop       acisfp_setpoint    trans_keys  ",
+        "        str21                 str21             float64          object    ",
+        "--------------------- --------------------- --------------- ---------------",
+        "2018:001:12:00:00.000 2018:249:20:16:04.603          -121.0                ",
+        "2018:249:20:16:04.603 2018:250:07:19:51.657          -126.0 acisfp_setpoint",
+        "2018:250:07:19:51.657 2018:294:22:29:00.000          -121.0 acisfp_setpoint",
+        "2018:294:22:29:00.000 2020:048:20:59:22.304          -121.0 acisfp_setpoint",
+        "2020:048:20:59:22.304 2020:049:13:05:52.537          -126.0 acisfp_setpoint",
+        "2020:049:13:05:52.537 2020:061:12:00:00.000          -121.0 acisfp_setpoint",
+    ]
 
 
 def test_grating_motion_states():
-    sts = states.get_states('2021:227:12:00:00', '2021:230:12:00:00',
-                            state_keys=['letg', 'hetg', 'grating'])
-    del sts['tstart']
-    del sts['tstop']
-    exp = ['      datestart              datestop          letg      hetg   grating  trans_keys ',
-           '--------------------- --------------------- --------- --------- ------- ------------',
-           '2021:227:12:00:00.000 2021:227:23:06:03.276      RETR      RETR    NONE             ',
-           '2021:227:23:06:03.276 2021:227:23:08:40.276      RETR INSR_MOVE    HETG grating,hetg',
-           '2021:227:23:08:40.276 2021:228:08:15:00.722      RETR      INSR    HETG         hetg',
-           '2021:228:08:15:00.722 2021:228:08:17:33.722      RETR RETR_MOVE    NONE grating,hetg',
-           '2021:228:08:17:33.722 2021:229:17:41:45.525      RETR      RETR    NONE         hetg',
-           '2021:229:17:41:45.525 2021:229:17:45:08.525 INSR_MOVE      RETR    LETG grating,letg',
-           '2021:229:17:45:08.525 2021:230:00:37:56.002      INSR      RETR    LETG         letg',
-           '2021:230:00:37:56.002 2021:230:00:41:19.002 RETR_MOVE      RETR    NONE grating,letg',
-           '2021:230:00:41:19.002 2021:230:12:00:00.000      RETR      RETR    NONE         letg']
+    sts = states.get_states(
+        "2021:227:12:00:00", "2021:230:12:00:00", state_keys=["letg", "hetg", "grating"]
+    )
+    del sts["tstart"]
+    del sts["tstop"]
+    exp = [
+        "      datestart              datestop          letg      hetg   grating  trans_keys ",
+        "--------------------- --------------------- --------- --------- ------- ------------",
+        "2021:227:12:00:00.000 2021:227:23:06:03.276      RETR      RETR    NONE             ",
+        "2021:227:23:06:03.276 2021:227:23:08:40.276      RETR INSR_MOVE    HETG grating,hetg",
+        "2021:227:23:08:40.276 2021:228:08:15:00.722      RETR      INSR    HETG         hetg",
+        "2021:228:08:15:00.722 2021:228:08:17:33.722      RETR RETR_MOVE    NONE grating,hetg",
+        "2021:228:08:17:33.722 2021:229:17:41:45.525      RETR      RETR    NONE         hetg",
+        "2021:229:17:41:45.525 2021:229:17:45:08.525 INSR_MOVE      RETR    LETG grating,letg",
+        "2021:229:17:45:08.525 2021:230:00:37:56.002      INSR      RETR    LETG         letg",
+        "2021:230:00:37:56.002 2021:230:00:41:19.002 RETR_MOVE      RETR    NONE grating,letg",
+        "2021:230:00:41:19.002 2021:230:12:00:00.000      RETR      RETR    NONE         letg",
+    ]
     assert sts.pformat_all() == exp
 
 
 def test_early_start_exception():
-    with pytest.raises(ValueError, match="no continuity found for start='2002:001:00:00:00.000'"):
-        states.get_states('2002:001', '2003:001', state_keys=['orbit_point'])
+    with pytest.raises(
+        ValueError, match="no continuity found for start='2002:001:00:00:00.000'"
+    ):
+        states.get_states("2002:001", "2003:001", state_keys=["orbit_point"])

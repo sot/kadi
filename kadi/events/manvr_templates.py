@@ -13,9 +13,9 @@ def get_manvr_templates():
     """
     templates = []
     dat_str = get_dat_str()
-    tables = dat_str.split('---------------------------------------------------')
+    tables = dat_str.split("---------------------------------------------------")
     for table in tables:
-        lines = [x.split('|')[0].strip() for x in table.splitlines() if x.strip()]
+        lines = [x.split("|")[0].strip() for x in table.splitlines() if x.strip()]
         name = lines[0].split()[0]
         templates.append((name, lines[1:]))
     return templates
@@ -187,5 +187,5 @@ aofattmd_STDY_MNVR | 2000:015:05:46:51.421  40561.3
     return dat
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     get_manvr_templates()

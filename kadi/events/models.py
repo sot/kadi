@@ -1,12 +1,12 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-import sys
 import operator
+import sys
+from itertools import count
 from pathlib import Path
 
-from itertools import count
-
-from django.db import models
 import pyyaks.logger
+from django.db import models
+
 from .manvr_templates import get_manvr_templates
 
 models.query.REPR_OUTPUT_SIZE = 1000  # Increase default number of rows printed
@@ -23,8 +23,9 @@ ZERO_DT = -1e-4
 MAX_GAP = 328.1  # Max gap (seconds) in telemetry for state intervals
 R2A = 206264.8  # Convert from radians to arcsec
 
-logger = pyyaks.logger.get_logger(name='events', level=pyyaks.logger.INFO,
-                                  format="%(asctime)s %(message)s")
+logger = pyyaks.logger.get_logger(
+    name="events", level=pyyaks.logger.INFO, format="%(asctime)s %(message)s"
+)
 
 
 def msidset_interpolate(msidset, dt, time0):
@@ -51,16 +52,16 @@ def _get_si(simpos):
     """
     Get SI corresponding to the given SIM position.
     """
-    if ((simpos >= 82109) and (simpos <= 104839)):
-        si = 'ACIS-I'
-    elif ((simpos >= 70736) and (simpos <= 82108)):
-        si = 'ACIS-S'
-    elif ((simpos >= -86147) and (simpos <= -20000)):
-        si = ' HRC-I'
-    elif ((simpos >= -104362) and (simpos <= -86148)):
-        si = ' HRC-S'
+    if (simpos >= 82109) and (simpos <= 104839):
+        si = "ACIS-I"
+    elif (simpos >= 70736) and (simpos <= 82108):
+        si = "ACIS-S"
+    elif (simpos >= -86147) and (simpos <= -20000):
+        si = " HRC-I"
+    elif (simpos >= -104362) and (simpos <= -86148):
+        si = " HRC-S"
     else:
-        si = '  NONE'
+        si = "  NONE"
     return si
 
 
@@ -73,11 +74,11 @@ def _get_start_stop_vals(tstart, tstop, msidset, msids):
     out = {}
     rel_msids = [msidset[msid] for msid in msids]
     for rel_msid in rel_msids:
-        vals = interpolate(rel_msid.vals, rel_msid.times,
-                           [tstart, tstop],
-                           method='nearest')
-        out['start_{}'.format(rel_msid.msid)] = vals[0]
-        out['stop_{}'.format(rel_msid.msid)] = vals[1]
+        vals = interpolate(
+            rel_msid.vals, rel_msid.times, [tstart, tstop], method="nearest"
+        )
+        out["start_{}".format(rel_msid.msid)] = vals[0]
+        out["stop_{}".format(rel_msid.msid)] = vals[1]
 
     return out
 
@@ -91,17 +92,33 @@ def _get_msid_changes(msids, sortmsids={}):
     for msid in msids:
         i_changes = np.flatnonzero(msid.vals[1:] != msid.vals[:-1])
         for i in i_changes:
-            change = (msid.msid,
-                      sortmsids.get(msid.msid, 10),
-                      msid.vals[i], msid.vals[i + 1],
-                      DateTime(msid.times[i]).date, DateTime(msid.times[i + 1]).date,
-                      0.0,
-                      msid.times[i], msid.times[i + 1],
-                      )
+            change = (
+                msid.msid,
+                sortmsids.get(msid.msid, 10),
+                msid.vals[i],
+                msid.vals[i + 1],
+                DateTime(msid.times[i]).date,
+                DateTime(msid.times[i + 1]).date,
+                0.0,
+                msid.times[i],
+                msid.times[i + 1],
+            )
             changes.append(change)
-    changes = np.rec.fromrecords(changes, names=('msid', 'sortmsid', 'prev_val', 'val',
-                                                 'prev_date', 'date', 'dt', 'prev_time', 'time'))
-    changes.sort(order=['time', 'sortmsid'])
+    changes = np.rec.fromrecords(
+        changes,
+        names=(
+            "msid",
+            "sortmsid",
+            "prev_val",
+            "val",
+            "prev_date",
+            "date",
+            "dt",
+            "prev_time",
+            "time",
+        ),
+    )
+    changes.sort(order=["time", "sortmsid"])
     return changes
 
 
@@ -134,21 +151,23 @@ def import_ska(func):
 
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
-        from Chandra.Time import DateTime
-        from Ska.Numpy import interpolate
-        from Quaternion import Quat
-        import Ska.engarchive.fetch_eng as fetch
-        from Ska.engarchive import utils
         import numpy as np
+        import Ska.engarchive.fetch_eng as fetch
         from astropy import table
-        globals()['interpolate'] = interpolate
-        globals()['DateTime'] = DateTime
-        globals()['fetch'] = fetch
-        globals()['utils'] = utils
-        globals()['np'] = np
-        globals()['Quat'] = Quat
-        globals()['table'] = table
+        from Chandra.Time import DateTime
+        from Quaternion import Quat
+        from Ska.engarchive import utils
+        from Ska.Numpy import interpolate
+
+        globals()["interpolate"] = interpolate
+        globals()["DateTime"] = DateTime
+        globals()["fetch"] = fetch
+        globals()["utils"] = utils
+        globals()["np"] = np
+        globals()["Quat"] = Quat
+        globals()["table"] = table
         return func(*args, **kwargs)
+
     return wrapper
 
 
@@ -165,18 +184,18 @@ def fuzz_states(states, t_fuzz):
     :returns fuzzed_states: table
     """
     done = False
-    state_has_val = 'val' in states.dtype.names
+    state_has_val = "val" in states.dtype.names
     while not done:
         for i, state0, state1 in zip(count(), states, states[1:]):
             # Logical intervals all have a 'val' of True by definition, while for state
             # intervals we need to check that adjacent intervals have same value.
-            state_equal = (state0['val'] == state1['val'] if state_has_val else True)
-            if state1['tstart'] - state0['tstop'] < t_fuzz and state_equal:
+            state_equal = state0["val"] == state1["val"] if state_has_val else True
+            if state1["tstart"] - state0["tstop"] < t_fuzz and state_equal:
                 # Merge state1 into state0 and delete state1
-                state0['tstop'] = state1['tstop']
-                state0['datestop'] = state1['datestop']
-                state0['duration'] = state0['tstop'] - state0['tstart']
-                states = table.vstack([states[:i + 1], states[i + 2:]])  # noqa
+                state0["tstop"] = state1["tstop"]
+                state0["datestop"] = state1["datestop"]
+                state0["duration"] = state0["tstop"] - state0["tstart"]
+                states = table.vstack([states[: i + 1], states[i + 2 :]])  # noqa
                 break
         else:
             done = True
@@ -199,8 +218,9 @@ class Pad(object):
         self.stop = stop or 0.0
 
     def __repr__(self):
-        return '<{} start={} stop={} seconds>'.format(
-            self.__class__.__name__, self.start, self.stop)
+        return "<{} start={} stop={} seconds>".format(
+            self.__class__.__name__, self.start, self.stop
+        )
 
 
 class IntervalPad(object):
@@ -211,7 +231,7 @@ class IntervalPad(object):
     """
 
     def __get__(self, instance, owner):
-        if not hasattr(instance, '_pad'):
+        if not hasattr(instance, "_pad"):
             instance._pad = Pad(0, 0)
         return instance._pad
 
@@ -233,7 +253,9 @@ class IntervalPad(object):
                 elif len_val == 2:
                     val_start, val_stop = val[0], val[1]
                 else:
-                    raise ValueError('interval_pad must be a float scalar, or 1 or 2-element list')
+                    raise ValueError(
+                        "interval_pad must be a float scalar, or 1 or 2-element list"
+                    )
 
         instance._pad = Pad(float(val_start), float(val_stop))
 
@@ -242,11 +264,12 @@ class Update(models.Model):
     """
     Last telemetry which was searched for an update.
     """
+
     name = models.CharField(max_length=30, primary_key=True)  # model name
     date = models.CharField(max_length=21)
 
     def __unicode__(self):
-        return ('name={} date={}'.format(self.name, self.date))
+        return "name={} date={}".format(self.name, self.date)
 
 
 class MyManager(models.Manager):
@@ -266,7 +289,8 @@ class BaseModel(models.Model):
     """
     Base class for for all models.
     """
-    _get_obsid_start_attr = 'date'  # Attribute to use for getting event obsid
+
+    _get_obsid_start_attr = "date"  # Attribute to use for getting event obsid
     update_priority = 0  # Priority order in update processing (higher => earlier)
 
     class QuerySet(models.query.QuerySet):
@@ -275,28 +299,32 @@ class BaseModel(models.Model):
         """
 
         def __repr__(self):
-            data = list(self[:models.query.REPR_OUTPUT_SIZE + 1])
+            data = list(self[: models.query.REPR_OUTPUT_SIZE + 1])
             if len(data) > models.query.REPR_OUTPUT_SIZE:
                 data[-1] = "...(remaining elements truncated)..."
-            return '\n'.join(repr(x) for x in data)
+            return "\n".join(repr(x) for x in data)
 
         @property
         def table(self):
             def un_unicode(vals):
-                return tuple(val.encode('ascii') if isinstance(val, str) else val
-                             for val in vals)
+                return tuple(
+                    val.encode("ascii") if isinstance(val, str) else val for val in vals
+                )
 
             from astropy.table import Table
 
             model_fields = self.model.get_model_fields()
             names = [f.name for f in model_fields]
             rows = self.values_list()
-            cols = (list(zip(*rows)) if len(rows) > 0 else None)
+            cols = list(zip(*rows)) if len(rows) > 0 else None
             dat = Table(cols, names=names)
 
-            drop_names = [name for name in dat.dtype.names if dat[name].dtype.kind == 'O']
-            drop_names.extend([f.name for f in model_fields
-                               if getattr(f, '_kadi_hidden', False)])
+            drop_names = [
+                name for name in dat.dtype.names if dat[name].dtype.kind == "O"
+            ]
+            drop_names.extend(
+                [f.name for f in model_fields if getattr(f, "_kadi_hidden", False)]
+            )
             if drop_names:
                 dat.remove_columns(drop_names)
 
@@ -328,6 +356,7 @@ class BaseModel(models.Model):
             :returns: list of overlapping events
             """
             from Chandra.Time import DateTime
+
             from .query import combine_intervals
 
             # First find the intervals corresponding to overlaps between self events and
@@ -341,17 +370,20 @@ class BaseModel(models.Model):
             datestops = [event.stop for event in events]
             intervals = list(zip(datestarts, datestops))
             qe_intervals = query_event.intervals(start, stop)
-            overlap_intervals = combine_intervals(operator.and_,
-                                                  intervals, qe_intervals, start, stop)
+            overlap_intervals = combine_intervals(
+                operator.and_, intervals, qe_intervals, start, stop
+            )
 
             overlap_starts, overlap_stops = list(zip(*overlap_intervals))
 
-            datestarts = np.array(datestarts, dtype='S21')
-            datestops = np.array(datestops, dtype='S21')
-            overlap_starts = np.array(overlap_starts, dtype='S21')
-            overlap_stops = np.array(overlap_stops, dtype='S21')
+            datestarts = np.array(datestarts, dtype="S21")
+            datestops = np.array(datestops, dtype="S21")
+            overlap_starts = np.array(overlap_starts, dtype="S21")
+            overlap_stops = np.array(overlap_stops, dtype="S21")
 
-            func = self._get_partial_overlaps if allow_partial else self._get_full_overlaps
+            func = (
+                self._get_partial_overlaps if allow_partial else self._get_full_overlaps
+            )
             indices = func(overlap_starts, overlap_stops, datestarts, datestops)
             return [events[i] for i in indices]
 
@@ -371,7 +403,9 @@ class BaseModel(models.Model):
             match_datestarts = datestarts[indices]
             match_datestops = datestops[indices]
 
-            ok = (overlap_starts == match_datestarts) & (overlap_stops == match_datestops)
+            ok = (overlap_starts == match_datestarts) & (
+                overlap_stops == match_datestops
+            )
             return indices[ok]
 
         @staticmethod
@@ -398,7 +432,7 @@ class BaseModel(models.Model):
 
     class Meta:
         abstract = True
-        ordering = ['start']
+        ordering = ["start"]
 
     @classmethod
     def from_dict(cls, model_dict, logger=None):
@@ -412,20 +446,23 @@ class BaseModel(models.Model):
         # but "stop" in the case of Manvr).
         if isinstance(model, TlmEvent) and model is not Obsid:
             tstart = DateTime(model_dict[cls._get_obsid_start_attr]).secs
-            obsrq = fetch.Msid('cobsrqid', tstart, tstart + 200)
+            obsrq = fetch.Msid("cobsrqid", tstart, tstart + 200)
             if len(obsrq.vals) == 0:
-                logger.warn(f'WARNING: unable to get COBSRQID near '
-                            f'{model_dict[cls._get_obsid_start_attr]}, '
-                            f'using obsid=-999')
-                model_dict['obsid'] = -999
+                logger.warn(
+                    f"WARNING: unable to get COBSRQID near "
+                    f"{model_dict[cls._get_obsid_start_attr]}, "
+                    f"using obsid=-999"
+                )
+                model_dict["obsid"] = -999
             else:
-                model_dict['obsid'] = obsrq.vals[0]
+                model_dict["obsid"] = obsrq.vals[0]
 
         for key, val in model_dict.items():
             if hasattr(model, key):
                 if logger is not None:
-                    logger.debug('Setting {} model with {}={}'
-                                 .format(model.model_name, key, val))
+                    logger.debug(
+                        "Setting {} model with {}={}".format(model.model_name, key, val)
+                    )
                 setattr(model, key, val)
         return model
 
@@ -438,16 +475,16 @@ class BaseModel(models.Model):
 
     @property
     def model_name(self):
-        if not hasattr(self, '_model_name'):
+        if not hasattr(self, "_model_name"):
             cc_name = self.__class__.__name__
             chars = []
             for c0, c1 in zip(cc_name[:-1], cc_name[1:]):
                 # Lower case followed by Upper case then insert "_"
                 chars.append(c0.lower())
                 if c0.lower() == c0 and c1.lower() != c1:
-                    chars.append('_')
+                    chars.append("_")
             chars.append(c1.lower())
-            self._model_name = ''.join(chars)
+            self._model_name = "".join(chars)
         return self._model_name
 
     @classmethod
@@ -461,19 +498,21 @@ class BaseModel(models.Model):
         if pad is None:
             pad = Pad()
         elif not isinstance(pad, Pad):
-            raise TypeError('pad arg must be a Pad object')
+            raise TypeError("pad arg must be a Pad object")
 
         datestart = (DateTime(start) - cls.lookback).date
         datestop = (DateTime(stop) + cls.lookback).date
-        events = cls.objects.filter(start__gte=datestart, start__lte=datestop, **filter_kwargs)
+        events = cls.objects.filter(
+            start__gte=datestart, start__lte=datestop, **filter_kwargs
+        )
 
         datestart = DateTime(start).date
         datestop = DateTime(stop).date
 
         intervals = []
         for event in events:
-            event_datestart = DateTime(event.tstart - pad.start, format='secs').date
-            event_datestop = DateTime(event.tstop + pad.stop, format='secs').date
+            event_datestart = DateTime(event.tstart - pad.start, format="secs").date
+            event_datestop = DateTime(event.tstop + pad.stop, format="secs").date
 
             # Negative padding might make an interval entirely disappear
             if event_datestart >= event_datestop:
@@ -510,12 +549,13 @@ class BaseModel(models.Model):
         start = getattr(self, self._get_obsid_start_attr)
         obsids = query.obsids.filter(start, start)
         if len(obsids) != 1:
-            raise ValueError('Expected one obsid at {} but got {}'
-                             .format(start, obsids))
+            raise ValueError(
+                "Expected one obsid at {} but got {}".format(start, obsids)
+            )
         return obsids[0].obsid
 
     def __bytes__(self):
-        return str(self).encode('utf-8')
+        return str(self).encode("utf-8")
 
     def __str__(self):
         return self.__unicode__()
@@ -527,11 +567,12 @@ class BaseEvent(BaseModel):
     that BaseModel is the base class for models like ManvrSeq that get
     generated as part of another event class.
     """
+
     class Meta:
         abstract = True
-        ordering = ['start']
+        ordering = ["start"]
 
-    _get_obsid_start_attr = 'start'  # Attribute to use for getting event obsid
+    _get_obsid_start_attr = "start"  # Attribute to use for getting event obsid
     lookback = 21  # days of lookback
     interval_pad = IntervalPad()  # interval padding before/ after event start/stop
 
@@ -541,12 +582,14 @@ class BaseEvent(BaseModel):
         Apply padding defined by interval_pad attribute.
         """
         from .. import cmds as commands
-        cmds = commands.filter(self.tstart - self.interval_pad.start,
-                               self.tstop + self.interval_pad.stop)
+
+        cmds = commands.filter(
+            self.tstart - self.interval_pad.start, self.tstop + self.interval_pad.stop
+        )
         return cmds
 
     def __unicode__(self):
-        return ('start={}'.format(self.start))
+        return "start={}".format(self.start)
 
     def get_next(self, queryset=None):
         """
@@ -566,7 +609,7 @@ class BaseEvent(BaseModel):
         """
         if queryset is None:
             queryset = self.__class__.objects.all()
-        prev = queryset.filter(pk__lt=self.pk).order_by('-pk')
+        prev = queryset.filter(pk__lt=self.pk).order_by("-pk")
         try:
             return prev[0]
         except IndexError:
@@ -574,24 +617,25 @@ class BaseEvent(BaseModel):
 
 
 class Event(BaseEvent):
-    start = models.CharField(max_length=21, primary_key=True,
-                             help_text='Start time (YYYY:DDD:HH:MM:SS)')
-    stop = models.CharField(max_length=21, help_text='Stop time (YYYY:DDD:HH:MM:SS)')
-    tstart = models.FloatField(db_index=True, help_text='Start time (CXC secs)')
-    tstop = models.FloatField(help_text='Stop time (CXC secs)')
-    dur = models.FloatField(help_text='Duration (secs)')
-    dur._kadi_format = '{:.1f}'
+    start = models.CharField(
+        max_length=21, primary_key=True, help_text="Start time (YYYY:DDD:HH:MM:SS)"
+    )
+    stop = models.CharField(max_length=21, help_text="Stop time (YYYY:DDD:HH:MM:SS)")
+    tstart = models.FloatField(db_index=True, help_text="Start time (CXC secs)")
+    tstop = models.FloatField(help_text="Stop time (CXC secs)")
+    dur = models.FloatField(help_text="Duration (secs)")
+    dur._kadi_format = "{:.1f}"
 
     class Meta:
         abstract = True
-        ordering = ['start']
+        ordering = ["start"]
 
     def __unicode__(self):
-        return ('start={} dur={:.0f}'.format(self.start, self.dur))
+        return "start={} dur={:.0f}".format(self.start, self.dur)
 
 
 class TlmEvent(Event):
-    obsid = models.IntegerField(help_text='Observation ID (COBSRQID)')
+    obsid = models.IntegerField(help_text="Observation ID (COBSRQID)")
 
     event_msids = None  # must be overridden by derived class
     event_val = None
@@ -599,7 +643,7 @@ class TlmEvent(Event):
 
     class Meta:
         abstract = True
-        ordering = ['start']
+        ordering = ["start"]
 
     def plot(self, figsize=None, fig=None):
         """
@@ -608,6 +652,7 @@ class TlmEvent(Event):
         for plotting.
         """
         from . import plot
+
         try:
             plot_func = getattr(plot, self.model_name)
         except AttributeError:
@@ -646,11 +691,14 @@ class TlmEvent(Event):
         """
         tstart = DateTime(start).secs
         tstop = DateTime(stop).secs
-        event_time_fuzz = cls.event_time_fuzz if hasattr(cls, 'event_time_fuzz') else None
+        event_time_fuzz = (
+            cls.event_time_fuzz if hasattr(cls, "event_time_fuzz") else None
+        )
 
         # Get the event telemetry MSID objects
-        event_msidset = fetch.MSIDset(cls.event_msids, tstart, tstop,
-                                      filter_bad=cls.event_filter_bad)
+        event_msidset = fetch.MSIDset(
+            cls.event_msids, tstart, tstop, filter_bad=cls.event_filter_bad
+        )
 
         try:
             # Telemetry values for event_msids[0] define the states.  Don't allow a logical
@@ -659,8 +707,9 @@ class TlmEvent(Event):
             states = utils.logical_intervals(times, bools, max_gap=MAX_GAP)
         except (IndexError, ValueError):
             if event_time_fuzz is None:
-                logger.warn('Warning: No telemetry available for {}'
-                            .format(cls.__name__))
+                logger.warn(
+                    "Warning: No telemetry available for {}".format(cls.__name__)
+                )
             return [], event_msidset
 
         if len(states) > 0:
@@ -671,17 +720,19 @@ class TlmEvent(Event):
             # the next search interval will step forward in time, it is sure that
             # eventually the event will be fully contained.
             if event_time_fuzz:
-                while tstop - event_time_fuzz < states[-1]['tstop']:
+                while tstop - event_time_fuzz < states[-1]["tstop"]:
                     # Event tstop is within event_time_fuzz of the stop of states so
                     # bail out and don't return any states.
-                    logger.warn('Warning: dropping state because of '
-                                'insufficent event time pad:\n{}\n'.format(states[-1:]))
+                    logger.warn(
+                        "Warning: dropping state because of "
+                        "insufficent event time pad:\n{}\n".format(states[-1:])
+                    )
                     states = states[:-1]
                     if len(states) == 0:
                         return [], event_msidset
 
             # Select event states that are contained within start/stop interval
-            ok = (states['tstart'] >= tstart) & (states['tstop'] <= tstop)
+            ok = (states["tstart"] >= tstart) & (states["tstop"] <= tstop)
             states = states[ok]
 
             if event_time_fuzz:
@@ -701,16 +752,18 @@ class TlmEvent(Event):
         # Assemble a list of dicts corresponding to events in this tlm interval
         events = []
         for state in states:
-            tstart = state['tstart']
-            tstop = state['tstop']
-            event = dict(tstart=tstart,
-                         tstop=tstop,
-                         dur=tstop - tstart,
-                         start=DateTime(tstart).date,
-                         stop=DateTime(tstop).date)
+            tstart = state["tstart"]
+            tstop = state["tstop"]
+            event = dict(
+                tstart=tstart,
+                tstop=tstop,
+                dur=tstop - tstart,
+                start=DateTime(tstart).date,
+                stop=DateTime(tstop).date,
+            )
 
             # Reject events that are shorter than the minimum duration
-            if hasattr(cls, 'event_min_dur') and event['dur'] < cls.event_min_dur:
+            if hasattr(cls, "event_min_dur") and event["dur"] < cls.event_min_dur:
                 continue
 
             # Custom processing defined by subclasses to add more attrs to event
@@ -725,7 +778,7 @@ class TlmEvent(Event):
         """
         fetch.MSIDset of self.fetch_event_msids.  By default filter_bad is True.
         """
-        if not hasattr(self, '_msidset'):
+        if not hasattr(self, "_msidset"):
             self._msidset = self.fetch_event()
         return self._msidset
 
@@ -739,8 +792,9 @@ class TlmEvent(Event):
         msids = self.fetch_event_msids[:]
         if extra_msids is not None:
             msids.extend(extra_msids)
-        msidset = fetch.MSIDset(msids, self.tstart - pad, self.tstop + pad,
-                                filter_bad=filter_bad)
+        msidset = fetch.MSIDset(
+            msids, self.tstart - pad, self.tstop + pad, filter_bad=filter_bad
+        )
         return msidset
 
 
@@ -763,7 +817,8 @@ class Obsid(TlmEvent):
       obsid    Integer        Observation ID (COBSRQID)
     ======== ========== ================================
     """
-    event_msids = ['cobsrqid']
+
+    event_msids = ["cobsrqid"]
 
     update_priority = 1000  # Process Obsid first
 
@@ -777,7 +832,7 @@ class Obsid(TlmEvent):
         events = []
         # Get the event telemetry MSID objects
         event_msidset = fetch.Msidset(cls.event_msids, start, stop)
-        obsid = event_msidset['cobsrqid']
+        obsid = event_msidset["cobsrqid"]
 
         if len(obsid) < 2:
             # Not enough telemetry for state_intervals, return no events
@@ -786,18 +841,19 @@ class Obsid(TlmEvent):
         states = obsid.state_intervals()
         # Skip the first and last states as they are likely incomplete
         for state in states[1:-1]:
-            event = dict(start=state['datestart'],
-                         stop=state['datestop'],
-                         tstart=state['tstart'],
-                         tstop=state['tstop'],
-                         dur=state['tstop'] - state['tstart'],
-                         obsid=state['val'])
+            event = dict(
+                start=state["datestart"],
+                stop=state["datestop"],
+                tstart=state["tstart"],
+                tstop=state["tstop"],
+                dur=state["tstop"] - state["tstart"],
+                obsid=state["val"],
+            )
             events.append(event)
         return events
 
     def __unicode__(self):
-        return ('start={} dur={:.0f} obsid={}'
-                .format(self.start, self.dur, self.obsid))
+        return "start={} dur={:.0f} obsid={}".format(self.start, self.dur, self.obsid)
 
 
 class TscMove(TlmEvent):
@@ -829,16 +885,19 @@ class TscMove(TlmEvent):
            max_pwm    Integer                   Max PWM during translation
     =============== ========== ============================================
     """
-    event_msids = ['3tscmove', '3tscpos', '3mrmmxmv']
-    event_val = 'T'
 
-    start_3tscpos = models.IntegerField(help_text='Start TSC position (steps)')
-    stop_3tscpos = models.IntegerField(help_text='Stop TSC position (steps)')
-    start_det = models.CharField(max_length=6,
-                                 help_text='Start detector (ACIS-I ACIS-S HRC-I HRC-S)')
-    stop_det = models.CharField(max_length=6,
-                                help_text='Stop detector (ACIS-I ACIS-S HRC-I HRC-S)')
-    max_pwm = models.IntegerField(help_text='Max PWM during translation')
+    event_msids = ["3tscmove", "3tscpos", "3mrmmxmv"]
+    event_val = "T"
+
+    start_3tscpos = models.IntegerField(help_text="Start TSC position (steps)")
+    stop_3tscpos = models.IntegerField(help_text="Stop TSC position (steps)")
+    start_det = models.CharField(
+        max_length=6, help_text="Start detector (ACIS-I ACIS-S HRC-I HRC-S)"
+    )
+    stop_det = models.CharField(
+        max_length=6, help_text="Stop detector (ACIS-I ACIS-S HRC-I HRC-S)"
+    )
+    max_pwm = models.IntegerField(help_text="Max PWM during translation")
 
     interval_pad = IntervalPad()  # interval padding before/ after event start/stop
 
@@ -847,17 +906,19 @@ class TscMove(TlmEvent):
         """
         Define start/stop_3tscpos and start/stop_det.
         """
-        out = _get_start_stop_vals(event['tstart'] - 66, event['tstop'] + 66,
-                                   event_msidset, msids=['3tscpos'])
-        out['start_det'] = _get_si(out['start_3tscpos'])
-        out['stop_det'] = _get_si(out['stop_3tscpos'])
-        pwm = event_msidset['3mrmmxmv']
-        out['max_pwm'] = interpolate(pwm.vals, pwm.times, [event['tstop'] + 66])[0]
+        out = _get_start_stop_vals(
+            event["tstart"] - 66, event["tstop"] + 66, event_msidset, msids=["3tscpos"]
+        )
+        out["start_det"] = _get_si(out["start_3tscpos"])
+        out["stop_det"] = _get_si(out["stop_3tscpos"])
+        pwm = event_msidset["3mrmmxmv"]
+        out["max_pwm"] = interpolate(pwm.vals, pwm.times, [event["tstop"] + 66])[0]
         return out
 
     def __unicode__(self):
-        return ('start={} dur={:.0f} start_3tscpos={} stop_3tscpos={}'
-                .format(self.start, self.dur, self.start_3tscpos, self.stop_3tscpos))
+        return "start={} dur={:.0f} start_3tscpos={} stop_3tscpos={}".format(
+            self.start, self.dur, self.start_3tscpos, self.stop_3tscpos
+        )
 
 
 class DarkCalReplica(TlmEvent):
@@ -881,8 +942,9 @@ class DarkCalReplica(TlmEvent):
       obsid    Integer        Observation ID (COBSRQID)
     ======== ========== ================================
     """
-    event_msids = ['ciumacac']
-    event_val = 'ON '
+
+    event_msids = ["ciumacac"]
+    event_val = "ON "
     event_min_dur = 300
 
 
@@ -908,8 +970,9 @@ class DarkCal(TlmEvent):
       obsid    Integer        Observation ID (COBSRQID)
     ======== ========== ================================
     """
-    event_msids = ['ciumacac']
-    event_val = 'ON '
+
+    event_msids = ["ciumacac"]
+    event_val = "ON "
     event_time_fuzz = 86400  # One full day of fuzz / pad
     event_min_dur = 8000
 
@@ -945,9 +1008,10 @@ class Scs107(TlmEvent):
       notes       Text               Supplemental notes
     ======== ========== ================================
     """
-    notes = models.TextField(help_text='Supplemental notes')
 
-    event_msids = ['3tscmove', 'aorwbias', 'coradmen']
+    notes = models.TextField(help_text="Supplemental notes")
+
+    event_msids = ["3tscmove", "aorwbias", "coradmen"]
     event_time_fuzz = 600  # Earlier in the mission SCS107 resulted in two SIM moves
     event_filter_bad = False
 
@@ -956,11 +1020,13 @@ class Scs107(TlmEvent):
     def get_state_times_bools(cls, msidset):
         # Interpolate all MSIDs to a common time.  Sync to the start of 3tscmove which is
         # sampled at 32.8 seconds
-        msidset_interpolate(msidset, 32.8, msidset['3tscmove'].times[0])
+        msidset_interpolate(msidset, 32.8, msidset["3tscmove"].times[0])
 
-        scs107 = ((msidset['3tscmove'].vals == 'T')
-                  & (msidset['aorwbias'].vals == 'DISA')
-                  & (msidset['coradmen'].vals == 'DISA'))
+        scs107 = (
+            (msidset["3tscmove"].vals == "T")
+            & (msidset["aorwbias"].vals == "DISA")
+            & (msidset["coradmen"].vals == "DISA")
+        )
 
         return msidset.times, scs107
 
@@ -986,24 +1052,30 @@ class FaMove(TlmEvent):
       stop_3fapos    Integer         Stop FA position (steps)
     ============== ========== ================================
     """
-    event_msids = ['3famove', '3fapos']
-    event_val = 'T'
 
-    start_3fapos = models.IntegerField(help_text='Start FA position (steps)')
-    stop_3fapos = models.IntegerField(help_text='Stop FA position (steps)')
+    event_msids = ["3famove", "3fapos"]
+    event_val = "T"
+
+    start_3fapos = models.IntegerField(help_text="Start FA position (steps)")
+    stop_3fapos = models.IntegerField(help_text="Stop FA position (steps)")
 
     @classmethod
     def get_extras(cls, event, event_msidset):
         """
         Define start/stop_3fapos.
         """
-        out = _get_start_stop_vals(event['tstart'] - 16.4, event['tstop'] + 16.4,
-                                   event_msidset, msids=['3fapos'])
+        out = _get_start_stop_vals(
+            event["tstart"] - 16.4,
+            event["tstop"] + 16.4,
+            event_msidset,
+            msids=["3fapos"],
+        )
         return out
 
     def __unicode__(self):
-        return ('start={} dur={:.0f} start_3fapos={} stop_3fapos={}'
-                .format(self.start, self.dur, self.start_3fapos, self.stop_3fapos))
+        return "start={} dur={:.0f} start_3fapos={} stop_3fapos={}".format(
+            self.start, self.dur, self.start_3fapos, self.stop_3fapos
+        )
 
 
 class GratingMove(TlmEvent):
@@ -1039,21 +1111,24 @@ class GratingMove(TlmEvent):
           direction    Char(4)        Grating direction (UNKN INSR RETR)
     ================ ========== =========================================
     """
-    start_4lposaro = models.FloatField(help_text='Start LETG position (degrees)')
-    stop_4lposaro = models.FloatField(help_text='Stop LETG position (degrees)')
-    start_4hposaro = models.FloatField(help_text='Start HETG position (degrees)')
-    stop_4hposaro = models.FloatField(help_text='Stop HETG position (degrees)')
-    grating = models.CharField(max_length=4,
-                               help_text='Grating in motion (UNKN LETG HETG BUMP)')
-    direction = models.CharField(max_length=4,
-                                 help_text='Grating direction (UNKN INSR RETR)')
 
-    event_msids = ['4mp28av', '4lposaro', '4hposaro']
+    start_4lposaro = models.FloatField(help_text="Start LETG position (degrees)")
+    stop_4lposaro = models.FloatField(help_text="Stop LETG position (degrees)")
+    start_4hposaro = models.FloatField(help_text="Start HETG position (degrees)")
+    stop_4hposaro = models.FloatField(help_text="Stop HETG position (degrees)")
+    grating = models.CharField(
+        max_length=4, help_text="Grating in motion (UNKN LETG HETG BUMP)"
+    )
+    direction = models.CharField(
+        max_length=4, help_text="Grating direction (UNKN INSR RETR)"
+    )
+
+    event_msids = ["4mp28av", "4lposaro", "4hposaro"]
     event_time_fuzz = 10
 
     @classmethod
     def get_state_times_bools(cls, event_msidset):
-        event_msid = event_msidset['4mp28av']
+        event_msid = event_msidset["4mp28av"]
         moving = event_msid.vals > 2.0
         return event_msid.times, moving
 
@@ -1062,34 +1137,43 @@ class GratingMove(TlmEvent):
         """
         Define start/stop grating positions for HETG and LETG
         """
-        out = _get_start_stop_vals(event['tstart'], event['tstop'],
-                                   event_msidset, msids=['4lposaro', '4hposaro'])
+        out = _get_start_stop_vals(
+            event["tstart"],
+            event["tstop"],
+            event_msidset,
+            msids=["4lposaro", "4hposaro"],
+        )
 
-        if event['dur'] < 4:
-            grating = 'BUMP'
+        if event["dur"] < 4:
+            grating = "BUMP"
         else:
-            grating = 'UNKN'  # Should never stay as 'UNKN'
-            if abs(out['start_4lposaro'] - out['stop_4lposaro']) > 5:
-                grating = 'LETG'
-            if abs(out['start_4hposaro'] - out['stop_4hposaro']) > 5:
+            grating = "UNKN"  # Should never stay as 'UNKN'
+            if abs(out["start_4lposaro"] - out["stop_4lposaro"]) > 5:
+                grating = "LETG"
+            if abs(out["start_4hposaro"] - out["stop_4hposaro"]) > 5:
                 # If BOTH this is not good (maybe two moves fuzzed together)
-                grating = 'BOTH' if grating == 'LETG' else 'HETG'
+                grating = "BOTH" if grating == "LETG" else "HETG"
 
-        if grating == 'LETG':
-            direction = 'INSR' if out['start_4lposaro'] > out['stop_4lposaro'] else 'RETR'
-        elif grating == 'HETG':
-            direction = 'INSR' if out['start_4hposaro'] > out['stop_4hposaro'] else 'RETR'
+        if grating == "LETG":
+            direction = (
+                "INSR" if out["start_4lposaro"] > out["stop_4lposaro"] else "RETR"
+            )
+        elif grating == "HETG":
+            direction = (
+                "INSR" if out["start_4hposaro"] > out["stop_4hposaro"] else "RETR"
+            )
         else:
-            direction = 'UNKN'
+            direction = "UNKN"
 
-        out['direction'] = direction
-        out['grating'] = grating
+        out["direction"] = direction
+        out["grating"] = grating
 
         return out
 
     def __unicode__(self):
-        return ('start={} dur={:.0f} grating={} direction={}'
-                .format(self.start, self.dur, self.grating, self.direction))
+        return "start={} dur={:.0f} grating={} direction={}".format(
+            self.start, self.dur, self.grating, self.direction
+        )
 
 
 class Dump(TlmEvent):
@@ -1111,8 +1195,9 @@ class Dump(TlmEvent):
       obsid    Integer        Observation ID (COBSRQID)
     ======== ========== ================================
     """
-    event_msids = ['aounload']
-    event_val = 'GRND'
+
+    event_msids = ["aounload"]
+    event_val = "GRND"
 
 
 class Eclipse(TlmEvent):
@@ -1134,9 +1219,10 @@ class Eclipse(TlmEvent):
       obsid    Integer        Observation ID (COBSRQID)
     ======== ========== ================================
     """
-    event_msids = ['aoeclips']
-    event_val = 'ECL '
-    fetch_event_msids = ['aoeclips', 'eb1k5', 'eb2k5', 'eb3k5']
+
+    event_msids = ["aoeclips"]
+    event_val = "ECL "
+    fetch_event_msids = ["aoeclips", "eb1k5", "eb2k5", "eb3k5"]
 
 
 class Manvr(TlmEvent):
@@ -1240,88 +1326,139 @@ class Manvr(TlmEvent):
     ``one_shot_roll``, ``one_shot_pitch``, and ``one_shot_yaw`` are the values of AOATTER1, 2, and 3
         from samples after the guide transition.
     """
-    _get_obsid_start_attr = 'stop'  # Attribute to use for getting event obsid
-    event_msids = ['aofattmd', 'aopcadmd', 'aoacaseq', 'aopsacpr']
-    event_val = 'MNVR'
 
-    fetch_event_msids = ['one_shot', 'aofattmd', 'aopcadmd', 'aoacaseq',
-                         'aopsacpr', 'aounload',
-                         'aoattqt1', 'aoattqt2', 'aoattqt3', 'aoattqt4',
-                         'aogyrct1', 'aogyrct2', 'aogyrct3', 'aogyrct4',
-                         'aoatupq1', 'aoatupq2', 'aoatupq3',
-                         'aotarqt1', 'aotarqt2', 'aotarqt3',
-                         'aoatter1', 'aoatter2', 'aoatter3',
-                         'aogbias1', 'aogbias2', 'aogbias3']
+    _get_obsid_start_attr = "stop"  # Attribute to use for getting event obsid
+    event_msids = ["aofattmd", "aopcadmd", "aoacaseq", "aopsacpr"]
+    event_val = "MNVR"
+
+    fetch_event_msids = [
+        "one_shot",
+        "aofattmd",
+        "aopcadmd",
+        "aoacaseq",
+        "aopsacpr",
+        "aounload",
+        "aoattqt1",
+        "aoattqt2",
+        "aoattqt3",
+        "aoattqt4",
+        "aogyrct1",
+        "aogyrct2",
+        "aogyrct3",
+        "aogyrct4",
+        "aoatupq1",
+        "aoatupq2",
+        "aoatupq3",
+        "aotarqt1",
+        "aotarqt2",
+        "aotarqt3",
+        "aoatter1",
+        "aoatter2",
+        "aoatter3",
+        "aogbias1",
+        "aogbias2",
+        "aogbias3",
+    ]
     fetch_event_pad = 600
 
     interval_pad = IntervalPad()  # interval padding before/ after event start/stop
 
-    prev_manvr_stop = models.CharField(max_length=21, null=True,
-                                       help_text='Stop time of previous AOFATTMD=MNVR before manvr')
-    prev_npnt_start = models.CharField(max_length=21, null=True, help_text='Start time of previous '
-                                       'AOPCADMD=NPNT before manvr')
-    nman_start = models.CharField(max_length=21, null=True,
-                                  help_text='Start time of AOPCADMD=NMAN for manvr')
-    manvr_start = models.CharField(max_length=21, null=True,
-                                   help_text='Start time of AOFATTMD=MNVR for manvr')
-    manvr_stop = models.CharField(max_length=21, null=True,
-                                  help_text='Stop time of AOFATTMD=MNVR for manvr')
-    npnt_start = models.CharField(max_length=21, null=True,
-                                  help_text='Start time of AOPCADMD=NPNT after manvr')
-    acq_start = models.CharField(max_length=21, null=True,
-                                 help_text='Start time of AOACASEQ=AQXN after manvr')
-    guide_start = models.CharField(max_length=21, null=True,
-                                   help_text='Start time of AOACASEQ=GUID after manvr')
-    kalman_start = models.CharField(max_length=21, null=True,
-                                    help_text='Start time of AOACASEQ=KALM after manvr')
-    aca_proc_act_start = models.CharField(max_length=21, null=True,
-                                          help_text='Start time of AOPSACPR=ACT after manvr')
-    npnt_stop = models.CharField(max_length=21, null=True,
-                                 help_text='Stop time of AOPCADMD=NPNT after manvr')
-    next_nman_start = models.CharField(max_length=21, null=True,
-                                       help_text='Start time of next AOPCADMD=NMAN after manvr')
-    next_manvr_start = models.CharField(max_length=21, null=True,
-                                        help_text='Start time of next AOFATTMD=MNVR after manvr')
+    prev_manvr_stop = models.CharField(
+        max_length=21,
+        null=True,
+        help_text="Stop time of previous AOFATTMD=MNVR before manvr",
+    )
+    prev_npnt_start = models.CharField(
+        max_length=21,
+        null=True,
+        help_text="Start time of previous " "AOPCADMD=NPNT before manvr",
+    )
+    nman_start = models.CharField(
+        max_length=21, null=True, help_text="Start time of AOPCADMD=NMAN for manvr"
+    )
+    manvr_start = models.CharField(
+        max_length=21, null=True, help_text="Start time of AOFATTMD=MNVR for manvr"
+    )
+    manvr_stop = models.CharField(
+        max_length=21, null=True, help_text="Stop time of AOFATTMD=MNVR for manvr"
+    )
+    npnt_start = models.CharField(
+        max_length=21, null=True, help_text="Start time of AOPCADMD=NPNT after manvr"
+    )
+    acq_start = models.CharField(
+        max_length=21, null=True, help_text="Start time of AOACASEQ=AQXN after manvr"
+    )
+    guide_start = models.CharField(
+        max_length=21, null=True, help_text="Start time of AOACASEQ=GUID after manvr"
+    )
+    kalman_start = models.CharField(
+        max_length=21, null=True, help_text="Start time of AOACASEQ=KALM after manvr"
+    )
+    aca_proc_act_start = models.CharField(
+        max_length=21, null=True, help_text="Start time of AOPSACPR=ACT after manvr"
+    )
+    npnt_stop = models.CharField(
+        max_length=21, null=True, help_text="Stop time of AOPCADMD=NPNT after manvr"
+    )
+    next_nman_start = models.CharField(
+        max_length=21,
+        null=True,
+        help_text="Start time of next AOPCADMD=NMAN after manvr",
+    )
+    next_manvr_start = models.CharField(
+        max_length=21,
+        null=True,
+        help_text="Start time of next AOFATTMD=MNVR after manvr",
+    )
     n_dwell = models.IntegerField(
-        help_text='Number of kalman dwells after manvr and before next manvr')
-    n_acq = models.IntegerField(help_text='Number of AQXN intervals after '
-                                'manvr and before next manvr')
-    n_guide = models.IntegerField(help_text='Number of GUID intervals after '
-                                  'manvr and before next manvr')
-    n_kalman = models.IntegerField(help_text='Number of KALM intervals after '
-                                   'manvr and before next manvr')
-    anomalous = models.BooleanField(help_text='Key MSID shows off-nominal value')
-    template = models.CharField(max_length=16, help_text='Matched maneuver template')
-    start_ra = models.FloatField(help_text='Start right ascension before manvr')
-    start_dec = models.FloatField(help_text='Start declination before manvr')
-    start_roll = models.FloatField(help_text='Start roll angle before manvr')
-    stop_ra = models.FloatField(help_text='Stop right ascension after manvr')
-    stop_dec = models.FloatField(help_text='Stop declination after manvr')
-    stop_roll = models.FloatField(help_text='Stop roll angle after manvr')
-    angle = models.FloatField(help_text='Maneuver angle (deg)')
-    one_shot = models.FloatField(help_text='One shot attitude update (arcsec)')
-    one_shot_roll = models.FloatField(help_text='One shot attitude update roll (arcsec)')
-    one_shot_pitch = models.FloatField(help_text='One shot attitude update pitch (arcsec)')
-    one_shot_yaw = models.FloatField(help_text='One shot attitude update yaw (arcsec)')
+        help_text="Number of kalman dwells after manvr and before next manvr"
+    )
+    n_acq = models.IntegerField(
+        help_text="Number of AQXN intervals after " "manvr and before next manvr"
+    )
+    n_guide = models.IntegerField(
+        help_text="Number of GUID intervals after " "manvr and before next manvr"
+    )
+    n_kalman = models.IntegerField(
+        help_text="Number of KALM intervals after " "manvr and before next manvr"
+    )
+    anomalous = models.BooleanField(help_text="Key MSID shows off-nominal value")
+    template = models.CharField(max_length=16, help_text="Matched maneuver template")
+    start_ra = models.FloatField(help_text="Start right ascension before manvr")
+    start_dec = models.FloatField(help_text="Start declination before manvr")
+    start_roll = models.FloatField(help_text="Start roll angle before manvr")
+    stop_ra = models.FloatField(help_text="Stop right ascension after manvr")
+    stop_dec = models.FloatField(help_text="Stop declination after manvr")
+    stop_roll = models.FloatField(help_text="Stop roll angle after manvr")
+    angle = models.FloatField(help_text="Maneuver angle (deg)")
+    one_shot = models.FloatField(help_text="One shot attitude update (arcsec)")
+    one_shot_roll = models.FloatField(
+        help_text="One shot attitude update roll (arcsec)"
+    )
+    one_shot_pitch = models.FloatField(
+        help_text="One shot attitude update pitch (arcsec)"
+    )
+    one_shot_yaw = models.FloatField(help_text="One shot attitude update yaw (arcsec)")
 
-    one_shot._kadi_format = '{:.1f}'
-    one_shot_roll._kadi_format = '{:.1f}'
-    one_shot_pitch._kadi_format = '{:.1f}'
-    one_shot_yaw._kadi_format = '{:.1f}'
-    angle._kadi_format = '{:.2f}'
-    start_ra._kadi_format = '{:.5f}'
-    start_dec._kadi_format = '{:.5f}'
-    start_roll._kadi_format = '{:.5f}'
-    stop_ra._kadi_format = '{:.5f}'
-    stop_dec._kadi_format = '{:.5f}'
-    stop_roll._kadi_format = '{:.5f}'
+    one_shot._kadi_format = "{:.1f}"
+    one_shot_roll._kadi_format = "{:.1f}"
+    one_shot_pitch._kadi_format = "{:.1f}"
+    one_shot_yaw._kadi_format = "{:.1f}"
+    angle._kadi_format = "{:.2f}"
+    start_ra._kadi_format = "{:.5f}"
+    start_dec._kadi_format = "{:.5f}"
+    start_roll._kadi_format = "{:.5f}"
+    stop_ra._kadi_format = "{:.5f}"
+    stop_dec._kadi_format = "{:.5f}"
+    stop_roll._kadi_format = "{:.5f}"
 
     class Meta:
-        ordering = ['start']
+        ordering = ["start"]
 
     def __unicode__(self):
-        return ('start={} dur={:.0f} n_dwell={} template={}'
-                .format(self.start, self.dur, self.n_dwell, self.template))
+        return "start={} dur={:.0f} n_dwell={} template={}".format(
+            self.start, self.dur, self.n_dwell, self.template
+        )
 
     @classmethod
     def get_dwells(cls, event, changes):
@@ -1342,44 +1479,49 @@ class Manvr(TlmEvent):
         dwells = []
         state = None
         t0 = 0
-        ok = changes['dt'] >= ZERO_DT
+        ok = changes["dt"] >= ZERO_DT
         dwell = {}
         for change in changes[ok]:
             # Not in a dwell and ACA sequence is KALMAN => start dwell.
-            if (state is None
-                    and change['msid'] == 'aoacaseq'
-                    and change['val'] == 'KALM'):
-                t0 = change['time']
-                dwell['rel_tstart'] = change['dt']
-                dwell['tstart'] = change['time']
-                dwell['start'] = change['date']
-                state = 'dwell'
+            if (
+                state is None
+                and change["msid"] == "aoacaseq"
+                and change["val"] == "KALM"
+            ):
+                t0 = change["time"]
+                dwell["rel_tstart"] = change["dt"]
+                dwell["tstart"] = change["time"]
+                dwell["start"] = change["date"]
+                state = "dwell"
 
             # Another KALMAN within 400 secs of previous KALMAN in dwell.
             # This is another acquisition sequence and moves the dwell start back.
-            elif (state == 'dwell'
-                  and change['msid'] == 'aoacaseq'
-                  and change['val'] == 'KALM'
-                  and change['time'] - t0 < 400):
-                t0 = change['time']
-                dwell['rel_tstart'] = change['dt']
-                dwell['tstart'] = change['time']
-                dwell['start'] = change['date']
+            elif (
+                state == "dwell"
+                and change["msid"] == "aoacaseq"
+                and change["val"] == "KALM"
+                and change["time"] - t0 < 400
+            ):
+                t0 = change["time"]
+                dwell["rel_tstart"] = change["dt"]
+                dwell["tstart"] = change["time"]
+                dwell["start"] = change["date"]
 
             # End of dwell because of NPNT => NMAN transition OR another acquisition
-            elif (state == 'dwell'
-                  and ((change['msid'] == 'aopcadmd' and change['val'] == 'NMAN')
-                       or (change['msid'] == 'aoacaseq' and change['time'] - t0 > 400))):
-                dwell['tstop'] = change['prev_time']
-                dwell['stop'] = change['prev_date']
-                dwell['dur'] = dwell['tstop'] - dwell['tstart']
+            elif state == "dwell" and (
+                (change["msid"] == "aopcadmd" and change["val"] == "NMAN")
+                or (change["msid"] == "aoacaseq" and change["time"] - t0 > 400)
+            ):
+                dwell["tstop"] = change["prev_time"]
+                dwell["stop"] = change["prev_date"]
+                dwell["dur"] = dwell["tstop"] - dwell["tstart"]
                 dwells.append(dwell)
                 dwell = {}
                 state = None
 
         for dwell in dwells:
-            for att in ('ra', 'dec', 'roll'):
-                dwell[att] = event['stop_' + att]
+            for att in ("ra", "dec", "roll"):
+                dwell[att] = event["stop_" + att]
 
         return dwells
 
@@ -1389,6 +1531,7 @@ class Manvr(TlmEvent):
         Get attributes of the maneuver event and possible dwells based on
         the MSID `changes`.
         """
+
         def match(msid, val, idx=None, filter=None):
             """
             Find a match for the given `msid` and `val`.  The `filter` can
@@ -1396,68 +1539,79 @@ class Manvr(TlmEvent):
             the maneuver end.  The `idx` value then selects form the matching
             changes.  If the desired match is not available then None is returned.
             """
-            ok = (changes['msid'] == msid)
-            if val.startswith('!'):
-                ok &= (changes['val'] != val[1:])
+            ok = changes["msid"] == msid
+            if val.startswith("!"):
+                ok &= changes["val"] != val[1:]
             else:
-                ok &= (changes['val'] == val)
-            if filter == 'before':
-                ok &= (changes['dt'] < ZERO_DT)
-            elif filter == 'after':
-                ok &= (changes['dt'] >= ZERO_DT)
+                ok &= changes["val"] == val
+            if filter == "before":
+                ok &= changes["dt"] < ZERO_DT
+            elif filter == "after":
+                ok &= changes["dt"] >= ZERO_DT
             try:
                 if idx is None:
-                    return changes[ok]['date']
+                    return changes[ok]["date"]
                 else:
-                    return changes[ok][idx]['date']
+                    return changes[ok][idx]["date"]
             except IndexError:
                 return None
 
         # Check for any telemetry values that are off-nominal
-        nom_vals = {'aopcadmd': ('NPNT', 'NMAN'),
-                    'aoacaseq': ('GUID', 'KALM', 'AQXN'),
-                    'aofattmd': ('MNVR', 'STDY'),
-                    'aopsacpr': ('INIT', 'INAC', 'ACT '),
-                    'aounload': ('MON ', 'GRND')}
+        nom_vals = {
+            "aopcadmd": ("NPNT", "NMAN"),
+            "aoacaseq": ("GUID", "KALM", "AQXN"),
+            "aofattmd": ("MNVR", "STDY"),
+            "aopsacpr": ("INIT", "INAC", "ACT "),
+            "aounload": ("MON ", "GRND"),
+        }
         anomalous = False
-        for change in changes[changes['dt'] >= ZERO_DT]:
-            if change['val'] not in nom_vals[change['msid']]:
+        for change in changes[changes["dt"] >= ZERO_DT]:
+            if change["val"] not in nom_vals[change["msid"]]:
                 anomalous = True
                 break
 
         # Templates of previously seen maneuver sequences. These cover sequences seen at
         # least twice as of ~Mar 2012.
         manvr_templates = get_manvr_templates()
-        seqs = ['{}_{}_{}'.format(c['msid'], c['prev_val'], c['val']) for c in changes
-                if (c['msid'] in ('aopcadmd', 'aofattmd', 'aoacaseq')
-                    and c['dt'] >= ZERO_DT)]
+        seqs = [
+            "{}_{}_{}".format(c["msid"], c["prev_val"], c["val"])
+            for c in changes
+            if (
+                c["msid"] in ("aopcadmd", "aofattmd", "aoacaseq") and c["dt"] >= ZERO_DT
+            )
+        ]
         for name, manvr_template in manvr_templates:
-            if seqs == manvr_template[2:]:  # skip first two which are STDY-MNVR and MNVR-STDY
+            if (
+                seqs == manvr_template[2:]
+            ):  # skip first two which are STDY-MNVR and MNVR-STDY
                 template = name
                 break
         else:
-            template = 'unknown'
+            template = "unknown"
 
         manvr_attrs = dict(
-            prev_manvr_stop=match('aofattmd', '!MNVR', -1, 'before'),  # Last STDY before this manvr
-            prev_npnt_start=match('aopcadmd', 'NPNT', -1, 'before'),  # Last NPNT before this manvr
-
-            nman_start=match('aopcadmd', 'NMAN', -1, 'before'),  # NMAN that precedes this manvr
-            manvr_start=match('aofattmd', 'MNVR', -1, 'before'),  # start of this manvr
-            manvr_stop=match('aofattmd', '!MNVR', 0, 'after'),
-
-            npnt_start=match('aopcadmd', 'NPNT', 0, 'after'),
-            acq_start=match('aoacaseq', 'AQXN', 0, 'after'),
-            guide_start=match('aoacaseq', 'GUID', 0, 'after'),
-            kalman_start=match('aoacaseq', 'KALM', 0, 'after'),
-            aca_proc_act_start=match('aopsacpr', 'ACT ', 0, 'after'),
-            npnt_stop=match('aopcadmd', '!NPNT', -1, 'after'),
-
-            next_nman_start=match('aopcadmd', 'NMAN', -1, 'after'),
-            next_manvr_start=match('aofattmd', 'MNVR', -1, 'after'),
-            n_acq=len(match('aoacaseq', 'AQXN', None, 'after')),
-            n_guide=len(match('aoacaseq', 'GUID', None, 'after')),
-            n_kalman=len(match('aoacaseq', 'KALM', None, 'after')),
+            prev_manvr_stop=match(
+                "aofattmd", "!MNVR", -1, "before"
+            ),  # Last STDY before this manvr
+            prev_npnt_start=match(
+                "aopcadmd", "NPNT", -1, "before"
+            ),  # Last NPNT before this manvr
+            nman_start=match(
+                "aopcadmd", "NMAN", -1, "before"
+            ),  # NMAN that precedes this manvr
+            manvr_start=match("aofattmd", "MNVR", -1, "before"),  # start of this manvr
+            manvr_stop=match("aofattmd", "!MNVR", 0, "after"),
+            npnt_start=match("aopcadmd", "NPNT", 0, "after"),
+            acq_start=match("aoacaseq", "AQXN", 0, "after"),
+            guide_start=match("aoacaseq", "GUID", 0, "after"),
+            kalman_start=match("aoacaseq", "KALM", 0, "after"),
+            aca_proc_act_start=match("aopsacpr", "ACT ", 0, "after"),
+            npnt_stop=match("aopcadmd", "!NPNT", -1, "after"),
+            next_nman_start=match("aopcadmd", "NMAN", -1, "after"),
+            next_manvr_start=match("aofattmd", "MNVR", -1, "after"),
+            n_acq=len(match("aoacaseq", "AQXN", None, "after")),
+            n_guide=len(match("aoacaseq", "GUID", None, "after")),
+            n_kalman=len(match("aoacaseq", "KALM", None, "after")),
             anomalous=anomalous,
             template=template,
         )
@@ -1472,33 +1626,35 @@ class Manvr(TlmEvent):
         """
         out = {}
         quats = {}
-        for label, dt in (('start', -60), ('stop', 60)):
-            time = event['tstart'] + dt
+        for label, dt in (("start", -60), ("stop", 60)):
+            time = event["tstart"] + dt
             q123 = []
             for i in range(1, 4):
-                name = 'aotarqt{}'.format(i)
+                name = "aotarqt{}".format(i)
                 msid = msidset[name]
-                q123.append(interpolate(msid.vals, msid.times, [time], method='nearest')[0])
+                q123.append(
+                    interpolate(msid.vals, msid.times, [time], method="nearest")[0]
+                )
             q123 = np.array(q123)
-            sum_q123_sq = np.sum(q123 ** 2)
+            sum_q123_sq = np.sum(q123**2)
             q4 = np.sqrt(np.abs(1.0 - sum_q123_sq))
-            norm = np.sqrt(sum_q123_sq + q4 ** 2)
+            norm = np.sqrt(sum_q123_sq + q4**2)
             quat = Quat(np.concatenate([q123, [q4]]) / norm)
             quats[label] = quat
-            out[label + '_aotarqt1'] = float(quat.q[0])
-            out[label + '_aotarqt2'] = float(quat.q[1])
-            out[label + '_aotarqt3'] = float(quat.q[2])
-            out[label + '_aotarqt4'] = float(quat.q[3])
-            out[label + '_ra'] = float(quat.ra)
-            out[label + '_dec'] = float(quat.dec)
-            out[label + '_roll'] = float(quat.roll)
+            out[label + "_aotarqt1"] = float(quat.q[0])
+            out[label + "_aotarqt2"] = float(quat.q[1])
+            out[label + "_aotarqt3"] = float(quat.q[2])
+            out[label + "_aotarqt4"] = float(quat.q[3])
+            out[label + "_ra"] = float(quat.ra)
+            out[label + "_dec"] = float(quat.dec)
+            out[label + "_roll"] = float(quat.roll)
 
-        dq = quats['stop'] / quats['start']  # = (wx * sa2, wy * sa2, wz * sa2, ca2)
+        dq = quats["stop"] / quats["start"]  # = (wx * sa2, wy * sa2, wz * sa2, ca2)
         q3 = np.abs(dq.q[3])
         if q3 >= 1.0:  # Floating point error possible
-            out['angle'] = 0.0
+            out["angle"] = 0.0
         else:
-            out['angle'] = float(np.arccos(q3) * 2 * 180 / np.pi)
+            out["angle"] = float(np.arccos(q3) * 2 * 180 / np.pi)
 
         return out
 
@@ -1511,23 +1667,32 @@ class Manvr(TlmEvent):
         # No acq => guide transition so no one-shot defined.  Use -99.0 as a convenience for
         # the one shot length, -999.0 for the axis values.
         if guide_start is None:
-            return {'one_shot': -99.0,
-                    'one_shot_roll': -999.0, 'one_shot_pitch': -999.0, 'one_shot_yaw': -999.0}
+            return {
+                "one_shot": -99.0,
+                "one_shot_roll": -999.0,
+                "one_shot_pitch": -999.0,
+                "one_shot_yaw": -999.0,
+            }
         # Save the first post maneuver / post ACQ attitude error sample for each AOATTER axis
         pm_att_err = {}
         for ax in [1, 2, 3]:
-            msid = aux_msidset['aoatter{}'.format(ax)]
-            ok = ((msid.times >= DateTime(guide_start).secs + 1.1)
-                  & (msid.times < DateTime(guide_start).secs + 30))
+            msid = aux_msidset["aoatter{}".format(ax)]
+            ok = (msid.times >= DateTime(guide_start).secs + 1.1) & (
+                msid.times < DateTime(guide_start).secs + 30
+            )
             if not np.any(ok):
-                raise ValueError("No AOATTER{} times for guide transition at {} for one shot"
-                                 .format(ax, guide_start))
+                raise ValueError(
+                    "No AOATTER{} times for guide transition at {} for one shot".format(
+                        ax, guide_start
+                    )
+                )
             pm_att_err[ax] = msid.vals[ok][0] * R2A
-        return {'one_shot': np.sqrt(pm_att_err[2] ** 2
-                                    + pm_att_err[3] ** 2),
-                'one_shot_roll': pm_att_err[1],
-                'one_shot_pitch': pm_att_err[2],
-                'one_shot_yaw': pm_att_err[3]}
+        return {
+            "one_shot": np.sqrt(pm_att_err[2] ** 2 + pm_att_err[3] ** 2),
+            "one_shot_roll": pm_att_err[1],
+            "one_shot_pitch": pm_att_err[2],
+            "one_shot_yaw": pm_att_err[3],
+        }
 
     @classmethod
     @import_ska
@@ -1537,9 +1702,11 @@ class Manvr(TlmEvent):
         """
         events = []
         # Auxiliary information
-        aux_msidset = fetch.Msidset(['aotarqt1', 'aotarqt2', 'aotarqt3',
-                                     'aoatter1', 'aoatter2', 'aoatter3'],
-                                    start, stop)
+        aux_msidset = fetch.Msidset(
+            ["aotarqt1", "aotarqt2", "aotarqt3", "aoatter1", "aoatter2", "aoatter3"],
+            start,
+            stop,
+        )
 
         # Need at least 2 samples to get states. Having no samples typically
         # happens when building the event tables and telemetry queries are just
@@ -1548,48 +1715,59 @@ class Manvr(TlmEvent):
             return events
 
         states, event_msidset = cls.get_msids_states(start, stop)
-        changes = _get_msid_changes(list(event_msidset.values()),
-                                    sortmsids={'aofattmd': 1, 'aopcadmd': 2,
-                                               'aoacaseq': 3, 'aopsacpr': 4})
+        changes = _get_msid_changes(
+            list(event_msidset.values()),
+            sortmsids={"aofattmd": 1, "aopcadmd": 2, "aoacaseq": 3, "aopsacpr": 4},
+        )
 
         for manvr_prev, manvr, manvr_next in zip(states, states[1:], states[2:]):
-            tstart = manvr['tstart']
-            tstop = manvr['tstop']
+            tstart = manvr["tstart"]
+            tstop = manvr["tstop"]
 
             # Make sure the aux_msidset (used for stop/stop target attitudes and one shot)
             # is complete through the end of maneuver + one hour.  Finish event processing
             # if that is not the case.
             min_aux_tstop = min(aux_msid.times[-1] for aux_msid in aux_msidset.values())
             if min_aux_tstop < tstop + 3600:
-                logger.info('Breaking out of maneuver processing at manvr start={} because '
-                            'min_aux_stop={} < manvr stop + 1hr={}'
-                            .format(DateTime(tstart).date, DateTime(min_aux_tstop).date,
-                                    DateTime(tstop + 3600).date))
+                logger.info(
+                    "Breaking out of maneuver processing at manvr start={} because "
+                    "min_aux_stop={} < manvr stop + 1hr={}".format(
+                        DateTime(tstart).date,
+                        DateTime(min_aux_tstop).date,
+                        DateTime(tstop + 3600).date,
+                    )
+                )
                 break
 
-            i0 = np.searchsorted(changes['time'], manvr_prev['tstop'])
-            i1 = np.searchsorted(changes['time'], manvr_next['tstart'])
-            sequence = changes[i0:i1 + 1]
-            sequence['dt'] = (sequence['time'] + sequence['prev_time']) / 2.0 - manvr['tstop']
-            ok = ((sequence['dt'] >= ZERO_DT) | (sequence['msid'] == 'aofattmd')
-                  | (sequence['msid'] == 'aopcadmd'))
+            i0 = np.searchsorted(changes["time"], manvr_prev["tstop"])
+            i1 = np.searchsorted(changes["time"], manvr_next["tstart"])
+            sequence = changes[i0 : i1 + 1]
+            sequence["dt"] = (sequence["time"] + sequence["prev_time"]) / 2.0 - manvr[
+                "tstop"
+            ]
+            ok = (
+                (sequence["dt"] >= ZERO_DT)
+                | (sequence["msid"] == "aofattmd")
+                | (sequence["msid"] == "aopcadmd")
+            )
             sequence = sequence[ok]
             manvr_attrs = cls.get_manvr_attrs(sequence)
 
-            event = dict(tstart=tstart,
-                         tstop=tstop,
-                         dur=tstop - tstart,
-                         start=DateTime(tstart).date,
-                         stop=DateTime(tstop).date,
-                         foreign={'ManvrSeq': sequence},
-                         )
+            event = dict(
+                tstart=tstart,
+                tstop=tstop,
+                dur=tstop - tstart,
+                start=DateTime(tstart).date,
+                stop=DateTime(tstop).date,
+                foreign={"ManvrSeq": sequence},
+            )
             event.update(manvr_attrs)
             event.update(cls.get_target_attitudes(event, aux_msidset))
-            one_shot = cls.get_one_shot(manvr_attrs['guide_start'], aux_msidset)
+            one_shot = cls.get_one_shot(manvr_attrs["guide_start"], aux_msidset)
             event.update(one_shot)
             dwells = cls.get_dwells(event, sequence)
-            event['foreign']['Dwell'] = dwells
-            event['n_dwell'] = len(dwells)
+            event["foreign"]["Dwell"] = dwells
+            event["n_dwell"] = len(dwells)
 
             events.append(event)
 
@@ -1628,23 +1806,24 @@ class Dwell(Event):
            roll        Float                         Roll angle (deg)
     ============ ============ ========================================
     """
-    rel_tstart = models.FloatField(help_text='Start time relative to manvr end (sec)')
-    manvr = models.ForeignKey(Manvr, on_delete=models.CASCADE,
-                              help_text='Maneuver that contains this dwell')
-    ra = models.FloatField(help_text='Right ascension (deg)')
-    dec = models.FloatField(help_text='Declination (deg)')
-    roll = models.FloatField(help_text='Roll angle (deg)')
-    rel_tstart._kadi_format = '{:.2f}'
-    ra._kadi_format = '{:.5f}'
-    dec._kadi_format = '{:.5f}'
-    roll._kadi_format = '{:.5f}'
+
+    rel_tstart = models.FloatField(help_text="Start time relative to manvr end (sec)")
+    manvr = models.ForeignKey(
+        Manvr, on_delete=models.CASCADE, help_text="Maneuver that contains this dwell"
+    )
+    ra = models.FloatField(help_text="Right ascension (deg)")
+    dec = models.FloatField(help_text="Declination (deg)")
+    roll = models.FloatField(help_text="Roll angle (deg)")
+    rel_tstart._kadi_format = "{:.2f}"
+    ra._kadi_format = "{:.5f}"
+    dec._kadi_format = "{:.5f}"
+    roll._kadi_format = "{:.5f}"
 
     # To do: add ra dec roll quaternion
 
     def __unicode__(self):
         # TODO add ra, dec, roll
-        return ('start={} dur={:.0f}'
-                .format(self.start, self.dur))
+        return "start={} dur={:.0f}".format(self.start, self.dur)
 
 
 class ManvrSeq(BaseModel):
@@ -1682,11 +1861,12 @@ class ManvrSeq(BaseModel):
     prev_time = models.FloatField()
 
     class Meta:
-        ordering = ['manvr', 'date']
+        ordering = ["manvr", "date"]
 
     def __unicode__(self):
-        return ('{}: {} => {} at {}'
-                .format(self.msid.upper(), self.prev_val, self.val, self.date))
+        return "{}: {} => {} at {}".format(
+            self.msid.upper(), self.prev_val, self.val, self.date
+        )
 
 
 class SafeSun(TlmEvent):
@@ -1716,14 +1896,15 @@ class SafeSun(TlmEvent):
       notes       Text
     ======== ========== ================================
     """
+
     notes = models.TextField()
-    event_msids = ['conlofp', 'ctufmtsl', 'c1sqax']
+    event_msids = ["conlofp", "ctufmtsl", "c1sqax"]
     event_filter_bad = False
     event_time_fuzz = 86400  # One full day of fuzz / pad
     event_min_dur = 36000
 
     fetch_event_pad = 86400 / 2
-    fetch_event_msids = ['conlofp', 'ctufmtsl', 'c1sqax', 'aopcadmd', '61psts02']
+    fetch_event_msids = ["conlofp", "ctufmtsl", "c1sqax", "aopcadmd", "61psts02"]
 
     @classmethod
     @import_ska
@@ -1731,26 +1912,30 @@ class SafeSun(TlmEvent):
         # Second safemode has bad telemetry for the entire event so the standard
         # detection algorithm fails.  Just hardwire safemode #1 and fix up the
         # telemetry within this range so that the standard detection works.
-        safemode2_tstart = DateTime('1999:269:20:22:45').secs
-        safemode2_tstop = DateTime('1999:270:08:22:30').secs
+        safemode2_tstart = DateTime("1999:269:20:22:45").secs
+        safemode2_tstop = DateTime("1999:270:08:22:30").secs
         if msidset.tstart < safemode2_tstop and msidset.tstop > safemode2_tstart:
             for msid in msidset.values():
                 ok = (msid.times > safemode2_tstart) & (msid.times < safemode2_tstop)
                 msid.bads[ok] = False
-                force_val = {'conlofp': 'NRML', 'ctufmtsl': 'FMT5', 'c1sqax': 'ENAB'}[msid.msid]
+                force_val = {"conlofp": "NRML", "ctufmtsl": "FMT5", "c1sqax": "ENAB"}[
+                    msid.msid
+                ]
                 msid.vals[ok] = force_val
 
         # Interpolate all MSIDs to a common time.  Sync to the start of CTUFMTSL which is
         # sampled at 32.8 seconds
-        msidset_interpolate(msidset, 32.8, msidset['ctufmtsl'].times[0])
+        msidset_interpolate(msidset, 32.8, msidset["ctufmtsl"].times[0])
 
         # Define intervals when in safe mode ~(A & B & C) == (~A | ~B | ~C)
-        safe_mode = ((msidset['conlofp'].vals != 'NRML')
-                     | (msidset['ctufmtsl'].vals == 'FMT5')
-                     | (msidset['c1sqax'].vals != 'ENAB'))
+        safe_mode = (
+            (msidset["conlofp"].vals != "NRML")
+            | (msidset["ctufmtsl"].vals == "FMT5")
+            | (msidset["c1sqax"].vals != "ENAB")
+        )
 
         # Telemetry indicates a safemode around 1999:221 which isn't real
-        bogus_tstart = DateTime('1999:225:12:00:00').secs
+        bogus_tstart = DateTime("1999:225:12:00:00").secs
         if msidset.tstart < bogus_tstart:
             ok = msidset.times < bogus_tstart
             safe_mode[ok] = False
@@ -1780,8 +1965,9 @@ class NormalSun(TlmEvent):
       obsid    Integer        Observation ID (COBSRQID)
     ======== ========== ================================
     """
-    event_msids = ['aopcadmd']
-    event_val = 'NSUN'
+
+    event_msids = ["aopcadmd"]
+    event_val = "NSUN"
     event_time_fuzz = 86400  # One full day of fuzz
 
 
@@ -1816,18 +2002,25 @@ class MajorEvent(BaseEvent):
      source    Char(3)                     Event source (FDB or FOT)
     ======== ========== =============================================
     """
-    key = models.CharField(max_length=24, primary_key=True,
-                           help_text='Unique key for this event')
+
+    key = models.CharField(
+        max_length=24, primary_key=True, help_text="Unique key for this event"
+    )
     key._kadi_hidden = True
-    start = models.CharField(max_length=8, db_index=True,
-                             help_text='Event time to the nearest day (YYYY:DOY)')
-    date = models.CharField(max_length=11,
-                            help_text='Event time to the nearest day (YYYY-Mon-DD)')
-    tstart = models.FloatField(db_index=True,
-                               help_text='Event time to the nearest day (CXC sec)')
-    descr = models.TextField(help_text='Event description')
-    note = models.TextField(help_text='Note (comments or CAP # or FSW PR #)')
-    source = models.CharField(max_length=3, help_text='Event source (FDB or FOT)')
+    start = models.CharField(
+        max_length=8,
+        db_index=True,
+        help_text="Event time to the nearest day (YYYY:DOY)",
+    )
+    date = models.CharField(
+        max_length=11, help_text="Event time to the nearest day (YYYY-Mon-DD)"
+    )
+    tstart = models.FloatField(
+        db_index=True, help_text="Event time to the nearest day (CXC sec)"
+    )
+    descr = models.TextField(help_text="Event description")
+    note = models.TextField(help_text="Note (comments or CAP # or FSW PR #)")
+    source = models.CharField(max_length=3, help_text="Event source (FDB or FOT)")
 
     # Allow for hand-edits of the source HTML tables back about two years. Make
     # sure the lookback for getting new events is a bit further back than delete
@@ -1836,16 +2029,16 @@ class MajorEvent(BaseEvent):
     lookback_delete = 365 * 2
 
     class Meta:
-        ordering = ['key']
+        ordering = ["key"]
 
     def __unicode__(self):
         descr = self.descr
         if len(descr) > 30:
-            descr = descr[:27] + '...'
+            descr = descr[:27] + "..."
         note = self.note
         if note:
-            descr += ' (' + (note if len(note) < 30 else note[:27] + '...') + ')'
-        return ('{} ({}) {}: {}'.format(self.start, self.date[5:], self.source, descr))
+            descr += " (" + (note if len(note) < 30 else note[:27] + "...") + ")"
+        return "{} ({}) {}: {}".format(self.start, self.date[5:], self.source, descr)
 
     @classmethod
     @import_ska
@@ -1853,8 +2046,9 @@ class MajorEvent(BaseEvent):
         """
         Get Major Events from FDB and FOT tables on the OCCweb
         """
-        from . import scrape
         import hashlib
+
+        from . import scrape
 
         tstart = DateTime(start).secs
         tstop = DateTime(stop).secs
@@ -1862,14 +2056,18 @@ class MajorEvent(BaseEvent):
         events = scrape.get_fot_major_events() + scrape.get_fdb_major_events()
 
         # Select events within time range and sort by tstart key
-        events = sorted((x for x in events if tstart <= x['tstart'] <= tstop),
-                        key=lambda x: x['tstart'])
+        events = sorted(
+            (x for x in events if tstart <= x["tstart"] <= tstop),
+            key=lambda x: x["tstart"],
+        )
 
         # Manually generate a unique key for event since date is not unique
         for event in events:
-            key = ''.join(event[x] for x in ('start', 'descr', 'note', 'source'))
-            key = key.encode('ascii', 'replace')  # Should already be clean ASCII but make sure
-            event['key'] = event['start'] + ':' + hashlib.sha1(key).hexdigest()[:6]
+            key = "".join(event[x] for x in ("start", "descr", "note", "source"))
+            key = key.encode(
+                "ascii", "replace"
+            )  # Should already be clean ASCII but make sure
+            event["key"] = event["start"] + ":" + hashlib.sha1(key).hexdigest()[:6]
 
         return events
 
@@ -1878,19 +2076,22 @@ class IFotEvent(BaseEvent):
     """
     Base class for events from the iFOT database
     """
-    ifot_id = models.IntegerField(primary_key=True, help_text='iFOT identifier')
-    start = models.CharField(max_length=21, db_index=True, help_text='Start time (date)')
-    stop = models.CharField(max_length=21, help_text='Stop time (date)')
-    tstart = models.FloatField(db_index=True, help_text='Start time (CXC secs)')
-    tstop = models.FloatField(help_text='Stop time (CXC secs)')
-    dur = models.FloatField(help_text='Duration (secs)')
-    dur._kadi_format = '{:.1f}'
+
+    ifot_id = models.IntegerField(primary_key=True, help_text="iFOT identifier")
+    start = models.CharField(
+        max_length=21, db_index=True, help_text="Start time (date)"
+    )
+    stop = models.CharField(max_length=21, help_text="Stop time (date)")
+    tstart = models.FloatField(db_index=True, help_text="Start time (CXC secs)")
+    tstop = models.FloatField(help_text="Stop time (CXC secs)")
+    dur = models.FloatField(help_text="Duration (secs)")
+    dur._kadi_format = "{:.1f}"
 
     class Meta:
         abstract = True
-        ordering = ['start']
+        ordering = ["start"]
 
-    ifot_columns = ['id', 'tstart', 'tstop']
+    ifot_columns = ["id", "tstart", "tstop"]
     ifot_props = []
     ifot_types = {}  # Override automatic type inference for properties or columns
 
@@ -1906,17 +2107,24 @@ class IFotEvent(BaseEvent):
         datestop = DateTime(stop).date
 
         # def get_ifot(event_type, start=None, stop=None, props=[], columns=[], timeout=TIMEOUT):
-        ifot_evts = occweb.get_ifot(cls.ifot_type_desc, start=datestart, stop=datestop,
-                                    props=cls.ifot_props, columns=cls.ifot_columns,
-                                    types=cls.ifot_types)
+        ifot_evts = occweb.get_ifot(
+            cls.ifot_type_desc,
+            start=datestart,
+            stop=datestop,
+            props=cls.ifot_props,
+            columns=cls.ifot_columns,
+            types=cls.ifot_types,
+        )
 
         events = []
         for ifot_evt in ifot_evts:
-            event = {key.lower(): ifot_evt[cls.ifot_type_desc + '.' + key].tolist()
-                     for key in cls.ifot_props}
+            event = {
+                key.lower(): ifot_evt[cls.ifot_type_desc + "." + key].tolist()
+                for key in cls.ifot_props
+            }
             # Prefer start or stop from props, but if not there use column tstart/tstop
-            for st in ('start', 'stop'):
-                tst = 't{}'.format(st)
+            for st in ("start", "stop"):
+                tst = "t{}".format(st)
                 if st not in event or not event[st].strip():
                     event[st] = ifot_evt[tst]
                 # The above still might not be OK because sometimes what is in the
@@ -1925,17 +2133,20 @@ class IFotEvent(BaseEvent):
                     DateTime(event[st]).date
                 except Exception:
                     # Fail, roll back to the tstart/tstop version
-                    logger.info('WARNING: Bad value of ifot_evt[{}.{}] = "{}" at {}'
-                                .format(cls.ifot_type_desc, st, event[st], ifot_evt['tstart']))
+                    logger.info(
+                        'WARNING: Bad value of ifot_evt[{}.{}] = "{}" at {}'.format(
+                            cls.ifot_type_desc, st, event[st], ifot_evt["tstart"]
+                        )
+                    )
                     event[st] = ifot_evt[tst]
 
-            event['ifot_id'] = ifot_evt['id']
-            event['tstart'] = DateTime(event['start']).secs
-            event['tstop'] = DateTime(event['stop']).secs
-            event['dur'] = event['tstop'] - event['tstart']
+            event["ifot_id"] = ifot_evt["id"]
+            event["tstart"] = DateTime(event["start"]).secs
+            event["tstop"] = DateTime(event["stop"]).secs
+            event["dur"] = event["tstop"] - event["tstart"]
 
             # Custom processing defined by subclasses to add more attrs to event
-            if hasattr(cls, 'get_extras'):
+            if hasattr(cls, "get_extras"):
                 event.update(cls.get_extras(event, None))
 
             events.append(event)
@@ -1943,7 +2154,7 @@ class IFotEvent(BaseEvent):
         return events
 
     def __unicode__(self):
-        return ('{}: {}'.format(self.ifot_id, self.start[:17]))
+        return "{}: {}".format(self.ifot_id, self.start[:17])
 
 
 class CAP(IFotEvent):
@@ -1970,18 +2181,18 @@ class CAP(IFotEvent):
         link   Char(250)                CAP link
     ========= =========== =======================
     """
-    num = models.CharField(max_length=15, help_text='CAP number')
-    title = models.TextField(help_text='CAP title')
-    descr = models.TextField(help_text='CAP description')
-    notes = models.TextField(help_text='CAP notes')
-    link = models.CharField(max_length=250, help_text='CAP link')
 
-    ifot_type_desc = 'CAP'
-    ifot_props = ['NUM', 'START', 'STOP', 'TITLE', 'LINK', 'DESC']
+    num = models.CharField(max_length=15, help_text="CAP number")
+    title = models.TextField(help_text="CAP title")
+    descr = models.TextField(help_text="CAP description")
+    notes = models.TextField(help_text="CAP notes")
+    link = models.CharField(max_length=250, help_text="CAP link")
+
+    ifot_type_desc = "CAP"
+    ifot_props = ["NUM", "START", "STOP", "TITLE", "LINK", "DESC"]
 
     def __unicode__(self):
-        return ('{}: {} {}'
-                .format(self.num, self.start[:17], self.title))
+        return "{}: {} {}".format(self.num, self.start[:17], self.title)
 
 
 class LoadSegment(IFotEvent):
@@ -2007,13 +2218,14 @@ class LoadSegment(IFotEvent):
        comment       Text                 Comment
     =========== ========== =======================
     """
-    name = models.CharField(max_length=12, help_text='Load segment name')
-    scs = models.IntegerField(help_text='SCS slot')
-    load_name = models.CharField(max_length=10, help_text='Load name')
-    comment = models.TextField(help_text='Comment')
 
-    ifot_type_desc = 'LOADSEG'
-    ifot_props = ['NAME', 'SCS', 'LOAD_NAME', 'COMMENT']
+    name = models.CharField(max_length=12, help_text="Load segment name")
+    scs = models.IntegerField(help_text="SCS slot")
+    load_name = models.CharField(max_length=10, help_text="Load name")
+    comment = models.TextField(help_text="Comment")
+
+    ifot_type_desc = "LOADSEG"
+    ifot_props = ["NAME", "SCS", "LOAD_NAME", "COMMENT"]
 
     lookback = 40  # days of lookback
     lookback_delete = 20  # Remove load segments in database prior to 20 days ago
@@ -2021,8 +2233,9 @@ class LoadSegment(IFotEvent):
     lookforward = 28  # Accept load segments planned up to 28 days in advance
 
     def __unicode__(self):
-        return ('{}: {} {} scs={}'
-                .format(self.name, self.start[:17], self.load_name, self.scs))
+        return "{}: {} {} scs={}".format(
+            self.name, self.start[:17], self.load_name, self.scs
+        )
 
 
 class PassPlan(IFotEvent):
@@ -2061,28 +2274,31 @@ class PassPlan(IFotEvent):
               cmd_count   Char(15)           Command count
     ==================== ========== =======================
     """
-    oc = models.CharField(max_length=30, help_text='OC crew')
-    cc = models.CharField(max_length=30, help_text='CC crew')
-    got = models.CharField(max_length=30, help_text='GOT crew')
-    station = models.CharField(max_length=6, help_text='DSN station')
-    est_datetime = models.CharField(max_length=20, help_text='Date local')
-    sched_support_time = models.CharField(max_length=13, help_text='Support time')
-    activity = models.CharField(max_length=20, help_text='Activity')
-    bot = models.CharField(max_length=4, help_text='Beginning of track')
-    eot = models.CharField(max_length=4, help_text='End of track')
-    data_rate = models.CharField(max_length=10, help_text='Data rate')
-    config = models.CharField(max_length=8, help_text='Configuration')
-    lga = models.CharField(max_length=1, help_text='LGA')
-    power = models.CharField(max_length=6, help_text='Power')
-    rxa_rsl = models.CharField(max_length=10, help_text='Rx-A RSL')
-    rxb_rsl = models.CharField(max_length=10, help_text='Rx-B RSL')
-    err_log = models.CharField(max_length=10, help_text='Error log')
-    cmd_count = models.CharField(max_length=15, help_text='Command count')
 
-    ifot_type_desc = 'PASSPLAN'
-    ifot_props = ("oc cc got station EST_datetime sched_support_time activity bot eot "
-                  "data_rate config lga power rxa_rsl rxb_rsl "
-                  "err_log cmd_count").split()
+    oc = models.CharField(max_length=30, help_text="OC crew")
+    cc = models.CharField(max_length=30, help_text="CC crew")
+    got = models.CharField(max_length=30, help_text="GOT crew")
+    station = models.CharField(max_length=6, help_text="DSN station")
+    est_datetime = models.CharField(max_length=20, help_text="Date local")
+    sched_support_time = models.CharField(max_length=13, help_text="Support time")
+    activity = models.CharField(max_length=20, help_text="Activity")
+    bot = models.CharField(max_length=4, help_text="Beginning of track")
+    eot = models.CharField(max_length=4, help_text="End of track")
+    data_rate = models.CharField(max_length=10, help_text="Data rate")
+    config = models.CharField(max_length=8, help_text="Configuration")
+    lga = models.CharField(max_length=1, help_text="LGA")
+    power = models.CharField(max_length=6, help_text="Power")
+    rxa_rsl = models.CharField(max_length=10, help_text="Rx-A RSL")
+    rxb_rsl = models.CharField(max_length=10, help_text="Rx-B RSL")
+    err_log = models.CharField(max_length=10, help_text="Error log")
+    cmd_count = models.CharField(max_length=15, help_text="Command count")
+
+    ifot_type_desc = "PASSPLAN"
+    ifot_props = (
+        "oc cc got station EST_datetime sched_support_time activity bot eot "
+        "data_rate config lga power rxa_rsl rxb_rsl "
+        "err_log cmd_count"
+    ).split()
 
     lookback = 21  # days of lookback
     lookback_delete = 7  # Remove all comms in database prior to 7 days ago to account
@@ -2092,8 +2308,9 @@ class PassPlan(IFotEvent):
     update_priority = 500  # Must be before DsnComm
 
     def __unicode__(self):
-        return ('{} {} {} OC:{} CC:{}'
-                .format(self.station, self.start[:17], self.est_datetime, self.oc, self.cc))
+        return "{} {} {} OC:{} CC:{}".format(
+            self.station, self.start[:17], self.est_datetime, self.oc, self.cc
+        )
 
 
 class DsnComm(IFotEvent):
@@ -2127,23 +2344,37 @@ class DsnComm(IFotEvent):
      pass_plan   OneToOne                Pass plan
     =========== ========== ========================
     """
-    bot = models.CharField(max_length=4, help_text='Beginning of track')
-    eot = models.CharField(max_length=4, help_text='End of track')
-    activity = models.CharField(max_length=30, help_text='Activity description')
-    config = models.CharField(max_length=10, help_text='Configuration')
-    data_rate = models.CharField(max_length=9, help_text='Data rate')
-    site = models.CharField(max_length=12, help_text='DSN site')
-    soe = models.CharField(max_length=4, help_text='DSN Sequence Of Events')
-    station = models.CharField(max_length=6, help_text='DSN station')
-    oc = models.CharField(max_length=30, help_text='OC crew')
-    cc = models.CharField(max_length=30, help_text='CC crew')
-    pass_plan = models.OneToOneField(PassPlan, help_text='Pass plan', null=True,
-                                     related_name='dsn_comm',
-                                     on_delete=models.CASCADE)
 
-    ifot_type_desc = 'DSN_COMM'
-    ifot_props = ['bot', 'eot', 'activity', 'config', 'data_rate', 'site', 'soe', 'station']
-    ifot_types = {'DSN_COMM.bot': 'str', 'DSN_COMM.eot': 'str'}
+    bot = models.CharField(max_length=4, help_text="Beginning of track")
+    eot = models.CharField(max_length=4, help_text="End of track")
+    activity = models.CharField(max_length=30, help_text="Activity description")
+    config = models.CharField(max_length=10, help_text="Configuration")
+    data_rate = models.CharField(max_length=9, help_text="Data rate")
+    site = models.CharField(max_length=12, help_text="DSN site")
+    soe = models.CharField(max_length=4, help_text="DSN Sequence Of Events")
+    station = models.CharField(max_length=6, help_text="DSN station")
+    oc = models.CharField(max_length=30, help_text="OC crew")
+    cc = models.CharField(max_length=30, help_text="CC crew")
+    pass_plan = models.OneToOneField(
+        PassPlan,
+        help_text="Pass plan",
+        null=True,
+        related_name="dsn_comm",
+        on_delete=models.CASCADE,
+    )
+
+    ifot_type_desc = "DSN_COMM"
+    ifot_props = [
+        "bot",
+        "eot",
+        "activity",
+        "config",
+        "data_rate",
+        "site",
+        "soe",
+        "station",
+    ]
+    ifot_types = {"DSN_COMM.bot": "str", "DSN_COMM.eot": "str"}
 
     lookback = 21  # days of lookback
     lookback_delete = 7  # Remove all comms in database prior to 7 days ago to account
@@ -2156,22 +2387,24 @@ class DsnComm(IFotEvent):
         Define OC, CC and pass_plan if available
         """
         out = {}
-        pass_plans = PassPlan.objects.filter(start=event['start'])
+        pass_plans = PassPlan.objects.filter(start=event["start"])
         if len(pass_plans) > 0:
             # Multiple pass plans possible (e.g. two stations), just take first
             pass_plan = pass_plans[0]
-            out['oc'] = pass_plan.oc
-            out['cc'] = pass_plan.cc
-            out['pass_plan'] = pass_plan
+            out["oc"] = pass_plan.oc
+            out["cc"] = pass_plan.cc
+            out["pass_plan"] = pass_plan
         if len(pass_plans) > 1:
-            logger.warn('Multiple pass plans found at {}: {}'
-                        .format(event['start'], pass_plans))
+            logger.warn(
+                "Multiple pass plans found at {}: {}".format(event["start"], pass_plans)
+            )
 
         return out
 
     def __unicode__(self):
-        return ('{}: {} {}-{} {}'
-                .format(self.station, self.start[:17], self.bot, self.eot, self.activity))
+        return "{}: {} {}-{} {}".format(
+            self.station, self.start[:17], self.bot, self.eot, self.activity
+        )
 
 
 class Orbit(BaseEvent):
@@ -2206,28 +2439,36 @@ class Orbit(BaseEvent):
       dt_stop_radzone      Float    Stop time of rad zone relative to perigee (sec)
     ================== ========== ==================================================
     """
-    start = models.CharField(max_length=21,
-                             help_text='Start time (orbit ascending node crossing)')
-    stop = models.CharField(max_length=21,
-                            help_text='Stop time (next orbit ascending node crossing)')
-    tstart = models.FloatField(db_index=True,
-                               help_text='Start time (orbit ascending node crossing)')
-    tstop = models.FloatField(help_text='Stop time (next orbit ascending node crossing)')
-    dur = models.FloatField(help_text='Orbit duration (sec)')
-    orbit_num = models.IntegerField(primary_key=True, help_text='Orbit number')
-    perigee = models.CharField(max_length=21, help_text='Perigee time')
-    apogee = models.CharField(max_length=21, help_text='Apogee time')
-    t_perigee = models.FloatField(help_text='Perigee time (CXC sec)')
-    start_radzone = models.CharField(max_length=21, help_text='Start time of rad zone')
-    stop_radzone = models.CharField(max_length=21, help_text='Stop time of rad zone')
-    dt_start_radzone = models.FloatField(help_text='Start time of rad zone relative '
-                                         'to perigee (sec)')
-    dt_stop_radzone = models.FloatField(help_text='Stop time of rad zone relative '
-                                        'to perigee (sec)')
-    dur._kadi_format = '{:.1f}'
-    t_perigee._kadi_format = '{:.1f}'
-    dt_start_radzone._kadi_format = '{:.1f}'
-    dt_stop_radzone._kadi_format = '{:.1f}'
+
+    start = models.CharField(
+        max_length=21, help_text="Start time (orbit ascending node crossing)"
+    )
+    stop = models.CharField(
+        max_length=21, help_text="Stop time (next orbit ascending node crossing)"
+    )
+    tstart = models.FloatField(
+        db_index=True, help_text="Start time (orbit ascending node crossing)"
+    )
+    tstop = models.FloatField(
+        help_text="Stop time (next orbit ascending node crossing)"
+    )
+    dur = models.FloatField(help_text="Orbit duration (sec)")
+    orbit_num = models.IntegerField(primary_key=True, help_text="Orbit number")
+    perigee = models.CharField(max_length=21, help_text="Perigee time")
+    apogee = models.CharField(max_length=21, help_text="Apogee time")
+    t_perigee = models.FloatField(help_text="Perigee time (CXC sec)")
+    start_radzone = models.CharField(max_length=21, help_text="Start time of rad zone")
+    stop_radzone = models.CharField(max_length=21, help_text="Stop time of rad zone")
+    dt_start_radzone = models.FloatField(
+        help_text="Start time of rad zone relative " "to perigee (sec)"
+    )
+    dt_stop_radzone = models.FloatField(
+        help_text="Stop time of rad zone relative " "to perigee (sec)"
+    )
+    dur._kadi_format = "{:.1f}"
+    t_perigee._kadi_format = "{:.1f}"
+    dt_start_radzone._kadi_format = "{:.1f}"
+    dt_stop_radzone._kadi_format = "{:.1f}"
 
     @classmethod
     @import_ska
@@ -2243,7 +2484,9 @@ class Orbit(BaseEvent):
         file_dates = []
         for year in years:
             file_dates.extend(orbit_funcs.get_tlr_files(year))
-        tlr_files = [x['name'] for x in file_dates if datestart <= x['date'] <= datestop]
+        tlr_files = [
+            x["name"] for x in file_dates if datestart <= x["date"] <= datestop
+        ]
 
         # Get all orbit points from the tlr files as a list of tuples
         orbit_points = orbit_funcs.get_orbit_points(tlr_files)
@@ -2256,18 +2499,24 @@ class Orbit(BaseEvent):
 
         events = []
         for orbit in orbits:
-            ok = orbit_points['orbit_num'] == orbit['orbit_num']
+            ok = orbit_points["orbit_num"] == orbit["orbit_num"]
             event = {key: orbit[key] for key in orbit.dtype.names}
-            event['foreign'] = {'OrbitPoint': orbit_points[ok],
-                                'RadZone': [orbit_funcs.get_radzone_from_orbit(orbit)]}
+            event["foreign"] = {
+                "OrbitPoint": orbit_points[ok],
+                "RadZone": [orbit_funcs.get_radzone_from_orbit(orbit)],
+            }
             events.append(event)
 
         return events
 
     def __unicode__(self):
-        return ('{} {} dur={:.1f} radzone={:.1f} to {:.1f} ksec'
-                .format(self.orbit_num, self.start[:17], self.dur / 1000,
-                        self.dt_start_radzone / 1000, self.dt_stop_radzone / 1000))
+        return "{} {} dur={:.1f} radzone={:.1f} to {:.1f} ksec".format(
+            self.orbit_num,
+            self.start[:17],
+            self.dur / 1000,
+            self.dt_start_radzone / 1000,
+            self.dt_stop_radzone / 1000,
+        )
 
 
 class OrbitPoint(BaseModel):
@@ -2286,6 +2535,7 @@ class OrbitPoint(BaseModel):
          descr     Char(50)
     =========== ============ ===========
     """
+
     orbit = models.ForeignKey(Orbit, on_delete=models.CASCADE)
     date = models.CharField(max_length=21)
     name = models.CharField(max_length=9)
@@ -2293,11 +2543,12 @@ class OrbitPoint(BaseModel):
     descr = models.CharField(max_length=50)
 
     class Meta:
-        ordering = ['date']
+        ordering = ["date"]
 
     def __unicode__(self):
-        return ('{} (orbit {}) {}: {}'
-                .format(self.date[:17], self.orbit_num, self.name, self.descr[:30]))
+        return "{} (orbit {}) {}: {}".format(
+            self.date[:17], self.orbit_num, self.name, self.descr[:30]
+        )
 
 
 class RadZone(Event):
@@ -2319,14 +2570,15 @@ class RadZone(Event):
        perigee     Char(21)
     =========== ============ ================================
     """
+
     orbit = models.ForeignKey(Orbit, on_delete=models.CASCADE)
     orbit_num = models.IntegerField()
     perigee = models.CharField(max_length=21)
 
     def __unicode__(self):
-        return ('{} {} {} dur={:.1f} ksec'
-                .format(self.orbit_num, self.start[:17], self.stop[:17],
-                        self.dur / 1000))
+        return "{} {} {} dur={:.1f} ksec".format(
+            self.orbit_num, self.start[:17], self.stop[:17], self.dur / 1000
+        )
 
 
 class AsciiTableEvent(BaseEvent):
@@ -2335,9 +2587,10 @@ class AsciiTableEvent(BaseEvent):
     Subclasses need to define the file name (lives in DATA_DIR()/<filename>)
     and the start and stop column names.
     """
+
     class Meta:
         abstract = True
-        ordering = ['start']
+        ordering = ["start"]
 
     @classmethod
     def get_extras(cls, event, interval):
@@ -2367,22 +2620,25 @@ class AsciiTableEvent(BaseEvent):
         # Custom in-place processing of raw intervals
         cls.process_intervals(intervals)
 
-        ok = ((DateTime(intervals[cls.start_column]).date > start)
-              & (DateTime(intervals[cls.stop_column]).date < stop))
+        ok = (DateTime(intervals[cls.start_column]).date > start) & (
+            DateTime(intervals[cls.stop_column]).date < stop
+        )
 
         # Assemble a list of dicts corresponding to events in this tlm interval
         events = []
         for interval in intervals[ok]:
             tstart = DateTime(interval[cls.start_column]).secs
             tstop = DateTime(interval[cls.stop_column]).secs
-            event = dict(tstart=tstart,
-                         tstop=tstop,
-                         dur=tstop - tstart,
-                         start=DateTime(tstart).date,
-                         stop=DateTime(tstop).date)
+            event = dict(
+                tstart=tstart,
+                tstop=tstop,
+                dur=tstop - tstart,
+                start=DateTime(tstart).date,
+                stop=DateTime(tstop).date,
+            )
 
             # Reject events that are shorter than the minimum duration
-            if hasattr(cls, 'event_min_dur') and event['dur'] < cls.event_min_dur:
+            if hasattr(cls, "event_min_dur") and event["dur"] < cls.event_min_dur:
                 continue
 
             # Custom processing defined by subclasses to add more attrs to event
@@ -2412,39 +2668,42 @@ class LttBad(AsciiTableEvent):
        flag    Char(2)                             Flag
     ======== ========== ================================
     """
-    key = models.CharField(max_length=38, primary_key=True,
-                           help_text='Unique key for this event')
-    start = models.CharField(max_length=21, help_text='Start time (YYYY:DDD:HH:MM:SS)')
-    stop = models.CharField(max_length=21, help_text='Stop time (YYYY:DDD:HH:MM:SS)')
-    tstart = models.FloatField(db_index=True, help_text='Start time (CXC secs)')
-    tstop = models.FloatField(help_text='Stop time (CXC secs)')
-    dur = models.FloatField(help_text='Duration (secs)')
-    msid = models.CharField(max_length=20, help_text='MSID')
-    flag = models.CharField(max_length=2, help_text='Flag')
+
+    key = models.CharField(
+        max_length=38, primary_key=True, help_text="Unique key for this event"
+    )
+    start = models.CharField(max_length=21, help_text="Start time (YYYY:DDD:HH:MM:SS)")
+    stop = models.CharField(max_length=21, help_text="Stop time (YYYY:DDD:HH:MM:SS)")
+    tstart = models.FloatField(db_index=True, help_text="Start time (CXC secs)")
+    tstop = models.FloatField(help_text="Stop time (CXC secs)")
+    dur = models.FloatField(help_text="Duration (secs)")
+    msid = models.CharField(max_length=20, help_text="MSID")
+    flag = models.CharField(max_length=2, help_text="Flag")
 
     key._kadi_hidden = True
-    dur._kadi_format = '{:.1f}'
+    dur._kadi_format = "{:.1f}"
 
-    intervals_file = Path(sys.prefix) / 'share' / 'kadi' / 'ltt_bads.dat'
+    intervals_file = Path(sys.prefix) / "share" / "kadi" / "ltt_bads.dat"
     # Table.read keyword args
-    table_read_kwargs = dict(format='ascii', data_start=2, delimiter='|',
-                             guess=False, fill_values=())
-    start_column = 'start'
-    stop_column = 'stop'
+    table_read_kwargs = dict(
+        format="ascii", data_start=2, delimiter="|", guess=False, fill_values=()
+    )
+    start_column = "start"
+    stop_column = "stop"
 
     @classmethod
     def process_intervals(cls, intervals):
-        intervals['start'] = DateTime(intervals['tstart']).date
-        intervals['stop'] = (DateTime(intervals['tstart']) + 1).date
-        intervals.sort('start')
+        intervals["start"] = DateTime(intervals["tstart"]).date
+        intervals["stop"] = (DateTime(intervals["tstart"]) + 1).date
+        intervals.sort("start")
 
     @classmethod
     def get_extras(cls, event, interval):
         out = {}
-        for key in ('msid', 'flag'):
+        for key in ("msid", "flag"):
             out[key] = interval[key].tolist()
-        out['key'] = event['start'][:17] + out['msid']
+        out["key"] = event["start"][:17] + out["msid"]
         return out
 
     def __unicode__(self):
-        return ('start={} msid={} flag={}'.format(self.start, self.msid, self.flag))
+        return "start={} msid={} flag={}".format(self.start, self.msid, self.flag)
