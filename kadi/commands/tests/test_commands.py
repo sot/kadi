@@ -306,10 +306,12 @@ def test_commands_create_archive_regress(tmpdir, version_env):
                 os.environ["KADI"] = kadi_orig
 
             # Force reload
-            del commands.IDX_CMDS._val
-            del commands.PARS_DICT._val
-            del commands.REV_PARS_DICT._val
-            commands_v2.clear_caches()
+            if version_env == "1":
+                del commands.IDX_CMDS._val
+                del commands.PARS_DICT._val
+                del commands.REV_PARS_DICT._val
+            else:
+                commands_v2.clear_caches()
 
 
 def stop_date_fixture_factory(stop_date):
