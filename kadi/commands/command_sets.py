@@ -94,7 +94,7 @@ def cmd_set_dither(state, date=None):
 
 
 def cmd_set_bright_star_hold(date=None):
-    out = cmd_set_scs107(date=date) + cmd_set_dither("OFF", date=date)
+    out = cmd_set_scs107(date=date)
     return out
 
 
