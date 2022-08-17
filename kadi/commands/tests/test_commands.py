@@ -514,8 +514,6 @@ def test_command_set_bsh():
         "event=Bright_star_hold, event_date=2000:001:00:00:00, scs=0",
         "2000:001:00:01:17.960 | ACISPKT          | WSPOW00000 | CMD_EVT  | "
         "event=Bright_star_hold, event_date=2000:001:00:00:00, scs=0",
-        "2000:001:00:01:17.960 | COMMAND_SW       | AODSDITH   | CMD_EVT  | "
-        "event=Bright_star_hold, event_date=2000:001:00:00:00, scs=0",
     ]
 
     assert cmds.pformat_like_backstop() == exp
@@ -593,8 +591,6 @@ Definitive,2020:337:00:00:00,Bright star hold,,Tom Aldcroft,
         "2020:337:00:01:07.710 | ACISPKT          | AA00000000 | CMD_EVT  | "
         "event=Bright_star_hold, event_date=2020:337:00:00:00, scs=0",
         "2020:337:00:01:17.960 | ACISPKT          | WSPOW00000 | CMD_EVT  | "
-        "event=Bright_star_hold, event_date=2020:337:00:00:00, scs=0",
-        "2020:337:00:01:17.960 | COMMAND_SW       | AODSDITH   | CMD_EVT  | "
         "event=Bright_star_hold, event_date=2020:337:00:00:00, scs=0",
         # Only ORBPOINT from here on
         "2020:337:02:07:03.790 | ORBPOINT         | None       | NOV3020A | "
@@ -939,7 +935,6 @@ cmd_events_all_exps = [
         "2020:001:00:01:06.685 | ACISPKT          | AA00000000 | CMD_EVT  | event=Bright_star_hold, event_date=2020:001:00:00:00, scs=0",  # noqa
         "2020:001:00:01:07.710 | ACISPKT          | AA00000000 | CMD_EVT  | event=Bright_star_hold, event_date=2020:001:00:00:00, scs=0",  # noqa
         "2020:001:00:01:17.960 | ACISPKT          | WSPOW00000 | CMD_EVT  | event=Bright_star_hold, event_date=2020:001:00:00:00, scs=0",  # noqa
-        "2020:001:00:01:17.960 | COMMAND_SW       | AODSDITH   | CMD_EVT  | event=Bright_star_hold, event_date=2020:001:00:00:00, scs=0",  # noqa
     ],  # noqa
     [
         "2020:001:00:00:00.000 | COMMAND_SW       | AOENDITH   | CMD_EVT  | event=Dither, event_date=2020:001:00:00:00, scs=0"  # noqa
