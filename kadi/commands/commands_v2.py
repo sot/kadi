@@ -950,7 +950,7 @@ def clean_loads_dir(loads):
             file.unlink()
 
 
-def get_load_dict_from_cmds(load_name, cmds, cmd_events):
+def get_load_dict_from_cmds(load_name: str, cmds: CommandTable, cmd_events: Table):
     """Update ``load`` dict in place from the backstop commands."""
     vehicle_stop_events = ("NSM", "Safe mode", "Bright star hold")
     observing_stop_events = vehicle_stop_events + ("SCS-107",)
