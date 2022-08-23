@@ -423,8 +423,23 @@ def test_get_cmds_nsm_2021(stop_date_2021_10_24):
         "hex=7800056, msid=CPABON, scs=128",
         "2021:296:10:35:01.285 | COMMAND_HW       | CTXBON     | OCT1821A | "
         "hex=7800044, msid=CTXBON, scs=128",
+        "2021:296:10:41:57.000 | LOAD_EVENT       | None       | CMD_EVT  | "
+        "event=Load_not_run, event_date=2021:296:10:41:57, type=LOAD_NOT_RUN, "
+        "load=OCT2521A, scs=0",
         "2021:296:10:41:57.000 | COMMAND_SW       | AONSMSAF   | CMD_EVT  | "
         "event=NSM, event_date=2021:296:10:41:57, scs=0",
+        "2021:296:10:41:57.000 | COMMAND_SW       | CODISASX   | CMD_EVT  | "
+        "event=NSM, event_date=2021:296:10:41:57, msid=CODISASX, codisas1=128 , scs=0",
+        "2021:296:10:41:57.000 | COMMAND_SW       | CODISASX   | CMD_EVT  | "
+        "event=NSM, event_date=2021:296:10:41:57, msid=CODISASX, codisas1=129 , scs=0",
+        "2021:296:10:41:57.000 | COMMAND_SW       | CODISASX   | CMD_EVT  | "
+        "event=NSM, event_date=2021:296:10:41:57, msid=CODISASX, codisas1=130 , scs=0",
+        "2021:296:10:41:57.000 | COMMAND_SW       | CODISASX   | CMD_EVT  | "
+        "event=NSM, event_date=2021:296:10:41:57, msid=CODISASX, codisas1=131 , scs=0",
+        "2021:296:10:41:57.000 | COMMAND_SW       | CODISASX   | CMD_EVT  | "
+        "event=NSM, event_date=2021:296:10:41:57, msid=CODISASX, codisas1=132 , scs=0",
+        "2021:296:10:41:57.000 | COMMAND_SW       | CODISASX   | CMD_EVT  | "
+        "event=NSM, event_date=2021:296:10:41:57, msid=CODISASX, codisas1=133 , scs=0",
         "2021:296:10:41:57.000 | COMMAND_SW       | OORMPDS    | CMD_EVT  | "
         "event=NSM, event_date=2021:296:10:41:57, scs=0",
         "2021:296:10:41:58.025 | COMMAND_HW       | AFIDP      | CMD_EVT  | "
