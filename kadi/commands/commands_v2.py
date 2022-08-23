@@ -328,7 +328,10 @@ def update_archive_and_get_cmds_recent(
         # Command Events sheet).
         cmds = interrupt_load_commands(load, cmds)
         if len(cmds) > 0:
-            logger.info(f'Load {load["name"]} has {len(cmds)} commands')
+            logger.info(
+                f'Load {load["name"]} has {len(cmds)} commands'
+                f" with rltt {load['rltt']}"
+            )
             cmds_list.append(cmds)
             rltts.append(load["rltt"])
         else:
@@ -373,7 +376,7 @@ def update_archive_and_get_cmds_recent(
             for jj in range(0, ii):
                 prev_cmds = cmds_list[jj]
                 # First check for any overlap since prev_cmds is sorted by date.
-                if prev_cmds["date"][-1] > rltt:
+                if len(prev_cmds) > 0 and prev_cmds["date"][-1] > rltt:
                     # Cut commands EXCEPT for ORBPOINT ones, which we leave as a
                     # special case to ensure availability of orbit events from
                     # commands. Otherwise RLTT can cut ORBPOINT commands that
@@ -986,8 +989,13 @@ def get_load_dict_from_cmds(load_name, cmds, cmd_events):
             logger.info(
                 f'{cmd_event["Event"]} at {cmd_event_date} found for {load_name}'
             )
+            # Stop the loads before they start
             load["observing_stop"] = "1998:001"
             load["vehicle_stop"] = "1998:001"
+            # Not-run load does not terminate other loads or commands or have a
+            # scheduled stop time.
+            load["rltt"] = None
+            load["scheduled_stop_time"] = None
 
         if (
             cmd_event["Event"] == "Observing not run"

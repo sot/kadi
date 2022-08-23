@@ -1047,6 +1047,9 @@ def test_scenario_with_rts(monkeypatch):
 2021:297:23:00:42.886 | ORBPOINT         | None       | OCT2521A | event_type=XQF005M, scs=0
 2021:298:00:12:42.886 | ORBPOINT         | None       | OCT2521A | event_type=XQF003M, scs=0
 2021:298:00:12:42.886 | ORBPOINT         | None       | OCT2521A | event_type=XQF013M, scs=0
+2021:298:01:01:39.000 | COMMAND_HW       | 2S2HVOF    | CMD_EVT  | event=RTS, event_date=2021:297:13:00:00, msid=2S2HVOF, scs=1
+2021:298:01:01:39.000 | COMMAND_SW       | OORMPDS    | CMD_EVT  | event=RTS, event_date=2021:297:13:00:00, msid=OORMPDS, scs=1
+2021:298:01:01:40.000 | COMMAND_HW       | 2S2STHV    | CMD_EVT  | event=RTS, event_date=2021:297:13:00:00, 2s2sthv2=0 , msid=2
 2021:298:01:57:00.000 | LOAD_EVENT       | None       | OCT2521B | event_type=RUNNING_LOAD_TERMINATION_TIME, scs=0
 2021:298:01:57:00.000 | COMMAND_SW       | AOACRSTD   | OCT2521B | msid=AOACRSTD, scs=128
 2021:298:01:57:00.000 | ACISPKT          | AA00000000 | OCT2521B | cmds=3, words=3, scs=131
@@ -1062,4 +1065,30 @@ def test_scenario_with_rts(monkeypatch):
     # TODO: (someday?) instead of the RLTT notice the disable SCS 135 command
     # CODISASX.
     ok = cmds["event"] == "RTS"
-    assert np.count_nonzero(ok) == 11
+    assert np.count_nonzero(ok) == 14
+
+
+@pytest.mark.skipif(not HAS_INTERNET, reason="No internet connection")
+def test_no_rltt_for_not_run_load():
+    """The AUG2122A loads were never run but they contain an RLTT that had been
+    stopping the 2022:232:03:09 ACIS ECS that was previously running. This tests
+    the fix.
+    """
+    exp = [
+        "         date           tlmsid   scs",
+        "--------------------- ---------- ---",
+        "2022:232:03:09:00.000 AA00000000 135",
+        "2022:232:03:09:04.000 WSPOW00000 135",
+        "2022:232:03:09:28.000 WSPOW08E1E 135",
+        "2022:232:03:10:31.000 WT00C62014 135",
+        "2022:232:03:10:35.000 XTZ0000005 135",
+        "2022:232:03:10:39.000 RS_0000001 135",
+        "2022:232:03:10:43.000 RH_0000001 135",
+        "2022:233:18:10:43.000 AA00000000 135",  # <== After the AUG2122A RLTT
+        "2022:233:18:10:53.000 AA00000000 135",
+        "2022:233:18:10:57.000 WSPOW0002A 135",
+        "2022:233:18:12:00.000 RS_0000001 135",
+    ]
+    cmds = commands_v2.get_cmds("2022:232:03:00:00", "2022:233:18:30:00")
+    cmds = cmds[cmds["type"] == "ACISPKT"]
+    assert cmds["date", "tlmsid", "scs"].pformat() == exp
