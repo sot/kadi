@@ -116,6 +116,9 @@ def cmd_set_nsm(date=None):
     out = (nsm_cmd,)
     out += cmd_set_end_vehicle()
     out += cmd_set_scs107(date=date)
+    # Disable dither. Looking at a few NSMs this seems to be the case, but
+    # not for the 2022:232:18:36 NSM from a CTU reset. ??
+    out += cmd_set_dither("OFF", date=date)
     return out
 
 
