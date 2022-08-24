@@ -87,29 +87,6 @@ def clear_caches():
     OBSERVATIONS.clear()
 
 
-# NOT USED!
-def interrupt_load_commands(load, cmds):
-    """Cut commands beyond observing or vehicle stop times.
-
-    Orbit point commands are NOT cut so that in the case of a load stop the
-    orbit points are still available. This takes advantage of additional code
-    that de-duplicates orbit points.
-    """
-    bad = np.zeros(len(cmds), dtype=bool)
-    if load["observing_stop"] != "":
-        bad |= (cmds["date"] > load["observing_stop"]) & (cmds["scs"] > 130)
-    if load["vehicle_stop"] != "":
-        bad |= (
-            (cmds["date"] > load["vehicle_stop"])
-            & (cmds["scs"] < 131)
-            & (cmds["type"] != "ORBPOINT")
-        )
-    if np.any(bad):
-        logger.info(f'Cutting {bad.sum()} commands from {load["name"]}')
-        cmds = cmds[~bad]
-    return cmds
-
-
 def _merge_cmds_archive_recent(start, scenario):
     """Merge cmds archive from ``start`` onward with recent cmds for ``scenario``
 
