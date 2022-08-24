@@ -906,7 +906,7 @@ def update_loads(scenario=None, *, cmd_events=None, lookback=None, stop=None) ->
     loads_rows = []
 
     # Probably too complicated, but this bit of code generates a list of dates
-    # that are guaranteed too sample all the months in the lookback period with
+    # that are guaranteed to sample all the months in the lookback period with
     # two weeks of margin on the tail end.
     dt = 21 * u.day
     start = CxoTime(stop) - lookback * u.day
