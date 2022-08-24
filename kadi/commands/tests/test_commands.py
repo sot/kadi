@@ -449,7 +449,7 @@ def test_get_cmds_nsm_2021(stop_date_2021_10_24):
         "2021:296:10:35:01.285 | COMMAND_HW       | CTXBON     | OCT1821A | "
         "hex=7800044, msid=CTXBON, scs=128",
         "2021:296:10:41:57.000 | LOAD_EVENT       | None       | CMD_EVT  | "
-        "event=Load_not_run, event_date=2021:296:10:41:57, type=LOAD_NOT_RUN, "
+        "event=Load_not_run, event_date=2021:296:10:41:57, event_type=LOAD_NOT_RUN, "
         "load=OCT2521A, scs=0",
         "2021:296:10:41:57.000 | COMMAND_SW       | AONSMSAF   | CMD_EVT  | "
         "event=NSM, event_date=2021:296:10:41:57, scs=0",
@@ -504,6 +504,8 @@ def test_get_cmds_nsm_2021(stop_date_2021_10_24):
         "event_type=EQF013M, scs=0",
         "2021:297:13:59:39.602 | ORBPOINT         | None       | OCT1821A | "
         "event_type=EEF1000, scs=0",
+        "2021:297:14:01:00.000 | LOAD_EVENT       | None       | OCT1821A | "
+        "event_type=SCHEDULED_STOP_TIME, scs=0",
     ]
     assert cmds.pformat_like_backstop(max_params_width=200) == exp
     commands_v2.clear_caches()
@@ -956,10 +958,10 @@ cmd_events_all_text = """\
 cmd_events_all = Table.read(cmd_events_all_text, format="ascii.csv")
 cmd_events_all_exps = [
     [
-        "2020:001:00:00:00.000 | LOAD_EVENT       | None       | CMD_EVT  | event=Observing_not_run, event_date=2020:001:00:00:00, type=OBSERVING_NOT_RUN, load=FEB1422A, scs=0"  # noqa
+        "2020:001:00:00:00.000 | LOAD_EVENT       | None       | CMD_EVT  | event=Observing_not_run, event_date=2020:001:00:00:00, event_type=OBSERVING_NOT_RUN, load=FEB1422A, scs=0"  # noqa
     ],
     [
-        "2020:001:00:00:00.000 | LOAD_EVENT       | None       | CMD_EVT  | event=Load_not_run, event_date=2020:001:00:00:00, type=LOAD_NOT_RUN, load=OCT2521A, scs=0"  # noqa
+        "2020:001:00:00:00.000 | LOAD_EVENT       | None       | CMD_EVT  | event=Load_not_run, event_date=2020:001:00:00:00, event_type=LOAD_NOT_RUN, load=OCT2521A, scs=0"  # noqa
     ],
     [
         "2020:001:00:00:00.000 | ACISPKT          | AA00000000 | CMD_EVT  | event=Command, event_date=2020:001:00:00:00, scs=0"  # noqa
@@ -1120,7 +1122,7 @@ def test_scenario_with_rts(monkeypatch):
 2021:296:10:35:00.771 | COMMAND_HW       | CTXBOF     | OCT1821A | msid=CTXBOF, scs=128
 2021:296:10:35:01.028 | COMMAND_HW       | CPABON     | OCT1821A | msid=CPABON, scs=128
 2021:296:10:35:01.285 | COMMAND_HW       | CTXBON     | OCT1821A | msid=CTXBON, scs=128
-2021:296:10:41:57.000 | LOAD_EVENT       | None       | CMD_EVT  | event=Load_not_run, event_date=2021:296:10:41:57, type=LOAD_
+2021:296:10:41:57.000 | LOAD_EVENT       | None       | CMD_EVT  | event=Load_not_run, event_date=2021:296:10:41:57, event_type
 2021:296:10:41:57.000 | COMMAND_SW       | AONSMSAF   | CMD_EVT  | event=NSM, event_date=2021:296:10:41:57, scs=0
 2021:296:10:41:57.000 | COMMAND_SW       | CODISASX   | CMD_EVT  | event=NSM, event_date=2021:296:10:41:57, msid=CODISASX, codi
 2021:296:10:41:57.000 | COMMAND_SW       | CODISASX   | CMD_EVT  | event=NSM, event_date=2021:296:10:41:57, msid=CODISASX, codi
@@ -1160,6 +1162,7 @@ def test_scenario_with_rts(monkeypatch):
 2021:297:13:01:35.000 | ACISPKT          | RS_0000001 | CMD_EVT  | event=RTS, event_date=2021:297:13:00:00, scs=135
 2021:297:13:01:39.000 | ACISPKT          | RH_0000001 | CMD_EVT  | event=RTS, event_date=2021:297:13:00:00, scs=135
 2021:297:13:59:39.602 | ORBPOINT         | None       | OCT2521A | event_type=EEF1000, scs=0
+2021:297:14:01:00.000 | LOAD_EVENT       | None       | OCT1821A | event_type=SCHEDULED_STOP_TIME, scs=0
 2021:297:14:37:39.602 | ORBPOINT         | None       | OCT2521A | event_type=EPF1000, scs=0
 2021:297:15:01:42.681 | ORBPOINT         | None       | OCT2521A | event_type=EALT0, scs=0
 2021:297:15:01:43.574 | ORBPOINT         | None       | OCT2521A | event_type=XALT0, scs=0

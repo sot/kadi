@@ -1,9 +1,9 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import calendar
+import collections
 import difflib
 import functools
 import gzip
-import itertools
 import logging
 import math
 import os
@@ -390,12 +390,14 @@ def update_archive_and_get_cmds_recent(
     # Apply RLTT and any END SCS commands (CODISAXS) to loads. RLTT is applied
     # by stopping SCS's 128-133.
     for ii, cmds in enumerate(cmds_list):
-        print(f"Processing {cmds['source'][0]} with {len(cmds)} commands")
-        end_scs = {}
-        if rltt := cmds.meta.get("rltt"):
+        cmds_source = cmds["source"][0]
+        if cmds_source == "CMD_EVT":
+            cmds_source = f"CMD_EVT {cmds[0]['event']} at {cmds[0]['date']}"
+        logger.info(f"Processing {cmds_source} with {len(cmds)} commands")
+        end_scs = collections.defaultdict(list)
+        if date_end := cmds.meta.get("rltt"):
             source = f'RLTT in {cmds["source"][0]}'
-            for scs in range(128, 134):
-                end_scs[scs] = (rltt, source)
+            end_scs[date_end, source].extend([128, 129, 130, 131, 132, 133])
 
         # Explicit END SCS commands. Most commonly these come from command events
         # like SCS-107, but can also be in weekly loads e.g. disabling an ACIS
@@ -404,36 +406,30 @@ def update_archive_and_get_cmds_recent(
         if np.any(ok):
             for cmd in cmds[ok]:
                 if (scs := cmd["params"]["codisas1"]) >= 128:
-                    source = f'DISABLE SCS {scs} in {cmd["source"]} at {cmd["date"]}'
-                    end_scs[scs] = (cmd["date"], source)
+                    source = f'DISABLE SCS in {cmd["source"]} at {cmd["date"]}'
+                    end_scs[cmd["date"], source].append(scs)
 
-        import pprint
-
-        pprint.pprint(end_scs)
-
-        for scs, (date_end, source) in end_scs.items():
+        for (date_end, source), scss in end_scs.items():
             # Apply end SCS from these commands to the current running loads.
             # Remove commands with date greater than end SCS date. In most
             # cases this does not cut anything.
             for jj in range(0, ii):
                 prev_cmds = cmds_list[jj]
                 # First check for any overlap since prev_cmds is sorted by date.
-                print(
-                    f'{scs=}, {jj=}, {len(prev_cmds)=}, {prev_cmds["date"][-1]=}, {date_end=}, {prev_cmds["date"][-1] > date_end=}'
-                )
                 if len(prev_cmds) > 0 and prev_cmds["date"][-1] > date_end:
-                    bad = (prev_cmds["date"] > date_end) & (prev_cmds["scs"] == scs)
-                    print(f"{np.count_nonzero(bad)} commands to remove")
+                    bad = (prev_cmds["date"] > date_end) & np.isin(
+                        prev_cmds["scs"], scss
+                    )
                     if np.any(bad):
                         n_bad = np.count_nonzero(bad)
                         logger.info(
-                            f"Removing {n_bad} SCS={scs} cmds from "
+                            f"Removing {n_bad} cmds in SCS slots {scss} from "
                             f'{prev_cmds["source"][0]} due to {source}'
                         )
                     cmds_list[jj] = prev_cmds[~bad]
 
         if len(cmds) > 0:
-            logger.info(f'Adding {len(cmds)} commands from {cmds["source"][0]}')
+            logger.info(f"Adding {len(cmds)} commands from {cmds_source}")
 
     cmds_recent: CommandTable = vstack_exact(cmds_list)
     cmds_recent.sort_in_backstop_order()
