@@ -379,15 +379,6 @@ def test_get_cmds_v2_arch_recent(stop_date_2020_12_03):
     assert np.all(cmds["idx"] != -1)
     assert len(cmds) == 17640
 
-    loads = commands_v2.get_loads()
-    assert loads.pformat_all() == [
-        "  name         cmd_start              cmd_stop       observing_stop vehicle_stop          rltt          scheduled_stop_time ",  # noqa
-        "-------- --------------------- --------------------- -------------- ------------ --------------------- ---------------------",  # noqa
-        "NOV0920A 2020:314:12:13:00.000 2020:321:00:48:01.673             --           -- 2020:314:12:16:00.000 2020:321:00:48:01.673",  # noqa
-        "NOV1620A 2020:321:00:45:01.673 2020:327:19:26:00.000             --           -- 2020:321:00:48:01.673 2020:327:19:26:00.000",  # noqa
-        "NOV2320A 2020:327:19:23:00.000 2020:334:20:44:27.758             --           -- 2020:327:19:26:00.000 2020:334:20:44:27.758",  # noqa
-        "NOV3020A 2020:334:20:41:27.758 2020:342:06:04:34.287             --           -- 2020:334:20:44:27.758 2020:342:06:04:34.287",  # noqa
-    ]
     commands_v2.clear_caches()
 
 
@@ -419,10 +410,6 @@ def test_get_cmds_v2_recent_only(stop_date_2020_12_03):
     cmds = cmds[cmds["tlmsid"] != "OBS"]
     assert len(cmds) == 1523
     assert np.all(cmds["idx"] == -1)
-
-    # Sanity check on the loads
-    loads = commands_v2.get_loads()
-    assert np.all(loads["name"] == ["NOV0920A", "NOV1620A", "NOV2320A", "NOV3020A"])
 
     # zero-length query
     cmds = commands_v2.get_cmds(start="2020-12-01", stop="2020-12-01")
@@ -878,7 +865,7 @@ def test_get_starcats_date():
 
     Note: from https://icxc.harvard.edu//mp/mplogs/2006/DEC2506/oflsc/starcheck.html#obsid8008
     MP_STARCAT at 2007:002:04:31:43.965 (VCDU count = 7477935)
-    """
+    """  # noqa: E501
     sc = get_starcats(obsid=8008, scenario="flight")[0]
     obs = get_observations(obsid=8008, scenario="flight")[0]
     assert sc.date == obs["starcat_date"] == "2007:002:04:31:43.965"
@@ -888,8 +875,8 @@ def test_get_starcats_date():
 
 
 def test_get_starcats_by_date():
-    """Test that the getting a starcat using the starcat_date as argument returns the same catalog
-    as using the OBSID.
+    """Test that the getting a starcat using the starcat_date as argument
+    returns the same catalog as using the OBSID.
     """
     sc = get_starcats(obsid=8008, scenario="flight")[0]
     sc_by_date = get_starcats(starcat_date="2007:002:04:31:43.965", scenario="flight")[

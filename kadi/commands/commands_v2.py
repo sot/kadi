@@ -312,7 +312,7 @@ def update_archive_and_get_cmds_recent(
         load_name = load["name"]
         loads_backstop_path = paths.LOADS_BACKSTOP_PATH(load_name)
         with gzip.open(loads_backstop_path, "rb") as fh:
-            cmds = pickle.load(fh)
+            cmds: CommandTable = pickle.load(fh)
 
         # Filter commands if loads (vehicle and/or observing) were approved but
         # never uplinked
@@ -325,13 +325,14 @@ def update_archive_and_get_cmds_recent(
             cmds = cmds[~bad]
 
         if len(cmds) > 0:
+            rltt = cmds.meta["rltt"] = cmds.get_rltt()
+            if rltt is None and load_name not in not_run_loads["Load"]:
+                # This is unexpected but press ahead anyway
+                logger.error(f"No RLTT for {load_name=}")
             logger.info(
-                f"Load {load_name} has {len(cmds)} commands"
-                f" with rltt {load['rltt']}"
+                f"Load {load_name} has {len(cmds)} commands" f" with RLTT={rltt}"
             )
             cmds_list.append(cmds)
-            if load_name not in not_run_loads["Load"]:
-                cmds.meta["rltt"] = cmds.get_rltt()
         else:
             logger.info(f"Load {load_name} has no commands, skipping")
 
@@ -837,25 +838,8 @@ def get_cmd_events(scenario=None):
     return cmd_events
 
 
-def get_loads(scenario=None):
-    loads_path = paths.LOADS_TABLE_PATH(scenario)
-    logger.info(f"Reading loads file {loads_path}")
-    loads = Table.read(str(loads_path), format="csv")
-    return loads
-
-
 def update_loads(scenario=None, *, cmd_events=None, lookback=None, stop=None) -> Table:
-    """Update or create loads.csv and loads/ archive though ``lookback`` days
-
-    CSV table file with column names in the first row and data in subsequent rows.
-
-    - load_name: name of load products containing this load segment (e.g. "MAY2217B")
-    - cmd_start: time of first command in load segment
-    - cmd_stop: time of last command in load segment
-    - rltt: running load termination time (terminates previous running loads).
-    - schedule_stop_observing: activity end time for loads (propagation goes to this point).
-    - schedule_stop_vehicle: activity end time for loads (propagation goes to this point).
-    """
+    """Update local copy of approved command loads though ``lookback`` days."""
     # For testing allow override of default `stop` value
     if stop is None:
         stop = os.environ.get("KADI_COMMANDS_DEFAULT_STOP")
@@ -879,7 +863,6 @@ def update_loads(scenario=None, *, cmd_events=None, lookback=None, stop=None) ->
     # by load name and use those to avoid reading in the cmds table.
     # For now just get things working reliably.
 
-    loads_table_path = paths.LOADS_TABLE_PATH(scenario)
     loads_rows = []
 
     # Probably too complicated, but this bit of code generates a list of dates
@@ -934,9 +917,11 @@ def update_loads(scenario=None, *, cmd_events=None, lookback=None, stop=None) ->
                     continue
                 if load_date >= start and load_date <= stop:
                     cmds = get_load_cmds_from_occweb_or_local(dir_year_month, load_name)
-                    cmds.meta["rltt"] = cmds.get_rltt()
-                    cmds.meta["scheduled_stop_time"] = cmds.get_scheduled_stop_time()
-                    load = get_load_dict_from_cmds(load_name, cmds, cmd_events)
+                    load = {
+                        "name": load_name,
+                        "cmd_start": cmds["date"][0],
+                        "cmd_stop": cmds["date"][-1],
+                    }
                     loads_rows.append(load)
 
     if not loads_rows:
@@ -944,12 +929,6 @@ def update_loads(scenario=None, *, cmd_events=None, lookback=None, stop=None) ->
 
     # Finally, save the table to file
     loads_table = Table(loads_rows)
-    logger.info(f"Saving {len(loads_table)} loads to {loads_table_path}")
-    loads_table.sort("cmd_start")
-    loads_table.write(loads_table_path, format="csv", overwrite=True)
-    loads_table.write(
-        loads_table_path.with_suffix(".dat"), format="ascii.fixed_width", overwrite=True
-    )
 
     if conf.clean_loads_dir:
         clean_loads_dir(loads_table)
@@ -966,65 +945,6 @@ def clean_loads_dir(loads):
         ):
             logger.info(f"Removing load file {file}")
             file.unlink()
-
-
-def get_load_dict_from_cmds(load_name: str, cmds: CommandTable, cmd_events: Table):
-    """Update ``load`` dict in place from the backstop commands."""
-    vehicle_stop_events = ("NSM", "Safe mode", "Bright star hold")
-    observing_stop_events = vehicle_stop_events + ("SCS-107",)
-
-    load = {
-        "name": load_name,
-        "cmd_start": cmds["date"][0],
-        "cmd_stop": cmds["date"][-1],
-        "observing_stop": "",
-        "vehicle_stop": "",
-    }
-
-    load["rltt"] = cmds.get_rltt()
-    load["scheduled_stop_time"] = cmds.get_scheduled_stop_time()
-
-    # CHANGE THIS to use LOAD_EVENT entries in commands. Or NOT?? Probably
-    # provides good visibility into what's going on. But this hard-coding is
-    # annoying.
-    for cmd_event in cmd_events:
-        cmd_event_date = cmd_event["Date"]
-
-        if (
-            cmd_event_date >= load["cmd_start"]
-            and cmd_event_date <= load["cmd_stop"]
-            and cmd_event["Event"] in observing_stop_events
-        ):
-            logger.info(
-                f'{cmd_event["Event"]} at {cmd_event_date} found for {load_name}'
-            )
-            load["observing_stop"] = cmd_event["Date"]
-
-            if cmd_event["Event"] in vehicle_stop_events:
-                load["vehicle_stop"] = cmd_event["Date"]
-
-        if cmd_event["Event"] == "Load not run" and cmd_event["Params"] == load_name:
-            logger.info(
-                f'{cmd_event["Event"]} at {cmd_event_date} found for {load_name}'
-            )
-            # Stop the loads before they start
-            load["observing_stop"] = "1998:001"
-            load["vehicle_stop"] = "1998:001"
-            # Not-run load does not terminate other loads or commands or have a
-            # scheduled stop time.
-            load["rltt"] = None
-            load["scheduled_stop_time"] = None
-
-        if (
-            cmd_event["Event"] == "Observing not run"
-            and cmd_event["Params"] == load_name
-        ):
-            logger.info(
-                f'{cmd_event["Event"]} at {cmd_event_date} found for {load_name}'
-            )
-            load["observing_stop"] = "1998:001"
-
-    return load
 
 
 def get_load_cmds_from_occweb_or_local(
