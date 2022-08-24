@@ -138,7 +138,7 @@ def cmd_set_safe_mode(date=None):
 def cmd_set_load_not_run(load_name, date=None):
     cmd = {
         "type": "LOAD_EVENT",
-        "params": {"TYPE": "LOAD_NOT_RUN", "LOAD": load_name},
+        "params": {"EVENT_TYPE": "LOAD_NOT_RUN", "LOAD": load_name},
     }
     return (cmd,)
 
@@ -146,7 +146,7 @@ def cmd_set_load_not_run(load_name, date=None):
 def cmd_set_observing_not_run(load_name, date=None):
     cmd = {
         "type": "LOAD_EVENT",
-        "params": {"TYPE": "OBSERVING_NOT_RUN", "LOAD": load_name},
+        "params": {"EVENT_TYPE": "OBSERVING_NOT_RUN", "LOAD": load_name},
     }
     return (cmd,)
 

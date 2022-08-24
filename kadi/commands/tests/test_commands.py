@@ -288,26 +288,31 @@ def test_commands_create_archive_regress(tmpdir, version_env):
             cmds_local = commands.get_cmds(start + 3, stop - 3)
 
             # FIXME: workaround that flight archive does not have these non-load
-            # commands added in #248. If flight archive is regenerated, this
+            # commands added in PR #248. If flight archive is regenerated, this
             # should be removed.
-            ignore = (
-                (cmds_local["type"] == "LOAD_EVENT")
-                & (cmds_local["source"] == "CMD_EVT")
-                & (cmds_local["tlmsid"] == "None")
-            )
-            ignore |= (cmds_local["tlmsid"] == "CODISASX") & (
-                cmds_local["source"] == "CMD_EVT"
-            )
-            cmds_local = cmds_local[~ignore]
+            def get_ok(cmds):
+                ignore = (cmds["type"] == "LOAD_EVENT") & (
+                    cmds["event_type"] == "SCHEDULED_STOP_TIME"
+                )
+                ignore |= (
+                    (cmds["type"] == "LOAD_EVENT")
+                    & (cmds["source"] == "CMD_EVT")
+                    & np.isin(cmds["event_type"], ["LOAD_NOT_RUN", "OBSERVING_NOT_RUN"])
+                )
+                ignore |= (cmds["tlmsid"] == "CODISASX") & (cmds["source"] == "CMD_EVT")
+                return ~ignore
+
+            cmds_local = cmds_local[get_ok(cmds_local)]
+            cmds_flight = cmds_flight[get_ok(cmds_flight)]
 
             cmds_local.fetch_params()
             if len(cmds_flight) != len(cmds_local):
-                for ii, (cmd_flight, cmd_local) in enumerate(
-                    zip(cmds_flight, cmds_local)
-                ):
-                    if cmd_flight["tlmsid"] != cmd_local["tlmsid"]:
-                        err = f"First mismatch at line {ii}\n{cmd_flight}\n{cmd_local}"
-                        raise AssertionError(err)
+                # Code to debug problems, leave commented for production
+                # out = "\n".join(cmds_flight.pformat_like_backstop())
+                # Path("cmds_flight.txt").write_text(out)
+                # out = "\n".join(cmds_local.pformat_like_backstop())
+                # Path("cmds_local.txt").write_text(out)
+                assert len(cmds_flight) == len(cmds_local)
 
             # 'starcat_idx' param in OBS cmd does not match since the pickle files
             # are different, so remove it.

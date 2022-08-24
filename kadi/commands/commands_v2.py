@@ -87,6 +87,7 @@ def clear_caches():
     OBSERVATIONS.clear()
 
 
+# NOT USED!
 def interrupt_load_commands(load, cmds):
     """Cut commands beyond observing or vehicle stop times.
 
@@ -198,7 +199,9 @@ def get_matching_block_idx_simple(cmds_recent, cmds_arch, min_match):
     return i0_arch
 
 
-def get_cmds(start=None, stop=None, inclusive_stop=False, scenario=None, **kwargs):
+def get_cmds(
+    start=None, stop=None, inclusive_stop=False, scenario=None, **kwargs
+) -> CommandTable:
     """Get commands using loads table, relying entirely on RLTT.
 
     :param start: CxoTime-like
@@ -307,35 +310,53 @@ def update_archive_and_get_cmds_recent(
 
     :returns: CommandTable
     """
-    cmds_list = []  # List of CommandTable objects from loads and cmd_events
-    rltts = []  # Corresponding list of RLTTs, where cmd_events use None for RLTT
+    # List of CommandTable objects from loads and cmd_events
+    cmds_list = []
 
     # Update local cmds_events.csv from Google Sheets
     cmd_events = update_cmd_events(scenario)
+
+    # Get load names that were not run at all or where observing was not run.
+    # E.g. an SCS-107 near end of loads where next week vehicle loads only were
+    # uplinked.
+    not_run_loads = {}
+    for not_run_type in ("Load", "Observing"):
+        not_run_loads[not_run_type] = set(
+            cmd_event["Params"]
+            for cmd_event in cmd_events
+            if cmd_event["Event"] == f"{not_run_type} not run"
+        )
 
     # Update loads table and download/archive backstop files from OCCweb
     loads = update_loads(scenario, cmd_events=cmd_events, lookback=lookback, stop=stop)
     logger.info(f'Including loads {", ".join(loads["name"])}')
 
     for load in loads:
-        loads_backstop_path = paths.LOADS_BACKSTOP_PATH(load["name"])
+        load_name = load["name"]
+        loads_backstop_path = paths.LOADS_BACKSTOP_PATH(load_name)
         with gzip.open(loads_backstop_path, "rb") as fh:
             cmds = pickle.load(fh)
 
-        # Apply load interrupts (SCS-107, NSM) from the loads table to this
-        # command load. This assumes that loads.csv has been updated
-        # appropriately from cmd_events.csv (which might have come from the
-        # Command Events sheet).
-        cmds = interrupt_load_commands(load, cmds)
+        # Filter commands if loads (vehicle and/or observing) were approved but
+        # never uplinked
+        if load_name in not_run_loads["Load"]:
+            # Keep only the orbit points
+            cmds = cmds[cmds["type"] == "ORBPOINT"]
+        elif load_name in not_run_loads["Observing"]:
+            # Cut observing commands
+            bad = np.isin(cmds["scs"], [131, 132, 133])
+            cmds = cmds[~bad]
+
         if len(cmds) > 0:
             logger.info(
-                f'Load {load["name"]} has {len(cmds)} commands'
+                f"Load {load_name} has {len(cmds)} commands"
                 f" with rltt {load['rltt']}"
             )
             cmds_list.append(cmds)
-            rltts.append(load["rltt"])
+            if load_name not in not_run_loads["Load"]:
+                cmds.meta["rltt"] = cmds.get_rltt()
         else:
-            logger.info(f'Load {load["name"]} has no commands, skipping')
+            logger.info(f"Load {load_name} has no commands, skipping")
 
     # Filter events outside the time interval, assuming command event cannot
     # last more than 2 weeks.
@@ -356,43 +377,65 @@ def update_archive_and_get_cmds_recent(
             cmd_event["Date"], cmd_event["Event"], cmd_event["Params"]
         )
 
-        # Events that do not generate commands (e.g. load interrupt) return
-        # None from get_cmds_from_event.
+        # Events that do not generate commands return None from
+        # get_cmds_from_event.
         if cmds is not None and len(cmds) > 0:
             cmds_list.append(cmds)
-            rltts.append(None)
 
     # Sort cmds_list and rltts by the date of the first cmd in each cmds Table
     cmds_starts = np.array([cmds["date"][0] for cmds in cmds_list])
     idx_sort = np.argsort(cmds_starts)
     cmds_list = [cmds_list[ii] for ii in idx_sort]
-    rltts = [rltts[ii] for ii in idx_sort]
 
-    for ii, cmds, rltt in zip(itertools.count(), cmds_list, rltts):
-        if rltt is not None:
-            # Apply RLTT from this load to the current running loads (cmds_all).
-            # Remove commands with date greater than the RLTT date. In most
+    # Apply RLTT and any END SCS commands (CODISAXS) to loads. RLTT is applied
+    # by stopping SCS's 128-133.
+    for ii, cmds in enumerate(cmds_list):
+        print(f"Processing {cmds['source'][0]} with {len(cmds)} commands")
+        end_scs = {}
+        if rltt := cmds.meta.get("rltt"):
+            source = f'RLTT in {cmds["source"][0]}'
+            for scs in range(128, 134):
+                end_scs[scs] = (rltt, source)
+
+        # Explicit END SCS commands. Most commonly these come from command events
+        # like SCS-107, but can also be in weekly loads e.g. disabling an ACIS
+        # ECS measurement in SCS-135.
+        ok = cmds["tlmsid"] == "CODISASX"
+        if np.any(ok):
+            for cmd in cmds[ok]:
+                if (scs := cmd["params"]["codisas1"]) >= 128:
+                    source = f'DISABLE SCS {scs} in {cmd["source"]} at {cmd["date"]}'
+                    end_scs[scs] = (cmd["date"], source)
+
+        import pprint
+
+        pprint.pprint(end_scs)
+
+        for scs, (date_end, source) in end_scs.items():
+            # Apply end SCS from these commands to the current running loads.
+            # Remove commands with date greater than end SCS date. In most
             # cases this does not cut anything.
             for jj in range(0, ii):
                 prev_cmds = cmds_list[jj]
                 # First check for any overlap since prev_cmds is sorted by date.
-                if len(prev_cmds) > 0 and prev_cmds["date"][-1] > rltt:
-                    # Cut commands EXCEPT for ORBPOINT ones, which we leave as a
-                    # special case to ensure availability of orbit events from
-                    # commands. Otherwise RLTT can cut ORBPOINT commands that
-                    # are not replaced by the subsquent loads.
-                    bad = (prev_cmds["date"] > rltt) & (prev_cmds["type"] != "ORBPOINT")
+                print(
+                    f'{scs=}, {jj=}, {len(prev_cmds)=}, {prev_cmds["date"][-1]=}, {date_end=}, {prev_cmds["date"][-1] > date_end=}'
+                )
+                if len(prev_cmds) > 0 and prev_cmds["date"][-1] > date_end:
+                    bad = (prev_cmds["date"] > date_end) & (prev_cmds["scs"] == scs)
+                    print(f"{np.count_nonzero(bad)} commands to remove")
                     if np.any(bad):
                         n_bad = np.count_nonzero(bad)
                         logger.info(
-                            f'Removing {n_bad} cmds from {prev_cmds["source"][0]}'
+                            f"Removing {n_bad} SCS={scs} cmds from "
+                            f'{prev_cmds["source"][0]} due to {source}'
                         )
                     cmds_list[jj] = prev_cmds[~bad]
 
         if len(cmds) > 0:
             logger.info(f'Adding {len(cmds)} commands from {cmds["source"][0]}')
 
-    cmds_recent = vstack_exact(cmds_list)
+    cmds_recent: CommandTable = vstack_exact(cmds_list)
     cmds_recent.sort_in_backstop_order()
     cmds_recent.deduplicate_orbit_cmds()
     cmds_recent.remove_not_run_cmds()
@@ -828,7 +871,7 @@ def get_loads(scenario=None):
     return loads
 
 
-def update_loads(scenario=None, *, cmd_events=None, lookback=None, stop=None):
+def update_loads(scenario=None, *, cmd_events=None, lookback=None, stop=None) -> Table:
     """Update or create loads.csv and loads/ archive though ``lookback`` days
 
     CSV table file with column names in the first row and data in subsequent rows.
@@ -867,7 +910,7 @@ def update_loads(scenario=None, *, cmd_events=None, lookback=None, stop=None):
     loads_rows = []
 
     # Probably too complicated, but this bit of code generates a list of dates
-    # that are guaranteed to sample all the months in the lookback period with
+    # that are guaranteed too sample all the months in the lookback period with
     # two weeks of margin on the tail end.
     dt = 21 * u.day
     start = CxoTime(stop) - lookback * u.day
@@ -918,6 +961,8 @@ def update_loads(scenario=None, *, cmd_events=None, lookback=None, stop=None):
                     continue
                 if load_date >= start and load_date <= stop:
                     cmds = get_load_cmds_from_occweb_or_local(dir_year_month, load_name)
+                    cmds.meta["rltt"] = cmds.get_rltt()
+                    cmds.meta["scheduled_stop_time"] = cmds.get_scheduled_stop_time()
                     load = get_load_dict_from_cmds(load_name, cmds, cmd_events)
                     loads_rows.append(load)
 
@@ -1011,7 +1056,7 @@ def get_load_dict_from_cmds(load_name: str, cmds: CommandTable, cmd_events: Tabl
 
 def get_load_cmds_from_occweb_or_local(
     dir_year_month=None, load_name=None, use_ska_dir=False
-):
+) -> CommandTable:
     """Get the load cmds (backstop) for ``load_name`` within ``dir_year_month``
 
     If the backstop file is already available locally, use that. Otherwise, the
