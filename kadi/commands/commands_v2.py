@@ -12,6 +12,7 @@ import re
 import weakref
 from collections import defaultdict
 from pathlib import Path
+from typing import List
 
 import astropy.units as u
 import numpy as np
@@ -271,6 +272,9 @@ def update_archive_and_get_cmds_recent(
 ):
     """Update local loads table and downloaded loads and return all recent cmds.
 
+    This is the main entry point for getting recent commands and for updating
+    the archive HDF5 file.
+
     This also caches the recent commands in the global CMDS_RECENT dict.
 
     This relies entirely on RLTT and load_events to assemble the commands.
@@ -288,7 +292,7 @@ def update_archive_and_get_cmds_recent(
     :returns: CommandTable
     """
     # List of CommandTable objects from loads and cmd_events
-    cmds_list = []
+    cmds_list: List[CommandTable] = []
 
     # Update local cmds_events.csv from Google Sheets
     cmd_events = update_cmd_events(scenario)
