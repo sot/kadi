@@ -39,7 +39,7 @@ class Conf(ConfigNamespace):
         "downloading from Google Sheets and OCCweb.",
     )
     commands_version = ConfigItem(
-        "1",
+        "2",
         'Default version of kadi commands ("1" or "2").  Overridden by '
         "KADI_COMMANDS_VERSION environment variable.",
     )

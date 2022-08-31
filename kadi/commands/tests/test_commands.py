@@ -195,13 +195,13 @@ def test_cmds_as_list_of_dict(version_env):
         assert np.all(cmds_rt[name] == cmds[name])
 
 
-def test_cmds_as_list_of_dict_ska_parsecm():
+def test_cmds_as_list_of_dict_ska_parsecm(version_env):
     """Test the ska_parsecm=True compatibility mode for list_of_dict"""
     cmds = commands.get_cmds("2020:140", "2020:141")
     cmds_list = cmds.as_list_of_dict(ska_parsecm=True)
     assert isinstance(cmds_list, list)
     assert isinstance(cmds_list[0], dict)
-    assert cmds_list[0] == {
+    exp = {
         "cmd": "COMMAND_HW",  # Cmd parameter exists and matches type
         "date": "2020:140:00:00:00.000",
         "idx": 21387,
@@ -209,24 +209,35 @@ def test_cmds_as_list_of_dict_ska_parsecm():
         "scs": 129,
         "step": 496,
         "time": 706233669.184,
-        "timeline_id": 426104285,
         "tlmsid": "CIMODESL",
         "type": "COMMAND_HW",
         "vcdu": 12516929,
     }
+    exp.update(
+        {"timeline_id": 426104285} if version_env == "1" else {"source": "MAY1820A"}
+    )
+    assert cmds_list[0] == exp
+
     for cmd in cmds_list:
         assert cmd.get("cmd") == cmd.get("type")
         assert all(param.upper() == param for param in cmd["params"])
 
 
-def test_get_cmds_from_backstop_and_add_cmds():
+def test_get_cmds_from_backstop_and_add_cmds(version_env):
     bs_file = Path(parse_cm.tests.__file__).parent / "data" / "CR182_0803.backstop"
     bs_cmds = commands.get_cmds_from_backstop(bs_file, remove_starcat=True)
 
     cmds = commands.get_cmds(start="2018:182:00:00:00", stop="2018:182:08:00:00")
 
     assert len(bs_cmds) == 674
-    assert len(cmds) == 56
+    assert len(cmds) == 56 if version_env == "1" else 57
+
+    # Get rid of source and timeline_id columns which can vary between v1 and v2
+    for cs in bs_cmds, cmds:
+        if "source" in cs.colnames:
+            del cs["source"]
+        if "timeline_id" in cs.colnames:
+            del cs["timeline_id"]
 
     assert bs_cmds.colnames == cmds.colnames
     for bs_col, col in zip(bs_cmds.itercols(), cmds.itercols()):
