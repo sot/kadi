@@ -530,86 +530,43 @@ Date,Event,Params,Author,Comment
 
 def test_command_set_bsh():
     cmds = get_cmds_from_event("2000:001", "Bright star hold", "")
-    exp = [
-        "2000:001:00:00:00.000 | COMMAND_SW       | CODISASX   | CMD_EVT  | "
-        "event=Bright_star_hold, event_date=2000:001:00:00:00, msid=CODISASX, "
-        "codisas1=12",
-        "2000:001:00:00:00.000 | COMMAND_SW       | CODISASX   | CMD_EVT  | "
-        "event=Bright_star_hold, event_date=2000:001:00:00:00, msid=CODISASX, "
-        "codisas1=12",
-        "2000:001:00:00:00.000 | COMMAND_SW       | CODISASX   | CMD_EVT  | "
-        "event=Bright_star_hold, event_date=2000:001:00:00:00, msid=CODISASX, "
-        "codisas1=13",
-        "2000:001:00:00:00.000 | COMMAND_SW       | CODISASX   | CMD_EVT  | "
-        "event=Bright_star_hold, event_date=2000:001:00:00:00, msid=CODISASX, "
-        "codisas1=13",
-        "2000:001:00:00:00.000 | COMMAND_SW       | CODISASX   | CMD_EVT  | "
-        "event=Bright_star_hold, event_date=2000:001:00:00:00, msid=CODISASX, "
-        "codisas1=13",
-        "2000:001:00:00:00.000 | COMMAND_SW       | CODISASX   | CMD_EVT  | "
-        "event=Bright_star_hold, event_date=2000:001:00:00:00, msid=CODISASX, "
-        "codisas1=13",
-        "2000:001:00:00:00.000 | COMMAND_SW       | OORMPDS    | CMD_EVT  | "
-        "event=Bright_star_hold, event_date=2000:001:00:00:00, scs=0",
-        "2000:001:00:00:01.025 | COMMAND_HW       | AFIDP      | CMD_EVT  | "
-        "event=Bright_star_hold, event_date=2000:001:00:00:00, msid=AFLCRSET, scs=0",
-        "2000:001:00:00:01.025 | SIMTRANS         | None       | CMD_EVT  | "
-        "event=Bright_star_hold, event_date=2000:001:00:00:00, pos=-99616, scs=0",
-        "2000:001:00:01:06.685 | ACISPKT          | AA00000000 | CMD_EVT  | "
-        "event=Bright_star_hold, event_date=2000:001:00:00:00, scs=0",
-        "2000:001:00:01:07.710 | ACISPKT          | AA00000000 | CMD_EVT  | "
-        "event=Bright_star_hold, event_date=2000:001:00:00:00, scs=0",
-        "2000:001:00:01:17.960 | ACISPKT          | WSPOW00000 | CMD_EVT  | "
-        "event=Bright_star_hold, event_date=2000:001:00:00:00, scs=0",
-    ]
+    exp = """\
+2000:001:00:00:00.000 | COMMAND_SW       | CODISASX   | CMD_EVT  | event=Bright_star_hold, event_date=2000:001:00:00:00, msid=CODISASX, codisas1=128 , scs=0
+2000:001:00:00:00.000 | COMMAND_SW       | CODISASX   | CMD_EVT  | event=Bright_star_hold, event_date=2000:001:00:00:00, msid=CODISASX, codisas1=129 , scs=0
+2000:001:00:00:00.000 | COMMAND_SW       | CODISASX   | CMD_EVT  | event=Bright_star_hold, event_date=2000:001:00:00:00, msid=CODISASX, codisas1=130 , scs=0
+2000:001:00:00:00.000 | COMMAND_SW       | CODISASX   | CMD_EVT  | event=Bright_star_hold, event_date=2000:001:00:00:00, msid=CODISASX, codisas1=131 , scs=0
+2000:001:00:00:00.000 | COMMAND_SW       | CODISASX   | CMD_EVT  | event=Bright_star_hold, event_date=2000:001:00:00:00, msid=CODISASX, codisas1=132 , scs=0
+2000:001:00:00:00.000 | COMMAND_SW       | CODISASX   | CMD_EVT  | event=Bright_star_hold, event_date=2000:001:00:00:00, msid=CODISASX, codisas1=133 , scs=0
+2000:001:00:00:00.000 | COMMAND_SW       | OORMPDS    | CMD_EVT  | event=Bright_star_hold, event_date=2000:001:00:00:00, scs=0
+2000:001:00:00:01.025 | COMMAND_HW       | AFIDP      | CMD_EVT  | event=Bright_star_hold, event_date=2000:001:00:00:00, msid=AFLCRSET, scs=0
+2000:001:00:00:01.025 | SIMTRANS         | None       | CMD_EVT  | event=Bright_star_hold, event_date=2000:001:00:00:00, pos=-99616, scs=0
+2000:001:00:01:06.685 | ACISPKT          | AA00000000 | CMD_EVT  | event=Bright_star_hold, event_date=2000:001:00:00:00, scs=0
+2000:001:00:01:07.710 | ACISPKT          | AA00000000 | CMD_EVT  | event=Bright_star_hold, event_date=2000:001:00:00:00, scs=0
+2000:001:00:01:17.960 | ACISPKT          | WSPOW00000 | CMD_EVT  | event=Bright_star_hold, event_date=2000:001:00:00:00, scs=0"""  # noqa
 
-    assert cmds.pformat_like_backstop() == exp
+    assert cmds.pformat_like_backstop(max_params_width=None) == exp.splitlines()
     commands_v2.clear_caches()
 
 
 def test_command_set_safe_mode():
     cmds = get_cmds_from_event("2000:001", "Safe mode", "")
-    exp = [
-        "2000:001:00:00:00.000 | COMMAND_SW       | ACPCSFSU   | CMD_EVT  | "
-        "event=Safe_mode, event_date=2000:001:00:00:00, scs=0",
-        "2000:001:00:00:00.000 | COMMAND_SW       | CSELFMT5   | CMD_EVT  | "
-        "event=Safe_mode, event_date=2000:001:00:00:00, scs=0",
-        "2000:001:00:00:00.000 | COMMAND_SW       | AONSMSAF   | CMD_EVT  | "
-        "event=Safe_mode, event_date=2000:001:00:00:00, scs=0",
-        "2000:001:00:00:00.000 | COMMAND_SW       | CODISASX   | CMD_EVT  | "
-        "event=Safe_mode, event_date=2000:001:00:00:00, msid=CODISASX, codisas1=128 , "
-        "scs",
-        "2000:001:00:00:00.000 | COMMAND_SW       | CODISASX   | CMD_EVT  | "
-        "event=Safe_mode, event_date=2000:001:00:00:00, msid=CODISASX, codisas1=129 , "
-        "scs",
-        "2000:001:00:00:00.000 | COMMAND_SW       | CODISASX   | CMD_EVT  | "
-        "event=Safe_mode, event_date=2000:001:00:00:00, msid=CODISASX, codisas1=130 , "
-        "scs",
-        "2000:001:00:00:00.000 | COMMAND_SW       | CODISASX   | CMD_EVT  | "
-        "event=Safe_mode, event_date=2000:001:00:00:00, msid=CODISASX, codisas1=131 , "
-        "scs",
-        "2000:001:00:00:00.000 | COMMAND_SW       | CODISASX   | CMD_EVT  | "
-        "event=Safe_mode, event_date=2000:001:00:00:00, msid=CODISASX, codisas1=132 , "
-        "scs",
-        "2000:001:00:00:00.000 | COMMAND_SW       | CODISASX   | CMD_EVT  | "
-        "event=Safe_mode, event_date=2000:001:00:00:00, msid=CODISASX, codisas1=133 , "
-        "scs",
-        "2000:001:00:00:00.000 | COMMAND_SW       | OORMPDS    | CMD_EVT  | "
-        "event=Safe_mode, event_date=2000:001:00:00:00, scs=0",
-        "2000:001:00:00:01.025 | COMMAND_HW       | AFIDP      | CMD_EVT  | "
-        "event=Safe_mode, event_date=2000:001:00:00:00, msid=AFLCRSET, scs=0",
-        "2000:001:00:00:01.025 | SIMTRANS         | None       | CMD_EVT  | "
-        "event=Safe_mode, event_date=2000:001:00:00:00, pos=-99616, scs=0",
-        "2000:001:00:01:06.685 | ACISPKT          | AA00000000 | CMD_EVT  | "
-        "event=Safe_mode, event_date=2000:001:00:00:00, scs=0",
-        "2000:001:00:01:07.710 | ACISPKT          | AA00000000 | CMD_EVT  | "
-        "event=Safe_mode, event_date=2000:001:00:00:00, scs=0",
-        "2000:001:00:01:17.960 | ACISPKT          | WSPOW00000 | CMD_EVT  | "
-        "event=Safe_mode, event_date=2000:001:00:00:00, scs=0",
-        "2000:001:00:01:17.960 | COMMAND_SW       | AODSDITH   | CMD_EVT  | "
-        "event=Safe_mode, event_date=2000:001:00:00:00, scs=0",
-    ]
-
+    exp = """\
+2000:001:00:00:00.000 | COMMAND_SW       | ACPCSFSU   | CMD_EVT  | event=Safe_mode, event_date=2000:001:00:00:00, scs=0
+2000:001:00:00:00.000 | COMMAND_SW       | CSELFMT5   | CMD_EVT  | event=Safe_mode, event_date=2000:001:00:00:00, scs=0
+2000:001:00:00:00.000 | COMMAND_SW       | AONSMSAF   | CMD_EVT  | event=Safe_mode, event_date=2000:001:00:00:00, scs=0
+2000:001:00:00:00.000 | COMMAND_SW       | CODISASX   | CMD_EVT  | event=Safe_mode, event_date=2000:001:00:00:00, msid=CODISASX, codisas1=128 , scs=0
+2000:001:00:00:00.000 | COMMAND_SW       | CODISASX   | CMD_EVT  | event=Safe_mode, event_date=2000:001:00:00:00, msid=CODISASX, codisas1=129 , scs=0
+2000:001:00:00:00.000 | COMMAND_SW       | CODISASX   | CMD_EVT  | event=Safe_mode, event_date=2000:001:00:00:00, msid=CODISASX, codisas1=130 , scs=0
+2000:001:00:00:00.000 | COMMAND_SW       | CODISASX   | CMD_EVT  | event=Safe_mode, event_date=2000:001:00:00:00, msid=CODISASX, codisas1=131 , scs=0
+2000:001:00:00:00.000 | COMMAND_SW       | CODISASX   | CMD_EVT  | event=Safe_mode, event_date=2000:001:00:00:00, msid=CODISASX, codisas1=132 , scs=0
+2000:001:00:00:00.000 | COMMAND_SW       | CODISASX   | CMD_EVT  | event=Safe_mode, event_date=2000:001:00:00:00, msid=CODISASX, codisas1=133 , scs=0
+2000:001:00:00:00.000 | COMMAND_SW       | OORMPDS    | CMD_EVT  | event=Safe_mode, event_date=2000:001:00:00:00, scs=0
+2000:001:00:00:01.025 | COMMAND_HW       | AFIDP      | CMD_EVT  | event=Safe_mode, event_date=2000:001:00:00:00, msid=AFLCRSET, scs=0
+2000:001:00:00:01.025 | SIMTRANS         | None       | CMD_EVT  | event=Safe_mode, event_date=2000:001:00:00:00, pos=-99616, scs=0
+2000:001:00:01:06.685 | ACISPKT          | AA00000000 | CMD_EVT  | event=Safe_mode, event_date=2000:001:00:00:00, scs=0
+2000:001:00:01:07.710 | ACISPKT          | AA00000000 | CMD_EVT  | event=Safe_mode, event_date=2000:001:00:00:00, scs=0
+2000:001:00:01:17.960 | ACISPKT          | WSPOW00000 | CMD_EVT  | event=Safe_mode, event_date=2000:001:00:00:00, scs=0
+2000:001:00:01:17.960 | COMMAND_SW       | AODSDITH   | CMD_EVT  | event=Safe_mode, event_date=2000:001:00:00:00, scs=0"""  # noqa
     assert cmds.pformat_like_backstop() == exp
     commands_v2.clear_caches()
 
