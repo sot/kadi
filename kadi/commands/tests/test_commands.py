@@ -567,7 +567,7 @@ def test_command_set_safe_mode():
 2000:001:00:01:07.710 | ACISPKT          | AA00000000 | CMD_EVT  | event=Safe_mode, event_date=2000:001:00:00:00, scs=0
 2000:001:00:01:17.960 | ACISPKT          | WSPOW00000 | CMD_EVT  | event=Safe_mode, event_date=2000:001:00:00:00, scs=0
 2000:001:00:01:17.960 | COMMAND_SW       | AODSDITH   | CMD_EVT  | event=Safe_mode, event_date=2000:001:00:00:00, scs=0"""  # noqa
-    assert cmds.pformat_like_backstop() == exp
+    assert cmds.pformat_like_backstop(max_params_width=None) == exp.splitlines()
     commands_v2.clear_caches()
 
 
