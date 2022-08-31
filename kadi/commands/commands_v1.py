@@ -1,9 +1,14 @@
+import warnings
 import weakref
 
 from astropy.table import Column
 from cxotime import CxoTime
 
 from kadi.commands.core import LazyVal, _find, load_idx_cmds, load_pars_dict
+
+# Warn about deprecation but use FutureWarning so it actually shows up (since
+# DeprecationWarning is ignored by default)
+warnings.warn("kadi commands v1 is deprecated, use v2 instead", FutureWarning)
 
 # Globals that contain the entire commands table and the parameters index
 # dictionary.
