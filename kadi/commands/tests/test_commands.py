@@ -377,7 +377,8 @@ def test_get_cmds_v2_arch_recent(stop_date_2020_12_03):
     # how the matching block is used (commands come from arch up through the end
     # of the matching block).
     assert np.all(cmds["idx"] != -1)
-    assert len(cmds) == 17640
+    # PR #248: made this change from 17640 to 17644
+    assert 17640 <= len(cmds) <= 17644
 
     commands_v2.clear_caches()
 
