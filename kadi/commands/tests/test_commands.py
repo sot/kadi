@@ -286,8 +286,33 @@ def test_commands_create_archive_regress(tmpdir, version_env):
             assert len(cmds_empty) == 0
 
             cmds_local = commands.get_cmds(start + 3, stop - 3)
+
+            # FIXME: workaround that flight archive does not have these non-load
+            # commands added in PR #248. If flight archive is regenerated, this
+            # should be removed.
+            def get_ok(cmds):
+                ignore = (cmds["type"] == "LOAD_EVENT") & (
+                    cmds["event_type"] == "SCHEDULED_STOP_TIME"
+                )
+                ignore |= (
+                    (cmds["type"] == "LOAD_EVENT")
+                    & (cmds["source"] == "CMD_EVT")
+                    & np.isin(cmds["event_type"], ["LOAD_NOT_RUN", "OBSERVING_NOT_RUN"])
+                )
+                ignore |= (cmds["tlmsid"] == "CODISASX") & (cmds["source"] == "CMD_EVT")
+                return ~ignore
+
+            cmds_local = cmds_local[get_ok(cmds_local)]
+            cmds_flight = cmds_flight[get_ok(cmds_flight)]
+
             cmds_local.fetch_params()
-            assert len(cmds_flight) == len(cmds_local)
+            if len(cmds_flight) != len(cmds_local):
+                # Code to debug problems, leave commented for production
+                # out = "\n".join(cmds_flight.pformat_like_backstop())
+                # Path("cmds_flight.txt").write_text(out)
+                # out = "\n".join(cmds_local.pformat_like_backstop())
+                # Path("cmds_local.txt").write_text(out)
+                assert len(cmds_flight) == len(cmds_local)
 
             # 'starcat_idx' param in OBS cmd does not match since the pickle files
             # are different, so remove it.
@@ -352,17 +377,9 @@ def test_get_cmds_v2_arch_recent(stop_date_2020_12_03):
     # how the matching block is used (commands come from arch up through the end
     # of the matching block).
     assert np.all(cmds["idx"] != -1)
-    assert len(cmds) == 17640
+    # PR #248: made this change from 17640 to 17644
+    assert 17640 <= len(cmds) <= 17644
 
-    loads = commands_v2.get_loads()
-    assert loads.pformat_all() == [
-        "  name         cmd_start              cmd_stop       observing_stop vehicle_stop          rltt          scheduled_stop_time ",  # noqa
-        "-------- --------------------- --------------------- -------------- ------------ --------------------- ---------------------",  # noqa
-        "NOV0920A 2020:314:12:13:00.000 2020:321:00:48:01.673             --           -- 2020:314:12:16:00.000 2020:321:00:48:01.673",  # noqa
-        "NOV1620A 2020:321:00:45:01.673 2020:327:19:26:00.000             --           -- 2020:321:00:48:01.673 2020:327:19:26:00.000",  # noqa
-        "NOV2320A 2020:327:19:23:00.000 2020:334:20:44:27.758             --           -- 2020:327:19:26:00.000 2020:334:20:44:27.758",  # noqa
-        "NOV3020A 2020:334:20:41:27.758 2020:342:06:04:34.287             --           -- 2020:334:20:44:27.758 2020:342:06:04:34.287",  # noqa
-    ]
     commands_v2.clear_caches()
 
 
@@ -395,10 +412,6 @@ def test_get_cmds_v2_recent_only(stop_date_2020_12_03):
     assert len(cmds) == 1523
     assert np.all(cmds["idx"] == -1)
 
-    # Sanity check on the loads
-    loads = commands_v2.get_loads()
-    assert np.all(loads["name"] == ["NOV0920A", "NOV1620A", "NOV2320A", "NOV3020A"])
-
     # zero-length query
     cmds = commands_v2.get_cmds(start="2020-12-01", stop="2020-12-01")
     assert len(cmds) == 0
@@ -423,8 +436,23 @@ def test_get_cmds_nsm_2021(stop_date_2021_10_24):
         "hex=7800056, msid=CPABON, scs=128",
         "2021:296:10:35:01.285 | COMMAND_HW       | CTXBON     | OCT1821A | "
         "hex=7800044, msid=CTXBON, scs=128",
+        "2021:296:10:41:57.000 | LOAD_EVENT       | None       | CMD_EVT  | "
+        "event=Load_not_run, event_date=2021:296:10:41:57, event_type=LOAD_NOT_RUN, "
+        "load=OCT2521A, scs=0",
         "2021:296:10:41:57.000 | COMMAND_SW       | AONSMSAF   | CMD_EVT  | "
         "event=NSM, event_date=2021:296:10:41:57, scs=0",
+        "2021:296:10:41:57.000 | COMMAND_SW       | CODISASX   | CMD_EVT  | "
+        "event=NSM, event_date=2021:296:10:41:57, msid=CODISASX, codisas1=128 , scs=0",
+        "2021:296:10:41:57.000 | COMMAND_SW       | CODISASX   | CMD_EVT  | "
+        "event=NSM, event_date=2021:296:10:41:57, msid=CODISASX, codisas1=129 , scs=0",
+        "2021:296:10:41:57.000 | COMMAND_SW       | CODISASX   | CMD_EVT  | "
+        "event=NSM, event_date=2021:296:10:41:57, msid=CODISASX, codisas1=130 , scs=0",
+        "2021:296:10:41:57.000 | COMMAND_SW       | CODISASX   | CMD_EVT  | "
+        "event=NSM, event_date=2021:296:10:41:57, msid=CODISASX, codisas1=131 , scs=0",
+        "2021:296:10:41:57.000 | COMMAND_SW       | CODISASX   | CMD_EVT  | "
+        "event=NSM, event_date=2021:296:10:41:57, msid=CODISASX, codisas1=132 , scs=0",
+        "2021:296:10:41:57.000 | COMMAND_SW       | CODISASX   | CMD_EVT  | "
+        "event=NSM, event_date=2021:296:10:41:57, msid=CODISASX, codisas1=133 , scs=0",
         "2021:296:10:41:57.000 | COMMAND_SW       | OORMPDS    | CMD_EVT  | "
         "event=NSM, event_date=2021:296:10:41:57, scs=0",
         "2021:296:10:41:58.025 | COMMAND_HW       | AFIDP      | CMD_EVT  | "
@@ -464,6 +492,8 @@ def test_get_cmds_nsm_2021(stop_date_2021_10_24):
         "event_type=EQF013M, scs=0",
         "2021:297:13:59:39.602 | ORBPOINT         | None       | OCT1821A | "
         "event_type=EEF1000, scs=0",
+        "2021:297:14:01:00.000 | LOAD_EVENT       | None       | OCT1821A | "
+        "event_type=SCHEDULED_STOP_TIME, scs=0",
     ]
     assert cmds.pformat_like_backstop(max_params_width=200) == exp
     commands_v2.clear_caches()
@@ -501,51 +531,44 @@ Date,Event,Params,Author,Comment
 
 def test_command_set_bsh():
     cmds = get_cmds_from_event("2000:001", "Bright star hold", "")
-    exp = [
-        "2000:001:00:00:00.000 | COMMAND_SW       | OORMPDS    | CMD_EVT  | "
-        "event=Bright_star_hold, event_date=2000:001:00:00:00, scs=0",
-        "2000:001:00:00:01.025 | COMMAND_HW       | AFIDP      | CMD_EVT  | "
-        "event=Bright_star_hold, event_date=2000:001:00:00:00, msid=AFLCRSET, scs=0",
-        "2000:001:00:00:01.025 | SIMTRANS         | None       | CMD_EVT  | "
-        "event=Bright_star_hold, event_date=2000:001:00:00:00, pos=-99616, scs=0",
-        "2000:001:00:01:06.685 | ACISPKT          | AA00000000 | CMD_EVT  | "
-        "event=Bright_star_hold, event_date=2000:001:00:00:00, scs=0",
-        "2000:001:00:01:07.710 | ACISPKT          | AA00000000 | CMD_EVT  | "
-        "event=Bright_star_hold, event_date=2000:001:00:00:00, scs=0",
-        "2000:001:00:01:17.960 | ACISPKT          | WSPOW00000 | CMD_EVT  | "
-        "event=Bright_star_hold, event_date=2000:001:00:00:00, scs=0",
-    ]
+    exp = """\
+2000:001:00:00:00.000 | COMMAND_SW       | CODISASX   | CMD_EVT  | event=Bright_star_hold, event_date=2000:001:00:00:00, msid=CODISASX, codisas1=128 , scs=0
+2000:001:00:00:00.000 | COMMAND_SW       | CODISASX   | CMD_EVT  | event=Bright_star_hold, event_date=2000:001:00:00:00, msid=CODISASX, codisas1=129 , scs=0
+2000:001:00:00:00.000 | COMMAND_SW       | CODISASX   | CMD_EVT  | event=Bright_star_hold, event_date=2000:001:00:00:00, msid=CODISASX, codisas1=130 , scs=0
+2000:001:00:00:00.000 | COMMAND_SW       | CODISASX   | CMD_EVT  | event=Bright_star_hold, event_date=2000:001:00:00:00, msid=CODISASX, codisas1=131 , scs=0
+2000:001:00:00:00.000 | COMMAND_SW       | CODISASX   | CMD_EVT  | event=Bright_star_hold, event_date=2000:001:00:00:00, msid=CODISASX, codisas1=132 , scs=0
+2000:001:00:00:00.000 | COMMAND_SW       | CODISASX   | CMD_EVT  | event=Bright_star_hold, event_date=2000:001:00:00:00, msid=CODISASX, codisas1=133 , scs=0
+2000:001:00:00:00.000 | COMMAND_SW       | OORMPDS    | CMD_EVT  | event=Bright_star_hold, event_date=2000:001:00:00:00, scs=0
+2000:001:00:00:01.025 | COMMAND_HW       | AFIDP      | CMD_EVT  | event=Bright_star_hold, event_date=2000:001:00:00:00, msid=AFLCRSET, scs=0
+2000:001:00:00:01.025 | SIMTRANS         | None       | CMD_EVT  | event=Bright_star_hold, event_date=2000:001:00:00:00, pos=-99616, scs=0
+2000:001:00:01:06.685 | ACISPKT          | AA00000000 | CMD_EVT  | event=Bright_star_hold, event_date=2000:001:00:00:00, scs=0
+2000:001:00:01:07.710 | ACISPKT          | AA00000000 | CMD_EVT  | event=Bright_star_hold, event_date=2000:001:00:00:00, scs=0
+2000:001:00:01:17.960 | ACISPKT          | WSPOW00000 | CMD_EVT  | event=Bright_star_hold, event_date=2000:001:00:00:00, scs=0"""  # noqa
 
-    assert cmds.pformat_like_backstop() == exp
+    assert cmds.pformat_like_backstop(max_params_width=None) == exp.splitlines()
     commands_v2.clear_caches()
 
 
 def test_command_set_safe_mode():
     cmds = get_cmds_from_event("2000:001", "Safe mode", "")
-    exp = [
-        "2000:001:00:00:00.000 | COMMAND_SW       | ACPCSFSU   | CMD_EVT  | "
-        "event=Safe_mode, event_date=2000:001:00:00:00, scs=0",
-        "2000:001:00:00:00.000 | COMMAND_SW       | CSELFMT5   | CMD_EVT  | "
-        "event=Safe_mode, event_date=2000:001:00:00:00, scs=0",
-        "2000:001:00:00:00.000 | COMMAND_SW       | AONSMSAF   | CMD_EVT  | "
-        "event=Safe_mode, event_date=2000:001:00:00:00, scs=0",
-        "2000:001:00:00:00.000 | COMMAND_SW       | OORMPDS    | CMD_EVT  | "
-        "event=Safe_mode, event_date=2000:001:00:00:00, scs=0",
-        "2000:001:00:00:01.025 | COMMAND_HW       | AFIDP      | CMD_EVT  | "
-        "event=Safe_mode, event_date=2000:001:00:00:00, msid=AFLCRSET, scs=0",
-        "2000:001:00:00:01.025 | SIMTRANS         | None       | CMD_EVT  | "
-        "event=Safe_mode, event_date=2000:001:00:00:00, pos=-99616, scs=0",
-        "2000:001:00:01:06.685 | ACISPKT          | AA00000000 | CMD_EVT  | "
-        "event=Safe_mode, event_date=2000:001:00:00:00, scs=0",
-        "2000:001:00:01:07.710 | ACISPKT          | AA00000000 | CMD_EVT  | "
-        "event=Safe_mode, event_date=2000:001:00:00:00, scs=0",
-        "2000:001:00:01:17.960 | ACISPKT          | WSPOW00000 | CMD_EVT  | "
-        "event=Safe_mode, event_date=2000:001:00:00:00, scs=0",
-        "2000:001:00:01:17.960 | COMMAND_SW       | AODSDITH   | CMD_EVT  | "
-        "event=Safe_mode, event_date=2000:001:00:00:00, scs=0",
-    ]
-
-    assert cmds.pformat_like_backstop() == exp
+    exp = """\
+2000:001:00:00:00.000 | COMMAND_SW       | ACPCSFSU   | CMD_EVT  | event=Safe_mode, event_date=2000:001:00:00:00, scs=0
+2000:001:00:00:00.000 | COMMAND_SW       | CSELFMT5   | CMD_EVT  | event=Safe_mode, event_date=2000:001:00:00:00, scs=0
+2000:001:00:00:00.000 | COMMAND_SW       | AONSMSAF   | CMD_EVT  | event=Safe_mode, event_date=2000:001:00:00:00, scs=0
+2000:001:00:00:00.000 | COMMAND_SW       | CODISASX   | CMD_EVT  | event=Safe_mode, event_date=2000:001:00:00:00, msid=CODISASX, codisas1=128 , scs=0
+2000:001:00:00:00.000 | COMMAND_SW       | CODISASX   | CMD_EVT  | event=Safe_mode, event_date=2000:001:00:00:00, msid=CODISASX, codisas1=129 , scs=0
+2000:001:00:00:00.000 | COMMAND_SW       | CODISASX   | CMD_EVT  | event=Safe_mode, event_date=2000:001:00:00:00, msid=CODISASX, codisas1=130 , scs=0
+2000:001:00:00:00.000 | COMMAND_SW       | CODISASX   | CMD_EVT  | event=Safe_mode, event_date=2000:001:00:00:00, msid=CODISASX, codisas1=131 , scs=0
+2000:001:00:00:00.000 | COMMAND_SW       | CODISASX   | CMD_EVT  | event=Safe_mode, event_date=2000:001:00:00:00, msid=CODISASX, codisas1=132 , scs=0
+2000:001:00:00:00.000 | COMMAND_SW       | CODISASX   | CMD_EVT  | event=Safe_mode, event_date=2000:001:00:00:00, msid=CODISASX, codisas1=133 , scs=0
+2000:001:00:00:00.000 | COMMAND_SW       | OORMPDS    | CMD_EVT  | event=Safe_mode, event_date=2000:001:00:00:00, scs=0
+2000:001:00:00:01.025 | COMMAND_HW       | AFIDP      | CMD_EVT  | event=Safe_mode, event_date=2000:001:00:00:00, msid=AFLCRSET, scs=0
+2000:001:00:00:01.025 | SIMTRANS         | None       | CMD_EVT  | event=Safe_mode, event_date=2000:001:00:00:00, pos=-99616, scs=0
+2000:001:00:01:06.685 | ACISPKT          | AA00000000 | CMD_EVT  | event=Safe_mode, event_date=2000:001:00:00:00, scs=0
+2000:001:00:01:07.710 | ACISPKT          | AA00000000 | CMD_EVT  | event=Safe_mode, event_date=2000:001:00:00:00, scs=0
+2000:001:00:01:17.960 | ACISPKT          | WSPOW00000 | CMD_EVT  | event=Safe_mode, event_date=2000:001:00:00:00, scs=0
+2000:001:00:01:17.960 | COMMAND_SW       | AODSDITH   | CMD_EVT  | event=Safe_mode, event_date=2000:001:00:00:00, scs=0"""  # noqa
+    assert cmds.pformat_like_backstop(max_params_width=None) == exp.splitlines()
     commands_v2.clear_caches()
 
 
@@ -580,6 +603,24 @@ Definitive,2020:337:00:00:00,Bright star hold,,Tom Aldcroft,
         "2020:336:21:55:23.061 | COMMAND_SW       | AOFUNCEN   | NOV3020A | "
         "hex=8030315, msid=AOFUNCEN, aopcadse=21 , scs=128",
         # BSH interrupt at 2020:337
+        "2020:337:00:00:00.000 | COMMAND_SW       | CODISASX   | CMD_EVT  | "
+        "event=Bright_star_hold, event_date=2020:337:00:00:00, msid=CODISASX, "
+        "codisas1=12",
+        "2020:337:00:00:00.000 | COMMAND_SW       | CODISASX   | CMD_EVT  | "
+        "event=Bright_star_hold, event_date=2020:337:00:00:00, msid=CODISASX, "
+        "codisas1=12",
+        "2020:337:00:00:00.000 | COMMAND_SW       | CODISASX   | CMD_EVT  | "
+        "event=Bright_star_hold, event_date=2020:337:00:00:00, msid=CODISASX, "
+        "codisas1=13",
+        "2020:337:00:00:00.000 | COMMAND_SW       | CODISASX   | CMD_EVT  | "
+        "event=Bright_star_hold, event_date=2020:337:00:00:00, msid=CODISASX, "
+        "codisas1=13",
+        "2020:337:00:00:00.000 | COMMAND_SW       | CODISASX   | CMD_EVT  | "
+        "event=Bright_star_hold, event_date=2020:337:00:00:00, msid=CODISASX, "
+        "codisas1=13",
+        "2020:337:00:00:00.000 | COMMAND_SW       | CODISASX   | CMD_EVT  | "
+        "event=Bright_star_hold, event_date=2020:337:00:00:00, msid=CODISASX, "
+        "codisas1=13",
         "2020:337:00:00:00.000 | COMMAND_SW       | OORMPDS    | CMD_EVT  | "
         "event=Bright_star_hold, event_date=2020:337:00:00:00, scs=0",
         "2020:337:00:00:01.025 | COMMAND_HW       | AFIDP      | CMD_EVT  | "
@@ -782,7 +823,7 @@ def test_get_starcats_date():
 
     Note: from https://icxc.harvard.edu//mp/mplogs/2006/DEC2506/oflsc/starcheck.html#obsid8008
     MP_STARCAT at 2007:002:04:31:43.965 (VCDU count = 7477935)
-    """
+    """  # noqa: E501
     sc = get_starcats(obsid=8008, scenario="flight")[0]
     obs = get_observations(obsid=8008, scenario="flight")[0]
     assert sc.date == obs["starcat_date"] == "2007:002:04:31:43.965"
@@ -792,8 +833,8 @@ def test_get_starcats_date():
 
 
 def test_get_starcats_by_date():
-    """Test that the getting a starcat using the starcat_date as argument returns the same catalog
-    as using the OBSID.
+    """Test that the getting a starcat using the starcat_date as argument
+    returns the same catalog as using the OBSID.
     """
     sc = get_starcats(obsid=8008, scenario="flight")[0]
     sc_by_date = get_starcats(starcat_date="2007:002:04:31:43.965", scenario="flight")[
@@ -861,8 +902,12 @@ cmd_events_all_text = """\
     """
 cmd_events_all = Table.read(cmd_events_all_text, format="ascii.csv")
 cmd_events_all_exps = [
-    None,
-    None,
+    [
+        "2020:001:00:00:00.000 | LOAD_EVENT       | None       | CMD_EVT  | event=Observing_not_run, event_date=2020:001:00:00:00, event_type=OBSERVING_NOT_RUN, load=FEB1422A, scs=0"  # noqa
+    ],
+    [
+        "2020:001:00:00:00.000 | LOAD_EVENT       | None       | CMD_EVT  | event=Load_not_run, event_date=2020:001:00:00:00, event_type=LOAD_NOT_RUN, load=OCT2521A, scs=0"  # noqa
+    ],
     [
         "2020:001:00:00:00.000 | ACISPKT          | AA00000000 | CMD_EVT  | event=Command, event_date=2020:001:00:00:00, scs=0"  # noqa
     ],
@@ -902,6 +947,12 @@ cmd_events_all_exps = [
         "2020:001:00:00:00.000 | COMMAND_SW       | ACPCSFSU   | CMD_EVT  | event=Safe_mode, event_date=2020:001:00:00:00, scs=0",  # noqa
         "2020:001:00:00:00.000 | COMMAND_SW       | CSELFMT5   | CMD_EVT  | event=Safe_mode, event_date=2020:001:00:00:00, scs=0",  # noqa
         "2020:001:00:00:00.000 | COMMAND_SW       | AONSMSAF   | CMD_EVT  | event=Safe_mode, event_date=2020:001:00:00:00, scs=0",  # noqa
+        "2020:001:00:00:00.000 | COMMAND_SW       | CODISASX   | CMD_EVT  | event=Safe_mode, event_date=2020:001:00:00:00, msid=CODISASX, codisas1=128 , scs=0",  # noqa
+        "2020:001:00:00:00.000 | COMMAND_SW       | CODISASX   | CMD_EVT  | event=Safe_mode, event_date=2020:001:00:00:00, msid=CODISASX, codisas1=129 , scs=0",  # noqa
+        "2020:001:00:00:00.000 | COMMAND_SW       | CODISASX   | CMD_EVT  | event=Safe_mode, event_date=2020:001:00:00:00, msid=CODISASX, codisas1=130 , scs=0",  # noqa
+        "2020:001:00:00:00.000 | COMMAND_SW       | CODISASX   | CMD_EVT  | event=Safe_mode, event_date=2020:001:00:00:00, msid=CODISASX, codisas1=131 , scs=0",  # noqa
+        "2020:001:00:00:00.000 | COMMAND_SW       | CODISASX   | CMD_EVT  | event=Safe_mode, event_date=2020:001:00:00:00, msid=CODISASX, codisas1=132 , scs=0",  # noqa
+        "2020:001:00:00:00.000 | COMMAND_SW       | CODISASX   | CMD_EVT  | event=Safe_mode, event_date=2020:001:00:00:00, msid=CODISASX, codisas1=133 , scs=0",  # noqa
         "2020:001:00:00:00.000 | COMMAND_SW       | OORMPDS    | CMD_EVT  | event=Safe_mode, event_date=2020:001:00:00:00, scs=0",  # noqa
         "2020:001:00:00:01.025 | COMMAND_HW       | AFIDP      | CMD_EVT  | event=Safe_mode, event_date=2020:001:00:00:00, msid=AFLCRSET, scs=0",  # noqa
         "2020:001:00:00:01.025 | SIMTRANS         | None       | CMD_EVT  | event=Safe_mode, event_date=2020:001:00:00:00, pos=-99616, scs=0",  # noqa
@@ -912,6 +963,12 @@ cmd_events_all_exps = [
     ],  # noqa
     [
         "2020:001:00:00:00.000 | COMMAND_SW       | AONSMSAF   | CMD_EVT  | event=NSM, event_date=2020:001:00:00:00, scs=0",  # noqa
+        "2020:001:00:00:00.000 | COMMAND_SW       | CODISASX   | CMD_EVT  | event=NSM, event_date=2020:001:00:00:00, msid=CODISASX, codisas1=128 , scs=0",  # noqa
+        "2020:001:00:00:00.000 | COMMAND_SW       | CODISASX   | CMD_EVT  | event=NSM, event_date=2020:001:00:00:00, msid=CODISASX, codisas1=129 , scs=0",  # noqa
+        "2020:001:00:00:00.000 | COMMAND_SW       | CODISASX   | CMD_EVT  | event=NSM, event_date=2020:001:00:00:00, msid=CODISASX, codisas1=130 , scs=0",  # noqa
+        "2020:001:00:00:00.000 | COMMAND_SW       | CODISASX   | CMD_EVT  | event=NSM, event_date=2020:001:00:00:00, msid=CODISASX, codisas1=131 , scs=0",  # noqa
+        "2020:001:00:00:00.000 | COMMAND_SW       | CODISASX   | CMD_EVT  | event=NSM, event_date=2020:001:00:00:00, msid=CODISASX, codisas1=132 , scs=0",  # noqa
+        "2020:001:00:00:00.000 | COMMAND_SW       | CODISASX   | CMD_EVT  | event=NSM, event_date=2020:001:00:00:00, msid=CODISASX, codisas1=133 , scs=0",  # noqa
         "2020:001:00:00:00.000 | COMMAND_SW       | OORMPDS    | CMD_EVT  | event=NSM, event_date=2020:001:00:00:00, scs=0",  # noqa
         "2020:001:00:00:01.025 | COMMAND_HW       | AFIDP      | CMD_EVT  | event=NSM, event_date=2020:001:00:00:00, msid=AFLCRSET, scs=0",  # noqa
         "2020:001:00:00:01.025 | SIMTRANS         | None       | CMD_EVT  | event=NSM, event_date=2020:001:00:00:00, pos=-99616, scs=0",  # noqa
@@ -921,6 +978,9 @@ cmd_events_all_exps = [
         "2020:001:00:01:17.960 | COMMAND_SW       | AODSDITH   | CMD_EVT  | event=NSM, event_date=2020:001:00:00:00, scs=0",  # noqa
     ],  # noqa
     [
+        "2020:001:00:00:00.000 | COMMAND_SW       | CODISASX   | CMD_EVT  | event=SCS-107, event_date=2020:001:00:00:00, msid=CODISASX, codisas1=131 , scs=0",  # noqa
+        "2020:001:00:00:00.000 | COMMAND_SW       | CODISASX   | CMD_EVT  | event=SCS-107, event_date=2020:001:00:00:00, msid=CODISASX, codisas1=132 , scs=0",  # noqa
+        "2020:001:00:00:00.000 | COMMAND_SW       | CODISASX   | CMD_EVT  | event=SCS-107, event_date=2020:001:00:00:00, msid=CODISASX, codisas1=133 , scs=0",  # noqa
         "2020:001:00:00:00.000 | COMMAND_SW       | OORMPDS    | CMD_EVT  | event=SCS-107, event_date=2020:001:00:00:00, scs=0",  # noqa
         "2020:001:00:00:01.025 | COMMAND_HW       | AFIDP      | CMD_EVT  | event=SCS-107, event_date=2020:001:00:00:00, msid=AFLCRSET, scs=0",  # noqa
         "2020:001:00:00:01.025 | SIMTRANS         | None       | CMD_EVT  | event=SCS-107, event_date=2020:001:00:00:00, pos=-99616, scs=0",  # noqa
@@ -929,6 +989,12 @@ cmd_events_all_exps = [
         "2020:001:00:01:17.960 | ACISPKT          | WSPOW00000 | CMD_EVT  | event=SCS-107, event_date=2020:001:00:00:00, scs=0",  # noqa
     ],  # noqa
     [
+        "2020:001:00:00:00.000 | COMMAND_SW       | CODISASX   | CMD_EVT  | event=Bright_star_hold, event_date=2020:001:00:00:00, msid=CODISASX, codisas1=128 , scs=0",  # noqa
+        "2020:001:00:00:00.000 | COMMAND_SW       | CODISASX   | CMD_EVT  | event=Bright_star_hold, event_date=2020:001:00:00:00, msid=CODISASX, codisas1=129 , scs=0",  # noqa
+        "2020:001:00:00:00.000 | COMMAND_SW       | CODISASX   | CMD_EVT  | event=Bright_star_hold, event_date=2020:001:00:00:00, msid=CODISASX, codisas1=130 , scs=0",  # noqa
+        "2020:001:00:00:00.000 | COMMAND_SW       | CODISASX   | CMD_EVT  | event=Bright_star_hold, event_date=2020:001:00:00:00, msid=CODISASX, codisas1=131 , scs=0",  # noqa
+        "2020:001:00:00:00.000 | COMMAND_SW       | CODISASX   | CMD_EVT  | event=Bright_star_hold, event_date=2020:001:00:00:00, msid=CODISASX, codisas1=132 , scs=0",  # noqa
+        "2020:001:00:00:00.000 | COMMAND_SW       | CODISASX   | CMD_EVT  | event=Bright_star_hold, event_date=2020:001:00:00:00, msid=CODISASX, codisas1=133 , scs=0",  # noqa
         "2020:001:00:00:00.000 | COMMAND_SW       | OORMPDS    | CMD_EVT  | event=Bright_star_hold, event_date=2020:001:00:00:00, scs=0",  # noqa
         "2020:001:00:00:01.025 | COMMAND_HW       | AFIDP      | CMD_EVT  | event=Bright_star_hold, event_date=2020:001:00:00:00, msid=AFLCRSET, scs=0",  # noqa
         "2020:001:00:00:01.025 | SIMTRANS         | None       | CMD_EVT  | event=Bright_star_hold, event_date=2020:001:00:00:00, pos=-99616, scs=0",  # noqa
@@ -1001,7 +1067,14 @@ def test_scenario_with_rts(monkeypatch):
 2021:296:10:35:00.771 | COMMAND_HW       | CTXBOF     | OCT1821A | msid=CTXBOF, scs=128
 2021:296:10:35:01.028 | COMMAND_HW       | CPABON     | OCT1821A | msid=CPABON, scs=128
 2021:296:10:35:01.285 | COMMAND_HW       | CTXBON     | OCT1821A | msid=CTXBON, scs=128
+2021:296:10:41:57.000 | LOAD_EVENT       | None       | CMD_EVT  | event=Load_not_run, event_date=2021:296:10:41:57, event_type
 2021:296:10:41:57.000 | COMMAND_SW       | AONSMSAF   | CMD_EVT  | event=NSM, event_date=2021:296:10:41:57, scs=0
+2021:296:10:41:57.000 | COMMAND_SW       | CODISASX   | CMD_EVT  | event=NSM, event_date=2021:296:10:41:57, msid=CODISASX, codi
+2021:296:10:41:57.000 | COMMAND_SW       | CODISASX   | CMD_EVT  | event=NSM, event_date=2021:296:10:41:57, msid=CODISASX, codi
+2021:296:10:41:57.000 | COMMAND_SW       | CODISASX   | CMD_EVT  | event=NSM, event_date=2021:296:10:41:57, msid=CODISASX, codi
+2021:296:10:41:57.000 | COMMAND_SW       | CODISASX   | CMD_EVT  | event=NSM, event_date=2021:296:10:41:57, msid=CODISASX, codi
+2021:296:10:41:57.000 | COMMAND_SW       | CODISASX   | CMD_EVT  | event=NSM, event_date=2021:296:10:41:57, msid=CODISASX, codi
+2021:296:10:41:57.000 | COMMAND_SW       | CODISASX   | CMD_EVT  | event=NSM, event_date=2021:296:10:41:57, msid=CODISASX, codi
 2021:296:10:41:57.000 | COMMAND_SW       | OORMPDS    | CMD_EVT  | event=NSM, event_date=2021:296:10:41:57, scs=0
 2021:296:10:41:58.025 | COMMAND_HW       | AFIDP      | CMD_EVT  | event=NSM, event_date=2021:296:10:41:57, msid=AFLCRSET, scs=
 2021:296:10:41:58.025 | SIMTRANS         | None       | CMD_EVT  | event=NSM, event_date=2021:296:10:41:57, pos=-99616, scs=0
@@ -1034,6 +1107,7 @@ def test_scenario_with_rts(monkeypatch):
 2021:297:13:01:35.000 | ACISPKT          | RS_0000001 | CMD_EVT  | event=RTS, event_date=2021:297:13:00:00, scs=135
 2021:297:13:01:39.000 | ACISPKT          | RH_0000001 | CMD_EVT  | event=RTS, event_date=2021:297:13:00:00, scs=135
 2021:297:13:59:39.602 | ORBPOINT         | None       | OCT2521A | event_type=EEF1000, scs=0
+2021:297:14:01:00.000 | LOAD_EVENT       | None       | OCT1821A | event_type=SCHEDULED_STOP_TIME, scs=0
 2021:297:14:37:39.602 | ORBPOINT         | None       | OCT2521A | event_type=EPF1000, scs=0
 2021:297:15:01:42.681 | ORBPOINT         | None       | OCT2521A | event_type=EALT0, scs=0
 2021:297:15:01:43.574 | ORBPOINT         | None       | OCT2521A | event_type=XALT0, scs=0
@@ -1047,6 +1121,9 @@ def test_scenario_with_rts(monkeypatch):
 2021:297:23:00:42.886 | ORBPOINT         | None       | OCT2521A | event_type=XQF005M, scs=0
 2021:298:00:12:42.886 | ORBPOINT         | None       | OCT2521A | event_type=XQF003M, scs=0
 2021:298:00:12:42.886 | ORBPOINT         | None       | OCT2521A | event_type=XQF013M, scs=0
+2021:298:01:01:39.000 | COMMAND_HW       | 2S2HVOF    | CMD_EVT  | event=RTS, event_date=2021:297:13:00:00, msid=2S2HVOF, scs=1
+2021:298:01:01:39.000 | COMMAND_SW       | OORMPDS    | CMD_EVT  | event=RTS, event_date=2021:297:13:00:00, msid=OORMPDS, scs=1
+2021:298:01:01:40.000 | COMMAND_HW       | 2S2STHV    | CMD_EVT  | event=RTS, event_date=2021:297:13:00:00, 2s2sthv2=0 , msid=2
 2021:298:01:57:00.000 | LOAD_EVENT       | None       | OCT2521B | event_type=RUNNING_LOAD_TERMINATION_TIME, scs=0
 2021:298:01:57:00.000 | COMMAND_SW       | AOACRSTD   | OCT2521B | msid=AOACRSTD, scs=128
 2021:298:01:57:00.000 | ACISPKT          | AA00000000 | OCT2521B | cmds=3, words=3, scs=131
@@ -1062,4 +1139,33 @@ def test_scenario_with_rts(monkeypatch):
     # TODO: (someday?) instead of the RLTT notice the disable SCS 135 command
     # CODISASX.
     ok = cmds["event"] == "RTS"
-    assert np.count_nonzero(ok) == 11
+    assert np.count_nonzero(ok) == 14
+
+
+stop_date_2022_236 = stop_date_fixture_factory("2022:236")
+
+
+@pytest.mark.skipif(not HAS_INTERNET, reason="No internet connection")
+def test_no_rltt_for_not_run_load(stop_date_2022_236):
+    """The AUG2122A loads were never run but they contain an RLTT that had been
+    stopping the 2022:232:03:09 ACIS ECS that was previously running. This tests
+    the fix.
+    """
+    exp = [
+        "         date           tlmsid   scs",
+        "--------------------- ---------- ---",
+        "2022:232:03:09:00.000 AA00000000 135",
+        "2022:232:03:09:04.000 WSPOW00000 135",
+        "2022:232:03:09:28.000 WSPOW08E1E 135",
+        "2022:232:03:10:31.000 WT00C62014 135",
+        "2022:232:03:10:35.000 XTZ0000005 135",
+        "2022:232:03:10:39.000 RS_0000001 135",
+        "2022:232:03:10:43.000 RH_0000001 135",
+        "2022:233:18:10:43.000 AA00000000 135",  # <== After the AUG2122A RLTT
+        "2022:233:18:10:53.000 AA00000000 135",
+        "2022:233:18:10:57.000 WSPOW0002A 135",
+        "2022:233:18:12:00.000 RS_0000001 135",
+    ]
+    cmds = commands_v2.get_cmds("2022:232:03:00:00", "2022:233:18:30:00")
+    cmds = cmds[cmds["type"] == "ACISPKT"]
+    assert cmds["date", "tlmsid", "scs"].pformat() == exp

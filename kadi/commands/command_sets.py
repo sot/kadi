@@ -59,6 +59,16 @@ def cmd_set_aciscti(date=None):
     )
 
 
+def cmd_set_end_vehicle(date=None):
+    cmds = cmd_set_end_scs(128) + cmd_set_end_scs(129) + cmd_set_end_scs(130)
+    return cmds
+
+
+def cmd_set_end_observing(date=None):
+    cmds = cmd_set_end_scs(131) + cmd_set_end_scs(132) + cmd_set_end_scs(133)
+    return cmds
+
+
 def cmd_set_scs107(date=None):
     # SCS-106 (which is called by 107) was patched around 2021-Jun-08
     if date is not None and date > CxoTime("2021-06-08").date:
@@ -66,7 +76,8 @@ def cmd_set_scs107(date=None):
     else:
         pow_cmd = "WSPOW00000"  # 0-FEPS
 
-    return (
+    cmds = cmd_set_end_observing()
+    cmds += (
         dict(type="COMMAND_SW", dur=1.025, tlmsid="OORMPDS"),
         dict(
             type="COMMAND_HW",
@@ -79,6 +90,7 @@ def cmd_set_scs107(date=None):
         dict(type="ACISPKT", tlmsid="AA00000000", dur=10.25),
         dict(type="ACISPKT", tlmsid=pow_cmd),
     )
+    return cmds
 
 
 def cmd_set_dither(state, date=None):
@@ -94,13 +106,19 @@ def cmd_set_dither(state, date=None):
 
 
 def cmd_set_bright_star_hold(date=None):
-    out = cmd_set_scs107(date=date)
+    out = cmd_set_end_vehicle()
+    out += cmd_set_scs107(date=date)
     return out
 
 
 def cmd_set_nsm(date=None):
     nsm_cmd = dict(type="COMMAND_SW", tlmsid="AONSMSAF")
-    out = (nsm_cmd,) + cmd_set_scs107(date=date) + cmd_set_dither("OFF", date=date)
+    out = (nsm_cmd,)
+    out += cmd_set_end_vehicle()
+    out += cmd_set_scs107(date=date)
+    # Disable dither. Looking at a few NSMs this seems to be the case, but
+    # not for the 2022:232:18:36 NSM from a CTU reset. ??
+    out += cmd_set_dither("OFF", date=date)
     return out
 
 
@@ -118,11 +136,19 @@ def cmd_set_safe_mode(date=None):
 
 
 def cmd_set_load_not_run(load_name, date=None):
-    return None
+    cmd = {
+        "type": "LOAD_EVENT",
+        "params": {"EVENT_TYPE": "LOAD_NOT_RUN", "LOAD": load_name},
+    }
+    return (cmd,)
 
 
 def cmd_set_observing_not_run(load_name, date=None):
-    return None
+    cmd = {
+        "type": "LOAD_EVENT",
+        "params": {"EVENT_TYPE": "OBSERVING_NOT_RUN", "LOAD": load_name},
+    }
+    return (cmd,)
 
 
 def cmd_set_command(*args, date=None):
@@ -143,6 +169,15 @@ def cmd_set_command(*args, date=None):
             params[key] = coerce_type(val)
     cmd["params"] = params
 
+    return (cmd,)
+
+
+def cmd_set_end_scs(*args, date=None):
+    cmd = {"type": "COMMAND_SW", "tlmsid": "CODISASX"}
+    cmd["params"] = {
+        "MSID": "CODISASX",
+        "CODISAS1": args[0],
+    }
     return (cmd,)
 
 
@@ -167,9 +202,7 @@ def get_cmds_from_event(date, event, params_str):
         raise ValueError(f"unknown event {event!r}")
 
     if isinstance(params_str, str):
-        if event == "RTS":
-            args = [params_str]
-        elif event in ("Command", "Command not run"):
+        if event in ("RTS", "Command", "Command not run"):
             # Delegate parsing to cmd_set_command
             args = [params_str]
         else:

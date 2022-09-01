@@ -63,7 +63,7 @@ def load_idx_cmds(version=None, file=None):
          ...
         File "H5FDsec2.c", line 941, in H5FD_sec2_lock
         unable to lock file, errno = 11, error message = 'Resource temporarily unavailable'
-    """
+    """  # noqa: E501
     if file is None:
         file = IDX_CMDS_PATH(version)
     with tables.open_file(file, mode="r") as h5:
@@ -530,7 +530,7 @@ class CommandTable(Table):
             ):
                 return cmd["date"]
         else:
-            raise ValueError(f"No RLTT found")
+            return None
 
     def get_scheduled_stop_time(self):
         for idx in range(len(self), 0, -1):
@@ -541,7 +541,7 @@ class CommandTable(Table):
             ):
                 return cmd["date"]
         else:
-            raise ValueError(f"No scheduled stop time found")
+            return None
 
     def add_cmds(self, cmds, rltt=None):
         """
@@ -645,7 +645,8 @@ class CommandTable(Table):
         :param show_nonload_meta: bool, optional
             Show event and event_date for non-load commands (default=True)
         :param sort_orbit_events: bool, optional
-            Sort orbit events at same date by event_type (default=False, mostly for testing)
+            Sort orbit events at same date by event_type (default=False, mostly
+            for testing)
         :param max_params_width: int, optional
             Maximum width of parameter values string (default=80)
         :returns: list of lines
@@ -737,7 +738,8 @@ class CommandTable(Table):
         :param show_nonload_meta: bool, optional
             Show event and event_date for non-load commands (default=True)
         :param sort_orbit_events: bool, optional
-            Sort orbit events at same date by event_type (default=False, mostly for testing)
+            Sort orbit events at same date by event_type (default=False, mostly
+            for testing)
         :param max_params_width: int, optional
             Maximum width of parameter values string (default=80)
         :returns: list of lines
@@ -776,9 +778,9 @@ class CommandTable(Table):
                 cmd["params"]["event_type"] == last_cmd["params"]["event_type"]
                 and abs(cmd["time"] - last_cmd["time"]) < 180
             ):
-                # Same event as last (even if date is a bit different).  Now if this one
-                # has a larger timeline_id that means it is from a more recent schedule, so
-                # use that one.
+                # Same event as last (even if date is a bit different).  Now if
+                # this one has a larger timeline_id that means it is from a more
+                # recent schedule, so use that one.
                 load_date = load_name_to_cxotime(cmd["source"])
                 load_date_last = load_name_to_cxotime(last_cmd["source"])
                 if load_date > load_date_last:
