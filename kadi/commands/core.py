@@ -140,7 +140,7 @@ def read_backstop(backstop):
     return get_cmds_from_backstop(backstop)
 
 
-def get_cmds_from_backstop(backstop, remove_starcat=False):
+def get_cmds_from_backstop(backstop, remove_starcat=False) -> "CommandTable":
     """
     Initialize a ``CommandTable`` from ``backstop``, which can either
     be a string file name or a backstop table from ``parse_cm.read_backstop``.
@@ -522,7 +522,7 @@ class CommandTable(Table):
             cmd["params"]
 
     def get_rltt(self):
-        # Find the RLTT, which should be near the start of the table.
+        """Find the RLTT, which should be near the start of the table."""
         for cmd in self:
             if (
                 cmd["type"] == "LOAD_EVENT"
