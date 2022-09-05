@@ -992,16 +992,27 @@ def get_load_cmds_from_occweb_or_local(
 
     else:  # use OCCweb
         load_dir_contents = occweb.get_occweb_dir(dir_year_month / load_name)
+        # Allow inconsistent backstop naming in 1999 and 2000 but strict later
+        backstop_re = (
+            r"C[RMI]{0,2}\d{3}[._:]\d{3,4}\.backstop"
+            if load_name[5:7] in ("99", "00")
+            else r"CR\d{3}_\d{4}\.backstop"
+        )
         for filename in load_dir_contents["Name"]:
-            if re.match(r"CR\d{3}.\d{4}\.backstop", filename):
+            if re.match(backstop_re, filename):
 
                 # Download the backstop file from OCCweb
                 backstop_text = occweb.get_occweb_page(
                     dir_year_month / load_name / filename,
                     cache=conf.cache_loads_in_astropy_cache,
                 )
-                cmds = parse_backstop_and_write(load_name, cmds_filename, backstop_text)
-                break
+                # In early-mission data there is at least one case of an empty
+                # backstop file, which we just ignore.
+                if len(backstop_text) > 0:
+                    cmds = parse_backstop_and_write(
+                        load_name, cmds_filename, backstop_text
+                    )
+                    break
         else:
             raise ValueError(
                 f"Could not find backstop file in {dir_year_month / load_name}"
@@ -1019,6 +1030,10 @@ def parse_backstop_and_write(load_name, cmds_filename, backstop_text):
     backstop_lines = backstop_text.splitlines()
     cmds = get_cmds_from_backstop(backstop_lines)
 
+    cmd_rltt = cmds.get_rltt()
+    if cmd_rltt is None:
+        add_rltt_to_cmds(load_name, cmds)
+
     # Fix up the commands to be in the right format
     idx = cmds.colnames.index("timeline_id")
     cmds.add_column(load_name, index=idx, name="source")
@@ -1028,6 +1043,33 @@ def parse_backstop_and_write(load_name, cmds_filename, backstop_text):
     with gzip.open(cmds_filename, "wb") as fh:
         pickle.dump(cmds, fh)
     return cmds
+
+
+def add_rltt_to_cmds(load_name: str, cmds: "CommandTable"):
+    if cmds["tlmsid"][0] == "AOACRSTD":
+        # Common case of starting load with a maneuver with a -3 minute delta
+        # for initial AOACRSTD command relative to nominal command load start
+        # corresponding to the Running Load Termination Time.
+        date_rltt = (CxoTime(cmds["date"][0]) + 3 * u.min).date
+    else:
+        # Otherwise use the date of the first command
+        date_rltt = cmds["date"][0]
+    logger.warning(f"No RLTT command found in {load_name} adding at {date_rltt}")
+
+    cmd_rltt = {
+        "idx": -1,
+        "date": date_rltt,
+        "type": "LOAD_EVENT",
+        "tlmsid": "None",
+        "scs": 0,
+        "step": 0,
+        "time": CxoTime(date_rltt).secs,
+        "timeline_id": 0,
+        "vcdu": -1,
+        "params": {"event_type": "RUNNING_LOAD_TERMINATION_TIME"},
+    }
+    cmds.insert_row(index=0, vals=cmd_rltt)
+    cmds.sort_in_backstop_order()
 
 
 def update_cmds_archive(
