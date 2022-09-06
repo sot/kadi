@@ -6,6 +6,7 @@ import os
 import pickle
 from pathlib import Path
 
+import astropy.units as u
 import numpy as np
 import Ska.DBI
 from astropy.table import Column, Table, vstack
@@ -20,17 +21,21 @@ from kadi.commands.commands_v2 import (
 from kadi.commands.core import (
     get_cmds_from_backstop,
     get_par_idx_update_pars_dict,
+    load_name_to_cxotime,
     ska_load_dir,
 )
 
-logger.setLevel(1)
+logger.setLevel("DEBUG")
 
 
 SKA = Path(os.environ["SKA"])
 CMD_STATES_PATH = SKA / "data" / "cmd_states" / "cmd_states.db3"
 
+# V2 commands start with this load
+LOAD_NAME_V2_START = "APR2020A"
 
-CMDS_V2_START = "APR2020A"
+# APR1420B was the first load set to have RLTT (backstop 6.9)
+LOAD_NAME_RLTT_ERA_START = "APR1420B"
 
 
 def make_cmds2(start=None, stop=None, step=100):
@@ -53,18 +58,29 @@ def make_cmds2(start=None, stop=None, step=100):
     """
     migrate_cmds1_to_cmds2(start)
 
+    # Do not go back before RLTT loads
+    DATE_MIN = load_name_to_cxotime(LOAD_NAME_RLTT_ERA_START) - 0.5 * u.day
+
+    def get_lookback(date):
+        lookback = step + 30
+        if date - lookback * u.day < DATE_MIN:
+            lookback = (date - DATE_MIN).to_value(u.day)
+        return lookback
+
     # Start the V2 updates a week and a day after CMDS_V2_START
-    date = CxoTime("2020-04-28")
+    date = load_name_to_cxotime(LOAD_NAME_V2_START) + 8 * u.day
+
     stop = CxoTime(stop)
     while date < stop:
+        lookback = get_lookback(date)
         logger.info("*" * 80)
-        logger.info(f"Updating cmds2 to {date}")
+        logger.info(f"Updating cmds2 to {date} with lookback {lookback} days")
         logger.info("*" * 80)
-        update_cmds_archive(stop=date, lookback=step + 30)
+        update_cmds_archive(stop=date, lookback=lookback)
         date += step
 
     # Final catchup to `stop`
-    update_cmds_archive(stop=stop, lookback=step + 30)
+    update_cmds_archive(stop=stop, lookback=get_lookback(stop))
 
 
 def migrate_cmds1_to_cmds2(start=None):
@@ -168,7 +184,7 @@ def migrate_cmds1_to_cmds2(start=None):
         else:
             raise ValueError(f"Expected 1 AOSTRCAT cmd for {cmd}")
 
-    idx_stop = np.flatnonzero(cmds["source"] == CMDS_V2_START)[0]
+    idx_stop = np.flatnonzero(cmds["source"] == LOAD_NAME_V2_START)[0]
     cmds = cmds[:idx_stop]
 
     print("Adding obsid commands")

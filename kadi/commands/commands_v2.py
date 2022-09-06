@@ -61,9 +61,6 @@ REV_PARS_DICT = LazyVal(lambda: {v: k for k, v in PARS_DICT.items()})
 CMDS_RECENT = {}
 MATCHING_BLOCKS = {}
 
-# APR1420B was the first load set to have RLTT (backstop 6.9)
-RLTT_ERA_START = CxoTime("2020-04-14")
-
 HAS_INTERNET = has_internet()
 
 logger = logging.getLogger(__name__)
@@ -914,12 +911,6 @@ def update_loads(scenario=None, *, cmd_events=None, lookback=None, stop=None) ->
             if re.match(r"[A-Z]{3}\d{4}[A-Z]/", content["Name"]):
                 load_name = content["Name"][:8]  # chop the /
                 load_date = load_name_to_cxotime(load_name)
-                if load_date < RLTT_ERA_START:
-                    logger.warning(
-                        f"Skipping {load_name} which is before "
-                        f"{RLTT_ERA_START} start of RLTT era"
-                    )
-                    continue
                 if load_date >= start and load_date <= stop:
                     cmds = get_load_cmds_from_occweb_or_local(dir_year_month, load_name)
                     load = {
