@@ -2,6 +2,7 @@
 """Functions to migrate from the V1 cmds archive to V2.
 """
 
+import logging
 import os
 import pickle
 from pathlib import Path
@@ -27,18 +28,33 @@ from kadi.commands.core import (
 
 logger.setLevel("DEBUG")
 
+# Log to file as well as stdout
+fmt = logging.Formatter("%(asctime)s %(funcName)s: %(message)s", datefmt=None)
+hdlr = logging.FileHandler("migrate_cmds.log", mode="w")
+hdlr.setFormatter(fmt)
+logger.addHandler(hdlr)
+
 
 SKA = Path(os.environ["SKA"])
 CMD_STATES_PATH = SKA / "data" / "cmd_states" / "cmd_states.db3"
 
-# V2 commands start with this load
+# V1, V2 commands start with these loads
+LOAD_NAME_MISSION_START = "NOV2899D"
+LOAD_NAME_V1_START = "JAN0702D"
 LOAD_NAME_V2_START = "APR2020A"
 
 # APR1420B was the first load set to have RLTT (backstop 6.9)
 LOAD_NAME_RLTT_ERA_START = "APR1420B"
 
 
-def make_cmds2(start=None, stop=None, step=100):
+def get_lookback(date, step, date_min):
+    lookback = step + 30
+    if date - lookback * u.day < date_min:
+        lookback = (date - date_min).to_value(u.day)
+    return lookback
+
+
+def make_cmds2(start=None, stop=None, step=100, add_pre2002=True):
     """Make initial cmds2.h5 and cmds2.pkl between ``start`` and ``stop``.
 
     This first converts the v1 archive to v2 format up through CMDS_V2_START.
@@ -47,32 +63,35 @@ def make_cmds2(start=None, stop=None, step=100):
     Running with the default step of one year is efficient. For testing it can
     be useful to run with a step size of 7 days to simulate weekly updates.
 
-    Example in ipython::
+    Example in ipython running from this directory. The output is cmds2.h5 and
+    cmds2.pkl in the current directory.
 
       # Optional setup for speed if doing this repeatedly
+      $ env PYTHONPATH=$PWD/.. ipython
       >>> from kadi.commands import conf
       >>> conf.cache_loads_in_astropy_cache = True
 
-      >>> %run -i utils/migrate_cmds_to_cmds2.py
+      >>> %run -i migrate_cmds_to_cmds2
       >>> make_cmds2()
     """
-    migrate_cmds1_to_cmds2(start)
+    migrate_cmds1_to_cmds2(start, stop)
+
+    if start is None and add_pre2002:
+        add_pre2002_cmds()
 
     # Do not go back before RLTT loads
-    DATE_MIN = load_name_to_cxotime(LOAD_NAME_RLTT_ERA_START) - 0.5 * u.day
-
-    def get_lookback(date):
-        lookback = step + 30
-        if date - lookback * u.day < DATE_MIN:
-            lookback = (date - DATE_MIN).to_value(u.day)
-        return lookback
+    date_min = load_name_to_cxotime(LOAD_NAME_RLTT_ERA_START) - 0.5 * u.day
 
     # Start the V2 updates a week and a day after CMDS_V2_START
     date = load_name_to_cxotime(LOAD_NAME_V2_START) + 8 * u.day
 
     stop = CxoTime(stop)
+    if date >= stop:
+        # Nothing to do
+        return
+
     while date < stop:
-        lookback = get_lookback(date)
+        lookback = get_lookback(date, step, date_min)
         logger.info("*" * 80)
         logger.info(f"Updating cmds2 to {date} with lookback {lookback} days")
         logger.info("*" * 80)
@@ -80,10 +99,30 @@ def make_cmds2(start=None, stop=None, step=100):
         date += step
 
     # Final catchup to `stop`
-    update_cmds_archive(stop=stop, lookback=get_lookback(stop))
+    update_cmds_archive(stop=stop, lookback=get_lookback(stop, step, date_min))
 
 
-def migrate_cmds1_to_cmds2(start=None):
+def add_pre2002_cmds():
+    """Add pre-2002 commands to the archive.
+
+    This is a one-time thing to add the pre-2002 commands to the archive.
+
+    The update is done in one big step because the match_prev_cmds logic
+    works best that way.
+    """
+    # Update from start of mission to the first V1 load
+    stop = load_name_to_cxotime(LOAD_NAME_V1_START) - 0.5 * u.day
+    start = load_name_to_cxotime(LOAD_NAME_MISSION_START) - 5 * u.day
+    lookback = (stop - start).to_value(u.day)
+    logger.info("*" * 80)
+    logger.info(f"Updating pre-2002 cmds2 {start} to {stop}")
+    logger.info("*" * 80)
+    update_cmds_archive(
+        stop=stop, lookback=lookback, match_prev_cmds=False, scenario="pre2002"
+    )
+
+
+def migrate_cmds1_to_cmds2(start=None, stop=None):
     """Migrate the legacy cmds.h5 through APR1320A to the new cmds2.h5 format.
 
     Key updates:
@@ -105,15 +144,17 @@ def migrate_cmds1_to_cmds2(start=None):
 
     After this running the ``update_cmds_archive`` command as normal will work.
 
-    :param start: CxoTime-like, None
+    :param start: CxoTime-like, None => start of available commands
         Start date in existing loads to start at. Used in debugging.
+    :param stop: CxoTime-like, None => end of available commands
+        Stop date in existing loads to stop at. Used in debugging.
     """
     # Load V1 cmds, being explicit about the file in case KADI is set for testing.
     if "KADI" in os.environ:
         raise ValueError("Cannot have KADI environment variable set")
     from kadi.commands import commands_v1
 
-    cmds = commands_v1.get_cmds(start)
+    cmds = commands_v1.get_cmds(start, stop)
 
     # Make a local copy of cmds params dicts since the processing here updates
     # them in place. Only `pars_dict` gets written but both are used.
@@ -184,8 +225,9 @@ def migrate_cmds1_to_cmds2(start=None):
         else:
             raise ValueError(f"Expected 1 AOSTRCAT cmd for {cmd}")
 
-    idx_stop = np.flatnonzero(cmds["source"] == LOAD_NAME_V2_START)[0]
-    cmds = cmds[:idx_stop]
+    if LOAD_NAME_V2_START in cmds["source"]:
+        idx_stop = np.flatnonzero(cmds["source"] == LOAD_NAME_V2_START)[0]
+        cmds = cmds[:idx_stop]
 
     print("Adding obsid commands")
     cmds = add_obs_cmds(cmds, pars_dict, rev_pars_dict)

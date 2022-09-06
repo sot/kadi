@@ -1167,6 +1167,17 @@ def _update_cmds_archive(lookback, stop, match_prev_cmds, scenario, data_root):
 
     # Save the updated archive and pars_dict.
     cmds_arch_new = vstack_exact([cmds_arch[:idx0_arch], cmds_recent[idx0_recent:]])
+
+    # If not matching prev cmds we need to ensure that the new archive is sorted
+    # by date. This is used in particular for adding the pre-2002 commands.
+    # Note that the v1 commands are not in "backstop order" so we can't use
+    # sort_in_backstop_order() here. In addition we need a numpy stable sort
+    # so use 'mergesort'.
+    if not match_prev_cmds:
+        logger.info("Sorting new archive by date due to match_prev_cmds=False")
+        idxs = np.argsort(cmds_arch_new["date"], kind="mergesort")
+        cmds_arch_new = cmds_arch_new[idxs]
+
     logger.info(f"Writing {len(cmds_arch_new)} commands to {idx_cmds_path}")
     cmds_arch_new.write(str(idx_cmds_path), path="data", format="hdf5", overwrite=True)
 
