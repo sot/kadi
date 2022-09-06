@@ -10,6 +10,8 @@ from Quaternion import Quat
 from kadi.commands.core import CommandTable
 
 RTS_PATH = Path("FOT/configuration/products/rts")
+# First cmd in first flight SOSA loads DEC0111A
+DATE_SOSA_START = "2011:335:13:30:26.148"
 
 
 def cmd_set_rts(*args, date=None):
@@ -60,12 +62,24 @@ def cmd_set_aciscti(date=None):
 
 
 def cmd_set_end_vehicle(date=None):
-    cmds = cmd_set_end_scs(128) + cmd_set_end_scs(129) + cmd_set_end_scs(130)
+    if date is None or date >= DATE_SOSA_START:
+        scss = (128, 129, 130)  # Post-SOSA vehicle slots
+    else:
+        scss = ()  # Prior to SOSA there were no vehicle-only slots
+    cmds = ()
+    for scs in scss:
+        cmds += cmd_set_end_scs(scs)
     return cmds
 
 
 def cmd_set_end_observing(date=None):
-    cmds = cmd_set_end_scs(131) + cmd_set_end_scs(132) + cmd_set_end_scs(133)
+    if date is None or date >= DATE_SOSA_START:
+        scss = (131, 132, 133)  # Post-SOSA observing slots
+    else:
+        scss = (128, 129, 130)  # Pre-SOSA observing + vehicle slots
+    cmds = ()
+    for scs in scss:
+        cmds += cmd_set_end_scs(scs)
     return cmds
 
 
@@ -76,7 +90,7 @@ def cmd_set_scs107(date=None):
     else:
         pow_cmd = "WSPOW00000"  # 0-FEPS
 
-    cmds = cmd_set_end_observing()
+    cmds = cmd_set_end_observing(date=date)
     cmds += (
         dict(type="COMMAND_SW", dur=1.025, tlmsid="OORMPDS"),
         dict(
@@ -114,7 +128,7 @@ def cmd_set_bright_star_hold(date=None):
 def cmd_set_nsm(date=None):
     nsm_cmd = dict(type="COMMAND_SW", tlmsid="AONSMSAF")
     out = (nsm_cmd,)
-    out += cmd_set_end_vehicle()
+    out += cmd_set_end_vehicle(date=date)
     out += cmd_set_scs107(date=date)
     # Disable dither. Looking at a few NSMs this seems to be the case, but
     # not for the 2022:232:18:36 NSM from a CTU reset. ??
