@@ -47,6 +47,8 @@ MATCHING_BLOCK_SIZE = 500
 APPROVED_LOADS_OCCWEB_DIR = Path("FOT/mission_planning/PRODUCTS/APPR_LOADS")
 
 # URL to download google sheets `doc_id`
+# See https://stackoverflow.com/questions/33713084 (original question).
+# See also kadi.commands.cmds_validate for the long-form URL.
 CMD_EVENTS_SHEET_URL = (
     "https://docs.google.com/spreadsheets/d/{doc_id}/export?format=csv"
 )

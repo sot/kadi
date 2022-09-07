@@ -49,6 +49,11 @@ class Conf(ConfigNamespace):
         "Google Sheet ID for command events (flight scenario).",
     )
 
+    cmd_events_bad_times_gid = ConfigItem(
+        "1681877928",
+        "Google Sheet gid for bad times in command events (flight scenario)",
+    )
+
     star_id_match_halfwidth = ConfigItem(
         1.5, "Half-width box size of star ID match for get_starcats() (arcsec)."
     )
