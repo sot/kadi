@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html
+    PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>index.rst</title>
+    <style type="text/css">
+        pre.red {
+            color: red
+        }
+
+        pre.green {
+            color: green
+        }
+
+        span.red {
+            color: red
+        }
+
+        span.blue {
+            color: blue
+        }
+
+        span.green {
+            color: green
+        }
+
+        body {
+            max-width: 950px;
+            font-family: sans-serif;
+        }
+
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6,
+        p.topic-title {
+            color: #660033;
+        }
+
+        h1 {
+            font-size: x-large
+        }
+
+        h2 {
+            font-size: large
+        }
+
+        h3 {
+            font-size: medium
+        }
+
+        h1.title {
+            font-size: x-large
+        }
+        table {
+        	border-width: 2px;
+        	border-spacing: 0px;
+        	border-style: solid;
+        	border-color: gray;
+        	border-collapse: separate;
+        	background-color: white;
+        }
+        table th {
+        	border-width: thin;
+        	padding: 0px;
+        	border-style: solid;
+        	border-color: gray;
+        	background-color: white;
+        }
+        table td {
+        	border-width: thin;
+        	padding: 2px 5px;
+        	border-style: solid;
+        	border-color: gray;
+        	background-color: white;
+        }
+</style>
+</head>
+
+<body>
+    <div class="document">
+
+        <div class="section" id="commanded-states-database-verification">
+            <h1>Commanded States Database Verification</h1>
+            <div class="section" id="summary">
+                <h2>Summary</h2>
+                <table border="1" class="borderless docutils">
+
+                    <tbody valign="top">
+                        <tr>
+                            <td>Run time</td>
+                            <td>{{proc.run_time}} by {{proc.run_user}}</td>
+                        </tr>
+                        <tr>
+                            <td>Run log</td>
+                            <td><a class="reference external"
+                                    href="run.dat">run.dat</a></td>
+                        </tr>
+                        <tr>
+                            <td>States</td>
+                            <td><a class="reference external"
+                                    href="states.dat">states.dat</a></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="section" id="msid-validation">
+            <h1>MSID Validation</h1>
+            <div class="section" id="msid-quantiles">
+                <h2>MSID quantiles</h2>
+                <table border="1" class="colwidths-given docutils">
+
+                    <thead valign="bottom">
+                        <tr>
+                            <th class="head">MSID</th>
+                            <th class="head">1%</th>
+                            <th class="head">5%</th>
+                            <th class="head">16%</th>
+                            <th class="head">50%</th>
+                            <th class="head">84%</th>
+                            <th class="head">95%</th>
+                            <th class="head">99%</th>
+                        </tr>
+                    </thead>
+                    <tbody valign="top">
+                        {% for plot in plots_validation %}
+                        {% if plot.quant01 %}
+                        <tr>
+                            <td>{{plot.msid}}</td>
+                            <td>{{plot.quant01}}</td>
+                            <td>{{plot.quant05}}</td>
+                            <td>{{plot.quant16}}</td>
+                            <td>{{plot.quant50}}</td>
+                            <td>{{plot.quant84}}</td>
+                            <td>{{plot.quant95}}</td>
+                            <td>{{plot.quant99}}</td>
+                        </tr>
+                        {% endif %}
+                        {% endfor%}
+                    </tbody>
+                </table>
+            </div>
+
+            {% if valid_viols %}
+            <div class="section" id="validation-violations">
+                <h2>Validation Violations</h2>
+
+                <table border="1" class="colwidths-given docutils">
+
+                    <thead valign="bottom">
+                        <tr>
+                            <th class="head">MSID</th>
+                            <th class="head">Quantile</th>
+                            <th class="head">Value</th>
+                            <th class="head">Limit</th>
+                        </tr>
+                    </thead>
+                    <tbody valign="top">
+
+                        {% for viol in valid_viols %}
+                        <tr>
+                            <td>{{viol.msid}}</td>
+                            <td>{{viol.quantile}}</td>
+                            <td>{{viol.value}}</td>
+                            <td>{{viol.limit}}</td>
+                        </tr>
+                        {% endfor%}
+
+            </div>
+            {% else %}
+            <p>No Validation Violations</p>
+            {% endif %}
+
+            {% for plot in plots_validation %}
+            <div class="section" id="{{plot.msid}}">
+                <h2>{{plot.msid}}</h2>
+
+                {% if plot.diff_only %}
+                <p>Black = difference values</p>
+                {% else %}
+                <p>Red = telemetry, blue = model</p>
+                {% endif %}
+
+                <img src="data:image/jpeg;base64,{{plot.lines}}" />
+
+                {% if plot.histlog %}
+                <img src="data:image/jpeg;base64,{{plot.histlog}}" />
+                {% else %}
+                <p>No histogram provided.</p>
+                {% endif %}
+
+                {% if plot.histlin %}
+                <img src="data:image/jpeg;base64,{{plot.histlin}}" />
+                {% endif %}
+
+                {% if plot.samples %}
+                <p>{{ plot.diff_count }} non-identical samples of {{ plot.samples
+                }} samples.</p>
+                {% endif %}
+            </div>
+            {% endfor %}
+
+        </div>
+    </div>
+</body>
+
+</html>
