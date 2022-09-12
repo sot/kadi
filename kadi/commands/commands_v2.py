@@ -679,12 +679,13 @@ def get_cmds_obs_final(cmds, pars_dict, rev_pars_dict, schedule_stop_time):
     :returns: CommandTable of OBS commands with all parameters filled in.
     """
     # Initialize state variables. Note that the first OBS command may end up
-    # with None values for some of these, but this is OK because of the command
+    # with bogus values for some of these, but this is OK because of the command
     # merging with the archive commands which are always correct. Nevertheless
     # use values that are not None to avoid errors. For `sim_pos`, if the SIM
     # has not been commanded in a long time then it will be at -99616.
     obsid = -1
     starcat_idx = -1
+    starcat_date = "1999:001:00:00:00.000"
     sim_pos = -99616
     obs_params = None
     cmd_obs_extras = []
