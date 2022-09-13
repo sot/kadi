@@ -37,7 +37,7 @@ from Ska.Matplotlib import plot_cxctime
 
 from kadi.commands.states import interpolate_states
 
-__all__ = ["Validate", "ValidatePitch", "NoTelemetryError"]
+__all__ = ["Validate", "ValidatePitch", "ValidateSimpos", "NoTelemetryError"]
 
 matplotlib.style.use("bmh")
 
@@ -247,6 +247,15 @@ class ValidatePitch(Validate):
     plot_attrs = PlotAttrs(title="Pitch", ylabel="Pitch (degrees)")
     validation_limits = ((1, 7.0), (99, 7.0), (5, 0.5), (95, 0.5))
     quantile_fmt = "%.3f"
+
+
+class ValidateSimpos(Validate):
+    name = "simpos"
+    msids = ["3tscpos"]
+    state_keys = "simpos"
+    plot_attrs = PlotAttrs(title="TSCPOS (SIM-Z)", ylabel="SIM-Z (steps)")
+    validation_limits = ((1, 2.0), (99, 2.0))
+    quantile_fmt = "%d"
 
 
 def OLD_config_logging(outdir, verbose):
