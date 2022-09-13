@@ -29,6 +29,7 @@ import matplotlib.style
 import Ska.Matplotlib
 import Ska.Numpy
 import Ska.Shell
+import Ska.tdb
 from cheta.utils import logical_intervals
 from cxotime import CxoTime
 from Quaternion import Quat, normalize
@@ -42,6 +43,7 @@ __all__ = [
     "ValidatePitch",
     "ValidateSimpos",
     "ValidateObsid",
+    "ValidateDither",
     "NoTelemetryError",
 ]
 
@@ -178,6 +180,14 @@ class Validate(ABC):
         return self._tlm
 
     @property
+    def msid(self):
+        """Most Validate classes have a single telemetry MSID"""
+        if len(self.msids) == 1:
+            return self.msids[0]
+        else:
+            raise ValueError(f"multiple MSIDs {self.msids}")
+
+    @property
     def states(self):
         if not hasattr(self, "_states"):
             self._states = get_states(
@@ -196,12 +206,7 @@ class Validate(ABC):
         (e.g. for pitch) or it might be something more complicated (e.g. for
         pointing which comes from 3 quaternion components).
         """
-        if not hasattr(self, "_tlm_vals"):
-            if len(self.msids) == 1:
-                self._tlm_vals = self.tlm[self.msids[0]].copy()
-            else:
-                raise NotImplementedError("Only single MSID supported by default")
-        return self._tlm_vals
+        raise NotImplementedError
 
     @property
     def state_vals(self):
@@ -243,10 +248,62 @@ class Validate(ABC):
         ax.margins(0.05)
         ax.set_title(self.plot_attrs.title)
         ax.set_ylabel(self.plot_attrs.ylabel)
-        fig.tight_layout()
+        return fig, ax
 
 
-class ValidatePitch(Validate):
+class ValidateSingleMsid(Validate):
+    @property
+    def tlm_vals(self):
+        if not hasattr(self, "_tlm_vals"):
+            self._tlm_vals = self.tlm[self.msid].copy()
+        return self._tlm_vals
+
+
+class ValidateStateCode(Validate):
+    """Base class for validation of state with state codes like PCAD_MODE"""
+
+    @property
+    def state_codes(self) -> Table:
+        tsc = Ska.tdb.msids.find(self.msid)[0].Tsc
+        state_codes = Table(
+            [tsc.data["LOW_RAW_COUNT"], tsc.data["STATE_CODE"]],
+            names=["raw_val", "state_code"],
+        )
+        state_codes.sort("raw_val")
+        return state_codes
+
+    @property
+    def tlm_vals(self):
+        if not hasattr(self, "_tlm_vals"):
+            self._tlm_vals = convert_state_code_to_raw_val(
+                self.tlm, self.msid, self.state_codes
+            )
+        return self._tlm_vals
+
+    @property
+    def state_vals(self):
+        if not hasattr(self, "_state_vals"):
+            states_interp = interpolate_states(self.states, self.tlm["time"])
+            self._state_vals = convert_state_code_to_raw_val(
+                states_interp, self.name, self.state_codes
+            )
+        return self._state_vals
+
+    def make_plot(self):
+        fig, ax = super().make_plot()
+        ax.set_yticks(self.state_codes["raw_val"], self.state_codes["state_code"])
+        return fig, ax
+
+
+def convert_state_code_to_raw_val(dat, name, state_codes):
+    vals = np.zeros(len(dat))
+    for raw_val, state_code in state_codes:
+        ok = dat[name] == state_code
+        vals[ok] = raw_val
+    return vals
+
+
+class ValidatePitch(ValidateSingleMsid):
     name = "pitch"
     msids = ["pitch"]
     state_keys = "pitch"
@@ -255,7 +312,7 @@ class ValidatePitch(Validate):
     quantile_fmt = "%.3f"
 
 
-class ValidateSimpos(Validate):
+class ValidateSimpos(ValidateSingleMsid):
     name = "simpos"
     msids = ["3tscpos"]
     state_keys = "simpos"
@@ -264,12 +321,19 @@ class ValidateSimpos(Validate):
     quantile_fmt = "%d"
 
 
-class ValidateObsid(Validate):
+class ValidateObsid(ValidateSingleMsid):
     name = "obsid"
     msids = ["cobsrqid"]
     state_keys = "obsid"
     plot_attrs = PlotAttrs(title="OBSID", ylabel="OBSID")
     quantile_fmt = "%d"
+
+
+class ValidateDither(ValidateStateCode):
+    name = "dither"
+    msids = ["aodithen"]
+    state_keys = "dither"
+    plot_attrs = PlotAttrs(title="DITHER", ylabel="Dither")
 
 
 def OLD_config_logging(outdir, verbose):
