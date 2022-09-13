@@ -200,7 +200,8 @@ class Validate(ABC):
     @property
     def state_vals(self):
         if not hasattr(self, "_state_vals"):
-            self._state_vals = interpolate_states(self.states, self.tlm["time"])
+            states_interp = interpolate_states(self.states, self.tlm["time"])
+            self._state_vals = states_interp[self.name].copy()
         return self._state_vals
 
     def make_plot(self):
