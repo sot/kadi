@@ -109,7 +109,9 @@ def set_star_ids(aca):
     from kadi.commands import conf
 
     q_att = Quat(aca.att)
-    stars = get_agasc_cone_fast(q_att.ra, q_att.dec, radius=1.2, date=aca.date)
+    stars = get_agasc_cone_fast(
+        q_att.ra, q_att.dec, radius=1.2, date=aca.date, matlab_pm_bug=True
+    )
     yang_stars, zang_stars = radec_to_yagzag(
         stars["RA_PMCORR"], stars["DEC_PMCORR"], q_att
     )
@@ -127,8 +129,18 @@ def set_star_ids(aca):
             idx = np.argmin(stars["MAG_ACA"][ok])
             aca[idx_aca]["id"] = stars["AGASC_ID"][ok][idx]
             aca[idx_aca]["mag"] = stars["MAG_ACA"][ok][idx]
+            # Some debug code from the proper motion stuff. This can be deleted
+            # in the future.
+            # if abs(dys[ok][idx]) > 0.5 or abs(dzs[ok][idx]) > 0.5:
+            #     print(
+            #         f'{aca.date}, {stars["AGASC_ID"][ok][idx]}, '
+            #         f"{aca.obsid}, "
+            #         f"{dys[ok][idx]:.2f}, {dzs[ok][idx]:.2f}, "
+            #         f'{stars["PM_RA"][ok][idx]}, {stars["PM_DEC"][ok][idx]}, '
+            #         f'{stars["RA"][ok][idx]}, {stars["DEC"][ok][idx]}'
+            #     )
         else:
-            logger.info(
+            logger.warning(
                 f"WARNING: star idx {idx_aca + 1} not found in obsid {aca.obsid} at "
                 f"{aca.date}"
             )
@@ -429,8 +441,8 @@ def get_observations(
 ):
     """Get observations corresponding to input parameters.
 
-    The ``start``, ``stop``, ``starcat_date`` and ``obsid`` parameters serve as matching filters
-    on the list of observations that is returned.
+    The ``start``, ``stop``, ``starcat_date`` and ``obsid`` parameters serve as
+    matching filters on the list of observations that is returned.
 
     Over the mission there are thousands of instances of multiple observations
     with the same obsid, so this function always returns a list of observation
@@ -457,9 +469,8 @@ def get_observations(
 
         >>> obs_all = get_observations()  # All observations in commands archive
 
-        # Might be convenient to handle this as a Table
-        >>> from astropy.table import Table
-        >>> obs_all = Table(obs_all)
+        # Might be convenient to handle this as a Table >>> from astropy.table
+        import Table >>> obs_all = Table(obs_all)
 
         >>> from kadi.commands import get_observations
         >>> get_observations(starcat_date='2022:001:17:00:58.521')
@@ -475,20 +486,15 @@ def get_observations(
         'starcat_idx': 171677,
         'source': 'DEC3021A'}]
 
-    :param start: CxoTime-like, None
-        Start time (default=beginning of commands)
-    :param stop: CxoTime-like, None
-        Stop time (default=end of commands)
-    :param obsid: int, None
-        ObsID
-    :param scenario: str, None
-        Scenario
-    :param cmds: CommandTable, None
-        Use this command table instead of querying the archive.
-    :param starcat_date: CxoTime-like, None
-        Date of the observation's star catalog
-    :returns: list of dict
-        Observation parameters for matching observations.
+    :param start: CxoTime-like, None Start time (default=beginning of commands)
+    :param stop: CxoTime-like, None Stop time (default=end of commands)
+    :param obsid: int, None ObsID
+    :param scenario: str, None Scenario
+    :param cmds: CommandTable, None Use this command table instead of querying
+        the archive.
+    :param starcat_date: CxoTime-like, None Date of the observation's star
+        catalog
+    :returns: list of dict Observation parameters for matching observations.
     """
     from kadi.commands.commands_v2 import get_cmds
 
@@ -517,9 +523,10 @@ def get_observations(
     else:
         cmds_obs = cmds[cmds["tlmsid"] == "OBS"]
 
-    # Get observations in date range with padding
-    # _some_ padding is necessary because start/stop are used to filter observations based on
-    # obs_start, which can be more than 30 minutes after starcat_date. I was generous with padding.
+    # Get observations in date range with padding. _some_ padding is necessary
+    # because start/stop are used to filter observations based on obs_start,
+    # which can be more than 30 minutes after starcat_date. I was generous with
+    # padding.
     i0, i1 = cmds_obs.find_date([(start - 7 * u.day).date, (stop + 7 * u.day).date])
     cmds_obs = cmds_obs[i0:i1]
 
@@ -550,7 +557,7 @@ def get_observations(
     return obss
 
 
-def get_agasc_cone_fast(ra, dec, radius=1.5, date=None):
+def get_agasc_cone_fast(ra, dec, radius=1.5, date=None, matlab_pm_bug=False):
     """
     Get AGASC catalog entries within ``radius`` degrees of ``ra``, ``dec``.
 
@@ -560,6 +567,8 @@ def get_agasc_cone_fast(ra, dec, radius=1.5, date=None):
     :param dec: Declination (deg)
     :param radius: Cone search radius (deg)
     :param date: Date for proper motion (default=Now)
+    :param matlab_pm_bug: bool Apply MATLAB proper motion bug prior to
+        the MAY2118A loads (default=False)
 
     :returns: astropy Table of AGASC entries
     """
@@ -591,6 +600,19 @@ def get_agasc_cone_fast(ra, dec, radius=1.5, date=None):
     dists = sphere_dist(ra, dec, ra_decs.ra[idx0:idx1], ra_decs.dec[idx0:idx1])
     ok = dists <= radius
     stars = STARS_AGASC[idx0:idx1][ok]
+
+    # Account for a bug in MATLAB proper motion correction that was fixed
+    # starting with the MAY2118A loads (MATLAB Tools 2018115). The bug was not
+    # dividing the RA proper motion by cos(dec), so here we premultiply by that
+    # factor so that add_pmcorr_columns() will match MATLAB. This is purely for
+    # use in set_star_ids() to match flight catalogs created with MATLAB.
+    if matlab_pm_bug and CxoTime(date).date < "2018:141:03:35:03.000":
+        ok = stars["PM_RA"] != -9999
+        # Note this is an int16 field so there is some rounding error, but for
+        # the purpose of star identification this is fine.
+        stars["PM_RA"][ok] = np.round(
+            stars["PM_RA"][ok] * np.cos(np.deg2rad(stars["DEC"][ok]))
+        )
 
     add_pmcorr_columns(stars, date)
 
