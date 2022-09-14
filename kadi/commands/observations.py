@@ -386,7 +386,7 @@ def get_starcats(
             )
             if db_key in starcats_db:
                 # From the cache
-                starcat_dict = starcats_db[db_key]
+                starcat_dict = starcats_db[db_key].copy()
                 if as_dict:
                     starcat = starcat_dict
                 else:
