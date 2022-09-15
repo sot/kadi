@@ -8,7 +8,7 @@ import astropy.units as u
 import numpy as np
 from astropy.table import Table
 from astropy.table import unique as table_unique
-from cxotime import CxoTime
+from cxotime import CxoTime, date2secs
 
 # kadi.commands.commands_v2 is also a dependency but encapsulated in the
 # functions to reduce top-level imports for v1-compatibility
@@ -76,11 +76,12 @@ def get_detector_and_sim_offset(simpos):
     return detector, sim_offset
 
 
-def set_fid_ids(aca, obs):
+def set_fid_ids(aca):
     from proseco.fid import get_fid_positions
 
     from kadi.commands import conf
 
+    obs = aca["meta"]
     fid_yangs, fid_zangs = get_fid_positions(
         detector=obs["detector"], focus_offset=0, sim_offset=obs["sim_offset"]
     )
@@ -103,13 +104,13 @@ def set_fid_ids(aca, obs):
         elif n_idxs_fid > 1:
             logger.warning(
                 f"WARNING: found {n_idxs_fid} fids in obsid {obs['obsid']} at "
-                f"{obs['obs_start']}\n{aca[idx_aca]}"
+                f"{obs['date']}\n{aca[idx_aca]}"
             )
         # Note that no fids found happens normally for post SCS-107 observations
         # because the SIM is translated so don't warn in this case.
 
 
-def set_star_ids(aca, obs):
+def set_star_ids(aca):
     """Find the star ID for each star in the ACA.
 
     This set the ID in-place to the brightest star within 1.5 arcsec of the
@@ -117,17 +118,16 @@ def set_star_ids(aca, obs):
 
     :param aca: ACATable
         Input star catalog
-    :param obs: dict
-        Observation dict
     """
     from chandra_aca.transform import radec_to_yagzag
     from Quaternion import Quat
 
     from kadi.commands import conf
 
-    q_att = Quat(obs["targ_att"])
+    obs = aca["meta"]
+    q_att = Quat(obs["att"])
     stars = get_agasc_cone_fast(
-        q_att.ra, q_att.dec, radius=1.2, date=obs["obs_start"], matlab_pm_bug=True
+        q_att.ra, q_att.dec, radius=1.2, date=obs["date"], matlab_pm_bug=True
     )
     yang_stars, zang_stars = radec_to_yagzag(
         stars["RA_PMCORR"], stars["DEC_PMCORR"], q_att
@@ -149,32 +149,29 @@ def set_star_ids(aca, obs):
         else:
             logger.info(
                 f"WARNING: star idx {idx_aca + 1} not found in obsid {obs['obsid']} at "
-                f"{obs['obs_start']}"
+                f"{obs['date']}"
             )
 
 
-def convert_starcat_dict_to_acatable(starcat_dict: dict, obs: dict):
+def convert_starcat_dict_to_acatable(starcat_dict: dict):
     """Convert star catalog dict to an ACATable, including obs metadata.
 
     :param starcat_dict: dict of list with starcat values
-    :param obs: dict of observation (OBS command) parameters
     :returns: ACATable
     """
-    from Chandra.Time import date2secs
     from proseco.acq import AcqTable
     from proseco.catalog import ACATable
     from proseco.guide import GuideTable
 
+    meta = starcat_dict.pop("meta")
     aca = ACATable(starcat_dict)
+    starcat_dict["meta"] = meta
+
     aca.acqs = AcqTable()
     aca.guides = GuideTable()
 
-    aca.obsid = obs["obsid"]
-    aca.att = obs["targ_att"]
-    aca.date = obs["starcat_date"]
-    aca.duration = date2secs(obs["obs_stop"]) - date2secs(obs["obs_start"])
-    aca.detector = obs["detector"]
-    aca.sim_offset = obs["sim_offset"]
+    for attr in ("obsid", "att", "date", "duration", "detector", "sim_offset"):
+        setattr(aca, attr, meta[attr])
 
     # Make the catalog more complete and provide stuff temps needed for plot()
     aca.t_ccd = -20.0
@@ -184,7 +181,7 @@ def convert_starcat_dict_to_acatable(starcat_dict: dict, obs: dict):
     return aca
 
 
-def convert_aostrcat_to_starcat_dict(obs, params):
+def convert_aostrcat_to_starcat_dict(params):
     """Convert dict of AOSTRCAT parameters to an dict of list for each attribute.
 
     The dict looks like::
@@ -291,7 +288,8 @@ def get_starcats_as_table(
         out["obsid"].append([starcat["meta"]["obsid"]] * n_cat)
         out["starcat_date"].append([starcat["meta"]["date"]] * n_cat)
         for name, vals in starcat.items():
-            out[name].append(vals)
+            if name != "meta":
+                out[name].append(vals)
 
     for name in out:
         out[name] = np.concatenate(out[name])
@@ -320,9 +318,13 @@ def get_starcats(
     on the list of star catalogs that is returned.
 
     By default the result is a list of ``ACATable`` objects similar to the
-    output of ``proseco.get_aca_catalog``. If ``as_dict`` is ``True`` then the
-    the result is a list of dictionaries with the same keys as the table columns.
-    This is substantially faster than the default.
+    output of ``proseco.get_aca_catalog``.
+
+    If ``as_dict`` is ``True`` then the the result is a list of dictionaries
+    with the same keys as the table columns plus a special "meta" key. The
+    "meta" value is a dict with relevant metadata including the obsid, att,
+    date, duration, sim_offset, and detctor. This method is substantially faster
+    than the default.
 
     There are numerous instances of multiple observations with the same obsid,
     so this function always returns a list of star catalogs even when ``obsid``
@@ -429,27 +431,35 @@ def get_starcats(
             params = rev_pars_dict[idx]
             if isinstance(params, bytes):
                 params = decode_starcat_params(params)
-            starcat_dict = convert_aostrcat_to_starcat_dict(obs, params)
+            starcat_dict = convert_aostrcat_to_starcat_dict(params)
             n_idx = len(starcat_dict["idx"])
-            obs["detector"], obs["sim_offset"] = get_detector_and_sim_offset(
+            meta = dict(
+                obsid=obs["obsid"],
+                att=obs["targ_att"],
+                date=obs["starcat_date"],
+                duration=date2secs(obs["obs_stop"]) - date2secs(obs["obs_start"]),
+            )
+            meta["detector"], meta["sim_offset"] = get_detector_and_sim_offset(
                 obs["simpos"]
             )
+            starcat_dict["meta"] = meta
+
             if starcat_ids is None or starcat_mags is None:
                 starcat_dict["id"] = [-999] * n_idx
                 starcat_dict["mag"] = [-999.0] * n_idx
-                set_fid_ids(starcat_dict, obs)
-                set_star_ids(starcat_dict, obs)
+                set_fid_ids(starcat_dict)
+                set_star_ids(starcat_dict)
                 starcats_db[db_key] = (starcat_dict["id"], starcat_dict["mag"])
             else:
                 starcat_dict["id"] = starcat_ids
                 starcat_dict["mag"] = starcat_mags
 
-            starcat_dict = {key: starcat_dict[key] for key in STARCAT_NAMES}
+            starcat_dict = {key: starcat_dict[key] for key in STARCAT_NAMES + ["meta"]}
 
             starcats.append(
                 starcat_dict
                 if as_dict
-                else convert_starcat_dict_to_acatable(starcat_dict, obs)
+                else convert_starcat_dict_to_acatable(starcat_dict)
             )
 
     return starcats
