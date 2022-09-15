@@ -41,7 +41,7 @@ OBSERVATIONS = {}
 STARS_AGASC = None
 
 
-def set_detector_and_sim_offset(aca, simpos):
+def get_detector_and_sim_offset(simpos):
     """Get detector from SIM position.
 
     Finds the detector with nominal SIM position closest to ``simpos``.
@@ -57,20 +57,19 @@ def set_detector_and_sim_offset(aca, simpos):
     idx = np.argmin(np.abs(sim_offsets))
     detector = list(FID.simpos.keys())[idx]
     sim_offset = sim_offsets[idx]
-    aca.detector = detector
-    aca.sim_offset = sim_offset
+    return detector, sim_offset
 
 
-def set_fid_ids(aca):
+def set_fid_ids(aca, detector, sim_offset):
     from proseco.fid import get_fid_positions
 
     from kadi.commands import conf
 
     fid_yangs, fid_zangs = get_fid_positions(
-        detector=aca.detector, focus_offset=0, sim_offset=aca.sim_offset
+        detector=detector, focus_offset=0, sim_offset=sim_offset
     )
-
-    idxs_aca = np.where(aca["type"] == "FID")[0]
+    n_idx = len(aca["idx"])
+    idxs_aca = [idx for idx in range(n_idx) if aca["type"][idx] == "FID"]
     for idx_aca in idxs_aca:
         yang = aca["yang"][idx_aca]
         zang = aca["zang"][idx_aca]
@@ -83,8 +82,8 @@ def set_fid_ids(aca):
         idxs_fid = np.where((dys < halfw) & (dzs < halfw))[0]
         n_idxs_fid = len(idxs_fid)
         if n_idxs_fid == 1:
-            aca[idx_aca]["id"] = idxs_fid[0] + 1
-            aca[idx_aca]["mag"] = 7.0
+            aca["id"][idx_aca] = int(idxs_fid[0]) + 1  # Cast to pure Python
+            aca["mag"][idx_aca] = 7.0
         elif n_idxs_fid > 1:
             logger.warning(
                 f"WARNING: found {n_idxs_fid} fids in obsid {aca.obsid} at "
@@ -94,7 +93,7 @@ def set_fid_ids(aca):
         # because the SIM is translated so don't warn in this case.
 
 
-def set_star_ids(aca):
+def set_star_ids(aca, att, date, obsid):
     """Find the star ID for each star in the ACA.
 
     This set the ID in-place to the brightest star within 1.5 arcsec of the
@@ -108,9 +107,9 @@ def set_star_ids(aca):
 
     from kadi.commands import conf
 
-    q_att = Quat(aca.att)
+    q_att = Quat(att)
     stars = get_agasc_cone_fast(
-        q_att.ra, q_att.dec, radius=1.2, date=aca.date, matlab_pm_bug=True
+        q_att.ra, q_att.dec, radius=1.2, date=date, matlab_pm_bug=True
     )
     yang_stars, zang_stars = radec_to_yagzag(
         stars["RA_PMCORR"], stars["DEC_PMCORR"], q_att
@@ -127,22 +126,12 @@ def set_star_ids(aca):
         ok = (dys < halfw) & (dzs < halfw)
         if np.any(ok):
             idx = np.argmin(stars["MAG_ACA"][ok])
-            aca[idx_aca]["id"] = stars["AGASC_ID"][ok][idx]
-            aca[idx_aca]["mag"] = stars["MAG_ACA"][ok][idx]
-            # Some debug code from the proper motion stuff. This can be deleted
-            # in the future.
-            # if abs(dys[ok][idx]) > 0.5 or abs(dzs[ok][idx]) > 0.5:
-            #     print(
-            #         f'{aca.date}, {stars["AGASC_ID"][ok][idx]}, '
-            #         f"{aca.obsid}, "
-            #         f"{dys[ok][idx]:.2f}, {dzs[ok][idx]:.2f}, "
-            #         f'{stars["PM_RA"][ok][idx]}, {stars["PM_DEC"][ok][idx]}, '
-            #         f'{stars["RA"][ok][idx]}, {stars["DEC"][ok][idx]}'
-            #     )
+            aca["id"][idx_aca] = int(stars["AGASC_ID"][ok][idx])
+            aca["mag"][idx_aca] = float(stars["MAG_ACA"][ok][idx])
         else:
-            logger.warning(
-                f"WARNING: star idx {idx_aca + 1} not found in obsid {aca.obsid} at "
-                f"{aca.date}"
+            logger.info(
+                f"WARNING: star idx {idx_aca + 1} not found in obsid {obsid} at "
+                f"{date}"
             )
 
 
@@ -202,6 +191,50 @@ def convert_aostrcat_to_acatable(obs, params, as_dict=False):
 
     halfws = 20 + np.where(aca["res"], 5, 40) * aca["dim"]
     halfws[aca["type"] == "MON"] = 25
+    aca["halfw"] = halfws
+
+    return aca
+
+
+def convert_aostrcat_to_starcat_dict(obs, params):
+    """Convert dict of AOSTRCAT parameters to an ACATable.
+
+    The dict looks like::
+
+       2009:032:11:13:42.800 | 8023994 0 | MP_STARCAT | TLMSID= AOSTRCAT, CMDS=
+       49, IMNUM1= 0, YANG1= -3.74826751e-03, ZANG1= -8.44541515e-03, MAXMAG1=
+       8.00000000e+00, MINMAG1= 5.79687500e+00, DIMDTS1= 1, RESTRK1= 1, IMGSZ1=2,
+       TYPE1= 3, ...
+
+       IMNUM: slot
+       RESTRK: box size resolution, always 1 (high) in loads for non-MON slot
+       DIMDTS: (halfwidth - 20) / 5  # assumes AQRES='H'
+       TYPE: 4 => mon, 3 => fid, 2 => bot, 1 => gui, 0 => acq
+       YANG: yang in radians
+       ZANG: zang in radians
+       IMGSZ: 0=4x4, 1=6x6, 2=8x8
+       MINMAG = min mag
+       MAXMAG = max mag
+
+    :param obs: dict of observation (OBS command) parameters
+    :param params: dict of AOSTRCAT parameters
+    :returns: ACATable
+    """
+    for idx in range(1, 17):
+        if params[f"minmag{idx}"] == params[f"maxmag{idx}"] == 0:
+            break
+
+    max_idx = idx
+    aca = {}
+    aca["idx"] = np.arange(1, max_idx)
+    for par_name, col_name, func in PAR_MAPS:
+        aca[col_name] = [func(params[par_name + str(idx)]) for idx in range(1, max_idx)]
+    ress = aca["res"]
+    dims = aca["dim"]
+    halfws = [20 + (5 if ress[idx] else 40) * dims[idx] for idx in range(max_idx - 1)]
+    for idx, typ in enumerate(aca["type"]):
+        if typ == "MON":
+            halfws[idx] = 25
     aca["halfw"] = halfws
 
     return aca
@@ -292,6 +325,7 @@ def get_starcats(
     cmds=None,
     as_dict=False,
     starcat_date=None,
+    show_progress=False,
 ):
     """Get a list of star catalogs corresponding to input parameters.
 
@@ -362,6 +396,7 @@ def get_starcats(
     from proseco.acq import AcqTable
     from proseco.catalog import ACATable
     from proseco.guide import GuideTable
+    from tqdm import tqdm
 
     from kadi.commands import conf
     from kadi.commands.commands_v2 import REV_PARS_DICT
@@ -389,7 +424,8 @@ def get_starcats(
             # precludes caching.
             starcats_db = {}
 
-        for obs in obss:
+        obss_iter = tqdm(obss) if show_progress else obss
+        for obs in obss_iter:
             if (idx := obs.get("starcat_idx")) is None:
                 continue
 
@@ -397,41 +433,32 @@ def get_starcats(
                 obs["starcat_date"], obs["source"], obs["obsid"]
             )
             if db_key in starcats_db:
-                # From the cache
-                starcat_dict = starcats_db[db_key].copy()
-                if as_dict:
-                    starcat = starcat_dict
-                else:
-                    meta = starcat_dict.pop("meta")
-                    starcat = ACATable(starcat_dict)
-                    starcat.meta = meta
-                    starcat.acqs = AcqTable()
-                    starcat.guides = GuideTable()
+                starcat_ids, starcat_mags = starcats_db[db_key]
             else:
-                # From the commands archive, building ACATable from backstop params
-                params = rev_pars_dict[idx]
-                if isinstance(params, bytes):
-                    params = decode_starcat_params(params)
-                starcat = convert_aostrcat_to_acatable(obs, params)
-                set_detector_and_sim_offset(starcat, obs["simpos"])
-                starcat.add_column(-999, index=2, name="id")
-                starcat.add_column(-999.0, index=5, name="mag")
-                set_fid_ids(starcat)
-                set_star_ids(starcat)
+                starcat_ids = None
+                starcat_mags = None
 
-                starcat_dict = {
-                    name: starcat[name].tolist() for name in starcat.colnames
-                }
-                starcat_dict["meta"] = starcat.meta
-                del starcat_dict["meta"]["acqs"]
-                del starcat_dict["meta"]["guides"]
+            # From the commands archive, building ACA catalog dict from backstop
+            # params
+            params = rev_pars_dict[idx]
+            if isinstance(params, bytes):
+                params = decode_starcat_params(params)
+            starcat_dict = convert_aostrcat_to_starcat_dict(obs, params)
+            n_idx = len(starcat_dict["idx"])
+            detector, sim_offset = get_detector_and_sim_offset(obs["simpos"])
+            if starcat_ids is None or starcat_mags is None:
+                starcat_dict["id"] = [-999] * n_idx
+                starcat_dict["mag"] = [-999.0] * n_idx
+                set_fid_ids(starcat_dict, detector, sim_offset)
+                set_star_ids(
+                    starcat_dict, obs["targ_att"], obs["starcat_date"], obs["obsid"]
+                )
+                starcats_db[db_key] = (starcat_dict["id"], starcat_dict["mag"])
+            else:
+                starcat_dict["id"] = starcat_ids
+                starcat_dict["mag"] = starcat_mags
 
-                if as_dict:
-                    starcat = starcat_dict
-
-                starcats_db[db_key] = starcat_dict
-
-            starcats.append(starcat)
+            starcats.append(starcat_dict)
 
     return starcats
 
