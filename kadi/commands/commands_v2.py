@@ -684,8 +684,8 @@ def get_cmds_obs_final(cmds, pars_dict, rev_pars_dict, schedule_stop_time):
     # use values that are not None to avoid errors. For `sim_pos`, if the SIM
     # has not been commanded in a long time then it will be at -99616.
     obsid = -1
-    starcat_idx = -1
-    starcat_date = "1999:001:00:00:00.000"
+    starcat_idx = None
+    starcat_date = None
     sim_pos = -99616
     obs_params = None
     cmd_obs_extras = []
@@ -734,8 +734,14 @@ def get_cmds_obs_final(cmds, pars_dict, rev_pars_dict, schedule_stop_time):
             obs_params["simpos"] = sim_pos  # matches states 'simpos'
             obs_params["obs_start"] = cmd["date"]
             if obs_params["npnt_enab"]:
-                obs_params["starcat_idx"] = starcat_idx
-                obs_params["starcat_date"] = starcat_date
+                if starcat_idx is not None and starcat_date is not None:
+                    obs_params["starcat_idx"] = starcat_idx
+                    obs_params["starcat_date"] = starcat_date
+                else:
+                    logger.info(
+                        f"WARNING: no starcat for obsid {obsid} at {cmd['date']} "
+                        "even though npnt_enab is True"
+                    )
 
         elif tlmsid in ("AONMMODE", "AONSMSAF") or (
             tlmsid == "AONM2NPE" and cmd["vcdu"] == -1
@@ -748,8 +754,13 @@ def get_cmds_obs_final(cmds, pars_dict, rev_pars_dict, schedule_stop_time):
             # obs_params will be None at that point.
             if obs_params is not None:
                 obs_params["obs_stop"] = cmd["date"]
-            # This closes out the observation
+            # This closes out the observation. Reset the star catalog state
+            # variables since a valid star catalog is always uniquely associated
+            # with an pointing observation.
             obs_params = None
+            starcat_idx = None
+            starcat_date = None
+
         elif cmd["type"] == "SIMTRANS":
             sim_pos = cmd["params"]["pos"]
 

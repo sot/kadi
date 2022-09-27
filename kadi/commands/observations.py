@@ -8,7 +8,7 @@ import astropy.units as u
 import numpy as np
 from astropy.table import Table
 from astropy.table import unique as table_unique
-from cxotime import CxoTime
+from cxotime import CxoTime, date2secs
 
 # kadi.commands.commands_v2 is also a dependency but encapsulated in the
 # functions to reduce top-level imports for v1-compatibility
@@ -40,8 +40,24 @@ OBSERVATIONS = {}
 # Cache of important columns in proseco_agasc_1p7.h5
 STARS_AGASC = None
 
+# Standard column order for ACATable
+STARCAT_NAMES = [
+    "slot",
+    "idx",
+    "id",
+    "type",
+    "sz",
+    "mag",
+    "maxmag",
+    "yang",
+    "zang",
+    "dim",
+    "res",
+    "halfw",
+]
 
-def set_detector_and_sim_offset(aca, simpos):
+
+def get_detector_and_sim_offset(simpos):
     """Get detector from SIM position.
 
     Finds the detector with nominal SIM position closest to ``simpos``.
@@ -57,8 +73,7 @@ def set_detector_and_sim_offset(aca, simpos):
     idx = np.argmin(np.abs(sim_offsets))
     detector = list(FID.simpos.keys())[idx]
     sim_offset = sim_offsets[idx]
-    aca.detector = detector
-    aca.sim_offset = sim_offset
+    return detector, sim_offset
 
 
 def set_fid_ids(aca):
@@ -66,11 +81,12 @@ def set_fid_ids(aca):
 
     from kadi.commands import conf
 
+    obs = aca["meta"]
     fid_yangs, fid_zangs = get_fid_positions(
-        detector=aca.detector, focus_offset=0, sim_offset=aca.sim_offset
+        detector=obs["detector"], focus_offset=0, sim_offset=obs["sim_offset"]
     )
-
-    idxs_aca = np.where(aca["type"] == "FID")[0]
+    n_idx = len(aca["idx"])
+    idxs_aca = [idx for idx in range(n_idx) if aca["type"][idx] == "FID"]
     for idx_aca in idxs_aca:
         yang = aca["yang"][idx_aca]
         zang = aca["zang"][idx_aca]
@@ -83,12 +99,12 @@ def set_fid_ids(aca):
         idxs_fid = np.where((dys < halfw) & (dzs < halfw))[0]
         n_idxs_fid = len(idxs_fid)
         if n_idxs_fid == 1:
-            aca[idx_aca]["id"] = idxs_fid[0] + 1
-            aca[idx_aca]["mag"] = 7.0
+            aca["id"][idx_aca] = int(idxs_fid[0]) + 1  # Cast to pure Python
+            aca["mag"][idx_aca] = 7.0
         elif n_idxs_fid > 1:
             logger.warning(
-                f"WARNING: found {n_idxs_fid} fids in obsid {aca.obsid} at "
-                f"{aca.date}\n{aca[idx_aca]}"
+                f"WARNING: found {n_idxs_fid} fids in obsid {obs['obsid']} at "
+                f"{obs['date']}\n{aca[idx_aca]}"
             )
         # Note that no fids found happens normally for post SCS-107 observations
         # because the SIM is translated so don't warn in this case.
@@ -108,8 +124,11 @@ def set_star_ids(aca):
 
     from kadi.commands import conf
 
-    q_att = Quat(aca.att)
-    stars = get_agasc_cone_fast(q_att.ra, q_att.dec, radius=1.2, date=aca.date)
+    obs = aca["meta"]
+    q_att = Quat(obs["att"])
+    stars = get_agasc_cone_fast(
+        q_att.ra, q_att.dec, radius=1.2, date=obs["date"], matlab_pm_bug=True
+    )
     yang_stars, zang_stars = radec_to_yagzag(
         stars["RA_PMCORR"], stars["DEC_PMCORR"], q_att
     )
@@ -125,17 +144,45 @@ def set_star_ids(aca):
         ok = (dys < halfw) & (dzs < halfw)
         if np.any(ok):
             idx = np.argmin(stars["MAG_ACA"][ok])
-            aca[idx_aca]["id"] = stars["AGASC_ID"][ok][idx]
-            aca[idx_aca]["mag"] = stars["MAG_ACA"][ok][idx]
+            aca["id"][idx_aca] = int(stars["AGASC_ID"][ok][idx])
+            aca["mag"][idx_aca] = float(stars["MAG_ACA"][ok][idx])
         else:
             logger.info(
-                f"WARNING: star idx {idx_aca + 1} not found in obsid {aca.obsid} at "
-                f"{aca.date}"
+                f"WARNING: star idx {idx_aca + 1} not found in obsid {obs['obsid']} at "
+                f"{obs['date']}"
             )
 
 
-def convert_aostrcat_to_acatable(obs, params, as_dict=False):
-    """Convert dict of AOSTRCAT parameters to an ACATable.
+def convert_starcat_dict_to_acatable(starcat_dict: dict):
+    """Convert star catalog dict to an ACATable, including obs metadata.
+
+    :param starcat_dict: dict of list with starcat values
+    :returns: ACATable
+    """
+    from proseco.acq import AcqTable
+    from proseco.catalog import ACATable
+    from proseco.guide import GuideTable
+
+    meta = starcat_dict.pop("meta")
+    aca = ACATable(starcat_dict)
+    starcat_dict["meta"] = meta
+
+    aca.acqs = AcqTable()
+    aca.guides = GuideTable()
+
+    for attr in ("obsid", "att", "date", "duration", "detector", "sim_offset"):
+        setattr(aca, attr, meta[attr])
+
+    # Make the catalog more complete and provide stuff temps needed for plot()
+    aca.t_ccd = -20.0
+    aca.acqs.t_ccd = -20.0
+    aca.guides.t_ccd = -20.0
+
+    return aca
+
+
+def convert_aostrcat_to_starcat_dict(params):
+    """Convert dict of AOSTRCAT parameters to an dict of list for each attribute.
 
     The dict looks like::
 
@@ -156,40 +203,23 @@ def convert_aostrcat_to_acatable(obs, params, as_dict=False):
 
     :param obs: dict of observation (OBS command) parameters
     :param params: dict of AOSTRCAT parameters
-    :returns: ACATable
+    :returns: dict of list for each catalog attribute
     """
-    from Chandra.Time import date2secs
-    from proseco.acq import AcqTable
-    from proseco.catalog import ACATable
-    from proseco.guide import GuideTable
-
     for idx in range(1, 17):
         if params[f"minmag{idx}"] == params[f"maxmag{idx}"] == 0:
             break
 
     max_idx = idx
-    cols = defaultdict(list)
+    aca = {}
+    aca["idx"] = np.arange(1, max_idx)
     for par_name, col_name, func in PAR_MAPS:
-        for idx in range(1, max_idx):
-            cols[col_name].append(func(params[par_name + str(idx)]))
-
-    aca = ACATable(cols)
-    aca.acqs = AcqTable()
-    aca.guides = GuideTable()
-    aca.add_column(np.arange(1, max_idx), index=1, name="idx")
-
-    aca.obsid = obs["obsid"]
-    aca.att = obs["targ_att"]
-    aca.date = obs["starcat_date"]
-    aca.duration = date2secs(obs["obs_stop"]) - date2secs(obs["obs_start"])
-
-    # Make the catalog more complete and provide stuff temps needed for plot()
-    aca.t_ccd = -20.0
-    aca.acqs.t_ccd = -20.0
-    aca.guides.t_ccd = -20.0
-
-    halfws = 20 + np.where(aca["res"], 5, 40) * aca["dim"]
-    halfws[aca["type"] == "MON"] = 25
+        aca[col_name] = [func(params[par_name + str(idx)]) for idx in range(1, max_idx)]
+    ress = aca["res"]
+    dims = aca["dim"]
+    halfws = [20 + (5 if ress[idx] else 40) * dims[idx] for idx in range(max_idx - 1)]
+    for idx, typ in enumerate(aca["type"]):
+        if typ == "MON":
+            halfws[idx] = 25
     aca["halfw"] = halfws
 
     return aca
@@ -280,6 +310,7 @@ def get_starcats(
     cmds=None,
     as_dict=False,
     starcat_date=None,
+    show_progress=False,
 ):
     """Get a list of star catalogs corresponding to input parameters.
 
@@ -287,9 +318,13 @@ def get_starcats(
     on the list of star catalogs that is returned.
 
     By default the result is a list of ``ACATable`` objects similar to the
-    output of ``proseco.get_aca_catalog``. If ``as_dict`` is ``True`` then the
-    the result is a list of dictionaries with the same keys as the table columns.
-    This is substantially faster than the default.
+    output of ``proseco.get_aca_catalog``.
+
+    If ``as_dict`` is ``True`` then the the result is a list of dictionaries
+    with the same keys as the table columns plus a special "meta" key. The
+    "meta" value is a dict with relevant metadata including the obsid, att,
+    date, duration, sim_offset, and detctor. This method is substantially faster
+    than the default.
 
     There are numerous instances of multiple observations with the same obsid,
     so this function always returns a list of star catalogs even when ``obsid``
@@ -338,18 +373,18 @@ def get_starcats(
     :param scenario: str, None Scenario
     :param cmds: CommandTable, None Use this command table instead of querying
         the archive.
-    :param as_dict: bool, False Return a list of dictionaries instead of a list
+    :param as_dict: bool, False Return a list of dict instead of a list
         of ACATable objects.
     :param starcat_date: CxoTime-like, None
         Date of the observation's star catalog
-    :returns: list of ACATable List star catalogs for matching observations.
+    :param show_progress: bool,
+        Show progress bar for long queries (default=False)
+    :returns: list of star catalogs (ACATable or dict) for matching observations.
     """
     import shelve
     from contextlib import ExitStack
 
-    from proseco.acq import AcqTable
-    from proseco.catalog import ACATable
-    from proseco.guide import GuideTable
+    from tqdm import tqdm
 
     from kadi.commands import conf
     from kadi.commands.commands_v2 import REV_PARS_DICT
@@ -377,7 +412,8 @@ def get_starcats(
             # precludes caching.
             starcats_db = {}
 
-        for obs in obss:
+        obss_iter = tqdm(obss) if show_progress else obss
+        for obs in obss_iter:
             if (idx := obs.get("starcat_idx")) is None:
                 continue
 
@@ -385,41 +421,46 @@ def get_starcats(
                 obs["starcat_date"], obs["source"], obs["obsid"]
             )
             if db_key in starcats_db:
-                # From the cache
-                starcat_dict = starcats_db[db_key]
-                if as_dict:
-                    starcat = starcat_dict
-                else:
-                    meta = starcat_dict.pop("meta")
-                    starcat = ACATable(starcat_dict)
-                    starcat.meta = meta
-                    starcat.acqs = AcqTable()
-                    starcat.guides = GuideTable()
+                starcat_ids, starcat_mags = starcats_db[db_key]
             else:
-                # From the commands archive, building ACATable from backstop params
-                params = rev_pars_dict[idx]
-                if isinstance(params, bytes):
-                    params = decode_starcat_params(params)
-                starcat = convert_aostrcat_to_acatable(obs, params)
-                set_detector_and_sim_offset(starcat, obs["simpos"])
-                starcat.add_column(-999, index=2, name="id")
-                starcat.add_column(-999.0, index=5, name="mag")
-                set_fid_ids(starcat)
-                set_star_ids(starcat)
+                starcat_ids = None
+                starcat_mags = None
 
-                starcat_dict = {
-                    name: starcat[name].tolist() for name in starcat.colnames
-                }
-                starcat_dict["meta"] = starcat.meta
-                del starcat_dict["meta"]["acqs"]
-                del starcat_dict["meta"]["guides"]
+            # From the commands archive, building ACA catalog dict from backstop
+            # params
+            params = rev_pars_dict[idx]
+            if isinstance(params, bytes):
+                params = decode_starcat_params(params)
+            starcat_dict = convert_aostrcat_to_starcat_dict(params)
+            n_idx = len(starcat_dict["idx"])
+            meta = dict(
+                obsid=obs["obsid"],
+                att=obs["targ_att"],
+                date=obs["starcat_date"],
+                duration=date2secs(obs["obs_stop"]) - date2secs(obs["obs_start"]),
+            )
+            meta["detector"], meta["sim_offset"] = get_detector_and_sim_offset(
+                obs["simpos"]
+            )
+            starcat_dict["meta"] = meta
 
-                if as_dict:
-                    starcat = starcat_dict
+            if starcat_ids is None or starcat_mags is None:
+                starcat_dict["id"] = [-999] * n_idx
+                starcat_dict["mag"] = [-999.0] * n_idx
+                set_fid_ids(starcat_dict)
+                set_star_ids(starcat_dict)
+                starcats_db[db_key] = (starcat_dict["id"], starcat_dict["mag"])
+            else:
+                starcat_dict["id"] = starcat_ids
+                starcat_dict["mag"] = starcat_mags
 
-                starcats_db[db_key] = starcat_dict
+            starcat_dict = {key: starcat_dict[key] for key in STARCAT_NAMES + ["meta"]}
 
-            starcats.append(starcat)
+            starcats.append(
+                starcat_dict
+                if as_dict
+                else convert_starcat_dict_to_acatable(starcat_dict)
+            )
 
     return starcats
 
@@ -429,8 +470,8 @@ def get_observations(
 ):
     """Get observations corresponding to input parameters.
 
-    The ``start``, ``stop``, ``starcat_date`` and ``obsid`` parameters serve as matching filters
-    on the list of observations that is returned.
+    The ``start``, ``stop``, ``starcat_date`` and ``obsid`` parameters serve as
+    matching filters on the list of observations that is returned.
 
     Over the mission there are thousands of instances of multiple observations
     with the same obsid, so this function always returns a list of observation
@@ -457,9 +498,8 @@ def get_observations(
 
         >>> obs_all = get_observations()  # All observations in commands archive
 
-        # Might be convenient to handle this as a Table
-        >>> from astropy.table import Table
-        >>> obs_all = Table(obs_all)
+        # Might be convenient to handle this as a Table >>> from astropy.table
+        import Table >>> obs_all = Table(obs_all)
 
         >>> from kadi.commands import get_observations
         >>> get_observations(starcat_date='2022:001:17:00:58.521')
@@ -475,20 +515,15 @@ def get_observations(
         'starcat_idx': 171677,
         'source': 'DEC3021A'}]
 
-    :param start: CxoTime-like, None
-        Start time (default=beginning of commands)
-    :param stop: CxoTime-like, None
-        Stop time (default=end of commands)
-    :param obsid: int, None
-        ObsID
-    :param scenario: str, None
-        Scenario
-    :param cmds: CommandTable, None
-        Use this command table instead of querying the archive.
-    :param starcat_date: CxoTime-like, None
-        Date of the observation's star catalog
-    :returns: list of dict
-        Observation parameters for matching observations.
+    :param start: CxoTime-like, None Start time (default=beginning of commands)
+    :param stop: CxoTime-like, None Stop time (default=end of commands)
+    :param obsid: int, None ObsID
+    :param scenario: str, None Scenario
+    :param cmds: CommandTable, None Use this command table instead of querying
+        the archive.
+    :param starcat_date: CxoTime-like, None Date of the observation's star
+        catalog
+    :returns: list of dict Observation parameters for matching observations.
     """
     from kadi.commands.commands_v2 import get_cmds
 
@@ -517,9 +552,10 @@ def get_observations(
     else:
         cmds_obs = cmds[cmds["tlmsid"] == "OBS"]
 
-    # Get observations in date range with padding
-    # _some_ padding is necessary because start/stop are used to filter observations based on
-    # obs_start, which can be more than 30 minutes after starcat_date. I was generous with padding.
+    # Get observations in date range with padding. _some_ padding is necessary
+    # because start/stop are used to filter observations based on obs_start,
+    # which can be more than 30 minutes after starcat_date. I was generous with
+    # padding.
     i0, i1 = cmds_obs.find_date([(start - 7 * u.day).date, (stop + 7 * u.day).date])
     cmds_obs = cmds_obs[i0:i1]
 
@@ -550,7 +586,7 @@ def get_observations(
     return obss
 
 
-def get_agasc_cone_fast(ra, dec, radius=1.5, date=None):
+def get_agasc_cone_fast(ra, dec, radius=1.5, date=None, matlab_pm_bug=False):
     """
     Get AGASC catalog entries within ``radius`` degrees of ``ra``, ``dec``.
 
@@ -560,6 +596,8 @@ def get_agasc_cone_fast(ra, dec, radius=1.5, date=None):
     :param dec: Declination (deg)
     :param radius: Cone search radius (deg)
     :param date: Date for proper motion (default=Now)
+    :param matlab_pm_bug: bool Apply MATLAB proper motion bug prior to
+        the MAY2118A loads (default=False)
 
     :returns: astropy Table of AGASC entries
     """
@@ -591,6 +629,19 @@ def get_agasc_cone_fast(ra, dec, radius=1.5, date=None):
     dists = sphere_dist(ra, dec, ra_decs.ra[idx0:idx1], ra_decs.dec[idx0:idx1])
     ok = dists <= radius
     stars = STARS_AGASC[idx0:idx1][ok]
+
+    # Account for a bug in MATLAB proper motion correction that was fixed
+    # starting with the MAY2118A loads (MATLAB Tools 2018115). The bug was not
+    # dividing the RA proper motion by cos(dec), so here we premultiply by that
+    # factor so that add_pmcorr_columns() will match MATLAB. This is purely for
+    # use in set_star_ids() to match flight catalogs created with MATLAB.
+    if matlab_pm_bug and CxoTime(date).date < "2018:141:03:35:03.000":
+        ok = stars["PM_RA"] != -9999
+        # Note this is an int16 field so there is some rounding error, but for
+        # the purpose of star identification this is fine.
+        stars["PM_RA"][ok] = np.round(
+            stars["PM_RA"][ok] * np.cos(np.deg2rad(stars["DEC"][ok]))
+        )
 
     add_pmcorr_columns(stars, date)
 

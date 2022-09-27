@@ -73,4 +73,4 @@ def CMD_EVENTS_PATH(scenario=None):
 def STARCATS_CACHE_PATH():
     from kadi.commands import conf
 
-    return Path(conf.commands_dir).expanduser() / "starcats"
+    return Path(conf.commands_dir).expanduser() / "starcats_cache"
