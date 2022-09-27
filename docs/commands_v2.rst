@@ -83,8 +83,8 @@ network these files are brought up to date each 10 minutes by a cron jobs, so
 using ``"flight"`` in this case is a reliable way to eliminate dependence on the
 kadi external web resources.
 
-Using the ``"flight"`` scenario is also recommended for use on GRETA
-workstations since they cannot access the Chandra Command Events Google sheet.
+Using the ``"flight"`` scenario is also recommended for use on some GRETA
+workstations if they cannot access the Chandra Command Events Google sheet.
 
 Custom scenario example
 ^^^^^^^^^^^^^^^^^^^^^^^
@@ -141,7 +141,6 @@ of the 2021:296 NSM recovery::
 Then from the bash command line::
 
     $ export KADI_SCENARIO=nsm-cti
-    $ export PYTHONPATH=$HOME/git/kadi:$HOME/git/parse_cm  # for Ska3 2022.2
     $ dpa_check \
         --outdir=out-cti \
         --oflsdir=DAWG-demo/OCT2521/oflsb \
@@ -177,7 +176,7 @@ The available options with the default settings are as follows::
 
     ## Default version of kadi commands ("1" or "2").  Overridden by
     ## KADI_COMMANDS_VERSION environment variable.
-    commands_version = 1
+    commands_version = 2
 
     ## Google Sheet ID for command events (flight scenario).
     cmd_events_flight_id = 19d6XqBhWoFjC-z1lS1nM6wLE_zjr4GYB1lOvrEGCbKQ
@@ -206,8 +205,8 @@ You can also temporarily change an option within a context manager::
     >>> cmds1 = get_cmds('2022:001', '2022:002')  # Use commands v1
 
 For an even-more permanent solution you can write out the configuration file
-to disk and then edit it. This could be a good option if you want to always
-use commands version v2 for testing purposes.
+to disk and then edit it. Be wary of "temporarily" changing an option and  then
+forgetting to revert it later.
 
     >>> import kadi
     >>> status = kadi.create_config_file()
