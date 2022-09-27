@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>kadi.commands.commands &#8212; kadi 6.0.1 documentation</title>
+    <title>kadi.commands.commands &#8212; kadi 7.0.0 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/bootstrap-astropy.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/plot_directive.css" />
@@ -47,7 +47,7 @@
     <h3>Navigation</h3>
     <ul>
       <li>
-	<a href="../../../index.html">kadi 6.0.1 documentation</a>
+	<a href="../../../index.html">kadi 7.0.0 documentation</a>
 	 &#187;
       </li>
       <li><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
@@ -108,17 +108,15 @@
 
 <span class="sd">    :returns: :class:`~kadi.commands.commands.CommandTable` of commands</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">commands_version</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;KADI_COMMANDS_VERSION&#39;</span><span class="p">,</span>
-                                      <span class="n">conf</span><span class="o">.</span><span class="n">commands_version</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">commands_version</span> <span class="o">==</span> <span class="s1">&#39;2&#39;</span><span class="p">:</span>
+    <span class="n">commands_version</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;KADI_COMMANDS_VERSION&quot;</span><span class="p">,</span> <span class="n">conf</span><span class="o">.</span><span class="n">commands_version</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">commands_version</span> <span class="o">==</span> <span class="s2">&quot;2&quot;</span><span class="p">:</span>
         <span class="kn">from</span> <span class="nn">kadi.commands.commands_v2</span> <span class="kn">import</span> <span class="n">get_cmds</span> <span class="k">as</span> <span class="n">get_cmds_</span>
+
         <span class="n">get_cmds_</span> <span class="o">=</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">get_cmds_</span><span class="p">,</span> <span class="n">scenario</span><span class="o">=</span><span class="n">scenario</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="kn">from</span> <span class="nn">kadi.commands.commands_v1</span> <span class="kn">import</span> <span class="n">get_cmds</span> <span class="k">as</span> <span class="n">get_cmds_</span>
 
-    <span class="n">cmds</span> <span class="o">=</span> <span class="n">get_cmds_</span><span class="p">(</span><span class="n">start</span><span class="o">=</span><span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="o">=</span><span class="n">stop</span><span class="p">,</span>
-                     <span class="n">inclusive_stop</span><span class="o">=</span><span class="n">inclusive_stop</span><span class="p">,</span>
-                     <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="n">cmds</span> <span class="o">=</span> <span class="n">get_cmds_</span><span class="p">(</span><span class="n">start</span><span class="o">=</span><span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="o">=</span><span class="n">stop</span><span class="p">,</span> <span class="n">inclusive_stop</span><span class="o">=</span><span class="n">inclusive_stop</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">cmds</span></div>
 
 
@@ -128,9 +126,8 @@
 <span class="sd">    This is useful for testing and in case upstream products like the Command</span>
 <span class="sd">    Events sheet have changed during a session.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">commands_version</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;KADI_COMMANDS_VERSION&#39;</span><span class="p">,</span>
-                                      <span class="n">conf</span><span class="o">.</span><span class="n">commands_version</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">commands_version</span> <span class="o">==</span> <span class="s1">&#39;2&#39;</span><span class="p">:</span>
+    <span class="n">commands_version</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;KADI_COMMANDS_VERSION&quot;</span><span class="p">,</span> <span class="n">conf</span><span class="o">.</span><span class="n">commands_version</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">commands_version</span> <span class="o">==</span> <span class="s2">&quot;2&quot;</span><span class="p">:</span>
         <span class="kn">from</span> <span class="nn">kadi.commands.commands_v2</span> <span class="kn">import</span> <span class="n">clear_caches</span> <span class="k">as</span> <span class="n">clear_caches_vN</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="kn">from</span> <span class="nn">kadi.commands.commands_v1</span> <span class="kn">import</span> <span class="n">clear_caches</span> <span class="k">as</span> <span class="n">clear_caches_vN</span>

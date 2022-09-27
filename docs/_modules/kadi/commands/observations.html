@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>kadi.commands.observations &#8212; kadi 6.0.1 documentation</title>
+    <title>kadi.commands.observations &#8212; kadi 7.0.0 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/bootstrap-astropy.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/plot_directive.css" />
@@ -47,7 +47,7 @@
     <h3>Navigation</h3>
     <ul>
       <li>
-	<a href="../../../index.html">kadi 6.0.1 documentation</a>
+	<a href="../../../index.html">kadi 7.0.0 documentation</a>
 	 &#187;
       </li>
       <li><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
@@ -64,15 +64,16 @@
             
   <h1>Source code for kadi.commands.observations</h1><div class="highlight"><pre>
 <span></span><span class="c1"># Licensed under a 3-clause BSD style license - see LICENSE.rst</span>
+<span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">defaultdict</span>
-<span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
 
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">cxotime</span> <span class="kn">import</span> <span class="n">CxoTime</span>
 <span class="kn">import</span> <span class="nn">astropy.units</span> <span class="k">as</span> <span class="nn">u</span>
-<span class="kn">from</span> <span class="nn">astropy.table</span> <span class="kn">import</span> <span class="n">Table</span><span class="p">,</span> <span class="n">unique</span> <span class="k">as</span> <span class="n">table_unique</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">astropy.table</span> <span class="kn">import</span> <span class="n">Table</span>
+<span class="kn">from</span> <span class="nn">astropy.table</span> <span class="kn">import</span> <span class="n">unique</span> <span class="k">as</span> <span class="n">table_unique</span>
+<span class="kn">from</span> <span class="nn">cxotime</span> <span class="kn">import</span> <span class="n">CxoTime</span><span class="p">,</span> <span class="n">date2secs</span>
 
 <span class="c1"># kadi.commands.commands_v2 is also a dependency but encapsulated in the</span>
 <span class="c1"># functions to reduce top-level imports for v1-compatibility</span>
@@ -80,22 +81,22 @@
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;get_starcats&#39;</span><span class="p">,</span> <span class="s1">&#39;get_observations&#39;</span><span class="p">,</span> <span class="s1">&#39;get_starcats_as_table&#39;</span><span class="p">]</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;get_starcats&quot;</span><span class="p">,</span> <span class="s2">&quot;get_observations&quot;</span><span class="p">,</span> <span class="s2">&quot;get_starcats_as_table&quot;</span><span class="p">]</span>
 
-<span class="n">AGASC_FILE</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;SKA&#39;</span><span class="p">],</span> <span class="s1">&#39;data&#39;</span><span class="p">,</span> <span class="s1">&#39;agasc&#39;</span><span class="p">,</span> <span class="s1">&#39;proseco_agasc_1p7.h5&#39;</span><span class="p">)</span>
+<span class="n">AGASC_FILE</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;SKA&quot;</span><span class="p">],</span> <span class="s2">&quot;data&quot;</span><span class="p">,</span> <span class="s2">&quot;agasc&quot;</span><span class="p">,</span> <span class="s2">&quot;proseco_agasc_1p7.h5&quot;</span><span class="p">)</span>
 
-<span class="n">TYPE_MAP</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;ACQ&#39;</span><span class="p">,</span> <span class="s1">&#39;GUI&#39;</span><span class="p">,</span> <span class="s1">&#39;BOT&#39;</span><span class="p">,</span> <span class="s1">&#39;FID&#39;</span><span class="p">,</span> <span class="s1">&#39;MON&#39;</span><span class="p">]</span>
-<span class="n">IMGSZ_MAP</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;4x4&#39;</span><span class="p">,</span> <span class="s1">&#39;6x6&#39;</span><span class="p">,</span> <span class="s1">&#39;8x8&#39;</span><span class="p">]</span>
+<span class="n">TYPE_MAP</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;ACQ&quot;</span><span class="p">,</span> <span class="s2">&quot;GUI&quot;</span><span class="p">,</span> <span class="s2">&quot;BOT&quot;</span><span class="p">,</span> <span class="s2">&quot;FID&quot;</span><span class="p">,</span> <span class="s2">&quot;MON&quot;</span><span class="p">]</span>
+<span class="n">IMGSZ_MAP</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;4x4&quot;</span><span class="p">,</span> <span class="s2">&quot;6x6&quot;</span><span class="p">,</span> <span class="s2">&quot;8x8&quot;</span><span class="p">]</span>
 <span class="n">RAD_TO_DEG</span> <span class="o">=</span> <span class="mi">180</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="mi">3600</span>
 <span class="n">PAR_MAPS</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="p">(</span><span class="s1">&#39;imnum&#39;</span><span class="p">,</span> <span class="s1">&#39;slot&#39;</span><span class="p">,</span> <span class="nb">int</span><span class="p">),</span>
-    <span class="p">(</span><span class="s1">&#39;type&#39;</span><span class="p">,</span> <span class="s1">&#39;type&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">n</span><span class="p">:</span> <span class="n">TYPE_MAP</span><span class="p">[</span><span class="n">n</span><span class="p">]),</span>
-    <span class="p">(</span><span class="s1">&#39;imgsz&#39;</span><span class="p">,</span> <span class="s1">&#39;sz&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">n</span><span class="p">:</span> <span class="n">IMGSZ_MAP</span><span class="p">[</span><span class="n">n</span><span class="p">]),</span>
-    <span class="p">(</span><span class="s1">&#39;maxmag&#39;</span><span class="p">,</span> <span class="s1">&#39;maxmag&#39;</span><span class="p">,</span> <span class="nb">float</span><span class="p">),</span>
-    <span class="p">(</span><span class="s1">&#39;yang&#39;</span><span class="p">,</span> <span class="s1">&#39;yang&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span> <span class="o">*</span> <span class="n">RAD_TO_DEG</span><span class="p">),</span>
-    <span class="p">(</span><span class="s1">&#39;zang&#39;</span><span class="p">,</span> <span class="s1">&#39;zang&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span> <span class="o">*</span> <span class="n">RAD_TO_DEG</span><span class="p">),</span>
-    <span class="p">(</span><span class="s1">&#39;dimdts&#39;</span><span class="p">,</span> <span class="s1">&#39;dim&#39;</span><span class="p">,</span> <span class="nb">int</span><span class="p">),</span>
-    <span class="p">(</span><span class="s1">&#39;restrk&#39;</span><span class="p">,</span> <span class="s1">&#39;res&#39;</span><span class="p">,</span> <span class="nb">int</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;imnum&quot;</span><span class="p">,</span> <span class="s2">&quot;slot&quot;</span><span class="p">,</span> <span class="nb">int</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;type&quot;</span><span class="p">,</span> <span class="s2">&quot;type&quot;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">n</span><span class="p">:</span> <span class="n">TYPE_MAP</span><span class="p">[</span><span class="n">n</span><span class="p">]),</span>
+    <span class="p">(</span><span class="s2">&quot;imgsz&quot;</span><span class="p">,</span> <span class="s2">&quot;sz&quot;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">n</span><span class="p">:</span> <span class="n">IMGSZ_MAP</span><span class="p">[</span><span class="n">n</span><span class="p">]),</span>
+    <span class="p">(</span><span class="s2">&quot;maxmag&quot;</span><span class="p">,</span> <span class="s2">&quot;maxmag&quot;</span><span class="p">,</span> <span class="nb">float</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;yang&quot;</span><span class="p">,</span> <span class="s2">&quot;yang&quot;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span> <span class="o">*</span> <span class="n">RAD_TO_DEG</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;zang&quot;</span><span class="p">,</span> <span class="s2">&quot;zang&quot;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span> <span class="o">*</span> <span class="n">RAD_TO_DEG</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;dimdts&quot;</span><span class="p">,</span> <span class="s2">&quot;dim&quot;</span><span class="p">,</span> <span class="nb">int</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;restrk&quot;</span><span class="p">,</span> <span class="s2">&quot;res&quot;</span><span class="p">,</span> <span class="nb">int</span><span class="p">),</span>
 <span class="p">]</span>
 
 <span class="c1"># Cache of observations by scenario</span>
@@ -104,8 +105,24 @@
 <span class="c1"># Cache of important columns in proseco_agasc_1p7.h5</span>
 <span class="n">STARS_AGASC</span> <span class="o">=</span> <span class="kc">None</span>
 
+<span class="c1"># Standard column order for ACATable</span>
+<span class="n">STARCAT_NAMES</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">&quot;slot&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;idx&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;id&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;type&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;sz&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;mag&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;maxmag&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;yang&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;zang&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;dim&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;res&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;halfw&quot;</span><span class="p">,</span>
+<span class="p">]</span>
 
-<span class="k">def</span> <span class="nf">set_detector_and_sim_offset</span><span class="p">(</span><span class="n">aca</span><span class="p">,</span> <span class="n">simpos</span><span class="p">):</span>
+
+<span class="k">def</span> <span class="nf">get_detector_and_sim_offset</span><span class="p">(</span><span class="n">simpos</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Get detector from SIM position.</span>
 
 <span class="sd">    Finds the detector with nominal SIM position closest to ``simpos``.</span>
@@ -116,24 +133,28 @@
 <span class="sd">    :param simpos: int, SIM position (steps)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">from</span> <span class="nn">proseco</span> <span class="kn">import</span> <span class="n">characteristics_fid</span> <span class="k">as</span> <span class="n">FID</span>
+
     <span class="n">sim_offsets</span> <span class="o">=</span> <span class="p">[</span><span class="n">simpos</span> <span class="o">-</span> <span class="n">simpos_nom</span> <span class="k">for</span> <span class="n">simpos_nom</span> <span class="ow">in</span> <span class="n">FID</span><span class="o">.</span><span class="n">simpos</span><span class="o">.</span><span class="n">values</span><span class="p">()]</span>
     <span class="n">idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmin</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">sim_offsets</span><span class="p">))</span>
     <span class="n">detector</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">FID</span><span class="o">.</span><span class="n">simpos</span><span class="o">.</span><span class="n">keys</span><span class="p">())[</span><span class="n">idx</span><span class="p">]</span>
     <span class="n">sim_offset</span> <span class="o">=</span> <span class="n">sim_offsets</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
-    <span class="n">aca</span><span class="o">.</span><span class="n">detector</span> <span class="o">=</span> <span class="n">detector</span>
-    <span class="n">aca</span><span class="o">.</span><span class="n">sim_offset</span> <span class="o">=</span> <span class="n">sim_offset</span>
+    <span class="k">return</span> <span class="n">detector</span><span class="p">,</span> <span class="n">sim_offset</span>
 
 
 <span class="k">def</span> <span class="nf">set_fid_ids</span><span class="p">(</span><span class="n">aca</span><span class="p">):</span>
     <span class="kn">from</span> <span class="nn">proseco.fid</span> <span class="kn">import</span> <span class="n">get_fid_positions</span>
-    <span class="kn">from</span> <span class="nn">kadi.commands</span> <span class="kn">import</span> <span class="n">conf</span>
-    <span class="n">fid_yangs</span><span class="p">,</span> <span class="n">fid_zangs</span> <span class="o">=</span> <span class="n">get_fid_positions</span><span class="p">(</span>
-        <span class="n">detector</span><span class="o">=</span><span class="n">aca</span><span class="o">.</span><span class="n">detector</span><span class="p">,</span> <span class="n">focus_offset</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">sim_offset</span><span class="o">=</span><span class="n">aca</span><span class="o">.</span><span class="n">sim_offset</span><span class="p">)</span>
 
-    <span class="n">idxs_aca</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">aca</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;FID&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="kn">from</span> <span class="nn">kadi.commands</span> <span class="kn">import</span> <span class="n">conf</span>
+
+    <span class="n">obs</span> <span class="o">=</span> <span class="n">aca</span><span class="p">[</span><span class="s2">&quot;meta&quot;</span><span class="p">]</span>
+    <span class="n">fid_yangs</span><span class="p">,</span> <span class="n">fid_zangs</span> <span class="o">=</span> <span class="n">get_fid_positions</span><span class="p">(</span>
+        <span class="n">detector</span><span class="o">=</span><span class="n">obs</span><span class="p">[</span><span class="s2">&quot;detector&quot;</span><span class="p">],</span> <span class="n">focus_offset</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">sim_offset</span><span class="o">=</span><span class="n">obs</span><span class="p">[</span><span class="s2">&quot;sim_offset&quot;</span><span class="p">]</span>
+    <span class="p">)</span>
+    <span class="n">n_idx</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">aca</span><span class="p">[</span><span class="s2">&quot;idx&quot;</span><span class="p">])</span>
+    <span class="n">idxs_aca</span> <span class="o">=</span> <span class="p">[</span><span class="n">idx</span> <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_idx</span><span class="p">)</span> <span class="k">if</span> <span class="n">aca</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">][</span><span class="n">idx</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;FID&quot;</span><span class="p">]</span>
     <span class="k">for</span> <span class="n">idx_aca</span> <span class="ow">in</span> <span class="n">idxs_aca</span><span class="p">:</span>
-        <span class="n">yang</span> <span class="o">=</span> <span class="n">aca</span><span class="p">[</span><span class="s1">&#39;yang&#39;</span><span class="p">][</span><span class="n">idx_aca</span><span class="p">]</span>
-        <span class="n">zang</span> <span class="o">=</span> <span class="n">aca</span><span class="p">[</span><span class="s1">&#39;zang&#39;</span><span class="p">][</span><span class="n">idx_aca</span><span class="p">]</span>
+        <span class="n">yang</span> <span class="o">=</span> <span class="n">aca</span><span class="p">[</span><span class="s2">&quot;yang&quot;</span><span class="p">][</span><span class="n">idx_aca</span><span class="p">]</span>
+        <span class="n">zang</span> <span class="o">=</span> <span class="n">aca</span><span class="p">[</span><span class="s2">&quot;zang&quot;</span><span class="p">][</span><span class="n">idx_aca</span><span class="p">]</span>
         <span class="n">dys</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">yang</span> <span class="o">-</span> <span class="n">fid_yangs</span><span class="p">)</span>
         <span class="n">dzs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">zang</span> <span class="o">-</span> <span class="n">fid_zangs</span><span class="p">)</span>
         <span class="c1"># Match fid positions in a box. Default is a very loose tolerance of 40</span>
@@ -143,11 +164,13 @@
         <span class="n">idxs_fid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">((</span><span class="n">dys</span> <span class="o">&lt;</span> <span class="n">halfw</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">dzs</span> <span class="o">&lt;</span> <span class="n">halfw</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">n_idxs_fid</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">idxs_fid</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">n_idxs_fid</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="n">aca</span><span class="p">[</span><span class="n">idx_aca</span><span class="p">][</span><span class="s1">&#39;id&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">idxs_fid</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span>
-            <span class="n">aca</span><span class="p">[</span><span class="n">idx_aca</span><span class="p">][</span><span class="s1">&#39;mag&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">7.0</span>
+            <span class="n">aca</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">][</span><span class="n">idx_aca</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">idxs_fid</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">+</span> <span class="mi">1</span>  <span class="c1"># Cast to pure Python</span>
+            <span class="n">aca</span><span class="p">[</span><span class="s2">&quot;mag&quot;</span><span class="p">][</span><span class="n">idx_aca</span><span class="p">]</span> <span class="o">=</span> <span class="mf">7.0</span>
         <span class="k">elif</span> <span class="n">n_idxs_fid</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;WARNING: found </span><span class="si">{</span><span class="n">n_idxs_fid</span><span class="si">}</span><span class="s1"> fids in obsid </span><span class="si">{</span><span class="n">aca</span><span class="o">.</span><span class="n">obsid</span><span class="si">}</span><span class="s1"> at &#39;</span>
-                           <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">aca</span><span class="o">.</span><span class="n">date</span><span class="si">}</span><span class="se">\n</span><span class="si">{</span><span class="n">aca</span><span class="p">[</span><span class="n">idx_aca</span><span class="p">]</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;WARNING: found </span><span class="si">{</span><span class="n">n_idxs_fid</span><span class="si">}</span><span class="s2"> fids in obsid </span><span class="si">{</span><span class="n">obs</span><span class="p">[</span><span class="s1">&#39;obsid&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> at &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">obs</span><span class="p">[</span><span class="s1">&#39;date&#39;</span><span class="p">]</span><span class="si">}</span><span class="se">\n</span><span class="si">{</span><span class="n">aca</span><span class="p">[</span><span class="n">idx_aca</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
         <span class="c1"># Note that no fids found happens normally for post SCS-107 observations</span>
         <span class="c1"># because the SIM is translated so don&#39;t warn in this case.</span>
 
@@ -163,14 +186,21 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">from</span> <span class="nn">chandra_aca.transform</span> <span class="kn">import</span> <span class="n">radec_to_yagzag</span>
     <span class="kn">from</span> <span class="nn">Quaternion</span> <span class="kn">import</span> <span class="n">Quat</span>
+
     <span class="kn">from</span> <span class="nn">kadi.commands</span> <span class="kn">import</span> <span class="n">conf</span>
-    <span class="n">q_att</span> <span class="o">=</span> <span class="n">Quat</span><span class="p">(</span><span class="n">aca</span><span class="o">.</span><span class="n">att</span><span class="p">)</span>
-    <span class="n">stars</span> <span class="o">=</span> <span class="n">get_agasc_cone_fast</span><span class="p">(</span><span class="n">q_att</span><span class="o">.</span><span class="n">ra</span><span class="p">,</span> <span class="n">q_att</span><span class="o">.</span><span class="n">dec</span><span class="p">,</span> <span class="n">radius</span><span class="o">=</span><span class="mf">1.2</span><span class="p">,</span> <span class="n">date</span><span class="o">=</span><span class="n">aca</span><span class="o">.</span><span class="n">date</span><span class="p">)</span>
-    <span class="n">yang_stars</span><span class="p">,</span> <span class="n">zang_stars</span> <span class="o">=</span> <span class="n">radec_to_yagzag</span><span class="p">(</span><span class="n">stars</span><span class="p">[</span><span class="s1">&#39;RA_PMCORR&#39;</span><span class="p">],</span> <span class="n">stars</span><span class="p">[</span><span class="s1">&#39;DEC_PMCORR&#39;</span><span class="p">],</span> <span class="n">q_att</span><span class="p">)</span>
-    <span class="n">idxs_aca</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">aca</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">],</span> <span class="p">(</span><span class="s1">&#39;ACQ&#39;</span><span class="p">,</span> <span class="s1">&#39;GUI&#39;</span><span class="p">,</span> <span class="s1">&#39;BOT&#39;</span><span class="p">)))[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="n">obs</span> <span class="o">=</span> <span class="n">aca</span><span class="p">[</span><span class="s2">&quot;meta&quot;</span><span class="p">]</span>
+    <span class="n">q_att</span> <span class="o">=</span> <span class="n">Quat</span><span class="p">(</span><span class="n">obs</span><span class="p">[</span><span class="s2">&quot;att&quot;</span><span class="p">])</span>
+    <span class="n">stars</span> <span class="o">=</span> <span class="n">get_agasc_cone_fast</span><span class="p">(</span>
+        <span class="n">q_att</span><span class="o">.</span><span class="n">ra</span><span class="p">,</span> <span class="n">q_att</span><span class="o">.</span><span class="n">dec</span><span class="p">,</span> <span class="n">radius</span><span class="o">=</span><span class="mf">1.2</span><span class="p">,</span> <span class="n">date</span><span class="o">=</span><span class="n">obs</span><span class="p">[</span><span class="s2">&quot;date&quot;</span><span class="p">],</span> <span class="n">matlab_pm_bug</span><span class="o">=</span><span class="kc">True</span>
+    <span class="p">)</span>
+    <span class="n">yang_stars</span><span class="p">,</span> <span class="n">zang_stars</span> <span class="o">=</span> <span class="n">radec_to_yagzag</span><span class="p">(</span>
+        <span class="n">stars</span><span class="p">[</span><span class="s2">&quot;RA_PMCORR&quot;</span><span class="p">],</span> <span class="n">stars</span><span class="p">[</span><span class="s2">&quot;DEC_PMCORR&quot;</span><span class="p">],</span> <span class="n">q_att</span>
+    <span class="p">)</span>
+    <span class="n">idxs_aca</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">aca</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">],</span> <span class="p">(</span><span class="s2">&quot;ACQ&quot;</span><span class="p">,</span> <span class="s2">&quot;GUI&quot;</span><span class="p">,</span> <span class="s2">&quot;BOT&quot;</span><span class="p">)))[</span><span class="mi">0</span><span class="p">]</span>
     <span class="k">for</span> <span class="n">idx_aca</span> <span class="ow">in</span> <span class="n">idxs_aca</span><span class="p">:</span>
-        <span class="n">yang</span> <span class="o">=</span> <span class="n">aca</span><span class="p">[</span><span class="s1">&#39;yang&#39;</span><span class="p">][</span><span class="n">idx_aca</span><span class="p">]</span>
-        <span class="n">zang</span> <span class="o">=</span> <span class="n">aca</span><span class="p">[</span><span class="s1">&#39;zang&#39;</span><span class="p">][</span><span class="n">idx_aca</span><span class="p">]</span>
+        <span class="n">yang</span> <span class="o">=</span> <span class="n">aca</span><span class="p">[</span><span class="s2">&quot;yang&quot;</span><span class="p">][</span><span class="n">idx_aca</span><span class="p">]</span>
+        <span class="n">zang</span> <span class="o">=</span> <span class="n">aca</span><span class="p">[</span><span class="s2">&quot;zang&quot;</span><span class="p">][</span><span class="n">idx_aca</span><span class="p">]</span>
         <span class="n">dys</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">yang</span> <span class="o">-</span> <span class="n">yang_stars</span><span class="p">)</span>
         <span class="n">dzs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">zang</span> <span class="o">-</span> <span class="n">zang_stars</span><span class="p">)</span>
 
@@ -178,16 +208,46 @@
         <span class="n">halfw</span> <span class="o">=</span> <span class="n">conf</span><span class="o">.</span><span class="n">star_id_match_halfwidth</span>
         <span class="n">ok</span> <span class="o">=</span> <span class="p">(</span><span class="n">dys</span> <span class="o">&lt;</span> <span class="n">halfw</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">dzs</span> <span class="o">&lt;</span> <span class="n">halfw</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">ok</span><span class="p">):</span>
-            <span class="n">idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmin</span><span class="p">(</span><span class="n">stars</span><span class="p">[</span><span class="s1">&#39;MAG_ACA&#39;</span><span class="p">][</span><span class="n">ok</span><span class="p">])</span>
-            <span class="n">aca</span><span class="p">[</span><span class="n">idx_aca</span><span class="p">][</span><span class="s1">&#39;id&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">stars</span><span class="p">[</span><span class="s1">&#39;AGASC_ID&#39;</span><span class="p">][</span><span class="n">ok</span><span class="p">][</span><span class="n">idx</span><span class="p">]</span>
-            <span class="n">aca</span><span class="p">[</span><span class="n">idx_aca</span><span class="p">][</span><span class="s1">&#39;mag&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">stars</span><span class="p">[</span><span class="s1">&#39;MAG_ACA&#39;</span><span class="p">][</span><span class="n">ok</span><span class="p">][</span><span class="n">idx</span><span class="p">]</span>
+            <span class="n">idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmin</span><span class="p">(</span><span class="n">stars</span><span class="p">[</span><span class="s2">&quot;MAG_ACA&quot;</span><span class="p">][</span><span class="n">ok</span><span class="p">])</span>
+            <span class="n">aca</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">][</span><span class="n">idx_aca</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">stars</span><span class="p">[</span><span class="s2">&quot;AGASC_ID&quot;</span><span class="p">][</span><span class="n">ok</span><span class="p">][</span><span class="n">idx</span><span class="p">])</span>
+            <span class="n">aca</span><span class="p">[</span><span class="s2">&quot;mag&quot;</span><span class="p">][</span><span class="n">idx_aca</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">stars</span><span class="p">[</span><span class="s2">&quot;MAG_ACA&quot;</span><span class="p">][</span><span class="n">ok</span><span class="p">][</span><span class="n">idx</span><span class="p">])</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;WARNING: star idx </span><span class="si">{</span><span class="n">idx_aca</span> <span class="o">+</span> <span class="mi">1</span><span class="si">}</span><span class="s1"> not found in obsid </span><span class="si">{</span><span class="n">aca</span><span class="o">.</span><span class="n">obsid</span><span class="si">}</span><span class="s1"> at &#39;</span>
-                        <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">aca</span><span class="o">.</span><span class="n">date</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;WARNING: star idx </span><span class="si">{</span><span class="n">idx_aca</span> <span class="o">+</span> <span class="mi">1</span><span class="si">}</span><span class="s2"> not found in obsid </span><span class="si">{</span><span class="n">obs</span><span class="p">[</span><span class="s1">&#39;obsid&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> at &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">obs</span><span class="p">[</span><span class="s1">&#39;date&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">convert_aostrcat_to_acatable</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">as_dict</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Convert dict of AOSTRCAT parameters to an ACATable.</span>
+<span class="k">def</span> <span class="nf">convert_starcat_dict_to_acatable</span><span class="p">(</span><span class="n">starcat_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Convert star catalog dict to an ACATable, including obs metadata.</span>
+
+<span class="sd">    :param starcat_dict: dict of list with starcat values</span>
+<span class="sd">    :returns: ACATable</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">proseco.acq</span> <span class="kn">import</span> <span class="n">AcqTable</span>
+    <span class="kn">from</span> <span class="nn">proseco.catalog</span> <span class="kn">import</span> <span class="n">ACATable</span>
+    <span class="kn">from</span> <span class="nn">proseco.guide</span> <span class="kn">import</span> <span class="n">GuideTable</span>
+
+    <span class="n">meta</span> <span class="o">=</span> <span class="n">starcat_dict</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;meta&quot;</span><span class="p">)</span>
+    <span class="n">aca</span> <span class="o">=</span> <span class="n">ACATable</span><span class="p">(</span><span class="n">starcat_dict</span><span class="p">)</span>
+    <span class="n">starcat_dict</span><span class="p">[</span><span class="s2">&quot;meta&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">meta</span>
+
+    <span class="n">aca</span><span class="o">.</span><span class="n">acqs</span> <span class="o">=</span> <span class="n">AcqTable</span><span class="p">()</span>
+    <span class="n">aca</span><span class="o">.</span><span class="n">guides</span> <span class="o">=</span> <span class="n">GuideTable</span><span class="p">()</span>
+
+    <span class="k">for</span> <span class="n">attr</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;obsid&quot;</span><span class="p">,</span> <span class="s2">&quot;att&quot;</span><span class="p">,</span> <span class="s2">&quot;date&quot;</span><span class="p">,</span> <span class="s2">&quot;duration&quot;</span><span class="p">,</span> <span class="s2">&quot;detector&quot;</span><span class="p">,</span> <span class="s2">&quot;sim_offset&quot;</span><span class="p">):</span>
+        <span class="nb">setattr</span><span class="p">(</span><span class="n">aca</span><span class="p">,</span> <span class="n">attr</span><span class="p">,</span> <span class="n">meta</span><span class="p">[</span><span class="n">attr</span><span class="p">])</span>
+
+    <span class="c1"># Make the catalog more complete and provide stuff temps needed for plot()</span>
+    <span class="n">aca</span><span class="o">.</span><span class="n">t_ccd</span> <span class="o">=</span> <span class="o">-</span><span class="mf">20.0</span>
+    <span class="n">aca</span><span class="o">.</span><span class="n">acqs</span><span class="o">.</span><span class="n">t_ccd</span> <span class="o">=</span> <span class="o">-</span><span class="mf">20.0</span>
+    <span class="n">aca</span><span class="o">.</span><span class="n">guides</span><span class="o">.</span><span class="n">t_ccd</span> <span class="o">=</span> <span class="o">-</span><span class="mf">20.0</span>
+
+    <span class="k">return</span> <span class="n">aca</span>
+
+
+<span class="k">def</span> <span class="nf">convert_aostrcat_to_starcat_dict</span><span class="p">(</span><span class="n">params</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Convert dict of AOSTRCAT parameters to an dict of list for each attribute.</span>
 
 <span class="sd">    The dict looks like::</span>
 
@@ -208,47 +268,38 @@
 
 <span class="sd">    :param obs: dict of observation (OBS command) parameters</span>
 <span class="sd">    :param params: dict of AOSTRCAT parameters</span>
-<span class="sd">    :returns: ACATable</span>
+<span class="sd">    :returns: dict of list for each catalog attribute</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">from</span> <span class="nn">proseco.catalog</span> <span class="kn">import</span> <span class="n">ACATable</span>
-    <span class="kn">from</span> <span class="nn">proseco.acq</span> <span class="kn">import</span> <span class="n">AcqTable</span>
-    <span class="kn">from</span> <span class="nn">proseco.guide</span> <span class="kn">import</span> <span class="n">GuideTable</span>
-    <span class="kn">from</span> <span class="nn">Chandra.Time</span> <span class="kn">import</span> <span class="n">date2secs</span>
-
     <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">17</span><span class="p">):</span>
-        <span class="k">if</span> <span class="n">params</span><span class="p">[</span><span class="sa">f</span><span class="s1">&#39;minmag</span><span class="si">{</span><span class="n">idx</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">params</span><span class="p">[</span><span class="sa">f</span><span class="s1">&#39;maxmag</span><span class="si">{</span><span class="n">idx</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">params</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;minmag</span><span class="si">{</span><span class="n">idx</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">params</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;maxmag</span><span class="si">{</span><span class="n">idx</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">break</span>
 
     <span class="n">max_idx</span> <span class="o">=</span> <span class="n">idx</span>
-    <span class="n">cols</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
+    <span class="n">aca</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">aca</span><span class="p">[</span><span class="s2">&quot;idx&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">max_idx</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">par_name</span><span class="p">,</span> <span class="n">col_name</span><span class="p">,</span> <span class="n">func</span> <span class="ow">in</span> <span class="n">PAR_MAPS</span><span class="p">:</span>
-        <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">max_idx</span><span class="p">):</span>
-            <span class="n">cols</span><span class="p">[</span><span class="n">col_name</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">func</span><span class="p">(</span><span class="n">params</span><span class="p">[</span><span class="n">par_name</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">idx</span><span class="p">)]))</span>
-
-    <span class="n">aca</span> <span class="o">=</span> <span class="n">ACATable</span><span class="p">(</span><span class="n">cols</span><span class="p">)</span>
-    <span class="n">aca</span><span class="o">.</span><span class="n">acqs</span> <span class="o">=</span> <span class="n">AcqTable</span><span class="p">()</span>
-    <span class="n">aca</span><span class="o">.</span><span class="n">guides</span> <span class="o">=</span> <span class="n">GuideTable</span><span class="p">()</span>
-    <span class="n">aca</span><span class="o">.</span><span class="n">add_column</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">max_idx</span><span class="p">),</span> <span class="n">index</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;idx&#39;</span><span class="p">)</span>
-
-    <span class="n">aca</span><span class="o">.</span><span class="n">obsid</span> <span class="o">=</span> <span class="n">obs</span><span class="p">[</span><span class="s1">&#39;obsid&#39;</span><span class="p">]</span>
-    <span class="n">aca</span><span class="o">.</span><span class="n">att</span> <span class="o">=</span> <span class="n">obs</span><span class="p">[</span><span class="s1">&#39;targ_att&#39;</span><span class="p">]</span>
-    <span class="n">aca</span><span class="o">.</span><span class="n">date</span> <span class="o">=</span> <span class="n">obs</span><span class="p">[</span><span class="s1">&#39;starcat_date&#39;</span><span class="p">]</span>
-    <span class="n">aca</span><span class="o">.</span><span class="n">duration</span> <span class="o">=</span> <span class="n">date2secs</span><span class="p">(</span><span class="n">obs</span><span class="p">[</span><span class="s1">&#39;obs_stop&#39;</span><span class="p">])</span> <span class="o">-</span> <span class="n">date2secs</span><span class="p">(</span><span class="n">obs</span><span class="p">[</span><span class="s1">&#39;obs_start&#39;</span><span class="p">])</span>
-
-    <span class="c1"># Make the catalog more complete and provide stuff temps needed for plot()</span>
-    <span class="n">aca</span><span class="o">.</span><span class="n">t_ccd</span> <span class="o">=</span> <span class="o">-</span><span class="mf">20.0</span>
-    <span class="n">aca</span><span class="o">.</span><span class="n">acqs</span><span class="o">.</span><span class="n">t_ccd</span> <span class="o">=</span> <span class="o">-</span><span class="mf">20.0</span>
-    <span class="n">aca</span><span class="o">.</span><span class="n">guides</span><span class="o">.</span><span class="n">t_ccd</span> <span class="o">=</span> <span class="o">-</span><span class="mf">20.0</span>
-
-    <span class="n">halfws</span> <span class="o">=</span> <span class="mi">20</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">aca</span><span class="p">[</span><span class="s1">&#39;res&#39;</span><span class="p">],</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">40</span><span class="p">)</span> <span class="o">*</span> <span class="n">aca</span><span class="p">[</span><span class="s1">&#39;dim&#39;</span><span class="p">]</span>
-    <span class="n">halfws</span><span class="p">[</span><span class="n">aca</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;MON&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">25</span>
-    <span class="n">aca</span><span class="p">[</span><span class="s1">&#39;halfw&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">halfws</span>
+        <span class="n">aca</span><span class="p">[</span><span class="n">col_name</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">func</span><span class="p">(</span><span class="n">params</span><span class="p">[</span><span class="n">par_name</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">idx</span><span class="p">)])</span> <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">max_idx</span><span class="p">)]</span>
+    <span class="n">ress</span> <span class="o">=</span> <span class="n">aca</span><span class="p">[</span><span class="s2">&quot;res&quot;</span><span class="p">]</span>
+    <span class="n">dims</span> <span class="o">=</span> <span class="n">aca</span><span class="p">[</span><span class="s2">&quot;dim&quot;</span><span class="p">]</span>
+    <span class="n">halfws</span> <span class="o">=</span> <span class="p">[</span><span class="mi">20</span> <span class="o">+</span> <span class="p">(</span><span class="mi">5</span> <span class="k">if</span> <span class="n">ress</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="k">else</span> <span class="mi">40</span><span class="p">)</span> <span class="o">*</span> <span class="n">dims</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">max_idx</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)]</span>
+    <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">typ</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">aca</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]):</span>
+        <span class="k">if</span> <span class="n">typ</span> <span class="o">==</span> <span class="s2">&quot;MON&quot;</span><span class="p">:</span>
+            <span class="n">halfws</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="mi">25</span>
+    <span class="n">aca</span><span class="p">[</span><span class="s2">&quot;halfw&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">halfws</span>
 
     <span class="k">return</span> <span class="n">aca</span>
 
 
-<div class="viewcode-block" id="get_starcats_as_table"><a class="viewcode-back" href="../../../api.html#kadi.commands.observations.get_starcats_as_table">[docs]</a><span class="k">def</span> <span class="nf">get_starcats_as_table</span><span class="p">(</span><span class="n">start</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">stop</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">obsid</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">unique</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                          <span class="n">scenario</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cmds</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">starcat_date</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="get_starcats_as_table"><a class="viewcode-back" href="../../../api.html#kadi.commands.observations.get_starcats_as_table">[docs]</a><span class="k">def</span> <span class="nf">get_starcats_as_table</span><span class="p">(</span>
+    <span class="n">start</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">stop</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">obsid</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">unique</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">scenario</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">cmds</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">starcat_date</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Get a single table of star catalog entries corresponding to input parameters.</span>
 
 <span class="sd">    This function calls ``get_starcats`` with the same parameters and then</span>
@@ -287,15 +338,22 @@
 <span class="sd">    :returns: astropy ``Table`` star catalog entries for matching observations.</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">starcats</span> <span class="o">=</span> <span class="n">get_starcats</span><span class="p">(</span><span class="n">obsid</span><span class="o">=</span><span class="n">obsid</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="o">=</span><span class="n">stop</span><span class="p">,</span> <span class="n">scenario</span><span class="o">=</span><span class="n">scenario</span><span class="p">,</span>
-                            <span class="n">cmds</span><span class="o">=</span><span class="n">cmds</span><span class="p">,</span> <span class="n">starcat_date</span><span class="o">=</span><span class="n">starcat_date</span><span class="p">,</span> <span class="n">as_dict</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">starcats</span> <span class="o">=</span> <span class="n">get_starcats</span><span class="p">(</span>
+        <span class="n">obsid</span><span class="o">=</span><span class="n">obsid</span><span class="p">,</span>
+        <span class="n">start</span><span class="o">=</span><span class="n">start</span><span class="p">,</span>
+        <span class="n">stop</span><span class="o">=</span><span class="n">stop</span><span class="p">,</span>
+        <span class="n">scenario</span><span class="o">=</span><span class="n">scenario</span><span class="p">,</span>
+        <span class="n">cmds</span><span class="o">=</span><span class="n">cmds</span><span class="p">,</span>
+        <span class="n">starcat_date</span><span class="o">=</span><span class="n">starcat_date</span><span class="p">,</span>
+        <span class="n">as_dict</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="p">)</span>
     <span class="n">out</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">starcat</span> <span class="ow">in</span> <span class="n">starcats</span><span class="p">:</span>
-        <span class="n">n_cat</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">starcat</span><span class="p">[</span><span class="s1">&#39;slot&#39;</span><span class="p">])</span>
-        <span class="n">out</span><span class="p">[</span><span class="s1">&#39;obsid&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">starcat</span><span class="p">[</span><span class="s1">&#39;meta&#39;</span><span class="p">][</span><span class="s1">&#39;obsid&#39;</span><span class="p">]]</span> <span class="o">*</span> <span class="n">n_cat</span><span class="p">)</span>
-        <span class="n">out</span><span class="p">[</span><span class="s1">&#39;starcat_date&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">starcat</span><span class="p">[</span><span class="s1">&#39;meta&#39;</span><span class="p">][</span><span class="s1">&#39;date&#39;</span><span class="p">]]</span> <span class="o">*</span> <span class="n">n_cat</span><span class="p">)</span>
+        <span class="n">n_cat</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">starcat</span><span class="p">[</span><span class="s2">&quot;slot&quot;</span><span class="p">])</span>
+        <span class="n">out</span><span class="p">[</span><span class="s2">&quot;obsid&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">starcat</span><span class="p">[</span><span class="s2">&quot;meta&quot;</span><span class="p">][</span><span class="s2">&quot;obsid&quot;</span><span class="p">]]</span> <span class="o">*</span> <span class="n">n_cat</span><span class="p">)</span>
+        <span class="n">out</span><span class="p">[</span><span class="s2">&quot;starcat_date&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">starcat</span><span class="p">[</span><span class="s2">&quot;meta&quot;</span><span class="p">][</span><span class="s2">&quot;date&quot;</span><span class="p">]]</span> <span class="o">*</span> <span class="n">n_cat</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">vals</span> <span class="ow">in</span> <span class="n">starcat</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="k">if</span> <span class="n">name</span> <span class="o">!=</span> <span class="s1">&#39;meta&#39;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">name</span> <span class="o">!=</span> <span class="s2">&quot;meta&quot;</span><span class="p">:</span>
                 <span class="n">out</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">vals</span><span class="p">)</span>
 
     <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">out</span><span class="p">:</span>
@@ -303,22 +361,35 @@
 
     <span class="n">out</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">unique</span><span class="p">:</span>
-        <span class="n">out</span> <span class="o">=</span> <span class="n">table_unique</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">keys</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;starcat_date&#39;</span><span class="p">,</span> <span class="s1">&#39;idx&#39;</span><span class="p">])</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">table_unique</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">keys</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;starcat_date&quot;</span><span class="p">,</span> <span class="s2">&quot;idx&quot;</span><span class="p">])</span>
 
     <span class="k">return</span> <span class="n">out</span></div>
 
 
-<div class="viewcode-block" id="get_starcats"><a class="viewcode-back" href="../../../api.html#kadi.commands.observations.get_starcats">[docs]</a><span class="k">def</span> <span class="nf">get_starcats</span><span class="p">(</span><span class="n">start</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">stop</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">obsid</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">scenario</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                 <span class="n">cmds</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">as_dict</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">starcat_date</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="get_starcats"><a class="viewcode-back" href="../../../api.html#kadi.commands.observations.get_starcats">[docs]</a><span class="k">def</span> <span class="nf">get_starcats</span><span class="p">(</span>
+    <span class="n">start</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">stop</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">obsid</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">scenario</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">cmds</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">as_dict</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">starcat_date</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">show_progress</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Get a list of star catalogs corresponding to input parameters.</span>
 
 <span class="sd">    The ``start``, ``stop`` and ``obsid`` parameters serve as matching filters</span>
 <span class="sd">    on the list of star catalogs that is returned.</span>
 
 <span class="sd">    By default the result is a list of ``ACATable`` objects similar to the</span>
-<span class="sd">    output of ``proseco.get_aca_catalog``. If ``as_dict`` is ``True`` then the</span>
-<span class="sd">    the result is a list of dictionaries with the same keys as the table columns.</span>
-<span class="sd">    This is substantially faster than the default.</span>
+<span class="sd">    output of ``proseco.get_aca_catalog``.</span>
+
+<span class="sd">    If ``as_dict`` is ``True`` then the the result is a list of dictionaries</span>
+<span class="sd">    with the same keys as the table columns plus a special &quot;meta&quot; key. The</span>
+<span class="sd">    &quot;meta&quot; value is a dict with relevant metadata including the obsid, att,</span>
+<span class="sd">    date, duration, sim_offset, and detctor. This method is substantially faster</span>
+<span class="sd">    than the default.</span>
 
 <span class="sd">    There are numerous instances of multiple observations with the same obsid,</span>
 <span class="sd">    so this function always returns a list of star catalogs even when ``obsid``</span>
@@ -367,76 +438,94 @@
 <span class="sd">    :param scenario: str, None Scenario</span>
 <span class="sd">    :param cmds: CommandTable, None Use this command table instead of querying</span>
 <span class="sd">        the archive.</span>
-<span class="sd">    :param as_dict: bool, False Return a list of dictionaries instead of a list</span>
+<span class="sd">    :param as_dict: bool, False Return a list of dict instead of a list</span>
 <span class="sd">        of ACATable objects.</span>
 <span class="sd">    :param starcat_date: CxoTime-like, None</span>
 <span class="sd">        Date of the observation&#39;s star catalog</span>
-<span class="sd">    :returns: list of ACATable List star catalogs for matching observations.</span>
+<span class="sd">    :param show_progress: bool,</span>
+<span class="sd">        Show progress bar for long queries (default=False)</span>
+<span class="sd">    :returns: list of star catalogs (ACATable or dict) for matching observations.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">shelve</span>
     <span class="kn">from</span> <span class="nn">contextlib</span> <span class="kn">import</span> <span class="n">ExitStack</span>
+
+    <span class="kn">from</span> <span class="nn">tqdm</span> <span class="kn">import</span> <span class="n">tqdm</span>
+
+    <span class="kn">from</span> <span class="nn">kadi.commands</span> <span class="kn">import</span> <span class="n">conf</span>
     <span class="kn">from</span> <span class="nn">kadi.commands.commands_v2</span> <span class="kn">import</span> <span class="n">REV_PARS_DICT</span>
     <span class="kn">from</span> <span class="nn">kadi.commands.core</span> <span class="kn">import</span> <span class="n">decode_starcat_params</span>
     <span class="kn">from</span> <span class="nn">kadi.paths</span> <span class="kn">import</span> <span class="n">STARCATS_CACHE_PATH</span>
-    <span class="kn">from</span> <span class="nn">kadi.commands</span> <span class="kn">import</span> <span class="n">conf</span>
-    <span class="kn">from</span> <span class="nn">proseco.catalog</span> <span class="kn">import</span> <span class="n">ACATable</span>
-    <span class="kn">from</span> <span class="nn">proseco.acq</span> <span class="kn">import</span> <span class="n">AcqTable</span>
-    <span class="kn">from</span> <span class="nn">proseco.guide</span> <span class="kn">import</span> <span class="n">GuideTable</span>
 
-    <span class="n">obss</span> <span class="o">=</span> <span class="n">get_observations</span><span class="p">(</span><span class="n">obsid</span><span class="o">=</span><span class="n">obsid</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="o">=</span><span class="n">stop</span><span class="p">,</span>
-                            <span class="n">scenario</span><span class="o">=</span><span class="n">scenario</span><span class="p">,</span> <span class="n">cmds</span><span class="o">=</span><span class="n">cmds</span><span class="p">,</span> <span class="n">starcat_date</span><span class="o">=</span><span class="n">starcat_date</span><span class="p">)</span>
+    <span class="n">obss</span> <span class="o">=</span> <span class="n">get_observations</span><span class="p">(</span>
+        <span class="n">obsid</span><span class="o">=</span><span class="n">obsid</span><span class="p">,</span>
+        <span class="n">start</span><span class="o">=</span><span class="n">start</span><span class="p">,</span>
+        <span class="n">stop</span><span class="o">=</span><span class="n">stop</span><span class="p">,</span>
+        <span class="n">scenario</span><span class="o">=</span><span class="n">scenario</span><span class="p">,</span>
+        <span class="n">cmds</span><span class="o">=</span><span class="n">cmds</span><span class="p">,</span>
+        <span class="n">starcat_date</span><span class="o">=</span><span class="n">starcat_date</span><span class="p">,</span>
+    <span class="p">)</span>
     <span class="n">starcats</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">rev_pars_dict</span> <span class="o">=</span> <span class="n">REV_PARS_DICT</span> <span class="k">if</span> <span class="n">cmds</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">cmds</span><span class="o">.</span><span class="n">rev_pars_dict</span><span class="p">()</span>
 
     <span class="k">with</span> <span class="n">ExitStack</span><span class="p">()</span> <span class="k">as</span> <span class="n">context_stack</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">conf</span><span class="o">.</span><span class="n">cache_starcats</span><span class="p">:</span>
             <span class="n">starcats_db</span> <span class="o">=</span> <span class="n">context_stack</span><span class="o">.</span><span class="n">enter_context</span><span class="p">(</span>
-                <span class="n">shelve</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">STARCATS_CACHE_PATH</span><span class="p">())))</span>
+                <span class="n">shelve</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">STARCATS_CACHE_PATH</span><span class="p">()))</span>
+            <span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="c1"># Defining as a dict provides the same interface as shelve but</span>
             <span class="c1"># precludes caching.</span>
             <span class="n">starcats_db</span> <span class="o">=</span> <span class="p">{}</span>
 
-        <span class="k">for</span> <span class="n">obs</span> <span class="ow">in</span> <span class="n">obss</span><span class="p">:</span>
-            <span class="k">if</span> <span class="p">(</span><span class="n">idx</span> <span class="o">:=</span> <span class="n">obs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;starcat_idx&#39;</span><span class="p">))</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">obss_iter</span> <span class="o">=</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">obss</span><span class="p">)</span> <span class="k">if</span> <span class="n">show_progress</span> <span class="k">else</span> <span class="n">obss</span>
+        <span class="k">for</span> <span class="n">obs</span> <span class="ow">in</span> <span class="n">obss_iter</span><span class="p">:</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">idx</span> <span class="o">:=</span> <span class="n">obs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;starcat_idx&quot;</span><span class="p">))</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="k">continue</span>
 
-            <span class="n">db_key</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">-</span><span class="si">{}</span><span class="s1">-</span><span class="si">{:05d}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-                <span class="n">obs</span><span class="p">[</span><span class="s1">&#39;starcat_date&#39;</span><span class="p">],</span> <span class="n">obs</span><span class="p">[</span><span class="s1">&#39;source&#39;</span><span class="p">],</span> <span class="n">obs</span><span class="p">[</span><span class="s1">&#39;obsid&#39;</span><span class="p">])</span>
+            <span class="n">db_key</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">-</span><span class="si">{}</span><span class="s2">-</span><span class="si">{:05d}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="n">obs</span><span class="p">[</span><span class="s2">&quot;starcat_date&quot;</span><span class="p">],</span> <span class="n">obs</span><span class="p">[</span><span class="s2">&quot;source&quot;</span><span class="p">],</span> <span class="n">obs</span><span class="p">[</span><span class="s2">&quot;obsid&quot;</span><span class="p">]</span>
+            <span class="p">)</span>
             <span class="k">if</span> <span class="n">db_key</span> <span class="ow">in</span> <span class="n">starcats_db</span><span class="p">:</span>
-                <span class="c1"># From the cache</span>
-                <span class="n">starcat_dict</span> <span class="o">=</span> <span class="n">starcats_db</span><span class="p">[</span><span class="n">db_key</span><span class="p">]</span>
-                <span class="k">if</span> <span class="n">as_dict</span><span class="p">:</span>
-                    <span class="n">starcat</span> <span class="o">=</span> <span class="n">starcat_dict</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">meta</span> <span class="o">=</span> <span class="n">starcat_dict</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;meta&#39;</span><span class="p">)</span>
-                    <span class="n">starcat</span> <span class="o">=</span> <span class="n">ACATable</span><span class="p">(</span><span class="n">starcat_dict</span><span class="p">)</span>
-                    <span class="n">starcat</span><span class="o">.</span><span class="n">meta</span> <span class="o">=</span> <span class="n">meta</span>
-                    <span class="n">starcat</span><span class="o">.</span><span class="n">acqs</span> <span class="o">=</span> <span class="n">AcqTable</span><span class="p">()</span>
-                    <span class="n">starcat</span><span class="o">.</span><span class="n">guides</span> <span class="o">=</span> <span class="n">GuideTable</span><span class="p">()</span>
+                <span class="n">starcat_ids</span><span class="p">,</span> <span class="n">starcat_mags</span> <span class="o">=</span> <span class="n">starcats_db</span><span class="p">[</span><span class="n">db_key</span><span class="p">]</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="c1"># From the commands archive, building ACATable from backstop params</span>
-                <span class="n">params</span> <span class="o">=</span> <span class="n">rev_pars_dict</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
-                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">):</span>
-                    <span class="n">params</span> <span class="o">=</span> <span class="n">decode_starcat_params</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
-                <span class="n">starcat</span> <span class="o">=</span> <span class="n">convert_aostrcat_to_acatable</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
-                <span class="n">set_detector_and_sim_offset</span><span class="p">(</span><span class="n">starcat</span><span class="p">,</span> <span class="n">obs</span><span class="p">[</span><span class="s1">&#39;simpos&#39;</span><span class="p">])</span>
-                <span class="n">starcat</span><span class="o">.</span><span class="n">add_column</span><span class="p">(</span><span class="o">-</span><span class="mi">999</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;id&#39;</span><span class="p">)</span>
-                <span class="n">starcat</span><span class="o">.</span><span class="n">add_column</span><span class="p">(</span><span class="o">-</span><span class="mf">999.0</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;mag&#39;</span><span class="p">)</span>
-                <span class="n">set_fid_ids</span><span class="p">(</span><span class="n">starcat</span><span class="p">)</span>
-                <span class="n">set_star_ids</span><span class="p">(</span><span class="n">starcat</span><span class="p">)</span>
+                <span class="n">starcat_ids</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="n">starcat_mags</span> <span class="o">=</span> <span class="kc">None</span>
 
-                <span class="n">starcat_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">name</span><span class="p">:</span> <span class="n">starcat</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">starcat</span><span class="o">.</span><span class="n">colnames</span><span class="p">}</span>
-                <span class="n">starcat_dict</span><span class="p">[</span><span class="s1">&#39;meta&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">starcat</span><span class="o">.</span><span class="n">meta</span>
-                <span class="k">del</span> <span class="n">starcat_dict</span><span class="p">[</span><span class="s1">&#39;meta&#39;</span><span class="p">][</span><span class="s1">&#39;acqs&#39;</span><span class="p">]</span>
-                <span class="k">del</span> <span class="n">starcat_dict</span><span class="p">[</span><span class="s1">&#39;meta&#39;</span><span class="p">][</span><span class="s1">&#39;guides&#39;</span><span class="p">]</span>
+            <span class="c1"># From the commands archive, building ACA catalog dict from backstop</span>
+            <span class="c1"># params</span>
+            <span class="n">params</span> <span class="o">=</span> <span class="n">rev_pars_dict</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">):</span>
+                <span class="n">params</span> <span class="o">=</span> <span class="n">decode_starcat_params</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
+            <span class="n">starcat_dict</span> <span class="o">=</span> <span class="n">convert_aostrcat_to_starcat_dict</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
+            <span class="n">n_idx</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">starcat_dict</span><span class="p">[</span><span class="s2">&quot;idx&quot;</span><span class="p">])</span>
+            <span class="n">meta</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+                <span class="n">obsid</span><span class="o">=</span><span class="n">obs</span><span class="p">[</span><span class="s2">&quot;obsid&quot;</span><span class="p">],</span>
+                <span class="n">att</span><span class="o">=</span><span class="n">obs</span><span class="p">[</span><span class="s2">&quot;targ_att&quot;</span><span class="p">],</span>
+                <span class="n">date</span><span class="o">=</span><span class="n">obs</span><span class="p">[</span><span class="s2">&quot;starcat_date&quot;</span><span class="p">],</span>
+                <span class="n">duration</span><span class="o">=</span><span class="n">date2secs</span><span class="p">(</span><span class="n">obs</span><span class="p">[</span><span class="s2">&quot;obs_stop&quot;</span><span class="p">])</span> <span class="o">-</span> <span class="n">date2secs</span><span class="p">(</span><span class="n">obs</span><span class="p">[</span><span class="s2">&quot;obs_start&quot;</span><span class="p">]),</span>
+            <span class="p">)</span>
+            <span class="n">meta</span><span class="p">[</span><span class="s2">&quot;detector&quot;</span><span class="p">],</span> <span class="n">meta</span><span class="p">[</span><span class="s2">&quot;sim_offset&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">get_detector_and_sim_offset</span><span class="p">(</span>
+                <span class="n">obs</span><span class="p">[</span><span class="s2">&quot;simpos&quot;</span><span class="p">]</span>
+            <span class="p">)</span>
+            <span class="n">starcat_dict</span><span class="p">[</span><span class="s2">&quot;meta&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">meta</span>
 
-                <span class="k">if</span> <span class="n">as_dict</span><span class="p">:</span>
-                    <span class="n">starcat</span> <span class="o">=</span> <span class="n">starcat_dict</span>
+            <span class="k">if</span> <span class="n">starcat_ids</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">starcat_mags</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">starcat_dict</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mi">999</span><span class="p">]</span> <span class="o">*</span> <span class="n">n_idx</span>
+                <span class="n">starcat_dict</span><span class="p">[</span><span class="s2">&quot;mag&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mf">999.0</span><span class="p">]</span> <span class="o">*</span> <span class="n">n_idx</span>
+                <span class="n">set_fid_ids</span><span class="p">(</span><span class="n">starcat_dict</span><span class="p">)</span>
+                <span class="n">set_star_ids</span><span class="p">(</span><span class="n">starcat_dict</span><span class="p">)</span>
+                <span class="n">starcats_db</span><span class="p">[</span><span class="n">db_key</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">starcat_dict</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">],</span> <span class="n">starcat_dict</span><span class="p">[</span><span class="s2">&quot;mag&quot;</span><span class="p">])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">starcat_dict</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">starcat_ids</span>
+                <span class="n">starcat_dict</span><span class="p">[</span><span class="s2">&quot;mag&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">starcat_mags</span>
 
-                <span class="n">starcats_db</span><span class="p">[</span><span class="n">db_key</span><span class="p">]</span> <span class="o">=</span> <span class="n">starcat_dict</span>
+            <span class="n">starcat_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">starcat_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">STARCAT_NAMES</span> <span class="o">+</span> <span class="p">[</span><span class="s2">&quot;meta&quot;</span><span class="p">]}</span>
 
-            <span class="n">starcats</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">starcat</span><span class="p">)</span>
+            <span class="n">starcats</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="n">starcat_dict</span>
+                <span class="k">if</span> <span class="n">as_dict</span>
+                <span class="k">else</span> <span class="n">convert_starcat_dict_to_acatable</span><span class="p">(</span><span class="n">starcat_dict</span><span class="p">)</span>
+            <span class="p">)</span>
 
     <span class="k">return</span> <span class="n">starcats</span></div>
 
@@ -446,8 +535,8 @@
 <span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Get observations corresponding to input parameters.</span>
 
-<span class="sd">    The ``start``, ``stop``, ``starcat_date`` and ``obsid`` parameters serve as matching filters</span>
-<span class="sd">    on the list of observations that is returned.</span>
+<span class="sd">    The ``start``, ``stop``, ``starcat_date`` and ``obsid`` parameters serve as</span>
+<span class="sd">    matching filters on the list of observations that is returned.</span>
 
 <span class="sd">    Over the mission there are thousands of instances of multiple observations</span>
 <span class="sd">    with the same obsid, so this function always returns a list of observation</span>
@@ -474,9 +563,8 @@
 
 <span class="sd">        &gt;&gt;&gt; obs_all = get_observations()  # All observations in commands archive</span>
 
-<span class="sd">        # Might be convenient to handle this as a Table</span>
-<span class="sd">        &gt;&gt;&gt; from astropy.table import Table</span>
-<span class="sd">        &gt;&gt;&gt; obs_all = Table(obs_all)</span>
+<span class="sd">        # Might be convenient to handle this as a Table &gt;&gt;&gt; from astropy.table</span>
+<span class="sd">        import Table &gt;&gt;&gt; obs_all = Table(obs_all)</span>
 
 <span class="sd">        &gt;&gt;&gt; from kadi.commands import get_observations</span>
 <span class="sd">        &gt;&gt;&gt; get_observations(starcat_date=&#39;2022:001:17:00:58.521&#39;)</span>
@@ -492,79 +580,78 @@
 <span class="sd">        &#39;starcat_idx&#39;: 171677,</span>
 <span class="sd">        &#39;source&#39;: &#39;DEC3021A&#39;}]</span>
 
-<span class="sd">    :param start: CxoTime-like, None</span>
-<span class="sd">        Start time (default=beginning of commands)</span>
-<span class="sd">    :param stop: CxoTime-like, None</span>
-<span class="sd">        Stop time (default=end of commands)</span>
-<span class="sd">    :param obsid: int, None</span>
-<span class="sd">        ObsID</span>
-<span class="sd">    :param scenario: str, None</span>
-<span class="sd">        Scenario</span>
-<span class="sd">    :param cmds: CommandTable, None</span>
-<span class="sd">        Use this command table instead of querying the archive.</span>
-<span class="sd">    :param starcat_date: CxoTime-like, None</span>
-<span class="sd">        Date of the observation&#39;s star catalog</span>
-<span class="sd">    :returns: list of dict</span>
-<span class="sd">        Observation parameters for matching observations.</span>
+<span class="sd">    :param start: CxoTime-like, None Start time (default=beginning of commands)</span>
+<span class="sd">    :param stop: CxoTime-like, None Stop time (default=end of commands)</span>
+<span class="sd">    :param obsid: int, None ObsID</span>
+<span class="sd">    :param scenario: str, None Scenario</span>
+<span class="sd">    :param cmds: CommandTable, None Use this command table instead of querying</span>
+<span class="sd">        the archive.</span>
+<span class="sd">    :param starcat_date: CxoTime-like, None Date of the observation&#39;s star</span>
+<span class="sd">        catalog</span>
+<span class="sd">    :returns: list of dict Observation parameters for matching observations.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">from</span> <span class="nn">kadi.commands.commands_v2</span> <span class="kn">import</span> <span class="n">get_cmds</span>
+
     <span class="k">if</span> <span class="n">starcat_date</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">start</span> <span class="o">=</span> <span class="n">starcat_date</span> <span class="k">if</span> <span class="n">start</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">start</span>
         <span class="n">stop</span> <span class="o">=</span> <span class="n">CxoTime</span><span class="p">(</span><span class="n">starcat_date</span><span class="p">)</span> <span class="o">+</span> <span class="mi">7</span> <span class="o">*</span> <span class="n">u</span><span class="o">.</span><span class="n">day</span> <span class="k">if</span> <span class="n">stop</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">stop</span>
-    <span class="n">start</span> <span class="o">=</span> <span class="n">CxoTime</span><span class="p">(</span><span class="s1">&#39;1999:001&#39;</span> <span class="k">if</span> <span class="n">start</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">start</span><span class="p">)</span>
+    <span class="n">start</span> <span class="o">=</span> <span class="n">CxoTime</span><span class="p">(</span><span class="s2">&quot;1999:001&quot;</span> <span class="k">if</span> <span class="n">start</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">start</span><span class="p">)</span>
     <span class="n">stop</span> <span class="o">=</span> <span class="p">(</span><span class="n">CxoTime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">*</span> <span class="n">u</span><span class="o">.</span><span class="n">year</span><span class="p">)</span> <span class="k">if</span> <span class="n">stop</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">CxoTime</span><span class="p">(</span><span class="n">stop</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">cmds</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">scenario</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">OBSERVATIONS</span><span class="p">:</span>
             <span class="n">cmds</span> <span class="o">=</span> <span class="n">get_cmds</span><span class="p">(</span><span class="n">scenario</span><span class="o">=</span><span class="n">scenario</span><span class="p">)</span>
-            <span class="n">cmds_obs</span> <span class="o">=</span> <span class="n">cmds</span><span class="p">[</span><span class="n">cmds</span><span class="p">[</span><span class="s1">&#39;tlmsid&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;OBS&#39;</span><span class="p">]</span>
+            <span class="n">cmds_obs</span> <span class="o">=</span> <span class="n">cmds</span><span class="p">[</span><span class="n">cmds</span><span class="p">[</span><span class="s2">&quot;tlmsid&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;OBS&quot;</span><span class="p">]</span>
             <span class="n">obsids</span> <span class="o">=</span> <span class="p">[]</span>
             <span class="k">for</span> <span class="n">cmd</span> <span class="ow">in</span> <span class="n">cmds_obs</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">cmd</span><span class="p">[</span><span class="s1">&#39;params&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                    <span class="n">_obsid</span> <span class="o">=</span> <span class="n">cmd</span><span class="p">[</span><span class="s1">&#39;obsid&#39;</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">cmd</span><span class="p">[</span><span class="s2">&quot;params&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">_obsid</span> <span class="o">=</span> <span class="n">cmd</span><span class="p">[</span><span class="s2">&quot;obsid&quot;</span><span class="p">]</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="n">_obsid</span> <span class="o">=</span> <span class="n">cmd</span><span class="p">[</span><span class="s1">&#39;params&#39;</span><span class="p">][</span><span class="s1">&#39;obsid&#39;</span><span class="p">]</span>
+                    <span class="n">_obsid</span> <span class="o">=</span> <span class="n">cmd</span><span class="p">[</span><span class="s2">&quot;params&quot;</span><span class="p">][</span><span class="s2">&quot;obsid&quot;</span><span class="p">]</span>
                 <span class="n">obsids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_obsid</span><span class="p">)</span>
 
-            <span class="n">cmds_obs</span><span class="p">[</span><span class="s1">&#39;obsid&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">obsids</span>
+            <span class="n">cmds_obs</span><span class="p">[</span><span class="s2">&quot;obsid&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">obsids</span>
             <span class="n">OBSERVATIONS</span><span class="p">[</span><span class="n">scenario</span><span class="p">]</span> <span class="o">=</span> <span class="n">cmds_obs</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">cmds_obs</span> <span class="o">=</span> <span class="n">OBSERVATIONS</span><span class="p">[</span><span class="n">scenario</span><span class="p">]</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">cmds_obs</span> <span class="o">=</span> <span class="n">cmds</span><span class="p">[</span><span class="n">cmds</span><span class="p">[</span><span class="s1">&#39;tlmsid&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;OBS&#39;</span><span class="p">]</span>
+        <span class="n">cmds_obs</span> <span class="o">=</span> <span class="n">cmds</span><span class="p">[</span><span class="n">cmds</span><span class="p">[</span><span class="s2">&quot;tlmsid&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;OBS&quot;</span><span class="p">]</span>
 
-    <span class="c1"># Get observations in date range with padding</span>
-    <span class="c1"># _some_ padding is necessary because start/stop are used to filter observations based on</span>
-    <span class="c1"># obs_start, which can be more than 30 minutes after starcat_date. I was generous with padding.</span>
-    <span class="n">i0</span><span class="p">,</span> <span class="n">i1</span> <span class="o">=</span> <span class="n">cmds_obs</span><span class="o">.</span><span class="n">find_date</span><span class="p">([(</span><span class="n">start</span> <span class="o">-</span> <span class="mi">7</span> <span class="o">*</span> <span class="n">u</span><span class="o">.</span><span class="n">day</span><span class="p">)</span><span class="o">.</span><span class="n">date</span><span class="p">,</span>
-                                 <span class="p">(</span><span class="n">stop</span> <span class="o">+</span> <span class="mi">7</span> <span class="o">*</span> <span class="n">u</span><span class="o">.</span><span class="n">day</span><span class="p">)</span><span class="o">.</span><span class="n">date</span><span class="p">])</span>
+    <span class="c1"># Get observations in date range with padding. _some_ padding is necessary</span>
+    <span class="c1"># because start/stop are used to filter observations based on obs_start,</span>
+    <span class="c1"># which can be more than 30 minutes after starcat_date. I was generous with</span>
+    <span class="c1"># padding.</span>
+    <span class="n">i0</span><span class="p">,</span> <span class="n">i1</span> <span class="o">=</span> <span class="n">cmds_obs</span><span class="o">.</span><span class="n">find_date</span><span class="p">([(</span><span class="n">start</span> <span class="o">-</span> <span class="mi">7</span> <span class="o">*</span> <span class="n">u</span><span class="o">.</span><span class="n">day</span><span class="p">)</span><span class="o">.</span><span class="n">date</span><span class="p">,</span> <span class="p">(</span><span class="n">stop</span> <span class="o">+</span> <span class="mi">7</span> <span class="o">*</span> <span class="n">u</span><span class="o">.</span><span class="n">day</span><span class="p">)</span><span class="o">.</span><span class="n">date</span><span class="p">])</span>
     <span class="n">cmds_obs</span> <span class="o">=</span> <span class="n">cmds_obs</span><span class="p">[</span><span class="n">i0</span><span class="p">:</span><span class="n">i1</span><span class="p">]</span>
 
     <span class="k">if</span> <span class="n">starcat_date</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">cmds_obs</span> <span class="o">=</span> <span class="n">cmds_obs</span><span class="p">[</span><span class="n">cmds_obs</span><span class="p">[</span><span class="s1">&#39;starcat_date&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">starcat_date</span><span class="p">]</span>
+        <span class="n">cmds_obs</span> <span class="o">=</span> <span class="n">cmds_obs</span><span class="p">[</span><span class="n">cmds_obs</span><span class="p">[</span><span class="s2">&quot;starcat_date&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">starcat_date</span><span class="p">]</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">cmds_obs</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;No matching observations for </span><span class="si">{</span><span class="n">starcat_date</span><span class="si">=}</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No matching observations for </span><span class="si">{</span><span class="n">starcat_date</span><span class="si">=}</span><span class="s2">&quot;</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">obsid</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">cmds_obs</span> <span class="o">=</span> <span class="n">cmds_obs</span><span class="p">[</span><span class="n">cmds_obs</span><span class="p">[</span><span class="s1">&#39;obsid&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">obsid</span><span class="p">]</span>
+        <span class="n">cmds_obs</span> <span class="o">=</span> <span class="n">cmds_obs</span><span class="p">[</span><span class="n">cmds_obs</span><span class="p">[</span><span class="s2">&quot;obsid&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">obsid</span><span class="p">]</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">cmds_obs</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;No matching observations for </span><span class="si">{</span><span class="n">obsid</span><span class="si">=}</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No matching observations for </span><span class="si">{</span><span class="n">obsid</span><span class="si">=}</span><span class="s2">&quot;</span><span class="p">)</span>
 
-    <span class="n">obss</span> <span class="o">=</span> <span class="p">[</span><span class="n">cmd</span><span class="p">[</span><span class="s1">&#39;params&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span> <span class="k">for</span> <span class="n">cmd</span> <span class="ow">in</span> <span class="n">cmds_obs</span><span class="p">]</span>
+    <span class="n">obss</span> <span class="o">=</span> <span class="p">[</span><span class="n">cmd</span><span class="p">[</span><span class="s2">&quot;params&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span> <span class="k">for</span> <span class="n">cmd</span> <span class="ow">in</span> <span class="n">cmds_obs</span><span class="p">]</span>
     <span class="k">for</span> <span class="n">obs</span><span class="p">,</span> <span class="n">cmd_obs</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">obss</span><span class="p">,</span> <span class="n">cmds_obs</span><span class="p">):</span>
-        <span class="n">obs</span><span class="p">[</span><span class="s1">&#39;source&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cmd_obs</span><span class="p">[</span><span class="s1">&#39;source&#39;</span><span class="p">]</span>
+        <span class="n">obs</span><span class="p">[</span><span class="s2">&quot;source&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cmd_obs</span><span class="p">[</span><span class="s2">&quot;source&quot;</span><span class="p">]</span>
 
     <span class="c1"># Filter observations by date to include any observation that intersects</span>
     <span class="c1"># the date range.</span>
     <span class="n">datestart</span> <span class="o">=</span> <span class="n">start</span><span class="o">.</span><span class="n">date</span>
     <span class="n">datestop</span> <span class="o">=</span> <span class="n">stop</span><span class="o">.</span><span class="n">date</span>
-    <span class="n">obss</span> <span class="o">=</span> <span class="p">[</span><span class="n">obs</span> <span class="k">for</span> <span class="n">obs</span> <span class="ow">in</span> <span class="n">obss</span>
-            <span class="k">if</span> <span class="n">obs</span><span class="p">[</span><span class="s1">&#39;obs_start&#39;</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">datestop</span> <span class="ow">and</span> <span class="n">obs</span><span class="p">[</span><span class="s1">&#39;obs_stop&#39;</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">datestart</span><span class="p">]</span>
+    <span class="n">obss</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">obs</span>
+        <span class="k">for</span> <span class="n">obs</span> <span class="ow">in</span> <span class="n">obss</span>
+        <span class="k">if</span> <span class="n">obs</span><span class="p">[</span><span class="s2">&quot;obs_start&quot;</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">datestop</span> <span class="ow">and</span> <span class="n">obs</span><span class="p">[</span><span class="s2">&quot;obs_stop&quot;</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">datestart</span>
+    <span class="p">]</span>
 
     <span class="k">return</span> <span class="n">obss</span></div>
 
 
-<span class="k">def</span> <span class="nf">get_agasc_cone_fast</span><span class="p">(</span><span class="n">ra</span><span class="p">,</span> <span class="n">dec</span><span class="p">,</span> <span class="n">radius</span><span class="o">=</span><span class="mf">1.5</span><span class="p">,</span> <span class="n">date</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">get_agasc_cone_fast</span><span class="p">(</span><span class="n">ra</span><span class="p">,</span> <span class="n">dec</span><span class="p">,</span> <span class="n">radius</span><span class="o">=</span><span class="mf">1.5</span><span class="p">,</span> <span class="n">date</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">matlab_pm_bug</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Get AGASC catalog entries within ``radius`` degrees of ``ra``, ``dec``.</span>
 
@@ -574,27 +661,31 @@
 <span class="sd">    :param dec: Declination (deg)</span>
 <span class="sd">    :param radius: Cone search radius (deg)</span>
 <span class="sd">    :param date: Date for proper motion (default=Now)</span>
+<span class="sd">    :param matlab_pm_bug: bool Apply MATLAB proper motion bug prior to</span>
+<span class="sd">        the MAY2118A loads (default=False)</span>
 
 <span class="sd">    :returns: astropy Table of AGASC entries</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">global</span> <span class="n">STARS_AGASC</span>
 
     <span class="n">agasc_file</span> <span class="o">=</span> <span class="n">AGASC_FILE</span>
-    <span class="kn">from</span> <span class="nn">agasc.agasc</span> <span class="kn">import</span> <span class="n">get_ra_decs</span><span class="p">,</span> <span class="n">sphere_dist</span><span class="p">,</span> <span class="n">add_pmcorr_columns</span>
     <span class="kn">import</span> <span class="nn">tables</span>
+    <span class="kn">from</span> <span class="nn">agasc.agasc</span> <span class="kn">import</span> <span class="n">add_pmcorr_columns</span><span class="p">,</span> <span class="n">get_ra_decs</span><span class="p">,</span> <span class="n">sphere_dist</span>
 
     <span class="n">ra_decs</span> <span class="o">=</span> <span class="n">get_ra_decs</span><span class="p">(</span><span class="n">agasc_file</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">STARS_AGASC</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">with</span> <span class="n">tables</span><span class="o">.</span><span class="n">open_file</span><span class="p">(</span><span class="n">agasc_file</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">h5</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">tables</span><span class="o">.</span><span class="n">open_file</span><span class="p">(</span><span class="n">agasc_file</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">h5</span><span class="p">:</span>
             <span class="n">dat</span> <span class="o">=</span> <span class="n">h5</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">data</span><span class="p">[:]</span>
-            <span class="n">cols</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;AGASC_ID&#39;</span><span class="p">:</span> <span class="n">dat</span><span class="p">[</span><span class="s1">&#39;AGASC_ID&#39;</span><span class="p">],</span>
-                    <span class="s1">&#39;RA&#39;</span><span class="p">:</span> <span class="n">dat</span><span class="p">[</span><span class="s1">&#39;RA&#39;</span><span class="p">],</span>
-                    <span class="s1">&#39;DEC&#39;</span><span class="p">:</span> <span class="n">dat</span><span class="p">[</span><span class="s1">&#39;DEC&#39;</span><span class="p">],</span>
-                    <span class="s1">&#39;PM_RA&#39;</span><span class="p">:</span> <span class="n">dat</span><span class="p">[</span><span class="s1">&#39;PM_RA&#39;</span><span class="p">],</span>
-                    <span class="s1">&#39;PM_DEC&#39;</span><span class="p">:</span> <span class="n">dat</span><span class="p">[</span><span class="s1">&#39;PM_DEC&#39;</span><span class="p">],</span>
-                    <span class="s1">&#39;EPOCH&#39;</span><span class="p">:</span> <span class="n">dat</span><span class="p">[</span><span class="s1">&#39;EPOCH&#39;</span><span class="p">],</span>
-                    <span class="s1">&#39;MAG_ACA&#39;</span><span class="p">:</span> <span class="n">dat</span><span class="p">[</span><span class="s1">&#39;MAG_ACA&#39;</span><span class="p">]}</span>
+            <span class="n">cols</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s2">&quot;AGASC_ID&quot;</span><span class="p">:</span> <span class="n">dat</span><span class="p">[</span><span class="s2">&quot;AGASC_ID&quot;</span><span class="p">],</span>
+                <span class="s2">&quot;RA&quot;</span><span class="p">:</span> <span class="n">dat</span><span class="p">[</span><span class="s2">&quot;RA&quot;</span><span class="p">],</span>
+                <span class="s2">&quot;DEC&quot;</span><span class="p">:</span> <span class="n">dat</span><span class="p">[</span><span class="s2">&quot;DEC&quot;</span><span class="p">],</span>
+                <span class="s2">&quot;PM_RA&quot;</span><span class="p">:</span> <span class="n">dat</span><span class="p">[</span><span class="s2">&quot;PM_RA&quot;</span><span class="p">],</span>
+                <span class="s2">&quot;PM_DEC&quot;</span><span class="p">:</span> <span class="n">dat</span><span class="p">[</span><span class="s2">&quot;PM_DEC&quot;</span><span class="p">],</span>
+                <span class="s2">&quot;EPOCH&quot;</span><span class="p">:</span> <span class="n">dat</span><span class="p">[</span><span class="s2">&quot;EPOCH&quot;</span><span class="p">],</span>
+                <span class="s2">&quot;MAG_ACA&quot;</span><span class="p">:</span> <span class="n">dat</span><span class="p">[</span><span class="s2">&quot;MAG_ACA&quot;</span><span class="p">],</span>
+            <span class="p">}</span>
             <span class="n">STARS_AGASC</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="n">cols</span><span class="p">)</span>
             <span class="k">del</span> <span class="n">dat</span>  <span class="c1"># Explicitly delete to free memory (?)</span>
 
@@ -603,6 +694,19 @@
     <span class="n">dists</span> <span class="o">=</span> <span class="n">sphere_dist</span><span class="p">(</span><span class="n">ra</span><span class="p">,</span> <span class="n">dec</span><span class="p">,</span> <span class="n">ra_decs</span><span class="o">.</span><span class="n">ra</span><span class="p">[</span><span class="n">idx0</span><span class="p">:</span><span class="n">idx1</span><span class="p">],</span> <span class="n">ra_decs</span><span class="o">.</span><span class="n">dec</span><span class="p">[</span><span class="n">idx0</span><span class="p">:</span><span class="n">idx1</span><span class="p">])</span>
     <span class="n">ok</span> <span class="o">=</span> <span class="n">dists</span> <span class="o">&lt;=</span> <span class="n">radius</span>
     <span class="n">stars</span> <span class="o">=</span> <span class="n">STARS_AGASC</span><span class="p">[</span><span class="n">idx0</span><span class="p">:</span><span class="n">idx1</span><span class="p">][</span><span class="n">ok</span><span class="p">]</span>
+
+    <span class="c1"># Account for a bug in MATLAB proper motion correction that was fixed</span>
+    <span class="c1"># starting with the MAY2118A loads (MATLAB Tools 2018115). The bug was not</span>
+    <span class="c1"># dividing the RA proper motion by cos(dec), so here we premultiply by that</span>
+    <span class="c1"># factor so that add_pmcorr_columns() will match MATLAB. This is purely for</span>
+    <span class="c1"># use in set_star_ids() to match flight catalogs created with MATLAB.</span>
+    <span class="k">if</span> <span class="n">matlab_pm_bug</span> <span class="ow">and</span> <span class="n">CxoTime</span><span class="p">(</span><span class="n">date</span><span class="p">)</span><span class="o">.</span><span class="n">date</span> <span class="o">&lt;</span> <span class="s2">&quot;2018:141:03:35:03.000&quot;</span><span class="p">:</span>
+        <span class="n">ok</span> <span class="o">=</span> <span class="n">stars</span><span class="p">[</span><span class="s2">&quot;PM_RA&quot;</span><span class="p">]</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">9999</span>
+        <span class="c1"># Note this is an int16 field so there is some rounding error, but for</span>
+        <span class="c1"># the purpose of star identification this is fine.</span>
+        <span class="n">stars</span><span class="p">[</span><span class="s2">&quot;PM_RA&quot;</span><span class="p">][</span><span class="n">ok</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span>
+            <span class="n">stars</span><span class="p">[</span><span class="s2">&quot;PM_RA&quot;</span><span class="p">][</span><span class="n">ok</span><span class="p">]</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="n">stars</span><span class="p">[</span><span class="s2">&quot;DEC&quot;</span><span class="p">][</span><span class="n">ok</span><span class="p">]))</span>
+        <span class="p">)</span>
 
     <span class="n">add_pmcorr_columns</span><span class="p">(</span><span class="n">stars</span><span class="p">,</span> <span class="n">date</span><span class="p">)</span>
 

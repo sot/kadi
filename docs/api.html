@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-    <title>API documentation &#8212; kadi 6.0.1 documentation</title>
+    <title>API documentation &#8212; kadi 7.0.0 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/bootstrap-astropy.css" />
     <link rel="stylesheet" type="text/css" href="_static/plot_directive.css" />
@@ -20,7 +20,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Event Descriptions" href="event_descriptions.html" />
-    <link rel="prev" title="Commands archive v2 details" href="commands_v2.html" />
+    <link rel="prev" title="Commands archive v1" href="commands_v1.html" />
     <link href='https://fonts.googleapis.com/css?family=Source+Sans+Pro:200,600' rel='stylesheet' type='text/css'/>
 
   </head><body>
@@ -55,13 +55,13 @@
 	</a>
       </li>
       <li class="right">
-	<a href="commands_v2.html" title="Commands archive v2 details">
+	<a href="commands_v1.html" title="Commands archive v1">
 	  &laquo; previous
 	</a>
 	 |
       </li>
       <li>
-	<a href="index.html">kadi 6.0.1 documentation</a>
+	<a href="index.html">kadi 7.0.0 documentation</a>
 	 &#187;
       </li>
       
@@ -2446,8 +2446,8 @@ Commands scenario (applicable only for V2 commands)</p></li>
 <dt class="sig sig-object py" id="kadi.commands.observations.get_observations">
 <span class="sig-prename descclassname"><span class="pre">kadi.commands.observations.</span></span><span class="sig-name descname"><span class="pre">get_observations</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stop</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obsid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scenario</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">starcat_date</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/commands/observations.html#get_observations"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.commands.observations.get_observations" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get observations corresponding to input parameters.</p>
-<p>The <code class="docutils literal notranslate"><span class="pre">start</span></code>, <code class="docutils literal notranslate"><span class="pre">stop</span></code>, <code class="docutils literal notranslate"><span class="pre">starcat_date</span></code> and <code class="docutils literal notranslate"><span class="pre">obsid</span></code> parameters serve as matching filters
-on the list of observations that is returned.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">start</span></code>, <code class="docutils literal notranslate"><span class="pre">stop</span></code>, <code class="docutils literal notranslate"><span class="pre">starcat_date</span></code> and <code class="docutils literal notranslate"><span class="pre">obsid</span></code> parameters serve as
+matching filters on the list of observations that is returned.</p>
 <p>Over the mission there are thousands of instances of multiple observations
 with the same obsid, so this function always returns a list of observation
 parameters even when <code class="docutils literal notranslate"><span class="pre">obsid</span></code> is specified. This most frequently occurs
@@ -2471,9 +2471,8 @@ use the first element.</p>
 
 <span class="gp">&gt;&gt;&gt; </span><span class="n">obs_all</span> <span class="o">=</span> <span class="n">get_observations</span><span class="p">()</span>  <span class="c1"># All observations in commands archive</span>
 
-<span class="go"># Might be convenient to handle this as a Table</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">astropy.table</span> <span class="kn">import</span> <span class="n">Table</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">obs_all</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="n">obs_all</span><span class="p">)</span>
+<span class="go"># Might be convenient to handle this as a Table &gt;&gt;&gt; from astropy.table</span>
+<span class="go">import Table &gt;&gt;&gt; obs_all = Table(obs_all)</span>
 
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">kadi.commands</span> <span class="kn">import</span> <span class="n">get_observations</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">get_observations</span><span class="p">(</span><span class="n">starcat_date</span><span class="o">=</span><span class="s1">&#39;2022:001:17:00:58.521&#39;</span><span class="p">)</span>
@@ -2493,37 +2492,35 @@ use the first element.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>start</strong> – CxoTime-like, None
-Start time (default=beginning of commands)</p></li>
-<li><p><strong>stop</strong> – CxoTime-like, None
-Stop time (default=end of commands)</p></li>
-<li><p><strong>obsid</strong> – int, None
-ObsID</p></li>
-<li><p><strong>scenario</strong> – str, None
-Scenario</p></li>
-<li><p><strong>cmds</strong> – CommandTable, None
-Use this command table instead of querying the archive.</p></li>
-<li><p><strong>starcat_date</strong> – CxoTime-like, None
-Date of the observation’s star catalog</p></li>
+<li><p><strong>start</strong> – CxoTime-like, None Start time (default=beginning of commands)</p></li>
+<li><p><strong>stop</strong> – CxoTime-like, None Stop time (default=end of commands)</p></li>
+<li><p><strong>obsid</strong> – int, None ObsID</p></li>
+<li><p><strong>scenario</strong> – str, None Scenario</p></li>
+<li><p><strong>cmds</strong> – CommandTable, None Use this command table instead of querying
+the archive.</p></li>
+<li><p><strong>starcat_date</strong> – CxoTime-like, None Date of the observation’s star
+catalog</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p>list of dict
-Observation parameters for matching observations.</p>
+<dd class="field-even"><p>list of dict Observation parameters for matching observations.</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="kadi.commands.observations.get_starcats">
-<span class="sig-prename descclassname"><span class="pre">kadi.commands.observations.</span></span><span class="sig-name descname"><span class="pre">get_starcats</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stop</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obsid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scenario</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">as_dict</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">starcat_date</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/commands/observations.html#get_starcats"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.commands.observations.get_starcats" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">kadi.commands.observations.</span></span><span class="sig-name descname"><span class="pre">get_starcats</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stop</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obsid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scenario</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">as_dict</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">starcat_date</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_progress</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/commands/observations.html#get_starcats"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.commands.observations.get_starcats" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get a list of star catalogs corresponding to input parameters.</p>
 <p>The <code class="docutils literal notranslate"><span class="pre">start</span></code>, <code class="docutils literal notranslate"><span class="pre">stop</span></code> and <code class="docutils literal notranslate"><span class="pre">obsid</span></code> parameters serve as matching filters
 on the list of star catalogs that is returned.</p>
 <p>By default the result is a list of <code class="docutils literal notranslate"><span class="pre">ACATable</span></code> objects similar to the
-output of <code class="docutils literal notranslate"><span class="pre">proseco.get_aca_catalog</span></code>. If <code class="docutils literal notranslate"><span class="pre">as_dict</span></code> is <code class="docutils literal notranslate"><span class="pre">True</span></code> then the
-the result is a list of dictionaries with the same keys as the table columns.
-This is substantially faster than the default.</p>
+output of <code class="docutils literal notranslate"><span class="pre">proseco.get_aca_catalog</span></code>.</p>
+<p>If <code class="docutils literal notranslate"><span class="pre">as_dict</span></code> is <code class="docutils literal notranslate"><span class="pre">True</span></code> then the the result is a list of dictionaries
+with the same keys as the table columns plus a special “meta” key. The
+“meta” value is a dict with relevant metadata including the obsid, att,
+date, duration, sim_offset, and detctor. This method is substantially faster
+than the default.</p>
 <p>There are numerous instances of multiple observations with the same obsid,
 so this function always returns a list of star catalogs even when <code class="docutils literal notranslate"><span class="pre">obsid</span></code>
 is specified. In most cases you can just use the first element.</p>
@@ -2570,14 +2567,16 @@ are significantly faster.</p>
 <li><p><strong>scenario</strong> – str, None Scenario</p></li>
 <li><p><strong>cmds</strong> – CommandTable, None Use this command table instead of querying
 the archive.</p></li>
-<li><p><strong>as_dict</strong> – bool, False Return a list of dictionaries instead of a list
+<li><p><strong>as_dict</strong> – bool, False Return a list of dict instead of a list
 of ACATable objects.</p></li>
 <li><p><strong>starcat_date</strong> – CxoTime-like, None
 Date of the observation’s star catalog</p></li>
+<li><p><strong>show_progress</strong> – bool,
+Show progress bar for long queries (default=False)</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p>list of ACATable List star catalogs for matching observations.</p>
+<dd class="field-even"><p>list of star catalogs (ACATable or dict) for matching observations.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -2642,7 +2641,7 @@ based entirely on known history of commands.</p>
 ACIS FP setpoint temperature is <code class="docutils literal notranslate"><span class="pre">-&lt;number&gt;</span></code>.</p>
 <p><em>State keys</em>: acisfp_setpoint</p>
 <p><em>Commands</em>: type=ACISPKT</p>
-<p><em>Others</em>: default_value=-121.0, set_transitions=&lt;classmethod object at 0x7f1b32c4cd30&gt;</p>
+<p><em>Others</em>: default_value=-121.0, set_transitions=&lt;classmethod object at 0x7fdc7e3c38b0&gt;</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="kadi.commands.states.ACISFP_SetPointTransition.set_transitions">
 <em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">set_transitions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">transitions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stop</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/commands/states.html#ACISFP_SetPointTransition.set_transitions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.commands.states.ACISFP_SetPointTransition.set_transitions" title="Permalink to this definition">¶</a></dt>
@@ -2671,7 +2670,7 @@ ACIS FP setpoint temperature is <code class="docutils literal notranslate"><span
 <p>Implement transitions for ACIS states.</p>
 <p><em>State keys</em>: clocking, power_cmd, vid_board, fep_count, si_mode, ccd_count</p>
 <p><em>Commands</em>: type=ACISPKT</p>
-<p><em>Others</em>: set_transitions=&lt;classmethod object at 0x7f1b32c4ca00&gt;</p>
+<p><em>Others</em>: set_transitions=&lt;classmethod object at 0x7fdc7e3c3910&gt;</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="kadi.commands.states.ACISTransition.set_transitions">
 <em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">set_transitions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">transitions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stop</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/commands/states.html#ACISTransition.set_transitions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.commands.states.ACISTransition.set_transitions" title="Permalink to this definition">¶</a></dt>
@@ -2771,7 +2770,7 @@ or a list of required values (where at least one must match).</p>
 <p>Dither parameters</p>
 <p><em>State keys</em>: dither_phase_pitch, dither_phase_yaw, dither_ampl_pitch, dither_ampl_yaw, dither_period_pitch, dither_period_yaw</p>
 <p><em>Commands</em>: tlmsid=AODITPAR</p>
-<p><em>Others</em>: set_transitions=&lt;classmethod object at 0x7f1b32f84d00&gt;</p>
+<p><em>Others</em>: set_transitions=&lt;classmethod object at 0x7fdc7e3c3a60&gt;</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="kadi.commands.states.DitherParamsTransition.set_transitions">
 <em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">set_transitions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">transitions_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stop</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/commands/states.html#DitherParamsTransition.set_transitions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.commands.states.DitherParamsTransition.set_transitions" title="Permalink to this definition">¶</a></dt>
@@ -2861,7 +2860,7 @@ or a list of required values (where at least one must match).</p>
 processing.</p>
 <p><em>State keys</em>: ephem_update</p>
 <p><em>Commands</em>: tlmsid=AOEPHUPS</p>
-<p><em>Others</em>: set_transitions=&lt;classmethod object at 0x7f1b32f613d0&gt;</p>
+<p><em>Others</em>: set_transitions=&lt;classmethod object at 0x7fdc7e3c36d0&gt;</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="kadi.commands.states.EphemerisUpdateTransition.set_transitions">
 <em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">set_transitions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">transitions_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stop</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/commands/states.html#EphemerisUpdateTransition.set_transitions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.commands.states.EphemerisUpdateTransition.set_transitions" title="Permalink to this definition">¶</a></dt>
@@ -3029,7 +3028,7 @@ perform attitude quaternion updated accordingly.  At the end of the maneuver it
 schedules a NPM transition if <code class="docutils literal notranslate"><span class="pre">auto_npnt</span></code> is enabled.</p>
 <p><em>State keys</em>: q1, q2, q3, q4, targ_q1, targ_q2, targ_q3, targ_q4, ra, dec, roll, auto_npnt, pcad_mode, pitch, off_nom_roll</p>
 <p><em>Commands</em>: tlmsid=AOMANUVR</p>
-<p><em>Others</em>: set_transitions=&lt;classmethod object at 0x7f1b32f84cd0&gt;, callback=&lt;classmethod object at 0x7f1b32f840a0&gt;, add_manvr_transitions=&lt;classmethod object at 0x7f1b32f84070&gt;</p>
+<p><em>Others</em>: set_transitions=&lt;classmethod object at 0x7fdc7e3c3a00&gt;, callback=&lt;classmethod object at 0x7fdc7e3c37c0&gt;, add_manvr_transitions=&lt;classmethod object at 0x7fdc7e3c35e0&gt;</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="kadi.commands.states.ManeuverTransition.add_manvr_transitions">
 <em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">add_manvr_transitions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">date</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transitions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">state</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/commands/states.html#ManeuverTransition.add_manvr_transitions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.commands.states.ManeuverTransition.add_manvr_transitions" title="Permalink to this definition">¶</a></dt>
@@ -3125,7 +3124,7 @@ to a normal sun pointed attitude (based on a pure-pitch maneuver from
 current attitude).  It also changes <code class="docutils literal notranslate"><span class="pre">pcad_mode</span></code> to NSUN.</p>
 <p><em>State keys</em>: q1, q2, q3, q4, targ_q1, targ_q2, targ_q3, targ_q4, ra, dec, roll, auto_npnt, pcad_mode, pitch, off_nom_roll</p>
 <p><em>Commands</em>: tlmsid=AONSMSAF</p>
-<p><em>Others</em>: callback=&lt;classmethod object at 0x7f1b32f84d30&gt;</p>
+<p><em>Others</em>: callback=&lt;classmethod object at 0x7fdc7e3c36a0&gt;</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="kadi.commands.states.NormalSunTransition.callback">
 <em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">callback</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">date</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transitions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">state</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/commands/states.html#NormalSunTransition.callback"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.commands.states.NormalSunTransition.callback" title="Permalink to this definition">¶</a></dt>
@@ -3274,7 +3273,7 @@ Eclipse entry is event type ORBPOINT with TYPE=PENTRY or TYPE=LSPENTRY
 Eclipse exit is event type ORBPOINT with TYPE=PEXIT or TYPE=LSPEXIT</p>
 <p><em>State keys</em>: sun_pos_mon</p>
 <p><em>Commands</em>: type=ORBPOINT, event_type=PEXIT or LSPEXIT</p>
-<p><em>Others</em>: set_transitions=&lt;classmethod object at 0x7f1b32e8e9a0&gt;</p>
+<p><em>Others</em>: set_transitions=&lt;classmethod object at 0x7fdc7e3c3ee0&gt;</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="kadi.commands.states.SPMEclipseEnableTransition.set_transitions">
 <em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">set_transitions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">transitions_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stop</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/commands/states.html#SPMEclipseEnableTransition.set_transitions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.commands.states.SPMEclipseEnableTransition.set_transitions" title="Permalink to this definition">¶</a></dt>
@@ -3388,7 +3387,7 @@ in the trans_keys attribute.</p>
 roll during NPNT.  These are function transitions which check to see that
 <code class="docutils literal notranslate"><span class="pre">pcad_mode</span> <span class="pre">==</span> <span class="pre">'NPNT'</span></code> before changing the pitch / off_nominal_roll.</p>
 <p><em>State keys</em>: q1, q2, q3, q4, targ_q1, targ_q2, targ_q3, targ_q4, ra, dec, roll, auto_npnt, pcad_mode, pitch, off_nom_roll</p>
-<p><em>Others</em>: set_transitions=&lt;classmethod object at 0x7f1b32f61130&gt;, update_sun_vector_state=&lt;classmethod object at 0x7f1b32f61640&gt;</p>
+<p><em>Others</em>: set_transitions=&lt;classmethod object at 0x7fdc7e3c3c40&gt;, update_sun_vector_state=&lt;classmethod object at 0x7fdc7e3c3b20&gt;</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="kadi.commands.states.SunVectorTransition.set_transitions">
 <em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">set_transitions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">transitions_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stop</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/commands/states.html#SunVectorTransition.set_transitions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.commands.states.SunVectorTransition.set_transitions" title="Permalink to this definition">¶</a></dt>
@@ -3434,7 +3433,7 @@ roll during NPNT.  These are function transitions which check to see that
 <p>Commanded target quaternion</p>
 <p><em>State keys</em>: q1, q2, q3, q4, targ_q1, targ_q2, targ_q3, targ_q4, ra, dec, roll, auto_npnt, pcad_mode, pitch, off_nom_roll</p>
 <p><em>Commands</em>: type=MP_TARGQUAT</p>
-<p><em>Others</em>: set_transitions=&lt;classmethod object at 0x7f1b32f848e0&gt;</p>
+<p><em>Others</em>: set_transitions=&lt;classmethod object at 0x7fdc7e3c39d0&gt;</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="kadi.commands.states.TargQuatTransition.set_transitions">
 <em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">set_transitions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">transitions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stop</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/commands/states.html#TargQuatTransition.set_transitions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.commands.states.TargQuatTransition.set_transitions" title="Permalink to this definition">¶</a></dt>
@@ -3711,8 +3710,8 @@ values will be merged.</p>
 
 
   <h4>Previous topic</h4>
-  <p class="topless"><a href="commands_v2.html"
-                        title="previous chapter">Commands archive v2 details</a></p>
+  <p class="topless"><a href="commands_v1.html"
+                        title="previous chapter">Commands archive v1</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="event_descriptions.html"
                         title="next chapter">Event Descriptions</a></p>

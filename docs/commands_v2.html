@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-    <title>Commands archive v2 details &#8212; kadi 6.0.1 documentation</title>
+    <title>Commands archive v2 details &#8212; kadi 7.0.0 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/bootstrap-astropy.css" />
     <link rel="stylesheet" type="text/css" href="_static/plot_directive.css" />
@@ -19,7 +19,7 @@
     <script type="text/javascript" src="_static/copybutton.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="API documentation" href="api.html" />
+    <link rel="next" title="Commands archive v1" href="commands_v1.html" />
     <link rel="prev" title="Commands and states" href="commands_states.html" />
     <link href='https://fonts.googleapis.com/css?family=Source+Sans+Pro:200,600' rel='stylesheet' type='text/css'/>
 
@@ -50,7 +50,7 @@
     <h3>Navigation</h3>
     <ul>
       <li class="right">
-	<a href="api.html" title="API documentation">
+	<a href="commands_v1.html" title="Commands archive v1">
 	  next &raquo;
 	</a>
       </li>
@@ -61,7 +61,7 @@
 	 |
       </li>
       <li>
-	<a href="index.html">kadi 6.0.1 documentation</a>
+	<a href="index.html">kadi 7.0.0 documentation</a>
 	 &#187;
       </li>
       <li><a href="commands_states.html" accesskey="U">Commands and states</a> &#187;</li>
@@ -147,8 +147,8 @@ results will depend strictly on the production commands archive files
 network these files are brought up to date each 10 minutes by a cron jobs, so
 using <code class="docutils literal notranslate"><span class="pre">&quot;flight&quot;</span></code> in this case is a reliable way to eliminate dependence on the
 kadi external web resources.</p>
-<p>Using the <code class="docutils literal notranslate"><span class="pre">&quot;flight&quot;</span></code> scenario is also recommended for use on GRETA
-workstations since they cannot access the Chandra Command Events Google sheet.</p>
+<p>Using the <code class="docutils literal notranslate"><span class="pre">&quot;flight&quot;</span></code> scenario is also recommended for use on some GRETA
+workstations if they cannot access the Chandra Command Events Google sheet.</p>
 </section>
 <section id="custom-scenario-example">
 <h3>Custom scenario example<a class="headerlink" href="#custom-scenario-example" title="Permalink to this headline">¶</a></h3>
@@ -202,7 +202,6 @@ of the 2021:296 NSM recovery:</p>
 </div>
 <p>Then from the bash command line:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ export KADI_SCENARIO=nsm-cti
-$ export PYTHONPATH=$HOME/git/kadi:$HOME/git/parse_cm  # for Ska3 2022.2
 $ dpa_check \
     --outdir=out-cti \
     --oflsdir=DAWG-demo/OCT2521/oflsb \
@@ -236,7 +235,7 @@ $ dpa_check \
 
 <span class="c1">## Default version of kadi commands (&quot;1&quot; or &quot;2&quot;).  Overridden by</span>
 <span class="c1">## KADI_COMMANDS_VERSION environment variable.</span>
-<span class="n">commands_version</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="n">commands_version</span> <span class="o">=</span> <span class="mi">2</span>
 
 <span class="c1">## Google Sheet ID for command events (flight scenario).</span>
 <span class="n">cmd_events_flight_id</span> <span class="o">=</span> <span class="mi">19</span><span class="n">d6XqBhWoFjC</span><span class="o">-</span><span class="n">z1lS1nM6wLE_zjr4GYB1lOvrEGCbKQ</span>
@@ -265,8 +264,8 @@ Python to change a parameter for all subsequent code:</p>
 </pre></div>
 </div>
 <p>For an even-more permanent solution you can write out the configuration file
-to disk and then edit it. This could be a good option if you want to always
-use commands version v2 for testing purposes.</p>
+to disk and then edit it. Be wary of “temporarily” changing an option and  then
+forgetting to revert it later.</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">kadi</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">status</span> <span class="o">=</span> <span class="n">kadi</span><span class="o">.</span><span class="n">create_config_file</span><span class="p">()</span>
 <span class="go">INFO: The configuration file has been successfully written to</span>
@@ -403,8 +402,8 @@ is not configurable as they are set by the <a class="reference external" href="h
   <p class="topless"><a href="commands_states.html"
                         title="previous chapter">Commands and states</a></p>
   <h4>Next topic</h4>
-  <p class="topless"><a href="api.html"
-                        title="next chapter">API documentation</a></p>
+  <p class="topless"><a href="commands_v1.html"
+                        title="next chapter">Commands archive v1</a></p>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
     <ul class="this-page-menu">

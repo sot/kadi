@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>kadi.events.query &#8212; kadi 6.0.1 documentation</title>
+    <title>kadi.events.query &#8212; kadi 7.0.0 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/bootstrap-astropy.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/plot_directive.css" />
@@ -47,7 +47,7 @@
     <h3>Navigation</h3>
     <ul>
       <li>
-	<a href="../../../index.html">kadi 6.0.1 documentation</a>
+	<a href="../../../index.html">kadi 7.0.0 documentation</a>
 	 &#187;
       </li>
       <li><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
@@ -64,20 +64,19 @@
             
   <h1>Source code for kadi.events.query</h1><div class="highlight"><pre>
 <span></span><span class="c1"># Licensed under a 3-clause BSD style license - see LICENSE.rst</span>
-<span class="kn">import</span> <span class="nn">sys</span>
 <span class="kn">import</span> <span class="nn">operator</span>
+<span class="kn">import</span> <span class="nn">sys</span>
 <span class="kn">import</span> <span class="nn">warnings</span>
 
+<span class="kn">import</span> <span class="nn">django</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-
 <span class="kn">from</span> <span class="nn">Chandra.Time</span> <span class="kn">import</span> <span class="n">DateTime</span>
 
-<span class="kn">import</span> <span class="nn">django</span>
 <span class="k">try</span><span class="p">:</span>
     <span class="n">django</span><span class="o">.</span><span class="n">setup</span><span class="p">()</span>
 <span class="k">except</span> <span class="ne">RuntimeError</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
     <span class="k">if</span> <span class="s2">&quot;populate() isn&#39;t reentrant&quot;</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">exc</span><span class="p">):</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Warning: </span><span class="si">{</span><span class="n">exc</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Warning: </span><span class="si">{</span><span class="n">exc</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">raise</span>
 
@@ -85,12 +84,12 @@
 <span class="kn">from</span> <span class="nn">.models</span> <span class="kn">import</span> <span class="n">IntervalPad</span>
 
 <span class="c1"># This gets updated dynamically by code at the end</span>
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;get_dates_vals&#39;</span><span class="p">,</span> <span class="s1">&#39;EventQuery&#39;</span><span class="p">]</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;get_dates_vals&quot;</span><span class="p">,</span> <span class="s2">&quot;EventQuery&quot;</span><span class="p">]</span>
 
 
 <span class="k">def</span> <span class="nf">un_unicode</span><span class="p">(</span><span class="n">vals</span><span class="p">):</span>
     <span class="c1"># I think this code is orphaned and should never be called.</span>
-    <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;unexpected call to query.un_unicode&#39;</span><span class="p">,</span> <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+    <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;unexpected call to query.un_unicode&quot;</span><span class="p">,</span> <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
     <span class="n">out</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">vals</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">out</span>
@@ -117,9 +116,9 @@
     <span class="n">datestops</span> <span class="o">=</span> <span class="n">dates</span><span class="p">[</span><span class="n">transitions</span><span class="p">[</span><span class="mi">1</span><span class="p">:]]</span>
 
     <span class="n">intervals_iter</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">state_vals</span><span class="p">,</span> <span class="n">datestarts</span><span class="p">,</span> <span class="n">datestops</span><span class="p">)</span>
-    <span class="n">intervals</span> <span class="o">=</span> <span class="p">[(</span><span class="n">date0</span><span class="p">,</span> <span class="n">date1</span><span class="p">)</span>
-                 <span class="k">for</span> <span class="n">state_val</span><span class="p">,</span> <span class="n">date0</span><span class="p">,</span> <span class="n">date1</span> <span class="ow">in</span> <span class="n">intervals_iter</span>
-                 <span class="k">if</span> <span class="n">state_val</span><span class="p">]</span>
+    <span class="n">intervals</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">(</span><span class="n">date0</span><span class="p">,</span> <span class="n">date1</span><span class="p">)</span> <span class="k">for</span> <span class="n">state_val</span><span class="p">,</span> <span class="n">date0</span><span class="p">,</span> <span class="n">date1</span> <span class="ow">in</span> <span class="n">intervals_iter</span> <span class="k">if</span> <span class="n">state_val</span>
+    <span class="p">]</span>
 
     <span class="k">return</span> <span class="n">intervals</span>
 
@@ -190,7 +189,7 @@
     <span class="n">merge_dates0</span><span class="p">,</span> <span class="n">merge_vals0</span> <span class="o">=</span> <span class="n">merge_dates_vals</span><span class="p">(</span><span class="n">vals0</span><span class="p">,</span> <span class="n">dates0</span><span class="p">,</span> <span class="n">dates1</span><span class="p">)</span>
     <span class="n">merge_dates1</span><span class="p">,</span> <span class="n">merge_vals1</span> <span class="o">=</span> <span class="n">merge_dates_vals</span><span class="p">(</span><span class="n">vals1</span><span class="p">,</span> <span class="n">dates1</span><span class="p">,</span> <span class="n">dates0</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">merge_dates0</span> <span class="o">!=</span> <span class="n">merge_dates1</span><span class="p">):</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Failure to properly merge intervals&#39;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Failure to properly merge intervals&quot;</span><span class="p">)</span>
 
     <span class="n">intervals</span> <span class="o">=</span> <span class="n">get_true_intervals</span><span class="p">(</span><span class="n">merge_dates0</span><span class="p">,</span> <span class="n">op</span><span class="p">(</span><span class="n">merge_vals0</span><span class="p">,</span> <span class="n">merge_vals1</span><span class="p">))</span>
 
@@ -219,7 +218,9 @@
 
     <span class="n">interval_pad</span> <span class="o">=</span> <span class="n">IntervalPad</span><span class="p">()</span>  <span class="c1"># descriptor defining a Pad for intervals</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">cls</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">left</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">right</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">op</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pad</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">filter_kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="bp">cls</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">left</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">right</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">op</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pad</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">filter_kwargs</span>
+    <span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">cls</span> <span class="o">=</span> <span class="bp">cls</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">left</span> <span class="o">=</span> <span class="n">left</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">right</span> <span class="o">=</span> <span class="n">right</span>
@@ -229,26 +230,32 @@
 
     <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">cls</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">op_name</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;and_&#39;</span><span class="p">:</span> <span class="s1">&#39;AND&#39;</span><span class="p">,</span>
-                       <span class="s1">&#39;or_&#39;</span><span class="p">:</span> <span class="s1">&#39;OR&#39;</span><span class="p">}</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">op</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="s1">&#39;UNKNOWN_OP&#39;</span><span class="p">)</span>
+            <span class="n">op_name</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;and_&quot;</span><span class="p">:</span> <span class="s2">&quot;AND&quot;</span><span class="p">,</span> <span class="s2">&quot;or_&quot;</span><span class="p">:</span> <span class="s2">&quot;OR&quot;</span><span class="p">}</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">op</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="s2">&quot;UNKNOWN_OP&quot;</span><span class="p">)</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">right</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="c1"># This assumes any unary operator is ~.  FIX ME!</span>
-                <span class="k">return</span> <span class="s1">&#39;NOT </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">left</span><span class="p">)</span>
+                <span class="k">return</span> <span class="s2">&quot;NOT </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">left</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="k">return</span> <span class="s1">&#39;(</span><span class="si">{}</span><span class="s1"> </span><span class="si">{}</span><span class="s1"> </span><span class="si">{}</span><span class="s1">)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">left</span><span class="p">,</span> <span class="n">op_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">right</span><span class="p">)</span>
+                <span class="k">return</span> <span class="s2">&quot;(</span><span class="si">{}</span><span class="s2"> </span><span class="si">{}</span><span class="s2"> </span><span class="si">{}</span><span class="s2">)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">left</span><span class="p">,</span> <span class="n">op_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">right</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">bits</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;&lt;EventQuery: &#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cls</span><span class="o">.</span><span class="vm">__name__</span><span class="p">]</span>
+            <span class="n">bits</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;&lt;EventQuery: &quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cls</span><span class="o">.</span><span class="vm">__name__</span><span class="p">]</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">interval_pad</span><span class="o">.</span><span class="n">start</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">interval_pad</span><span class="o">.</span><span class="n">stop</span><span class="p">:</span>
-                <span class="n">bits</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39; pad=(</span><span class="si">{}</span><span class="s1">, </span><span class="si">{}</span><span class="s1">)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">interval_pad</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">interval_pad</span><span class="o">.</span><span class="n">stop</span><span class="p">))</span>
+                <span class="n">bits</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                    <span class="s2">&quot; pad=(</span><span class="si">{}</span><span class="s2">, </span><span class="si">{}</span><span class="s2">)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">interval_pad</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">interval_pad</span><span class="o">.</span><span class="n">stop</span>
+                    <span class="p">)</span>
+                <span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">interval_pad</span><span class="o">.</span><span class="n">start</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
-                    <span class="n">bits</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39; pad=</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">interval_pad</span><span class="o">.</span><span class="n">start</span><span class="p">))</span>
+                    <span class="n">bits</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot; pad=</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">interval_pad</span><span class="o">.</span><span class="n">start</span><span class="p">))</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">filter_kwargs</span><span class="p">:</span>
                 <span class="n">bits</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-                    <span class="s1">&#39; &#39;</span> <span class="o">+</span> <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1">=</span><span class="si">{!r}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
-                                   <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">filter_kwargs</span><span class="o">.</span><span class="n">items</span><span class="p">()))</span>
-            <span class="n">bits</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;&gt;&#39;</span><span class="p">)</span>
-            <span class="k">return</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">bits</span><span class="p">)</span>
+                    <span class="s2">&quot; &quot;</span>
+                    <span class="o">+</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                        <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">=</span><span class="si">{!r}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">filter_kwargs</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+                    <span class="p">)</span>
+                <span class="p">)</span>
+            <span class="n">bits</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;&gt;&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">bits</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pad</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">filter_kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -275,13 +282,16 @@
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">right</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="c1"># This assumes any unary operator is ~.  FIX ME!</span>
                 <span class="n">intervals1</span> <span class="o">=</span> <span class="p">[(</span><span class="n">DateTime</span><span class="p">(</span><span class="n">start</span><span class="p">)</span><span class="o">.</span><span class="n">date</span><span class="p">,</span> <span class="n">DateTime</span><span class="p">(</span><span class="n">stop</span><span class="p">)</span><span class="o">.</span><span class="n">date</span><span class="p">)]</span>
-                <span class="k">return</span> <span class="n">combine_intervals</span><span class="p">(</span><span class="n">operator</span><span class="o">.</span><span class="n">xor</span><span class="p">,</span> <span class="n">intervals0</span><span class="p">,</span> <span class="n">intervals1</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">combine_intervals</span><span class="p">(</span>
+                    <span class="n">operator</span><span class="o">.</span><span class="n">xor</span><span class="p">,</span> <span class="n">intervals0</span><span class="p">,</span> <span class="n">intervals1</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">stop</span>
+                <span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">intervals1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">right</span><span class="o">.</span><span class="n">intervals</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">)</span>
                 <span class="k">return</span> <span class="n">combine_intervals</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">op</span><span class="p">,</span> <span class="n">intervals0</span><span class="p">,</span> <span class="n">intervals1</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">date_intervals</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cls</span><span class="o">.</span><span class="n">get_date_intervals</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">interval_pad</span><span class="p">,</span>
-                                                         <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">filter_kwargs</span><span class="p">)</span>
+            <span class="n">date_intervals</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cls</span><span class="o">.</span><span class="n">get_date_intervals</span><span class="p">(</span>
+                <span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">interval_pad</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">filter_kwargs</span>
+            <span class="p">)</span>
             <span class="k">return</span> <span class="n">date_intervals</span>
 
     <span class="nd">@property</span>
@@ -340,14 +350,17 @@
 
         <span class="k">if</span> <span class="n">obsid</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">start</span> <span class="ow">or</span> <span class="n">stop</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Cannot set both obsid and start or stop&#39;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cannot set both obsid and start or stop&quot;</span><span class="p">)</span>
 
             <span class="c1"># If obsid is set then define a filter so that the start of the event occurs</span>
             <span class="c1"># in the interval of the requested obsid.  First get the interval.</span>
             <span class="n">obsid_events</span> <span class="o">=</span> <span class="n">obsids</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">obsid__exact</span><span class="o">=</span><span class="n">obsid</span><span class="p">)</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">obsid_events</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Error: Found </span><span class="si">{}</span><span class="s1"> events matching obsid=</span><span class="si">{}</span><span class="s1">&#39;</span>
-                                 <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">obsid_events</span><span class="p">),</span> <span class="n">obsid</span><span class="p">))</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="s2">&quot;Error: Found </span><span class="si">{}</span><span class="s2"> events matching obsid=</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                        <span class="nb">len</span><span class="p">(</span><span class="n">obsid_events</span><span class="p">),</span> <span class="n">obsid</span>
+                    <span class="p">)</span>
+                <span class="p">)</span>
             <span class="n">start</span> <span class="o">=</span> <span class="n">obsid_events</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">start</span>
             <span class="n">stop</span> <span class="o">=</span> <span class="n">obsid_events</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">stop</span>
 
@@ -356,22 +369,22 @@
             <span class="c1"># Notable exception in Manvr where the obsid is taken at the</span>
             <span class="c1"># end of the maneuver to correspond to the contained dwells.</span>
             <span class="n">obsid_attr</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_get_obsid_start_attr</span>
-            <span class="n">kwargs</span><span class="p">[</span><span class="n">obsid_attr</span> <span class="o">+</span> <span class="s1">&#39;__gte&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">start</span>
-            <span class="n">kwargs</span><span class="p">[</span><span class="n">obsid_attr</span> <span class="o">+</span> <span class="s1">&#39;__lt&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">stop</span>
+            <span class="n">kwargs</span><span class="p">[</span><span class="n">obsid_attr</span> <span class="o">+</span> <span class="s2">&quot;__gte&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">start</span>
+            <span class="n">kwargs</span><span class="p">[</span><span class="n">obsid_attr</span> <span class="o">+</span> <span class="s2">&quot;__lt&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">stop</span>
 
         <span class="k">if</span> <span class="n">stop</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;start__lte&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">DateTime</span><span class="p">(</span><span class="n">stop</span><span class="p">)</span><span class="o">.</span><span class="n">date</span>
+            <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;start__lte&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">DateTime</span><span class="p">(</span><span class="n">stop</span><span class="p">)</span><span class="o">.</span><span class="n">date</span>
 
         <span class="k">if</span> <span class="n">start</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">field_names</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">get_model_fields</span><span class="p">()]</span>
-            <span class="n">attr</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;stop__gt&#39;</span> <span class="k">if</span> <span class="s1">&#39;stop&#39;</span> <span class="ow">in</span> <span class="n">field_names</span> <span class="k">else</span> <span class="s1">&#39;start__gt&#39;</span><span class="p">)</span>
+            <span class="n">attr</span> <span class="o">=</span> <span class="s2">&quot;stop__gt&quot;</span> <span class="k">if</span> <span class="s2">&quot;stop&quot;</span> <span class="ow">in</span> <span class="n">field_names</span> <span class="k">else</span> <span class="s2">&quot;start__gt&quot;</span>
             <span class="n">kwargs</span><span class="p">[</span><span class="n">attr</span><span class="p">]</span> <span class="o">=</span> <span class="n">DateTime</span><span class="p">(</span><span class="n">start</span><span class="p">)</span><span class="o">.</span><span class="n">date</span>
 
         <span class="k">if</span> <span class="n">kwargs</span><span class="p">:</span>
             <span class="n">objs</span> <span class="o">=</span> <span class="n">objs</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">subset</span><span class="p">:</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">subset</span><span class="p">,</span> <span class="nb">slice</span><span class="p">):</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;subset parameter must be a slice() object&#39;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;subset parameter must be a slice() object&quot;</span><span class="p">)</span>
             <span class="n">objs</span> <span class="o">=</span> <span class="n">objs</span><span class="p">[</span><span class="n">subset</span><span class="p">]</span>
 
         <span class="k">return</span> <span class="n">objs</span></div>
@@ -407,8 +420,8 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Generate new EventQuery event for the same model class but with different pad.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="s1">&#39;msid&#39;</span> <span class="ow">in</span> <span class="n">filter_kwargs</span><span class="p">:</span>
-            <span class="n">filter_kwargs</span><span class="p">[</span><span class="s1">&#39;msid__in&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;*&#39;</span><span class="p">,</span> <span class="n">filter_kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;msid&#39;</span><span class="p">)]</span>
+        <span class="k">if</span> <span class="s2">&quot;msid&quot;</span> <span class="ow">in</span> <span class="n">filter_kwargs</span><span class="p">:</span>
+            <span class="n">filter_kwargs</span><span class="p">[</span><span class="s2">&quot;msid__in&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;*&quot;</span><span class="p">,</span> <span class="n">filter_kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;msid&quot;</span><span class="p">)]</span>
 
         <span class="k">return</span> <span class="n">EventQuery</span><span class="p">(</span><span class="bp">cls</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cls</span><span class="p">,</span> <span class="n">pad</span><span class="o">=</span><span class="n">pad</span><span class="p">,</span> <span class="o">**</span><span class="n">filter_kwargs</span><span class="p">)</span>
 
@@ -417,8 +430,8 @@
 <span class="n">obsids</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># silence pyflakes</span>
 <span class="n">event_models</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">get_event_models</span><span class="p">()</span>
 <span class="k">for</span> <span class="n">model_name</span><span class="p">,</span> <span class="n">model_class</span> <span class="ow">in</span> <span class="n">event_models</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-    <span class="n">query_name</span> <span class="o">=</span> <span class="n">model_name</span> <span class="o">+</span> <span class="s1">&#39;s&#39;</span>  <span class="c1"># simple pluralization</span>
-    <span class="n">event_query_class</span> <span class="o">=</span> <span class="n">LttBadEventQuery</span> <span class="k">if</span> <span class="n">model_name</span> <span class="o">==</span> <span class="s1">&#39;ltt_bad&#39;</span> <span class="k">else</span> <span class="n">EventQuery</span>
+    <span class="n">query_name</span> <span class="o">=</span> <span class="n">model_name</span> <span class="o">+</span> <span class="s2">&quot;s&quot;</span>  <span class="c1"># simple pluralization</span>
+    <span class="n">event_query_class</span> <span class="o">=</span> <span class="n">LttBadEventQuery</span> <span class="k">if</span> <span class="n">model_name</span> <span class="o">==</span> <span class="s2">&quot;ltt_bad&quot;</span> <span class="k">else</span> <span class="n">EventQuery</span>
     <span class="n">query_instance</span> <span class="o">=</span> <span class="n">event_query_class</span><span class="p">(</span><span class="bp">cls</span><span class="o">=</span><span class="n">model_class</span><span class="p">)</span>
     <span class="n">query_instance</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">=</span> <span class="n">model_class</span><span class="o">.</span><span class="vm">__doc__</span>
     <span class="nb">globals</span><span class="p">()[</span><span class="n">query_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">query_instance</span>
