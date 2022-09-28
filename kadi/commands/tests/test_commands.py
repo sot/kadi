@@ -727,7 +727,6 @@ def test_get_observations_by_obsid_multi():
                 -0.4661410647781301,
                 0.47332803366853643,
             ),
-            "starcat_date": "2019:248:14:52:31.156",
             "source": "CMD_EVT",
         },
     ]
