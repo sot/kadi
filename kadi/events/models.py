@@ -2470,6 +2470,8 @@ class Orbit(BaseEvent):
     dt_start_radzone._kadi_format = "{:.1f}"
     dt_stop_radzone._kadi_format = "{:.1f}"
 
+    lookforward = 28  # Accept orbits planned up to 28 days in advance
+
     @classmethod
     @import_ska
     def get_events(cls, start, stop=None):
