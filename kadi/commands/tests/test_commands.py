@@ -1,4 +1,5 @@
 import os
+import warnings
 from pathlib import Path
 
 import astropy.units as u
@@ -12,6 +13,12 @@ from astropy.table import Table, vstack
 from Chandra.Time import secs2date
 from cxotime import CxoTime
 from testr.test_helper import has_internet
+
+warnings.filterwarnings(
+    "ignore",
+    category=FutureWarning,
+    message="kadi commands v1 is deprecated, use v2 instead",
+)
 
 from kadi import commands
 from kadi.commands import (

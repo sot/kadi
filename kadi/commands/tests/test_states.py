@@ -2,6 +2,7 @@ import functools
 import gzip
 import hashlib
 import os
+import warnings
 from pathlib import Path
 
 import numpy as np
@@ -11,6 +12,12 @@ from astropy.table import Table
 from Chandra.Time import DateTime
 from Ska.engarchive import fetch
 from testr.test_helper import has_internet
+
+warnings.filterwarnings(
+    "ignore",
+    category=FutureWarning,
+    message="kadi commands v1 is deprecated, use v2 instead",
+)
 
 from kadi import commands
 from kadi.commands import states
