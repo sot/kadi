@@ -365,6 +365,7 @@ def stop_date_fixture_factory(stop_date):
         cmds_dir = Path(conf.commands_dir) / stop_date
         with commands_v2.conf.set_temp("commands_dir", str(cmds_dir)):
             yield
+        commands_v2.clear_caches()
 
     return stop_date_fixture
 

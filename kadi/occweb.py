@@ -136,9 +136,10 @@ def get_ifot(
 
 
 def ftp_put_to_lucky(ftp_dirname, local_files, user=None, logger=None):
-    """Put the ``local_files`` onto lucky in /``user``/``ftp_dirname``. First put it at the top
-    level, then when complete move it into a subdir eng_archive.  This lets the OCC side
-    just watch for fully-uploaded files in that directory.
+    """Put the ``local_files`` onto lucky in /``user``/``ftp_dirname``.
+    First put it at the top level, then when complete move it into a subdir
+    eng_archive.  This lets the OCC side just watch for fully-uploaded files in
+    that directory.
 
     The directory paths of ``local_files`` are stripped off so they all wind up
     in a flat structure within ``ftp_dirname``.
