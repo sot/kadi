@@ -896,9 +896,9 @@ class SunVectorTransition(BaseTransition):
 
         :returns: None
         """
-        # np.ceil is used here to get 'times' between start/stop at even increments of
-        # "sample_time" so that the commands will be at the same times in an interval even if
-        # a different time range is being updated.
+        # np.ceil is used here to get 'times' between start/stop at even
+        # increments of "sample_time" so that the commands will be at the same
+        # times in an interval even if a different time range is being updated.
         sample_time = 10000
         tstart = np.ceil(DateTime(start).secs / sample_time) * sample_time
         tstop = DateTime(stop).secs
@@ -1296,7 +1296,8 @@ class ACISTransition(BaseTransition):
             elif tlmsid.startswith("WC"):
                 transitions[date].update(si_mode="CC_" + tlmsid[2:7])
 
-            # Two special-case raw-mode SI modes (https://github.com/sot/cmd_states/issues/23)
+            # Two special-case raw-mode SI modes
+            # (https://github.com/sot/cmd_states/issues/23)
             elif tlmsid == "WT000B5024":
                 transitions[date].update(si_mode="TN_000B4")
 
@@ -1772,9 +1773,10 @@ def get_continuity(
             # continuity as possible from last state (corresponding to the state after the
             # last command in cmds).
             try:
-                # Note that we need to specify start and stop to ensure that the states span
-                # the required time range. Without this the time range of cmds is used which
-                # can give unexpected outputs if ``date``` is within a maneuver.
+                # Note that we need to specify start and stop to ensure that the
+                # states span the required time range. Without this the time
+                # range of cmds is used which can give unexpected outputs if
+                # ``date``` is within a maneuver.
                 states = get_states(
                     state_keys=state_key,
                     cmds=cmds,
@@ -1788,8 +1790,8 @@ def get_continuity(
                 # No transitions within `cmds` for state_key, continue with other keys
                 continue
             else:
-                # get_states() sets this meta value with a list of transitions that were beyond
-                # the stop time and did not get processed.
+                # get_states() sets this meta value with a list of transitions
+                # that were beyond the stop time and did not get processed.
                 continuity_transitions.extend(states.meta["continuity_transitions"])
 
             colnames = set(states.colnames) - set(
@@ -1822,9 +1824,8 @@ def get_continuity(
         if missing_keys:
             raise ValueError(
                 "did not find transitions for state key(s)"
-                " {} within {} days of {}.  Maybe adjust the `lookbacks` argument?".format(
-                    missing_keys, lookbacks[-1], stop.date
-                )
+                " {} within {} days of {}.  Maybe adjust the "
+                "`lookbacks` argument?".format(missing_keys, lookbacks[-1], stop.date)
             )
 
     # Finally reduce down to the state_keys the user requested

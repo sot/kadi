@@ -492,7 +492,8 @@ def test_get_continuity_regress():
             assert np.isclose(continuity[key], val, rtol=0, atol=1e-7)
         assert continuity["__dates__"][key] == dates[key]
         assert continuity["__dates__"][key] < "2018:001:12:00:00.000"
-        # Transitions with no spacecraft command (instead from injected maneuver state breaks)
+        # Transitions with no spacecraft command (instead from injected maneuver
+        # state breaks)
         manvr_keys = (
             "pitch",
             "off_nom_roll",
@@ -996,7 +997,7 @@ def test_backstop_sun_pos_mon_lunar():
     2017:087:08:10:35.838 ORBPOINT    scs=0 step=0 timeline_id=426102503 event_type=LSPEXIT
 
     We expect SPM enable at the LSPEXIT time + 11 minutes = 2017:087:08:21:35.838
-    """
+    """  # noqa
     history = """
       datestart              datestop       sun_pos_mon
 2017:087:03:04:02.242 2017:087:07:21:40.189        DISA
@@ -1622,17 +1623,17 @@ def test_grating_motion_states():
     del sts["tstart"]
     del sts["tstop"]
     exp = [
-        "      datestart              datestop          letg      hetg   grating  trans_keys ",
-        "--------------------- --------------------- --------- --------- ------- ------------",
-        "2021:227:12:00:00.000 2021:227:23:06:03.276      RETR      RETR    NONE             ",
-        "2021:227:23:06:03.276 2021:227:23:08:40.276      RETR INSR_MOVE    HETG grating,hetg",
-        "2021:227:23:08:40.276 2021:228:08:15:00.722      RETR      INSR    HETG         hetg",
-        "2021:228:08:15:00.722 2021:228:08:17:33.722      RETR RETR_MOVE    NONE grating,hetg",
-        "2021:228:08:17:33.722 2021:229:17:41:45.525      RETR      RETR    NONE         hetg",
-        "2021:229:17:41:45.525 2021:229:17:45:08.525 INSR_MOVE      RETR    LETG grating,letg",
-        "2021:229:17:45:08.525 2021:230:00:37:56.002      INSR      RETR    LETG         letg",
-        "2021:230:00:37:56.002 2021:230:00:41:19.002 RETR_MOVE      RETR    NONE grating,letg",
-        "2021:230:00:41:19.002 2021:230:12:00:00.000      RETR      RETR    NONE         letg",
+        "      datestart              datestop          letg      hetg   grating  trans_keys ",  # noqa
+        "--------------------- --------------------- --------- --------- ------- ------------",  # noqa
+        "2021:227:12:00:00.000 2021:227:23:06:03.276      RETR      RETR    NONE             ",  # noqa
+        "2021:227:23:06:03.276 2021:227:23:08:40.276      RETR INSR_MOVE    HETG grating,hetg",  # noqa
+        "2021:227:23:08:40.276 2021:228:08:15:00.722      RETR      INSR    HETG         hetg",  # noqa
+        "2021:228:08:15:00.722 2021:228:08:17:33.722      RETR RETR_MOVE    NONE grating,hetg",  # noqa
+        "2021:228:08:17:33.722 2021:229:17:41:45.525      RETR      RETR    NONE         hetg",  # noqa
+        "2021:229:17:41:45.525 2021:229:17:45:08.525 INSR_MOVE      RETR    LETG grating,letg",  # noqa
+        "2021:229:17:45:08.525 2021:230:00:37:56.002      INSR      RETR    LETG         letg",  # noqa
+        "2021:230:00:37:56.002 2021:230:00:41:19.002 RETR_MOVE      RETR    NONE grating,letg",  # noqa
+        "2021:230:00:41:19.002 2021:230:12:00:00.000      RETR      RETR    NONE         letg",  # noqa
     ]
     assert sts.pformat_all() == exp
 
