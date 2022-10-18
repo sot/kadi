@@ -715,6 +715,26 @@ classes which affect the keys.
 ``ephem_update``
   - :class:`~kadi.commands.states.EphemerisUpdateTransition`
 
+``format``
+  - :class:`~kadi.commands.states.Format1_Transition`
+  - :class:`~kadi.commands.states.Format2_Transition`
+  - :class:`~kadi.commands.states.Format3_Transition`
+  - :class:`~kadi.commands.states.Format4_Transition`
+  - :class:`~kadi.commands.states.Format5_Transition`
+  - :class:`~kadi.commands.states.Format6_Transition`
+
+``hrc_15v``
+  - :class:`~kadi.commands.states.Hrc15vOff_Transition`
+  - :class:`~kadi.commands.states.Hrc15vOn_Transition`
+
+``hrc_i``
+  - :class:`~kadi.commands.states.HrcIOff_Transition`
+  - :class:`~kadi.commands.states.HrcIOn_Transition`
+
+``hrc_s``
+  - :class:`~kadi.commands.states.HrcSOff_Transition`
+  - :class:`~kadi.commands.states.HrcSOn_Transition`
+
 ``letg``, ``hetg``, ``grating``
   - :class:`~kadi.commands.states.HETG_INSR_Transition`
   - :class:`~kadi.commands.states.HETG_RETR_Transition`
@@ -754,6 +774,12 @@ classes which affect the keys.
 
 ``simpos``
   - :class:`~kadi.commands.states.SimTscTransition`
+
+``subformat``
+  - :class:`~kadi.commands.states.SubFormatEPS_Transition`
+  - :class:`~kadi.commands.states.SubFormatNRM_Transition`
+  - :class:`~kadi.commands.states.SubFormatPDG_Transition`
+  - :class:`~kadi.commands.states.SubFormatSSR_Transition`
 
 ``sun_pos_mon``
   - :class:`~kadi.commands.states.SPMDisableTransition`
