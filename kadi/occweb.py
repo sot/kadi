@@ -253,8 +253,11 @@ def get_occweb_page(
         path = path.replace("\\", "/")
         if path.startswith("//noodle/"):
             for noodle_prefix, occweb_prefix in NOODLE_OCCWEB_MAP.items():
-                if path.startswith(noodle := "//noodle/" + noodle_prefix):
-                    path = path.replace(noodle, ROOTURL + "/" + occweb_prefix)
+                noodle = "//noodle/" + noodle_prefix
+                if re.match(noodle, path, re.IGNORECASE):
+                    path = re.sub(
+                        noodle, ROOTURL + "/" + occweb_prefix, path, flags=re.IGNORECASE
+                    )
                     break
             else:
                 raise ValueError(f"unrecognized noodle path: {path}")

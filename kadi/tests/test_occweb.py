@@ -115,11 +115,15 @@ def test_get_occweb_dir(str_or_Path, cache):
 
 
 @pytest.mark.skipif(not HAS_OCCWEB, reason="No access to OCCweb")
+@pytest.mark.parametrize("lowercase", [False, True])
 @pytest.mark.parametrize("backslash", [True, False])
-def test_get_occweb_noodle(backslash):
+def test_get_occweb_noodle(lowercase, backslash):
     """Test get_occweb_dir and get_occweb_page (which is called in the process)
     for a noodle directory"""
-    path = "//noodle/FOT/mission_planning/PRODUCTS/APPR_LOADS/2000/MAR"
+    noodle = "//noodle/FOT"
+    if lowercase:
+        noodle = noodle.lower()
+    path = f"{noodle}/mission_planning/PRODUCTS/APPR_LOADS/2000/MAR"
     if backslash:
         path = path.replace("/", "\\")
     files_path = occweb.get_occweb_dir(path)
@@ -133,6 +137,15 @@ def test_get_occweb_noodle(backslash):
         "       MAR2600C/ 2002-04-30 13:38    -",
     ]
     assert files_path.pformat_all() == exp
+
+
+@pytest.mark.parametrize("noodle_path", occweb.NOODLE_OCCWEB_MAP)
+def test_all_get_occweb_noodle(noodle_path):
+    """Make sure we can get a directory from noodle for all available
+    translations"""
+    noodle = f"//noodle/{noodle_path}".lower()
+    files = occweb.get_occweb_dir(noodle)
+    assert len(files) > 0
 
 
 @pytest.mark.skipif(not HAS_OCCWEB, reason="No access to OCCweb")
