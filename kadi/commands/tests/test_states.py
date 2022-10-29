@@ -1667,3 +1667,11 @@ def test_early_start_exception():
         ValueError, match="no continuity found for start='2002:001:00:00:00.000'"
     ):
         states.get_states("2002:001", "2003:001", state_keys=["orbit_point"])
+
+
+def test_nsm_continuity():
+    """Test continuity when the 7-day lookback is before an NSM / safe sun
+    where current state attitude is None. Tests fix for #258.
+    """
+    # Prior to the fix this raised an exception, so just check that it runs.
+    states.get_continuity("2022:301:12:42:00", scenario="flight")
