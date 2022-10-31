@@ -1168,6 +1168,13 @@ class NormalSunTransition(ManeuverTransition):
 
         # Setup for maneuver to sun-pointed attitude from current att
         curr_att = [state[qc] for qc in QUAT_COMPS]
+
+        # If current attitude is not defined then just drop the NSM maneuver on
+        # the floor. The state will start getting defined when the first normal
+        # maneuver happens.
+        if None in curr_att:
+            return
+
         targ_att = Chandra.Maneuver.NSM_attitude(curr_att, date)
         for qc, targ_q in zip(QUAT_COMPS, targ_att.q):
             state["targ_" + qc] = targ_q
