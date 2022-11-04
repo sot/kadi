@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>kadi.commands.states &#8212; kadi 7.0.2 documentation</title>
+    <title>kadi.commands.states &#8212; kadi 7.1.0 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/bootstrap-astropy.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/plot_directive.css" />
@@ -47,7 +47,7 @@
     <h3>Navigation</h3>
     <ul>
       <li>
-	<a href="../../../index.html">kadi 7.0.2 documentation</a>
+	<a href="../../../index.html">kadi 7.1.0 documentation</a>
 	 &#187;
       </li>
       <li><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
@@ -619,6 +619,69 @@
 
 
 <span class="c1">###################################################################</span>
+<span class="c1"># HRC transitions</span>
+<span class="c1">###################################################################</span>
+
+
+<div class="viewcode-block" id="Hrc15vOn_Transition"><a class="viewcode-back" href="../../../api.html#kadi.commands.states.Hrc15vOn_Transition">[docs]</a><span class="k">class</span> <span class="nc">Hrc15vOn_Transition</span><span class="p">(</span><span class="n">FixedTransition</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;HRC 15V ON&quot;&quot;&quot;</span>
+
+    <span class="n">command_attributes</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;tlmsid&quot;</span><span class="p">:</span> <span class="s2">&quot;215PCAON&quot;</span><span class="p">}</span>
+    <span class="n">state_keys</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;hrc_15v&quot;</span><span class="p">]</span>
+    <span class="n">transition_key</span> <span class="o">=</span> <span class="s2">&quot;hrc_15v&quot;</span>
+    <span class="n">transition_val</span> <span class="o">=</span> <span class="s2">&quot;ON&quot;</span></div>
+
+
+<div class="viewcode-block" id="Hrc15vOff_Transition"><a class="viewcode-back" href="../../../api.html#kadi.commands.states.Hrc15vOff_Transition">[docs]</a><span class="k">class</span> <span class="nc">Hrc15vOff_Transition</span><span class="p">(</span><span class="n">FixedTransition</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;HRC 15V OFF&quot;&quot;&quot;</span>
+
+    <span class="n">command_attributes</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;tlmsid&quot;</span><span class="p">:</span> <span class="s2">&quot;215PCAOF&quot;</span><span class="p">}</span>
+    <span class="n">state_keys</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;hrc_15v&quot;</span><span class="p">]</span>
+    <span class="n">transition_key</span> <span class="o">=</span> <span class="s2">&quot;hrc_15v&quot;</span>
+    <span class="n">transition_val</span> <span class="o">=</span> <span class="s2">&quot;OFF&quot;</span></div>
+
+
+<div class="viewcode-block" id="HrcIOn_Transition"><a class="viewcode-back" href="../../../api.html#kadi.commands.states.HrcIOn_Transition">[docs]</a><span class="k">class</span> <span class="nc">HrcIOn_Transition</span><span class="p">(</span><span class="n">FixedTransition</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;HRC-I ON&quot;&quot;&quot;</span>
+
+    <span class="n">command_attributes</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;tlmsid&quot;</span><span class="p">:</span> <span class="s2">&quot;COENASX&quot;</span><span class="p">,</span> <span class="s2">&quot;coenas1&quot;</span><span class="p">:</span> <span class="mi">89</span><span class="p">}</span>
+    <span class="n">state_keys</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;hrc_i&quot;</span><span class="p">]</span>
+    <span class="n">transition_key</span> <span class="o">=</span> <span class="s2">&quot;hrc_i&quot;</span>
+    <span class="n">transition_val</span> <span class="o">=</span> <span class="s2">&quot;ON&quot;</span></div>
+
+
+<div class="viewcode-block" id="HrcIOff_Transition"><a class="viewcode-back" href="../../../api.html#kadi.commands.states.HrcIOff_Transition">[docs]</a><span class="k">class</span> <span class="nc">HrcIOff_Transition</span><span class="p">(</span><span class="n">FixedTransition</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;HRC-I OFF&quot;&quot;&quot;</span>
+
+    <span class="n">command_attributes</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;tlmsid&quot;</span><span class="p">:</span> <span class="s2">&quot;215PCAOF&quot;</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="n">state_keys</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;hrc_i&quot;</span><span class="p">]</span>
+    <span class="n">transition_key</span> <span class="o">=</span> <span class="s2">&quot;hrc_i&quot;</span>
+    <span class="n">transition_val</span> <span class="o">=</span> <span class="s2">&quot;OFF&quot;</span></div>
+
+
+<div class="viewcode-block" id="HrcSOn_Transition"><a class="viewcode-back" href="../../../api.html#kadi.commands.states.HrcSOn_Transition">[docs]</a><span class="k">class</span> <span class="nc">HrcSOn_Transition</span><span class="p">(</span><span class="n">FixedTransition</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;HRC-S ON&quot;&quot;&quot;</span>
+
+    <span class="n">command_attributes</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;tlmsid&quot;</span><span class="p">:</span> <span class="s2">&quot;COENASX&quot;</span><span class="p">,</span> <span class="s2">&quot;coenas1&quot;</span><span class="p">:</span> <span class="mi">90</span><span class="p">}</span>
+    <span class="n">state_keys</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;hrc_s&quot;</span><span class="p">]</span>
+    <span class="n">transition_key</span> <span class="o">=</span> <span class="s2">&quot;hrc_s&quot;</span>
+    <span class="n">transition_val</span> <span class="o">=</span> <span class="s2">&quot;ON&quot;</span></div>
+
+
+<div class="viewcode-block" id="HrcSOff_Transition"><a class="viewcode-back" href="../../../api.html#kadi.commands.states.HrcSOff_Transition">[docs]</a><span class="k">class</span> <span class="nc">HrcSOff_Transition</span><span class="p">(</span><span class="n">FixedTransition</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;HRC-S OFF&quot;&quot;&quot;</span>
+
+    <span class="n">command_attributes</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;tlmsid&quot;</span><span class="p">:</span> <span class="s2">&quot;215PCAOF&quot;</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="n">state_keys</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;hrc_s&quot;</span><span class="p">]</span>
+    <span class="n">transition_key</span> <span class="o">=</span> <span class="s2">&quot;hrc_s&quot;</span>
+    <span class="n">transition_val</span> <span class="o">=</span> <span class="s2">&quot;OFF&quot;</span></div>
+
+
+<span class="c1">###################################################################</span>
 <span class="c1"># OBC etc transitions</span>
 <span class="c1">###################################################################</span>
 
@@ -898,9 +961,9 @@
 
 <span class="sd">        :returns: None</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># np.ceil is used here to get &#39;times&#39; between start/stop at even increments of</span>
-        <span class="c1"># &quot;sample_time&quot; so that the commands will be at the same times in an interval even if</span>
-        <span class="c1"># a different time range is being updated.</span>
+        <span class="c1"># np.ceil is used here to get &#39;times&#39; between start/stop at even</span>
+        <span class="c1"># increments of &quot;sample_time&quot; so that the commands will be at the same</span>
+        <span class="c1"># times in an interval even if a different time range is being updated.</span>
         <span class="n">sample_time</span> <span class="o">=</span> <span class="mi">10000</span>
         <span class="n">tstart</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">DateTime</span><span class="p">(</span><span class="n">start</span><span class="p">)</span><span class="o">.</span><span class="n">secs</span> <span class="o">/</span> <span class="n">sample_time</span><span class="p">)</span> <span class="o">*</span> <span class="n">sample_time</span>
         <span class="n">tstop</span> <span class="o">=</span> <span class="n">DateTime</span><span class="p">(</span><span class="n">stop</span><span class="p">)</span><span class="o">.</span><span class="n">secs</span>
@@ -1170,6 +1233,13 @@
 
         <span class="c1"># Setup for maneuver to sun-pointed attitude from current att</span>
         <span class="n">curr_att</span> <span class="o">=</span> <span class="p">[</span><span class="n">state</span><span class="p">[</span><span class="n">qc</span><span class="p">]</span> <span class="k">for</span> <span class="n">qc</span> <span class="ow">in</span> <span class="n">QUAT_COMPS</span><span class="p">]</span>
+
+        <span class="c1"># If current attitude is not defined then just drop the NSM maneuver on</span>
+        <span class="c1"># the floor. The state will start getting defined when the first normal</span>
+        <span class="c1"># maneuver happens.</span>
+        <span class="k">if</span> <span class="kc">None</span> <span class="ow">in</span> <span class="n">curr_att</span><span class="p">:</span>
+            <span class="k">return</span>
+
         <span class="n">targ_att</span> <span class="o">=</span> <span class="n">Chandra</span><span class="o">.</span><span class="n">Maneuver</span><span class="o">.</span><span class="n">NSM_attitude</span><span class="p">(</span><span class="n">curr_att</span><span class="p">,</span> <span class="n">date</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">qc</span><span class="p">,</span> <span class="n">targ_q</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">QUAT_COMPS</span><span class="p">,</span> <span class="n">targ_att</span><span class="o">.</span><span class="n">q</span><span class="p">):</span>
             <span class="n">state</span><span class="p">[</span><span class="s2">&quot;targ_&quot;</span> <span class="o">+</span> <span class="n">qc</span><span class="p">]</span> <span class="o">=</span> <span class="n">targ_q</span>
@@ -1298,7 +1368,8 @@
             <span class="k">elif</span> <span class="n">tlmsid</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;WC&quot;</span><span class="p">):</span>
                 <span class="n">transitions</span><span class="p">[</span><span class="n">date</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">si_mode</span><span class="o">=</span><span class="s2">&quot;CC_&quot;</span> <span class="o">+</span> <span class="n">tlmsid</span><span class="p">[</span><span class="mi">2</span><span class="p">:</span><span class="mi">7</span><span class="p">])</span>
 
-            <span class="c1"># Two special-case raw-mode SI modes (https://github.com/sot/cmd_states/issues/23)</span>
+            <span class="c1"># Two special-case raw-mode SI modes</span>
+            <span class="c1"># (https://github.com/sot/cmd_states/issues/23)</span>
             <span class="k">elif</span> <span class="n">tlmsid</span> <span class="o">==</span> <span class="s2">&quot;WT000B5024&quot;</span><span class="p">:</span>
                 <span class="n">transitions</span><span class="p">[</span><span class="n">date</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">si_mode</span><span class="o">=</span><span class="s2">&quot;TN_000B4&quot;</span><span class="p">)</span>
 
@@ -1774,9 +1845,10 @@
             <span class="c1"># continuity as possible from last state (corresponding to the state after the</span>
             <span class="c1"># last command in cmds).</span>
             <span class="k">try</span><span class="p">:</span>
-                <span class="c1"># Note that we need to specify start and stop to ensure that the states span</span>
-                <span class="c1"># the required time range. Without this the time range of cmds is used which</span>
-                <span class="c1"># can give unexpected outputs if ``date``` is within a maneuver.</span>
+                <span class="c1"># Note that we need to specify start and stop to ensure that the</span>
+                <span class="c1"># states span the required time range. Without this the time</span>
+                <span class="c1"># range of cmds is used which can give unexpected outputs if</span>
+                <span class="c1"># ``date``` is within a maneuver.</span>
                 <span class="n">states</span> <span class="o">=</span> <span class="n">get_states</span><span class="p">(</span>
                     <span class="n">state_keys</span><span class="o">=</span><span class="n">state_key</span><span class="p">,</span>
                     <span class="n">cmds</span><span class="o">=</span><span class="n">cmds</span><span class="p">,</span>
@@ -1790,8 +1862,8 @@
                 <span class="c1"># No transitions within `cmds` for state_key, continue with other keys</span>
                 <span class="k">continue</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="c1"># get_states() sets this meta value with a list of transitions that were beyond</span>
-                <span class="c1"># the stop time and did not get processed.</span>
+                <span class="c1"># get_states() sets this meta value with a list of transitions</span>
+                <span class="c1"># that were beyond the stop time and did not get processed.</span>
                 <span class="n">continuity_transitions</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">states</span><span class="o">.</span><span class="n">meta</span><span class="p">[</span><span class="s2">&quot;continuity_transitions&quot;</span><span class="p">])</span>
 
             <span class="n">colnames</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">states</span><span class="o">.</span><span class="n">colnames</span><span class="p">)</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span>
@@ -1824,9 +1896,8 @@
         <span class="k">if</span> <span class="n">missing_keys</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
                 <span class="s2">&quot;did not find transitions for state key(s)&quot;</span>
-                <span class="s2">&quot; </span><span class="si">{}</span><span class="s2"> within </span><span class="si">{}</span><span class="s2"> days of </span><span class="si">{}</span><span class="s2">.  Maybe adjust the `lookbacks` argument?&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-                    <span class="n">missing_keys</span><span class="p">,</span> <span class="n">lookbacks</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">stop</span><span class="o">.</span><span class="n">date</span>
-                <span class="p">)</span>
+                <span class="s2">&quot; </span><span class="si">{}</span><span class="s2"> within </span><span class="si">{}</span><span class="s2"> days of </span><span class="si">{}</span><span class="s2">.  Maybe adjust the &quot;</span>
+                <span class="s2">&quot;`lookbacks` argument?&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">missing_keys</span><span class="p">,</span> <span class="n">lookbacks</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">stop</span><span class="o">.</span><span class="n">date</span><span class="p">)</span>
             <span class="p">)</span>
 
     <span class="c1"># Finally reduce down to the state_keys the user requested</span>
