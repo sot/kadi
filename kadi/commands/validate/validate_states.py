@@ -16,6 +16,7 @@ from pathlib import Path
 import jinja2
 import matplotlib
 import numpy as np
+import plotly.graph_objects as pgo
 import requests
 from astropy.table import Table, vstack
 
@@ -44,13 +45,14 @@ __all__ = [
     "ValidateSimpos",
     "ValidateObsid",
     "ValidateDither",
+    "ValidatePcadMode",
     "NoTelemetryError",
 ]
 
 matplotlib.style.use("bmh")
 
 kadi.commands.conf.commands_version = "2"
-kadi.logger.setLevel("DEBUG")
+# kadi.logger.setLevel("DEBUG")
 logger = logging.getLogger(__name__)
 
 # URL to download Bad Times google sheet
@@ -162,6 +164,9 @@ class PlotAttrs:
 class Validate(ABC):
     # Abstract attributes (no elegant solution as of Python 3.11)
     name: str = None
+    stop: CxoTime = None
+    days: float = None
+    dt: float = None
     state_keys: tuple = None
     plot_attrs: PlotAttrs = None
     validation_limits: tuple = None
@@ -169,14 +174,16 @@ class Validate(ABC):
     quantile_fmt = None
 
     def __init__(self, stop=None, days=14, dt=32.8):
-        self.stop = stop
+        self.stop = CxoTime(stop)
         self.days = days
         self.dt = dt
 
     @property
     def tlm(self):
         if not hasattr(self, "_tlm"):
-            self._tlm = get_telem_values(msids=self.msids, stop=self.stop, dt=self.dt)
+            self._tlm = get_telem_values(
+                msids=self.msids, stop=self.stop, days=self.days, dt=self.dt
+            )
         return self._tlm
 
     @property
@@ -215,6 +222,63 @@ class Validate(ABC):
             self._state_vals = states_interp[self.name].copy()
         return self._state_vals
 
+    def get_plot_figure(self) -> pgo.Figure:
+        state_vals = self.state_vals
+        tlm_vals = self.tlm_vals
+        tlm = self.tlm
+
+        # fig, ax = plt.subplots(figsize=(7, 3.5))
+        # plot_cxctime(tlm["time"], tlm_vals, fig=fig, ax=ax, fmt="-", color="C0")
+        # plot_cxctime(tlm["time"], state_vals, fig=fig, ax=ax, fmt="-", color="C1")
+
+        fig = pgo.Figure()
+
+        for color, vals in [
+            ("#1f77b4", tlm_vals),  # muted blue
+            ("#ff7f0e", state_vals),  # safety orange
+        ]:
+            trace = pgo.Scatter(
+                x=CxoTime(tlm["time"]).datetime64,
+                y=vals,
+                mode="lines",
+                line={"color": color, "width": 3},
+                opacity=0.75,
+                showlegend=False,
+                # marker={"opacity": 0.75, "size": 8},
+            )
+            fig.add_trace(trace)
+
+        fig.update_layout(
+            {
+                "title": (f"{self.name}"),
+                "yaxis": {
+                    "title": self.plot_attrs.ylabel,
+                },  # "autorange": False, "range": [0, 35]},
+                "xaxis": {
+                    "title": f"Date",
+                },
+                # "range": [
+                #     (CxoTime.now() - 5 * 365 * u.day).datetime,
+                #     CxoTime.now().datetime,
+                # ],
+                # "autorange": False,
+            }
+        )
+        return fig
+
+    def get_plot_html(self, show=False) -> str:
+        fig = self.get_plot_figure()
+        if show:
+            fig.show()
+
+        html = fig.to_html(
+            full_html=False,
+            include_plotlyjs="cdn",
+            default_width=800,
+            default_height=500,
+        )
+        return html
+
     def make_plot(self):
         # Interpolate states onto the tlm.date grid
         state_vals = self.state_vals
@@ -231,8 +295,8 @@ class Validate(ABC):
 
         # Add "background" grey rectangles for excluded time regions to vs-time plot
         for bad in bad_times:
-            bad_start = cxc2pd([CxoTime(bad["start"]).secs])[0]
-            bad_stop = cxc2pd([CxoTime(bad["stop"]).secs])[0]
+            bad_start = CxoTime(bad["start"]).plot_date
+            bad_stop = CxoTime(bad["stop"]).plot_date
             if not ((bad_stop >= xlims[0]) & (bad_start <= xlims[1])):
                 continue
             rect = matplotlib.patches.Rectangle(
@@ -289,6 +353,16 @@ class ValidateStateCode(Validate):
             )
         return self._state_vals
 
+    def get_plot_figure(self) -> pgo.Figure:
+        fig = super().get_plot_figure()
+        yaxis = dict(
+            tickmode="array",
+            tickvals=list(self.state_codes["raw_val"]),
+            ticktext=list(self.state_codes["state_code"]),
+        )
+        fig.update_layout(yaxis=yaxis)
+        return fig
+
     def make_plot(self):
         fig, ax = super().make_plot()
         ax.set_yticks(self.state_codes["raw_val"], self.state_codes["state_code"])
@@ -305,11 +379,29 @@ def convert_state_code_to_raw_val(dat, name, state_codes):
 
 class ValidatePitch(ValidateSingleMsid):
     name = "pitch"
-    msids = ["pitch"]
+    msids = ["pitch"]  # ["aosares1"]  # , "ctufmtsl", "6sares1"]
     state_keys = "pitch"
     plot_attrs = PlotAttrs(title="Pitch", ylabel="Pitch (degrees)")
     validation_limits = ((1, 7.0), (99, 7.0), (5, 0.5), (95, 0.5))
     quantile_fmt = "%.3f"
+
+    # @property
+    # def tlm_vals(self):
+    #     stop = self.stop
+    #     start = stop - self.days
+    #     logger.info(f"Fetching telemetry between {start} and {stop}")
+
+    #     # ctufmtsl = fetch.Msid("ctufmtsl", start, stop)
+
+    #     if not hasattr(self, "_tlm_vals"):
+    #         # tlm_vals = np.where(
+    #         #     self.tlm["6sares1"],
+    #         #     self.tlm["aosares1"],
+    #         #     self.tlm["ctufmtsl"] == "FMT5",
+    #         # )
+    #         self._tlm_vals = tlm_vals
+
+    #     return self._tlm_vals
 
 
 class ValidateSimpos(ValidateSingleMsid):
@@ -334,6 +426,13 @@ class ValidateDither(ValidateStateCode):
     msids = ["aodithen"]
     state_keys = "dither"
     plot_attrs = PlotAttrs(title="DITHER", ylabel="Dither")
+
+
+class ValidatePcadMode(ValidateStateCode):
+    name = "pcad_mode"
+    msids = ["aopcadmd"]
+    state_keys = "pcad_mode"
+    plot_attrs = PlotAttrs(title="PCAD mode", ylabel="PCAD mode")
 
 
 def OLD_config_logging(outdir, verbose):
@@ -389,7 +488,7 @@ def get_telem_values(msids: list, stop, *, days: float = 14, dt: float = 32.8) -
     # TODO: also use MAUDE telemetry to get recent data. But this needs some
     # care to ensure the data are valid.
     # with fetch.data_source("cxc", "maude"):
-    msidset = fetch.Msidset(msids, start, stop)
+    msidset = fetch.MSIDset(msids, start, stop)
 
     tstart = max(x.times[0] for x in msidset.values())
     tstop = min(x.times[-1] for x in msidset.values())
