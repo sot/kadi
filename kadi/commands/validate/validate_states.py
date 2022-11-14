@@ -50,6 +50,7 @@ __all__ = [
     "NoTelemetryError",
     "get_time_series_chunks",
     "compress_time_series",
+    "add_bad_time_regions",
 ]
 
 matplotlib.style.use("bmh")
@@ -243,6 +244,31 @@ def compress_time_series(
     return out_times, out_vals
 
 
+def add_bad_time_regions(
+    fig: pgo.Figure, time0, time1, bad_starts, bad_stops, fillcolor="black", opacity=0.2
+):
+    # Add "background" grey rectangles for excluded time regions to vs-time plot
+    # Plot time-axis limits in datetime64 format
+    dt0 = CxoTime(time0).datetime64
+    dt1 = CxoTime(time1).datetime64
+
+    for bad_start, bad_stop in zip(bad_starts, bad_stops):
+        bad_dt0 = CxoTime(bad_start).datetime64
+        bad_dt1 = CxoTime(bad_stop).datetime64
+        if (bad_dt1 >= dt0) & (bad_dt0 <= dt1):
+            # Note oddity/bug in plotly: need to cast np.datetime64 values to [ms]
+            # otherwise the rectangle is not drawn. CxoTime.datetime64 is [ns].
+            kwargs = dict(
+                x0=max(bad_dt0, dt0).astype("datetime64[ms]"),
+                x1=min(bad_dt1, dt1).astype("datetime64[ms]"),
+                line_width=0,
+                fillcolor=fillcolor,
+                opacity=opacity,
+            )
+            print(kwargs)
+            fig.add_vrect(**kwargs)
+
+
 class NoTelemetryError(Exception):
     """No telemetry available for the specified interval"""
 
@@ -364,6 +390,11 @@ class Validate(ABC):
                 # "autorange": False,
             }
         )
+
+        # bad_times = get_bad_times()
+        # add_bad_time_regions(fig, times[0], times[-1])
+        # self.add_bad_times(fig, times)
+
         return fig
 
     def get_plot_html(self, show=False) -> str:
