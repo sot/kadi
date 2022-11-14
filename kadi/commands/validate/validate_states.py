@@ -264,6 +264,8 @@ class Validate(ABC):
     validation_limits: tuple = None
     msids: tuple = None
     quantile_fmt = None
+    max_delta_val = 0
+    max_delta_time = None
 
     def __init__(self, stop=None, days=14, dt=32.8):
         self.stop = CxoTime(stop)
@@ -317,11 +319,7 @@ class Validate(ABC):
     def get_plot_figure(self) -> pgo.Figure:
         state_vals = self.state_vals
         tlm_vals = self.tlm_vals
-        tlm = self.tlm
-
-        # fig, ax = plt.subplots(figsize=(7, 3.5))
-        # plot_cxctime(tlm["time"], tlm_vals, fig=fig, ax=ax, fmt="-", color="C0")
-        # plot_cxctime(tlm["time"], state_vals, fig=fig, ax=ax, fmt="-", color="C1")
+        times = self.tlm["time"]
 
         fig = pgo.Figure()
 
@@ -329,14 +327,17 @@ class Validate(ABC):
             ("#1f77b4", tlm_vals),  # muted blue
             ("#ff7f0e", state_vals),  # safety orange
         ]:
+            tm, y = compress_time_series(
+                times, vals, self.max_delta_val, self.max_delta_time
+            )
             trace = pgo.Scatter(
-                x=CxoTime(tlm["time"]).datetime64,
-                y=vals,
-                mode="lines",
+                x=CxoTime(tm).datetime64,
+                y=y,
+                mode="lines+markers",
                 line={"color": color, "width": 3},
                 opacity=0.75,
                 showlegend=False,
-                # marker={"opacity": 0.75, "size": 8},
+                marker={"opacity": 0.75, "size": 4},
             )
             fig.add_trace(trace)
 
