@@ -528,40 +528,6 @@ class ValidatePcadMode(ValidateStateCode):
     plot_attrs = PlotAttrs(title="PCAD mode", ylabel="PCAD mode")
 
 
-def OLD_config_logging(outdir, verbose):
-    """Set up file and console logger.
-    See http://docs.python.org/library/logging.html#logging-to-multiple-destinations
-    """
-    # Disable auto-configuration of root logger by adding a null handler.
-    # This prevents other modules (e.g. Chandra.cmd_states) from generating
-    # a streamhandler by just calling logging.info(..).
-    class NullHandler(logging.Handler):
-        def emit(self, record):
-            pass
-
-    rootlogger = logging.getLogger()
-    rootlogger.addHandler(NullHandler())
-
-    loglevel = {0: logging.CRITICAL, 1: logging.INFO, 2: logging.DEBUG}.get(
-        verbose, logging.INFO
-    )
-
-    logger = logging.getLogger(TASK)
-    logger.setLevel(loglevel)
-
-    formatter = logging.Formatter("%(message)s")
-
-    console = logging.StreamHandler()
-    console.setFormatter(formatter)
-    logger.addHandler(console)
-
-    filehandler = logging.FileHandler(
-        filename=os.path.join(outdir, "run.dat"), mode="w"
-    )
-    filehandler.setFormatter(formatter)
-    logger.addHandler(filehandler)
-
-
 def get_telem_values(msids: list, stop, *, days: float = 14, dt: float = 32.8) -> Table:
     """
     Fetch last ``days`` of available ``msids`` telemetry values before
