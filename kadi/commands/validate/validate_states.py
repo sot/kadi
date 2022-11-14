@@ -12,6 +12,7 @@ from abc import ABC
 from dataclasses import dataclass
 from itertools import count
 from pathlib import Path
+from typing import List, Optional
 
 import jinja2
 import matplotlib
@@ -47,6 +48,8 @@ __all__ = [
     "ValidateDither",
     "ValidatePcadMode",
     "NoTelemetryError",
+    "get_time_series_chunks",
+    "compress_time_series",
 ]
 
 matplotlib.style.use("bmh")
@@ -149,6 +152,95 @@ VALIDATION_LIMITS = {
 # this is scaled by the number of toggles or expected
 # changes in the msid
 VALIDATION_SCALE_COUNT = {"OBSID": 2, "HETG": 2, "LETG": 2, "PCAD_MODE": 2, "DITHER": 3}
+
+
+@dataclass
+class TimeSeriesPoint:
+    time: float
+    val: float
+
+
+@dataclass
+class TimeSeriesChunk:
+    first: TimeSeriesPoint = None
+    min: TimeSeriesPoint = None
+    max: TimeSeriesPoint = None
+    last: TimeSeriesPoint = None
+
+
+def get_time_series_chunks(
+    times: np.ndarray,
+    vals: np.ndarray,
+    max_delta_val: float = 0,
+    max_delta_time: Optional[float] = None,
+) -> List[TimeSeriesChunk]:
+    chunks = []
+    chunk = None
+
+    idx = 0
+    while idx < len(times):
+        time_ = times[idx]
+        val = vals[idx]
+
+        if chunk is None:
+            point = TimeSeriesPoint(time=time_, val=val)
+            chunk = TimeSeriesChunk(first=point, min=point, max=point, last=point)
+
+        new_min = min(chunk.min.val, val)
+        new_max = max(chunk.max.val, val)
+        delta_val = new_max - new_min
+        delta_time = time_ - chunk.first.time
+
+        if delta_val > max_delta_val or (
+            max_delta_time is not None and delta_time > max_delta_time
+        ):
+            # This chunk is complete so add it to the list and start a new one
+            chunks.append(chunk)
+            chunk = None
+        else:
+            # Still within the bounds of the chunk so update the min, max, last
+            if new_min < chunk.min.val:
+                chunk.min = TimeSeriesPoint(time=time_, val=new_min)
+            if new_max > chunk.max.val:
+                chunk.max = TimeSeriesPoint(time=time_, val=new_max)
+            chunk.last = TimeSeriesPoint(time=time_, val=val)
+            idx += 1
+
+    # Add the last chunk if it exists
+    if chunk is not None:
+        chunks.append(chunk)
+
+    return chunks
+
+
+def compress_time_series(
+    times: np.ndarray,
+    vals: np.ndarray,
+    max_delta_val: float = 0,
+    max_delta_time: Optional[float] = None,
+):
+    chunks = get_time_series_chunks(times, vals, max_delta_val, max_delta_time)
+    out_times = []
+    out_vals = []
+    if len(chunks) == 0:
+        return out_times, out_vals
+
+    out_times.append(chunks[0].first.time)
+    out_vals.append(chunks[0].first.val)
+
+    for chunk in chunks:
+        chunk_times = [
+            getattr(chunk, attr).time for attr in ["first", "min", "max", "last"]
+        ]
+        chunk_vals = [
+            getattr(chunk, attr).val for attr in ["first", "min", "max", "last"]
+        ]
+        for idx in np.argsort(chunk_times):
+            if (time_ := chunk_times[idx]) != out_times[-1]:
+                out_times.append(time_)
+                out_vals.append(chunk_vals[idx])
+
+    return out_times, out_vals
 
 
 class NoTelemetryError(Exception):
