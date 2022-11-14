@@ -254,6 +254,8 @@ class PlotAttrs:
 
 
 class Validate(ABC):
+    subclasses = []
+
     # Abstract attributes (no elegant solution as of Python 3.11)
     name: str = None
     stop: CxoTime = None
@@ -271,6 +273,11 @@ class Validate(ABC):
         self.stop = CxoTime(stop)
         self.days = days
         self.dt = dt
+
+    def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)
+        if cls.name is not None:
+            cls.subclasses.append(cls)
 
     @property
     def tlm(self):
