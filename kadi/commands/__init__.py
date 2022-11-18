@@ -49,9 +49,9 @@ class Conf(ConfigNamespace):
         "Google Sheet ID for command events (flight scenario).",
     )
 
-    cmd_events_bad_times_gid = ConfigItem(
+    cmd_events_exclude_times_gid = ConfigItem(
         "1681877928",
-        "Google Sheet gid for bad times in command events (flight scenario)",
+        "Google Sheet gid for validation exclude times in command events",
     )
 
     star_id_match_halfwidth = ConfigItem(
