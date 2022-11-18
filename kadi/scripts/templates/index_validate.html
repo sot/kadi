@@ -1,0 +1,48 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<html>
+
+<head>
+    <title>Kalman star watch</title>
+    <link href="/mta/ASPECT/aspect.css" rel="stylesheet" type="text/css"
+        media="all" />
+    <style type="text/css">
+        tr.pink-bkg {
+            background-color: #f88
+        }
+
+        table {
+            border-width: 1px;
+            border-spacing: 0px;
+            border-style: outset;
+            border-color: gray;
+            border-collapse: separate;
+        }
+
+        table th,
+        td {
+            border-width: 1px;
+            padding: 1px 5px 1px 5px;
+            border-style: solid;
+            border-color: gray;
+        }
+    </style>
+</head>
+
+<body>
+    <!--#include virtual="/mta/ASPECT/header.html"-->
+
+    <h2> Kadi command states validation </h2>
+
+    {% for validator in validators %}
+        <h3> {{ validator.name }} </h3>
+        {{ validator.plot_html }}
+    {% endfor %}
+
+    <br></br>
+
+    <!--#include virtual="/mta/ASPECT/footer.html"-->
+    <!--footer end-->
+
+</body>
+
+</html>
