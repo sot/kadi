@@ -410,41 +410,6 @@ class Validate(ABC):
         )
         return html
 
-    def make_plot(self):
-        # Interpolate states onto the tlm.date grid
-        state_vals = self.state_vals
-        tlm_vals = self.tlm_vals
-
-        fig, ax = plt.subplots(figsize=(7, 3.5))
-        tlm = self.tlm
-        plot_cxctime(tlm["time"], tlm_vals, fig=fig, ax=ax, fmt="-", color="C0")
-        plot_cxctime(tlm["time"], state_vals, fig=fig, ax=ax, fmt="-", color="C1")
-
-        bad_times = get_bad_times()
-        xlims = ax.get_xlim()
-        ylims = ax.get_ylim()
-
-        # Add "background" grey rectangles for excluded time regions to vs-time plot
-        for bad in bad_times:
-            bad_start = CxoTime(bad["start"]).plot_date
-            bad_stop = CxoTime(bad["stop"]).plot_date
-            if not ((bad_stop >= xlims[0]) & (bad_start <= xlims[1])):
-                continue
-            rect = matplotlib.patches.Rectangle(
-                (bad_start, ylims[0]),
-                bad_stop - bad_start,
-                ylims[1] - ylims[0],
-                alpha=0.2,
-                facecolor="black",
-                edgecolor="none",
-            )
-            ax.add_patch(rect)
-
-        ax.margins(0.05)
-        ax.set_title(self.plot_attrs.title)
-        ax.set_ylabel(self.plot_attrs.ylabel)
-        return fig, ax
-
 
 class ValidateSingleMsid(Validate):
     @property
