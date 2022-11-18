@@ -50,7 +50,8 @@ __all__ = [
     "NoTelemetryError",
     "get_time_series_chunks",
     "compress_time_series",
-    "add_bad_time_regions",
+    "add_exclude_regions",
+    "get_exclude_times",
 ]
 
 matplotlib.style.use("bmh")
@@ -59,9 +60,9 @@ kadi.commands.conf.commands_version = "2"
 # kadi.logger.setLevel("DEBUG")
 logger = logging.getLogger(__name__)
 
-# URL to download Bad Times google sheet
+# URL to download exclude Times google sheet
 # See https://stackoverflow.com/questions/33713084 (2nd answer)
-BAD_TIMES_SHEET_URL = (
+EXCLUDE_TIMES_SHEET_URL = (
     "https://docs.google.com/spreadsheets/d/{doc_id}/export?"
     "format=csv"
     "&id={doc_id}"
@@ -244,28 +245,35 @@ def compress_time_series(
     return out_times, out_vals
 
 
-def add_bad_time_regions(
-    fig: pgo.Figure, time0, time1, bad_starts, bad_stops, fillcolor="black", opacity=0.2
+def add_exclude_regions(
+    fig: pgo.Figure,
+    time0,
+    time1,
+    exclude_starts,
+    exclude_stops,
+    color="black",
+    opacity=0.2,
+    line_width=3,
 ):
     # Add "background" grey rectangles for excluded time regions to vs-time plot
     # Plot time-axis limits in datetime64 format
     dt0 = CxoTime(time0).datetime64
     dt1 = CxoTime(time1).datetime64
 
-    for bad_start, bad_stop in zip(bad_starts, bad_stops):
-        bad_dt0 = CxoTime(bad_start).datetime64
-        bad_dt1 = CxoTime(bad_stop).datetime64
-        if (bad_dt1 >= dt0) & (bad_dt0 <= dt1):
+    for exclude_start, exclude_stop in zip(exclude_starts, exclude_stops):
+        exclude_dt0 = CxoTime(exclude_start).datetime64
+        exclude_dt1 = CxoTime(exclude_stop).datetime64
+        if (exclude_dt1 >= dt0) & (exclude_dt0 <= dt1):
             # Note oddity/bug in plotly: need to cast np.datetime64 values to [ms]
             # otherwise the rectangle is not drawn. CxoTime.datetime64 is [ns].
             kwargs = dict(
-                x0=max(bad_dt0, dt0).astype("datetime64[ms]"),
-                x1=min(bad_dt1, dt1).astype("datetime64[ms]"),
-                line_width=0,
-                fillcolor=fillcolor,
+                x0=max(exclude_dt0, dt0).astype("datetime64[ms]"),
+                x1=min(exclude_dt1, dt1).astype("datetime64[ms]"),
+                line_width=line_width,
+                line_color=color,
+                fillcolor=color,
                 opacity=opacity,
             )
-            print(kwargs)
             fig.add_vrect(**kwargs)
 
 
@@ -332,6 +340,22 @@ class Validate(ABC):
         return self._states
 
     @property
+    def exclude_times(self):
+        if not hasattr(self, "_exclude_times"):
+            exclude_times = get_exclude_times()
+
+            # Filter exclude times for this state key
+            keep_idxs = []
+            for idx, row in enumerate(exclude_times):
+                states = row["states"].split()
+                if row["states"] == "" or self.name in states:
+                    keep_idxs.append(idx)
+            exclude_times = exclude_times[keep_idxs]
+            self._exclude_times = exclude_times
+
+        return self._exclude_times
+
+    @property
     def tlm_vals(self):
         """Get the reference telemetry value for this Validation subclass
 
@@ -391,9 +415,15 @@ class Validate(ABC):
             }
         )
 
-        # bad_times = get_bad_times()
-        # add_bad_time_regions(fig, times[0], times[-1])
-        # self.add_bad_times(fig, times)
+        add_exclude_regions(
+            fig,
+            times[0],
+            times[-1],
+            self.exclude_times["start"],
+            self.exclude_times["stop"],
+            color="black",
+            opacity=0.2,
+        )
 
         return fig
 
@@ -565,30 +595,30 @@ def get_telem_values(msids: list, stop, *, days: float = 14, dt: float = 32.8) -
     return out
 
 
-def get_bad_mask(tlm):
+def get_exclude_mask(tlm):
     mask = np.zeros(len(tlm), dtype="bool")
-    bad_times = get_bad_times()
-    for interval in bad_times:
-        bad = (tlm["time"] >= CxoTime(interval["start"]).secs) & (
+    exclude_times = get_exclude_times()
+    for interval in exclude_times:
+        exclude = (tlm["time"] >= CxoTime(interval["start"]).secs) & (
             tlm["time"] < CxoTime(interval["stop"]).secs
         )
-        mask[bad] = True
+        mask[exclude] = True
     return mask
 
 
 @functools.lru_cache(maxsize=1)
-def get_bad_times() -> Table:
-    url = BAD_TIMES_SHEET_URL.format(
+def get_exclude_times(state_key: str = None) -> Table:
+    url = EXCLUDE_TIMES_SHEET_URL.format(
         doc_id=kadi.commands.conf.cmd_events_flight_id,
-        gid=kadi.commands.conf.cmd_events_bad_times_gid,
+        gid=kadi.commands.conf.cmd_events_exclude_times_gid,
     )
-    logger.info(f"Getting bad times from {url}")
+    logger.info(f"Getting exclude times from {url}")
     req = requests.get(url, timeout=30)
     if req.status_code != 200:
-        raise ValueError(f"Failed to get bad times sheet: {req.status_code}")
+        raise ValueError(f"Failed to get exclude times sheet: {req.status_code}")
 
-    bad_times = Table.read(req.text, format="csv")
-    return bad_times
+    exclude_times = Table.read(req.text, format="csv", fill_values=[])
+    return exclude_times
 
 
 def get_states(start, stop, state_keys) -> Table:
@@ -664,8 +694,8 @@ def validate_cmd_states(days=4, run_start_time=None, scenario=None):
 
     states = get_states(tlm[0].date, tlm[-1].date)
 
-    # Get bad time intervals
-    bad_time_mask = get_bad_mask(tlm)
+    # Get exclude time intervals
+    exclude_time_mask = get_exclude_mask(tlm)
 
     # Interpolate states onto the tlm.date grid
     state_vals = interpolate_states(states, tlm["time"])
@@ -708,7 +738,7 @@ def validate_cmd_states(days=4, run_start_time=None, scenario=None):
     # and aren't during momentum unloads or in the first 2 samples after unloads
     unload = tlm["aofunlst"] != "NONE"
     no_unload = ~(unload | np.hstack([[False, False], unload[:-2]]))
-    ok = good & npnt & kalm & no_unload & ~bad_time_mask
+    ok = good & npnt & kalm & no_unload & ~exclude_time_mask
     state_q = normalize(raw_state_q)
     dot_q = np.sum(tlm_q[ok] * state_q[ok], axis=-1)
     dot_q[dot_q > 1] = 1
@@ -801,24 +831,24 @@ def validate_cmd_states(days=4, run_start_time=None, scenario=None):
         xlims = ax.get_xlim()
         ylims = ax.get_ylim()
 
-        bad_times = get_bad_times()
+        exclude_times = get_exclude_times()
 
         # Add the time intervals of dark current calibrations that have been
-        # excluded from the diffs to the "bad_times" for validation so they also
+        # excluded from the diffs to the "exclude_times" for validation so they also
         # can be marked with grey rectangles in the plot.  This is only really
         # visible with interactive/zoomed plot.
         if msid in ["dither", "pcad_mode"] and len(dark_times) > 0:
-            bad_times = vstack([bad_times, Table(dark_times)])
+            exclude_times = vstack([exclude_times, Table(dark_times)])
 
         # Add "background" grey rectangles for excluded time regions to vs-time plot
-        for bad in bad_times:
-            bad_start = cxc2pd([CxoTime(bad["start"]).secs])[0]
-            bad_stop = cxc2pd([CxoTime(bad["stop"]).secs])[0]
-            if not ((bad_stop >= xlims[0]) & (bad_start <= xlims[1])):
+        for exclude in exclude_times:
+            exclude_start = cxc2pd([CxoTime(exclude["start"]).secs])[0]
+            exclude_stop = cxc2pd([CxoTime(exclude["stop"]).secs])[0]
+            if not ((exclude_stop >= xlims[0]) & (exclude_start <= xlims[1])):
                 continue
             rect = matplotlib.patches.Rectangle(
-                (bad_start, ylims[0]),
-                bad_stop - bad_start,
+                (exclude_start, ylims[0]),
+                exclude_stop - exclude_start,
                 ylims[1] - ylims[0],
                 alpha=0.2,
                 facecolor="black",
@@ -835,9 +865,9 @@ def validate_cmd_states(days=4, run_start_time=None, scenario=None):
         plot["lines"] = base64.b64encode(out.getvalue()).decode("ascii")
 
         if msid not in diff_only:
-            ok = ~bad_time_mask
+            ok = ~exclude_time_mask
             if msid in ["dither", "pcad_mode"]:
-                # For these two validations also ignore intervals during a dark
+                # For these two validations also exclude intervals during a dark
                 # current calibration
                 ok &= ~dark_mask
             diff = tlm[msid][ok] - pred[msid][ok]
