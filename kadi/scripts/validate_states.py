@@ -1,14 +1,13 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import argparse
+import logging
 import sys
 from pathlib import Path
 
-import jinja2
-import ska_helpers.logging
-from ska_helpers.run_info import log_run_info
-
 import kadi
 from kadi.commands import validate
+
+logger = logging.getLogger(__name__)
 
 
 def get_opt():
@@ -37,27 +36,9 @@ def get_opt():
 
 def main(args=None):
     opt = get_opt().parse_args(args)
-    logger = ska_helpers.logging.basic_logger(
-        validate.validate_states.__name__, level=opt.log_level
-    )
-    log_run_info(logger.info, opt)
+    logging.getLogger("kadi").setLevel(opt.log_level)
 
-    validators = []
-    for cls in validate.Validate.subclasses:
-        logger.info(f"Validating {cls.name}")
-        instance = cls(stop=opt.stop, days=opt.days)
-        validator = {}
-        validator["plot_html"] = instance.get_plot_html()
-        validator["name"] = instance.name
-        validators.append(validator)
-
-    context = {
-        "validators": validators,
-    }
-    index_template_file = Path(__file__).parent / "templates" / "index_validate.html"
-    index_template = index_template_file.read_text()
-    template = jinja2.Template(index_template)
-    html = template.render(context)
+    html = validate.get_index_page_html(opt.stop, opt.days)
 
     out_dir = Path(opt.out_dir)
     out_dir.mkdir(exist_ok=True, parents=True)
