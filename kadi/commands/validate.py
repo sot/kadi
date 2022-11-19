@@ -6,10 +6,13 @@ import functools
 import logging
 from abc import ABC
 from dataclasses import dataclass
-from typing import List, Optional
+from pathlib import Path
+from typing import List, Optional, Union
 
 import cheta.fetch_eng as fetch
+import jinja2
 import numpy as np
+import numpy.typing as npt
 import plotly.graph_objects as pgo
 import requests
 import Ska.Matplotlib
@@ -22,6 +25,11 @@ from cxotime import CxoTime
 import kadi
 import kadi.commands
 from kadi.commands.states import interpolate_states
+
+# TODO: move to cxotime
+# TODO: use npt.NDArray with numpy 1.21
+CxoTimeLike = Union[str, float, int, np.ndarray, npt.ArrayLike]
+
 
 __all__ = [
     "Validate",
@@ -542,3 +550,23 @@ def get_states(start, stop, state_keys) -> Table:
     states[-1]["datestop"] = CxoTime(states[-1]["tstop"]).date
 
     return states
+
+
+def get_index_page_html(stop: CxoTimeLike, days: float):
+    validators = []
+    for cls in Validate.subclasses:
+        logger.info(f"Validating {cls.name}")
+        instance = cls(stop=stop, days=days)
+        validator = {}
+        validator["plot_html"] = instance.get_plot_html()
+        validator["name"] = instance.name
+        validators.append(validator)
+
+    context = {
+        "validators": validators,
+    }
+    index_template_file = Path(__file__).parent / "templates" / "index_validate.html"
+    index_template = index_template_file.read_text()
+    template = jinja2.Template(index_template)
+    html = template.render(context)
+    return html
