@@ -62,6 +62,10 @@ class TimeSeriesPoint:
     time: float
     val: float
 
+    @property
+    def date(self):
+        return CxoTime(self.time).date
+
 
 @dataclass
 class TimeSeriesChunk:
@@ -99,7 +103,17 @@ def get_time_series_chunks(
         ):
             # This chunk is complete so add it to the list and start a new one
             chunks.append(chunk)
-            chunk = None
+
+            if abs(val - chunk.last.val) > max_delta_val:
+                # If the value has changed by more than the threshold then start
+                # a blank new chunk with the next `idx` point (via the chunk is None
+                # bit above)
+                chunk = None
+            else:
+                # Otherwise start a new chunk from the last point in previous chunk
+                point = chunk.last
+                chunk = TimeSeriesChunk(first=point, min=point, max=point, last=point)
+
         else:
             # Still within the bounds of the chunk so update the min, max, last
             if new_min < chunk.min.val:
@@ -195,7 +209,6 @@ class Validate(ABC):
     name: str = None
     stop: CxoTime = None
     days: float = None
-    dt: float = None
     state_keys: tuple = None
     plot_attrs: PlotAttrs = None
     validation_limits: tuple = None
@@ -204,10 +217,9 @@ class Validate(ABC):
     max_delta_val = 0
     max_delta_time = None
 
-    def __init__(self, stop=None, days=14, dt=32.8):
+    def __init__(self, stop=None, days=14):
         self.stop = CxoTime(stop)
         self.days = days
-        self.dt = dt
 
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
@@ -218,7 +230,7 @@ class Validate(ABC):
     def tlm(self):
         if not hasattr(self, "_tlm"):
             self._tlm = get_telem_values(
-                msids=self.msids, stop=self.stop, days=self.days, dt=self.dt
+                msids=self.msids, stop=self.stop, days=self.days
             )
         return self._tlm
 
@@ -295,7 +307,7 @@ class Validate(ABC):
                 line={"color": color, "width": 3},
                 opacity=0.75,
                 showlegend=False,
-                marker={"opacity": 0.75, "size": 4},
+                marker={"opacity": 0.9, "size": 8},
             )
             fig.add_trace(trace)
 
@@ -406,11 +418,12 @@ def convert_state_code_to_raw_val(dat, name, state_codes):
 
 class ValidatePitch(ValidateSingleMsid):
     name = "pitch"
-    msids = ["pitch"]  # ["aosares1"]  # , "ctufmtsl", "6sares1"]
+    msids = ["aosares1"]  # ["aosares1"]  # , "ctufmtsl", "6sares1"]
     state_keys = "pitch"
     plot_attrs = PlotAttrs(title="Pitch", ylabel="Pitch (degrees)")
     validation_limits = ((1, 7.0), (99, 7.0), (5, 0.5), (95, 0.5))
     quantile_fmt = "%.3f"
+    max_delta_val = 1.0  # deg
 
     # @property
     # def tlm_vals(self):
@@ -438,6 +451,7 @@ class ValidateSimpos(ValidateSingleMsid):
     plot_attrs = PlotAttrs(title="TSCPOS (SIM-Z)", ylabel="SIM-Z (steps)")
     validation_limits = ((1, 2.0), (99, 2.0))
     quantile_fmt = "%d"
+    max_delta_val = 10
 
 
 class ValidateObsid(ValidateSingleMsid):
@@ -462,7 +476,7 @@ class ValidatePcadMode(ValidateStateCode):
     plot_attrs = PlotAttrs(title="PCAD mode", ylabel="PCAD mode")
 
 
-def get_telem_values(msids: list, stop, *, days: float = 14, dt: float = 32.8) -> Table:
+def get_telem_values(msids: list, stop, *, days: float = 14) -> Table:
     """
     Fetch last ``days`` of available ``msids`` telemetry values before
     time ``tstart``.
@@ -470,7 +484,6 @@ def get_telem_values(msids: list, stop, *, days: float = 14, dt: float = 32.8) -
     :param msids: fetch msids list
     :param stop: stop time for telemetry (CxoTime-like)
     :param days: length of telemetry request before ``tstart``
-    :param dt: sample time (secs)
     :param name_map: dict mapping msid to recarray col name
     :returns: Table of requested telemetry values from fetch
     """
@@ -478,21 +491,30 @@ def get_telem_values(msids: list, stop, *, days: float = 14, dt: float = 32.8) -
     start = stop - days
     logger.info(f"Fetching telemetry between {start} and {stop}")
 
-    # TODO: also use MAUDE telemetry to get recent data. But this needs some
-    # care to ensure the data are valid.
-    # with fetch.data_source("cxc", "maude"):
-    msidset = fetch.MSIDset(msids, start, stop)
+    with fetch.data_source("cxc", "maude allow_subset=False"):
+        msidset = fetch.MSIDset(msids, start, stop)
 
-    tstart = max(x.times[0] for x in msidset.values())
-    tstop = min(x.times[-1] for x in msidset.values())
-    msidset.interpolate(dt, tstart, tstop)
+    # Use the first MSID as the primary one to set the time base
+    msid0 = msidset[msids[0]]
+
+    if len(msids) == 1:
+        # Only one MSID so just filter any bad values
+        msid0.filter_bad()
+        times = msid0.times
+    else:
+        # Multiple MSIDs so interpolate all to the same time base The assumption
+        # here is that all MSIDs have the same basic time base, e.g. AOCMDQT1-3.
+        msidset.interpolate(times=msid0.times, bad_union=True)
+        times = msidset.times
 
     # Finished when we found at least 10 good records (5 mins)
-    if len(msidset.times) < 10:
-        raise NoTelemetryError(f"Found no telemetry within {days} days of {stop}")
+    if len(times) < 10:
+        raise NoTelemetryError(
+            f"Found no telemetry for {msids!r} within {days} days of {stop}"
+        )
 
     names = ["time"] + msids
-    out = Table([msidset.times] + [msidset[x].vals for x in msids], names=names)
+    out = Table([times] + [msidset[x].vals for x in msids], names=names)
     return out
 
 
