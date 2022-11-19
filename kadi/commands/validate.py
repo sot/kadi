@@ -522,18 +522,27 @@ def get_exclude_times(state_key: str = None) -> Table:
     return exclude_times
 
 
-def get_states(start, stop, state_keys) -> Table:
-    """Get states exactly covering date range
+@functools.lru_cache(maxsize=128)
+def get_states(start: CxoTimeLike, stop: CxoTimeLike, state_keys: list) -> Table:
+    """Get states exactly covering date range.
 
-    :param start: start date
-    :param stop: stop date
+    This is a thin wrapper around kadi.commands.states.get_states() that reduces the
+    output time span slightly to ensure telemetry interpolation works.
+
+    :param start: start date (CxoTime-like)
+    :param stop: stop date (CxoTime-like)
     :param state_keys: list of state keys to get
     :returns: Table of states
     """
     from kadi.commands.states import get_states as get_states_kadi
 
+    start = CxoTime(start)
+    stop = CxoTime(stop)
+
     logger.info("Using kadi.commands.states to get cmd_states")
-    logger.info(f"Getting commanded states between {start} - {stop}")
+    logger.info(
+        f"Getting commanded states {state_keys!r} between {start.date} - {stop.date}"
+    )
 
     states = get_states_kadi(start, stop, state_keys=state_keys)
     states["tstart"] = CxoTime(states["datestart"]).secs
@@ -553,6 +562,12 @@ def get_states(start, stop, state_keys) -> Table:
 
 
 def get_index_page_html(stop: CxoTimeLike, days: float):
+    """Make a simple HTML page with all the validation plots and information.
+
+    :param stop: stop time for validation interval (CxoTime-like, default=now)
+    :param days: length of validation interval (days)
+    :returns: HTML string
+    """
     validators = []
     for cls in Validate.subclasses:
         logger.info(f"Validating {cls.name}")
@@ -569,4 +584,5 @@ def get_index_page_html(stop: CxoTimeLike, days: float):
     index_template = index_template_file.read_text()
     template = jinja2.Template(index_template)
     html = template.render(context)
+
     return html
