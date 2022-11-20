@@ -9,6 +9,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Optional, Union
 
+import astropy.units as u
 import cheta.fetch_eng as fetch
 import jinja2
 import numpy as np
@@ -20,6 +21,7 @@ import Ska.Numpy
 import Ska.Shell
 import Ska.tdb
 from astropy.table import Table
+from cheta.utils import logical_intervals
 from cxotime import CxoTime
 
 import kadi
@@ -42,14 +44,14 @@ __all__ = [
     "get_time_series_chunks",
     "compress_time_series",
     "add_figure_regions",
-    "get_exclude_times",
+    "get_manual_exclude_intervals",
 ]
 
 logger = logging.getLogger(__name__)
 
 # URL to download exclude Times google sheet
 # See https://stackoverflow.com/questions/33713084 (2nd answer)
-EXCLUDE_TIMES_SHEET_URL = (
+EXCLUDE_INTERVALS_SHEET_URL = (
     "https://docs.google.com/spreadsheets/d/{doc_id}/export?"
     "format=csv"
     "&id={doc_id}"
@@ -221,6 +223,8 @@ class Validate(ABC):
     quantile_fmt = None
     max_delta_val = 0
     max_delta_time = None
+    max_gap = 300  # seconds
+    min_violation_duration = 32.81  # seconds
 
     def __init__(self, stop=None, days=14):
         self.stop = CxoTime(stop)
@@ -240,12 +244,13 @@ class Validate(ABC):
         return self._tlm
 
     @property
+    def times(self):
+        return self.tlm["time"]
+
+    @property
     def msid(self):
-        """Most Validate classes have a single telemetry MSID"""
-        if len(self.msids) == 1:
-            return self.msids[0]
-        else:
-            raise ValueError(f"multiple MSIDs {self.msids}")
+        """Validate classes have first MSID as primary telemetry. Override as needed."""
+        return self.msids[0]
 
     @property
     def states(self):
@@ -258,20 +263,30 @@ class Validate(ABC):
         return self._states
 
     @property
-    def exclude_times(self):
-        if not hasattr(self, "_exclude_times"):
-            exclude_times = get_exclude_times()
+    def exclude_intervals(self):
+        """Intervals that are excluded from state validation.
 
-            # Filter exclude times for this state key
-            keep_idxs = []
-            for idx, row in enumerate(exclude_times):
-                states = row["states"].split()
-                if row["states"] == "" or self.name in states:
-                    keep_idxs.append(idx)
-            exclude_times = exclude_times[keep_idxs]
-            self._exclude_times = exclude_times
+        This includes manually excluded times from the Command Events sheet
+        (e.g. within a few minutes of an IU-reset), or auto-generated
+        state-specific intervals like not validating pitch when in NMM.
+        """
+        if not hasattr(self, "_exclude_intervals"):
+            self._exclude_intervals = self.get_exclude_intervals()
 
-        return self._exclude_times
+        return self._exclude_intervals
+
+    def get_exclude_intervals(self):
+        exclude_intervals = get_manual_exclude_intervals()
+        exclude_intervals["source"] = "manual"
+
+        # Filter exclude times for this state key
+        keep_idxs = []
+        for idx, row in enumerate(exclude_intervals):
+            states = row["states"].split()
+            if row["states"] == "" or self.name in states:
+                keep_idxs.append(idx)
+        exclude_intervals = exclude_intervals[keep_idxs]
+        return exclude_intervals
 
     @property
     def tlm_vals(self):
@@ -287,9 +302,35 @@ class Validate(ABC):
     @property
     def state_vals(self):
         if not hasattr(self, "_state_vals"):
-            states_interp = interpolate_states(self.states, self.tlm["time"])
+            states_interp = interpolate_states(self.states, self.times)
             self._state_vals = states_interp[self.name].copy()
         return self._state_vals
+
+    @property
+    def violations(self):
+        if not hasattr(self, "_violations"):
+            self._violations = self.get_violations()
+        return self._violations
+
+    def get_violations(self):
+        """Get the violations for this validation class
+
+        This is the main method for each validation class. It returns a Table
+        with the columns ``start`` and ``stop`` which are date strings.
+        """
+        bad = np.abs(self.tlm_vals - self.state_vals) > self.max_delta_val
+        mask_ok = get_overlap_mask(self.times, self.exclude_intervals)
+        bad[mask_ok] = False
+
+        intervals = logical_intervals(self.times, bad, max_gap=self.max_gap)
+        ok = intervals["duration"] > self.min_violation_duration
+        intervals = intervals[ok]
+
+        out = Table()
+        out["start"] = intervals["datestart"]
+        out["stop"] = intervals["datestop"]
+
+        return out
 
     def get_plot_figure(self) -> pgo.Figure:
         state_vals = self.state_vals
@@ -321,15 +362,10 @@ class Validate(ABC):
                 "title": (f"{self.name}"),
                 "yaxis": {
                     "title": self.plot_attrs.ylabel,
-                },  # "autorange": False, "range": [0, 35]},
+                },
                 "xaxis": {
                     "title": f"Date",
                 },
-                # "range": [
-                #     (CxoTime.now() - 5 * 365 * u.day).datetime,
-                #     CxoTime.now().datetime,
-                # ],
-                # "autorange": False,
             }
         )
 
@@ -337,10 +373,20 @@ class Validate(ABC):
             fig,
             figure_start=times[0],
             figure_stop=times[-1],
-            region_starts=self.exclude_times["start"],
-            region_stops=self.exclude_times["stop"],
+            region_starts=self.exclude_intervals["start"],
+            region_stops=self.exclude_intervals["stop"],
             color="black",
             opacity=0.2,
+        )
+
+        add_figure_regions(
+            fig,
+            figure_start=times[0],
+            figure_stop=times[-1],
+            region_starts=self.violations["start"],
+            region_stops=self.violations["stop"],
+            color="red",
+            opacity=0.4,
         )
 
         return fig
@@ -451,12 +497,30 @@ class ValidatePitch(ValidateSingleMsid):
 
 class ValidateSimpos(ValidateSingleMsid):
     name = "simpos"
-    msids = ["3tscpos"]
+    msids = ["3tscpos", "3tscmove"]
     state_keys = "simpos"
     plot_attrs = PlotAttrs(title="TSCPOS (SIM-Z)", ylabel="SIM-Z (steps)")
     validation_limits = ((1, 2.0), (99, 2.0))
     quantile_fmt = "%d"
     max_delta_val = 10
+
+    def get_exclude_intervals(self):
+        exclude_intervals = super().get_exclude_intervals()
+        # Annoyingly CXC telemetry uses "T", "F" instead of the TDB state codes
+        moving = np.isin(self.tlm["3tscmove"], ["MOVE", "T"])
+        sim_move_intervals = logical_intervals(self.times, moving)
+        for row in sim_move_intervals:
+            new_row = {
+                "start": (CxoTime(row["datestart"]) - 100 * u.s).date,
+                "stop": (CxoTime(row["datestop"]) + 100 * u.s).date,
+                "states": "simpos",
+                "source": "3tscmove",
+                "comment": "",
+            }
+            exclude_intervals.add_row(new_row)
+
+        exclude_intervals.pprint_all()
+        return exclude_intervals
 
 
 class ValidateObsid(ValidateSingleMsid):
@@ -523,30 +587,34 @@ def get_telem_values(msids: list, stop, *, days: float = 14) -> Table:
     return out
 
 
-def get_exclude_mask(tlm):
-    mask = np.zeros(len(tlm), dtype="bool")
-    exclude_times = get_exclude_times()
-    for interval in exclude_times:
-        exclude = (tlm["time"] >= CxoTime(interval["start"]).secs) & (
-            tlm["time"] < CxoTime(interval["stop"]).secs
+def get_overlap_mask(times: np.ndarray, intervals: Table):
+    """Return a bool mask of ``times`` that are within any of the ``intervals``.
+
+    ``times`` parameter must be an array of CXC seconds (float) times.
+    ``intervals`` must be a Table with columns ``start`` and ``stop``.
+    """
+    mask = np.zeros(len(times), dtype="bool")
+    for interval in intervals:
+        exclude = (times >= CxoTime(interval["start"]).secs) & (
+            times < CxoTime(interval["stop"]).secs
         )
         mask[exclude] = True
     return mask
 
 
 @functools.lru_cache(maxsize=1)
-def get_exclude_times(state_key: str = None) -> Table:
-    url = EXCLUDE_TIMES_SHEET_URL.format(
+def get_manual_exclude_intervals(state_key: str = None) -> Table:
+    url = EXCLUDE_INTERVALS_SHEET_URL.format(
         doc_id=kadi.commands.conf.cmd_events_flight_id,
-        gid=kadi.commands.conf.cmd_events_exclude_times_gid,
+        gid=kadi.commands.conf.cmd_events_exclude_intervals_gid,
     )
     logger.info(f"Getting exclude times from {url}")
     req = requests.get(url, timeout=30)
     if req.status_code != 200:
         raise ValueError(f"Failed to get exclude times sheet: {req.status_code}")
 
-    exclude_times = Table.read(req.text, format="csv", fill_values=[])
-    return exclude_times
+    exclude_intervals = Table.read(req.text, format="csv", fill_values=[])
+    return exclude_intervals
 
 
 @functools.lru_cache(maxsize=128)
