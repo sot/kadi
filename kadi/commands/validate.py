@@ -26,7 +26,7 @@ import kadi
 import kadi.commands
 from kadi.commands.states import interpolate_states
 
-# TODO: move to cxotime
+# TODO: move this definition to cxotime
 # TODO: use npt.NDArray with numpy 1.21
 CxoTimeLike = Union[str, float, int, np.ndarray, npt.ArrayLike]
 
@@ -41,7 +41,7 @@ __all__ = [
     "NoTelemetryError",
     "get_time_series_chunks",
     "compress_time_series",
-    "add_exclude_regions",
+    "add_figure_regions",
     "get_exclude_times",
 ]
 
@@ -160,30 +160,35 @@ def compress_time_series(
     return out_times, out_vals
 
 
-def add_exclude_regions(
+def add_figure_regions(
     fig: pgo.Figure,
-    time0,
-    time1,
-    exclude_starts,
-    exclude_stops,
-    color="black",
-    opacity=0.2,
-    line_width=3,
+    figure_start: CxoTimeLike,
+    figure_stop: CxoTimeLike,
+    region_starts: List[CxoTimeLike],
+    region_stops: List[CxoTimeLike],
+    color: str = "black",
+    opacity: float = 0.2,
+    line_width: float = 3,
 ):
-    # Add "background" grey rectangles for excluded time regions to vs-time plot
-    # Plot time-axis limits in datetime64 format
-    dt0 = CxoTime(time0).datetime64
-    dt1 = CxoTime(time1).datetime64
+    """Add regions to a figure with a date-based x-axis
 
-    for exclude_start, exclude_stop in zip(exclude_starts, exclude_stops):
-        exclude_dt0 = CxoTime(exclude_start).datetime64
-        exclude_dt1 = CxoTime(exclude_stop).datetime64
-        if (exclude_dt1 >= dt0) & (exclude_dt0 <= dt1):
+    ``figure_start`` and ``figure_stop`` are the start and stop times for the figure.
+    ``region_starts`` and ``region_stops`` are lists of start/stop times for regions.
+    """
+    # Add "background" grey rectangles for figure time regions to vs-time plot
+    # Plot time-axis limits in datetime64 format
+    dt0 = CxoTime(figure_start).datetime64
+    dt1 = CxoTime(figure_stop).datetime64
+
+    for region_start, region_stop in zip(region_starts, region_stops):
+        region_dt0 = CxoTime(region_start).datetime64
+        region_dt1 = CxoTime(region_stop).datetime64
+        if (region_dt1 >= dt0) & (region_dt0 <= dt1):
             # Note oddity/bug in plotly: need to cast np.datetime64 values to [ms]
             # otherwise the rectangle is not drawn. CxoTime.datetime64 is [ns].
             kwargs = dict(
-                x0=max(exclude_dt0, dt0).astype("datetime64[ms]"),
-                x1=min(exclude_dt1, dt1).astype("datetime64[ms]"),
+                x0=max(region_dt0, dt0).astype("datetime64[ms]"),
+                x1=min(region_dt1, dt1).astype("datetime64[ms]"),
                 line_width=line_width,
                 line_color=color,
                 fillcolor=color,
@@ -328,12 +333,12 @@ class Validate(ABC):
             }
         )
 
-        add_exclude_regions(
+        add_figure_regions(
             fig,
-            times[0],
-            times[-1],
-            self.exclude_times["start"],
-            self.exclude_times["stop"],
+            figure_start=times[0],
+            figure_stop=times[-1],
+            region_starts=self.exclude_times["start"],
+            region_stops=self.exclude_times["stop"],
             color="black",
             opacity=0.2,
         )
