@@ -497,30 +497,14 @@ class ValidatePitch(ValidateSingleMsid):
 
 class ValidateSimpos(ValidateSingleMsid):
     name = "simpos"
-    msids = ["3tscpos", "3tscmove"]
+    msids = ["3tscpos"]
     state_keys = "simpos"
     plot_attrs = PlotAttrs(title="TSCPOS (SIM-Z)", ylabel="SIM-Z (steps)")
     validation_limits = ((1, 2.0), (99, 2.0))
     quantile_fmt = "%d"
     max_delta_val = 10
-
-    def get_exclude_intervals(self):
-        exclude_intervals = super().get_exclude_intervals()
-        # Annoyingly CXC telemetry uses "T", "F" instead of the TDB state codes
-        moving = np.isin(self.tlm["3tscmove"], ["MOVE", "T"])
-        sim_move_intervals = logical_intervals(self.times, moving)
-        for row in sim_move_intervals:
-            new_row = {
-                "start": (CxoTime(row["datestart"]) - 100 * u.s).date,
-                "stop": (CxoTime(row["datestop"]) + 100 * u.s).date,
-                "states": "simpos",
-                "source": "3tscmove",
-                "comment": "",
-            }
-            exclude_intervals.add_row(new_row)
-
-        exclude_intervals.pprint_all()
-        return exclude_intervals
+    # Skip over SIM moves and transient out-of-state values
+    min_violation_duration = 328  # seconds
 
 
 class ValidateObsid(ValidateSingleMsid):
