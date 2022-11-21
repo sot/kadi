@@ -21,7 +21,7 @@ import Ska.Numpy
 import Ska.Shell
 import Ska.tdb
 from astropy.table import Table
-from cheta.utils import logical_intervals
+from cheta.utils import logical_intervals, state_intervals
 from cxotime import CxoTime
 
 import kadi
@@ -241,7 +241,11 @@ class Validate(ABC):
             self._tlm = get_telem_values(
                 msids=self.msids, stop=self.stop, days=self.days
             )
+            self.update_tlm()
         return self._tlm
+
+    def update_tlm(self):
+        """Update the telemetry values with any subclass-specific processing"""
 
     @property
     def times(self):
@@ -484,7 +488,7 @@ def convert_state_code_to_raw_val(dat, name, state_codes):
 
 class ValidatePitch(ValidateSingleMsid):
     name = "pitch"
-    msids = ["aosares1"]  # ["aosares1"]  # ["aosares1"]  # , "ctufmtsl", "6sares1"]
+    msids = ["aosares1", "conlofp"]  # Also "6sares1"
     state_keys = ["pitch", "pcad_mode"]
     plot_attrs = PlotAttrs(title="Pitch", ylabel="Pitch (degrees)")
     validation_limits = ((1, 7.0), (99, 7.0), (5, 0.5), (95, 0.5))
@@ -510,23 +514,63 @@ class ValidatePitch(ValidateSingleMsid):
 
         return bad
 
-    # @property
-    # def tlm_vals(self):
-    #     stop = self.stop
-    #     start = stop - self.days
-    #     logger.info(f"Fetching telemetry between {start} and {stop}")
+    def update_tlm(self):
+        """Update self.tlm for safe mode"""
+        import Ska.Numpy
 
-    #     # ctufmtsl = fetch.Msid("ctufmtsl", start, stop)
+        # Online flight processing state
+        # <MsidView msid="CONLOFP" technical_name="OFP STATE">
+        # ['NNRM' 'STDB' 'STBS' 'NRML' 'NSTB' 'SUOF' 'SYON' 'DPLY' 'SYSF' 'STUP' 'SAFE']
+        online_states = state_intervals(self.times, self.tlm["conlofp"])
+        self.tlm["6sares1"] = np.ma.zeros(len(self.times))
+        self.tlm["6sares1"].mask = np.ones(len(self.times), dtype=bool)
 
-    #     if not hasattr(self, "_tlm_vals"):
-    #         # tlm_vals = np.where(
-    #         #     self.tlm["6sares1"],
-    #         #     self.tlm["aosares1"],
-    #         #     self.tlm["ctufmtsl"] == "FMT5",
-    #         # )
-    #         self._tlm_vals = tlm_vals
+        for state in online_states:
+            if state["val"] == "NRML":
+                continue
+            elif state["val"] == "SAFE":
+                logger.info(
+                    f"{self.name}: found Safe Mode at "
+                    f"{state['datestart']} to {state['datestop']}"
+                )
+                # Safe mode, so stub in the CPE value 6SARES1 for pitch
+                with fetch.data_source("cxc", "maude allow_subset=False"):
+                    dat = fetch.Msid("6sares1", state["tstart"], state["tstop"])
+                vals = Ska.Numpy.interpolate(
+                    dat.vals,
+                    dat.times,
+                    self.times,
+                    method="nearest",
+                )
+                ok = (self.times >= state["tstart"]) & (self.times < state["tstop"])
+                self.tlm["6sares1"].mask[ok] = False
+                self.tlm["6sares1"][ok] = vals[ok]
+            else:
+                # Something else, typically STUP (which I don't understand) so
+                # just exclude the interval from state validation.
+                exclude = {
+                    "start": state["datestart"],
+                    "stop": state["datestop"],
+                    "states": "pitch",
+                    "comment": f"CONLOFP={state['val']}",
+                }
+                logger.info(f"{self.name}: excluding {exclude}")
+                self.exclude_intervals.add_row(exclude)
 
-    #     return self._tlm_vals
+    @property
+    def tlm_vals(self):
+        if not hasattr(self, "_tlm_vals"):
+            tlm_vals = super().tlm_vals
+            # Was there a safe mode in the validation interval?
+            if "6sares1" in self.tlm.colnames:
+                # This value is masked (True) when not in safe mode
+                not_safe_mode = self.tlm["6sares1"].mask
+                tlm_vals = np.where(
+                    not_safe_mode, self.tlm["aosares1"], self.tlm["6sares1"]
+                )
+                self._tlm_vals = tlm_vals
+
+        return self._tlm_vals
 
 
 class ValidateSimpos(ValidateSingleMsid):
@@ -686,7 +730,7 @@ def get_index_page_html(stop: CxoTimeLike, days: float):
         instance = cls(stop=stop, days=days)
         validator = {}
         validator["plot_html"] = instance.get_plot_html()
-        validator["name"] = instance.name
+        validator["title"] = instance.plot_attrs.title
         validators.append(validator)
 
     context = {
