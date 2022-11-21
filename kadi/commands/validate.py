@@ -300,10 +300,16 @@ class Validate(ABC):
         raise NotImplementedError
 
     @property
+    def states_at_times(self):
+        """Get the states that correspond to the telemetry times"""
+        if not hasattr(self, "_states_at_times"):
+            self._states_at_times = interpolate_states(self.states, self.times)
+        return self._states_at_times
+
+    @property
     def state_vals(self):
         if not hasattr(self, "_state_vals"):
-            states_interp = interpolate_states(self.states, self.times)
-            self._state_vals = states_interp[self.name].copy()
+            self._state_vals = self.states_at_times[self.name].copy()
         return self._state_vals
 
     @property
@@ -312,17 +318,26 @@ class Validate(ABC):
             self._violations = self.get_violations()
         return self._violations
 
+    def get_violations_mask(self):
+        """Get the violations mask for this validation class
+
+        This is the default implementation for most validation classes which just checks
+        that the telemetry value is within ``max_delta_val`` of the state value.
+        """
+        bad = np.abs(self.tlm_vals - self.state_vals) > self.max_delta_val
+        return bad
+
     def get_violations(self):
-        """Get the violations for this validation class
+        """Get the violations mask for this validation class
 
         This is the main method for each validation class. It returns a Table
         with the columns ``start`` and ``stop`` which are date strings.
         """
-        bad = np.abs(self.tlm_vals - self.state_vals) > self.max_delta_val
+        violations_mask = self.get_violations_mask()
         mask_ok = get_overlap_mask(self.times, self.exclude_intervals)
-        bad[mask_ok] = False
+        violations_mask[mask_ok] = False
 
-        intervals = logical_intervals(self.times, bad, max_gap=self.max_gap)
+        intervals = logical_intervals(self.times, violations_mask, max_gap=self.max_gap)
         ok = intervals["duration"] > self.min_violation_duration
         intervals = intervals[ok]
 
@@ -469,12 +484,31 @@ def convert_state_code_to_raw_val(dat, name, state_codes):
 
 class ValidatePitch(ValidateSingleMsid):
     name = "pitch"
-    msids = ["aosares1"]  # ["aosares1"]  # , "ctufmtsl", "6sares1"]
-    state_keys = "pitch"
+    msids = ["aosares1"]  # ["aosares1"]  # ["aosares1"]  # , "ctufmtsl", "6sares1"]
+    state_keys = ["pitch", "pcad_mode"]
     plot_attrs = PlotAttrs(title="Pitch", ylabel="Pitch (degrees)")
     validation_limits = ((1, 7.0), (99, 7.0), (5, 0.5), (95, 0.5))
     quantile_fmt = "%.3f"
     max_delta_val = 1.0  # deg
+    max_delta_vals = {
+        "NPNT": 1.0,  # deg
+        "NMAN": 20.0,  # deg
+        "NSUN": 2.0,  # deg
+    }
+
+    def get_violations_mask(self):
+        """Get the violations mask for the pitch validation class
+
+        This is the main method for each validation class. It returns a Table
+        with the columns ``start`` and ``stop`` which are date strings.
+        """
+        bad = np.zeros(len(self.times), dtype=bool)
+
+        for pcad_mode, max_delta_val in self.max_delta_vals.items():
+            mask = self.states_at_times["pcad_mode"] == pcad_mode
+            bad |= (np.abs(self.tlm_vals - self.state_vals) > max_delta_val) & mask
+
+        return bad
 
     # @property
     # def tlm_vals(self):
@@ -601,7 +635,6 @@ def get_manual_exclude_intervals(state_key: str = None) -> Table:
     return exclude_intervals
 
 
-@functools.lru_cache(maxsize=128)
 def get_states(start: CxoTimeLike, stop: CxoTimeLike, state_keys: list) -> Table:
     """Get states exactly covering date range.
 
