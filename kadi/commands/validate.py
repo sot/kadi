@@ -9,7 +9,6 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Optional, Union
 
-import astropy.units as u
 import cheta.fetch_eng as fetch
 import jinja2
 import numpy as np
@@ -725,6 +724,7 @@ def get_index_page_html(stop: CxoTimeLike, days: float):
     :returns: HTML string
     """
     validators = []
+    violations = []
     for cls in Validate.subclasses:
         logger.info(f"Validating {cls.name}")
         instance = cls(stop=stop, days=days)
@@ -733,8 +733,18 @@ def get_index_page_html(stop: CxoTimeLike, days: float):
         validator["title"] = instance.plot_attrs.title
         validators.append(validator)
 
+        for violation in instance.violations:
+            violations.append(
+                {
+                    "name": instance.name,
+                    "start": violation["start"],
+                    "stop": violation["stop"],
+                }
+            )
+
     context = {
         "validators": validators,
+        "violations": violations,
     }
     index_template_file = Path(__file__).parent / "templates" / "index_validate.html"
     index_template = index_template_file.read_text()
