@@ -226,9 +226,7 @@ class Validate(ABC):
     days: float = None
     state_keys: tuple = None
     plot_attrs: PlotAttrs = None
-    validation_limits: tuple = None
     msids: tuple = None
-    quantile_fmt = None
     max_delta_val = 0
     max_delta_time = None
     max_gap = 300  # seconds
@@ -571,8 +569,6 @@ class ValidatePitch(ValidateSingleMsid):
     msids = ["aosares1", "conlofp"]  # Also "6sares1" gets added in update_tlm()
     state_keys = ["pitch", "pcad_mode"]
     plot_attrs = PlotAttrs(title="Pitch", ylabel="Pitch (degrees)")
-    validation_limits = ((1, 7.0), (99, 7.0), (5, 0.5), (95, 0.5))
-    quantile_fmt = "%.3f"
     max_delta_val = 1.0  # deg
     max_delta_vals = {
         "NPNT": 1.0,  # deg
@@ -652,8 +648,6 @@ class ValidateSimpos(ValidateSingleMsid):
     msids = ["3tscpos"]
     state_keys = "simpos"
     plot_attrs = PlotAttrs(title="TSCPOS (SIM-Z)", ylabel="SIM-Z (steps)")
-    validation_limits = ((1, 2.0), (99, 2.0))
-    quantile_fmt = "%d"
     max_delta_val = 10
     # Skip over SIM moves and transient out-of-state values
     min_violation_duration = 328  # seconds
@@ -664,7 +658,6 @@ class ValidateObsid(ValidateSingleMsid):
     msids = ["cobsrqid"]
     state_keys = "obsid"
     plot_attrs = PlotAttrs(title="OBSID", ylabel="OBSID")
-    quantile_fmt = "%d"
 
 
 class ValidateDither(ValidateStateCode):
@@ -817,17 +810,13 @@ def get_index_page_html(
             continue
         logger.info(f"Validating {cls.name}")
         instance: Validate = cls(stop=stop, days=days, no_exclude=no_exclude)
+        title = f"{instance.plot_attrs.title} (state name = {instance.name!r})"
         validator = {}
         validator["plot_html"] = instance.get_plot_html()
-        validator["title"] = instance.plot_attrs.title
+        validator["title"] = title
         validator["violations"] = instance.violations
         validator["exclude_intervals"] = instance.exclude_intervals
         validators.append(validator)
-
-        # # Flatten Table to list of dicts
-        # violations = [
-        #     {name: row[name] for name in row.colnames} for row in instance.violations
-        # ]
 
         for violation in instance.violations:
             violations.append(
