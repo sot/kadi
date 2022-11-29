@@ -207,6 +207,19 @@ def convert_state_code_to_raw_val(dat, name, state_codes):
     return vals
 
 
+@functools.lru_cache(maxsize=1)
+def get_ofp_states(stop, days):
+    """Get the Onboard Flight Program states for ``stop`` and ``days`` lookback
+
+    This is normally "NRML" but in safe mode it is "SAFE" or other values. State codes:
+    ['NNRM' 'STDB' 'STBS' 'NRML' 'NSTB' 'SUOF' 'SYON' 'DPLY' 'SYSF' 'STUP' 'SAFE']
+    """
+    msid = "conlofp"
+    tlm = get_telem_values([msid], stop, days)
+    states = state_intervals(tlm["time"], tlm[msid])
+    return states
+
+
 class NoTelemetryError(Exception):
     """No telemetry available for the specified interval"""
 
@@ -353,8 +366,8 @@ class Validate(ABC):
 
     def exclude_ofp_intervals(self, states_expected: List[str]):
         """Exclude intervals where OFP (on-board flight program) is not in the expected state."""
-        online_states = state_intervals(self.times, self.tlm["conlofp"])
-        for state in online_states:
+        ofp_states = get_ofp_states(self.stop, self.days)
+        for state in ofp_states:
             if state["val"] not in states_expected:
                 self.add_exclude_interval(
                     start=state["datestart"],
@@ -566,7 +579,7 @@ class ValidateStateCode(Validate):
 
 class ValidatePitch(ValidateSingleMsid):
     name = "pitch"
-    msids = ["aosares1", "conlofp"]  # Also "6sares1" gets added in update_tlm()
+    msids = ["aosares1"]  # Also "6sares1" gets added in update_tlm()
     state_keys = ["pitch", "pcad_mode"]
     plot_attrs = PlotAttrs(title="Pitch", ylabel="Pitch (degrees)")
     max_delta_val = 1.0  # deg
@@ -593,13 +606,11 @@ class ValidatePitch(ValidateSingleMsid):
     def update_tlm(self):
         """Update self.tlm for safe mode to use 6sares1 instead of aosares1"""
         # Online flight processing state
-        # <MsidView msid="CONLOFP" technical_name="OFP STATE">
-        # ['NNRM' 'STDB' 'STBS' 'NRML' 'NSTB' 'SUOF' 'SYON' 'DPLY' 'SYSF' 'STUP' 'SAFE']
-        online_states = state_intervals(self.times, self.tlm["conlofp"])
+        ofp_states = get_ofp_states(self.stop, self.days)
         self.tlm["6sares1"] = np.ma.zeros(len(self.times))
         self.tlm["6sares1"].mask = np.ones(len(self.times), dtype=bool)
 
-        for state in online_states:
+        for state in ofp_states:
             if state["val"] == "NRML":
                 continue
             elif state["val"] == "SAFE":
@@ -662,7 +673,7 @@ class ValidateObsid(ValidateSingleMsid):
 
 class ValidateDither(ValidateStateCode):
     name = "dither"
-    msids = ["aodithen", "conlofp"]
+    msids = ["aodithen"]
     state_keys = "dither"
     plot_attrs = PlotAttrs(title="DITHER", ylabel="Dither")
 
@@ -674,7 +685,7 @@ class ValidateDither(ValidateStateCode):
 
 class ValidatePcadMode(ValidateStateCode):
     name = "pcad_mode"
-    msids = ["aopcadmd", "conlofp"]
+    msids = ["aopcadmd"]
     state_keys = "pcad_mode"
     plot_attrs = PlotAttrs(title="PCAD mode", ylabel="PCAD mode")
 
@@ -684,7 +695,7 @@ class ValidatePcadMode(ValidateStateCode):
         self.exclude_srdc_intervals()
 
 
-def get_telem_values(msids: list, stop, *, days: float = 14) -> Table:
+def get_telem_values(msids: list, stop, days: float = 14) -> Table:
     """
     Fetch last ``days`` of available ``msids`` telemetry values before
     time ``tstart``.
