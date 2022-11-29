@@ -199,12 +199,12 @@ def add_figure_regions(
             fig.add_vrect(**kwargs)
 
 
-def convert_state_code_to_raw_val(dat, name, state_codes):
-    vals = np.zeros(len(dat))
+def convert_state_code_to_raw_val(state_vals, state_codes):
+    raw_vals = np.zeros(len(state_vals), dtype=int)
     for raw_val, state_code in state_codes:
-        ok = dat[name] == state_code
-        vals[ok] = raw_val
-    return vals
+        ok = state_vals == state_code
+        raw_vals[ok] = raw_val
+    return raw_vals
 
 
 @functools.lru_cache(maxsize=1)
@@ -548,7 +548,7 @@ class ValidateStateCode(Validate):
     def tlm_vals(self):
         if not hasattr(self, "_tlm_vals"):
             self._tlm_vals = convert_state_code_to_raw_val(
-                self.tlm, self.msid, self.state_codes
+                self.tlm[self.msid], self.state_codes
             )
         return self._tlm_vals
 
@@ -557,7 +557,7 @@ class ValidateStateCode(Validate):
         if not hasattr(self, "_state_vals"):
             states_interp = interpolate_states(self.states, self.tlm["time"])
             self._state_vals = convert_state_code_to_raw_val(
-                states_interp, self.name, self.state_codes
+                states_interp[self.name], self.state_codes
             )
         return self._state_vals
 
@@ -669,6 +669,53 @@ class ValidateObsid(ValidateSingleMsid):
     msids = ["cobsrqid"]
     state_keys = "obsid"
     plot_attrs = PlotAttrs(title="OBSID", ylabel="OBSID")
+
+
+class ValidateGrating(ValidateStateCode):
+    msids = ["4ootgsel", "4ootgmtn"]
+    min_violation_duration = 328  # seconds
+
+    def add_exclude_intervals(self):
+        super().add_exclude_intervals()
+        self.exclude_ofp_intervals(["NRML"])
+
+    @property
+    def state_codes(self) -> Table:
+        if not hasattr(self, "_state_codes"):
+            rows = [
+                [0, "INSE"],
+                [1, "INSE_MOVE"],
+                [2, "RETR_MOVE"],
+                [3, "RETR"],
+            ]
+            self._state_codes = Table(rows=rows, names=["raw_val", "state_code"])
+        return self._state_codes
+
+    @property
+    def tlm_vals(self):
+        if not hasattr(self, "_tlm_vals"):
+            vals = np.repeat("RETR", len(self.tlm))
+            # use a combination of the select telemetry and the insertion telem to
+            # approximate the appropriate telemetry values
+            # fmt: off
+            ok = ((self.tlm["4ootgsel"] == self.name.upper())
+                  & (self.tlm["4ootgmtn"] == "INSE"))
+            # fmt: on
+            vals[ok] = "INSE"
+            self._tlm_vals = convert_state_code_to_raw_val(vals, self.state_codes)
+        return self._tlm_vals
+
+
+class ValidateLETG(ValidateGrating):
+    name = "letg"
+    state_keys = "letg"
+    plot_attrs = PlotAttrs(title="LETG", ylabel="LETG")
+
+
+class ValidateHETG(ValidateGrating):
+    name = "hetg"
+    state_keys = "hetg"
+    plot_attrs = PlotAttrs(title="HETG", ylabel="HETG")
 
 
 class ValidateDither(ValidateStateCode):
