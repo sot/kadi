@@ -44,7 +44,7 @@ __all__ = [
     "get_time_series_chunks",
     "compress_time_series",
     "add_figure_regions",
-    "get_manual_exclude_intervals",
+    "get_command_sheet_exclude_intervals",
 ]
 
 logger = logging.getLogger(__name__)
@@ -234,10 +234,17 @@ class Validate(ABC):
     max_gap = 300  # seconds
     min_violation_duration = 32.81  # seconds
 
-    def __init__(self, stop=None, days: float = 14):
+    def __init__(self, stop=None, days: float = 14, no_exclude: bool = False):
+        """Base class for validation
+
+        :param stop: stop time for validation
+        :param days: number of days for validation
+        :param no_exclude: if True then do not exclude any data (for testing)
+        """
         self.stop = CxoTime(stop)
         self.days = days
         self.start: CxoTime = self.stop - days * u.day
+        self.no_exclude = no_exclude
 
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
@@ -285,26 +292,28 @@ class Validate(ABC):
         state-specific intervals like not validating pitch when in NMM.
         """
         if not hasattr(self, "_exclude_intervals"):
-            exclude_intervals = get_manual_exclude_intervals()
-            exclude_intervals["source"] = "manual"
-
-            # Filter exclude times for this state key
-            keep_idxs = []
-            for idx, row in enumerate(exclude_intervals):
-                states = row["states"].split()
-                if row["states"] == "" or self.name in states:
-                    keep_idxs.append(idx)
-            exclude_intervals = exclude_intervals[keep_idxs]
-
-            self._exclude_intervals = exclude_intervals
-
+            self._exclude_intervals = Table(
+                names=["start", "stop", "states", "comment"], dtype=[str, str, str, str]
+            )
         return self._exclude_intervals
 
     def add_exclude_intervals(self):
-        """Stub to exclude intervals which may depend on telemetry values.
+        """Base method to exclude intervals, starting with intervals defined in the
+        Chandra Command Events Google Sheet.
 
-        This gets called at the end of self.tlm.
+        This method gets called at the end of self.tlm.
+
+        Subclasses can override this method to add additional intervals to exclude,
+        making sure to call super().add_exclude_intervals() first.
         """
+        exclude_intervals = get_command_sheet_exclude_intervals()
+
+        for row in exclude_intervals:
+            states = row["states"].split()
+            if row["states"] == "" or self.name in states:
+                self.add_exclude_interval(
+                    start=row["start"], stop=row["stop"], comment=row["comment"]
+                )
 
     def add_exclude_interval(
         self,
@@ -318,6 +327,10 @@ class Validate(ABC):
 
         The ``stop`` time is padded by ``pad`` (which is a Quantity with time units).
         """
+        # For testing, we can skip all exclude intervals to generate violations
+        if self.no_exclude:
+            return
+
         start = CxoTime(start)
         if pad_start is not None:
             start = start - pad_start
@@ -390,12 +403,12 @@ class Validate(ABC):
         return self._state_vals
 
     @property
-    def violations(self):
+    def violations(self) -> Table:
         if not hasattr(self, "_violations"):
             self._violations = self.get_violations()
         return self._violations
 
-    def get_violations_mask(self):
+    def get_violations_mask(self) -> np.ndarray:
         """Get the violations mask for this validation class
 
         This is the default implementation for most validation classes which just checks
@@ -404,7 +417,7 @@ class Validate(ABC):
         bad = np.abs(self.tlm_vals - self.state_vals) > self.max_delta_val
         return bad
 
-    def get_violations(self):
+    def get_violations(self) -> Table:
         """Get the violations mask for this validation class
 
         This is the main method for each validation class. It returns a Table
@@ -453,7 +466,7 @@ class Validate(ABC):
 
         fig.update_layout(
             {
-                "title": (f"{self.name}"),
+                # "title": (f"{self.name}"),
                 "yaxis": {
                     "title": self.plot_attrs.ylabel,
                 },
@@ -736,7 +749,7 @@ def get_overlap_mask(times: np.ndarray, intervals: Table):
 
 
 @functools.lru_cache(maxsize=1)
-def get_manual_exclude_intervals(state_key: str = None) -> Table:
+def get_command_sheet_exclude_intervals(state_key: str = None) -> Table:
     url = EXCLUDE_INTERVALS_SHEET_URL.format(
         doc_id=kadi.commands.conf.cmd_events_flight_id,
         gid=kadi.commands.conf.cmd_events_exclude_intervals_gid,
@@ -788,7 +801,9 @@ def get_states(start: CxoTimeLike, stop: CxoTimeLike, state_keys: list) -> Table
     return states
 
 
-def get_index_page_html(stop: CxoTimeLike, days: float):
+def get_index_page_html(
+    stop: CxoTimeLike, days: float, states: List[str], no_exclude: bool = False
+):
     """Make a simple HTML page with all the validation plots and information.
 
     :param stop: stop time for validation interval (CxoTime-like, default=now)
@@ -798,12 +813,21 @@ def get_index_page_html(stop: CxoTimeLike, days: float):
     validators = []
     violations = []
     for cls in Validate.subclasses:
+        if states and cls.name not in states:
+            continue
         logger.info(f"Validating {cls.name}")
-        instance = cls(stop=stop, days=days)
+        instance: Validate = cls(stop=stop, days=days, no_exclude=no_exclude)
         validator = {}
         validator["plot_html"] = instance.get_plot_html()
         validator["title"] = instance.plot_attrs.title
+        validator["violations"] = instance.violations
+        validator["exclude_intervals"] = instance.exclude_intervals
         validators.append(validator)
+
+        # # Flatten Table to list of dicts
+        # violations = [
+        #     {name: row[name] for name in row.colnames} for row in instance.violations
+        # ]
 
         for violation in instance.violations:
             violations.append(

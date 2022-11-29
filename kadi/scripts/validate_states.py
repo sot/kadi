@@ -26,6 +26,19 @@ def get_opt():
         "--out-dir", default=".", help="Output directory for index.html (default='.')"
     )
     parser.add_argument(
+        "--state",
+        action="append",
+        default=[],
+        dest="states",
+        help="State(s) to validate (default=ALL)",
+    )
+    parser.add_argument(
+        "--no-exclude",
+        default=False,
+        action="store_true",
+        help="Do not apply exclude intervals from validation (for testing)",
+    )
+    parser.add_argument(
         "--version",
         action="version",
         version=f"%(prog)s {kadi.__version__}",
@@ -38,7 +51,7 @@ def main(args=None):
     opt = get_opt().parse_args(args)
     logging.getLogger("kadi").setLevel(opt.log_level)
 
-    html = validate.get_index_page_html(opt.stop, opt.days)
+    html = validate.get_index_page_html(opt.stop, opt.days, opt.states, opt.no_exclude)
 
     out_dir = Path(opt.out_dir)
     out_dir.mkdir(exist_ok=True, parents=True)
