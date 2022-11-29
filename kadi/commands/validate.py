@@ -199,6 +199,14 @@ def add_figure_regions(
             fig.add_vrect(**kwargs)
 
 
+def convert_state_code_to_raw_val(dat, name, state_codes):
+    vals = np.zeros(len(dat))
+    for raw_val, state_code in state_codes:
+        ok = dat[name] == state_code
+        vals[ok] = raw_val
+    return vals
+
+
 class NoTelemetryError(Exception):
     """No telemetry available for the specified interval"""
 
@@ -226,9 +234,10 @@ class Validate(ABC):
     max_gap = 300  # seconds
     min_violation_duration = 32.81  # seconds
 
-    def __init__(self, stop=None, days=14):
+    def __init__(self, stop=None, days: float = 14):
         self.stop = CxoTime(stop)
         self.days = days
+        self.start: CxoTime = self.stop - days * u.day
 
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
@@ -298,17 +307,63 @@ class Validate(ABC):
         """
 
     def add_exclude_interval(
-        self, start: CxoTimeLike, stop: CxoTimeLike, comment: str, pad: float = 0
+        self,
+        start: CxoTimeLike,
+        stop: CxoTimeLike,
+        comment: str,
+        pad_start: Optional[u.Quantity] = None,
+        pad_stop: Optional[u.Quantity] = None,
     ):
-        """Add an interval to the exclude_intervals table"""
+        """Add an interval to the exclude_intervals table
+
+        The ``stop`` time is padded by ``pad`` (which is a Quantity with time units).
+        """
+        start = CxoTime(start)
+        if pad_start is not None:
+            start = start - pad_start
+        stop = CxoTime(stop)
+        if pad_stop is not None:
+            stop = stop + pad_stop
+
+        # Ensure interval is contained within validation interval.
+        if start >= self.stop or stop <= self.start:
+            return
+        start = max(start, self.start)
+        stop = min(stop, self.stop)
+
         exclude = {
-            "start": start,
-            "stop": (CxoTime(stop) + pad * u.s).date,
+            "start": start.date,
+            "stop": stop.date,
             "states": self.name,
             "comment": comment,
         }
         logger.info(f"{self.name}: excluding interval {start} - {stop}: {comment}")
         self.exclude_intervals.add_row(exclude)
+
+    def exclude_ofp_intervals(self, states_expected: List[str]):
+        """Exclude intervals where OFP (on-board flight program) is not in the expected state."""
+        online_states = state_intervals(self.times, self.tlm["conlofp"])
+        for state in online_states:
+            if state["val"] not in states_expected:
+                self.add_exclude_interval(
+                    start=state["datestart"],
+                    stop=state["datestop"],
+                    pad_stop=1 * u.hour,
+                    comment=f"CONLOFP={state['val']}",
+                )
+
+    def exclude_srdc_intervals(self):
+        """Check for SRDC's and exclude them from validation."""
+        start = self.start - 20 * u.min  # Catch SRDC start just before interval
+        cmds = kadi.commands.get_cmds(start, self.stop, tlmsid="COACTSX")
+        ok = np.isin(cmds["coacts1"], [142, 143])
+        for cmd in cmds[ok]:
+            date = CxoTime(cmd["date"])
+            self.add_exclude_interval(
+                start=date,
+                stop=date + 13 * u.min,
+                comment="SRDC",
+            )
 
     @property
     def tlm_vals(self):
@@ -376,14 +431,15 @@ class Validate(ABC):
 
         fig = pgo.Figure()
 
-        for color, vals in [
-            ("#1f77b4", tlm_vals),  # muted blue
-            ("#ff7f0e", state_vals),  # safety orange
+        for name, color, vals in [
+            ("Telem", "#1f77b4", tlm_vals),  # muted blue
+            ("State", "#ff7f0e", state_vals),  # safety orange
         ]:
             tm, y = compress_time_series(
                 times, vals, self.max_delta_val, self.max_delta_time
             )
             trace = pgo.Scatter(
+                name=name,
                 x=CxoTime(tm).datetime64,
                 y=y,
                 mode="lines+markers",
@@ -391,6 +447,7 @@ class Validate(ABC):
                 opacity=0.75,
                 showlegend=False,
                 marker={"opacity": 0.9, "size": 8},
+                hovertemplate="%{x|%Y:%j:%H:%M:%S} %{y}",
             )
             fig.add_trace(trace)
 
@@ -496,14 +553,6 @@ class ValidateStateCode(Validate):
         return fig, ax
 
 
-def convert_state_code_to_raw_val(dat, name, state_codes):
-    vals = np.zeros(len(dat))
-    for raw_val, state_code in state_codes:
-        ok = dat[name] == state_code
-        vals[ok] = raw_val
-    return vals
-
-
 class ValidatePitch(ValidateSingleMsid):
     name = "pitch"
     msids = ["aosares1", "conlofp"]  # Also "6sares1" gets added in update_tlm()
@@ -567,16 +616,7 @@ class ValidatePitch(ValidateSingleMsid):
         """Exclude any intervals where online flight processing is not normal or safe
         mode"""
         super().add_exclude_intervals()
-        online_states = state_intervals(self.times, self.tlm["conlofp"])
-        for state in online_states:
-            if state["val"] not in ["NRML", "SAFE"]:
-                # Something else, typically STUP (which I don't understand) so
-                # just exclude the interval from state validation.
-                self.add_exclude_interval(
-                    start=state["datestart"],
-                    stop=state["datestop"],
-                    comment=f"CONLOFP={state['val']}",
-                )
+        self.exclude_ofp_intervals(["NRML", "SAFE"])
 
     @property
     def tlm_vals(self):
@@ -616,9 +656,14 @@ class ValidateObsid(ValidateSingleMsid):
 
 class ValidateDither(ValidateStateCode):
     name = "dither"
-    msids = ["aodithen"]
+    msids = ["aodithen", "conlofp"]
     state_keys = "dither"
     plot_attrs = PlotAttrs(title="DITHER", ylabel="Dither")
+
+    def add_exclude_intervals(self):
+        super().add_exclude_intervals()
+        self.exclude_ofp_intervals(["NRML"])
+        self.exclude_srdc_intervals()
 
 
 class ValidatePcadMode(ValidateStateCode):
@@ -628,15 +673,9 @@ class ValidatePcadMode(ValidateStateCode):
     plot_attrs = PlotAttrs(title="PCAD mode", ylabel="PCAD mode")
 
     def add_exclude_intervals(self):
-        online_states = state_intervals(self.times, self.tlm["conlofp"])
-        for state in online_states:
-            if state["val"] != "NRML":
-                self.add_exclude_interval(
-                    start=state["datestart"],
-                    stop=state["datestop"],
-                    pad=3600,
-                    comment=f"CONLOFP={state['val']}",
-                )
+        super().add_exclude_intervals()
+        self.exclude_ofp_intervals(["NRML"])
+        self.exclude_srdc_intervals()
 
 
 def get_telem_values(msids: list, stop, *, days: float = 14) -> Table:
