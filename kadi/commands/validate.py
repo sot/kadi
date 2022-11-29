@@ -9,6 +9,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Optional, Union
 
+import astropy.units as u
 import cheta.fetch_eng as fetch
 import jinja2
 import numpy as np
@@ -29,7 +30,7 @@ from kadi.commands.states import interpolate_states
 
 # TODO: move this definition to cxotime
 # TODO: use npt.NDArray with numpy 1.21
-CxoTimeLike = Union[str, float, int, np.ndarray, npt.ArrayLike]
+CxoTimeLike = Union[str, float, int, np.ndarray, npt.ArrayLike, None]
 
 
 __all__ = [
@@ -241,6 +242,7 @@ class Validate(ABC):
                 msids=self.msids, stop=self.stop, days=self.days
             )
             self.update_tlm()
+            self.add_exclude_intervals()
         return self._tlm
 
     def update_tlm(self):
@@ -274,22 +276,39 @@ class Validate(ABC):
         state-specific intervals like not validating pitch when in NMM.
         """
         if not hasattr(self, "_exclude_intervals"):
-            self._exclude_intervals = self.get_exclude_intervals()
+            exclude_intervals = get_manual_exclude_intervals()
+            exclude_intervals["source"] = "manual"
+
+            # Filter exclude times for this state key
+            keep_idxs = []
+            for idx, row in enumerate(exclude_intervals):
+                states = row["states"].split()
+                if row["states"] == "" or self.name in states:
+                    keep_idxs.append(idx)
+            exclude_intervals = exclude_intervals[keep_idxs]
+
+            self._exclude_intervals = exclude_intervals
 
         return self._exclude_intervals
 
-    def get_exclude_intervals(self):
-        exclude_intervals = get_manual_exclude_intervals()
-        exclude_intervals["source"] = "manual"
+    def add_exclude_intervals(self):
+        """Stub to exclude intervals which may depend on telemetry values.
 
-        # Filter exclude times for this state key
-        keep_idxs = []
-        for idx, row in enumerate(exclude_intervals):
-            states = row["states"].split()
-            if row["states"] == "" or self.name in states:
-                keep_idxs.append(idx)
-        exclude_intervals = exclude_intervals[keep_idxs]
-        return exclude_intervals
+        This gets called at the end of self.tlm.
+        """
+
+    def add_exclude_interval(
+        self, start: CxoTimeLike, stop: CxoTimeLike, comment: str, pad: float = 0
+    ):
+        """Add an interval to the exclude_intervals table"""
+        exclude = {
+            "start": start,
+            "stop": (CxoTime(stop) + pad * u.s).date,
+            "states": self.name,
+            "comment": comment,
+        }
+        logger.info(f"{self.name}: excluding interval {start} - {stop}: {comment}")
+        self.exclude_intervals.add_row(exclude)
 
     @property
     def tlm_vals(self):
@@ -487,7 +506,7 @@ def convert_state_code_to_raw_val(dat, name, state_codes):
 
 class ValidatePitch(ValidateSingleMsid):
     name = "pitch"
-    msids = ["aosares1", "conlofp"]  # Also "6sares1"
+    msids = ["aosares1", "conlofp"]  # Also "6sares1" gets added in update_tlm()
     state_keys = ["pitch", "pcad_mode"]
     plot_attrs = PlotAttrs(title="Pitch", ylabel="Pitch (degrees)")
     validation_limits = ((1, 7.0), (99, 7.0), (5, 0.5), (95, 0.5))
@@ -514,9 +533,7 @@ class ValidatePitch(ValidateSingleMsid):
         return bad
 
     def update_tlm(self):
-        """Update self.tlm for safe mode"""
-        import Ska.Numpy
-
+        """Update self.tlm for safe mode to use 6sares1 instead of aosares1"""
         # Online flight processing state
         # <MsidView msid="CONLOFP" technical_name="OFP STATE">
         # ['NNRM' 'STDB' 'STBS' 'NRML' 'NSTB' 'SUOF' 'SYON' 'DPLY' 'SYSF' 'STUP' 'SAFE']
@@ -544,17 +561,22 @@ class ValidatePitch(ValidateSingleMsid):
                 ok = (self.times >= state["tstart"]) & (self.times < state["tstop"])
                 self.tlm["6sares1"].mask[ok] = False
                 self.tlm["6sares1"][ok] = vals[ok]
-            else:
+            # Any other cases are excluded via add_exclude_intervals() below
+
+    def add_exclude_intervals(self):
+        """Exclude any intervals where online flight processing is not normal or safe
+        mode"""
+        super().add_exclude_intervals()
+        online_states = state_intervals(self.times, self.tlm["conlofp"])
+        for state in online_states:
+            if state["val"] not in ["NRML", "SAFE"]:
                 # Something else, typically STUP (which I don't understand) so
                 # just exclude the interval from state validation.
-                exclude = {
-                    "start": state["datestart"],
-                    "stop": state["datestop"],
-                    "states": "pitch",
-                    "comment": f"CONLOFP={state['val']}",
-                }
-                logger.info(f"{self.name}: excluding {exclude}")
-                self.exclude_intervals.add_row(exclude)
+                self.add_exclude_interval(
+                    start=state["datestart"],
+                    stop=state["datestop"],
+                    comment=f"CONLOFP={state['val']}",
+                )
 
     @property
     def tlm_vals(self):
@@ -601,9 +623,20 @@ class ValidateDither(ValidateStateCode):
 
 class ValidatePcadMode(ValidateStateCode):
     name = "pcad_mode"
-    msids = ["aopcadmd"]
+    msids = ["aopcadmd", "conlofp"]
     state_keys = "pcad_mode"
     plot_attrs = PlotAttrs(title="PCAD mode", ylabel="PCAD mode")
+
+    def add_exclude_intervals(self):
+        online_states = state_intervals(self.times, self.tlm["conlofp"])
+        for state in online_states:
+            if state["val"] != "NRML":
+                self.add_exclude_interval(
+                    start=state["datestart"],
+                    stop=state["datestop"],
+                    pad=3600,
+                    comment=f"CONLOFP={state['val']}",
+                )
 
 
 def get_telem_values(msids: list, stop, *, days: float = 14) -> Table:
