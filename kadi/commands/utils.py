@@ -5,12 +5,15 @@ import logging
 from dataclasses import dataclass
 from typing import List, Optional, Union
 
+import astropy.table as tbl
 import cheta.fetch_eng as fetch
 import numpy as np
 import numpy.typing as npt
 import plotly.graph_objects as pgo
 from astropy.table import Table
-from cheta.utils import state_intervals
+from cheta.derived.comps import ComputedMsid
+from cheta.derived.pcad import DP_PITCH, DP_ROLL, arccos_clip
+from cheta.utils import logical_intervals, state_intervals
 from cxotime import CxoTime
 
 # TODO: move this definition to cxotime
@@ -238,3 +241,195 @@ def compress_time_series(
                 out_vals.append(chunk_vals[idx])
 
     return out_times, out_vals
+
+
+########################################
+# This should all go into cheta/comps.py
+########################################
+
+
+@functools.lru_cache(maxsize=10)
+def get_roll_pitch_tlm(start, stop):
+    msids = ["6sares1", "6sares2", "6sunsa1", "6sunsa2", "6sunsa3"]
+    dat = fetch.MSIDset(msids, start, stop)
+
+    # Filter out of range values. This happens just at the beginning of safe mode.
+    for msid in msids:
+        if "6sares" in msid:
+            x0, x1 = 0, 180
+        else:
+            x0, x1 = 0, 1
+        dat[msid].bads |= (dat[msid].vals < x0) | (dat[msid].vals > x1)
+
+    dat.interpolate(times=dat[msids[0]].times, bad_union=True)
+    return dat
+
+
+def calc_css_pitch_safe(start, stop):
+    # Get the raw telemetry value in user-requested unit system
+    dat = get_roll_pitch_tlm(start, stop)
+
+    sa_ang_avg = (1.0 * dat["6sares1"].vals + 1.0 * dat["6sares2"].vals) / 2
+    sinang = np.sin(np.radians(sa_ang_avg))
+    cosang = np.cos(np.radians(sa_ang_avg))
+    # Rotate CSS sun vector from SA to ACA frame
+    css_aca = np.array(
+        [
+            sinang * dat["6sunsa1"].vals - cosang * dat["6sunsa3"].vals,
+            dat["6sunsa2"].vals * 1.0,
+            cosang * dat["6sunsa1"].vals + sinang * dat["6sunsa3"].vals,
+        ]
+    )
+    # Normalize sun vec (again) and compute pitch
+    magnitude = np.sqrt((css_aca * css_aca).sum(axis=0))
+    magnitude[magnitude == 0.0] = 1.0
+    sun_vec_norm = css_aca / magnitude
+    vals = np.degrees(arccos_clip(sun_vec_norm[0]))
+
+    return dat.times, vals
+
+
+def calc_css_roll_safe(start, stop):
+    """Off-Nominal Roll Angle from CSS Data in ACA Frame [Deg]
+
+    Defined as the rotation about the ACA X-axis required to align the sun
+    vector with the ACA X/Z plane.
+
+    Calculated by rotating the CSS sun vector from the SA-1 frame to ACA frame
+    based on the solar array angles 6SARES1 and 6SARES2.
+
+    """
+    # Get the raw telemetry value in user-requested unit system
+    dat = get_roll_pitch_tlm(start, stop)
+
+    sa_ang_avg = (dat["6sares1"].vals + dat["6sares2"].vals) / 2
+    sinang = np.sin(np.radians(sa_ang_avg))
+    cosang = np.cos(np.radians(sa_ang_avg))
+    # Rotate CSS sun vector from SA to ACA frame
+    css_aca = np.array(
+        [
+            sinang * dat["6sunsa1"].vals - cosang * dat["6sunsa3"].vals,
+            dat["6sunsa2"].vals,
+            cosang * dat["6sunsa1"].vals + sinang * dat["6sunsa3"].vals,
+        ]
+    )
+    # Normalize sun vec (again) and compute pitch
+    magnitude = np.sqrt((css_aca * css_aca).sum(axis=0))
+    magnitude[magnitude == 0.0] = 1.0
+    sun_vec_norm = css_aca / magnitude
+    vals = np.degrees(np.arctan2(-sun_vec_norm[1, :], -sun_vec_norm[2, :]))
+
+    return dat.times, vals
+
+
+def calc_pitch_roll_obc(start, stop, pitch_roll):
+    dp = DP_PITCH() if pitch_roll == "pitch" else DP_ROLL()
+    tlm = dp.fetch(start, stop)
+    vals = dp.calc(tlm)
+    return tlm.times, vals
+
+
+# Class name is arbitrary, but by convention start with `Comp_`
+class Comp_Pitch_Roll_OBC_Safe(ComputedMsid):
+    """
+    Computed MSID to return pitch or off-nominal roll angle which is valid in NPNT,
+    NMAN, NSUN, and Safe Mode.
+
+    Logic is:
+    - Get logical intervals:
+      - CONLOFP == "NRML":
+        - AOPCADMD in ["NPNT", "NMAN"] => compute pitch/roll from AOATTQT1/2/3/4
+        - AOPCADMD == "NSUN" => get pitch/roll from PITCH/ROLL_CSS derived params.
+          These are also in MAUDE.
+      - CONLOFP == "SAFE":
+        - Compute pitch/roll from PITCH/ROLL_CSS_SAFE via calc_pitch/roll_css_safe()
+      - Intervals for other CONLOFP values are ignored.
+
+    """
+
+    msid_match = r"(roll|pitch)_obc_safe"
+
+    # `msid_match` is a class attribute that defines a regular expresion to
+    # match for this computed MSID.  This must be defined and it must be
+    # unambiguous (not matching an existing MSID or other computed MSID).
+    #
+    # The two groups in parentheses specify the arguments <MSID> and <offset>.
+    # These are passed to `get_msid_attrs` as msid_args[0] and msid_args[1].
+    # The \w symbol means to match a-z, A-Z, 0-9 and underscore (_).
+    # The \d symbol means to match digits 0-9.
+
+    def get_msid_attrs(self, tstart, tstop, msid, msid_args):
+        """
+        Get attributes for computed MSID: ``vals``, ``bads``, ``times``,
+        ``unit``, ``raw_vals``, and ``offset``.  The first four must always
+        be provided.
+
+        :param tstart: start time (CXC secs)
+        :param tstop: stop time (CXC secs)
+        :param msid: full MSID name e.g. tephin_plus_5
+        :param msid_args: tuple of regex match groups (msid_name,)
+        :returns: dict of MSID attributes
+        """
+        start = CxoTime(tstart)
+        stop = CxoTime(tstop)
+
+        # Whether we are computing "pitch" or "roll", parsed from MSID name
+        pitch_roll: str = msid_args[0]
+
+        ofp_states = get_ofp_states(stop, days=(stop - start).jd)
+
+        tlms = []
+        for ofp_state in ofp_states:
+            if ofp_state["val"] == "NRML":
+                dat = fetch.Msid("aopcadmd", ofp_state["tstart"], ofp_state["tstop"])
+
+                # Get states of either NPNT / NMAN or NSUN
+                vals = np.isin(dat.vals, ["NPNT", "NMAN"])
+                states_npnt_nman = logical_intervals(
+                    dat.times, vals, complete_intervals=False
+                )
+                states_npnt_nman["val"] = np.repeat("NPNT_NMAN", len(states_npnt_nman))
+                # Require at least 10 minutes => 2 samples of the ephem data. This is
+                # needed for the built-in derived parameter calculation to work.
+                ok = states_npnt_nman["duration"] > 10 * 60 + 1
+                states_npnt_nman = states_npnt_nman[ok]
+
+                states_nsun = logical_intervals(dat.times, dat.vals == "NSUN")
+                states_nsun["val"] = np.repeat("NSUN", len(states_nsun))
+                states = tbl.vstack([states_npnt_nman, states_nsun])
+                states.sort("tstart")
+
+                for state in states:
+                    if state["val"] == "NPNT_NMAN":
+                        tlm = calc_pitch_roll_obc(
+                            state["tstart"], state["tstop"], pitch_roll
+                        )
+                        tlms.append(tlm)
+                    elif state["val"] == "NSUN":
+                        tlm = fetch.Msid(
+                            f"{pitch_roll}_css", state["tstart"], state["tstop"]
+                        )
+                        tlms.append((tlm.times, tlm.vals))
+
+            elif ofp_state["val"] == "SAFE":
+                calc_func = (
+                    calc_css_pitch_safe
+                    if msid_args[0] == "pitch"
+                    else calc_css_roll_safe
+                )
+                tlm = calc_func(ofp_state["datestart"], ofp_state["datestop"])
+                tlms.append(tlm)
+
+        times = np.concatenate([tlm[0] for tlm in tlms])
+        vals = np.concatenate([tlm[1] for tlm in tlms])
+
+        # Return a dict with at least `vals`, `times`, `bads`, and `unit`.
+        # Additional attributes are allowed and will be set on the
+        # final MSID object.
+        out = {
+            "vals": vals,
+            "bads": np.zeros(len(vals), dtype=bool),
+            "times": times,
+            "unit": "DEG",
+        }
+        return out
