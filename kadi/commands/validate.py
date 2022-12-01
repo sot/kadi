@@ -414,7 +414,7 @@ class ValidateStateCode(Validate):
 
 class ValidatePitch(ValidateSingleMsid):
     name = "pitch"
-    msids = ["aosares1"]  # Also "6sares1" gets added in update_tlm()
+    msids = ["pitch_obc_safe"]
     state_keys = ["pitch", "pcad_mode"]
     plot_attrs = PlotAttrs(title="Pitch", ylabel="Pitch (degrees)")
     max_delta_val = 1.0  # deg
@@ -437,35 +437,6 @@ class ValidatePitch(ValidateSingleMsid):
             bad |= (np.abs(self.tlm_vals - self.state_vals) > max_delta_val) & mask
 
         return bad
-
-    def update_tlm(self):
-        """Update self.tlm for safe mode to use 6sares1 instead of aosares1"""
-        # Online flight processing state
-        ofp_states = get_ofp_states(self.stop, self.days)
-        self.tlm["6sares1"] = np.ma.zeros(len(self.times))
-        self.tlm["6sares1"].mask = np.ones(len(self.times), dtype=bool)
-
-        for state in ofp_states:
-            if state["val"] == "NRML":
-                continue
-            elif state["val"] == "SAFE":
-                logger.info(
-                    f"{self.name}: found Safe Mode at "
-                    f"{state['datestart']} to {state['datestop']}"
-                )
-                # Safe mode, so stub in the CPE value 6SARES1 for pitch
-                with fetch.data_source("cxc", "maude allow_subset=False"):
-                    dat = fetch.Msid("6sares1", state["tstart"], state["tstop"])
-                vals = Ska.Numpy.interpolate(
-                    dat.vals,
-                    dat.times,
-                    self.times,
-                    method="nearest",
-                )
-                ok = (self.times >= state["tstart"]) & (self.times < state["tstop"])
-                self.tlm["6sares1"].mask[ok] = False
-                self.tlm["6sares1"][ok] = vals[ok]
-            # Any other cases are excluded via add_exclude_intervals() below
 
     def add_exclude_intervals(self):
         """Exclude any intervals where online flight processing is not normal or safe
