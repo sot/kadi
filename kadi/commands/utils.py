@@ -49,6 +49,14 @@ class TimeSeriesPoint:
     def date(self):
         return CxoTime(self.time).date
 
+    def __repr__(self):
+        date = CxoTime(self.time).date
+        out = (
+            f"<{self.__class__.__name__} date={date} "
+            f"time={self.time:.3f} val={self.val}>"
+        )
+        return out
+
 
 @dataclass
 class TimeSeriesChunk:
@@ -56,6 +64,18 @@ class TimeSeriesChunk:
     min: TimeSeriesPoint = None
     max: TimeSeriesPoint = None
     last: TimeSeriesPoint = None
+
+    def __repr__(self):
+        out = "\n".join(
+            [
+                f"<{self.__class__.__name__}",
+                f"first={self.first}",
+                f"min={self.min}",
+                f"max={self.max}",
+                f"last={self.last}>",
+            ]
+        )
+        return out
 
 
 def get_telem_values(msids: list, stop, days: float = 14) -> Table:
@@ -164,6 +184,10 @@ def get_time_series_chunks(
     max_delta_val: float = 0,
     max_delta_time: Optional[float] = None,
 ) -> List[TimeSeriesChunk]:
+    # Turning max_delta_time from None to a big number simplifies the later code.
+    if max_delta_time is None:
+        max_delta_time = np.finfo(np.float64).max
+
     chunks = []
     chunk = None
 
@@ -181,13 +205,14 @@ def get_time_series_chunks(
         delta_val = new_max - new_min
         delta_time = time_ - chunk.first.time
 
-        if delta_val > max_delta_val or (
-            max_delta_time is not None and delta_time > max_delta_time
-        ):
+        if delta_val > max_delta_val or delta_time > max_delta_time:
             # This chunk is complete so add it to the list and start a new one
             chunks.append(chunk)
 
-            if abs(val - chunk.last.val) > max_delta_val:
+            if (
+                abs(val - chunk.last.val) > max_delta_val
+                or time_ - chunk.last.time > max_delta_time
+            ):
                 # If the value has changed by more than the threshold then start
                 # a blank new chunk with the next `idx` point (via the chunk is None
                 # bit above)
