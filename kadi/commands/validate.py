@@ -317,17 +317,6 @@ class Validate(ABC):
             )
             fig.add_trace(trace)
 
-        # fig.update_layout(
-        #     {
-        #         # "title": (f"{self.name}"),
-        #         "yaxis": {
-        #             "title": self.plot_attrs.ylabel,
-        #         },
-        #         "xaxis": {
-        #             "title": f"Date",
-        #         },
-        #     }
-        # )
         fig.update_xaxes(title="Date")
         fig.update_yaxes(title=self.plot_attrs.ylabel)
         if self.plot_attrs.range is not None:
