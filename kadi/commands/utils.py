@@ -258,7 +258,7 @@ def get_roll_pitch_tlm(start, stop):
         if "6sares" in msid:
             x0, x1 = 0, 180
         else:
-            x0, x1 = 0, 1
+            x0, x1 = -1, 1
         dat[msid].bads |= (dat[msid].vals < x0) | (dat[msid].vals > x1)
 
     dat.interpolate(times=dat[msids[0]].times, bad_union=True)
@@ -315,14 +315,20 @@ def calc_css_roll_safe(start, stop):
     )
     # Normalize sun vec (again) and compute pitch
     magnitude = np.sqrt((css_aca * css_aca).sum(axis=0))
-    magnitude[magnitude == 0.0] = 1.0
+    # Don't exactly know why zero values can happen, but it does, so just drop those.
+    ok = magnitude > 0
+    magnitude = magnitude[ok]
+    times = dat.times[ok]
+
     sun_vec_norm = css_aca / magnitude
     vals = np.degrees(np.arctan2(-sun_vec_norm[1, :], -sun_vec_norm[2, :]))
 
-    return dat.times, vals
+    return times, vals
 
 
 def calc_pitch_roll_obc(start, stop, pitch_roll):
+    """Use the code in the PCAD derived parameter classes to get the pitch and off
+    nominal roll from OBC quaternion data."""
     dp = DP_PITCH() if pitch_roll == "pitch" else DP_ROLL()
     tlm = dp.fetch(start, stop)
     vals = dp.calc(tlm)
@@ -412,11 +418,7 @@ class Comp_Pitch_Roll_OBC_Safe(ComputedMsid):
                         tlms.append((tlm.times, tlm.vals))
 
             elif ofp_state["val"] == "SAFE":
-                calc_func = (
-                    calc_css_pitch_safe
-                    if msid_args[0] == "pitch"
-                    else calc_css_roll_safe
-                )
+                calc_func = globals()[f"calc_css_{msid_args[0]}_safe"]
                 tlm = calc_func(ofp_state["datestart"], ofp_state["datestop"])
                 tlms.append(tlm)
 
