@@ -437,7 +437,7 @@ class ValidatePitchRollBase(ValidateSingleMsid):
 
 class ValidatePitch(ValidatePitchRollBase):
     name = "pitch"
-    msids = ["pitch_obc_safe"]
+    msids = ["pitch_comp"]
     state_keys = ["pitch", "pcad_mode"]
     plot_attrs = PlotAttrs(title="Pitch", ylabel="Pitch (degrees)", range=[40, 180])
     max_delta_time = 3600  # sec
@@ -451,7 +451,7 @@ class ValidatePitch(ValidatePitchRollBase):
 
 class ValidateRoll(ValidatePitchRollBase):
     name = "off_nom_roll"
-    msids = ["roll_obc_safe"]
+    msids = ["roll_comp"]
     state_keys = ["off_nom_roll", "pcad_mode"]
     plot_attrs = PlotAttrs(title="roll", ylabel="roll (degrees)", range=[-30, 30])
     max_delta_time = 3600  # sec
