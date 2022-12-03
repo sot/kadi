@@ -1,6 +1,12 @@
-#!/usr/bin/env python
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 """
+Validate kadi command states against telemetry.
+
+This is a set of classes that validate the kadi command states against
+Chandra telemetry.  The classes are designed to be run either standalone
+or from the command-line application ``kadi_validate_states`` (defined in
+``kadi.scripts.validate_states``).
 """
 import functools
 import logging
@@ -10,7 +16,6 @@ from pathlib import Path
 from typing import List, Optional
 
 import astropy.units as u
-import cheta.fetch_eng as fetch
 import jinja2
 import numpy as np
 import plotly.graph_objects as pgo
@@ -39,6 +44,7 @@ from kadi.commands.utils import (
 __all__ = [
     "Validate",
     "ValidatePitch",
+    "ValidateRoll",
     "ValidateSimpos",
     "ValidateObsid",
     "ValidateDither",
@@ -63,6 +69,7 @@ EXCLUDE_INTERVALS_SHEET_URL = (
 class PlotAttrs:
     title: str
     ylabel: str
+    range: Optional[list] = None
 
 
 class Validate(ABC):
@@ -310,17 +317,22 @@ class Validate(ABC):
             )
             fig.add_trace(trace)
 
-        fig.update_layout(
-            {
-                # "title": (f"{self.name}"),
-                "yaxis": {
-                    "title": self.plot_attrs.ylabel,
-                },
-                "xaxis": {
-                    "title": f"Date",
-                },
-            }
-        )
+        # fig.update_layout(
+        #     {
+        #         # "title": (f"{self.name}"),
+        #         "yaxis": {
+        #             "title": self.plot_attrs.ylabel,
+        #         },
+        #         "xaxis": {
+        #             "title": f"Date",
+        #         },
+        #     }
+        # )
+        fig.update_xaxes(title="Date")
+        fig.update_yaxes(title=self.plot_attrs.ylabel)
+        if self.plot_attrs.range is not None:
+            fig.update_yaxes(range=self.plot_attrs.range)
+            fig.update_xaxes()
 
         add_figure_regions(
             fig,
@@ -412,18 +424,7 @@ class ValidateStateCode(Validate):
         return fig, ax
 
 
-class ValidatePitch(ValidateSingleMsid):
-    name = "pitch"
-    msids = ["pitch_obc_safe"]
-    state_keys = ["pitch", "pcad_mode"]
-    plot_attrs = PlotAttrs(title="Pitch", ylabel="Pitch (degrees)")
-    max_delta_val = 1.0  # deg
-    max_delta_vals = {
-        "NPNT": 1.0,  # deg
-        "NMAN": 20.0,  # deg
-        "NSUN": 2.0,  # deg
-    }
-
+class ValidatePitchRollBase(ValidateSingleMsid):
     def get_violations_mask(self):
         """Get the violations mask for the pitch validation class
 
@@ -442,22 +443,35 @@ class ValidatePitch(ValidateSingleMsid):
         """Exclude any intervals where online flight processing is not normal or safe
         mode"""
         super().add_exclude_intervals()
-        self.exclude_ofp_intervals(["NRML", "SAFE"])
+        self.exclude_ofp_intervals(states_expected=["NRML", "SAFE"])
 
-    @property
-    def tlm_vals(self):
-        if not hasattr(self, "_tlm_vals"):
-            tlm_vals = super().tlm_vals
-            # Was there a safe mode in the validation interval?
-            if "6sares1" in self.tlm.colnames:
-                # This value is masked (True) when not in safe mode
-                not_safe_mode = self.tlm["6sares1"].mask
-                tlm_vals = np.where(
-                    not_safe_mode, self.tlm["aosares1"], self.tlm["6sares1"]
-                )
-                self._tlm_vals = tlm_vals
 
-        return self._tlm_vals
+class ValidatePitch(ValidatePitchRollBase):
+    name = "pitch"
+    msids = ["pitch_obc_safe"]
+    state_keys = ["pitch", "pcad_mode"]
+    plot_attrs = PlotAttrs(title="Pitch", ylabel="Pitch (degrees)", range=[40, 180])
+    max_delta_time = 3600  # sec
+    max_delta_val = 1.0  # deg
+    max_delta_vals = {
+        "NPNT": 1.0,  # deg
+        "NMAN": 20.0,  # deg
+        "NSUN": 2.0,  # deg
+    }
+
+
+class ValidateRoll(ValidatePitchRollBase):
+    name = "off_nom_roll"
+    msids = ["roll_obc_safe"]
+    state_keys = ["off_nom_roll", "pcad_mode"]
+    plot_attrs = PlotAttrs(title="roll", ylabel="roll (degrees)", range=[-30, 30])
+    max_delta_time = 3600  # sec
+    max_delta_val = 0.5  # deg
+    max_delta_vals = {
+        "NPNT": 4,  # deg
+        "NMAN": 10.0,  # deg
+        "NSUN": 4.0,  # deg
+    }
 
 
 class ValidateSimpos(ValidateSingleMsid):

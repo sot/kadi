@@ -39,6 +39,7 @@ entry_points = {
         "kadi_update_cmds = kadi.scripts.update_cmds_v1:main",
         "kadi_update_cmds_v2 = kadi.scripts.update_cmds_v2:main",
         "kadi_update_events = kadi.scripts.update_events:main",
+        "kadi_validate_states = kadi.scripts.validate_states:main",
     ]
 }
 
@@ -46,7 +47,7 @@ setup(
     name="kadi",
     use_scm_version=True,
     setup_requires=["setuptools_scm", "setuptools_scm_git_archive"],
-    description="Kadi events archive",
+    description="Kadi command and events archive",
     author="Tom Aldcroft",
     author_email="taldcroft@cfa.harvard.edu",
     url="http://cxc.harvard.edu/mta/ASPECT/tool_doc/kadi/",
