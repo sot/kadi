@@ -83,7 +83,7 @@ class Validate(ABC):
     plot_attrs: PlotAttrs = None
     msids: tuple = None
     max_delta_val = 0
-    max_delta_time = None
+    max_delta_time = 3600
     max_gap = 300  # seconds
     min_violation_duration = 32.81  # seconds
 
