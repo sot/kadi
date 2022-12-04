@@ -124,9 +124,21 @@ def get_ofp_states(stop, days):
     This is normally "NRML" but in safe mode it is "SAFE" or other values. State codes:
     ['NNRM' 'STDB' 'STBS' 'NRML' 'NSTB' 'SUOF' 'SYON' 'DPLY' 'SYSF' 'STUP' 'SAFE']
     """
+    import astropy.table as tbl
+    from cheta.utils import logical_intervals
+
     msid = "conlofp"
     tlm = get_telem_values([msid], stop, days)
-    states = state_intervals(tlm["time"], tlm[msid])
+    states_list = []
+    for state_code in np.unique(tlm[msid]):
+        states = logical_intervals(
+            tlm["time"], tlm[msid] == state_code, max_gap=2.1, complete_intervals=False
+        )
+        states["val"] = state_code
+        states_list.append(states)
+    states = tbl.vstack(states_list)
+    states.sort("datestart")
+
     return states
 
 
