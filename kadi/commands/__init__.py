@@ -62,6 +62,10 @@ class Conf(ConfigNamespace):
         40, "Half-width box size of fid ID match for get_starcats() (arcsec)."
     )
 
+    include_in_work_command_events = ConfigItem(
+        False, "Include In-work command events that are not yet approved."
+    )
+
 
 # Create a configuration instance for the user
 conf = Conf()
