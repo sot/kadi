@@ -704,7 +704,9 @@ class TlmEvent(Event):
             # Telemetry values for event_msids[0] define the states.  Don't allow a logical
             # interval that spans a telemetry gap of more than 10 major frames.
             times, bools = cls.get_state_times_bools(event_msidset)
-            states = utils.logical_intervals(times, bools, max_gap=MAX_GAP)
+            states = utils.logical_intervals(
+                times, bools, max_gap=MAX_GAP, complete_intervals=True
+            )
         except (IndexError, ValueError):
             if event_time_fuzz is None:
                 logger.warn(
