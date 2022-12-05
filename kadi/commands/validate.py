@@ -280,7 +280,9 @@ class Validate(ABC):
         mask_ok = get_overlap_mask(self.times, self.exclude_intervals)
         violations_mask[mask_ok] = False
 
-        intervals = logical_intervals(self.times, violations_mask, max_gap=self.max_gap)
+        intervals = logical_intervals(
+            self.times, violations_mask, max_gap=self.max_gap, complete_intervals=False
+        )
         ok = intervals["duration"] > self.min_violation_duration
         intervals = intervals[ok]
 
