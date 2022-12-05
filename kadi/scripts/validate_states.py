@@ -5,7 +5,7 @@ import sys
 from pathlib import Path
 
 import kadi
-from kadi.commands import validate
+from kadi.commands import conf, validate
 
 logger = logging.getLogger(__name__)
 
@@ -39,6 +39,12 @@ def get_opt():
         help="Do not apply exclude intervals from validation (for testing)",
     )
     parser.add_argument(
+        "--in-work",
+        default=False,
+        action="store_true",
+        help="Include in-work events in validation (for checking new events)",
+    )
+    parser.add_argument(
         "--version",
         action="version",
         version=f"%(prog)s {kadi.__version__}",
@@ -50,6 +56,9 @@ def get_opt():
 def main(args=None):
     opt = get_opt().parse_args(args)
     logging.getLogger("kadi").setLevel(opt.log_level)
+
+    if opt.in_work:
+        conf.include_in_work_command_events = True
 
     html = validate.get_index_page_html(opt.stop, opt.days, opt.states, opt.no_exclude)
 
