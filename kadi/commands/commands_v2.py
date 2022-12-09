@@ -739,7 +739,7 @@ def get_cmds_obs_final(cmds, pars_dict, rev_pars_dict, schedule_stop_time):
                     obs_params["starcat_date"] = starcat_date
                 else:
                     logger.info(
-                        f"WARNING: no starcat for obsid {obsid} at {cmd['date']} "
+                        f"No starcat for obsid {obsid} at {cmd['date']} "
                         "even though npnt_enab is True"
                     )
 
