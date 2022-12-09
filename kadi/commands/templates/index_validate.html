@@ -2,7 +2,7 @@
 <html>
 
 <head>
-    <title>Kalman star watch</title>
+    <title>Kadi command states validation</title>
     <link href="/mta/ASPECT/aspect.css" rel="stylesheet" type="text/css"
         media="all" />
     <style type="text/css">
@@ -53,45 +53,8 @@
         <p> None </p>
     {% endif %}
 
-    {% for validator in validators %}
-        <h3> {{ validator.title }} </h3>
-        {% if validator.violations|count %}
-            <h4> Violations </h4>
-            <table>
-                <tr>
-                    <th> Start </th>
-                    <th> Stop </th>
-                </tr>
-                {% for violation in validator.violations %}
-                    <tr>
-                        <td> {{ violation.start }} </td>
-                        <td> {{ violation.stop }} </td>
-                    </tr>
-                {% endfor %}
-            </table>
-        {% endif %}
-
-        {% if validator.exclude_intervals|count %}
-            <h4> Excluded intervals </h4>
-            <table>
-                <tr>
-                    <th> Start </th>
-                    <th> Stop </th>
-                    <th> Comment </th>
-                </tr>
-                {% for exclude_interval in validator.exclude_intervals %}
-                    <tr>
-                        <td> {{ exclude_interval.start }} </td>
-                        <td> {{ exclude_interval.stop }} </td>
-                        <td> {{ exclude_interval.comment }} </td>
-                    </tr>
-                {% endfor %}
-            </table>
-        {% endif %}
-
-
-
-        {{ validator.plot_html }}
+    {% for validator_html in validator_htmls %}
+      {{ validator_html }}
     {% endfor %}
 
     <br></br>
