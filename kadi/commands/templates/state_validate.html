@@ -1,0 +1,36 @@
+<h3> {{ title }} </h3>
+{% if violations|count %}
+    <h4> Violations </h4>
+    <table>
+        <tr>
+            <th> Start </th>
+            <th> Stop </th>
+        </tr>
+        {% for violation in violations %}
+            <tr>
+                <td> {{ violation.start }} </td>
+                <td> {{ violation.stop }} </td>
+            </tr>
+        {% endfor %}
+    </table>
+{% endif %}
+
+{% if exclude_intervals|count %}
+    <h4> Excluded intervals </h4>
+    <table>
+        <tr>
+            <th> Start </th>
+            <th> Stop </th>
+            <th> Comment </th>
+        </tr>
+        {% for exclude_interval in exclude_intervals %}
+            <tr>
+                <td> {{ exclude_interval.start }} </td>
+                <td> {{ exclude_interval.stop }} </td>
+                <td> {{ exclude_interval.comment }} </td>
+            </tr>
+        {% endfor %}
+    </table>
+{% endif %}
+
+{{ plot_html }}

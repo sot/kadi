@@ -360,6 +360,27 @@ class Validate(ABC):
         )
         return html
 
+    def get_html(self, template_text: Optional[str] = None) -> str:
+        """Get HTML for validator including section header, violations, and plot
+
+        :param template_text: optional Jinja2 template text
+        :returns: HTML string
+        """
+        title = f"{self.plot_attrs.title} (state name = {self.name!r})"
+        context = {}
+        context["plot_html"] = self.get_plot_html()
+        context["title"] = title
+        context["violations"] = self.violations
+        context["exclude_intervals"] = self.exclude_intervals
+
+        if template_text is None:
+            template_file = Path(__file__).parent / "templates" / "state_validate.html"
+            template_text = template_file.read_text()
+        template = jinja2.Template(template_text)
+        html = template.render(context)
+
+        return html
+
 
 class ValidateSingleMsid(Validate):
     @property
@@ -628,34 +649,31 @@ def get_index_page_html(
 
     :param stop: stop time for validation interval (CxoTime-like, default=now)
     :param days: length of validation interval (days)
+    :param states: list of states to validate (default=all)
+    :param no_exclude: if True then do not exclude intervals (default=False)
+
     :returns: HTML string
     """
-    validators = []
+    validator_htmls = []
     violations = []
     for cls in Validate.subclasses:
         if states and cls.name not in states:
             continue
         logger.info(f"Validating {cls.name}")
-        instance: Validate = cls(stop=stop, days=days, no_exclude=no_exclude)
-        title = f"{instance.plot_attrs.title} (state name = {instance.name!r})"
-        validator = {}
-        validator["plot_html"] = instance.get_plot_html()
-        validator["title"] = title
-        validator["violations"] = instance.violations
-        validator["exclude_intervals"] = instance.exclude_intervals
-        validators.append(validator)
+        validator: Validate = cls(stop=stop, days=days, no_exclude=no_exclude)
+        validator_htmls.append(validator.get_html())
 
-        for violation in instance.violations:
+        for violation in validator.violations:
             violations.append(
                 {
-                    "name": instance.name,
+                    "name": validator.name,
                     "start": violation["start"],
                     "stop": violation["stop"],
                 }
             )
 
     context = {
-        "validators": validators,
+        "validator_htmls": validator_htmls,
         "violations": violations,
     }
     index_template_file = Path(__file__).parent / "templates" / "index_validate.html"
