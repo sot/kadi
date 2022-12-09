@@ -4,20 +4,19 @@ import sys
 from itertools import count
 from pathlib import Path
 
+import numpy as np
 import pyyaks.logger
+import Ska.engarchive.fetch_eng as fetch
+from astropy import table
+from Chandra.Time import DateTime
 from django.db import models
+from Quaternion import Quat
+from Ska.engarchive import utils
+from Ska.Numpy import interpolate
 
 from .manvr_templates import get_manvr_templates
 
 models.query.REPR_OUTPUT_SIZE = 1000  # Increase default number of rows printed
-
-# Fool pyflakes into thinking these are defined
-fetch = None
-interpolate = None
-DateTime = None
-np = None
-Quat = None
-utils = None
 
 ZERO_DT = -1e-4
 MAX_GAP = 328.1  # Max gap (seconds) in telemetry for state intervals
@@ -142,36 +141,6 @@ def get_event_models(baseclass=None):
     return models
 
 
-def import_ska(func):
-    """
-    Decorator to lazy import useful Ska functions.  Web app should not
-    need to do this.
-    """
-    import functools
-
-    @functools.wraps(func)
-    def wrapper(*args, **kwargs):
-        import numpy as np
-        import Ska.engarchive.fetch_eng as fetch
-        from astropy import table
-        from Chandra.Time import DateTime
-        from Quaternion import Quat
-        from Ska.engarchive import utils
-        from Ska.Numpy import interpolate
-
-        globals()["interpolate"] = interpolate
-        globals()["DateTime"] = DateTime
-        globals()["fetch"] = fetch
-        globals()["utils"] = utils
-        globals()["np"] = np
-        globals()["Quat"] = Quat
-        globals()["table"] = table
-        return func(*args, **kwargs)
-
-    return wrapper
-
-
-@import_ska
 def fuzz_states(states, t_fuzz):
     """
     For a set of `states` (from fetch.MSID.state_intervals()) or intervals (from
@@ -388,7 +357,6 @@ class BaseModel(models.Model):
             return [events[i] for i in indices]
 
         @staticmethod
-        @import_ska
         def _get_full_overlaps(overlap_starts, overlap_stops, datestarts, datestops):
             """
             Find which of the new overlap_intervals are the same as an original interval,
@@ -409,7 +377,6 @@ class BaseModel(models.Model):
             return indices[ok]
 
         @staticmethod
-        @import_ska
         def _get_partial_overlaps(overlap_starts, overlap_stops, datestarts, datestops):
             """
             Find which of the new overlap_intervals are the same as an original interval,
@@ -488,7 +455,6 @@ class BaseModel(models.Model):
         return self._model_name
 
     @classmethod
-    @import_ska
     def get_date_intervals(cls, start, stop, pad=None, **filter_kwargs):
         # OPTIMIZE ME!
 
@@ -683,7 +649,6 @@ class TlmEvent(Event):
         return event_msid.times, bools
 
     @classmethod
-    @import_ska
     def get_msids_states(cls, start, stop):
         """
         Get event and related MSIDs and compute the states corresponding
@@ -704,7 +669,9 @@ class TlmEvent(Event):
             # Telemetry values for event_msids[0] define the states.  Don't allow a logical
             # interval that spans a telemetry gap of more than 10 major frames.
             times, bools = cls.get_state_times_bools(event_msidset)
-            states = utils.logical_intervals(times, bools, max_gap=MAX_GAP)
+            states = utils.logical_intervals(
+                times, bools, max_gap=MAX_GAP, complete_intervals=True
+            )
         except (IndexError, ValueError):
             if event_time_fuzz is None:
                 logger.warn(
@@ -741,7 +708,6 @@ class TlmEvent(Event):
         return states, event_msidset
 
     @classmethod
-    @import_ska
     def get_events(cls, start, stop=None):
         """
         Get events from telemetry defined by a simple rule that the value of
@@ -782,7 +748,6 @@ class TlmEvent(Event):
             self._msidset = self.fetch_event()
         return self._msidset
 
-    @import_ska
     def fetch_event(self, pad=None, extra_msids=None, filter_bad=True):
         """
         Fetch an MSIDset of self.fetch_msids.
@@ -823,7 +788,6 @@ class Obsid(TlmEvent):
     update_priority = 1000  # Process Obsid first
 
     @classmethod
-    @import_ska
     def get_events(cls, start, stop=None):
         """
         Get obsid events from telemetry.  A event is defined by a
@@ -1016,7 +980,6 @@ class Scs107(TlmEvent):
     event_filter_bad = False
 
     @classmethod
-    @import_ska
     def get_state_times_bools(cls, msidset):
         # Interpolate all MSIDs to a common time.  Sync to the start of 3tscmove which is
         # sampled at 32.8 seconds
@@ -1619,7 +1582,6 @@ class Manvr(TlmEvent):
         return manvr_attrs
 
     @classmethod
-    @import_ska
     def get_target_attitudes(cls, event, msidset):
         """
         Define start/stop_aotarqt<1..4> and start/stop_ra,dec,roll
@@ -1659,7 +1621,6 @@ class Manvr(TlmEvent):
         return out
 
     @classmethod
-    @import_ska
     def get_one_shot(cls, guide_start, aux_msidset):
         """
         Define one_shot attribute (one-shot attitude update following maneuver)
@@ -1695,7 +1656,6 @@ class Manvr(TlmEvent):
         }
 
     @classmethod
-    @import_ska
     def get_events(cls, start, stop=None):
         """
         Get maneuver events from telemetry.
@@ -1907,7 +1867,6 @@ class SafeSun(TlmEvent):
     fetch_event_msids = ["conlofp", "ctufmtsl", "c1sqax", "aopcadmd", "61psts02"]
 
     @classmethod
-    @import_ska
     def get_state_times_bools(cls, msidset):
         # Second safemode has bad telemetry for the entire event so the standard
         # detection algorithm fails.  Just hardwire safemode #1 and fix up the
@@ -2041,7 +2000,6 @@ class MajorEvent(BaseEvent):
         return "{} ({}) {}: {}".format(self.start, self.date[5:], self.source, descr)
 
     @classmethod
-    @import_ska
     def get_events(cls, start, stop=None):
         """
         Get Major Events from FDB and FOT tables on the OCCweb
@@ -2096,7 +2054,6 @@ class IFotEvent(BaseEvent):
     ifot_types = {}  # Override automatic type inference for properties or columns
 
     @classmethod
-    @import_ska
     def get_events(cls, start, stop=None):
         """
         Get events from iFOT web interface
@@ -2473,7 +2430,6 @@ class Orbit(BaseEvent):
     lookforward = 28  # Accept orbits planned up to 28 days in advance
 
     @classmethod
-    @import_ska
     def get_events(cls, start, stop=None):
         """
         Get Orbit Events from timeline reports.
@@ -2603,7 +2559,6 @@ class AsciiTableEvent(BaseEvent):
         return {}
 
     @classmethod
-    @import_ska
     def get_events(cls, start, stop=None):
         """
         Get events from telemetry defined by a simple rule that the value of
