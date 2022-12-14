@@ -10,7 +10,7 @@ from kadi.config import ConfigItem
 
 class Conf(ConfigNamespace):
     """
-    Configuration parameters for my subpackage.
+    Configuration parameters for kadi.
     """
 
     default_lookback = ConfigItem(

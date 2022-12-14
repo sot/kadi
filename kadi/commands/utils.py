@@ -3,19 +3,13 @@
 import functools
 import logging
 from dataclasses import dataclass
-from typing import List, Optional, Union
+from typing import List, Optional
 
 import cheta.fetch_eng as fetch
 import numpy as np
-import numpy.typing as npt
 import plotly.graph_objects as pgo
 from astropy.table import Table
-from cheta.utils import state_intervals
-from cxotime import CxoTime
-
-# TODO: move this definition to cxotime
-# TODO: use npt.NDArray with numpy 1.21
-CxoTimeLike = Union[str, float, int, np.ndarray, npt.ArrayLike, None]
+from cxotime import CxoTime, CxoTimeLike
 
 __all__ = [
     "add_figure_regions",
@@ -88,10 +82,10 @@ def get_telem_values(msids: list, stop, days: float = 14) -> Table:
     """
     stop = CxoTime(stop)
     start = stop - days
-    logger.info(f"Fetching telemetry between {start} and {stop}")
+    logger.info(f"Fetching telemetry for {msids} between {start.date} and {stop.date}")
 
     with fetch.data_source("cxc", "maude allow_subset=False"):
-        msidset = fetch.MSIDset(msids, start, stop)
+        msidset = fetch.MSIDset(msids, start.date, stop.date)
 
     # Use the first MSID as the primary one to set the time base
     msid0 = msidset[msids[0]]

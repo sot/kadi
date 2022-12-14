@@ -4,6 +4,9 @@ import logging
 import sys
 from pathlib import Path
 
+import maude
+from cheta import fetch
+
 import kadi
 from kadi.commands import conf, validate
 
@@ -56,6 +59,9 @@ def get_opt():
 def main(args=None):
     opt = get_opt().parse_args(args)
     logging.getLogger("kadi").setLevel(opt.log_level)
+
+    maude.conf.cache_msid_queries = True
+    fetch.CACHE = True
 
     if opt.in_work:
         conf.include_in_work_command_events = True

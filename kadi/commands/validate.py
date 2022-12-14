@@ -206,9 +206,9 @@ class Validate(ABC):
         logger.info(f"{self.name}: excluding interval {start} - {stop}: {comment}")
         self.exclude_intervals.add_row(exclude)
 
-    def exclude_ofp_intervals(self, states_expected: List[str]):
+    def exclude_ofp_intervals_except(self, states_expected: List[str]):
         """Exclude intervals where OFP (on-board flight program) is not in the expected state."""
-        ofp_states = get_ofp_states(self.stop, self.days)
+        ofp_states = get_ofp_states(self.stop.date, self.days)
         for state in ofp_states:
             if state["val"] not in states_expected:
                 self.add_exclude_interval(
@@ -360,11 +360,10 @@ class Validate(ABC):
         )
         return html
 
-    def get_html(self, template_text: Optional[str] = None) -> str:
-        """Get HTML for validator including section header, violations, and plot
+    def get_context(self) -> dict:
+        """Get the standard context for a jinja2 template.
 
-        :param template_text: optional Jinja2 template text
-        :returns: HTML string
+        :returns: dict
         """
         title = f"{self.plot_attrs.title} (state name = {self.name!r})"
         context = {}
@@ -372,7 +371,19 @@ class Validate(ABC):
         context["title"] = title
         context["violations"] = self.violations
         context["exclude_intervals"] = self.exclude_intervals
+        return context
 
+    def get_html(
+        self, context: Optional[dict] = None, template_text: Optional[str] = None
+    ) -> str:
+        """Get HTML for validator including section header, violations, and plot
+
+        :param context: optional dict of context for jinja2 template
+        :param template_text: optional Jinja2 template text
+        :returns: HTML string
+        """
+        if context is None:
+            context = self.get_context()
         if template_text is None:
             template_file = Path(__file__).parent / "templates" / "state_validate.html"
             template_text = template_file.read_text()
@@ -437,6 +448,8 @@ class ValidateStateCode(Validate):
 
 
 class ValidatePitchRollBase(ValidateSingleMsid):
+    max_delta_vals = None
+
     def get_violations_mask(self):
         """Get the violations mask for the pitch validation class
 
@@ -455,7 +468,7 @@ class ValidatePitchRollBase(ValidateSingleMsid):
         """Exclude any intervals where online flight processing is not normal or safe
         mode"""
         super().add_exclude_intervals()
-        self.exclude_ofp_intervals(states_expected=["NRML", "SAFE"])
+        self.exclude_ofp_intervals_except(states_expected=["NRML", "SAFE"])
 
 
 class ValidatePitch(ValidatePitchRollBase):
@@ -475,7 +488,7 @@ class ValidatePitch(ValidatePitchRollBase):
 class ValidateRoll(ValidatePitchRollBase):
     name = "off_nom_roll"
     msids = ["roll_comp"]
-    state_keys = ["off_nom_roll", "pcad_mode"]
+    state_keys = ["off_nom_roll", "pitch", "pcad_mode"]
     plot_attrs = PlotAttrs(title="roll", ylabel="roll (degrees)", range=[-30, 30])
     max_delta_time = 3600  # sec
     max_delta_val = 0.5  # deg
@@ -509,7 +522,7 @@ class ValidateGrating(ValidateStateCode):
 
     def add_exclude_intervals(self):
         super().add_exclude_intervals()
-        self.exclude_ofp_intervals(["NRML"])
+        self.exclude_ofp_intervals_except(["NRML"])
 
     @property
     def state_codes(self) -> Table:
@@ -558,7 +571,7 @@ class ValidateDither(ValidateStateCode):
 
     def add_exclude_intervals(self):
         super().add_exclude_intervals()
-        self.exclude_ofp_intervals(["NRML"])
+        self.exclude_ofp_intervals_except(["NRML"])
         self.exclude_srdc_intervals()
 
 
@@ -570,7 +583,7 @@ class ValidatePcadMode(ValidateStateCode):
 
     def add_exclude_intervals(self):
         super().add_exclude_intervals()
-        self.exclude_ofp_intervals(["NRML"])
+        self.exclude_ofp_intervals_except(["NRML"])
         self.exclude_srdc_intervals()
 
 
@@ -656,6 +669,9 @@ def get_index_page_html(
     """
     validator_htmls = []
     violations = []
+    if stop is None:
+        stop = CxoTime.now()
+
     for cls in Validate.subclasses:
         if states and cls.name not in states:
             continue
