@@ -2,6 +2,9 @@
 Kadi events maintenance
 #######################
 
+.. contents::
+    :depth: 2
+
 Add a new event type or modify an existing type
 ###############################################
 
@@ -24,6 +27,9 @@ If necessary switch to master or the latest flight release that DOES NOT HAVE
 the new model. We need this for the migrations step to get django to set up the
 events3.db3 database file properly.
 
+Updating existing event
+^^^^^^^^^^^^^^^^^^^^^^^
+
 To update the format of an existing event type, drop table(s)::
 
     sqlite3 events3.db3
@@ -40,6 +46,7 @@ Migrations
 ----------
 
 Remove any existing migrations and remake from the CURRENT RELEASE version of code.
+::
 
     rm -rf kadi/events/migrations
     ./manage.py makemigrations events
@@ -140,7 +147,7 @@ the expected release (the minimum model lookback is 21 days).
 
 
 Reprocess kadi events over a specified interval
-===============================================
+###############################################
 
 If the kadi events.db3 database gets corrupted (e.g. problems related to the
 2017:020 clock correlation issue), then simply reprocess as follows::
