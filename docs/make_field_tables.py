@@ -26,9 +26,14 @@ import textwrap
 
 from astropy.table import Table
 
+# isort: off
+# This import is needed to load the django App.
 sys.path.insert(0, os.path.abspath(".."))
+import kadi.events.query
 import kadi.events.models
 from kadi.events.models import BaseModel, get_event_models
+
+# isort: on
 
 models = get_event_models(baseclass=BaseModel)
 
