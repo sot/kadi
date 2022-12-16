@@ -77,7 +77,6 @@ def get_telem_values(msids: list, stop, days: float = 14) -> Table:
     :param msids: fetch msids list
     :param stop: stop time for telemetry (CxoTime-like)
     :param days: length of telemetry request before ``tstart``
-    :param name_map: dict mapping msid to recarray col name
     :returns: Table of requested telemetry values from fetch
     """
     stop = CxoTime(stop)
