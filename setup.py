@@ -4,21 +4,8 @@ import sys
 
 from setuptools import setup
 
-foundation_files = [
-    "static/foundation/css/*",
-    "static/foundation/js/foundation/*",
-    "static/foundation/js/vendor/*",
-    "static/foundation/img/.gitkeep",
-    "static/foundation/js/foundation.min.js",
-    "static/foundation/humans.txt",
-    "static/foundation/robots.txt",
-]
-
 try:
-    import testr
     from testr.setup_helper import cmdclass
-
-    print(testr.__file__)
 except ImportError:
     cmdclass = {}
 
@@ -60,18 +47,8 @@ setup(
         "kadi.commands",
         "kadi.commands.tests",
     ],
-    # Temporarily install static data into site-packages
     package_data={
-        "kadi.events": ["templates/*/*.html", "templates/*.html"],
         "kadi.commands": ["templates/*.html"],
-        "kadi": foundation_files
-        + [
-            "templates/*/*.html",
-            "templates/*.html",
-            "static/images/*",
-            "static/*.css",
-            "GIT_VERSION",
-        ],
         "kadi.commands.tests": ["data/*.ecsv.gz"],
     },
     tests_require=["pytest"],
