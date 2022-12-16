@@ -49,6 +49,8 @@ __all__ = [
     "ValidateObsid",
     "ValidateDither",
     "ValidatePcadMode",
+    "ValidateLETG",
+    "ValidateHETG",
     "NoTelemetryError",
     "get_command_sheet_exclude_intervals",
 ]
