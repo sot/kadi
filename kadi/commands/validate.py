@@ -78,12 +78,12 @@ class Validate(ABC):
     subclasses = []
 
     # Abstract attributes (no elegant solution as of Python 3.11)
-    name: str = None
-    stop: CxoTime = None
-    days: float = None
-    state_keys: tuple = None
-    plot_attrs: PlotAttrs = None
-    msids: tuple = None
+    state_name: str = None  # name of state to validate
+    stop: CxoTime = None  # stop time
+    days: float = None  # number of days to validate
+    state_keys_extra: Optional[list] = None  # extra state keys needed for validation
+    plot_attrs: PlotAttrs = None  # attributes for plot
+    msids: tuple = None  # MSIDs to fetch for telemetry
     max_delta_val = 0
     max_delta_time = 3600
     max_gap = 300  # seconds
@@ -103,7 +103,7 @@ class Validate(ABC):
 
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
-        if cls.name is not None:
+        if cls.state_name is not None:
             cls.subclasses.append(cls)
 
     @property
@@ -131,10 +131,11 @@ class Validate(ABC):
     @property
     def states(self):
         if not hasattr(self, "_states"):
+            state_keys = [self.state_name] + (self.state_keys_extra or [])
             self._states = get_states(
                 start=self.tlm["time"][0],
                 stop=self.tlm["time"][-1],
-                state_keys=self.state_keys,
+                state_keys=state_keys,
             )
         return self._states
 
@@ -165,7 +166,7 @@ class Validate(ABC):
 
         for row in exclude_intervals:
             states = row["states"].split()
-            if row["states"] == "" or self.name in states:
+            if row["states"] == "" or self.state_name in states:
                 self.add_exclude_interval(
                     start=row["start"], stop=row["stop"], comment=row["comment"]
                 )
@@ -202,10 +203,12 @@ class Validate(ABC):
         exclude = {
             "start": start.date,
             "stop": stop.date,
-            "states": self.name,
+            "states": self.state_name,
             "comment": comment,
         }
-        logger.info(f"{self.name}: excluding interval {start} - {stop}: {comment}")
+        logger.info(
+            f"{self.state_name}: excluding interval {start} - {stop}: {comment}"
+        )
         self.exclude_intervals.add_row(exclude)
 
     def exclude_ofp_intervals_except(self, states_expected: List[str]):
@@ -254,7 +257,7 @@ class Validate(ABC):
     @property
     def state_vals(self):
         if not hasattr(self, "_state_vals"):
-            self._state_vals = self.states_at_times[self.name].copy()
+            self._state_vals = self.states_at_times[self.state_name].copy()
         return self._state_vals
 
     @property
@@ -367,7 +370,7 @@ class Validate(ABC):
 
         :returns: dict
         """
-        title = f"{self.plot_attrs.title} (state name = {self.name!r})"
+        title = f"{self.plot_attrs.title} (state name = {self.state_name!r})"
         context = {}
         context["plot_html"] = self.get_plot_html()
         context["title"] = title
@@ -429,7 +432,7 @@ class ValidateStateCode(Validate):
         if not hasattr(self, "_state_vals"):
             states_interp = interpolate_states(self.states, self.tlm["time"])
             self._state_vals = convert_state_code_to_raw_val(
-                states_interp[self.name], self.state_codes
+                states_interp[self.state_name], self.state_codes
             )
         return self._state_vals
 
@@ -474,9 +477,9 @@ class ValidatePitchRollBase(ValidateSingleMsid):
 
 
 class ValidatePitch(ValidatePitchRollBase):
-    name = "pitch"
+    state_name = "pitch"
     msids = ["pitch_comp"]
-    state_keys = ["pitch", "pcad_mode"]
+    state_keys_extra = ["pcad_mode"]
     plot_attrs = PlotAttrs(title="Pitch", ylabel="Pitch (degrees)", range=[40, 180])
     max_delta_time = 3600  # sec
     max_delta_val = 1.0  # deg
@@ -488,9 +491,9 @@ class ValidatePitch(ValidatePitchRollBase):
 
 
 class ValidateRoll(ValidatePitchRollBase):
-    name = "off_nom_roll"
+    state_name = "off_nom_roll"
     msids = ["roll_comp"]
-    state_keys = ["off_nom_roll", "pitch", "pcad_mode"]
+    state_keys_extra = ["pitch", "pcad_mode"]
     plot_attrs = PlotAttrs(title="roll", ylabel="roll (degrees)", range=[-30, 30])
     max_delta_time = 3600  # sec
     max_delta_val = 0.5  # deg
@@ -502,9 +505,8 @@ class ValidateRoll(ValidatePitchRollBase):
 
 
 class ValidateSimpos(ValidateSingleMsid):
-    name = "simpos"
+    state_name = "simpos"
     msids = ["3tscpos"]
-    state_keys = "simpos"
     plot_attrs = PlotAttrs(title="TSCPOS (SIM-Z)", ylabel="SIM-Z (steps)")
     max_delta_val = 10
     # Skip over SIM moves and transient out-of-state values
@@ -512,9 +514,8 @@ class ValidateSimpos(ValidateSingleMsid):
 
 
 class ValidateObsid(ValidateSingleMsid):
-    name = "obsid"
+    state_name = "obsid"
     msids = ["cobsrqid"]
-    state_keys = "obsid"
     plot_attrs = PlotAttrs(title="OBSID", ylabel="OBSID")
 
 
@@ -545,7 +546,7 @@ class ValidateGrating(ValidateStateCode):
             # use a combination of the select telemetry and the insertion telem to
             # approximate the appropriate telemetry values
             # fmt: off
-            ok = ((self.tlm["4ootgsel"] == self.name.upper())
+            ok = ((self.tlm["4ootgsel"] == self.state_name.upper())
                   & (self.tlm["4ootgmtn"] == "INSE"))
             # fmt: on
             vals[ok] = "INSE"
@@ -554,21 +555,18 @@ class ValidateGrating(ValidateStateCode):
 
 
 class ValidateLETG(ValidateGrating):
-    name = "letg"
-    state_keys = "letg"
+    state_name = "letg"
     plot_attrs = PlotAttrs(title="LETG", ylabel="LETG")
 
 
 class ValidateHETG(ValidateGrating):
-    name = "hetg"
-    state_keys = "hetg"
+    state_name = "hetg"
     plot_attrs = PlotAttrs(title="HETG", ylabel="HETG")
 
 
 class ValidateDither(ValidateStateCode):
-    name = "dither"
+    state_name = "dither"
     msids = ["aodithen"]
-    state_keys = "dither"
     plot_attrs = PlotAttrs(title="DITHER", ylabel="Dither")
 
     def add_exclude_intervals(self):
@@ -578,9 +576,8 @@ class ValidateDither(ValidateStateCode):
 
 
 class ValidatePcadMode(ValidateStateCode):
-    name = "pcad_mode"
+    state_name = "pcad_mode"
     msids = ["aopcadmd"]
-    state_keys = "pcad_mode"
     plot_attrs = PlotAttrs(title="PCAD mode", ylabel="PCAD mode")
 
     def add_exclude_intervals(self):
@@ -675,16 +672,16 @@ def get_index_page_html(
         stop = CxoTime.now()
 
     for cls in Validate.subclasses:
-        if states and cls.name not in states:
+        if states and cls.state_name not in states:
             continue
-        logger.info(f"Validating {cls.name}")
+        logger.info(f"Validating {cls.state_name}")
         validator: Validate = cls(stop=stop, days=days, no_exclude=no_exclude)
         validator_htmls.append(validator.get_html())
 
         for violation in validator.violations:
             violations.append(
                 {
-                    "name": validator.name,
+                    "name": validator.state_name,
                     "start": violation["start"],
                     "stop": violation["stop"],
                 }
