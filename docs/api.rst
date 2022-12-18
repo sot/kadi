@@ -2,6 +2,12 @@
 API documentation
 ====================================
 
+Table of contents
+
+.. toctree::
+   :maxdepth: 2
+
+
 Event models
 ------------
 
@@ -29,3 +35,10 @@ Command states
 .. automodule:: kadi.commands.states
    :members:
    :show-inheritance:
+
+
+Validation
+----------
+
+.. automodule:: kadi.commands.validate
+   :members:

@@ -42,6 +42,7 @@ from kadi.commands.utils import (
 )
 
 __all__ = [
+    "PlotAttrs",
     "Validate",
     "ValidatePitch",
     "ValidateRoll",
@@ -69,25 +70,48 @@ EXCLUDE_INTERVALS_SHEET_URL = (
 
 @dataclass
 class PlotAttrs:
+    """Plot attributes for a Validate subclass.
+
+    :param title: (str): Plot title.
+    :param ylabel: (str): Y-axis label.
+    :param range: (list): Y-axis range (optional).
+    :param max_delta_time: (float): Maximum time delta before a new data point is plotted.
+    :param max_delta_val: (float): Maximum value delta before a new data point is plotted.
+    """
+
     title: str
     ylabel: str
     range: Optional[list] = None
+    max_delta_time: Optional[float] = 3600
+    max_delta_val: float = 0
 
 
 class Validate(ABC):
+    """Validate kadi command states against telemetry base class.
+
+    :param state_name: (str): Name of state to validate.
+    :param stop: (CxoTime): Stop time.
+    :param days: (float): Number of days to validate.
+    :param state_keys_extra: (list): Extra state keys needed for validation.
+    :param plot_attrs: (PlotAttrs): Attributes for plot.
+    :param msids: (list): MSIDs to fetch for telemetry.
+    :param max_delta_val: (float): Maximum value delta to signal a violation.
+    :param max_gap: (float): Maximum gap in telemetry before breaking an interval (sec).
+    :param min_violation_duration: (float): Minimum duration of a violation (sec).
+    """
+
     subclasses = []
 
     # Abstract attributes (no elegant solution as of Python 3.11)
-    state_name: str = None  # name of state to validate
-    stop: CxoTime = None  # stop time
-    days: float = None  # number of days to validate
-    state_keys_extra: Optional[list] = None  # extra state keys needed for validation
-    plot_attrs: PlotAttrs = None  # attributes for plot
-    msids: tuple = None  # MSIDs to fetch for telemetry
+    state_name: str = None
+    stop: CxoTime = None
+    days: float = None
+    state_keys_extra: Optional[list] = None
+    plot_attrs: PlotAttrs = None
+    msids: list = None
     max_delta_val = 0
-    max_delta_time = 3600
-    max_gap = 300  # seconds
-    min_violation_duration = 32.81  # seconds
+    max_gap = 300
+    min_violation_duration = 32.81
 
     def __init__(self, stop=None, days: float = 14, no_exclude: bool = False):
         """Base class for validation
@@ -327,7 +351,10 @@ class Validate(ABC):
             ("State", "#ff7f0e", state_vals),  # safety orange
         ]:
             tm, y = compress_time_series(
-                times, vals, self.max_delta_val, self.max_delta_time
+                times,
+                vals,
+                self.plot_attrs.max_delta_val,
+                self.plot_attrs.max_delta_time,
             )
             trace = pgo.Scatter(
                 name=name,
@@ -471,7 +498,8 @@ class ValidateStateCode(Validate):
 
 
 class ValidatePitchRollBase(ValidateSingleMsid):
-    max_delta_vals = None
+    # This subclass uses a different max_delta_val for each pcad_mode
+    max_delta_vals: dict = None
 
     def get_violations_mask(self):
         """Get the violations mask for the pitch validation class
@@ -512,9 +540,13 @@ class ValidatePitch(ValidatePitchRollBase):
     state_name = "pitch"
     msids = ["pitch_comp"]
     state_keys_extra = ["pcad_mode"]
-    plot_attrs = PlotAttrs(title="Pitch", ylabel="Pitch (degrees)", range=[40, 180])
-    max_delta_time = 3600  # sec
-    max_delta_val = 1.0  # deg
+    plot_attrs = PlotAttrs(
+        title="Pitch",
+        ylabel="Pitch (degrees)",
+        range=[40, 180],
+        max_delta_time=3600,  # sec
+        max_delta_val=1.0,  # deg
+    )
     max_delta_vals = {
         "NPNT": 1.0,  # deg
         "NMAN": 20.0,  # deg
@@ -526,9 +558,13 @@ class ValidateRoll(ValidatePitchRollBase):
     state_name = "off_nom_roll"
     msids = ["roll_comp"]
     state_keys_extra = ["pitch", "pcad_mode"]
-    plot_attrs = PlotAttrs(title="roll", ylabel="roll (degrees)", range=[-30, 30])
-    max_delta_time = 3600  # sec
-    max_delta_val = 0.5  # deg
+    plot_attrs = PlotAttrs(
+        title="roll",
+        ylabel="roll (degrees)",
+        range=[-30, 30],
+        max_delta_time=3600,  # sec
+        max_delta_val=0.5,  # deg
+    )
     max_delta_vals = {
         "NPNT": 4,  # deg
         "NMAN": 10.0,  # deg
@@ -539,8 +575,10 @@ class ValidateRoll(ValidatePitchRollBase):
 class ValidateSimpos(ValidateSingleMsid):
     state_name = "simpos"
     msids = ["3tscpos"]
-    plot_attrs = PlotAttrs(title="TSCPOS (SIM-Z)", ylabel="SIM-Z (steps)")
-    max_delta_val = 10
+    plot_attrs = PlotAttrs(
+        title="TSCPOS (SIM-Z)", ylabel="SIM-Z (steps)", max_delta_val=10
+    )  # steps
+    max_delta_val = 10  # steps
     # Skip over SIM moves and transient out-of-state values
     min_violation_duration = 328  # seconds
 
