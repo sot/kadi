@@ -58,7 +58,11 @@ def get_opt():
 
 def main(args=None):
     opt = get_opt().parse_args(args)
+
+    # Enable logging in relevant packages
     logging.getLogger("kadi").setLevel(opt.log_level)
+    fetch.add_logging_handler(level=opt.log_level)
+    maude.set_logger_level(opt.log_level)
 
     maude.conf.cache_msid_queries = True
     fetch.CACHE = True

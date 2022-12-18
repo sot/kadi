@@ -352,6 +352,7 @@ class Validate(ABC):
             ("Telem", "#1f77b4", tlm_vals),  # muted blue
             ("State", "#ff7f0e", state_vals),  # safety orange
         ]:
+            logger.info(f"Compressing {name} data for state {self.state_name}")
             tm, y = compress_time_series(
                 times,
                 vals,
@@ -359,7 +360,8 @@ class Validate(ABC):
                 self.plot_attrs.max_delta_time,
                 max_gap=self.plot_attrs.max_gap_time,
             )
-            trace = pgo.Scatter(
+            logger.info(f"Creating {name} scatter plot for state {self.state_name}")
+            trace = pgo.Scattergl(
                 name=name,
                 x=CxoTime(tm).datetime64,
                 y=y,
@@ -405,6 +407,7 @@ class Validate(ABC):
         if show:
             fig.show()
 
+        logger.info(f"Creating HTML for state {self.state_name}")
         html = fig.to_html(
             full_html=False,
             include_plotlyjs="cdn",
