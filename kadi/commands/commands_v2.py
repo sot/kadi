@@ -225,7 +225,7 @@ def get_cmds(
             # Query does not overlap with recent commands, just use archive.
             logger.info("Getting commands from archive only")
             cmds = IDX_CMDS
-        elif start < CxoTime(cmds_recent["date"][0]) + 3 * u.day:
+        elif start < CxoTime(cmds_recent.meta["loads_start"]) + 3 * u.day:
             # Query starts near beginning of recent commands and *might* need some
             # archive commands. The margin is set at 3 days to ensure that OBS
             # command continuity is maintained (there is at least one maneuver).
@@ -418,6 +418,7 @@ def update_archive_and_get_cmds_recent(
     cmds_recent.deduplicate_orbit_cmds()
     cmds_recent.remove_not_run_cmds()
     cmds_recent = add_obs_cmds(cmds_recent, pars_dict, rev_pars_dict)
+    cmds_recent.meta["loads_start"] = start.date
 
     if cache:
         # Cache recent commands so future requests for the same scenario are fast
