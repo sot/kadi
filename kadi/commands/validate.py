@@ -30,7 +30,7 @@ from cxotime import CxoTime
 
 import kadi
 import kadi.commands
-from kadi.commands.states import interpolate_states
+from kadi.commands.states import interpolate_states, reduce_states
 from kadi.commands.utils import (
     CxoTimeLike,
     NoTelemetryError,
@@ -149,7 +149,8 @@ class Validate(ABC):
         """
         if not hasattr(self, "_exclude_intervals"):
             self._exclude_intervals = Table(
-                names=["start", "stop", "states", "comment"], dtype=[str, str, str, str]
+                names=["start", "stop", "states", "comment", "source"],
+                dtype=[str, str, str, str, str],
             )
         return self._exclude_intervals
 
@@ -168,7 +169,10 @@ class Validate(ABC):
             states = row["states"].split()
             if row["states"] == "" or self.state_name in states:
                 self.add_exclude_interval(
-                    start=row["start"], stop=row["stop"], comment=row["comment"]
+                    start=row["start"],
+                    stop=row["stop"],
+                    comment=row["comment"],
+                    source="Command Events sheet",
                 )
 
     def add_exclude_interval(
@@ -178,10 +182,16 @@ class Validate(ABC):
         comment: str,
         pad_start: Optional[u.Quantity] = None,
         pad_stop: Optional[u.Quantity] = None,
+        source: str = "Auto-generated",
     ):
         """Add an interval to the exclude_intervals table
 
-        The ``stop`` time is padded by ``pad`` (which is a Quantity with time units).
+        The ``start`` / ``stop`` times are padded by ``pad_start`` and
+        ``pad_stop`` (which are a Quantity objects with time units).
+
+        ``manual`` is a boolean that is used to indicate whether the interval was
+        manually specified in the command sheet. Non-manual intervals are annotated
+        in the table accordingly.
         """
         # For testing, we can skip all exclude intervals to generate violations
         if self.no_exclude:
@@ -205,21 +215,29 @@ class Validate(ABC):
             "stop": stop.date,
             "states": self.state_name,
             "comment": comment,
+            "source": source,
         }
         logger.info(
             f"{self.state_name}: excluding interval {start} - {stop}: {comment}"
         )
         self.exclude_intervals.add_row(exclude)
+        self.exclude_intervals.sort("start")
 
     def exclude_ofp_intervals_except(self, states_expected: List[str]):
-        """Exclude intervals where OFP (on-board flight program) is not in the expected state."""
+        """Exclude intervals where OFP (on-board flight program) is not in the expected
+        state.
+
+        This includes a padding of 30 minutes after SAFE mode and 5 minutes for non-NRML
+        states other than SAFE like STUP, SYON, SYSF etc.
+        """
         ofp_states = get_ofp_states(self.stop.date, self.days)
         for state in ofp_states:
             if state["val"] not in states_expected:
+                pad_stop = 30 * u.min if state["val"] == "SAFE" else 5 * u.min
                 self.add_exclude_interval(
                     start=state["datestart"],
                     stop=state["datestop"],
-                    pad_stop=1 * u.hour,
+                    pad_stop=pad_stop,
                     comment=f"CONLOFP={state['val']}",
                 )
 
@@ -474,6 +492,20 @@ class ValidatePitchRollBase(ValidateSingleMsid):
         mode"""
         super().add_exclude_intervals()
         self.exclude_ofp_intervals_except(states_expected=["NRML", "SAFE"])
+
+        # Find any NSUN intervals and exclude the first 45 minutes during which
+        # the maneuver to normal sun occurs.
+        states_pcad_mode = reduce_states(
+            self.states, state_keys=["pcad_mode"], merge_identical=True
+        )
+        for state in states_pcad_mode:
+            if state["pcad_mode"] == "NSUN":
+                self.add_exclude_interval(
+                    state["datestart"],
+                    state["datestart"],
+                    pad_stop=45 * u.min,
+                    comment="NSUN maneuver",
+                )
 
 
 class ValidatePitch(ValidatePitchRollBase):

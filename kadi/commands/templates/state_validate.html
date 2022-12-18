@@ -22,12 +22,14 @@
             <th> Start </th>
             <th> Stop </th>
             <th> Comment </th>
+            <th> Source </th>
         </tr>
         {% for exclude_interval in exclude_intervals %}
             <tr>
                 <td> {{ exclude_interval.start }} </td>
                 <td> {{ exclude_interval.stop }} </td>
                 <td> {{ exclude_interval.comment }} </td>
+                <td> {{ exclude_interval.source }} </td>
             </tr>
         {% endfor %}
     </table>

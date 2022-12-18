@@ -1637,7 +1637,7 @@ def get_states(
     return out
 
 
-def reduce_states(states, state_keys, merge_identical=False, all_keys=False):
+def reduce_states(states, state_keys, merge_identical=False, all_keys=False) -> Table:
     """
     Reduce the input ``states`` so that only transitions in the ``state_keys``
     are in the output.
@@ -1661,7 +1661,7 @@ def reduce_states(states, state_keys, merge_identical=False, all_keys=False):
     :param merge_identical: merge adjacent identical states
     :param all_keys: if True, then all state keys are included in the output
 
-    :returns: numpy recarray of reduced states
+    :returns: Table of reduced states
     """
     if not isinstance(states, Table):
         states = Table(states)
