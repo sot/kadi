@@ -77,6 +77,7 @@ class PlotAttrs:
     :param range: (list): Y-axis range (optional).
     :param max_delta_time: (float): Maximum time delta before a new data point is plotted.
     :param max_delta_val: (float): Maximum value delta before a new data point is plotted.
+    :param max_gap_time: (float): Maximum gap in time before a plot gap is inserted.
     """
 
     title: str
@@ -84,6 +85,7 @@ class PlotAttrs:
     range: Optional[list] = None
     max_delta_time: Optional[float] = 3600
     max_delta_val: float = 0
+    max_gap_time: float = 300
 
 
 class Validate(ABC):
@@ -355,6 +357,7 @@ class Validate(ABC):
                 vals,
                 self.plot_attrs.max_delta_val,
                 self.plot_attrs.max_delta_time,
+                max_gap=self.plot_attrs.max_gap_time,
             )
             trace = pgo.Scatter(
                 name=name,
@@ -467,18 +470,18 @@ class ValidateStateCode(Validate):
     @property
     def tlm_vals(self):
         if not hasattr(self, "_tlm_vals"):
-            self._tlm_vals = convert_state_code_to_raw_val(
-                self.tlm[self.msid], self.state_codes
-            )
+            vals = convert_state_code_to_raw_val(self.tlm[self.msid], self.state_codes)
+            self._tlm_vals = vals
         return self._tlm_vals
 
     @property
     def state_vals(self):
         if not hasattr(self, "_state_vals"):
             states_interp = interpolate_states(self.states, self.tlm["time"])
-            self._state_vals = convert_state_code_to_raw_val(
+            state_vals = convert_state_code_to_raw_val(
                 states_interp[self.state_name], self.state_codes
             )
+            self._state_vals = state_vals
         return self._state_vals
 
     def get_plot_figure(self) -> pgo.Figure:
@@ -580,7 +583,7 @@ class ValidateSimpos(ValidateSingleMsid):
     )  # steps
     max_delta_val = 10  # steps
     # Skip over SIM moves and transient out-of-state values
-    min_violation_duration = 328  # seconds
+    min_violation_duration = 420  # seconds
 
 
 class ValidateObsid(ValidateSingleMsid):

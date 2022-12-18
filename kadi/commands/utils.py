@@ -16,8 +16,8 @@ __all__ = [
     "compress_time_series",
     "convert_state_code_to_raw_val",
     "get_telem_values",
+    "fill_gaps_with_nan",
     "NoTelemetryError",
-    "CxoTimeLike",
     "get_ofp_states",
     "get_time_series_chunks",
     "TimeSeriesChunk",
@@ -42,10 +42,7 @@ class TimeSeriesPoint:
 
     def __repr__(self):
         date = CxoTime(self.time).date
-        out = (
-            f"<{self.__class__.__name__} date={date} "
-            f"time={self.time:.3f} val={self.val}>"
-        )
+        out = f"<{self.__class__.__name__} date={date} val={self.val}>"
         return out
 
 
@@ -198,6 +195,26 @@ def get_time_series_chunks(
         time_ = times[idx]
         val = vals[idx]
 
+        if np.isnan(val):
+            # If current value is NaN then end the current chunk and create a
+            # new one that is all NaNs spanning a gap. This is coupled to the behavior
+            # of fill_gap_with_nan() where a gap is exactly two NaNs (one at the
+            # beginning and one at the end of the gap).
+
+            # First end the current chunk
+            chunks.append(chunk)
+
+            # Make a new NaN chunk
+            first = TimeSeriesPoint(time=time_, val=val)
+            last = TimeSeriesPoint(time=times[idx + 1], val=vals[idx + 1])
+            chunk = TimeSeriesChunk(first=first, min=first, max=first, last=last)
+            chunks.append(chunk)
+
+            # Start a new empty chunk past the two NaNs
+            idx += 2
+            chunk = None
+            continue
+
         if chunk is None:
             point = TimeSeriesPoint(time=time_, val=val)
             chunk = TimeSeriesChunk(first=point, min=point, max=point, last=point)
@@ -245,7 +262,14 @@ def compress_time_series(
     vals: np.ndarray,
     max_delta_val: float = 0,
     max_delta_time: Optional[float] = None,
+    max_gap: Optional[float] = None,
 ):
+    times = np.array(times, dtype=float)
+    vals = np.array(vals, dtype=float)
+
+    if max_gap is not None:
+        times, vals = fill_gaps_with_nan(times, vals, max_gap=max_gap)
+
     chunks = get_time_series_chunks(times, vals, max_delta_val, max_delta_time)
     out_times = []
     out_vals = []
@@ -268,3 +292,27 @@ def compress_time_series(
                 out_vals.append(chunk_vals[idx])
 
     return out_times, out_vals
+
+
+def fill_gaps_with_nan(times: list, vals: list, max_gap: float, dt: float = 0.001):
+    """Fill gaps in ``vals`` with NaNs where gaps in ``times`` is more than ``max_gap``.
+
+    Do something like::
+
+      times = [1, 2, 20, 21, 22]  => [1, 2, 2.001, 19.999, 20, 21, 22]
+      vals = [1, 2, 3, 4, 5] => [1.0, 2.0, NaN, NaN, 3.0, 4.0, 5.0]
+
+    :param times: times
+    :param vals: values
+    :param max_gap: maximum gap in seconds
+    :param dt: time delta to use for filling gaps
+    :returns: times, vals with gaps filled with NaNs
+    """
+    times = np.asarray(times, dtype=float)
+    vals = np.asarray(vals, dtype=float)
+    idxs = np.where(np.diff(times) > max_gap)[0]
+    for idx in idxs[::-1]:
+        gap_times = [times[idx] + dt, times[idx + 1] - dt]
+        times = np.insert(times, idx + 1, gap_times)
+        vals = np.insert(vals, idx + 1, [np.nan, np.nan])
+    return times, vals
