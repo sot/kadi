@@ -83,7 +83,7 @@ class PlotAttrs:
     title: str
     ylabel: str
     range: Optional[list] = None
-    max_delta_time: Optional[float] = 3600
+    max_delta_time: Optional[float] = None
     max_delta_val: float = 0
     max_gap_time: float = 300
 
@@ -425,6 +425,7 @@ class Validate(ABC):
         context = {}
         context["plot_html"] = self.get_plot_html()
         context["title"] = title
+        context["state_name"] = self.state_name
         context["violations"] = self.violations
         context["exclude_intervals"] = self.exclude_intervals
         return context
@@ -565,8 +566,8 @@ class ValidateRoll(ValidatePitchRollBase):
     msids = ["roll_comp"]
     state_keys_extra = ["pitch", "pcad_mode"]
     plot_attrs = PlotAttrs(
-        title="roll",
-        ylabel="roll (degrees)",
+        title="Off-nominal roll",
+        ylabel="off_nom_roll (degrees)",
         range=[-30, 30],
         max_delta_time=3600,  # sec
         max_delta_val=0.5,  # deg
@@ -576,6 +577,28 @@ class ValidateRoll(ValidatePitchRollBase):
         "NMAN": 10.0,  # deg
         "NSUN": 4.0,  # deg
     }
+
+
+class ValidateDither(ValidateStateCode):
+    state_name = "dither"
+    msids = ["aodithen"]
+    plot_attrs = PlotAttrs(title="Dither enable", ylabel="Dither")
+
+    def add_exclude_intervals(self):
+        super().add_exclude_intervals()
+        self.exclude_ofp_intervals_except(["NRML"])
+        self.exclude_srdc_intervals()
+
+
+class ValidatePcadMode(ValidateStateCode):
+    state_name = "pcad_mode"
+    msids = ["aopcadmd"]
+    plot_attrs = PlotAttrs(title="PCAD mode", ylabel="PCAD mode")
+
+    def add_exclude_intervals(self):
+        super().add_exclude_intervals()
+        self.exclude_ofp_intervals_except(["NRML"])
+        self.exclude_srdc_intervals()
 
 
 class ValidateSimpos(ValidateSingleMsid):
@@ -638,28 +661,6 @@ class ValidateLETG(ValidateGrating):
 class ValidateHETG(ValidateGrating):
     state_name = "hetg"
     plot_attrs = PlotAttrs(title="HETG", ylabel="HETG")
-
-
-class ValidateDither(ValidateStateCode):
-    state_name = "dither"
-    msids = ["aodithen"]
-    plot_attrs = PlotAttrs(title="DITHER", ylabel="Dither")
-
-    def add_exclude_intervals(self):
-        super().add_exclude_intervals()
-        self.exclude_ofp_intervals_except(["NRML"])
-        self.exclude_srdc_intervals()
-
-
-class ValidatePcadMode(ValidateStateCode):
-    state_name = "pcad_mode"
-    msids = ["aopcadmd"]
-    plot_attrs = PlotAttrs(title="PCAD mode", ylabel="PCAD mode")
-
-    def add_exclude_intervals(self):
-        super().add_exclude_intervals()
-        self.exclude_ofp_intervals_except(["NRML"])
-        self.exclude_srdc_intervals()
 
 
 def get_overlap_mask(times: np.ndarray, intervals: Table):
@@ -742,7 +743,7 @@ def get_index_page_html(
 
     :returns: HTML string
     """
-    validator_htmls = []
+    validators = []
     violations = []
     if stop is None:
         stop = CxoTime.now()
@@ -752,7 +753,8 @@ def get_index_page_html(
             continue
         logger.info(f"Validating {cls.state_name}")
         validator: Validate = cls(stop=stop, days=days, no_exclude=no_exclude)
-        validator_htmls.append(validator.get_html())
+        validator.html = validator.get_html()
+        validators.append(validator)
 
         for violation in validator.violations:
             violations.append(
@@ -764,7 +766,7 @@ def get_index_page_html(
             )
 
     context = {
-        "validator_htmls": validator_htmls,
+        "validators": validators,
         "violations": violations,
     }
     index_template_file = Path(__file__).parent / "templates" / "index_validate.html"

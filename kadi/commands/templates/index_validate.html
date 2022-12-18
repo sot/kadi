@@ -33,6 +33,10 @@
 
     <h2> Kadi command states validation </h2>
 
+    {% for validator in validators %}
+      <a href="#{{ validator.state_name }}">{{ validator.plot_attrs.title }}</a> <br />
+    {% endfor %}
+
     <h3> Violations </h3>
     {% if violations %}
         <table>
@@ -43,7 +47,7 @@
             </tr>
             {% for violation in violations %}
                 <tr>
-                    <td> {{ violation.name }} </td>
+                    <td> <a href="#{{ violation.name }}">{{ violation.name }}</a> </td>
                     <td> {{ violation.start }} </td>
                     <td> {{ violation.stop }} </td>
                 </tr>
@@ -53,8 +57,8 @@
         <p> None </p>
     {% endif %}
 
-    {% for validator_html in validator_htmls %}
-      {{ validator_html }}
+    {% for validator in validators %}
+      {{ validator.html }}
     {% endfor %}
 
     <br></br>
