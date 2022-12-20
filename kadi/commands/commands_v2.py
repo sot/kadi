@@ -198,6 +198,7 @@ def get_cmds(
 
     :returns: CommandTable
     """
+    logger.info(f"Getting commands from {start} to {stop} for {scenario=}")
     scenario = os.environ.get("KADI_SCENARIO", scenario)
     start = CxoTime("1999:001" if start is None else start)
     stop = (CxoTime.now() + 1 * u.year) if stop is None else CxoTime(stop)
@@ -210,7 +211,10 @@ def get_cmds(
     before_recent_cmds = stop < default_stop - conf.default_lookback * u.day
     if scenario == "flight" or not HAS_INTERNET or before_recent_cmds:
         cmds = IDX_CMDS
-        logger.info("Getting commands from archive only")
+        logger.info(
+            "Getting commands from archive only because of:"
+            f" {scenario=} {before_recent_cmds=} {HAS_INTERNET=}"
+        )
     else:
         if scenario not in CMDS_RECENT:
             cmds_recent = update_archive_and_get_cmds_recent(
@@ -223,18 +227,28 @@ def get_cmds(
         # the requested date range.
         if stop.date < cmds_recent["date"][0]:
             # Query does not overlap with recent commands, just use archive.
-            logger.info("Getting commands from archive only")
+            logger.info(
+                "Getting commands from archive only: stop < first commands recent for"
+                " {scenario=}"
+            )
             cmds = IDX_CMDS
-        elif start < CxoTime(cmds_recent["date"][0]) + 3 * u.day:
+        elif start < CxoTime(cmds_recent.meta["loads_start"]) + 3 * u.day:
             # Query starts near beginning of recent commands and *might* need some
             # archive commands. The margin is set at 3 days to ensure that OBS
             # command continuity is maintained (there is at least one maneuver).
+            # See also the DESIGN commentary after the function.
             cmds = _merge_cmds_archive_recent(start, scenario)
-            logger.info(f"Getting commands from archive + recent {scenario=}")
+            logger.info(
+                "Getting commands from archive + recent: start < recent loads start +"
+                f" 3 days for {scenario=}"
+            )
         else:
             # Query is strictly within recent commands.
             cmds = cmds_recent
-            logger.info(f"Getting commands from recent only {scenario=}")
+            logger.info(
+                "Getting commands from recent only: start and stop are within recent"
+                f" commands for {scenario=}"
+            )
 
     # Select the requested time range and make a copy. (Slicing is a view so
     # in theory bad things could happen without a copy).
@@ -259,6 +273,23 @@ def get_cmds(
     cmds["time"].info.format = ".3f"
 
     return cmds
+
+
+# DESIGN commentary on this line in the above code::
+#    start < CxoTime(cmds_recent.meta["loads_start"]) + 3 * u.day
+#
+# The question being asked here is "are there any applicable archive load
+# commands which are NOT available from the recent load commands (i.e. the last
+# 4 weeks of weekly loads)?".  Imagine these inputs:
+#
+#   start = Apr-02-2022
+#   Loads = APR0122 (Never run due to anomaly), APR0622 (replan), APR0822,  APR1522, APR2222
+#   cmds_recent.meta["loads_start"] = Apr-01-2022 (first command in APR0122 approx)
+#
+# So what we care about is the first command in the applicable loads in the time
+# span, not the first actually run load command in the span. The reason is that
+# the archive is not going to provide additional commands here because the
+# APR0122 commands will also not be in the archive.
 
 
 def update_archive_and_get_cmds_recent(
@@ -333,9 +364,7 @@ def update_archive_and_get_cmds_recent(
             if rltt is None and load_name not in not_run_loads["Load"]:
                 # This is unexpected but press ahead anyway
                 logger.error(f"No RLTT for {load_name=}")
-            logger.info(
-                f"Load {load_name} has {len(cmds)} commands" f" with RLTT={rltt}"
-            )
+            logger.info(f"Load {load_name} has {len(cmds)} commands with RLTT={rltt}")
             cmds_list.append(cmds)
         else:
             logger.info(f"Load {load_name} has no commands, skipping")
@@ -418,6 +447,7 @@ def update_archive_and_get_cmds_recent(
     cmds_recent.deduplicate_orbit_cmds()
     cmds_recent.remove_not_run_cmds()
     cmds_recent = add_obs_cmds(cmds_recent, pars_dict, rev_pars_dict)
+    cmds_recent.meta["loads_start"] = start.date
 
     if cache:
         # Cache recent commands so future requests for the same scenario are fast
@@ -599,7 +629,8 @@ def get_cmds_obs_from_manvrs(cmds, prev_att=None):
             for ii, cmd in enumerate(cmds_obs):
                 if nsm_date > cmd["params"]["manvr_start"] and nsm_date <= cmd["date"]:
                     logger.info(
-                        f"NSM at {nsm_date} happened during maneuver preceding obs\n{cmd}"
+                        f"NSM at {nsm_date} happened during maneuver preceding"
+                        f" obs\n{cmd}"
                     )
                     log_context_obs(cmds, cmd)
                     bad_idxs.append(ii)

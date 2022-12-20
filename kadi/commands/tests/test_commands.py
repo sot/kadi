@@ -1187,3 +1187,19 @@ def test_no_rltt_for_not_run_load(stop_date_2022_236):
     cmds = commands_v2.get_cmds("2022:232:03:00:00", "2022:233:18:30:00")
     cmds = cmds[cmds["type"] == "ACISPKT"]
     assert cmds["date", "tlmsid", "scs"].pformat() == exp
+
+
+stop_date_2022_352 = stop_date_fixture_factory("2022:352")
+
+
+def test_30_day_lookback_issue(stop_date_2022_352):
+    """Test for fix in PR #265 of somewhat obscure issue where a query
+    within the default 30-day lookback could give zero commands. Prior to
+    the fix the query below would give zero commands (with the default stop date
+    set accordingly)."""
+    cmds = commands_v2.get_cmds("2022:319", "2022:324")
+    assert len(cmds) > 200
+
+    # Hit the CMDS_RECENT cache as well
+    cmds = commands_v2.get_cmds("2022:319:00:00:01", "2022:324:00:00:01")
+    assert len(cmds) > 200
