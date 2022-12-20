@@ -47,6 +47,7 @@ within one day are joined together to a single calibration event.
  tstart      Float            Start time (CXC secs)
   tstop      Float             Stop time (CXC secs)
     dur      Float                  Duration (secs)
+  obsid    Integer        Observation ID (COBSRQID)
 ======== ========== ================================
 
 .. _event_dark_cal_replica:
@@ -68,6 +69,7 @@ CIUMACAC is the IU MODE ACA CALIBRATION INDICATOR.
  tstart      Float            Start time (CXC secs)
   tstop      Float             Stop time (CXC secs)
     dur      Float                  Duration (secs)
+  obsid    Integer        Observation ID (COBSRQID)
 ======== ========== ================================
 
 .. _event_dsn_comm:
@@ -104,22 +106,24 @@ DSN comm period
 
 .. _event_dump:
 
-Ground commanded momentum dump
-------------------------------
+Momentum unload either ground commanded or autonomous
+-----------------------------------------------------
 
-**Event definition**: interval where ``AOUNLOAD = GRND``
+**Event definition**: interval where ``AOUNLOAD = GRND`` or ``AOUNLOAD = AUTO``
 
 **Fields**
 
-======== ========== ================================
- Field      Type              Description
-======== ========== ================================
-  start   Char(21)   Start time (YYYY:DDD:HH:MM:SS)
-   stop   Char(21)    Stop time (YYYY:DDD:HH:MM:SS)
- tstart      Float            Start time (CXC secs)
-  tstop      Float             Stop time (CXC secs)
-    dur      Float                  Duration (secs)
-======== ========== ================================
+======== ========== ==================================
+ Field      Type               Description
+======== ========== ==================================
+  start   Char(21)     Start time (YYYY:DDD:HH:MM:SS)
+   stop   Char(21)      Stop time (YYYY:DDD:HH:MM:SS)
+ tstart      Float              Start time (CXC secs)
+  tstop      Float               Stop time (CXC secs)
+    dur      Float                    Duration (secs)
+  obsid    Integer          Observation ID (COBSRQID)
+   type    Char(4)   Momentum unload type (GRND AUTO)
+======== ========== ==================================
 
 .. _event_dwell:
 
@@ -171,6 +175,7 @@ Eclipse
  tstart      Float            Start time (CXC secs)
   tstop      Float             Stop time (CXC secs)
     dur      Float                  Duration (secs)
+  obsid    Integer        Observation ID (COBSRQID)
 ======== ========== ================================
 
 .. _event_fa_move:
@@ -190,6 +195,7 @@ SIM FA translation
        tstart      Float            Start time (CXC secs)
         tstop      Float             Stop time (CXC secs)
           dur      Float                  Duration (secs)
+        obsid    Integer        Observation ID (COBSRQID)
  start_3fapos    Integer        Start FA position (steps)
   stop_3fapos    Integer         Stop FA position (steps)
 ============== ========== ================================
@@ -219,6 +225,7 @@ where no grating motion is seen.  These have grating=UNKN (unknown).
          tstart      Float                     Start time (CXC secs)
           tstop      Float                      Stop time (CXC secs)
             dur      Float                           Duration (secs)
+          obsid    Integer                 Observation ID (COBSRQID)
  start_4lposaro      Float             Start LETG position (degrees)
   stop_4lposaro      Float              Stop LETG position (degrees)
  start_4hposaro      Float             Start HETG position (degrees)
@@ -346,6 +353,7 @@ to the start of the next maneuver::
              tstart      Float                                        Start time (CXC secs)
               tstop      Float                                         Stop time (CXC secs)
                 dur      Float                                              Duration (secs)
+              obsid    Integer                                    Observation ID (COBSRQID)
     prev_manvr_stop   Char(21)             Stop time of previous AOFATTMD=MNVR before manvr
     prev_npnt_start   Char(21)            Start time of previous AOPCADMD=NPNT before manvr
          nman_start   Char(21)                        Start time of AOPCADMD=NMAN for manvr
@@ -448,6 +456,7 @@ so NormalSun events within 4 hours of each other are merged.
  tstart      Float            Start time (CXC secs)
   tstop      Float             Stop time (CXC secs)
     dur      Float                  Duration (secs)
+  obsid    Integer        Observation ID (COBSRQID)
 ======== ========== ================================
 
 .. _event_obsid:
@@ -601,6 +610,7 @@ following are True::
  tstart      Float            Start time (CXC secs)
   tstop      Float             Stop time (CXC secs)
     dur      Float                  Duration (secs)
+  obsid    Integer        Observation ID (COBSRQID)
   notes       Text
 ======== ========== ================================
 
@@ -632,6 +642,7 @@ SCS107 events within 600 seconds are combined into a single event.
  tstart      Float            Start time (CXC secs)
   tstop      Float             Stop time (CXC secs)
     dur      Float                  Duration (secs)
+  obsid    Integer        Observation ID (COBSRQID)
   notes       Text               Supplemental notes
 ======== ========== ================================
 
@@ -657,6 +668,7 @@ the stop time + 66 seconds) is also included.
         tstart      Float                        Start time (CXC secs)
          tstop      Float                         Stop time (CXC secs)
            dur      Float                              Duration (secs)
+         obsid    Integer                    Observation ID (COBSRQID)
  start_3tscpos    Integer                   Start TSC position (steps)
   stop_3tscpos    Integer                    Stop TSC position (steps)
      start_det    Char(6)   Start detector (ACIS-I ACIS-S HRC-I HRC-S)

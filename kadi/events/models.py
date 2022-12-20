@@ -1141,26 +1141,49 @@ class GratingMove(TlmEvent):
 
 class Dump(TlmEvent):
     """
-    Ground commanded momentum dump
+    Momentum unload either ground commanded or autonomous
 
-    **Event definition**: interval where ``AOUNLOAD = GRND``
+    **Event definition**: interval where ``AOUNLOAD = GRND`` or ``AOUNLOAD = AUTO``
 
     **Fields**
 
-    ======== ========== ================================
-     Field      Type              Description
-    ======== ========== ================================
-      start   Char(21)   Start time (YYYY:DDD:HH:MM:SS)
-       stop   Char(21)    Stop time (YYYY:DDD:HH:MM:SS)
-     tstart      Float            Start time (CXC secs)
-      tstop      Float             Stop time (CXC secs)
-        dur      Float                  Duration (secs)
-      obsid    Integer        Observation ID (COBSRQID)
-    ======== ========== ================================
+    ======== ========== ==================================
+     Field      Type               Description
+    ======== ========== ==================================
+      start   Char(21)     Start time (YYYY:DDD:HH:MM:SS)
+       stop   Char(21)      Stop time (YYYY:DDD:HH:MM:SS)
+     tstart      Float              Start time (CXC secs)
+      tstop      Float               Stop time (CXC secs)
+        dur      Float                    Duration (secs)
+      obsid    Integer          Observation ID (COBSRQID)
+       type    Char(4)   Momentum unload type (GRND AUTO)
+    ======== ========== ==================================
     """
 
     event_msids = ["aounload"]
     event_val = "GRND"
+
+    type = models.CharField(max_length=4, help_text="Momentum unload type (GRND AUTO)")
+
+    @classmethod
+    def get_state_times_bools(cls, event_msidset):
+        event_msid = event_msidset["aounload"]
+        unload = np.isin(event_msid.vals, ["GRND", "AUTO"])
+        return event_msid.times, unload
+
+    @classmethod
+    def get_extras(cls, event, event_msidset):
+        """
+        Define unload type
+        """
+        tlm = event_msidset["aounload"]
+        t_mid = (event["tstart"] + event["tstop"]) / 2.0
+        idx = np.searchsorted(tlm.times, t_mid)
+        out = {"type": tlm.vals[idx]}
+        return out
+
+    def __str__(self):
+        return "start={} dur={:.0f} type={}".format(self.start, self.dur, self.type)
 
 
 class Eclipse(TlmEvent):
