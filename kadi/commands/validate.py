@@ -363,9 +363,11 @@ class Validate(ABC):
             logger.info(f"Creating {name} scatter plot for state {self.state_name}")
 
             # Note: would be nice to use Scattergl here since performance is good,
-            # but it seems to have a bug where connectgaps=False does not work, sometimes.
-            # $ env CHETA_FETCH_DATA_GAP="--start=2022:300 --stop=2022:301" \
-            #   python -m kadi.scripts.validate_states --days=4 --stop=2022:301:01:00:00 --state hetg
+            # but it seems to have a bug where connectgaps=False does not work,
+            # sometimes.
+            # env CHETA_FETCH_DATA_GAP="--start=2022:300 --stop=2022:301" \
+            #   python -m kadi.scripts.validate_states \
+            #     --days=4 --stop=2022:301:01:00:00 --state hetg
             trace = pgo.Scatter(
                 name=name,
                 x=CxoTime(tm).datetime64,
