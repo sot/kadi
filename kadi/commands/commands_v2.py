@@ -47,6 +47,8 @@ MATCHING_BLOCK_SIZE = 500
 APPROVED_LOADS_OCCWEB_DIR = Path("FOT/mission_planning/PRODUCTS/APPR_LOADS")
 
 # URL to download google sheets `doc_id`
+# See https://stackoverflow.com/questions/33713084 (original question).
+# See also kadi.commands.cmds_validate for the long-form URL.
 CMD_EVENTS_SHEET_URL = (
     "https://docs.google.com/spreadsheets/d/{doc_id}/export?format=csv"
 )
@@ -863,7 +865,13 @@ def update_cmd_events(scenario=None):
         raise ValueError(f"Failed to get cmd events sheet: {req.status_code}")
 
     cmd_events = Table.read(req.text, format="csv")
-    ok = np.isin(cmd_events["State"], ("Predictive", "Definitive"))
+
+    # Filter table based on State column. In-work can be used to validate the new
+    # event vs telemetry prior to make it operational.
+    allowed_states = ["Predictive", "Definitive"]
+    if conf.include_in_work_command_events:
+        allowed_states.append("In-work")
+    ok = np.isin(cmd_events["State"], allowed_states)
     cmd_events = cmd_events[ok]
 
     logger.info(f"Writing {len(cmd_events)} cmd_events to {cmd_events_path}")

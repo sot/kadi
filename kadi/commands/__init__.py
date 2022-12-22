@@ -10,7 +10,7 @@ from kadi.config import ConfigItem
 
 class Conf(ConfigNamespace):
     """
-    Configuration parameters for my subpackage.
+    Configuration parameters for kadi.
     """
 
     default_lookback = ConfigItem(
@@ -49,12 +49,21 @@ class Conf(ConfigNamespace):
         "Google Sheet ID for command events (flight scenario).",
     )
 
+    cmd_events_exclude_intervals_gid = ConfigItem(
+        "1681877928",
+        "Google Sheet gid for validation exclude intervals in command events",
+    )
+
     star_id_match_halfwidth = ConfigItem(
         1.5, "Half-width box size of star ID match for get_starcats() (arcsec)."
     )
 
     fid_id_match_halfwidth = ConfigItem(
         40, "Half-width box size of fid ID match for get_starcats() (arcsec)."
+    )
+
+    include_in_work_command_events = ConfigItem(
+        False, "Include In-work command events that are not yet approved."
     )
 
 

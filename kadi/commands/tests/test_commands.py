@@ -1203,3 +1203,19 @@ def test_30_day_lookback_issue(stop_date_2022_352):
     # Hit the CMDS_RECENT cache as well
     cmds = commands_v2.get_cmds("2022:319:00:00:01", "2022:324:00:00:01")
     assert len(cmds) > 200
+
+
+def test_fill_gaps():
+    from kadi.commands.utils import fill_gaps_with_nan
+
+    times = [1, 20, 21, 200, 300]
+    vals = [0, 1, 2, 3, 4]
+    times_out, vals_out = fill_gaps_with_nan(times, vals, max_gap=2)
+    times_exp = [1, 1.001, 19.999, 20, 21, 21.001, 199.999, 200, 200.001, 299.999, 300]
+    assert np.allclose(times_out, times_exp)
+    vals_exp = np.array(
+        [0.0, np.nan, np.nan, 1.0, 2.0, np.nan, np.nan, 3.0, np.nan, np.nan, 4.0]
+    )
+    is_nan = np.isnan(vals_out)
+    assert np.all(is_nan == np.isnan(vals_exp))
+    assert np.all(vals_out[~is_nan] == vals_exp[~is_nan])

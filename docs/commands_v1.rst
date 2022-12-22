@@ -1,3 +1,6 @@
+.. |get_cmds| replace:: :func:`~kadi.commands.commands.get_cmds`
+.. |CommandTable| replace:: :class:`~kadi.commands.commands.CommandTable`
+
 Commands archive v1
 -------------------
 In order to use the v1 version do the following::

@@ -1,0 +1,71 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<html>
+
+<head>
+    <title>Kadi command states validation</title>
+    <link href="/mta/ASPECT/aspect.css" rel="stylesheet" type="text/css"
+        media="all" />
+    <style type="text/css">
+        tr.pink-bkg {
+            background-color: #f88
+        }
+
+        table {
+            border-width: 1px;
+            border-spacing: 0px;
+            border-style: outset;
+            border-color: gray;
+            border-collapse: separate;
+        }
+
+        table th,
+        td {
+            border-width: 1px;
+            padding: 1px 5px 1px 5px;
+            border-style: solid;
+            border-color: gray;
+        }
+    </style>
+</head>
+
+<body>
+    <!--#include virtual="/mta/ASPECT/header.html"-->
+
+    <h2> Kadi command states validation </h2>
+
+    {% for validator in validators %}
+      <a href="#{{ validator.state_name }}">{{ validator.plot_attrs.title }}</a> <br />
+    {% endfor %}
+
+    <h3> Violations </h3>
+    {% if violations %}
+        <table>
+            <tr>
+                <th> State name </th>
+                <th> Start </th>
+                <th> Stop </th>
+            </tr>
+            {% for violation in violations %}
+                <tr>
+                    <td> <a href="#{{ violation.name }}">{{ violation.name }}</a> </td>
+                    <td> {{ violation.start }} </td>
+                    <td> {{ violation.stop }} </td>
+                </tr>
+            {% endfor %}
+        </table>
+    {% else %}
+        <p> None </p>
+    {% endif %}
+
+    {% for validator in validators %}
+      {{ validator.html }}
+    {% endfor %}
+
+    <br></br>
+
+    <!--#include virtual="/mta/ASPECT/footer.html"-->
+    <!--footer end-->
+
+</body>
+
+</html>

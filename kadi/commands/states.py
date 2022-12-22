@@ -1467,7 +1467,7 @@ def get_states(
     reduce=True,
     merge_identical=False,
     scenario=None,
-):
+) -> Table:
     """
     Get table of states corresponding to intervals when ``state_keys`` parameters
     are unchanged given the input commands ``cmds`` or ``start`` date.
@@ -1637,7 +1637,7 @@ def get_states(
     return out
 
 
-def reduce_states(states, state_keys, merge_identical=False, all_keys=False):
+def reduce_states(states, state_keys, merge_identical=False, all_keys=False) -> Table:
     """
     Reduce the input ``states`` so that only transitions in the ``state_keys``
     are in the output.
@@ -1661,7 +1661,7 @@ def reduce_states(states, state_keys, merge_identical=False, all_keys=False):
     :param merge_identical: merge adjacent identical states
     :param all_keys: if True, then all state keys are included in the output
 
-    :returns: numpy recarray of reduced states
+    :returns: Table of reduced states
     """
     if not isinstance(states, Table):
         states = Table(states)
@@ -1774,11 +1774,12 @@ def get_continuity(
             if state_key in continuity:
                 continue
 
-            # Get available commanded states for this particular state_key.  This may
-            # return state values for many more keys (e.g. PCAD-related), and some or all
-            # of these might be None if the relevant command never happened.  Fill in
-            # continuity as possible from last state (corresponding to the state after the
-            # last command in cmds).
+            # Get available commanded states for this particular state_key.
+            # This may return state values for many more keys (e.g.
+            # PCAD-related), and some or all of these might be None if the
+            # relevant command never happened.  Fill in continuity as possible
+            # from last state (corresponding to the state after the last command
+            # in cmds).
             try:
                 # Note that we need to specify start and stop to ensure that the
                 # states span the required time range. Without this the time
@@ -1831,8 +1832,10 @@ def get_continuity(
         if missing_keys:
             raise ValueError(
                 "did not find transitions for state key(s)"
-                " {} within {} days of {}.  Maybe adjust the "
-                "`lookbacks` argument?".format(missing_keys, lookbacks[-1], stop.date)
+                " {} within {} days of {}.  Maybe adjust "
+                "the `lookbacks` argument?".format(
+                    missing_keys, lookbacks[-1], stop.date
+                )
             )
 
     # Finally reduce down to the state_keys the user requested
