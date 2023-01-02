@@ -16,7 +16,7 @@ import Ska.Sun
 from astropy.table import Column, Table
 from Chandra.Time import DateTime, date2secs, secs2date
 from cxotime import CxoTime
-from Quaternion import Quat
+from Quaternion import Quat, quat_to_equatorial
 
 from . import commands
 
@@ -1238,18 +1238,19 @@ class ManeuverTransition(BaseTransition):
         # for legacy compatibility with Chandra.cmd_states but might be
         # something to change since it would probably be better to have the
         # midpoint attitude.
-        for att, pitch, off_nom_roll in zip(atts, pitches, off_nom_rolls):
-            date = DateTime(att.time).date
+        dates = secs2date(atts.time)
+        for att, date, pitch, off_nom_roll in zip(atts, dates, pitches, off_nom_rolls):
             transition = {"date": date}
-            for qc in QUAT_COMPS:
-                transition[qc] = att[qc]
+            att_q = np.array([att[x] for x in QUAT_COMPS])
+            for qc, q_i in zip(QUAT_COMPS, att_q):
+                transition[qc] = q_i
             transition["pitch"] = pitch
             transition["off_nom_roll"] = off_nom_roll
 
-            q_att = Quat([att[x] for x in QUAT_COMPS])
-            transition["ra"] = q_att.ra
-            transition["dec"] = q_att.dec
-            transition["roll"] = q_att.roll
+            ra, dec, roll = quat_to_equatorial(att_q)
+            transition["ra"] = ra
+            transition["dec"] = dec
+            transition["roll"] = roll
 
             add_transition(transitions, idx, transition)
 
