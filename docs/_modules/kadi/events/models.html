@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>kadi.events.models &#8212; kadi 7.1.0 documentation</title>
+    <title>kadi.events.models &#8212; kadi 7.2.0 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/bootstrap-astropy.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/plot_directive.css" />
@@ -47,7 +47,7 @@
     <h3>Navigation</h3>
     <ul>
       <li>
-	<a href="../../../index.html">kadi 7.1.0 documentation</a>
+	<a href="../../../index.html">kadi 7.2.0 documentation</a>
 	 &#187;
       </li>
       <li><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
@@ -69,20 +69,19 @@
 <span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">count</span>
 <span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
 
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">pyyaks.logger</span>
+<span class="kn">import</span> <span class="nn">Ska.engarchive.fetch_eng</span> <span class="k">as</span> <span class="nn">fetch</span>
+<span class="kn">from</span> <span class="nn">astropy</span> <span class="kn">import</span> <span class="n">table</span>
+<span class="kn">from</span> <span class="nn">Chandra.Time</span> <span class="kn">import</span> <span class="n">DateTime</span>
 <span class="kn">from</span> <span class="nn">django.db</span> <span class="kn">import</span> <span class="n">models</span>
+<span class="kn">from</span> <span class="nn">Quaternion</span> <span class="kn">import</span> <span class="n">Quat</span>
+<span class="kn">from</span> <span class="nn">Ska.engarchive</span> <span class="kn">import</span> <span class="n">utils</span>
+<span class="kn">from</span> <span class="nn">Ska.Numpy</span> <span class="kn">import</span> <span class="n">interpolate</span>
 
 <span class="kn">from</span> <span class="nn">.manvr_templates</span> <span class="kn">import</span> <span class="n">get_manvr_templates</span>
 
 <span class="n">models</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">REPR_OUTPUT_SIZE</span> <span class="o">=</span> <span class="mi">1000</span>  <span class="c1"># Increase default number of rows printed</span>
-
-<span class="c1"># Fool pyflakes into thinking these are defined</span>
-<span class="n">fetch</span> <span class="o">=</span> <span class="kc">None</span>
-<span class="n">interpolate</span> <span class="o">=</span> <span class="kc">None</span>
-<span class="n">DateTime</span> <span class="o">=</span> <span class="kc">None</span>
-<span class="n">np</span> <span class="o">=</span> <span class="kc">None</span>
-<span class="n">Quat</span> <span class="o">=</span> <span class="kc">None</span>
-<span class="n">utils</span> <span class="o">=</span> <span class="kc">None</span>
 
 <span class="n">ZERO_DT</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1e-4</span>
 <span class="n">MAX_GAP</span> <span class="o">=</span> <span class="mf">328.1</span>  <span class="c1"># Max gap (seconds) in telemetry for state intervals</span>
@@ -207,37 +206,7 @@
     <span class="k">return</span> <span class="n">models</span></div>
 
 
-<div class="viewcode-block" id="import_ska"><a class="viewcode-back" href="../../../api.html#kadi.events.models.import_ska">[docs]</a><span class="k">def</span> <span class="nf">import_ska</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Decorator to lazy import useful Ska functions.  Web app should not</span>
-<span class="sd">    need to do this.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">import</span> <span class="nn">functools</span>
-
-    <span class="nd">@functools</span><span class="o">.</span><span class="n">wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
-    <span class="k">def</span> <span class="nf">wrapper</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-        <span class="kn">import</span> <span class="nn">Ska.engarchive.fetch_eng</span> <span class="k">as</span> <span class="nn">fetch</span>
-        <span class="kn">from</span> <span class="nn">astropy</span> <span class="kn">import</span> <span class="n">table</span>
-        <span class="kn">from</span> <span class="nn">Chandra.Time</span> <span class="kn">import</span> <span class="n">DateTime</span>
-        <span class="kn">from</span> <span class="nn">Quaternion</span> <span class="kn">import</span> <span class="n">Quat</span>
-        <span class="kn">from</span> <span class="nn">Ska.engarchive</span> <span class="kn">import</span> <span class="n">utils</span>
-        <span class="kn">from</span> <span class="nn">Ska.Numpy</span> <span class="kn">import</span> <span class="n">interpolate</span>
-
-        <span class="nb">globals</span><span class="p">()[</span><span class="s2">&quot;interpolate&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">interpolate</span>
-        <span class="nb">globals</span><span class="p">()[</span><span class="s2">&quot;DateTime&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">DateTime</span>
-        <span class="nb">globals</span><span class="p">()[</span><span class="s2">&quot;fetch&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">fetch</span>
-        <span class="nb">globals</span><span class="p">()[</span><span class="s2">&quot;utils&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">utils</span>
-        <span class="nb">globals</span><span class="p">()[</span><span class="s2">&quot;np&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span>
-        <span class="nb">globals</span><span class="p">()[</span><span class="s2">&quot;Quat&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Quat</span>
-        <span class="nb">globals</span><span class="p">()[</span><span class="s2">&quot;table&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">table</span>
-        <span class="k">return</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-
-    <span class="k">return</span> <span class="n">wrapper</span></div>
-
-
-<div class="viewcode-block" id="fuzz_states"><a class="viewcode-back" href="../../../api.html#kadi.events.models.fuzz_states">[docs]</a><span class="nd">@import_ska</span>
-<span class="k">def</span> <span class="nf">fuzz_states</span><span class="p">(</span><span class="n">states</span><span class="p">,</span> <span class="n">t_fuzz</span><span class="p">):</span>
+<div class="viewcode-block" id="fuzz_states"><a class="viewcode-back" href="../../../api.html#kadi.events.models.fuzz_states">[docs]</a><span class="k">def</span> <span class="nf">fuzz_states</span><span class="p">(</span><span class="n">states</span><span class="p">,</span> <span class="n">t_fuzz</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    For a set of `states` (from fetch.MSID.state_intervals()) or intervals (from</span>
 <span class="sd">    fetch.MSID.logical_intervals), merge any that are within `t_fuzz` seconds of each</span>
@@ -453,7 +422,6 @@
             <span class="k">return</span> <span class="p">[</span><span class="n">events</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">indices</span><span class="p">]</span></div>
 
         <span class="nd">@staticmethod</span>
-        <span class="nd">@import_ska</span>
         <span class="k">def</span> <span class="nf">_get_full_overlaps</span><span class="p">(</span><span class="n">overlap_starts</span><span class="p">,</span> <span class="n">overlap_stops</span><span class="p">,</span> <span class="n">datestarts</span><span class="p">,</span> <span class="n">datestops</span><span class="p">):</span>
             <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">            Find which of the new overlap_intervals are the same as an original interval,</span>
@@ -474,7 +442,6 @@
             <span class="k">return</span> <span class="n">indices</span><span class="p">[</span><span class="n">ok</span><span class="p">]</span>
 
         <span class="nd">@staticmethod</span>
-        <span class="nd">@import_ska</span>
         <span class="k">def</span> <span class="nf">_get_partial_overlaps</span><span class="p">(</span><span class="n">overlap_starts</span><span class="p">,</span> <span class="n">overlap_stops</span><span class="p">,</span> <span class="n">datestarts</span><span class="p">,</span> <span class="n">datestops</span><span class="p">):</span>
             <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">            Find which of the new overlap_intervals are the same as an original interval,</span>
@@ -553,7 +520,6 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model_name</span>
 
     <span class="nd">@classmethod</span>
-    <span class="nd">@import_ska</span>
     <span class="k">def</span> <span class="nf">get_date_intervals</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">,</span> <span class="n">pad</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">filter_kwargs</span><span class="p">):</span>
         <span class="c1"># OPTIMIZE ME!</span>
 
@@ -748,7 +714,6 @@
         <span class="k">return</span> <span class="n">event_msid</span><span class="o">.</span><span class="n">times</span><span class="p">,</span> <span class="n">bools</span></div>
 
 <div class="viewcode-block" id="TlmEvent.get_msids_states"><a class="viewcode-back" href="../../../api.html#kadi.events.models.TlmEvent.get_msids_states">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="nd">@import_ska</span>
     <span class="k">def</span> <span class="nf">get_msids_states</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Get event and related MSIDs and compute the states corresponding</span>
@@ -769,7 +734,9 @@
             <span class="c1"># Telemetry values for event_msids[0] define the states.  Don&#39;t allow a logical</span>
             <span class="c1"># interval that spans a telemetry gap of more than 10 major frames.</span>
             <span class="n">times</span><span class="p">,</span> <span class="n">bools</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">get_state_times_bools</span><span class="p">(</span><span class="n">event_msidset</span><span class="p">)</span>
-            <span class="n">states</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">logical_intervals</span><span class="p">(</span><span class="n">times</span><span class="p">,</span> <span class="n">bools</span><span class="p">,</span> <span class="n">max_gap</span><span class="o">=</span><span class="n">MAX_GAP</span><span class="p">)</span>
+            <span class="n">states</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">logical_intervals</span><span class="p">(</span>
+                <span class="n">times</span><span class="p">,</span> <span class="n">bools</span><span class="p">,</span> <span class="n">max_gap</span><span class="o">=</span><span class="n">MAX_GAP</span><span class="p">,</span> <span class="n">complete_intervals</span><span class="o">=</span><span class="kc">True</span>
+            <span class="p">)</span>
         <span class="k">except</span> <span class="p">(</span><span class="ne">IndexError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">event_time_fuzz</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
@@ -806,7 +773,6 @@
         <span class="k">return</span> <span class="n">states</span><span class="p">,</span> <span class="n">event_msidset</span></div>
 
 <div class="viewcode-block" id="TlmEvent.get_events"><a class="viewcode-back" href="../../../api.html#kadi.events.models.TlmEvent.get_events">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="nd">@import_ska</span>
     <span class="k">def</span> <span class="nf">get_events</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Get events from telemetry defined by a simple rule that the value of</span>
@@ -847,8 +813,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_msidset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fetch_event</span><span class="p">()</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_msidset</span>
 
-<div class="viewcode-block" id="TlmEvent.fetch_event"><a class="viewcode-back" href="../../../api.html#kadi.events.models.TlmEvent.fetch_event">[docs]</a>    <span class="nd">@import_ska</span>
-    <span class="k">def</span> <span class="nf">fetch_event</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pad</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">extra_msids</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">filter_bad</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<div class="viewcode-block" id="TlmEvent.fetch_event"><a class="viewcode-back" href="../../../api.html#kadi.events.models.TlmEvent.fetch_event">[docs]</a>    <span class="k">def</span> <span class="nf">fetch_event</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pad</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">extra_msids</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">filter_bad</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Fetch an MSIDset of self.fetch_msids.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -888,7 +853,6 @@
     <span class="n">update_priority</span> <span class="o">=</span> <span class="mi">1000</span>  <span class="c1"># Process Obsid first</span>
 
 <div class="viewcode-block" id="Obsid.get_events"><a class="viewcode-back" href="../../../api.html#kadi.events.models.Obsid.get_events">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="nd">@import_ska</span>
     <span class="k">def</span> <span class="nf">get_events</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Get obsid events from telemetry.  A event is defined by a</span>
@@ -1081,7 +1045,6 @@
     <span class="n">event_filter_bad</span> <span class="o">=</span> <span class="kc">False</span>
 
     <span class="nd">@classmethod</span>
-    <span class="nd">@import_ska</span>
     <span class="k">def</span> <span class="nf">get_state_times_bools</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">msidset</span><span class="p">):</span>
         <span class="c1"># Interpolate all MSIDs to a common time.  Sync to the start of 3tscmove which is</span>
         <span class="c1"># sampled at 32.8 seconds</span>
@@ -1243,26 +1206,49 @@
 
 <div class="viewcode-block" id="Dump"><a class="viewcode-back" href="../../../api.html#kadi.events.models.Dump">[docs]</a><span class="k">class</span> <span class="nc">Dump</span><span class="p">(</span><span class="n">TlmEvent</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Ground commanded momentum dump</span>
+<span class="sd">    Momentum unload either ground commanded or autonomous</span>
 
-<span class="sd">    **Event definition**: interval where ``AOUNLOAD = GRND``</span>
+<span class="sd">    **Event definition**: interval where ``AOUNLOAD = GRND`` or ``AOUNLOAD = AUTO``</span>
 
 <span class="sd">    **Fields**</span>
 
-<span class="sd">    ======== ========== ================================</span>
-<span class="sd">     Field      Type              Description</span>
-<span class="sd">    ======== ========== ================================</span>
-<span class="sd">      start   Char(21)   Start time (YYYY:DDD:HH:MM:SS)</span>
-<span class="sd">       stop   Char(21)    Stop time (YYYY:DDD:HH:MM:SS)</span>
-<span class="sd">     tstart      Float            Start time (CXC secs)</span>
-<span class="sd">      tstop      Float             Stop time (CXC secs)</span>
-<span class="sd">        dur      Float                  Duration (secs)</span>
-<span class="sd">      obsid    Integer        Observation ID (COBSRQID)</span>
-<span class="sd">    ======== ========== ================================</span>
+<span class="sd">    ======== ========== ==================================</span>
+<span class="sd">     Field      Type               Description</span>
+<span class="sd">    ======== ========== ==================================</span>
+<span class="sd">      start   Char(21)     Start time (YYYY:DDD:HH:MM:SS)</span>
+<span class="sd">       stop   Char(21)      Stop time (YYYY:DDD:HH:MM:SS)</span>
+<span class="sd">     tstart      Float              Start time (CXC secs)</span>
+<span class="sd">      tstop      Float               Stop time (CXC secs)</span>
+<span class="sd">        dur      Float                    Duration (secs)</span>
+<span class="sd">      obsid    Integer          Observation ID (COBSRQID)</span>
+<span class="sd">       type    Char(4)   Momentum unload type (GRND AUTO)</span>
+<span class="sd">    ======== ========== ==================================</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">event_msids</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;aounload&quot;</span><span class="p">]</span>
-    <span class="n">event_val</span> <span class="o">=</span> <span class="s2">&quot;GRND&quot;</span></div>
+    <span class="n">event_val</span> <span class="o">=</span> <span class="s2">&quot;GRND&quot;</span>
+
+    <span class="nb">type</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">help_text</span><span class="o">=</span><span class="s2">&quot;Momentum unload type (GRND AUTO)&quot;</span><span class="p">)</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">get_state_times_bools</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">event_msidset</span><span class="p">):</span>
+        <span class="n">event_msid</span> <span class="o">=</span> <span class="n">event_msidset</span><span class="p">[</span><span class="s2">&quot;aounload&quot;</span><span class="p">]</span>
+        <span class="n">unload</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">event_msid</span><span class="o">.</span><span class="n">vals</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;GRND&quot;</span><span class="p">,</span> <span class="s2">&quot;AUTO&quot;</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">event_msid</span><span class="o">.</span><span class="n">times</span><span class="p">,</span> <span class="n">unload</span>
+
+<div class="viewcode-block" id="Dump.get_extras"><a class="viewcode-back" href="../../../api.html#kadi.events.models.Dump.get_extras">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">get_extras</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">event</span><span class="p">,</span> <span class="n">event_msidset</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Define unload type</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">tlm</span> <span class="o">=</span> <span class="n">event_msidset</span><span class="p">[</span><span class="s2">&quot;aounload&quot;</span><span class="p">]</span>
+        <span class="n">t_mid</span> <span class="o">=</span> <span class="p">(</span><span class="n">event</span><span class="p">[</span><span class="s2">&quot;tstart&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="n">event</span><span class="p">[</span><span class="s2">&quot;tstop&quot;</span><span class="p">])</span> <span class="o">/</span> <span class="mf">2.0</span>
+        <span class="n">idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">searchsorted</span><span class="p">(</span><span class="n">tlm</span><span class="o">.</span><span class="n">times</span><span class="p">,</span> <span class="n">t_mid</span><span class="p">)</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="n">tlm</span><span class="o">.</span><span class="n">vals</span><span class="p">[</span><span class="n">idx</span><span class="p">]}</span>
+        <span class="k">return</span> <span class="n">out</span></div>
+
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;start=</span><span class="si">{}</span><span class="s2"> dur=</span><span class="si">{:.0f}</span><span class="s2"> type=</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dur</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="Eclipse"><a class="viewcode-back" href="../../../api.html#kadi.events.models.Eclipse">[docs]</a><span class="k">class</span> <span class="nc">Eclipse</span><span class="p">(</span><span class="n">TlmEvent</span><span class="p">):</span>
@@ -1684,7 +1670,6 @@
         <span class="k">return</span> <span class="n">manvr_attrs</span></div>
 
 <div class="viewcode-block" id="Manvr.get_target_attitudes"><a class="viewcode-back" href="../../../api.html#kadi.events.models.Manvr.get_target_attitudes">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="nd">@import_ska</span>
     <span class="k">def</span> <span class="nf">get_target_attitudes</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">event</span><span class="p">,</span> <span class="n">msidset</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Define start/stop_aotarqt&lt;1..4&gt; and start/stop_ra,dec,roll</span>
@@ -1724,7 +1709,6 @@
         <span class="k">return</span> <span class="n">out</span></div>
 
 <div class="viewcode-block" id="Manvr.get_one_shot"><a class="viewcode-back" href="../../../api.html#kadi.events.models.Manvr.get_one_shot">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="nd">@import_ska</span>
     <span class="k">def</span> <span class="nf">get_one_shot</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">guide_start</span><span class="p">,</span> <span class="n">aux_msidset</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Define one_shot attribute (one-shot attitude update following maneuver)</span>
@@ -1760,7 +1744,6 @@
         <span class="p">}</span></div>
 
 <div class="viewcode-block" id="Manvr.get_events"><a class="viewcode-back" href="../../../api.html#kadi.events.models.Manvr.get_events">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="nd">@import_ska</span>
     <span class="k">def</span> <span class="nf">get_events</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Get maneuver events from telemetry.</span>
@@ -1972,7 +1955,6 @@
     <span class="n">fetch_event_msids</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;conlofp&quot;</span><span class="p">,</span> <span class="s2">&quot;ctufmtsl&quot;</span><span class="p">,</span> <span class="s2">&quot;c1sqax&quot;</span><span class="p">,</span> <span class="s2">&quot;aopcadmd&quot;</span><span class="p">,</span> <span class="s2">&quot;61psts02&quot;</span><span class="p">]</span>
 
     <span class="nd">@classmethod</span>
-    <span class="nd">@import_ska</span>
     <span class="k">def</span> <span class="nf">get_state_times_bools</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">msidset</span><span class="p">):</span>
         <span class="c1"># Second safemode has bad telemetry for the entire event so the standard</span>
         <span class="c1"># detection algorithm fails.  Just hardwire safemode #1 and fix up the</span>
@@ -2106,7 +2088,6 @@
         <span class="k">return</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> (</span><span class="si">{}</span><span class="s2">) </span><span class="si">{}</span><span class="s2">: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">date</span><span class="p">[</span><span class="mi">5</span><span class="p">:],</span> <span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="p">,</span> <span class="n">descr</span><span class="p">)</span>
 
 <div class="viewcode-block" id="MajorEvent.get_events"><a class="viewcode-back" href="../../../api.html#kadi.events.models.MajorEvent.get_events">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="nd">@import_ska</span>
     <span class="k">def</span> <span class="nf">get_events</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Get Major Events from FDB and FOT tables on the OCCweb</span>
@@ -2161,7 +2142,6 @@
     <span class="n">ifot_types</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># Override automatic type inference for properties or columns</span>
 
 <div class="viewcode-block" id="IFotEvent.get_events"><a class="viewcode-back" href="../../../api.html#kadi.events.models.IFotEvent.get_events">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="nd">@import_ska</span>
     <span class="k">def</span> <span class="nf">get_events</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Get events from iFOT web interface</span>
@@ -2538,7 +2518,6 @@
     <span class="n">lookforward</span> <span class="o">=</span> <span class="mi">28</span>  <span class="c1"># Accept orbits planned up to 28 days in advance</span>
 
 <div class="viewcode-block" id="Orbit.get_events"><a class="viewcode-back" href="../../../api.html#kadi.events.models.Orbit.get_events">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="nd">@import_ska</span>
     <span class="k">def</span> <span class="nf">get_events</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Get Orbit Events from timeline reports.</span>
@@ -2668,7 +2647,6 @@
         <span class="k">return</span> <span class="p">{}</span></div>
 
 <div class="viewcode-block" id="AsciiTableEvent.get_events"><a class="viewcode-back" href="../../../api.html#kadi.events.models.AsciiTableEvent.get_events">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="nd">@import_ska</span>
     <span class="k">def</span> <span class="nf">get_events</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Get events from telemetry defined by a simple rule that the value of</span>

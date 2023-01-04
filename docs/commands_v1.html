@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-    <title>Commands archive v1 &#8212; kadi 7.1.0 documentation</title>
+    <title>Commands archive v1 &#8212; kadi 7.2.0 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/bootstrap-astropy.css" />
     <link rel="stylesheet" type="text/css" href="_static/plot_directive.css" />
@@ -61,7 +61,7 @@
 	 |
       </li>
       <li>
-	<a href="index.html">kadi 7.1.0 documentation</a>
+	<a href="index.html">kadi 7.2.0 documentation</a>
 	 &#187;
       </li>
       <li><a href="commands_states.html" accesskey="U">Commands and states</a> &#187;</li>
@@ -90,7 +90,7 @@ enter:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ export KADI_COMMANDS_VERSION=1
 </pre></div>
 </div>
-<p>The basic way to select commands is with the <a href="#id2"><span class="problematic" id="id3">|get_cmds|</span></a> method.  For example you can find
+<p>The basic way to select commands is with the <a class="reference internal" href="api.html#kadi.commands.commands.get_cmds" title="kadi.commands.commands.get_cmds"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_cmds()</span></code></a> method.  For example you can find
 load commands from early in 2013 with:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">kadi</span> <span class="kn">import</span> <span class="n">commands</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">cmds</span> <span class="o">=</span> <span class="n">commands</span><span class="o">.</span><span class="n">get_cmds</span><span class="p">(</span><span class="s1">&#39;2013:001:00:00:00&#39;</span><span class="p">,</span> <span class="s1">&#39;2013:001:00:56:10&#39;</span><span class="p">)</span>
@@ -107,7 +107,7 @@ load commands from early in 2013 with:</p>
 <span class="go">2013:001:00:56:07.438 COMMAND_SW   AONM2NPE 129 1532 473389034.622   426098990 5584879    N/A</span>
 </pre></div>
 </div>
-<p>In the <a href="#id4"><span class="problematic" id="id5">|get_cmds|</span></a> method, commands are selected with <code class="docutils literal notranslate"><span class="pre">start</span> <span class="pre">&lt;=</span> <span class="pre">date</span> <span class="pre">&lt;</span> <span class="pre">stop</span></code>, where each
+<p>In the <a class="reference internal" href="api.html#kadi.commands.commands.get_cmds" title="kadi.commands.commands.get_cmds"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_cmds()</span></code></a> method, commands are selected with <code class="docutils literal notranslate"><span class="pre">start</span> <span class="pre">&lt;=</span> <span class="pre">date</span> <span class="pre">&lt;</span> <span class="pre">stop</span></code>, where each
 of these are evaluated as a date string with millisec precision.  In order to get commands
 at exactly a certain date you need to select with the <code class="docutils literal notranslate"><span class="pre">date</span></code> argument:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">commands</span><span class="o">.</span><span class="n">get_cmds</span><span class="p">(</span><span class="n">date</span><span class="o">=</span><span class="s1">&#39;2013:001:00:56:07.181&#39;</span><span class="p">))</span>
@@ -161,7 +161,7 @@ table again:</p>
 <span class="go">2013:001:00:56:07.438 COMMAND_SW   AONM2NPE 129 1532   426098990                                             N/A</span>
 </pre></div>
 </div>
-<p>So what happened?  The answer is that for performance reasons the <a href="#id6"><span class="problematic" id="id7">|CommandTable|</span></a> class is
+<p>So what happened?  The answer is that for performance reasons the <code class="xref py py-class docutils literal notranslate"><span class="pre">CommandTable</span></code> class is
 lazy about loading the command parameters, and only does so when you directly request the
 parameter value (as we did with <code class="docutils literal notranslate"><span class="pre">packet(40)</span></code>).  If you want to just fetch them all
 at once you can do so with the <code class="docutils literal notranslate"><span class="pre">fetch_params()</span></code> method:</p>

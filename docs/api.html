@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-    <title>API documentation &#8212; kadi 7.1.0 documentation</title>
+    <title>API documentation &#8212; kadi 7.2.0 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/bootstrap-astropy.css" />
     <link rel="stylesheet" type="text/css" href="_static/plot_directive.css" />
@@ -61,7 +61,7 @@
 	 |
       </li>
       <li>
-	<a href="index.html">kadi 7.1.0 documentation</a>
+	<a href="index.html">kadi 7.2.0 documentation</a>
 	 &#187;
       </li>
       
@@ -77,6 +77,9 @@
             
   <section id="api-documentation">
 <h1>API documentation<a class="headerlink" href="#api-documentation" title="Permalink to this headline">¶</a></h1>
+<p>Table of contents</p>
+<div class="toctree-wrapper compound">
+</div>
 <section id="module-kadi.events.models">
 <span id="event-models"></span><h2>Event models<a class="headerlink" href="#module-kadi.events.models" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
@@ -505,14 +508,14 @@ within one day are joined together to a single calibration event.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="kadi.events.models.Dump">
 <em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">kadi.events.models.</span></span><span class="sig-name descname"><span class="pre">Dump</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#Dump"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.Dump" title="Permalink to this definition">¶</a></dt>
-<dd><p>Ground commanded momentum dump</p>
-<p><strong>Event definition</strong>: interval where <code class="docutils literal notranslate"><span class="pre">AOUNLOAD</span> <span class="pre">=</span> <span class="pre">GRND</span></code></p>
+<dd><p>Momentum unload either ground commanded or autonomous</p>
+<p><strong>Event definition</strong>: interval where <code class="docutils literal notranslate"><span class="pre">AOUNLOAD</span> <span class="pre">=</span> <span class="pre">GRND</span></code> or <code class="docutils literal notranslate"><span class="pre">AOUNLOAD</span> <span class="pre">=</span> <span class="pre">AUTO</span></code></p>
 <p><strong>Fields</strong></p>
 <table class="docutils align-default">
 <colgroup>
-<col style="width: 16%" />
-<col style="width: 20%" />
-<col style="width: 64%" />
+<col style="width: 15%" />
+<col style="width: 19%" />
+<col style="width: 65%" />
 </colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>Field</p></th>
@@ -545,6 +548,10 @@ within one day are joined together to a single calibration event.</p>
 <td><p>Integer</p></td>
 <td><p>Observation ID (COBSRQID)</p></td>
 </tr>
+<tr class="row-even"><td><p>type</p></td>
+<td><p>Char(4)</p></td>
+<td><p>Momentum unload type (GRND AUTO)</p></td>
+</tr>
 </tbody>
 </table>
 <dl class="py exception">
@@ -556,6 +563,12 @@ within one day are joined together to a single calibration event.</p>
 <dt class="sig sig-object py" id="kadi.events.models.Dump.MultipleObjectsReturned">
 <em class="property"><span class="pre">exception</span> </em><span class="sig-name descname"><span class="pre">MultipleObjectsReturned</span></span><a class="headerlink" href="#kadi.events.models.Dump.MultipleObjectsReturned" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="kadi.events.models.Dump.get_extras">
+<em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">get_extras</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">event_msidset</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#Dump.get_extras"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.Dump.get_extras" title="Permalink to this definition">¶</a></dt>
+<dd><p>Define unload type</p>
+</dd></dl>
 
 </dd></dl>
 
@@ -2272,13 +2285,6 @@ or meta classes).</p>
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="kadi.events.models.import_ska">
-<span class="sig-prename descclassname"><span class="pre">kadi.events.models.</span></span><span class="sig-name descname"><span class="pre">import_ska</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">func</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#import_ska"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.import_ska" title="Permalink to this definition">¶</a></dt>
-<dd><p>Decorator to lazy import useful Ska functions.  Web app should not
-need to do this.</p>
-</dd></dl>
-
-<dl class="py function">
 <dt class="sig sig-object py" id="kadi.events.models.msidset_interpolate">
 <span class="sig-prename descclassname"><span class="pre">kadi.events.models.</span></span><span class="sig-name descname"><span class="pre">msidset_interpolate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">msidset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#msidset_interpolate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.msidset_interpolate" title="Permalink to this definition">¶</a></dt>
 <dd><p>Interpolate the <code class="docutils literal notranslate"><span class="pre">msidset</span></code> in-place to a common time basis, starting at <code class="docutils literal notranslate"><span class="pre">time0</span></code>
@@ -2627,6 +2633,81 @@ Date of the observation’s star catalog</p></li>
 </dl>
 </dd></dl>
 
+<span class="target" id="module-kadi.commands.utils"></span><dl class="py exception">
+<dt class="sig sig-object py" id="kadi.commands.utils.NoTelemetryError">
+<em class="property"><span class="pre">exception</span> </em><span class="sig-prename descclassname"><span class="pre">kadi.commands.utils.</span></span><span class="sig-name descname"><span class="pre">NoTelemetryError</span></span><a class="reference internal" href="_modules/kadi/commands/utils.html#NoTelemetryError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.commands.utils.NoTelemetryError" title="Permalink to this definition">¶</a></dt>
+<dd><p>No telemetry available for the specified interval</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="kadi.commands.utils.TimeSeriesChunk">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">kadi.commands.utils.</span></span><span class="sig-name descname"><span class="pre">TimeSeriesChunk</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">first</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#kadi.commands.utils.TimeSeriesPoint" title="kadi.commands.utils.TimeSeriesPoint"><span class="pre">kadi.commands.utils.TimeSeriesPoint</span></a></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#kadi.commands.utils.TimeSeriesPoint" title="kadi.commands.utils.TimeSeriesPoint"><span class="pre">kadi.commands.utils.TimeSeriesPoint</span></a></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#kadi.commands.utils.TimeSeriesPoint" title="kadi.commands.utils.TimeSeriesPoint"><span class="pre">kadi.commands.utils.TimeSeriesPoint</span></a></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">last</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#kadi.commands.utils.TimeSeriesPoint" title="kadi.commands.utils.TimeSeriesPoint"><span class="pre">kadi.commands.utils.TimeSeriesPoint</span></a></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/commands/utils.html#TimeSeriesChunk"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.commands.utils.TimeSeriesChunk" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="kadi.commands.utils.TimeSeriesPoint">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">kadi.commands.utils.</span></span><span class="sig-name descname"><span class="pre">TimeSeriesPoint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">time</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">val</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/commands/utils.html#TimeSeriesPoint"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.commands.utils.TimeSeriesPoint" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="kadi.commands.utils.add_figure_regions">
+<span class="sig-prename descclassname"><span class="pre">kadi.commands.utils.</span></span><span class="sig-name descname"><span class="pre">add_figure_regions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fig</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">plotly.graph_objs._figure.Figure</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figure_start</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">cxotime.cxotime.CxoTime</span><span class="p"><span class="pre">,</span> </span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">float</span><span class="p"><span class="pre">,</span> </span><span class="pre">int</span><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><span class="pre">numpy.ndarray</span></a><span class="p"><span class="pre">,</span> </span><span class="pre">complex</span><span class="p"><span class="pre">,</span> </span><span class="pre">bytes</span><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.generic" title="(in NumPy v1.24)"><span class="pre">numpy.generic</span></a><span class="p"><span class="pre">,</span> </span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span> </span><span class="pre">float</span><span class="p"><span class="pre">,</span> </span><span class="pre">complex</span><span class="p"><span class="pre">,</span> </span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">bytes</span><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.generic" title="(in NumPy v1.24)"><span class="pre">numpy.generic</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">numpy.typing._array_like._SupportsArray</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figure_stop</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">cxotime.cxotime.CxoTime</span><span class="p"><span class="pre">,</span> </span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">float</span><span class="p"><span class="pre">,</span> </span><span class="pre">int</span><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><span class="pre">numpy.ndarray</span></a><span class="p"><span class="pre">,</span> </span><span class="pre">complex</span><span class="p"><span class="pre">,</span> </span><span class="pre">bytes</span><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.generic" title="(in NumPy v1.24)"><span class="pre">numpy.generic</span></a><span class="p"><span class="pre">,</span> </span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span> </span><span class="pre">float</span><span class="p"><span class="pre">,</span> </span><span class="pre">complex</span><span class="p"><span class="pre">,</span> </span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">bytes</span><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.generic" title="(in NumPy v1.24)"><span class="pre">numpy.generic</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">numpy.typing._array_like._SupportsArray</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">region_starts</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">cxotime.cxotime.CxoTime</span><span class="p"><span class="pre">,</span> </span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">float</span><span class="p"><span class="pre">,</span> </span><span class="pre">int</span><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><span class="pre">numpy.ndarray</span></a><span class="p"><span class="pre">,</span> </span><span class="pre">complex</span><span class="p"><span class="pre">,</span> </span><span class="pre">bytes</span><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.generic" title="(in NumPy v1.24)"><span class="pre">numpy.generic</span></a><span class="p"><span class="pre">,</span> </span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span> </span><span class="pre">float</span><span class="p"><span class="pre">,</span> </span><span class="pre">complex</span><span class="p"><span class="pre">,</span> </span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">bytes</span><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.generic" title="(in NumPy v1.24)"><span class="pre">numpy.generic</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">numpy.typing._array_like._SupportsArray</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">region_stops</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">cxotime.cxotime.CxoTime</span><span class="p"><span class="pre">,</span> </span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">float</span><span class="p"><span class="pre">,</span> </span><span class="pre">int</span><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><span class="pre">numpy.ndarray</span></a><span class="p"><span class="pre">,</span> </span><span class="pre">complex</span><span class="p"><span class="pre">,</span> </span><span class="pre">bytes</span><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.generic" title="(in NumPy v1.24)"><span class="pre">numpy.generic</span></a><span class="p"><span class="pre">,</span> </span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span> </span><span class="pre">float</span><span class="p"><span class="pre">,</span> </span><span class="pre">complex</span><span class="p"><span class="pre">,</span> </span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">bytes</span><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.generic" title="(in NumPy v1.24)"><span class="pre">numpy.generic</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">numpy.typing._array_like._SupportsArray</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'black'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">opacity</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0.2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">line_width</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">3</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/commands/utils.html#add_figure_regions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.commands.utils.add_figure_regions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add regions to a figure with a date-based x-axis</p>
+<p><code class="docutils literal notranslate"><span class="pre">figure_start</span></code> and <code class="docutils literal notranslate"><span class="pre">figure_stop</span></code> are the start and stop times for the figure.
+<code class="docutils literal notranslate"><span class="pre">region_starts</span></code> and <code class="docutils literal notranslate"><span class="pre">region_stops</span></code> are lists of start/stop times for regions.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="kadi.commands.utils.fill_gaps_with_nan">
+<span class="sig-prename descclassname"><span class="pre">kadi.commands.utils.</span></span><span class="sig-name descname"><span class="pre">fill_gaps_with_nan</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">times</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vals</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_gap</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dt</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0.001</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/commands/utils.html#fill_gaps_with_nan"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.commands.utils.fill_gaps_with_nan" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fill gaps in <code class="docutils literal notranslate"><span class="pre">vals</span></code> with NaNs where gaps in <code class="docutils literal notranslate"><span class="pre">times</span></code> is more than <code class="docutils literal notranslate"><span class="pre">max_gap</span></code>.</p>
+<p>Do something like:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">times</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">21</span><span class="p">,</span> <span class="mi">22</span><span class="p">]</span>  <span class="o">=&gt;</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mf">2.001</span><span class="p">,</span> <span class="mf">19.999</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">21</span><span class="p">,</span> <span class="mi">22</span><span class="p">]</span>
+<span class="n">vals</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">]</span> <span class="o">=&gt;</span> <span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="n">NaN</span><span class="p">,</span> <span class="n">NaN</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">]</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>times</strong> – times</p></li>
+<li><p><strong>vals</strong> – values</p></li>
+<li><p><strong>max_gap</strong> – maximum gap in seconds</p></li>
+<li><p><strong>dt</strong> – time delta to use for filling gaps</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>times, vals with gaps filled with NaNs</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="kadi.commands.utils.get_ofp_states">
+<span class="sig-prename descclassname"><span class="pre">kadi.commands.utils.</span></span><span class="sig-name descname"><span class="pre">get_ofp_states</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stop</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">days</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/commands/utils.html#get_ofp_states"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.commands.utils.get_ofp_states" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the Onboard Flight Program states for <code class="docutils literal notranslate"><span class="pre">stop</span></code> and <code class="docutils literal notranslate"><span class="pre">days</span></code> lookback</p>
+<p>This is normally “NRML” but in safe mode it is “SAFE” or other values. State codes:
+[‘NNRM’ ‘STDB’ ‘STBS’ ‘NRML’ ‘NSTB’ ‘SUOF’ ‘SYON’ ‘DPLY’ ‘SYSF’ ‘STUP’ ‘SAFE’]</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="kadi.commands.utils.get_telem_values">
+<span class="sig-prename descclassname"><span class="pre">kadi.commands.utils.</span></span><span class="sig-name descname"><span class="pre">get_telem_values</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">msids</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stop</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">days</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">14</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">astropy.table.table.Table</span></span></span><a class="reference internal" href="_modules/kadi/commands/utils.html#get_telem_values"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.commands.utils.get_telem_values" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fetch last <code class="docutils literal notranslate"><span class="pre">days</span></code> of available <code class="docutils literal notranslate"><span class="pre">msids</span></code> telemetry values before
+time <code class="docutils literal notranslate"><span class="pre">tstart</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>msids</strong> – fetch msids list</p></li>
+<li><p><strong>stop</strong> – stop time for telemetry (CxoTime-like)</p></li>
+<li><p><strong>days</strong> – length of telemetry request before <code class="docutils literal notranslate"><span class="pre">tstart</span></code></p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Table of requested telemetry values from fetch</p>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 <section id="module-kadi.commands.states">
 <span id="command-states"></span><h2>Command states<a class="headerlink" href="#module-kadi.commands.states" title="Permalink to this headline">¶</a></h2>
@@ -2641,7 +2722,7 @@ based entirely on known history of commands.</p>
 ACIS FP setpoint temperature is <code class="docutils literal notranslate"><span class="pre">-&lt;number&gt;</span></code>.</p>
 <p><em>State keys</em>: acisfp_setpoint</p>
 <p><em>Commands</em>: type=ACISPKT</p>
-<p><em>Others</em>: default_value=-121.0, set_transitions=&lt;classmethod object at 0x7f1b215297c0&gt;</p>
+<p><em>Others</em>: default_value=-121.0, set_transitions=&lt;classmethod object at 0x7f0098130c40&gt;</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="kadi.commands.states.ACISFP_SetPointTransition.set_transitions">
 <em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">set_transitions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">transitions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stop</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/commands/states.html#ACISFP_SetPointTransition.set_transitions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.commands.states.ACISFP_SetPointTransition.set_transitions" title="Permalink to this definition">¶</a></dt>
@@ -2670,7 +2751,7 @@ ACIS FP setpoint temperature is <code class="docutils literal notranslate"><span
 <p>Implement transitions for ACIS states.</p>
 <p><em>State keys</em>: clocking, power_cmd, vid_board, fep_count, si_mode, ccd_count</p>
 <p><em>Commands</em>: type=ACISPKT</p>
-<p><em>Others</em>: set_transitions=&lt;classmethod object at 0x7f1b21529970&gt;</p>
+<p><em>Others</em>: set_transitions=&lt;classmethod object at 0x7f0098130c10&gt;</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="kadi.commands.states.ACISTransition.set_transitions">
 <em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">set_transitions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">transitions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stop</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/commands/states.html#ACISTransition.set_transitions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.commands.states.ACISTransition.set_transitions" title="Permalink to this definition">¶</a></dt>
@@ -2770,7 +2851,7 @@ or a list of required values (where at least one must match).</p>
 <p>Dither parameters</p>
 <p><em>State keys</em>: dither_phase_pitch, dither_phase_yaw, dither_ampl_pitch, dither_ampl_yaw, dither_period_pitch, dither_period_yaw</p>
 <p><em>Commands</em>: tlmsid=AODITPAR</p>
-<p><em>Others</em>: set_transitions=&lt;classmethod object at 0x7f1b21529b20&gt;</p>
+<p><em>Others</em>: set_transitions=&lt;classmethod object at 0x7f0098130dc0&gt;</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="kadi.commands.states.DitherParamsTransition.set_transitions">
 <em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">set_transitions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">transitions_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stop</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/commands/states.html#DitherParamsTransition.set_transitions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.commands.states.DitherParamsTransition.set_transitions" title="Permalink to this definition">¶</a></dt>
@@ -2860,7 +2941,7 @@ or a list of required values (where at least one must match).</p>
 processing.</p>
 <p><em>State keys</em>: ephem_update</p>
 <p><em>Commands</em>: tlmsid=AOEPHUPS</p>
-<p><em>Others</em>: set_transitions=&lt;classmethod object at 0x7f1b21529fa0&gt;</p>
+<p><em>Others</em>: set_transitions=&lt;classmethod object at 0x7f0098136370&gt;</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="kadi.commands.states.EphemerisUpdateTransition.set_transitions">
 <em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">set_transitions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">transitions_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stop</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/commands/states.html#EphemerisUpdateTransition.set_transitions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.commands.states.EphemerisUpdateTransition.set_transitions" title="Permalink to this definition">¶</a></dt>
@@ -3088,7 +3169,7 @@ perform attitude quaternion updated accordingly.  At the end of the maneuver it
 schedules a NPM transition if <code class="docutils literal notranslate"><span class="pre">auto_npnt</span></code> is enabled.</p>
 <p><em>State keys</em>: q1, q2, q3, q4, targ_q1, targ_q2, targ_q3, targ_q4, ra, dec, roll, auto_npnt, pcad_mode, pitch, off_nom_roll</p>
 <p><em>Commands</em>: tlmsid=AOMANUVR</p>
-<p><em>Others</em>: set_transitions=&lt;classmethod object at 0x7f1b215299a0&gt;, callback=&lt;classmethod object at 0x7f1b21529a00&gt;, add_manvr_transitions=&lt;classmethod object at 0x7f1b21529820&gt;</p>
+<p><em>Others</em>: set_transitions=&lt;classmethod object at 0x7f0098130bb0&gt;, callback=&lt;classmethod object at 0x7f0098130af0&gt;, add_manvr_transitions=&lt;classmethod object at 0x7f0098130a90&gt;</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="kadi.commands.states.ManeuverTransition.add_manvr_transitions">
 <em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">add_manvr_transitions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">date</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transitions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">state</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/commands/states.html#ManeuverTransition.add_manvr_transitions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.commands.states.ManeuverTransition.add_manvr_transitions" title="Permalink to this definition">¶</a></dt>
@@ -3184,7 +3265,7 @@ to a normal sun pointed attitude (based on a pure-pitch maneuver from
 current attitude).  It also changes <code class="docutils literal notranslate"><span class="pre">pcad_mode</span></code> to NSUN.</p>
 <p><em>State keys</em>: q1, q2, q3, q4, targ_q1, targ_q2, targ_q3, targ_q4, ra, dec, roll, auto_npnt, pcad_mode, pitch, off_nom_roll</p>
 <p><em>Commands</em>: tlmsid=AONSMSAF</p>
-<p><em>Others</em>: callback=&lt;classmethod object at 0x7f1b21529940&gt;</p>
+<p><em>Others</em>: callback=&lt;classmethod object at 0x7f00981309a0&gt;</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="kadi.commands.states.NormalSunTransition.callback">
 <em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">callback</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">date</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transitions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">state</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/commands/states.html#NormalSunTransition.callback"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.commands.states.NormalSunTransition.callback" title="Permalink to this definition">¶</a></dt>
@@ -3333,7 +3414,7 @@ Eclipse entry is event type ORBPOINT with TYPE=PENTRY or TYPE=LSPENTRY
 Eclipse exit is event type ORBPOINT with TYPE=PEXIT or TYPE=LSPEXIT</p>
 <p><em>State keys</em>: sun_pos_mon</p>
 <p><em>Commands</em>: type=ORBPOINT, event_type=PEXIT or LSPEXIT</p>
-<p><em>Others</em>: set_transitions=&lt;classmethod object at 0x7f1b2184e8e0&gt;</p>
+<p><em>Others</em>: set_transitions=&lt;classmethod object at 0x7f0098136880&gt;</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="kadi.commands.states.SPMEclipseEnableTransition.set_transitions">
 <em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">set_transitions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">transitions_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stop</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/commands/states.html#SPMEclipseEnableTransition.set_transitions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.commands.states.SPMEclipseEnableTransition.set_transitions" title="Permalink to this definition">¶</a></dt>
@@ -3447,7 +3528,7 @@ in the trans_keys attribute.</p>
 roll during NPNT.  These are function transitions which check to see that
 <code class="docutils literal notranslate"><span class="pre">pcad_mode</span> <span class="pre">==</span> <span class="pre">'NPNT'</span></code> before changing the pitch / off_nominal_roll.</p>
 <p><em>State keys</em>: q1, q2, q3, q4, targ_q1, targ_q2, targ_q3, targ_q4, ra, dec, roll, auto_npnt, pcad_mode, pitch, off_nom_roll</p>
-<p><em>Others</em>: set_transitions=&lt;classmethod object at 0x7f1b21529eb0&gt;, update_sun_vector_state=&lt;classmethod object at 0x7f1b21529f70&gt;</p>
+<p><em>Others</em>: set_transitions=&lt;classmethod object at 0x7f0098136400&gt;, update_sun_vector_state=&lt;classmethod object at 0x7f0098136580&gt;</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="kadi.commands.states.SunVectorTransition.set_transitions">
 <em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">set_transitions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">transitions_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stop</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/commands/states.html#SunVectorTransition.set_transitions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.commands.states.SunVectorTransition.set_transitions" title="Permalink to this definition">¶</a></dt>
@@ -3493,7 +3574,7 @@ roll during NPNT.  These are function transitions which check to see that
 <p>Commanded target quaternion</p>
 <p><em>State keys</em>: q1, q2, q3, q4, targ_q1, targ_q2, targ_q3, targ_q4, ra, dec, roll, auto_npnt, pcad_mode, pitch, off_nom_roll</p>
 <p><em>Commands</em>: type=MP_TARGQUAT</p>
-<p><em>Others</em>: set_transitions=&lt;classmethod object at 0x7f1b21529af0&gt;</p>
+<p><em>Others</em>: set_transitions=&lt;classmethod object at 0x7f0098130b80&gt;</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="kadi.commands.states.TargQuatTransition.set_transitions">
 <em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">set_transitions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">transitions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stop</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/commands/states.html#TargQuatTransition.set_transitions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.commands.states.TargQuatTransition.set_transitions" title="Permalink to this definition">¶</a></dt>
@@ -3622,7 +3703,7 @@ ACIS, PCAD, and mechanisms).</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="kadi.commands.states.get_states">
-<span class="sig-prename descclassname"><span class="pre">kadi.commands.states.</span></span><span class="sig-name descname"><span class="pre">get_states</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stop</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">state_keys</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">continuity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reduce</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">merge_identical</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scenario</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/commands/states.html#get_states"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.commands.states.get_states" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">kadi.commands.states.</span></span><span class="sig-name descname"><span class="pre">get_states</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stop</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">state_keys</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">continuity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reduce</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">merge_identical</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scenario</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">astropy.table.table.Table</span></span></span><a class="reference internal" href="_modules/kadi/commands/states.html#get_states"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.commands.states.get_states" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get table of states corresponding to intervals when <code class="docutils literal notranslate"><span class="pre">state_keys</span></code> parameters
 are unchanged given the input commands <code class="docutils literal notranslate"><span class="pre">cmds</span></code> or <code class="docutils literal notranslate"><span class="pre">start</span></code> date.</p>
 <p>If <code class="docutils literal notranslate"><span class="pre">state_keys</span></code> is <code class="docutils literal notranslate"><span class="pre">None</span></code> then the default keys
@@ -3716,7 +3797,7 @@ transitions.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="kadi.commands.states.reduce_states">
-<span class="sig-prename descclassname"><span class="pre">kadi.commands.states.</span></span><span class="sig-name descname"><span class="pre">reduce_states</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">states</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">state_keys</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">merge_identical</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">all_keys</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/commands/states.html#reduce_states"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.commands.states.reduce_states" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">kadi.commands.states.</span></span><span class="sig-name descname"><span class="pre">reduce_states</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">states</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">state_keys</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">merge_identical</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">all_keys</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">astropy.table.table.Table</span></span></span><a class="reference internal" href="_modules/kadi/commands/states.html#reduce_states"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.commands.states.reduce_states" title="Permalink to this definition">¶</a></dt>
 <dd><p>Reduce the input <code class="docutils literal notranslate"><span class="pre">states</span></code> so that only transitions in the <code class="docutils literal notranslate"><span class="pre">state_keys</span></code>
 are in the output.</p>
 <p>By default this also reduces the states table to only include
@@ -3740,10 +3821,240 @@ values will be merged.</p>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p>numpy recarray of reduced states</p>
+<dd class="field-even"><p>Table of reduced states</p>
 </dd>
 </dl>
 </dd></dl>
+
+</section>
+<section id="module-kadi.commands.validate">
+<span id="validation"></span><h2>Validation<a class="headerlink" href="#module-kadi.commands.validate" title="Permalink to this headline">¶</a></h2>
+<p>Validate kadi command states against telemetry.</p>
+<p>This is a set of classes that validate the kadi command states against
+Chandra telemetry.  The classes are designed to be run either standalone
+or from the command-line application <code class="docutils literal notranslate"><span class="pre">kadi_validate_states</span></code> (defined in
+<code class="docutils literal notranslate"><span class="pre">kadi.scripts.validate_states</span></code>).</p>
+<dl class="py exception">
+<dt class="sig sig-object py" id="kadi.commands.validate.NoTelemetryError">
+<em class="property"><span class="pre">exception</span> </em><span class="sig-prename descclassname"><span class="pre">kadi.commands.validate.</span></span><span class="sig-name descname"><span class="pre">NoTelemetryError</span></span><a class="reference internal" href="_modules/kadi/commands/utils.html#NoTelemetryError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.commands.validate.NoTelemetryError" title="Permalink to this definition">¶</a></dt>
+<dd><p>No telemetry available for the specified interval</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="kadi.commands.validate.PlotAttrs">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">kadi.commands.validate.</span></span><span class="sig-name descname"><span class="pre">PlotAttrs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ylabel</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">range</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">list</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_delta_time</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_delta_val</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_gap_time</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">300</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/commands/validate.html#PlotAttrs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.commands.validate.PlotAttrs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot attributes for a Validate subclass.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>title</strong> – (str): Plot title.</p></li>
+<li><p><strong>ylabel</strong> – (str): Y-axis label.</p></li>
+<li><p><strong>range</strong> – (list): Y-axis range (optional).</p></li>
+<li><p><strong>max_delta_time</strong> – (float): Maximum time delta before a new data point is plotted.</p></li>
+<li><p><strong>max_delta_val</strong> – (float): Maximum value delta before a new data point is plotted.</p></li>
+<li><p><strong>max_gap_time</strong> – (float): Maximum gap in time before a plot gap is inserted.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="kadi.commands.validate.Validate">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">kadi.commands.validate.</span></span><span class="sig-name descname"><span class="pre">Validate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stop</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">days</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">14</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">no_exclude</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/commands/validate.html#Validate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.commands.validate.Validate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Validate kadi command states against telemetry base class.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>state_name</strong> – (str): Name of state to validate.</p></li>
+<li><p><strong>stop</strong> – (CxoTime): Stop time.</p></li>
+<li><p><strong>days</strong> – (float): Number of days to validate.</p></li>
+<li><p><strong>state_keys_extra</strong> – (list): Extra state keys needed for validation.</p></li>
+<li><p><strong>plot_attrs</strong> – (PlotAttrs): Attributes for plot.</p></li>
+<li><p><strong>msids</strong> – (list): MSIDs to fetch for telemetry.</p></li>
+<li><p><strong>max_delta_val</strong> – (float): Maximum value delta to signal a violation.</p></li>
+<li><p><strong>max_gap</strong> – (float): Maximum gap in telemetry before breaking an interval (sec).</p></li>
+<li><p><strong>min_violation_duration</strong> – (float): Minimum duration of a violation (sec).</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="kadi.commands.validate.Validate.add_exclude_interval">
+<span class="sig-name descname"><span class="pre">add_exclude_interval</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">cxotime.cxotime.CxoTime</span><span class="p"><span class="pre">,</span> </span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">float</span><span class="p"><span class="pre">,</span> </span><span class="pre">int</span><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><span class="pre">numpy.ndarray</span></a><span class="p"><span class="pre">,</span> </span><span class="pre">complex</span><span class="p"><span class="pre">,</span> </span><span class="pre">bytes</span><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.generic" title="(in NumPy v1.24)"><span class="pre">numpy.generic</span></a><span class="p"><span class="pre">,</span> </span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span> </span><span class="pre">float</span><span class="p"><span class="pre">,</span> </span><span class="pre">complex</span><span class="p"><span class="pre">,</span> </span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">bytes</span><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.generic" title="(in NumPy v1.24)"><span class="pre">numpy.generic</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">numpy.typing._array_like._SupportsArray</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stop</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">cxotime.cxotime.CxoTime</span><span class="p"><span class="pre">,</span> </span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">float</span><span class="p"><span class="pre">,</span> </span><span class="pre">int</span><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><span class="pre">numpy.ndarray</span></a><span class="p"><span class="pre">,</span> </span><span class="pre">complex</span><span class="p"><span class="pre">,</span> </span><span class="pre">bytes</span><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.generic" title="(in NumPy v1.24)"><span class="pre">numpy.generic</span></a><span class="p"><span class="pre">,</span> </span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span> </span><span class="pre">float</span><span class="p"><span class="pre">,</span> </span><span class="pre">complex</span><span class="p"><span class="pre">,</span> </span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">bytes</span><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.generic" title="(in NumPy v1.24)"><span class="pre">numpy.generic</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">numpy.typing._array_like._SupportsArray</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">comment</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pad_start</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">astropy.units.quantity.Quantity</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pad_stop</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">astropy.units.quantity.Quantity</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'Auto-generated'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/commands/validate.html#Validate.add_exclude_interval"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.commands.validate.Validate.add_exclude_interval" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add an interval to the exclude_intervals table</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">start</span></code> / <code class="docutils literal notranslate"><span class="pre">stop</span></code> times are padded by <code class="docutils literal notranslate"><span class="pre">pad_start</span></code> and
+<code class="docutils literal notranslate"><span class="pre">pad_stop</span></code> (which are a Quantity objects with time units).</p>
+<p><code class="docutils literal notranslate"><span class="pre">manual</span></code> is a boolean that is used to indicate whether the interval was
+manually specified in the command sheet. Non-manual intervals are annotated
+in the table accordingly.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="kadi.commands.validate.Validate.add_exclude_intervals">
+<span class="sig-name descname"><span class="pre">add_exclude_intervals</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/commands/validate.html#Validate.add_exclude_intervals"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.commands.validate.Validate.add_exclude_intervals" title="Permalink to this definition">¶</a></dt>
+<dd><p>Base method to exclude intervals, starting with intervals defined in the
+Chandra Command Events Google Sheet.</p>
+<p>This method gets called at the end of self.tlm.</p>
+<p>Subclasses can override this method to add additional intervals to exclude,
+making sure to call super().add_exclude_intervals() first.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="kadi.commands.validate.Validate.exclude_intervals">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">exclude_intervals</span></span><a class="headerlink" href="#kadi.commands.validate.Validate.exclude_intervals" title="Permalink to this definition">¶</a></dt>
+<dd><p>Intervals that are excluded from state validation.</p>
+<p>This includes manually excluded times from the Command Events sheet
+(e.g. within a few minutes of an IU-reset), or auto-generated
+state-specific intervals like not validating pitch when in NMM.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="kadi.commands.validate.Validate.exclude_ofp_intervals_except">
+<span class="sig-name descname"><span class="pre">exclude_ofp_intervals_except</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">states_expected</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/commands/validate.html#Validate.exclude_ofp_intervals_except"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.commands.validate.Validate.exclude_ofp_intervals_except" title="Permalink to this definition">¶</a></dt>
+<dd><p>Exclude intervals where OFP (on-board flight program) is not in the expected
+state.</p>
+<p>This includes a padding of 30 minutes after SAFE mode and 5 minutes for non-NRML
+states other than SAFE like STUP, SYON, SYSF etc.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="kadi.commands.validate.Validate.exclude_srdc_intervals">
+<span class="sig-name descname"><span class="pre">exclude_srdc_intervals</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/commands/validate.html#Validate.exclude_srdc_intervals"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.commands.validate.Validate.exclude_srdc_intervals" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check for SRDC’s and exclude them from validation.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="kadi.commands.validate.Validate.get_context">
+<span class="sig-name descname"><span class="pre">get_context</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="reference internal" href="_modules/kadi/commands/validate.html#Validate.get_context"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.commands.validate.Validate.get_context" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the standard context for a jinja2 template.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="kadi.commands.validate.Validate.get_html">
+<span class="sig-name descname"><span class="pre">get_html</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">template_text</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="_modules/kadi/commands/validate.html#Validate.get_html"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.commands.validate.Validate.get_html" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get HTML for validator including section header, violations, and plot</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>context</strong> – optional dict of context for jinja2 template</p></li>
+<li><p><strong>template_text</strong> – optional Jinja2 template text</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>HTML string</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="kadi.commands.validate.Validate.get_violations">
+<span class="sig-name descname"><span class="pre">get_violations</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">astropy.table.table.Table</span></span></span><a class="reference internal" href="_modules/kadi/commands/validate.html#Validate.get_violations"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.commands.validate.Validate.get_violations" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the violations mask for this validation class</p>
+<p>This is the main method for each validation class. It returns a Table
+with the columns <code class="docutils literal notranslate"><span class="pre">start</span></code> and <code class="docutils literal notranslate"><span class="pre">stop</span></code> which are date strings.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="kadi.commands.validate.Validate.get_violations_mask">
+<span class="sig-name descname"><span class="pre">get_violations_mask</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><span class="pre">numpy.ndarray</span></a></span></span><a class="reference internal" href="_modules/kadi/commands/validate.html#Validate.get_violations_mask"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.commands.validate.Validate.get_violations_mask" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the violations mask for this validation class</p>
+<p>This is the default implementation for most validation classes which just checks
+that the telemetry value is within <code class="docutils literal notranslate"><span class="pre">max_delta_val</span></code> of the state value.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="kadi.commands.validate.Validate.msid">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">msid</span></span><a class="headerlink" href="#kadi.commands.validate.Validate.msid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Validate classes have first MSID as primary telemetry. Override as needed.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="kadi.commands.validate.Validate.states_at_times">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">states_at_times</span></span><a class="headerlink" href="#kadi.commands.validate.Validate.states_at_times" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the states that correspond to the telemetry times</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="kadi.commands.validate.Validate.tlm_vals">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">tlm_vals</span></span><a class="headerlink" href="#kadi.commands.validate.Validate.tlm_vals" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the reference telemetry value for this Validation subclass</p>
+<p>That means the quantity derived from telemetry that gets compared to
+the states that come from kadi commands. This might be a single MSID
+(e.g. for pitch) or it might be something more complicated (e.g. for
+pointing which comes from 3 quaternion components).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="kadi.commands.validate.Validate.update_tlm">
+<span class="sig-name descname"><span class="pre">update_tlm</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/commands/validate.html#Validate.update_tlm"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.commands.validate.Validate.update_tlm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update the telemetry values with any subclass-specific processing</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="kadi.commands.validate.ValidateDither">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">kadi.commands.validate.</span></span><span class="sig-name descname"><span class="pre">ValidateDither</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stop</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">days</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">14</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">no_exclude</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/commands/validate.html#ValidateDither"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.commands.validate.ValidateDither" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="py method">
+<dt class="sig sig-object py" id="kadi.commands.validate.ValidateDither.add_exclude_intervals">
+<span class="sig-name descname"><span class="pre">add_exclude_intervals</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/commands/validate.html#ValidateDither.add_exclude_intervals"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.commands.validate.ValidateDither.add_exclude_intervals" title="Permalink to this definition">¶</a></dt>
+<dd><p>Base method to exclude intervals, starting with intervals defined in the
+Chandra Command Events Google Sheet.</p>
+<p>This method gets called at the end of self.tlm.</p>
+<p>Subclasses can override this method to add additional intervals to exclude,
+making sure to call super().add_exclude_intervals() first.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="kadi.commands.validate.ValidateHETG">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">kadi.commands.validate.</span></span><span class="sig-name descname"><span class="pre">ValidateHETG</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stop</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">days</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">14</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">no_exclude</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/commands/validate.html#ValidateHETG"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.commands.validate.ValidateHETG" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="kadi.commands.validate.ValidateLETG">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">kadi.commands.validate.</span></span><span class="sig-name descname"><span class="pre">ValidateLETG</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stop</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">days</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">14</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">no_exclude</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/commands/validate.html#ValidateLETG"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.commands.validate.ValidateLETG" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="kadi.commands.validate.ValidateObsid">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">kadi.commands.validate.</span></span><span class="sig-name descname"><span class="pre">ValidateObsid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stop</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">days</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">14</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">no_exclude</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/commands/validate.html#ValidateObsid"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.commands.validate.ValidateObsid" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="kadi.commands.validate.ValidatePcadMode">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">kadi.commands.validate.</span></span><span class="sig-name descname"><span class="pre">ValidatePcadMode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stop</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">days</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">14</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">no_exclude</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/commands/validate.html#ValidatePcadMode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.commands.validate.ValidatePcadMode" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="py method">
+<dt class="sig sig-object py" id="kadi.commands.validate.ValidatePcadMode.add_exclude_intervals">
+<span class="sig-name descname"><span class="pre">add_exclude_intervals</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/commands/validate.html#ValidatePcadMode.add_exclude_intervals"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.commands.validate.ValidatePcadMode.add_exclude_intervals" title="Permalink to this definition">¶</a></dt>
+<dd><p>Base method to exclude intervals, starting with intervals defined in the
+Chandra Command Events Google Sheet.</p>
+<p>This method gets called at the end of self.tlm.</p>
+<p>Subclasses can override this method to add additional intervals to exclude,
+making sure to call super().add_exclude_intervals() first.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="kadi.commands.validate.ValidatePitch">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">kadi.commands.validate.</span></span><span class="sig-name descname"><span class="pre">ValidatePitch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stop</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">days</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">14</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">no_exclude</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/commands/validate.html#ValidatePitch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.commands.validate.ValidatePitch" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="kadi.commands.validate.ValidateRoll">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">kadi.commands.validate.</span></span><span class="sig-name descname"><span class="pre">ValidateRoll</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stop</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">days</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">14</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">no_exclude</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/commands/validate.html#ValidateRoll"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.commands.validate.ValidateRoll" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="kadi.commands.validate.ValidateSimpos">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">kadi.commands.validate.</span></span><span class="sig-name descname"><span class="pre">ValidateSimpos</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stop</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">days</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">14</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">no_exclude</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/commands/validate.html#ValidateSimpos"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.commands.validate.ValidateSimpos" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 </section>
 </section>
@@ -3764,6 +4075,7 @@ values will be merged.</p>
 <li><a class="reference internal" href="#module-kadi.events.query">Event queries</a></li>
 <li><a class="reference internal" href="#module-kadi.commands.commands">Commands</a></li>
 <li><a class="reference internal" href="#module-kadi.commands.states">Command states</a></li>
+<li><a class="reference internal" href="#module-kadi.commands.validate">Validation</a></li>
 </ul>
 </li>
 </ul>

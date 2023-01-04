@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-    <title>Event Descriptions &#8212; kadi 7.1.0 documentation</title>
+    <title>Event Descriptions &#8212; kadi 7.2.0 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/bootstrap-astropy.css" />
     <link rel="stylesheet" type="text/css" href="_static/plot_directive.css" />
@@ -61,7 +61,7 @@
 	 |
       </li>
       <li>
-	<a href="index.html">kadi 7.1.0 documentation</a>
+	<a href="index.html">kadi 7.2.0 documentation</a>
 	 &#187;
       </li>
       
@@ -180,6 +180,10 @@ within one day are joined together to a single calibration event.</p>
 <td><p>Float</p></td>
 <td><p>Duration (secs)</p></td>
 </tr>
+<tr class="row-odd"><td><p>obsid</p></td>
+<td><p>Integer</p></td>
+<td><p>Observation ID (COBSRQID)</p></td>
+</tr>
 </tbody>
 </table>
 </section>
@@ -220,6 +224,10 @@ within one day are joined together to a single calibration event.</p>
 <tr class="row-even"><td><p>dur</p></td>
 <td><p>Float</p></td>
 <td><p>Duration (secs)</p></td>
+</tr>
+<tr class="row-odd"><td><p>obsid</p></td>
+<td><p>Integer</p></td>
+<td><p>Observation ID (COBSRQID)</p></td>
 </tr>
 </tbody>
 </table>
@@ -315,15 +323,15 @@ within one day are joined together to a single calibration event.</p>
 </tbody>
 </table>
 </section>
-<section id="ground-commanded-momentum-dump">
-<span id="event-dump"></span><h2>Ground commanded momentum dump<a class="headerlink" href="#ground-commanded-momentum-dump" title="Permalink to this headline">¶</a></h2>
-<p><strong>Event definition</strong>: interval where <code class="docutils literal notranslate"><span class="pre">AOUNLOAD</span> <span class="pre">=</span> <span class="pre">GRND</span></code></p>
+<section id="momentum-unload-either-ground-commanded-or-autonomous">
+<span id="event-dump"></span><h2>Momentum unload either ground commanded or autonomous<a class="headerlink" href="#momentum-unload-either-ground-commanded-or-autonomous" title="Permalink to this headline">¶</a></h2>
+<p><strong>Event definition</strong>: interval where <code class="docutils literal notranslate"><span class="pre">AOUNLOAD</span> <span class="pre">=</span> <span class="pre">GRND</span></code> or <code class="docutils literal notranslate"><span class="pre">AOUNLOAD</span> <span class="pre">=</span> <span class="pre">AUTO</span></code></p>
 <p><strong>Fields</strong></p>
 <table class="docutils align-default">
 <colgroup>
-<col style="width: 16%" />
-<col style="width: 20%" />
-<col style="width: 64%" />
+<col style="width: 15%" />
+<col style="width: 19%" />
+<col style="width: 65%" />
 </colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>Field</p></th>
@@ -351,6 +359,14 @@ within one day are joined together to a single calibration event.</p>
 <tr class="row-even"><td><p>dur</p></td>
 <td><p>Float</p></td>
 <td><p>Duration (secs)</p></td>
+</tr>
+<tr class="row-odd"><td><p>obsid</p></td>
+<td><p>Integer</p></td>
+<td><p>Observation ID (COBSRQID)</p></td>
+</tr>
+<tr class="row-even"><td><p>type</p></td>
+<td><p>Char(4)</p></td>
+<td><p>Momentum unload type (GRND AUTO)</p></td>
 </tr>
 </tbody>
 </table>
@@ -461,6 +477,10 @@ window commanding or multiple acquisition attempts).</p>
 <td><p>Float</p></td>
 <td><p>Duration (secs)</p></td>
 </tr>
+<tr class="row-odd"><td><p>obsid</p></td>
+<td><p>Integer</p></td>
+<td><p>Observation ID (COBSRQID)</p></td>
+</tr>
 </tbody>
 </table>
 </section>
@@ -501,11 +521,15 @@ window commanding or multiple acquisition attempts).</p>
 <td><p>Float</p></td>
 <td><p>Duration (secs)</p></td>
 </tr>
-<tr class="row-odd"><td><p>start_3fapos</p></td>
+<tr class="row-odd"><td><p>obsid</p></td>
+<td><p>Integer</p></td>
+<td><p>Observation ID (COBSRQID)</p></td>
+</tr>
+<tr class="row-even"><td><p>start_3fapos</p></td>
 <td><p>Integer</p></td>
 <td><p>Start FA position (steps)</p></td>
 </tr>
-<tr class="row-even"><td><p>stop_3fapos</p></td>
+<tr class="row-odd"><td><p>stop_3fapos</p></td>
 <td><p>Integer</p></td>
 <td><p>Stop FA position (steps)</p></td>
 </tr>
@@ -555,27 +579,31 @@ where no grating motion is seen.  These have grating=UNKN (unknown).</p>
 <td><p>Float</p></td>
 <td><p>Duration (secs)</p></td>
 </tr>
-<tr class="row-odd"><td><p>start_4lposaro</p></td>
+<tr class="row-odd"><td><p>obsid</p></td>
+<td><p>Integer</p></td>
+<td><p>Observation ID (COBSRQID)</p></td>
+</tr>
+<tr class="row-even"><td><p>start_4lposaro</p></td>
 <td><p>Float</p></td>
 <td><p>Start LETG position (degrees)</p></td>
 </tr>
-<tr class="row-even"><td><p>stop_4lposaro</p></td>
+<tr class="row-odd"><td><p>stop_4lposaro</p></td>
 <td><p>Float</p></td>
 <td><p>Stop LETG position (degrees)</p></td>
 </tr>
-<tr class="row-odd"><td><p>start_4hposaro</p></td>
+<tr class="row-even"><td><p>start_4hposaro</p></td>
 <td><p>Float</p></td>
 <td><p>Start HETG position (degrees)</p></td>
 </tr>
-<tr class="row-even"><td><p>stop_4hposaro</p></td>
+<tr class="row-odd"><td><p>stop_4hposaro</p></td>
 <td><p>Float</p></td>
 <td><p>Stop HETG position (degrees)</p></td>
 </tr>
-<tr class="row-odd"><td><p>grating</p></td>
+<tr class="row-even"><td><p>grating</p></td>
 <td><p>Char(4)</p></td>
 <td><p>Grating in motion (UNKN LETG HETG BUMP)</p></td>
 </tr>
-<tr class="row-even"><td><p>direction</p></td>
+<tr class="row-odd"><td><p>direction</p></td>
 <td><p>Char(4)</p></td>
 <td><p>Grating direction (UNKN INSR RETR)</p></td>
 </tr>
@@ -815,123 +843,127 @@ to the start of the next maneuver:</p>
 <td><p>Float</p></td>
 <td><p>Duration (secs)</p></td>
 </tr>
-<tr class="row-odd"><td><p>prev_manvr_stop</p></td>
+<tr class="row-odd"><td><p>obsid</p></td>
+<td><p>Integer</p></td>
+<td><p>Observation ID (COBSRQID)</p></td>
+</tr>
+<tr class="row-even"><td><p>prev_manvr_stop</p></td>
 <td><p>Char(21)</p></td>
 <td><p>Stop time of previous AOFATTMD=MNVR before manvr</p></td>
 </tr>
-<tr class="row-even"><td><p>prev_npnt_start</p></td>
+<tr class="row-odd"><td><p>prev_npnt_start</p></td>
 <td><p>Char(21)</p></td>
 <td><p>Start time of previous AOPCADMD=NPNT before manvr</p></td>
 </tr>
-<tr class="row-odd"><td><p>nman_start</p></td>
+<tr class="row-even"><td><p>nman_start</p></td>
 <td><p>Char(21)</p></td>
 <td><p>Start time of AOPCADMD=NMAN for manvr</p></td>
 </tr>
-<tr class="row-even"><td><p>manvr_start</p></td>
+<tr class="row-odd"><td><p>manvr_start</p></td>
 <td><p>Char(21)</p></td>
 <td><p>Start time of AOFATTMD=MNVR for manvr</p></td>
 </tr>
-<tr class="row-odd"><td><p>manvr_stop</p></td>
+<tr class="row-even"><td><p>manvr_stop</p></td>
 <td><p>Char(21)</p></td>
 <td><p>Stop time of AOFATTMD=MNVR for manvr</p></td>
 </tr>
-<tr class="row-even"><td><p>npnt_start</p></td>
+<tr class="row-odd"><td><p>npnt_start</p></td>
 <td><p>Char(21)</p></td>
 <td><p>Start time of AOPCADMD=NPNT after manvr</p></td>
 </tr>
-<tr class="row-odd"><td><p>acq_start</p></td>
+<tr class="row-even"><td><p>acq_start</p></td>
 <td><p>Char(21)</p></td>
 <td><p>Start time of AOACASEQ=AQXN after manvr</p></td>
 </tr>
-<tr class="row-even"><td><p>guide_start</p></td>
+<tr class="row-odd"><td><p>guide_start</p></td>
 <td><p>Char(21)</p></td>
 <td><p>Start time of AOACASEQ=GUID after manvr</p></td>
 </tr>
-<tr class="row-odd"><td><p>kalman_start</p></td>
+<tr class="row-even"><td><p>kalman_start</p></td>
 <td><p>Char(21)</p></td>
 <td><p>Start time of AOACASEQ=KALM after manvr</p></td>
 </tr>
-<tr class="row-even"><td><p>aca_proc_act_start</p></td>
+<tr class="row-odd"><td><p>aca_proc_act_start</p></td>
 <td><p>Char(21)</p></td>
 <td><p>Start time of AOPSACPR=ACT after manvr</p></td>
 </tr>
-<tr class="row-odd"><td><p>npnt_stop</p></td>
+<tr class="row-even"><td><p>npnt_stop</p></td>
 <td><p>Char(21)</p></td>
 <td><p>Stop time of AOPCADMD=NPNT after manvr</p></td>
 </tr>
-<tr class="row-even"><td><p>next_nman_start</p></td>
+<tr class="row-odd"><td><p>next_nman_start</p></td>
 <td><p>Char(21)</p></td>
 <td><p>Start time of next AOPCADMD=NMAN after manvr</p></td>
 </tr>
-<tr class="row-odd"><td><p>next_manvr_start</p></td>
+<tr class="row-even"><td><p>next_manvr_start</p></td>
 <td><p>Char(21)</p></td>
 <td><p>Start time of next AOFATTMD=MNVR after manvr</p></td>
 </tr>
-<tr class="row-even"><td><p>n_dwell</p></td>
+<tr class="row-odd"><td><p>n_dwell</p></td>
 <td><p>Integer</p></td>
 <td><p>Number of kalman dwells after manvr and before next manvr</p></td>
 </tr>
-<tr class="row-odd"><td><p>n_acq</p></td>
+<tr class="row-even"><td><p>n_acq</p></td>
 <td><p>Integer</p></td>
 <td><p>Number of AQXN intervals after manvr and before next manvr</p></td>
 </tr>
-<tr class="row-even"><td><p>n_guide</p></td>
+<tr class="row-odd"><td><p>n_guide</p></td>
 <td><p>Integer</p></td>
 <td><p>Number of GUID intervals after manvr and before next manvr</p></td>
 </tr>
-<tr class="row-odd"><td><p>n_kalman</p></td>
+<tr class="row-even"><td><p>n_kalman</p></td>
 <td><p>Integer</p></td>
 <td><p>Number of KALM intervals after manvr and before next manvr</p></td>
 </tr>
-<tr class="row-even"><td><p>anomalous</p></td>
+<tr class="row-odd"><td><p>anomalous</p></td>
 <td><p>Boolean</p></td>
 <td><p>Key MSID shows off-nominal value</p></td>
 </tr>
-<tr class="row-odd"><td><p>template</p></td>
+<tr class="row-even"><td><p>template</p></td>
 <td><p>Char(16)</p></td>
 <td><p>Matched maneuver template</p></td>
 </tr>
-<tr class="row-even"><td><p>start_ra</p></td>
+<tr class="row-odd"><td><p>start_ra</p></td>
 <td><p>Float</p></td>
 <td><p>Start right ascension before manvr</p></td>
 </tr>
-<tr class="row-odd"><td><p>start_dec</p></td>
+<tr class="row-even"><td><p>start_dec</p></td>
 <td><p>Float</p></td>
 <td><p>Start declination before manvr</p></td>
 </tr>
-<tr class="row-even"><td><p>start_roll</p></td>
+<tr class="row-odd"><td><p>start_roll</p></td>
 <td><p>Float</p></td>
 <td><p>Start roll angle before manvr</p></td>
 </tr>
-<tr class="row-odd"><td><p>stop_ra</p></td>
+<tr class="row-even"><td><p>stop_ra</p></td>
 <td><p>Float</p></td>
 <td><p>Stop right ascension after manvr</p></td>
 </tr>
-<tr class="row-even"><td><p>stop_dec</p></td>
+<tr class="row-odd"><td><p>stop_dec</p></td>
 <td><p>Float</p></td>
 <td><p>Stop declination after manvr</p></td>
 </tr>
-<tr class="row-odd"><td><p>stop_roll</p></td>
+<tr class="row-even"><td><p>stop_roll</p></td>
 <td><p>Float</p></td>
 <td><p>Stop roll angle after manvr</p></td>
 </tr>
-<tr class="row-even"><td><p>angle</p></td>
+<tr class="row-odd"><td><p>angle</p></td>
 <td><p>Float</p></td>
 <td><p>Maneuver angle (deg)</p></td>
 </tr>
-<tr class="row-odd"><td><p>one_shot</p></td>
+<tr class="row-even"><td><p>one_shot</p></td>
 <td><p>Float</p></td>
 <td><p>One shot attitude update (arcsec)</p></td>
 </tr>
-<tr class="row-even"><td><p>one_shot_roll</p></td>
+<tr class="row-odd"><td><p>one_shot_roll</p></td>
 <td><p>Float</p></td>
 <td><p>One shot attitude update roll (arcsec)</p></td>
 </tr>
-<tr class="row-odd"><td><p>one_shot_pitch</p></td>
+<tr class="row-even"><td><p>one_shot_pitch</p></td>
 <td><p>Float</p></td>
 <td><p>One shot attitude update pitch (arcsec)</p></td>
 </tr>
-<tr class="row-even"><td><p>one_shot_yaw</p></td>
+<tr class="row-odd"><td><p>one_shot_yaw</p></td>
 <td><p>Float</p></td>
 <td><p>One shot attitude update yaw (arcsec)</p></td>
 </tr>
@@ -1074,6 +1106,10 @@ so NormalSun events within 4 hours of each other are merged.</p>
 <tr class="row-even"><td><p>dur</p></td>
 <td><p>Float</p></td>
 <td><p>Duration (secs)</p></td>
+</tr>
+<tr class="row-odd"><td><p>obsid</p></td>
+<td><p>Integer</p></td>
+<td><p>Observation ID (COBSRQID)</p></td>
 </tr>
 </tbody>
 </table>
@@ -1445,7 +1481,11 @@ following are True:</p>
 <td><p>Float</p></td>
 <td><p>Duration (secs)</p></td>
 </tr>
-<tr class="row-odd"><td><p>notes</p></td>
+<tr class="row-odd"><td><p>obsid</p></td>
+<td><p>Integer</p></td>
+<td><p>Observation ID (COBSRQID)</p></td>
+</tr>
+<tr class="row-even"><td><p>notes</p></td>
 <td><p>Text</p></td>
 <td></td>
 </tr>
@@ -1499,7 +1539,11 @@ SCS107 events within 600 seconds are combined into a single event.</p>
 <td><p>Float</p></td>
 <td><p>Duration (secs)</p></td>
 </tr>
-<tr class="row-odd"><td><p>notes</p></td>
+<tr class="row-odd"><td><p>obsid</p></td>
+<td><p>Integer</p></td>
+<td><p>Observation ID (COBSRQID)</p></td>
+</tr>
+<tr class="row-even"><td><p>notes</p></td>
 <td><p>Text</p></td>
 <td><p>Supplemental notes</p></td>
 </tr>
@@ -1547,23 +1591,27 @@ the stop time + 66 seconds) is also included.</p>
 <td><p>Float</p></td>
 <td><p>Duration (secs)</p></td>
 </tr>
-<tr class="row-odd"><td><p>start_3tscpos</p></td>
+<tr class="row-odd"><td><p>obsid</p></td>
+<td><p>Integer</p></td>
+<td><p>Observation ID (COBSRQID)</p></td>
+</tr>
+<tr class="row-even"><td><p>start_3tscpos</p></td>
 <td><p>Integer</p></td>
 <td><p>Start TSC position (steps)</p></td>
 </tr>
-<tr class="row-even"><td><p>stop_3tscpos</p></td>
+<tr class="row-odd"><td><p>stop_3tscpos</p></td>
 <td><p>Integer</p></td>
 <td><p>Stop TSC position (steps)</p></td>
 </tr>
-<tr class="row-odd"><td><p>start_det</p></td>
+<tr class="row-even"><td><p>start_det</p></td>
 <td><p>Char(6)</p></td>
 <td><p>Start detector (ACIS-I ACIS-S HRC-I HRC-S)</p></td>
 </tr>
-<tr class="row-even"><td><p>stop_det</p></td>
+<tr class="row-odd"><td><p>stop_det</p></td>
 <td><p>Char(6)</p></td>
 <td><p>Stop detector (ACIS-I ACIS-S HRC-I HRC-S)</p></td>
 </tr>
-<tr class="row-odd"><td><p>max_pwm</p></td>
+<tr class="row-even"><td><p>max_pwm</p></td>
 <td><p>Integer</p></td>
 <td><p>Max PWM during translation</p></td>
 </tr>
@@ -1588,7 +1636,7 @@ the stop time + 66 seconds) is also included.</p>
 <li><a class="reference internal" href="#aca-dark-current-calibration-event">ACA dark current calibration event</a></li>
 <li><a class="reference internal" href="#aca-dark-current-calibration-replica">ACA dark current calibration replica</a></li>
 <li><a class="reference internal" href="#dsn-comm-period">DSN comm period</a></li>
-<li><a class="reference internal" href="#ground-commanded-momentum-dump">Ground commanded momentum dump</a></li>
+<li><a class="reference internal" href="#momentum-unload-either-ground-commanded-or-autonomous">Momentum unload either ground commanded or autonomous</a></li>
 <li><a class="reference internal" href="#dwell-in-kalman-mode">Dwell in Kalman mode</a></li>
 <li><a class="reference internal" href="#eclipse">Eclipse</a></li>
 <li><a class="reference internal" href="#sim-fa-translation">SIM FA translation</a></li>
