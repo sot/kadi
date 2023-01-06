@@ -45,18 +45,38 @@ To update the format of an existing event type, drop table(s)::
 Migrations
 ----------
 
+Remake initial migrations
+^^^^^^^^^^^^^^^^^^^^^^^^^
 Remove any existing migrations and remake from the CURRENT RELEASE version of code.
 ::
 
+    git checkout <current_release>
     rm -rf kadi/events/migrations
     ./manage.py makemigrations events
     ./manage.py migrate --fake events
 
 Switch to a new branch and edit or add new model in kadi/events/models.py
 
+Updating existing event
+^^^^^^^^^^^^^^^^^^^^^^^
+For an existing event you need to remove the migration that says to create the model.
+Otherwise Django wants to update the table in place instead of creating it fresh.
+For kadi events it is just easier to delete the old one and create a new table.
+
+Now edit ``kadi/events/migrations/0001_initial.py`` to remove the model class definition
+for the model being updated. Look for something like below and delete it::
+
+        migrations.CreateModel(
+            name='Eclipse',
+            ...
+        ),
+
+Make a new migration
+^^^^^^^^^^^^^^^^^^^^
 With the new or updated model class definition, apply the migration process. This should
 indicate adding the new/updated event type::
 
+    git switch <new_branch>
     ./manage.py makemigrations events
     ./manage.py migrate events
 
@@ -66,7 +86,7 @@ Populate database
 Now add the new event data to the database::
 
     export ModelClassName=<model_class_name>
-    python -m kadi.update_events --start=1999:200 --stop=2001:001 --model=${ModelClassName}
+    python -m kadi.scripts.update_events --start=1999:200 --stop=2001:001 --model=${ModelClassName}
 
 Update early events first and look for warnings.  Also confirm that the first event
 matches what is in the current database unless a change is intended.
@@ -76,7 +96,7 @@ Probably not needed for events that rely on only one event MSID.
 
 Now populate the rest of the table events::
 
-    python -m kadi.update_events --start=2001:001 --model=${ModelClassName}
+    python -m kadi.scripts.update_events --start=2001:001 --model=${ModelClassName}
 
 Test
 ----
