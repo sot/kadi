@@ -24,23 +24,21 @@ def get_opt(args=None):
     parser.add_argument(
         "--start",
         default=None,
-        help=(
-            "Processing start date (loops by --loop-days " "until --stop date if set)"
-        ),
+        help="Processing start date (loops by --loop-days until --stop date if set)",
     )
     parser.add_argument(
         "--delete-from-start",
         action="store_true",
-        help=("Delete events after --start and reset update time to --start"),
+        help="Delete events after --start and reset update time to --start",
     )
     parser.add_argument(
         "--loop-days",
         default=100,
         type=int,
-        help=("Number of days in interval for looping (default=100)"),
+        help="Number of days in interval for looping (default=100)",
     )
     parser.add_argument(
-        "--log-level", type=int, default=pyyaks.logger.INFO, help=("Logging level")
+        "--log-level", type=int, default=pyyaks.logger.INFO, help="Logging level"
     )
     parser.add_argument(
         "--model",

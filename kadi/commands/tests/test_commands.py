@@ -411,6 +411,7 @@ def test_get_cmds_v2_recent_only(stop_date_2020_12_03):
     cmds = cmds[cmds["tlmsid"] != "OBS"]
     assert len(cmds) == 1523
     assert np.all(cmds["idx"] == -1)
+    # fmt: off
     assert cmds[:5].pformat_like_backstop() == [
         "2020:336:00:08:38.610 | COMMAND_HW       | CNOOP      | NOV3020A | hex=7E00000, msid=CNOOPLR, scs=128",  # noqa
         "2020:336:00:08:39.635 | COMMAND_HW       | CNOOP      | NOV3020A | hex=7E00000, msid=CNOOPLR, scs=128",  # noqa
@@ -425,7 +426,7 @@ def test_get_cmds_v2_recent_only(stop_date_2020_12_03):
         "2020:342:06:04:34.287 | COMMAND_SW       | COSCSEND   | NOV3020A | hex=C800000, msid=OBC_END_SCS, scs=133",  # noqa
         "2020:342:06:04:34.287 | LOAD_EVENT       | None       | NOV3020A | event_type=SCHEDULED_STOP_TIME, scs=0",  # noqa
     ]
-
+    # fmt: on
     # Same for no stop date
     cmds = commands_v2.get_cmds(start="2020-12-01", stop=None)
     cmds = cmds[cmds["tlmsid"] != "OBS"]
@@ -540,10 +541,14 @@ Date,Event,Params,Author,Comment
     )
     cmds = cmds[cmds["tlmsid"] != "OBS"]
     exp = [
-        "2020:336:00:08:30.000 | ACISPKT          | WSPOW00000 | CMD_EVT  | event=Command, event_date=2020:336:00:08:30, scs=0",  # noqa
-        "2020:336:00:08:38.610 | COMMAND_HW       | CNOOP      | NOV3020A | hex=7E00000, msid=CNOOPLR, scs=128",  # noqa
-        "2020:336:00:08:39.000 | ACISPKT          | WSVIDALLDN | CMD_EVT  | event=Command, event_date=2020:336:00:08:39, scs=0",  # noqa
-        "2020:336:00:08:39.635 | COMMAND_HW       | CNOOP      | NOV3020A | hex=7E00000, msid=CNOOPLR, scs=128",  # noqa
+        "2020:336:00:08:30.000 | ACISPKT          | WSPOW00000 | CMD_EVT  |"
+        " event=Command, event_date=2020:336:00:08:30, scs=0",  # noqa
+        "2020:336:00:08:38.610 | COMMAND_HW       | CNOOP      | NOV3020A |"
+        " hex=7E00000, msid=CNOOPLR, scs=128",  # noqa
+        "2020:336:00:08:39.000 | ACISPKT          | WSVIDALLDN | CMD_EVT  |"
+        " event=Command, event_date=2020:336:00:08:39, scs=0",  # noqa
+        "2020:336:00:08:39.635 | COMMAND_HW       | CNOOP      | NOV3020A |"
+        " hex=7E00000, msid=CNOOPLR, scs=128",  # noqa
     ]
     assert cmds.pformat_like_backstop() == exp
     commands_v2.clear_caches()
@@ -934,92 +939,181 @@ cmd_events_all_exps = [
         "2020:001:00:00:00.000 | NOT_RUN          | 4OHETGIN   | CMD_EVT  | event=Command_not_run, event_date=2020:001:00:00:00, scs=0"  # noqa
     ],  # noqa
     [
-        "2020:001:00:00:00.000 | COMMAND_SW       | OORMPEN    | CMD_EVT  | event=RTS, event_date=2020:001:00:00:00, msid=OORMPEN, scs=135",  # noqa
-        "2020:001:00:00:01.000 | ACISPKT          | WSVIDALLDN | CMD_EVT  | event=RTS, event_date=2020:001:00:00:00, scs=135",  # noqa
-        "2020:001:00:00:02.000 | COMMAND_HW       | 2S2STHV    | CMD_EVT  | event=RTS, event_date=2020:001:00:00:00, 2s2sthv2=0 , msid=2S2STHV, scs=135",  # noqa
-        "2020:001:00:00:03.000 | COMMAND_HW       | 2S2HVON    | CMD_EVT  | event=RTS, event_date=2020:001:00:00:00, msid=2S2HVON, scs=135",  # noqa
-        "2020:001:00:00:13.000 | COMMAND_HW       | 2S2STHV    | CMD_EVT  | event=RTS, event_date=2020:001:00:00:00, 2s2sthv2=4 , msid=2S2STHV, scs=135",  # noqa
-        "2020:001:00:00:23.000 | COMMAND_HW       | 2S2STHV    | CMD_EVT  | event=RTS, event_date=2020:001:00:00:00, 2s2sthv2=8 , msid=2S2STHV, scs=135",  # noqa
-        "2020:001:00:00:24.000 | ACISPKT          | WSPOW08E1E | CMD_EVT  | event=RTS, event_date=2020:001:00:00:00, scs=135",  # noqa
-        "2020:001:00:01:27.000 | ACISPKT          | WT00C62014 | CMD_EVT  | event=RTS, event_date=2020:001:00:00:00, scs=135",  # noqa
-        "2020:001:00:01:31.000 | ACISPKT          | XTZ0000005 | CMD_EVT  | event=RTS, event_date=2020:001:00:00:00, scs=135",  # noqa
-        "2020:001:00:01:35.000 | ACISPKT          | RS_0000001 | CMD_EVT  | event=RTS, event_date=2020:001:00:00:00, scs=135",  # noqa
-        "2020:001:00:01:39.000 | ACISPKT          | RH_0000001 | CMD_EVT  | event=RTS, event_date=2020:001:00:00:00, scs=135",  # noqa
-        "2020:002:15:01:39.000 | COMMAND_HW       | 2S2HVOF    | CMD_EVT  | event=RTS, event_date=2020:001:00:00:00, msid=2S2HVOF, scs=135",  # noqa
-        "2020:002:15:01:39.000 | COMMAND_SW       | OORMPDS    | CMD_EVT  | event=RTS, event_date=2020:001:00:00:00, msid=OORMPDS, scs=135",  # noqa
-        "2020:002:15:01:40.000 | COMMAND_HW       | 2S2STHV    | CMD_EVT  | event=RTS, event_date=2020:001:00:00:00, 2s2sthv2=0 , msid=2S2STHV, scs=135",  # noqa
-        "2020:002:17:40:00.000 | ACISPKT          | AA00000000 | CMD_EVT  | event=RTS, event_date=2020:001:00:00:00, scs=135",  # noqa
-        "2020:002:17:40:10.000 | ACISPKT          | AA00000000 | CMD_EVT  | event=RTS, event_date=2020:001:00:00:00, scs=135",  # noqa
-        "2020:002:17:40:14.000 | ACISPKT          | WSPOW00000 | CMD_EVT  | event=RTS, event_date=2020:001:00:00:00, scs=135",  # noqa
-        "2020:002:17:40:18.000 | ACISPKT          | RS_0000001 | CMD_EVT  | event=RTS, event_date=2020:001:00:00:00, scs=135",  # noqa
+        "2020:001:00:00:00.000 | COMMAND_SW       | OORMPEN    | CMD_EVT  | event=RTS,"
+        " event_date=2020:001:00:00:00, msid=OORMPEN, scs=135",  # noqa
+        "2020:001:00:00:01.000 | ACISPKT          | WSVIDALLDN | CMD_EVT  | event=RTS,"
+        " event_date=2020:001:00:00:00, scs=135",  # noqa
+        "2020:001:00:00:02.000 | COMMAND_HW       | 2S2STHV    | CMD_EVT  | event=RTS,"
+        " event_date=2020:001:00:00:00, 2s2sthv2=0 , msid=2S2STHV, scs=135",  # noqa
+        "2020:001:00:00:03.000 | COMMAND_HW       | 2S2HVON    | CMD_EVT  | event=RTS,"
+        " event_date=2020:001:00:00:00, msid=2S2HVON, scs=135",  # noqa
+        "2020:001:00:00:13.000 | COMMAND_HW       | 2S2STHV    | CMD_EVT  | event=RTS,"
+        " event_date=2020:001:00:00:00, 2s2sthv2=4 , msid=2S2STHV, scs=135",  # noqa
+        "2020:001:00:00:23.000 | COMMAND_HW       | 2S2STHV    | CMD_EVT  | event=RTS,"
+        " event_date=2020:001:00:00:00, 2s2sthv2=8 , msid=2S2STHV, scs=135",  # noqa
+        "2020:001:00:00:24.000 | ACISPKT          | WSPOW08E1E | CMD_EVT  | event=RTS,"
+        " event_date=2020:001:00:00:00, scs=135",  # noqa
+        "2020:001:00:01:27.000 | ACISPKT          | WT00C62014 | CMD_EVT  | event=RTS,"
+        " event_date=2020:001:00:00:00, scs=135",  # noqa
+        "2020:001:00:01:31.000 | ACISPKT          | XTZ0000005 | CMD_EVT  | event=RTS,"
+        " event_date=2020:001:00:00:00, scs=135",  # noqa
+        "2020:001:00:01:35.000 | ACISPKT          | RS_0000001 | CMD_EVT  | event=RTS,"
+        " event_date=2020:001:00:00:00, scs=135",  # noqa
+        "2020:001:00:01:39.000 | ACISPKT          | RH_0000001 | CMD_EVT  | event=RTS,"
+        " event_date=2020:001:00:00:00, scs=135",  # noqa
+        "2020:002:15:01:39.000 | COMMAND_HW       | 2S2HVOF    | CMD_EVT  | event=RTS,"
+        " event_date=2020:001:00:00:00, msid=2S2HVOF, scs=135",  # noqa
+        "2020:002:15:01:39.000 | COMMAND_SW       | OORMPDS    | CMD_EVT  | event=RTS,"
+        " event_date=2020:001:00:00:00, msid=OORMPDS, scs=135",  # noqa
+        "2020:002:15:01:40.000 | COMMAND_HW       | 2S2STHV    | CMD_EVT  | event=RTS,"
+        " event_date=2020:001:00:00:00, 2s2sthv2=0 , msid=2S2STHV, scs=135",  # noqa
+        "2020:002:17:40:00.000 | ACISPKT          | AA00000000 | CMD_EVT  | event=RTS,"
+        " event_date=2020:001:00:00:00, scs=135",  # noqa
+        "2020:002:17:40:10.000 | ACISPKT          | AA00000000 | CMD_EVT  | event=RTS,"
+        " event_date=2020:001:00:00:00, scs=135",  # noqa
+        "2020:002:17:40:14.000 | ACISPKT          | WSPOW00000 | CMD_EVT  | event=RTS,"
+        " event_date=2020:001:00:00:00, scs=135",  # noqa
+        "2020:002:17:40:18.000 | ACISPKT          | RS_0000001 | CMD_EVT  | event=RTS,"
+        " event_date=2020:001:00:00:00, scs=135",  # noqa
     ],  # noqa
     [
         "2020:001:00:00:00.000 | MP_OBSID         | COAOSQID   | CMD_EVT  | event=Obsid, event_date=2020:001:00:00:00, id=65527, scs=0"  # noqa
     ],  # noqa
     [
-        "2020:001:00:00:00.000 | COMMAND_SW       | AONMMODE   | CMD_EVT  | event=Maneuver, event_date=2020:001:00:00:00, msid=AONMMODE, scs=0",  # noqa
-        "2020:001:00:00:00.256 | COMMAND_SW       | AONM2NPE   | CMD_EVT  | event=Maneuver, event_date=2020:001:00:00:00, msid=AONM2NPE, scs=0",  # noqa
-        "2020:001:00:00:04.356 | MP_TARGQUAT      | AOUPTARQ   | CMD_EVT  | event=Maneuver, event_date=2020:001:00:00:00, q1=7.05469070e-01, q2=3.29883070e-01, q3=5.34409010e-01, q4=3.28477660e-01, scs=0",  # noqa
-        "2020:001:00:00:10.250 | COMMAND_SW       | AOMANUVR   | CMD_EVT  | event=Maneuver, event_date=2020:001:00:00:00, msid=AOMANUVR, scs=0",  # noqa
+        "2020:001:00:00:00.000 | COMMAND_SW       | AONMMODE   | CMD_EVT  |"
+        " event=Maneuver, event_date=2020:001:00:00:00, msid=AONMMODE, scs=0",  # noqa
+        "2020:001:00:00:00.256 | COMMAND_SW       | AONM2NPE   | CMD_EVT  |"
+        " event=Maneuver, event_date=2020:001:00:00:00, msid=AONM2NPE, scs=0",  # noqa
+        "2020:001:00:00:04.356 | MP_TARGQUAT      | AOUPTARQ   | CMD_EVT  |"
+        " event=Maneuver, event_date=2020:001:00:00:00, q1=7.05469070e-01,"
+        " q2=3.29883070e-01, q3=5.34409010e-01, q4=3.28477660e-01, scs=0",  # noqa
+        "2020:001:00:00:10.250 | COMMAND_SW       | AOMANUVR   | CMD_EVT  |"
+        " event=Maneuver, event_date=2020:001:00:00:00, msid=AOMANUVR, scs=0",  # noqa
     ],  # noqa
     [
-        "2020:001:00:00:00.000 | COMMAND_SW       | ACPCSFSU   | CMD_EVT  | event=Safe_mode, event_date=2020:001:00:00:00, scs=0",  # noqa
-        "2020:001:00:00:00.000 | COMMAND_SW       | CSELFMT5   | CMD_EVT  | event=Safe_mode, event_date=2020:001:00:00:00, scs=0",  # noqa
-        "2020:001:00:00:00.000 | COMMAND_SW       | AONSMSAF   | CMD_EVT  | event=Safe_mode, event_date=2020:001:00:00:00, scs=0",  # noqa
-        "2020:001:00:00:00.000 | COMMAND_SW       | CODISASX   | CMD_EVT  | event=Safe_mode, event_date=2020:001:00:00:00, msid=CODISASX, codisas1=128 , scs=0",  # noqa
-        "2020:001:00:00:00.000 | COMMAND_SW       | CODISASX   | CMD_EVT  | event=Safe_mode, event_date=2020:001:00:00:00, msid=CODISASX, codisas1=129 , scs=0",  # noqa
-        "2020:001:00:00:00.000 | COMMAND_SW       | CODISASX   | CMD_EVT  | event=Safe_mode, event_date=2020:001:00:00:00, msid=CODISASX, codisas1=130 , scs=0",  # noqa
-        "2020:001:00:00:00.000 | COMMAND_SW       | CODISASX   | CMD_EVT  | event=Safe_mode, event_date=2020:001:00:00:00, msid=CODISASX, codisas1=131 , scs=0",  # noqa
-        "2020:001:00:00:00.000 | COMMAND_SW       | CODISASX   | CMD_EVT  | event=Safe_mode, event_date=2020:001:00:00:00, msid=CODISASX, codisas1=132 , scs=0",  # noqa
-        "2020:001:00:00:00.000 | COMMAND_SW       | CODISASX   | CMD_EVT  | event=Safe_mode, event_date=2020:001:00:00:00, msid=CODISASX, codisas1=133 , scs=0",  # noqa
-        "2020:001:00:00:00.000 | COMMAND_SW       | OORMPDS    | CMD_EVT  | event=Safe_mode, event_date=2020:001:00:00:00, scs=0",  # noqa
-        "2020:001:00:00:01.025 | COMMAND_HW       | AFIDP      | CMD_EVT  | event=Safe_mode, event_date=2020:001:00:00:00, msid=AFLCRSET, scs=0",  # noqa
-        "2020:001:00:00:01.025 | SIMTRANS         | None       | CMD_EVT  | event=Safe_mode, event_date=2020:001:00:00:00, pos=-99616, scs=0",  # noqa
-        "2020:001:00:01:06.685 | ACISPKT          | AA00000000 | CMD_EVT  | event=Safe_mode, event_date=2020:001:00:00:00, scs=0",  # noqa
-        "2020:001:00:01:07.710 | ACISPKT          | AA00000000 | CMD_EVT  | event=Safe_mode, event_date=2020:001:00:00:00, scs=0",  # noqa
-        "2020:001:00:01:17.960 | ACISPKT          | WSPOW00000 | CMD_EVT  | event=Safe_mode, event_date=2020:001:00:00:00, scs=0",  # noqa
-        "2020:001:00:01:17.960 | COMMAND_SW       | AODSDITH   | CMD_EVT  | event=Safe_mode, event_date=2020:001:00:00:00, scs=0",  # noqa
+        "2020:001:00:00:00.000 | COMMAND_SW       | ACPCSFSU   | CMD_EVT  |"
+        " event=Safe_mode, event_date=2020:001:00:00:00, scs=0",  # noqa
+        "2020:001:00:00:00.000 | COMMAND_SW       | CSELFMT5   | CMD_EVT  |"
+        " event=Safe_mode, event_date=2020:001:00:00:00, scs=0",  # noqa
+        "2020:001:00:00:00.000 | COMMAND_SW       | AONSMSAF   | CMD_EVT  |"
+        " event=Safe_mode, event_date=2020:001:00:00:00, scs=0",  # noqa
+        "2020:001:00:00:00.000 | COMMAND_SW       | CODISASX   | CMD_EVT  |"
+        " event=Safe_mode, event_date=2020:001:00:00:00, msid=CODISASX, codisas1=128 ,"
+        " scs=0",  # noqa
+        "2020:001:00:00:00.000 | COMMAND_SW       | CODISASX   | CMD_EVT  |"
+        " event=Safe_mode, event_date=2020:001:00:00:00, msid=CODISASX, codisas1=129 ,"
+        " scs=0",  # noqa
+        "2020:001:00:00:00.000 | COMMAND_SW       | CODISASX   | CMD_EVT  |"
+        " event=Safe_mode, event_date=2020:001:00:00:00, msid=CODISASX, codisas1=130 ,"
+        " scs=0",  # noqa
+        "2020:001:00:00:00.000 | COMMAND_SW       | CODISASX   | CMD_EVT  |"
+        " event=Safe_mode, event_date=2020:001:00:00:00, msid=CODISASX, codisas1=131 ,"
+        " scs=0",  # noqa
+        "2020:001:00:00:00.000 | COMMAND_SW       | CODISASX   | CMD_EVT  |"
+        " event=Safe_mode, event_date=2020:001:00:00:00, msid=CODISASX, codisas1=132 ,"
+        " scs=0",  # noqa
+        "2020:001:00:00:00.000 | COMMAND_SW       | CODISASX   | CMD_EVT  |"
+        " event=Safe_mode, event_date=2020:001:00:00:00, msid=CODISASX, codisas1=133 ,"
+        " scs=0",  # noqa
+        "2020:001:00:00:00.000 | COMMAND_SW       | OORMPDS    | CMD_EVT  |"
+        " event=Safe_mode, event_date=2020:001:00:00:00, scs=0",  # noqa
+        "2020:001:00:00:01.025 | COMMAND_HW       | AFIDP      | CMD_EVT  |"
+        " event=Safe_mode, event_date=2020:001:00:00:00, msid=AFLCRSET, scs=0",  # noqa
+        "2020:001:00:00:01.025 | SIMTRANS         | None       | CMD_EVT  |"
+        " event=Safe_mode, event_date=2020:001:00:00:00, pos=-99616, scs=0",  # noqa
+        "2020:001:00:01:06.685 | ACISPKT          | AA00000000 | CMD_EVT  |"
+        " event=Safe_mode, event_date=2020:001:00:00:00, scs=0",  # noqa
+        "2020:001:00:01:07.710 | ACISPKT          | AA00000000 | CMD_EVT  |"
+        " event=Safe_mode, event_date=2020:001:00:00:00, scs=0",  # noqa
+        "2020:001:00:01:17.960 | ACISPKT          | WSPOW00000 | CMD_EVT  |"
+        " event=Safe_mode, event_date=2020:001:00:00:00, scs=0",  # noqa
+        "2020:001:00:01:17.960 | COMMAND_SW       | AODSDITH   | CMD_EVT  |"
+        " event=Safe_mode, event_date=2020:001:00:00:00, scs=0",  # noqa
     ],  # noqa
     [
-        "2020:001:00:00:00.000 | COMMAND_SW       | AONSMSAF   | CMD_EVT  | event=NSM, event_date=2020:001:00:00:00, scs=0",  # noqa
-        "2020:001:00:00:00.000 | COMMAND_SW       | CODISASX   | CMD_EVT  | event=NSM, event_date=2020:001:00:00:00, msid=CODISASX, codisas1=128 , scs=0",  # noqa
-        "2020:001:00:00:00.000 | COMMAND_SW       | CODISASX   | CMD_EVT  | event=NSM, event_date=2020:001:00:00:00, msid=CODISASX, codisas1=129 , scs=0",  # noqa
-        "2020:001:00:00:00.000 | COMMAND_SW       | CODISASX   | CMD_EVT  | event=NSM, event_date=2020:001:00:00:00, msid=CODISASX, codisas1=130 , scs=0",  # noqa
-        "2020:001:00:00:00.000 | COMMAND_SW       | CODISASX   | CMD_EVT  | event=NSM, event_date=2020:001:00:00:00, msid=CODISASX, codisas1=131 , scs=0",  # noqa
-        "2020:001:00:00:00.000 | COMMAND_SW       | CODISASX   | CMD_EVT  | event=NSM, event_date=2020:001:00:00:00, msid=CODISASX, codisas1=132 , scs=0",  # noqa
-        "2020:001:00:00:00.000 | COMMAND_SW       | CODISASX   | CMD_EVT  | event=NSM, event_date=2020:001:00:00:00, msid=CODISASX, codisas1=133 , scs=0",  # noqa
-        "2020:001:00:00:00.000 | COMMAND_SW       | OORMPDS    | CMD_EVT  | event=NSM, event_date=2020:001:00:00:00, scs=0",  # noqa
-        "2020:001:00:00:01.025 | COMMAND_HW       | AFIDP      | CMD_EVT  | event=NSM, event_date=2020:001:00:00:00, msid=AFLCRSET, scs=0",  # noqa
-        "2020:001:00:00:01.025 | SIMTRANS         | None       | CMD_EVT  | event=NSM, event_date=2020:001:00:00:00, pos=-99616, scs=0",  # noqa
-        "2020:001:00:01:06.685 | ACISPKT          | AA00000000 | CMD_EVT  | event=NSM, event_date=2020:001:00:00:00, scs=0",  # noqa
-        "2020:001:00:01:07.710 | ACISPKT          | AA00000000 | CMD_EVT  | event=NSM, event_date=2020:001:00:00:00, scs=0",  # noqa
-        "2020:001:00:01:17.960 | ACISPKT          | WSPOW00000 | CMD_EVT  | event=NSM, event_date=2020:001:00:00:00, scs=0",  # noqa
-        "2020:001:00:01:17.960 | COMMAND_SW       | AODSDITH   | CMD_EVT  | event=NSM, event_date=2020:001:00:00:00, scs=0",  # noqa
+        "2020:001:00:00:00.000 | COMMAND_SW       | AONSMSAF   | CMD_EVT  | event=NSM,"
+        " event_date=2020:001:00:00:00, scs=0",  # noqa
+        "2020:001:00:00:00.000 | COMMAND_SW       | CODISASX   | CMD_EVT  | event=NSM,"
+        " event_date=2020:001:00:00:00, msid=CODISASX, codisas1=128 , scs=0",  # noqa
+        "2020:001:00:00:00.000 | COMMAND_SW       | CODISASX   | CMD_EVT  | event=NSM,"
+        " event_date=2020:001:00:00:00, msid=CODISASX, codisas1=129 , scs=0",  # noqa
+        "2020:001:00:00:00.000 | COMMAND_SW       | CODISASX   | CMD_EVT  | event=NSM,"
+        " event_date=2020:001:00:00:00, msid=CODISASX, codisas1=130 , scs=0",  # noqa
+        "2020:001:00:00:00.000 | COMMAND_SW       | CODISASX   | CMD_EVT  | event=NSM,"
+        " event_date=2020:001:00:00:00, msid=CODISASX, codisas1=131 , scs=0",  # noqa
+        "2020:001:00:00:00.000 | COMMAND_SW       | CODISASX   | CMD_EVT  | event=NSM,"
+        " event_date=2020:001:00:00:00, msid=CODISASX, codisas1=132 , scs=0",  # noqa
+        "2020:001:00:00:00.000 | COMMAND_SW       | CODISASX   | CMD_EVT  | event=NSM,"
+        " event_date=2020:001:00:00:00, msid=CODISASX, codisas1=133 , scs=0",  # noqa
+        "2020:001:00:00:00.000 | COMMAND_SW       | OORMPDS    | CMD_EVT  | event=NSM,"
+        " event_date=2020:001:00:00:00, scs=0",  # noqa
+        "2020:001:00:00:01.025 | COMMAND_HW       | AFIDP      | CMD_EVT  | event=NSM,"
+        " event_date=2020:001:00:00:00, msid=AFLCRSET, scs=0",  # noqa
+        "2020:001:00:00:01.025 | SIMTRANS         | None       | CMD_EVT  | event=NSM,"
+        " event_date=2020:001:00:00:00, pos=-99616, scs=0",  # noqa
+        "2020:001:00:01:06.685 | ACISPKT          | AA00000000 | CMD_EVT  | event=NSM,"
+        " event_date=2020:001:00:00:00, scs=0",  # noqa
+        "2020:001:00:01:07.710 | ACISPKT          | AA00000000 | CMD_EVT  | event=NSM,"
+        " event_date=2020:001:00:00:00, scs=0",  # noqa
+        "2020:001:00:01:17.960 | ACISPKT          | WSPOW00000 | CMD_EVT  | event=NSM,"
+        " event_date=2020:001:00:00:00, scs=0",  # noqa
+        "2020:001:00:01:17.960 | COMMAND_SW       | AODSDITH   | CMD_EVT  | event=NSM,"
+        " event_date=2020:001:00:00:00, scs=0",  # noqa
     ],  # noqa
     [
-        "2020:001:00:00:00.000 | COMMAND_SW       | CODISASX   | CMD_EVT  | event=SCS-107, event_date=2020:001:00:00:00, msid=CODISASX, codisas1=131 , scs=0",  # noqa
-        "2020:001:00:00:00.000 | COMMAND_SW       | CODISASX   | CMD_EVT  | event=SCS-107, event_date=2020:001:00:00:00, msid=CODISASX, codisas1=132 , scs=0",  # noqa
-        "2020:001:00:00:00.000 | COMMAND_SW       | CODISASX   | CMD_EVT  | event=SCS-107, event_date=2020:001:00:00:00, msid=CODISASX, codisas1=133 , scs=0",  # noqa
-        "2020:001:00:00:00.000 | COMMAND_SW       | OORMPDS    | CMD_EVT  | event=SCS-107, event_date=2020:001:00:00:00, scs=0",  # noqa
-        "2020:001:00:00:01.025 | COMMAND_HW       | AFIDP      | CMD_EVT  | event=SCS-107, event_date=2020:001:00:00:00, msid=AFLCRSET, scs=0",  # noqa
-        "2020:001:00:00:01.025 | SIMTRANS         | None       | CMD_EVT  | event=SCS-107, event_date=2020:001:00:00:00, pos=-99616, scs=0",  # noqa
-        "2020:001:00:01:06.685 | ACISPKT          | AA00000000 | CMD_EVT  | event=SCS-107, event_date=2020:001:00:00:00, scs=0",  # noqa
-        "2020:001:00:01:07.710 | ACISPKT          | AA00000000 | CMD_EVT  | event=SCS-107, event_date=2020:001:00:00:00, scs=0",  # noqa
-        "2020:001:00:01:17.960 | ACISPKT          | WSPOW00000 | CMD_EVT  | event=SCS-107, event_date=2020:001:00:00:00, scs=0",  # noqa
+        "2020:001:00:00:00.000 | COMMAND_SW       | CODISASX   | CMD_EVT  |"
+        " event=SCS-107, event_date=2020:001:00:00:00, msid=CODISASX, codisas1=131 ,"
+        " scs=0",  # noqa
+        "2020:001:00:00:00.000 | COMMAND_SW       | CODISASX   | CMD_EVT  |"
+        " event=SCS-107, event_date=2020:001:00:00:00, msid=CODISASX, codisas1=132 ,"
+        " scs=0",  # noqa
+        "2020:001:00:00:00.000 | COMMAND_SW       | CODISASX   | CMD_EVT  |"
+        " event=SCS-107, event_date=2020:001:00:00:00, msid=CODISASX, codisas1=133 ,"
+        " scs=0",  # noqa
+        "2020:001:00:00:00.000 | COMMAND_SW       | OORMPDS    | CMD_EVT  |"
+        " event=SCS-107, event_date=2020:001:00:00:00, scs=0",  # noqa
+        "2020:001:00:00:01.025 | COMMAND_HW       | AFIDP      | CMD_EVT  |"
+        " event=SCS-107, event_date=2020:001:00:00:00, msid=AFLCRSET, scs=0",  # noqa
+        "2020:001:00:00:01.025 | SIMTRANS         | None       | CMD_EVT  |"
+        " event=SCS-107, event_date=2020:001:00:00:00, pos=-99616, scs=0",  # noqa
+        "2020:001:00:01:06.685 | ACISPKT          | AA00000000 | CMD_EVT  |"
+        " event=SCS-107, event_date=2020:001:00:00:00, scs=0",  # noqa
+        "2020:001:00:01:07.710 | ACISPKT          | AA00000000 | CMD_EVT  |"
+        " event=SCS-107, event_date=2020:001:00:00:00, scs=0",  # noqa
+        "2020:001:00:01:17.960 | ACISPKT          | WSPOW00000 | CMD_EVT  |"
+        " event=SCS-107, event_date=2020:001:00:00:00, scs=0",  # noqa
     ],  # noqa
     [
-        "2020:001:00:00:00.000 | COMMAND_SW       | CODISASX   | CMD_EVT  | event=Bright_star_hold, event_date=2020:001:00:00:00, msid=CODISASX, codisas1=128 , scs=0",  # noqa
-        "2020:001:00:00:00.000 | COMMAND_SW       | CODISASX   | CMD_EVT  | event=Bright_star_hold, event_date=2020:001:00:00:00, msid=CODISASX, codisas1=129 , scs=0",  # noqa
-        "2020:001:00:00:00.000 | COMMAND_SW       | CODISASX   | CMD_EVT  | event=Bright_star_hold, event_date=2020:001:00:00:00, msid=CODISASX, codisas1=130 , scs=0",  # noqa
-        "2020:001:00:00:00.000 | COMMAND_SW       | CODISASX   | CMD_EVT  | event=Bright_star_hold, event_date=2020:001:00:00:00, msid=CODISASX, codisas1=131 , scs=0",  # noqa
-        "2020:001:00:00:00.000 | COMMAND_SW       | CODISASX   | CMD_EVT  | event=Bright_star_hold, event_date=2020:001:00:00:00, msid=CODISASX, codisas1=132 , scs=0",  # noqa
-        "2020:001:00:00:00.000 | COMMAND_SW       | CODISASX   | CMD_EVT  | event=Bright_star_hold, event_date=2020:001:00:00:00, msid=CODISASX, codisas1=133 , scs=0",  # noqa
-        "2020:001:00:00:00.000 | COMMAND_SW       | OORMPDS    | CMD_EVT  | event=Bright_star_hold, event_date=2020:001:00:00:00, scs=0",  # noqa
-        "2020:001:00:00:01.025 | COMMAND_HW       | AFIDP      | CMD_EVT  | event=Bright_star_hold, event_date=2020:001:00:00:00, msid=AFLCRSET, scs=0",  # noqa
-        "2020:001:00:00:01.025 | SIMTRANS         | None       | CMD_EVT  | event=Bright_star_hold, event_date=2020:001:00:00:00, pos=-99616, scs=0",  # noqa
-        "2020:001:00:01:06.685 | ACISPKT          | AA00000000 | CMD_EVT  | event=Bright_star_hold, event_date=2020:001:00:00:00, scs=0",  # noqa
-        "2020:001:00:01:07.710 | ACISPKT          | AA00000000 | CMD_EVT  | event=Bright_star_hold, event_date=2020:001:00:00:00, scs=0",  # noqa
-        "2020:001:00:01:17.960 | ACISPKT          | WSPOW00000 | CMD_EVT  | event=Bright_star_hold, event_date=2020:001:00:00:00, scs=0",  # noqa
+        "2020:001:00:00:00.000 | COMMAND_SW       | CODISASX   | CMD_EVT  |"
+        " event=Bright_star_hold, event_date=2020:001:00:00:00, msid=CODISASX,"
+        " codisas1=128 , scs=0",  # noqa
+        "2020:001:00:00:00.000 | COMMAND_SW       | CODISASX   | CMD_EVT  |"
+        " event=Bright_star_hold, event_date=2020:001:00:00:00, msid=CODISASX,"
+        " codisas1=129 , scs=0",  # noqa
+        "2020:001:00:00:00.000 | COMMAND_SW       | CODISASX   | CMD_EVT  |"
+        " event=Bright_star_hold, event_date=2020:001:00:00:00, msid=CODISASX,"
+        " codisas1=130 , scs=0",  # noqa
+        "2020:001:00:00:00.000 | COMMAND_SW       | CODISASX   | CMD_EVT  |"
+        " event=Bright_star_hold, event_date=2020:001:00:00:00, msid=CODISASX,"
+        " codisas1=131 , scs=0",  # noqa
+        "2020:001:00:00:00.000 | COMMAND_SW       | CODISASX   | CMD_EVT  |"
+        " event=Bright_star_hold, event_date=2020:001:00:00:00, msid=CODISASX,"
+        " codisas1=132 , scs=0",  # noqa
+        "2020:001:00:00:00.000 | COMMAND_SW       | CODISASX   | CMD_EVT  |"
+        " event=Bright_star_hold, event_date=2020:001:00:00:00, msid=CODISASX,"
+        " codisas1=133 , scs=0",  # noqa
+        "2020:001:00:00:00.000 | COMMAND_SW       | OORMPDS    | CMD_EVT  |"
+        " event=Bright_star_hold, event_date=2020:001:00:00:00, scs=0",  # noqa
+        "2020:001:00:00:01.025 | COMMAND_HW       | AFIDP      | CMD_EVT  |"
+        " event=Bright_star_hold, event_date=2020:001:00:00:00, msid=AFLCRSET, scs=0",  # noqa
+        "2020:001:00:00:01.025 | SIMTRANS         | None       | CMD_EVT  |"
+        " event=Bright_star_hold, event_date=2020:001:00:00:00, pos=-99616, scs=0",  # noqa
+        "2020:001:00:01:06.685 | ACISPKT          | AA00000000 | CMD_EVT  |"
+        " event=Bright_star_hold, event_date=2020:001:00:00:00, scs=0",  # noqa
+        "2020:001:00:01:07.710 | ACISPKT          | AA00000000 | CMD_EVT  |"
+        " event=Bright_star_hold, event_date=2020:001:00:00:00, scs=0",  # noqa
+        "2020:001:00:01:17.960 | ACISPKT          | WSPOW00000 | CMD_EVT  |"
+        " event=Bright_star_hold, event_date=2020:001:00:00:00, scs=0",  # noqa
     ],  # noqa
     [
         "2020:001:00:00:00.000 | COMMAND_SW       | AOENDITH   | CMD_EVT  | event=Dither, event_date=2020:001:00:00:00, scs=0"  # noqa

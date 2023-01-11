@@ -416,9 +416,9 @@ class BaseModel(models.Model):
             obsrq = fetch.Msid("cobsrqid", tstart, tstart + 200)
             if len(obsrq.vals) == 0:
                 logger.warn(
-                    f"WARNING: unable to get COBSRQID near "
+                    "WARNING: unable to get COBSRQID near "
                     f"{model_dict[cls._get_obsid_start_attr]}, "
-                    f"using obsid=-999"
+                    "using obsid=-999"
                 )
                 model_dict["obsid"] = -999
             else:
@@ -1357,7 +1357,7 @@ class Manvr(TlmEvent):
     prev_npnt_start = models.CharField(
         max_length=21,
         null=True,
-        help_text="Start time of previous " "AOPCADMD=NPNT before manvr",
+        help_text="Start time of previous AOPCADMD=NPNT before manvr",
     )
     nman_start = models.CharField(
         max_length=21, null=True, help_text="Start time of AOPCADMD=NMAN for manvr"
@@ -1400,13 +1400,13 @@ class Manvr(TlmEvent):
         help_text="Number of kalman dwells after manvr and before next manvr"
     )
     n_acq = models.IntegerField(
-        help_text="Number of AQXN intervals after " "manvr and before next manvr"
+        help_text="Number of AQXN intervals after manvr and before next manvr"
     )
     n_guide = models.IntegerField(
-        help_text="Number of GUID intervals after " "manvr and before next manvr"
+        help_text="Number of GUID intervals after manvr and before next manvr"
     )
     n_kalman = models.IntegerField(
-        help_text="Number of KALM intervals after " "manvr and before next manvr"
+        help_text="Number of KALM intervals after manvr and before next manvr"
     )
     anomalous = models.BooleanField(help_text="Key MSID shows off-nominal value")
     template = models.CharField(max_length=16, help_text="Matched maneuver template")
@@ -2440,10 +2440,10 @@ class Orbit(BaseEvent):
     start_radzone = models.CharField(max_length=21, help_text="Start time of rad zone")
     stop_radzone = models.CharField(max_length=21, help_text="Stop time of rad zone")
     dt_start_radzone = models.FloatField(
-        help_text="Start time of rad zone relative " "to perigee (sec)"
+        help_text="Start time of rad zone relative to perigee (sec)"
     )
     dt_stop_radzone = models.FloatField(
-        help_text="Stop time of rad zone relative " "to perigee (sec)"
+        help_text="Stop time of rad zone relative to perigee (sec)"
     )
     dur._kadi_format = "{:.1f}"
     t_perigee._kadi_format = "{:.1f}"

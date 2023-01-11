@@ -105,12 +105,14 @@ def test_basic_query():
     rzt["tstart"].format = ".3f"
     rzt["tstop"].format = ".3f"
     rzt["dur"].format = ".3f"
+    # fmt: off
     assert rzt.pformat(max_width=-1) == [
         "        start                  stop             tstart        tstop        dur    orbit orbit_num        perigee       ",  # noqa
         "--------------------- --------------------- ------------- ------------- --------- ----- --------- ---------------------",  # noqa
         "2013:003:16:19:36.289 2013:004:02:21:34.289 473617243.473 473653361.473 36118.000  1852      1852 2013:003:22:29:59.302",  # noqa
         "2013:006:08:22:22.982 2013:006:17:58:48.982 473847810.166 473882396.166 34586.000  1853      1853 2013:006:13:58:21.389",  # noqa
     ]
+    # fmt: on
 
     rad_zones = events.rad_zones.filter("2013:001:12:00:00", "2013:002:12:00:00")
     assert len(rad_zones) == 0

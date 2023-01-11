@@ -192,7 +192,8 @@ def get_cmds(start, stop, mp_dir=MPLOGS_DIR):
         nl_cmds = _tl_to_bs_cmds(nl_cmds, None, db)
         nl_cmds = fix_nonload_cmds(nl_cmds)
         logger.info(
-            f"Found {len(nl_cmds)} non-load commands between {tl_datestart} : {stop.date}"
+            f"Found {len(nl_cmds)} non-load commands between {tl_datestart} :"
+            f" {stop.date}"
         )
 
     logger.info(
