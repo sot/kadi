@@ -30,8 +30,7 @@ def cmd_set_obsid(obs_id, date=None):
 
 
 def cmd_set_maneuver(*args, date=None):
-    """Return a command set that initiates a maneuver to the given attitude
-    ``att``.
+    """Return a command set that initiates a maneuver to the given attitude ``att``.
 
     :param att: attitude compatible with Quat() initializer
     :returns: list of command defs suitable for generate_cmds()

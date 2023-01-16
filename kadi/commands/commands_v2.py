@@ -180,7 +180,7 @@ def get_matching_block_idx_simple(cmds_recent, cmds_arch, min_match):
 
 
 def get_cmds(
-    start=None, stop=None, inclusive_stop=False, scenario=None, **kwargs
+    start=None, stop=None, *, inclusive_stop=False, scenario=None, **kwargs
 ) -> CommandTable:
     """Get commands using loads table, relying entirely on RLTT.
 
@@ -286,7 +286,8 @@ def get_cmds(
 # 4 weeks of weekly loads)?".  Imagine these inputs:
 #
 #   start = Apr-02-2022
-#   Loads = APR0122 (Never run due to anomaly), APR0622 (replan), APR0822,  APR1522, APR2222
+#   Loads = APR0122 (Never run due to anomaly), APR0622 (replan), APR0822,  APR1522,
+#           APR2222
 #   cmds_recent.meta["loads_start"] = Apr-01-2022 (first command in APR0122 approx)
 #
 # So what we care about is the first command in the applicable loads in the time
@@ -692,8 +693,8 @@ def manvr_duration(q1, q2):
         if eps < 0:
             eps = 0
 
-    Tm = 4 * MANVR_DELTA + 2 * eps + tau
-    return Tm
+    tm = 4 * MANVR_DELTA + 2 * eps + tau
+    return tm
 
 
 def get_cmds_obs_final(cmds, pars_dict, rev_pars_dict, schedule_stop_time):
@@ -1005,7 +1006,7 @@ def clean_loads_dir(loads):
 
 
 def get_load_cmds_from_occweb_or_local(
-    dir_year_month=None, load_name=None, use_ska_dir=False
+    dir_year_month=None, load_name=None, *, use_ska_dir=False
 ) -> CommandTable:
     """Get the load cmds (backstop) for ``load_name`` within ``dir_year_month``
 
