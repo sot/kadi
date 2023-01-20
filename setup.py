@@ -14,7 +14,12 @@ if "--user" not in sys.argv:
     data_files = [
         (
             share_path,
-            ["task_schedule_cmds.cfg", "task_schedule_events.cfg", "ltt_bads.dat"],
+            [
+                "task_schedule_cmds.cfg",
+                "task_schedule_events.cfg",
+                "task_schedule_validate.cfg",
+                "ltt_bads.dat",
+            ],
         )
     ]
 else:
