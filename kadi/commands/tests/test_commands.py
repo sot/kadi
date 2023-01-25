@@ -305,24 +305,6 @@ def test_commands_create_archive_regress(tmpdir, version_env):
 
             cmds_local = commands.get_cmds(start + 3, stop - 3)
 
-            # FIXME: workaround that flight archive does not have these non-load
-            # commands added in PR #248. If flight archive is regenerated, this
-            # should be removed.
-            def get_ok(cmds):
-                ignore = (cmds["type"] == "LOAD_EVENT") & (
-                    cmds["event_type"] == "SCHEDULED_STOP_TIME"
-                )
-                ignore |= (
-                    (cmds["type"] == "LOAD_EVENT")
-                    & (cmds["source"] == "CMD_EVT")
-                    & np.isin(cmds["event_type"], ["LOAD_NOT_RUN", "OBSERVING_NOT_RUN"])
-                )
-                ignore |= (cmds["tlmsid"] == "CODISASX") & (cmds["source"] == "CMD_EVT")
-                return ~ignore
-
-            cmds_local = cmds_local[get_ok(cmds_local)]
-            cmds_flight = cmds_flight[get_ok(cmds_flight)]
-
             cmds_local.fetch_params()
             if len(cmds_flight) != len(cmds_local):
                 # Code to debug problems, leave commented for production
