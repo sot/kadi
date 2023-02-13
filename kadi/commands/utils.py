@@ -11,7 +11,7 @@ import numpy.typing as npt
 import plotly.graph_objects as pgo
 from astropy.table import Table
 from cheta.utils import state_intervals
-from cxotime import CxoTime
+from cxotime import CxoTime, units as u
 
 # TODO: move this definition to cxotime
 # TODO: use npt.NDArray with numpy 1.21
@@ -87,7 +87,7 @@ def get_telem_values(msids: list, stop, days: float = 14) -> Table:
     :returns: Table of requested telemetry values from fetch
     """
     stop = CxoTime(stop)
-    start = stop - days
+    start = stop - days * u.day
     logger.info(f"Fetching telemetry between {start} and {stop}")
 
     with fetch.data_source("cxc", "maude allow_subset=False"):
