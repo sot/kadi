@@ -11,7 +11,7 @@ import parse_cm.tests
 import pytest
 from astropy.table import Table, vstack
 from Chandra.Time import secs2date
-from cxotime import CxoTime, units as u
+from cxotime import CxoTime
 from testr.test_helper import has_internet
 
 warnings.filterwarnings(
