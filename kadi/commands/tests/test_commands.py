@@ -11,7 +11,7 @@ import parse_cm.tests
 import pytest
 from astropy.table import Table, vstack
 from Chandra.Time import secs2date
-from cxotime import CxoTime
+from cxotime import CxoTime, units as u
 from testr.test_helper import has_internet
 
 warnings.filterwarnings(
@@ -280,8 +280,8 @@ def test_commands_create_archive_regress(tmpdir, version_env):
 
     kadi_orig = os.environ.get("KADI")
     start = CxoTime("2021:290")
-    stop = start + 30
-    cmds_flight = commands.get_cmds(start + 3, stop - 3)
+    stop = start + 30 * u.day
+    cmds_flight = commands.get_cmds(start + 3 * u.day, stop - 3 * u.day)
     cmds_flight.fetch_params()
 
     with conf.set_temp("commands_dir", str(tmpdir)):
@@ -300,10 +300,10 @@ def test_commands_create_archive_regress(tmpdir, version_env):
             del commands.REV_PARS_DICT._val
 
             # Make sure we are seeing the temporary cmds archive
-            cmds_empty = commands.get_cmds(start - 60, start - 50)
+            cmds_empty = commands.get_cmds(start - 60 * u.day, start - 50 * u.day)
             assert len(cmds_empty) == 0
 
-            cmds_local = commands.get_cmds(start + 3, stop - 3)
+            cmds_local = commands.get_cmds(start + 3 * u.day, stop - 3 * u.day)
 
             cmds_local.fetch_params()
             if len(cmds_flight) != len(cmds_local):
