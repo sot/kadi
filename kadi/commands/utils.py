@@ -9,7 +9,8 @@ import cheta.fetch_eng as fetch
 import numpy as np
 import plotly.graph_objects as pgo
 from astropy.table import Table
-from cxotime import CxoTime, CxoTimeLike
+from cxotime import CxoTime, CxoTimeLike, units as u
+
 
 __all__ = [
     "add_figure_regions",
@@ -77,7 +78,7 @@ def get_telem_values(msids: list, stop, days: float = 14) -> Table:
     :returns: Table of requested telemetry values from fetch
     """
     stop = CxoTime(stop)
-    start = stop - days
+    start = stop - days * u.day
     logger.info(f"Fetching telemetry for {msids} between {start.date} and {stop.date}")
 
     with fetch.data_source("cxc", "maude allow_subset=False"):
