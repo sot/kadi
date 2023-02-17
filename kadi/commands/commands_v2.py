@@ -634,7 +634,7 @@ def get_cmds_obs_from_manvrs(cmds, prev_att=None):
                         f"NSM at {nsm_date} happened during maneuver preceding"
                         f" obs\n{cmd}"
                     )
-                    log_context_obs(cmds, cmd)
+                    log_context_obs(cmds, cmd, log_level="info")
                     bad_idxs.append(ii)
         if bad_idxs:
             logger.info(f"Removing obss at {bad_idxs}")
@@ -820,12 +820,13 @@ def get_cmds_obs_final(cmds, pars_dict, rev_pars_dict, schedule_stop_time):
     return cmds_obs
 
 
-def log_context_obs(cmds, cmd, before=3600, after=3600):
+def log_context_obs(cmds, cmd, before=3600, after=3600, log_level="warning"):
     """Log commands before and after ``cmd``"""
     date_before = (CxoTime(cmd["date"]) - before * u.s).date
     date_after = (CxoTime(cmd["date"]) + after * u.s).date
     ok = (cmds["date"] >= date_before) & (cmds["date"] <= date_after)
-    logger.warning(f"\n{cmds[ok]}")
+    log_func = getattr(logger, log_level)
+    log_func(f"\n{cmds[ok]}")
 
 
 def is_google_id(scenario):
