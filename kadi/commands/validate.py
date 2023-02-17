@@ -117,7 +117,7 @@ class Validate(ABC):
     min_violation_duration = 32.81
 
     def __init__(self, stop=None, days: float = 14, no_exclude: bool = False):
-        """Base class for validation
+        """Base class for validation.
 
         :param stop: stop time for validation
         :param days: number of days for validation
