@@ -1642,22 +1642,26 @@ def test_hrc_states():
     sts = states.get_states(
         start="2022:140",
         stop="2022:280",
-        state_keys=["hrc_15v", "hrc_i", "hrc_s"],
+        state_keys=["hrc_15v", "hrc_24v", "hrc_i", "hrc_s"],
         merge_identical=True,
-        continuity={"hrc_15v": "OFF", "hrc_i": "OFF", "hrc_s": "OFF"},
+        continuity={"hrc_15v": "OFF", "hrc_24v": "OFF", "hrc_i": "OFF", "hrc_s": "OFF"},
     )
     del sts["tstart"]
     del sts["tstop"]
     exp = [
-        "      datestart              datestop       hrc_15v hrc_i hrc_s   trans_keys ",
-        "--------------------- --------------------- ------- ----- ----- -------------",
-        "2022:140:00:00:00.000 2022:237:18:50:01.000     OFF   OFF   OFF              ",
-        "2022:237:18:50:01.000 2022:237:18:52:49.000      ON   OFF   OFF       hrc_15v",
-        "2022:237:18:52:49.000 2022:237:21:45:53.000      ON    ON   OFF         hrc_i",
-        "2022:237:21:45:53.000 2022:263:17:20:01.000     OFF   OFF   OFF hrc_15v,hrc_i",
-        "2022:263:17:20:01.000 2022:263:17:22:42.000      ON   OFF   OFF       hrc_15v",
-        "2022:263:17:22:42.000 2022:263:21:36:06.000      ON   OFF    ON         hrc_s",
-        "2022:263:21:36:06.000 2022:280:00:00:00.000     OFF   OFF   OFF hrc_15v,hrc_s",
+        "      datestart              datestop       hrc_15v hrc_24v hrc_i hrc_s   trans_keys ",
+        "--------------------- --------------------- ------- ------- ----- ----- -------------",
+        "2022:140:00:00:00.000 2022:237:18:50:01.000     OFF     OFF   OFF   OFF              ",
+        "2022:237:18:50:01.000 2022:237:18:50:13.000      ON     OFF   OFF   OFF       hrc_15v",
+        "2022:237:18:50:13.000 2022:237:18:51:46.000      ON      ON   OFF   OFF       hrc_24v",
+        "2022:237:18:51:46.000 2022:237:18:52:49.000      ON     OFF   OFF   OFF       hrc_24v",
+        "2022:237:18:52:49.000 2022:237:21:45:53.000      ON     OFF    ON   OFF         hrc_i",
+        "2022:237:21:45:53.000 2022:263:17:20:01.000     OFF     OFF   OFF   OFF hrc_15v,hrc_i",
+        "2022:263:17:20:01.000 2022:263:17:20:13.000      ON     OFF   OFF   OFF       hrc_15v",
+        "2022:263:17:20:13.000 2022:263:17:21:46.000      ON      ON   OFF   OFF       hrc_24v",
+        "2022:263:17:21:46.000 2022:263:17:22:42.000      ON     OFF   OFF   OFF       hrc_24v",
+        "2022:263:17:22:42.000 2022:263:21:36:06.000      ON     OFF   OFF    ON         hrc_s",
+        "2022:263:21:36:06.000 2022:280:00:00:00.000     OFF     OFF   OFF   OFF hrc_15v,hrc_s",
     ]
     assert sts.pformat_all() == exp
 

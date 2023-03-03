@@ -172,10 +172,24 @@ class BaseTransition(object, metaclass=TransitionMeta):
 
         :returns: subset of ``cmds`` relevant for this Transition class (CmdList)
         """
-        # First filter on command attributes.  These
-        ok = np.ones(len(cmds), dtype=bool)
-        for attr, val in cls.command_attributes.items():
-            ok = ok & (cmds[attr] == val)
+        # First filter on command attributes.
+        ok = np.zeros(len(cmds), dtype=bool)
+        command_attrs = cls.command_attributes
+        if not isinstance(command_attrs, list):
+            command_attrs = [command_attrs]
+        for element in command_attrs:
+            # elements in the command attributes are treated as either/or for filtering
+            tmp_ok = np.ones(len(cmds), dtype=bool)
+            for attr, val in element.items():
+                if attr == 'start_time':
+                    # the start_time attribute defines when this attribute starts being valid
+                    tmp_ok = tmp_ok & (cmds['time'] >= val)
+                elif attr == 'stop_time':
+                    # the stop_time attribute defines when this attribute stops being valid
+                    tmp_ok = tmp_ok & (cmds['time'] <= val)
+                else:
+                    tmp_ok = tmp_ok & (cmds[attr] == val)
+            ok = ok | tmp_ok
 
         out_cmds = cmds[ok]
 
@@ -210,8 +224,12 @@ class BaseTransition(object, metaclass=TransitionMeta):
 
         if hasattr(cls, "command_attributes"):
             cmd_attrs = []
-            for key, val in cls.command_attributes.items():
-                cmd_attrs.append("{}={}".format(key, val))
+            command_attrs = cls.command_attributes
+            if not isinstance(command_attrs, list):
+                command_attrs = [command_attrs]
+            for element in command_attrs:
+                for key, val in element.items():
+                    cmd_attrs.append("{}={}".format(key, val))
 
             if hasattr(cls, "command_params"):
                 keys_list = list(cls.command_params.keys())
@@ -561,7 +579,9 @@ class SimFocusTransition(ParamTransition):
 class Hrc15vOn_Transition(FixedTransition):
     """HRC 15V ON"""
 
-    command_attributes = {"tlmsid": "COACTSX", "coacts1": 134}
+    command_attributes = [{"tlmsid": "215PCAON"},
+                          {"tlmsid": "COACTSX", "coacts1": 134,
+                           "start_time": DateTime("2023:120").secs}]
     state_keys = ["hrc_15v"]
     transition_key = "hrc_15v"
     transition_val = "ON"
