@@ -561,7 +561,7 @@ class SimFocusTransition(ParamTransition):
 class Hrc15vOn_Transition(FixedTransition):
     """HRC 15V ON"""
 
-    command_attributes = {"tlmsid": "215PCAON"}
+    command_attributes = {"tlmsid": "COACTSX", "coacts1": 134}
     state_keys = ["hrc_15v"]
     transition_key = "hrc_15v"
     transition_val = "ON"
