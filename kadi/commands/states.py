@@ -576,6 +576,24 @@ class Hrc15vOff_Transition(FixedTransition):
     transition_val = "OFF"
 
 
+class Hrc24vOn_Transition(FixedTransition):
+    """HRC 24V ON"""
+
+    command_attributes = {"tlmsid": "224PCAON"}
+    state_keys = ["hrc_24v"]
+    transition_key = "hrc_24v"
+    transition_val = "ON"
+
+
+class Hrc24vOff_Transition(FixedTransition):
+    """HRC 24V OFF"""
+
+    command_attributes = {"tlmsid": "224PCAOF"}
+    state_keys = ["hrc_24v"]
+    transition_key = "hrc_24v"
+    transition_val = "OFF"
+
+
 class HrcIOn_Transition(FixedTransition):
     """HRC-I ON"""
 
