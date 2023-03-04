@@ -559,9 +559,18 @@ class SimFocusTransition(ParamTransition):
 
 
 class Hrc15vOn_Transition(FixedTransition):
-    """HRC 15V ON"""
+    """HRC 15V ON from hardware 215PCAON command"""
 
     command_attributes = {"tlmsid": "215PCAON"}
+    state_keys = ["hrc_15v"]
+    transition_key = "hrc_15v"
+    transition_val = "ON"
+
+
+class Hrc15vOn_SCS134_Transition(FixedTransition):
+    """HRC 15V ON from SCS-134"""
+
+    command_attributes = {"tlmsid": "COACTSX", "coacts1": 134}
     state_keys = ["hrc_15v"]
     transition_key = "hrc_15v"
     transition_val = "ON"

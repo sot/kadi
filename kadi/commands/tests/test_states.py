@@ -1622,6 +1622,7 @@ def test_grating_motion_states():
     )
     del sts["tstart"]
     del sts["tstop"]
+    # fmt: off
     exp = [
         "      datestart              datestop          letg      hetg   grating  trans_keys ",  # noqa
         "--------------------- --------------------- --------- --------- ------- ------------",  # noqa
@@ -1635,6 +1636,7 @@ def test_grating_motion_states():
         "2021:230:00:37:56.002 2021:230:00:41:19.002 RETR_MOVE      RETR    NONE grating,letg",  # noqa
         "2021:230:00:41:19.002 2021:230:12:00:00.000      RETR      RETR    NONE         letg",  # noqa
     ]
+    # fmt: on
     assert sts.pformat_all() == exp
 
 
@@ -1648,6 +1650,7 @@ def test_hrc_states():
     )
     del sts["tstart"]
     del sts["tstop"]
+    # fmt: off
     exp = [
         "      datestart              datestop       hrc_15v hrc_24v hrc_i hrc_s   trans_keys ",
         "--------------------- --------------------- ------- ------- ----- ----- -------------",
@@ -1662,6 +1665,46 @@ def test_hrc_states():
         "2022:263:17:21:46.000 2022:263:17:22:42.000      ON     OFF   OFF   OFF       hrc_24v",
         "2022:263:17:22:42.000 2022:263:21:36:06.000      ON     OFF   OFF    ON         hrc_s",
         "2022:263:21:36:06.000 2022:280:00:00:00.000     OFF     OFF   OFF   OFF hrc_15v,hrc_s",
+    ]
+    # fmt: on
+    assert sts.pformat_all() == exp
+
+
+def test_hrc_states_with_scs_commanding():
+    """Test that SCS commanding is included in the HRC state transitions"""
+    # Extracted from FEB0623T test loads, but with a bogus hardware 215PCAON command at
+    # 2023:038:00:00:00.000 added to ensure that redundant commanding is handled
+    # correctly.
+    backstop = """\
+2023:037:17:43:00.636 |  2535285 0 | COMMAND_SW       | HEX= 8408600, MSID= COACTSX, COACTS1=134 , COACTS2=0 , SCS= 131, STEP= 822, TLMSID= COACTSX
+2023:038:00:00:00.000 |  2630289 0 | COMMAND_HW       | HEX= 6420000, MSID= 215PCAON, SCS= 131, STEP= 1090, TLMSID= 215PCAON
+2023:038:00:28:45.739 |  2630290 0 | COMMAND_HW       | HEX= 6420000, MSID= 215PCAOF, SCS= 131, STEP= 1091, TLMSID= 215PCAOF
+2023:038:20:54:55.267 |  2917391 0 | COMMAND_SW       | HEX= 8408600, MSID= COACTSX, COACTS1=134 , COACTS2=0 , SCS= 131, STEP= 1875, TLMSID= COACTSX
+2023:039:01:06:24.025 |  2976274 0 | COMMAND_HW       | HEX= 6420000, MSID= 215PCAOF, SCS= 132, STEP= 99, TLMSID= 215PCAOF
+2023:039:23:12:15.958 |  3286720 0 | COMMAND_SW       | HEX= 8408600, MSID= COACTSX, COACTS1=134 , COACTS2=0 , SCS= 132, STEP= 705, TLMSID= COACTSX
+2023:040:04:55:45.483 |  3367148 0 | COMMAND_HW       | HEX= 6420000, MSID= 215PCAOF, SCS= 132, STEP= 1027, TLMSID= 215PCAOF
+2023:042:04:02:57.978 |  4029128 0 | COMMAND_SW       | HEX= 8408600, MSID= COACTSX, COACTS1=134 , COACTS2=0 , SCS= 133, STEP= 314, TLMSID= COACTSX
+2023:042:08:35:28.888 |  4092937 0 | COMMAND_HW       | HEX= 6420000, MSID= 215PCAOF, SCS= 133, STEP= 460, TLMSID= 215PCAOF"""  # noqa
+    cmds = commands.read_backstop(backstop.splitlines())
+    sts = states.get_states(
+        cmds=cmds,
+        state_keys=["hrc_15v"],
+        continuity={"hrc_15v": "OFF"},
+        merge_identical=True,
+    )
+    del sts["tstart"]
+    del sts["tstop"]
+    exp = [
+        "      datestart              datestop       hrc_15v trans_keys",
+        "--------------------- --------------------- ------- ----------",
+        "2023:037:17:43:00.636 2023:038:00:28:45.739      ON    hrc_15v",
+        "2023:038:00:28:45.739 2023:038:20:54:55.267     OFF    hrc_15v",
+        "2023:038:20:54:55.267 2023:039:01:06:24.025      ON    hrc_15v",
+        "2023:039:01:06:24.025 2023:039:23:12:15.958     OFF    hrc_15v",
+        "2023:039:23:12:15.958 2023:040:04:55:45.483      ON    hrc_15v",
+        "2023:040:04:55:45.483 2023:042:04:02:57.978     OFF    hrc_15v",
+        "2023:042:04:02:57.978 2023:042:08:35:28.888      ON    hrc_15v",
+        "2023:042:08:35:28.888 2023:042:08:35:28.888     OFF    hrc_15v",
     ]
     assert sts.pformat_all() == exp
 
