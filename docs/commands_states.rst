@@ -725,7 +725,12 @@ classes which affect the keys.
 
 ``hrc_15v``
   - :class:`~kadi.commands.states.Hrc15vOff_Transition`
+  - :class:`~kadi.commands.states.Hrc15vOn_SCS134_Transition`
   - :class:`~kadi.commands.states.Hrc15vOn_Transition`
+
+``hrc_24v``
+  - :class:`~kadi.commands.states.Hrc24vOff_Transition`
+  - :class:`~kadi.commands.states.Hrc24vOn_Transition`
 
 ``hrc_i``
   - :class:`~kadi.commands.states.HrcIOff_Transition`
@@ -785,7 +790,6 @@ classes which affect the keys.
   - :class:`~kadi.commands.states.SPMDisableTransition`
   - :class:`~kadi.commands.states.SPMEclipseEnableTransition`
   - :class:`~kadi.commands.states.SPMEnableTransition`
-
 
 Implementation
 ^^^^^^^^^^^^^^^
