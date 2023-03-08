@@ -616,7 +616,7 @@ class HrcIOff_Transition(FixedTransition):
     """HRC-I OFF"""
 
     command_attributes = {
-        "tlmsid": "215PCAOF",
+        "tlmsid": "2IMHVOF",
     }
     state_keys = ["hrc_i"]
     transition_key = "hrc_i"
@@ -636,7 +636,7 @@ class HrcSOff_Transition(FixedTransition):
     """HRC-S OFF"""
 
     command_attributes = {
-        "tlmsid": "215PCAOF",
+        "tlmsid": "2SPHVOF",
     }
     state_keys = ["hrc_s"]
     transition_key = "hrc_s"
