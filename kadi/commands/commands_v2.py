@@ -1044,7 +1044,6 @@ def get_load_cmds_from_occweb_or_local(
         load_dir_contents = occweb.get_occweb_dir(dir_year_month / load_name)
         for filename in load_dir_contents["Name"]:
             if re.match(r"CR\d{3}.\d{4}\.backstop", filename):
-
                 # Download the backstop file from OCCweb
                 backstop_text = occweb.get_occweb_page(
                     dir_year_month / load_name / filename,
