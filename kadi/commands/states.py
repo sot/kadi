@@ -559,9 +559,18 @@ class SimFocusTransition(ParamTransition):
 
 
 class Hrc15vOn_Transition(FixedTransition):
-    """HRC 15V ON"""
+    """HRC 15V ON from hardware 215PCAON command"""
 
     command_attributes = {"tlmsid": "215PCAON"}
+    state_keys = ["hrc_15v"]
+    transition_key = "hrc_15v"
+    transition_val = "ON"
+
+
+class Hrc15vOn_SCS134_Transition(FixedTransition):
+    """HRC 15V ON from SCS-134"""
+
+    command_attributes = {"tlmsid": "COACTSX", "coacts1": 134}
     state_keys = ["hrc_15v"]
     transition_key = "hrc_15v"
     transition_val = "ON"
@@ -573,6 +582,24 @@ class Hrc15vOff_Transition(FixedTransition):
     command_attributes = {"tlmsid": "215PCAOF"}
     state_keys = ["hrc_15v"]
     transition_key = "hrc_15v"
+    transition_val = "OFF"
+
+
+class Hrc24vOn_Transition(FixedTransition):
+    """HRC 24V ON"""
+
+    command_attributes = {"tlmsid": "224PCAON"}
+    state_keys = ["hrc_24v"]
+    transition_key = "hrc_24v"
+    transition_val = "ON"
+
+
+class Hrc24vOff_Transition(FixedTransition):
+    """HRC 24V OFF"""
+
+    command_attributes = {"tlmsid": "224PCAOF"}
+    state_keys = ["hrc_24v"]
+    transition_key = "hrc_24v"
     transition_val = "OFF"
 
 
@@ -589,7 +616,7 @@ class HrcIOff_Transition(FixedTransition):
     """HRC-I OFF"""
 
     command_attributes = {
-        "tlmsid": "215PCAOF",
+        "tlmsid": "2IMHVOF",
     }
     state_keys = ["hrc_i"]
     transition_key = "hrc_i"
@@ -609,7 +636,7 @@ class HrcSOff_Transition(FixedTransition):
     """HRC-S OFF"""
 
     command_attributes = {
-        "tlmsid": "215PCAOF",
+        "tlmsid": "2SPHVOF",
     }
     state_keys = ["hrc_s"]
     transition_key = "hrc_s"
