@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>kadi.commands.states &#8212; kadi 7.2.2 documentation</title>
+    <title>kadi.commands.states &#8212; kadi 7.3.0 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/bootstrap-astropy.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/plot_directive.css" />
@@ -47,7 +47,7 @@
     <h3>Navigation</h3>
     <ul>
       <li>
-	<a href="../../../index.html">kadi 7.2.2 documentation</a>
+	<a href="../../../index.html">kadi 7.3.0 documentation</a>
 	 &#187;
       </li>
       <li><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
@@ -624,9 +624,18 @@
 
 
 <div class="viewcode-block" id="Hrc15vOn_Transition"><a class="viewcode-back" href="../../../api.html#kadi.commands.states.Hrc15vOn_Transition">[docs]</a><span class="k">class</span> <span class="nc">Hrc15vOn_Transition</span><span class="p">(</span><span class="n">FixedTransition</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;HRC 15V ON&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;HRC 15V ON from hardware 215PCAON command&quot;&quot;&quot;</span>
 
     <span class="n">command_attributes</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;tlmsid&quot;</span><span class="p">:</span> <span class="s2">&quot;215PCAON&quot;</span><span class="p">}</span>
+    <span class="n">state_keys</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;hrc_15v&quot;</span><span class="p">]</span>
+    <span class="n">transition_key</span> <span class="o">=</span> <span class="s2">&quot;hrc_15v&quot;</span>
+    <span class="n">transition_val</span> <span class="o">=</span> <span class="s2">&quot;ON&quot;</span></div>
+
+
+<div class="viewcode-block" id="Hrc15vOn_SCS134_Transition"><a class="viewcode-back" href="../../../api.html#kadi.commands.states.Hrc15vOn_SCS134_Transition">[docs]</a><span class="k">class</span> <span class="nc">Hrc15vOn_SCS134_Transition</span><span class="p">(</span><span class="n">FixedTransition</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;HRC 15V ON from SCS-134&quot;&quot;&quot;</span>
+
+    <span class="n">command_attributes</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;tlmsid&quot;</span><span class="p">:</span> <span class="s2">&quot;COACTSX&quot;</span><span class="p">,</span> <span class="s2">&quot;coacts1&quot;</span><span class="p">:</span> <span class="mi">134</span><span class="p">}</span>
     <span class="n">state_keys</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;hrc_15v&quot;</span><span class="p">]</span>
     <span class="n">transition_key</span> <span class="o">=</span> <span class="s2">&quot;hrc_15v&quot;</span>
     <span class="n">transition_val</span> <span class="o">=</span> <span class="s2">&quot;ON&quot;</span></div>
@@ -638,6 +647,24 @@
     <span class="n">command_attributes</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;tlmsid&quot;</span><span class="p">:</span> <span class="s2">&quot;215PCAOF&quot;</span><span class="p">}</span>
     <span class="n">state_keys</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;hrc_15v&quot;</span><span class="p">]</span>
     <span class="n">transition_key</span> <span class="o">=</span> <span class="s2">&quot;hrc_15v&quot;</span>
+    <span class="n">transition_val</span> <span class="o">=</span> <span class="s2">&quot;OFF&quot;</span></div>
+
+
+<div class="viewcode-block" id="Hrc24vOn_Transition"><a class="viewcode-back" href="../../../api.html#kadi.commands.states.Hrc24vOn_Transition">[docs]</a><span class="k">class</span> <span class="nc">Hrc24vOn_Transition</span><span class="p">(</span><span class="n">FixedTransition</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;HRC 24V ON&quot;&quot;&quot;</span>
+
+    <span class="n">command_attributes</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;tlmsid&quot;</span><span class="p">:</span> <span class="s2">&quot;224PCAON&quot;</span><span class="p">}</span>
+    <span class="n">state_keys</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;hrc_24v&quot;</span><span class="p">]</span>
+    <span class="n">transition_key</span> <span class="o">=</span> <span class="s2">&quot;hrc_24v&quot;</span>
+    <span class="n">transition_val</span> <span class="o">=</span> <span class="s2">&quot;ON&quot;</span></div>
+
+
+<div class="viewcode-block" id="Hrc24vOff_Transition"><a class="viewcode-back" href="../../../api.html#kadi.commands.states.Hrc24vOff_Transition">[docs]</a><span class="k">class</span> <span class="nc">Hrc24vOff_Transition</span><span class="p">(</span><span class="n">FixedTransition</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;HRC 24V OFF&quot;&quot;&quot;</span>
+
+    <span class="n">command_attributes</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;tlmsid&quot;</span><span class="p">:</span> <span class="s2">&quot;224PCAOF&quot;</span><span class="p">}</span>
+    <span class="n">state_keys</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;hrc_24v&quot;</span><span class="p">]</span>
+    <span class="n">transition_key</span> <span class="o">=</span> <span class="s2">&quot;hrc_24v&quot;</span>
     <span class="n">transition_val</span> <span class="o">=</span> <span class="s2">&quot;OFF&quot;</span></div>
 
 
@@ -654,7 +681,7 @@
     <span class="sd">&quot;&quot;&quot;HRC-I OFF&quot;&quot;&quot;</span>
 
     <span class="n">command_attributes</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s2">&quot;tlmsid&quot;</span><span class="p">:</span> <span class="s2">&quot;215PCAOF&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;tlmsid&quot;</span><span class="p">:</span> <span class="s2">&quot;2IMHVOF&quot;</span><span class="p">,</span>
     <span class="p">}</span>
     <span class="n">state_keys</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;hrc_i&quot;</span><span class="p">]</span>
     <span class="n">transition_key</span> <span class="o">=</span> <span class="s2">&quot;hrc_i&quot;</span>
@@ -674,7 +701,7 @@
     <span class="sd">&quot;&quot;&quot;HRC-S OFF&quot;&quot;&quot;</span>
 
     <span class="n">command_attributes</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s2">&quot;tlmsid&quot;</span><span class="p">:</span> <span class="s2">&quot;215PCAOF&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;tlmsid&quot;</span><span class="p">:</span> <span class="s2">&quot;2SPHVOF&quot;</span><span class="p">,</span>
     <span class="p">}</span>
     <span class="n">state_keys</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;hrc_s&quot;</span><span class="p">]</span>
     <span class="n">transition_key</span> <span class="o">=</span> <span class="s2">&quot;hrc_s&quot;</span>
