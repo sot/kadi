@@ -79,3 +79,5 @@ DATABASES = {
         "NAME": EVENTS_DB_PATH(),
     }
 }
+
+TIME_ZONE = "US/Eastern"
