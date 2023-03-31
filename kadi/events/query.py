@@ -1,5 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+import contextlib
 import operator
+import os
 import sys
 import warnings
 
@@ -7,16 +9,35 @@ import django
 import numpy as np
 from Chandra.Time import DateTime
 
+
+@contextlib.contextmanager
+def restore_env_var(name):
+    """
+    Context manager to restore ``name`` environment variable to its original value.
+    """
+    prev_value = os.environ.get(name)
+    yield
+    if prev_value is None:
+        os.environ.pop(name, None)
+    else:
+        os.environ[name] = prev_value
+
+
+# django.setup() has an unfortunate side effect of setting the TZ environment variable,
+# which subsequently impacts Python timezone handling. In particular the `time` and
+# `datetime` packages will believe the local time zone is `American/Chicago`. So we
+# use a context manager to restore the TZ environment variable to its original value.
 try:
-    django.setup()
+    with restore_env_var("TZ"):
+        django.setup()
 except RuntimeError as exc:
     if "populate() isn't reentrant" in str(exc):
         print(f"Warning: {exc}", file=sys.stderr)
     else:
         raise
 
-from . import models
-from .models import IntervalPad
+from . import models  # noqa: E402
+from .models import IntervalPad  # noqa: E402
 
 # This gets updated dynamically by code at the end
 __all__ = ["get_dates_vals", "EventQuery"]
