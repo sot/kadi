@@ -1,35 +1,25 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import functools
 import logging
 from dataclasses import dataclass
 from typing import List, Optional
 
-import cheta.fetch_eng as fetch
 import numpy as np
 import plotly.graph_objects as pgo
-from astropy.table import Table
-from cxotime import CxoTime, CxoTimeLike, units as u
+from cxotime import CxoTime, CxoTimeLike
 
 
 __all__ = [
     "add_figure_regions",
     "compress_time_series",
     "convert_state_code_to_raw_val",
-    "get_telem_values",
     "fill_gaps_with_nan",
-    "NoTelemetryError",
-    "get_ofp_states",
     "get_time_series_chunks",
     "TimeSeriesChunk",
     "TimeSeriesPoint",
 ]
 
 logger = logging.getLogger(__name__)
-
-
-class NoTelemetryError(Exception):
-    """No telemetry available for the specified interval"""
 
 
 @dataclass
@@ -65,72 +55,6 @@ class TimeSeriesChunk:
             ]
         )
         return out
-
-
-def get_telem_values(msids: list, stop, days: float = 14) -> Table:
-    """
-    Fetch last ``days`` of available ``msids`` telemetry values before
-    time ``tstart``.
-
-    :param msids: fetch msids list
-    :param stop: stop time for telemetry (CxoTime-like)
-    :param days: length of telemetry request before ``tstart``
-    :returns: Table of requested telemetry values from fetch
-    """
-    stop = CxoTime(stop)
-    start = stop - days * u.day
-    logger.info(f"Fetching telemetry for {msids} between {start.date} and {stop.date}")
-
-    with fetch.data_source("cxc", "maude allow_subset=False"):
-        msidset = fetch.MSIDset(msids, start.date, stop.date)
-
-    # Use the first MSID as the primary one to set the time base
-    msid0 = msidset[msids[0]]
-
-    if len(msids) == 1:
-        # Only one MSID so just filter any bad values
-        msid0.filter_bad()
-        times = msid0.times
-    else:
-        # Multiple MSIDs so interpolate all to the same time base The assumption
-        # here is that all MSIDs have the same basic time base, e.g. AOCMDQT1-3.
-        msidset.interpolate(times=msid0.times, bad_union=True)
-        times = msidset.times
-
-    # Finished when we found at least 10 good records (5 mins)
-    if len(times) < 10:
-        raise NoTelemetryError(
-            f"Found no telemetry for {msids!r} within {days} days of {stop}"
-        )
-
-    names = ["time"] + msids
-    out = Table([times] + [msidset[x].vals for x in msids], names=names)
-    return out
-
-
-@functools.lru_cache(maxsize=1)
-def get_ofp_states(stop, days):
-    """Get the Onboard Flight Program states for ``stop`` and ``days`` lookback
-
-    This is normally "NRML" but in safe mode it is "SAFE" or other values. State codes:
-    ['NNRM' 'STDB' 'STBS' 'NRML' 'NSTB' 'SUOF' 'SYON' 'DPLY' 'SYSF' 'STUP' 'SAFE']
-    """
-    import astropy.table as tbl
-    from cheta.utils import logical_intervals
-
-    msid = "conlofp"
-    tlm = get_telem_values([msid], stop, days)
-    states_list = []
-    for state_code in np.unique(tlm[msid]):
-        states = logical_intervals(
-            tlm["time"], tlm[msid] == state_code, max_gap=2.1, complete_intervals=False
-        )
-        states["val"] = state_code
-        states_list.append(states)
-    states = tbl.vstack(states_list)
-    states.sort("datestart")
-
-    return states
 
 
 def add_figure_regions(
