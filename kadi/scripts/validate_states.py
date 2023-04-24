@@ -62,6 +62,7 @@ def main(args=None):
     # Enable logging in relevant packages
     logging.getLogger("kadi").setLevel(opt.log_level)
     fetch.add_logging_handler(level=opt.log_level)
+    fetch.data_source.set("cxc", "maude allow_subset=False")
     maude.set_logger_level(opt.log_level)
 
     maude.conf.cache_msid_queries = True

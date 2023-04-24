@@ -25,7 +25,12 @@ import Ska.Numpy
 import Ska.Shell
 import Ska.tdb
 from astropy.table import Table
-from cheta.utils import logical_intervals
+from cheta.utils import (
+    get_ofp_states,
+    get_telem_table,
+    logical_intervals,
+    NoTelemetryError,
+)
 from cxotime import CxoTime
 
 import kadi
@@ -33,12 +38,9 @@ import kadi.commands
 from kadi.commands.states import interpolate_states, reduce_states
 from kadi.commands.utils import (
     CxoTimeLike,
-    NoTelemetryError,
     add_figure_regions,
     compress_time_series,
     convert_state_code_to_raw_val,
-    get_ofp_states,
-    get_telem_values,
 )
 
 __all__ = [
@@ -52,7 +54,6 @@ __all__ = [
     "ValidatePcadMode",
     "ValidateLETG",
     "ValidateHETG",
-    "NoTelemetryError",
     "get_command_sheet_exclude_intervals",
 ]
 
@@ -75,9 +76,9 @@ class PlotAttrs:
     :param title: (str): Plot title.
     :param ylabel: (str): Y-axis label.
     :param range: (list): Y-axis range (optional).
-    :param max_delta_time: (float): Maximum time delta before a new data point is plotted.
-    :param max_delta_val: (float): Maximum value delta before a new data point is plotted.
-    :param max_gap_time: (float): Maximum gap in time before a plot gap is inserted.
+    :param max_delta_time: (float): Maximum time delta before new data point is plotted.
+    :param max_delta_val: (float): Maximum value delta before new data point is plotted.
+    :param max_gap_time: (float): Maximum gap in time before plot gap is inserted.
     """
 
     title: str
@@ -135,9 +136,16 @@ class Validate(ABC):
     @property
     def tlm(self):
         if not hasattr(self, "_tlm"):
-            self._tlm = get_telem_values(
-                msids=self.msids, stop=self.stop, days=self.days
+            logger.info(
+                f"Fetching telemetry for {self.msids} between {self.start.date} and"
+                f" {self.stop.date}"
             )
+            self._tlm = get_telem_table(self.msids, self.start, self.stop)
+            if len(self._tlm) == 0:
+                raise NoTelemetryError(
+                    f"No telemetry for {self.msids} between {self.start.date} and"
+                    f" {self.stop.date}"
+                )
             self.update_tlm()
             self.add_exclude_intervals()
         return self._tlm
@@ -256,7 +264,7 @@ class Validate(ABC):
         This includes a padding of 30 minutes after SAFE mode and 5 minutes for non-NRML
         states other than SAFE like STUP, SYON, SYSF etc.
         """
-        ofp_states = get_ofp_states(self.stop.date, self.days)
+        ofp_states = get_ofp_states(self.start, self.stop)
         for state in ofp_states:
             if state["val"] not in states_expected:
                 pad_stop = 30 * u.min if state["val"] == "SAFE" else 5 * u.min
