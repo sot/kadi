@@ -50,7 +50,8 @@ setup(
         "kadi.scripts",
         "kadi.tests",
         "kadi.commands",
-        "kadi.commands.tests",
+        "kadi.commands.tests"
+        "kadi.trend_events",
     ],
     package_data={
         "kadi.commands": ["templates/*.html"],
