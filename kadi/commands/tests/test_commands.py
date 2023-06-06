@@ -1142,7 +1142,7 @@ def test_scenario_with_rts(monkeypatch):
     assert np.count_nonzero(ok) == 14
 
 
-stop_date_2022_236 = stop_date_fixture_factory("2022:236")
+stop_date_2022_236 = stop_date_fixture_factory("2022-08-23")
 
 
 @pytest.mark.skipif(not HAS_INTERNET, reason="No internet connection")
@@ -1171,7 +1171,7 @@ def test_no_rltt_for_not_run_load(stop_date_2022_236):
     assert cmds["date", "tlmsid", "scs"].pformat() == exp
 
 
-stop_date_2022_352 = stop_date_fixture_factory("2022:352")
+stop_date_2022_352 = stop_date_fixture_factory("2022-12-17")
 
 
 def test_30_day_lookback_issue(stop_date_2022_352):
