@@ -317,7 +317,7 @@ def test_commands_create_archive_regress(tmpdir, version_env):
                 assert len(cmds_flight) == len(cmds_local)
 
             # Roughly validate NSM quaternions and remove from later comparison
-            nsm_idxs = np.flatnonzero(cmds_flight['npnt_enab'] == False)
+            nsm_idxs = np.flatnonzero(cmds_flight['npnt_enab'] == False) # noqa
             for idx in nsm_idxs:
                 flight_att = cmds_flight[idx]['params']['targ_att']
                 flight_q = Quat(q=flight_att)
@@ -348,7 +348,6 @@ def test_commands_create_archive_regress(tmpdir, version_env):
                 for cmd in cmds:
                     if cmd["tlmsid"] == "OBS" and "starcat_idx" in cmd["params"]:
                         del cmd["params"]["starcat_idx"]
-
 
             for attr in ("tlmsid", "date", "params"):
                 assert np.all(cmds_flight[attr] == cmds_local[attr])
