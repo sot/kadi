@@ -96,13 +96,39 @@ def merge_dates_vals(vals0, dates0, dates1):
     return np.array(out_dates), np.array(out_vals)
 
 
-def get_dates_vals(intervals, start, stop):
+def get_dates_vals(intervals, start, stop, intervals_time_format="date"):
     """
-    Convert a list of date 2-tuple intervals into a contiguous "curve" of
-    dates, vals values.  The dates and vals could be plotted.
+    Convert list of date 2-tuple intervals to contiguous "curve" of ``dates``, ``vals``.
+
+    The input intervals are assumed to be sorted and non-overlapping. Each interval
+    tuple is in the form (datestart, datestop) and time format as specified by
+    ``intervals_time_format``. The default is the ``date`` format YYYY:DOY:HH:MM:SS.sss.
+    If called with ``intervals_time_format=None`` then the input intervals are assumed
+    to be in the same format as ``start`` and ``stop``.
+
+    If either ``start`` or ``stop`` are ``None`` then they are set to the first and last
+    dates of the intervals, respectively.
+
+    The output ``vals`` are ``True`` or ``False`` corresponding to the presence of an
+    interval. The ``dates`` and ``vals`` could be plotted.
+
+    :param intervals: list of 2-tuple intervals (datestart, datestop)
+    :param start: start time of the curve
+    :param stop: stop time of the curve
+    :param intervals_time_format: time format of the input intervals (default="date")
+    :returns: dates, vals
     """
-    datestart = DateTime(start).date
-    datestop = DateTime(stop).date
+    if start is None:
+        start = intervals[0][0]
+    if stop is None:
+        stop = intervals[-1][1]
+
+    if intervals_time_format is None:
+        datestart = start
+        datestop = stop
+    else:
+        datestart = getattr(DateTime(start), intervals_time_format)
+        datestop = getattr(DateTime(stop), intervals_time_format)
     dates = []
     vals = []
 
@@ -138,9 +164,38 @@ def get_dates_vals(intervals, start, stop):
     return dates, vals
 
 
-def combine_intervals(op, intervals0, intervals1, start, stop):
-    dates0, vals0 = get_dates_vals(intervals0, start, stop)
-    dates1, vals1 = get_dates_vals(intervals1, start, stop)
+def combine_intervals(
+    op, intervals0, intervals1, start=None, stop=None, intervals_time_format="date"
+):
+    """
+    Logically combine two lists of date 2-tuple intervals.
+
+    The input intervals are assumed to be sorted and non-overlapping. Each interval
+    tuple is in the form (datestart, datestop) and time format as specified by
+    ``intervals_time_format``. The default is the ``date`` format YYYY:DOY:HH:MM:SS.sss.
+    If called with ``intervals_time_format=None`` then the input intervals are assumed
+    to be in the same format as ``start`` and ``stop``.
+
+    The output ``intervals`` are a list of tuples representing the logical combination
+    of the input intervals.
+
+    Example::
+
+        intervals0 = [(0, 1), (2, 3)]
+
+    :param op: logical operator to apply to the intervals
+    :param intervals0: list of 2-tuple intervals (datestart, datestop)
+    :param intervals1: list of 2-tuple intervals (datestart, datestop)
+    :param start: start time of output intervals
+    :param stop: stop time of output intervals
+    :returns: list of 2-tuple intervals (datestart, datestop)
+    """
+    dates0, vals0 = get_dates_vals(
+        intervals0, start, stop, intervals_time_format=intervals_time_format
+    )
+    dates1, vals1 = get_dates_vals(
+        intervals1, start, stop, intervals_time_format=intervals_time_format
+    )
 
     merge_dates0, merge_vals0 = merge_dates_vals(vals0, dates0, dates1)
     merge_dates1, merge_vals1 = merge_dates_vals(vals1, dates1, dates0)
