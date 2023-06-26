@@ -12,7 +12,6 @@ import pytest
 from astropy.table import Table, vstack
 from Chandra.Time import secs2date
 from Quaternion import Quat
-from agasc import sphere_dist
 from cxotime import CxoTime
 from testr.test_helper import has_internet
 
@@ -316,31 +315,23 @@ def test_commands_create_archive_regress(tmpdir, version_env):
                 # Path("cmds_local.txt").write_text(out)
                 assert len(cmds_flight) == len(cmds_local)
 
-            # Roughly validate NSM quaternions and remove from later comparison
-            nsm_idxs = np.flatnonzero(cmds_flight['npnt_enab'] == False) # noqa
-            for idx in nsm_idxs:
-                flight_att = cmds_flight[idx]['params']['targ_att']
-                flight_q = Quat(q=flight_att)
-                local_q = Quat(q=cmds_local[idx]['params']['targ_att'])
-                delta_point = sphere_dist(flight_q.ra, flight_q.dec,
-                                          local_q.ra, local_q.dec)
-
-                assert delta_point < 0.1
-                assert np.isclose(flight_q.roll, local_q.roll, atol=0.1)
-
-                for cmd in (cmds_local[idx], cmds_flight[idx]):
-                    del cmd['params']['targ_att']
-
-                # Not sure if it would be OK to just remove all 'prev_att'
-                # from the comparisons but here just remove the ones that
-                # have just been checked above.
-                for i in range(idx + 1, len(cmds_flight)):
-                    if 'prev_att' in cmds_flight[i]['params']:
-                        if (cmds_flight[i]['params']['prev_att'] == flight_att):
-                            del cmds_flight[i]['params']['prev_att']
-                            del cmds_local[i]['params']['prev_att']
-                        else:
-                            break
+            # Validate quaternions using numeric comparison and then remove
+            # from the == comparison below.  This is both appropriate for these
+            # numeric values and also necessary to deal with architecture
+            # differences when run on fido vs kady for example.
+            # In reality, the numeric differences only occur on "calculated"
+            # quaternions such as the NSM quaternions.
+            for idx in range(len(cmds_flight)):
+                for att_name in ['targ_att', 'prev_att']:
+                    if att_name not in cmds_flight[idx]['params']:
+                        continue
+                    flight_q = Quat(q=cmds_flight[idx]['params'][att_name])
+                    local_q = Quat(q=cmds_local[idx]['params'][att_name])
+                    dq = flight_q.dq(local_q)
+                    for attr in ("roll0", "pitch", "yaw"):
+                        assert abs(getattr(dq, attr)) < 1e-6
+                    del cmds_flight[idx]['params'][att_name]
+                    del cmds_local[idx]['params'][att_name]
 
             # 'starcat_idx' param in OBS cmd does not match since the pickle files
             # are different, so remove it.
