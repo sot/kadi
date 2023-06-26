@@ -11,6 +11,7 @@ import parse_cm.tests
 import pytest
 from astropy.table import Table, vstack
 from Chandra.Time import secs2date
+from Quaternion import Quat
 from cxotime import CxoTime
 from testr.test_helper import has_internet
 
@@ -313,6 +314,24 @@ def test_commands_create_archive_regress(tmpdir, version_env):
                 # out = "\n".join(cmds_local.pformat_like_backstop())
                 # Path("cmds_local.txt").write_text(out)
                 assert len(cmds_flight) == len(cmds_local)
+
+            # Validate quaternions using numeric comparison and then remove
+            # from the == comparison below.  This is both appropriate for these
+            # numeric values and also necessary to deal with architecture
+            # differences when run on fido vs kady for example.
+            # In reality, the numeric differences only occur on "calculated"
+            # quaternions such as the NSM quaternions.
+            for idx in range(len(cmds_flight)):
+                for att_name in ['targ_att', 'prev_att']:
+                    if att_name not in cmds_flight[idx]['params']:
+                        continue
+                    flight_q = Quat(q=cmds_flight[idx]['params'][att_name])
+                    local_q = Quat(q=cmds_local[idx]['params'][att_name])
+                    dq = flight_q.dq(local_q)
+                    for attr in ("roll0", "pitch", "yaw"):
+                        assert abs(getattr(dq, attr)) < 1e-6
+                    del cmds_flight[idx]['params'][att_name]
+                    del cmds_local[idx]['params'][att_name]
 
             # 'starcat_idx' param in OBS cmd does not match since the pickle files
             # are different, so remove it.
