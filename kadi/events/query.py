@@ -8,6 +8,7 @@ import warnings
 import django
 import numpy as np
 from Chandra.Time import DateTime
+from ska_helpers.intervals import combine_intervals, get_dates_vals
 
 
 @contextlib.contextmanager
@@ -40,7 +41,7 @@ from . import models  # noqa: E402
 from .models import IntervalPad  # noqa: E402
 
 # This gets updated dynamically by code at the end
-__all__ = ["get_dates_vals", "EventQuery"]
+__all__ = ["get_dates_vals", "combine_intervals", "EventQuery"]
 
 
 def un_unicode(vals):
@@ -75,134 +76,6 @@ def get_true_intervals(dates, vals):
     intervals = [
         (date0, date1) for state_val, date0, date1 in intervals_iter if state_val
     ]
-
-    return intervals
-
-
-def merge_dates_vals(vals0, dates0, dates1):
-    """
-    Merge dates1 into (dates0, vals0), taking care to not introduce
-    duplicate dates.  In other words return a new vals and dates that
-    is evaluated at the union of dates0 and dates1.
-    """
-    idxs = np.searchsorted(dates0, dates1)
-    out_dates = dates0[:]
-    out_vals = vals0[:]
-    for idx, date1 in zip(idxs[::-1], dates1[::-1]):
-        if dates0[idx] != date1:
-            out_dates.insert(idx, date1)
-            out_vals.insert(idx, vals0[idx])
-
-    return np.array(out_dates), np.array(out_vals)
-
-
-def get_dates_vals(intervals, start, stop, intervals_time_format="date"):
-    """
-    Convert list of date 2-tuple intervals to contiguous "curve" of ``dates``, ``vals``.
-
-    The input intervals are assumed to be sorted and non-overlapping. Each interval
-    tuple is in the form (datestart, datestop) and time format as specified by
-    ``intervals_time_format``. The default is the ``date`` format YYYY:DOY:HH:MM:SS.sss.
-    If called with ``intervals_time_format=None`` then the input intervals are assumed
-    to be in the same format as ``start`` and ``stop``.
-
-    If either ``start`` or ``stop`` are ``None`` then they are set to the first and last
-    dates of the intervals, respectively.
-
-    The output ``vals`` are ``True`` or ``False`` corresponding to the presence of an
-    interval. The ``dates`` and ``vals`` could be plotted.
-
-    :param intervals: list of 2-tuple intervals (datestart, datestop)
-    :param start: start time of the curve
-    :param stop: stop time of the curve
-    :param intervals_time_format: time format of the input intervals (default="date")
-    :returns: dates, vals
-    """
-    if start is None:
-        start = intervals[0][0]
-    if stop is None:
-        stop = intervals[-1][1]
-
-    if intervals_time_format is None:
-        datestart = start
-        datestop = stop
-    else:
-        datestart = getattr(DateTime(start), intervals_time_format)
-        datestop = getattr(DateTime(stop), intervals_time_format)
-    dates = []
-    vals = []
-
-    # Handle the trivial case of an empty list of intervals => all False in range
-    if not intervals:
-        dates = [datestart, datestop]
-        vals = [False, False]
-        return dates, vals
-
-    # If the first interval does not start exactly at datestart then add
-    # a "False" interval from datestart to the beginning of the first interval
-    if intervals[0][0] > datestart:
-        dates.extend([datestart, intervals[0][0]])
-        vals.extend([False, False])
-
-    for interval0, interval1 in zip(intervals[:-1], intervals[1:]):
-        dates.extend(list(interval0))
-        vals.extend([True, True])
-
-        dates.extend([interval0[1], interval1[0]])
-        vals.extend([False, False])
-
-    # Put in the last interval
-    dates.extend(list(intervals[-1]))
-    vals.extend([True, True])
-
-    # If the last interval does not end exactly at datestop then add
-    # a "False" interval from the end of the last interval to  datestop
-    if intervals[-1][1] < datestop:
-        dates.extend([intervals[-1][1], datestop])
-        vals.extend([False, False])
-
-    return dates, vals
-
-
-def combine_intervals(
-    op, intervals0, intervals1, start=None, stop=None, intervals_time_format="date"
-):
-    """
-    Logically combine two lists of date 2-tuple intervals.
-
-    The input intervals are assumed to be sorted and non-overlapping. Each interval
-    tuple is in the form (datestart, datestop) and time format as specified by
-    ``intervals_time_format``. The default is the ``date`` format YYYY:DOY:HH:MM:SS.sss.
-    If called with ``intervals_time_format=None`` then the input intervals are assumed
-    to be in the same format as ``start`` and ``stop``.
-
-    The output ``intervals`` are a list of tuples representing the logical combination
-    of the input intervals.
-
-    Example::
-
-        intervals0 = [(0, 1), (2, 3)]
-
-    :param op: logical operator to apply to the intervals
-    :param intervals0: list of 2-tuple intervals (datestart, datestop)
-    :param intervals1: list of 2-tuple intervals (datestart, datestop)
-    :param start: start time of output intervals
-    :param stop: stop time of output intervals
-    :returns: list of 2-tuple intervals (datestart, datestop)
-    """
-    dates0, vals0 = get_dates_vals(
-        intervals0, start, stop, intervals_time_format=intervals_time_format
-    )
-    dates1, vals1 = get_dates_vals(
-        intervals1, start, stop, intervals_time_format=intervals_time_format
-    )
-
-    merge_dates0, merge_vals0 = merge_dates_vals(vals0, dates0, dates1)
-    merge_dates1, merge_vals1 = merge_dates_vals(vals1, dates1, dates0)
-    if np.any(merge_dates0 != merge_dates1):
-        raise ValueError("Failure to properly merge intervals")
-
-    intervals = get_true_intervals(merge_dates0, op(merge_vals0, merge_vals1))
 
     return intervals
 

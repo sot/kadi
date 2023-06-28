@@ -41,6 +41,8 @@ except ImportError:
         "matplotlib's plot_directive could not be imported. " +
         "Inline plots will not be included in the output")
 
+autodoc_typehints = 'none'
+
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
 

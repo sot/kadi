@@ -326,7 +326,7 @@ class BaseModel(models.Model):
             """
             from Chandra.Time import DateTime
 
-            from .query import combine_intervals
+            from ska_helpers.intervals import combine_intervals
 
             # First find the intervals corresponding to overlaps between self events and
             # `query_event`.  Do this over an interval that covers an extra 30 days on
