@@ -1231,7 +1231,8 @@ def get_matching_block_idx(cmds_arch, cmds_recent):
             break
     else:
         raise ValueError(
-            "No matching blocks at least {} long".format(MATCHING_BLOCK_SIZE)
+            f"No matching blocks at least {MATCHING_BLOCK_SIZE} long. This most likely "
+            "means that you have not recently synced your local Ska data using `ska_sync`."
         )
 
     # Index into idx_cmds at the end of the large matching block.  block.b is the
