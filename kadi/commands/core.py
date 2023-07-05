@@ -181,7 +181,9 @@ def get_cmds_from_backstop(backstop, remove_starcat=False):
     elif isinstance(backstop, Table):
         bs = backstop
     else:
-        raise ValueError("`backstop` arg must be a string filename or a backstop Table")
+        raise ValueError(
+            "`backstop` arg must be a string filename or a backstop Table"
+        )
 
     n_bs = len(bs)
     out = {}
