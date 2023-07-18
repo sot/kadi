@@ -449,7 +449,9 @@ def get_starcats(
     rev_pars_dict = REV_PARS_DICT if cmds is None else cmds.rev_pars_dict()
 
     with ExitStack() as context_stack:
-        if conf.cache_starcats:
+        if conf.cache_starcats and cmds is None:
+            # Using shelve provides a persistent cache of star catalogs. Only do this
+            # when using the global commands archive, not when `cmds` are provided.
             starcats_db = context_stack.enter_context(
                 shelve.open(str(STARCATS_CACHE_PATH()))
             )
