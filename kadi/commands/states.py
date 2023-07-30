@@ -41,6 +41,9 @@ PCAD_STATE_KEYS = (
     + ["auto_npnt", "pcad_mode", "pitch", "off_nom_roll"]
 )
 
+# State keys for SIM-related transitions.
+SPM_STATE_KEYS = ["sun_pos_mon", "battery_connect", "eclipse_enable_spm"]
+
 # Default state keys (mostly matches classic command states list)
 DEFAULT_STATE_KEYS = (
     "ccd_count",
@@ -711,7 +714,7 @@ class SPMEnableTransition(FixedTransition):
 
     command_attributes = {"tlmsid": "AOFUNCEN"}
     command_params = {"aopcadse": 30}
-    state_keys = ["sun_pos_mon"]
+    state_keys = SPM_STATE_KEYS
     transition_key = "sun_pos_mon"
     transition_val = "ENAB"
 
@@ -721,7 +724,7 @@ class SPMDisableTransition(FixedTransition):
 
     command_attributes = {"tlmsid": "AOFUNCDS"}
     command_params = {"aopcadsd": 30}
-    state_keys = ["sun_pos_mon"]
+    state_keys = SPM_STATE_KEYS
     transition_key = "sun_pos_mon"
     transition_val = "DISA"
 
@@ -738,7 +741,7 @@ class SPMEclipseEnableTransition(BaseTransition):
 
     command_attributes = {"type": "ORBPOINT"}
     command_params = {"event_type": ["PEXIT", "LSPEXIT"]}
-    state_keys = ["sun_pos_mon", "battery_connect", "eclipse_enable_spm"]
+    state_keys = SPM_STATE_KEYS
     default_value = False
 
     @classmethod
@@ -779,7 +782,7 @@ class EclipseEnableSPM(BaseTransition):
 
     command_attributes = {"type": "ORBPOINT"}
     command_params = {"event_type": ["PENTRY", "LSPENTRY"]}
-    state_keys = ["sun_pos_mon", "battery_connect", "eclipse_enable_spm"]
+    state_keys = SPM_STATE_KEYS
     default_value = False
 
     @classmethod
@@ -818,7 +821,7 @@ class BatteryConnect(BaseTransition):
     """Most recent battery connect time (type=COMMAND_SW and tlmsid=EOESTECN)"""
 
     command_attributes = {"tlmsid": "EOESTECN"}
-    state_keys = ["sun_pos_mon", "battery_connect", "eclipse_enable_spm"]
+    state_keys = SPM_STATE_KEYS
 
     default_value = "1999:001:00:00:00.000"
 

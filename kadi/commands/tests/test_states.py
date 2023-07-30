@@ -1756,7 +1756,7 @@ def test_sun_pos_mon_within_eclipse():
     )
 
     stop = "2022:110:00:00:00.000"
-    spm_state_keys = ["sun_pos_mon", "battery_connect", "eclipse_enable_spm"]
+    spm_state_keys = states.SPM_STATE_KEYS
 
     for start in starts:
         exp_start_date = max(start.date, "2022:109:21:27:27.034")
@@ -1775,3 +1775,26 @@ def test_sun_pos_mon_within_eclipse():
 
         names = ["datestart"] + spm_state_keys
         assert sts[names][-2:].pformat_all() == exp
+
+
+def test_sun_pos_mon_within_eclipse_no_spm_enab():
+    """
+    Test a case where battery connect is more than 125 sec before pentry.
+
+    2005:014:15:31:36.410 | COMMAND_SW       | EOESTECN   | JAN1005B
+    2005:014:15:33:49.164 | ORBPOINT         | None       | JAN1005B | PENTRY
+    2005:014:16:38:09.164 | ORBPOINT         | None       | JAN1005B | PEXIT
+    """
+    sts = states.get_states(
+        "2005:014:16:38:10",  # Just after pexit
+        "2005:014:17:00:00",  # 22 min later
+        state_keys=states.SPM_STATE_KEYS,
+    )
+
+    exp = [
+        "      datestart       sun_pos_mon    battery_connect    eclipse_enable_spm",
+        "--------------------- ----------- --------------------- ------------------",
+        "2005:014:16:38:10.000        DISA 2005:014:15:31:36.410              False",
+    ]
+    names = ["datestart"] + states.SPM_STATE_KEYS
+    assert sts[names].pformat_all() == exp
