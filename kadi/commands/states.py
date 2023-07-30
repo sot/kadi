@@ -736,11 +736,9 @@ class SPMEclipseEnableTransition(BaseTransition):
     Eclipse exit is event type ORBPOINT with TYPE=PEXIT or TYPE=LSPEXIT
     """
 
-    # Command attributes and params are just for docstring, but actual transition
-    # command filtering in set_transitions is more complicated.
     command_attributes = {"type": "ORBPOINT"}
     command_params = {"event_type": ["PEXIT", "LSPEXIT"]}
-    state_keys = ["sun_pos_mon", "eclipse_battery_connect", "eclipse_connect_flag"]
+    state_keys = ["sun_pos_mon", "battery_connect", "eclipse_enable_spm"]
     default_value = False
 
     @classmethod
@@ -763,18 +761,25 @@ class SPMEclipseEnableTransition(BaseTransition):
 
     @classmethod
     def callback(cls, date, transitions, state, idx):
-        if state["eclipse_connect_flag"]:
-            date_scs33 = secs2date(date2secs(date) + 11 * 60)
-            transition = {"date": date_scs33, "sun_pos_mon": "ENAB"}
-            print(date)
-            print(date_scs33)
+        if state["eclipse_enable_spm"]:
+            transition = {
+                "date": secs2date(date2secs(date) + 11 * 60),
+                "sun_pos_mon": "ENAB",
+            }
             add_transition(transitions, idx, transition)
 
 
-class EclipseConnectFlag(BaseTransition):
+class EclipseEnableSPM(BaseTransition):
+    """Flag to indicate whether SPM will be enabled 11 minutes after eclipse exit.
+
+    This is evaluated at the time of eclipse entry and checks that the most recent
+    battery connect command (via the ``battery_connect`` state) was within 2:05 minutes
+    of eclipse entry.
+    """
+
     command_attributes = {"type": "ORBPOINT"}
     command_params = {"event_type": ["PENTRY", "LSPENTRY"]}
-    state_keys = ["sun_pos_mon", "eclipse_battery_connect", "eclipse_connect_flag"]
+    state_keys = ["sun_pos_mon", "battery_connect", "eclipse_enable_spm"]
     default_value = False
 
     @classmethod
@@ -793,31 +798,27 @@ class EclipseConnectFlag(BaseTransition):
         state_cmds = cls.get_state_changing_commands(cmds)
 
         for cmd in state_cmds:
-            transitions_dict[cmd["date"]]["eclipse_connect_flag"] = cls.callback
+            transitions_dict[cmd["date"]]["eclipse_enable_spm"] = cls.callback
 
     @classmethod
     def callback(cls, date, transitions, state, idx):
-        entry_time = date2secs(date)
-        connect_time = date2secs(state["eclipse_battery_connect"])
-        connect_flag = entry_time - connect_time < 125
-        transition = {"date": date, "eclipse_connect_flag": connect_flag}
+        """Set flag if SPM will be enabled 11 minutes after eclipse exit.
+
+        ``battery_connect_time`` is the time of the battery connect EOESTECN command,
+        which must occur prior to this command which is eclipse entry.
+        """
+        battery_connect_time = date2secs(state["battery_connect"])
+        eclipse_entry_time = date2secs(date)
+        enable_spm = eclipse_entry_time - battery_connect_time < 125
+        transition = {"date": date, "eclipse_enable_spm": enable_spm}
         add_transition(transitions, idx, transition)
 
 
-class EclipseBatteryConnect(BaseTransition):
-    """
-    Automatic enable of sun position monitor which occurs 11 minutes after eclipse exit,
-    but only if the battery-connect command occurs within 2:05 minutes of eclipse entry.
+class BatteryConnect(BaseTransition):
+    """Most recent battery connect time (type=COMMAND_SW and tlmsid=EOESTECN)"""
 
-    Connect batteries is an event type COMMAND_SW and TLMSID= EOESTECN
-    Eclipse entry is event type ORBPOINT with TYPE=PENTRY or TYPE=LSPENTRY
-    Eclipse exit is event type ORBPOINT with TYPE=PEXIT or TYPE=LSPEXIT
-    """
-
-    # Command attributes and params are just for docstring, but actual transition
-    # command filtering in set_transitions is more complicated.
     command_attributes = {"tlmsid": "EOESTECN"}
-    state_keys = ["sun_pos_mon", "eclipse_battery_connect", "eclipse_connect_flag"]
+    state_keys = ["sun_pos_mon", "battery_connect", "eclipse_enable_spm"]
 
     default_value = "1999:001:00:00:00.000"
 
@@ -833,11 +834,10 @@ class EclipseBatteryConnect(BaseTransition):
 
         :returns: None
         """
-
         state_cmds = cls.get_state_changing_commands(cmds)
 
         for cmd in state_cmds:
-            transitions[cmd["date"]]["eclipse_battery_connect"] = cmd["date"]
+            transitions[cmd["date"]]["battery_connect"] = cmd["date"]
 
 
 class SCS84EnableTransition(FixedTransition):
