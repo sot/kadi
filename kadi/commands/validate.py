@@ -678,6 +678,30 @@ class ValidateHETG(ValidateGrating):
     plot_attrs = PlotAttrs(title="HETG", ylabel="HETG")
 
 
+class ValidateSunPosMon(ValidateStateCode):
+    state_name = "sun_pos_mon"
+    msids = ["aopssupm"]
+    plot_attrs = PlotAttrs(title="Sun position monitor", ylabel="Sun position monitor")
+    min_violation_duration = 300
+
+    def add_exclude_intervals(self):
+        super().add_exclude_intervals()
+        self.exclude_ofp_intervals_except(["NRML"])
+
+    @functools.cached_property
+    def state_vals(self):
+        """Convert ENAB (commanded states) to ACT (telemetry).
+
+        The "ENAB" is an artifact of the backstop history sun position monitor states.
+        This method is otherwise equivalent to the ValidateStateCode method.
+        """
+        states_interp = interpolate_states(self.states, self.tlm["time"])
+        state_vals = states_interp[self.state_name]
+        state_vals[state_vals == "ENAB"] = "ACT"
+        state_vals_raw = convert_state_code_to_raw_val(state_vals, self.state_codes)
+        return state_vals_raw
+
+
 def get_overlap_mask(times: np.ndarray, intervals: Table):
     """Return a bool mask of ``times`` that are within any of the ``intervals``.
 
