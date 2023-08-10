@@ -200,7 +200,7 @@ def get_cmds(
 
     :returns: CommandTable
     """
-    logger.info(f"Getting commands from {start} to {stop} for {scenario=}")
+    logger.info(f"Getting commands from {start.date} to {stop.date} for {scenario=}")
     scenario = os.environ.get("KADI_SCENARIO", scenario)
     start = CxoTime("1999:001" if start is None else start)
     stop = (CxoTime.now() + 1 * u.year) if stop is None else CxoTime(stop)
