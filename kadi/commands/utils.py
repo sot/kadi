@@ -97,7 +97,7 @@ def add_figure_regions(
 def convert_state_code_to_raw_val(state_vals, state_codes):
     raw_vals = np.zeros(len(state_vals), dtype=int)
     for raw_val, state_code in state_codes:
-        ok = state_vals == state_code
+        ok = np.char.strip(state_vals) == state_code
         raw_vals[ok] = raw_val
     return raw_vals
 
