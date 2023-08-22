@@ -1,4 +1,3 @@
----
 name: Deploy Docs
 on:
   release:
@@ -7,9 +6,8 @@ on:
   repository_dispatch:
     types:
     - build-docs
-
 jobs:
   docs:
-    uses: sot/skare3/.github/workflows/package_docs.yml@master
     secrets:
-      CHANDRA_XRAY_TOKEN: ${{ secrets.CHANDRA_XRAY_TOKEN }}
+      token: ${{ secrets.CHANDRA_XRAY_TOKEN }}
+    uses: sot/skare3/.github/workflows/package_docs.yml@master
