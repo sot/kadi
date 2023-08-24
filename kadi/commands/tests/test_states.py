@@ -5,7 +5,6 @@ import os
 import warnings
 from pathlib import Path
 
-import astropy.units as u
 import numpy as np
 import pytest
 from astropy.io import ascii
@@ -21,8 +20,8 @@ warnings.filterwarnings(
     message="kadi commands v1 is deprecated, use v2 instead",
 )
 
-from kadi import commands
-from kadi.commands import states
+from kadi import commands  # noqa: E402
+from kadi.commands import states  # noqa: E402
 
 try:
     fetch.get_time_range("dp_pitch")
