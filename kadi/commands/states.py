@@ -41,6 +41,9 @@ PCAD_STATE_KEYS = (
     + ["auto_npnt", "pcad_mode", "pitch", "off_nom_roll"]
 )
 
+# State keys for SPM-related transitions.
+SPM_STATE_KEYS = ["sun_pos_mon", "battery_connect", "eclipse_enable_spm"]
+
 # Default state keys (mostly matches classic command states list)
 DEFAULT_STATE_KEYS = (
     "ccd_count",
@@ -711,7 +714,7 @@ class SPMEnableTransition(FixedTransition):
 
     command_attributes = {"tlmsid": "AOFUNCEN"}
     command_params = {"aopcadse": 30}
-    state_keys = ["sun_pos_mon"]
+    state_keys = SPM_STATE_KEYS
     transition_key = "sun_pos_mon"
     transition_val = "ENAB"
 
@@ -721,7 +724,7 @@ class SPMDisableTransition(FixedTransition):
 
     command_attributes = {"tlmsid": "AOFUNCDS"}
     command_params = {"aopcadsd": 30}
-    state_keys = ["sun_pos_mon"]
+    state_keys = SPM_STATE_KEYS
     transition_key = "sun_pos_mon"
     transition_val = "DISA"
 
@@ -736,11 +739,10 @@ class SPMEclipseEnableTransition(BaseTransition):
     Eclipse exit is event type ORBPOINT with TYPE=PEXIT or TYPE=LSPEXIT
     """
 
-    # Command attributes and params are just for docstring, but actual transition
-    # command filtering in set_transitions is more complicated.
     command_attributes = {"type": "ORBPOINT"}
     command_params = {"event_type": ["PEXIT", "LSPEXIT"]}
-    state_keys = ["sun_pos_mon"]
+    state_keys = SPM_STATE_KEYS
+    default_value = False
 
     @classmethod
     def set_transitions(cls, transitions_dict, cmds, start, stop):
@@ -755,27 +757,90 @@ class SPMEclipseEnableTransition(BaseTransition):
         :returns: None
         """
         # Preselect only commands that might have an impact here.
-        ok = (cmds["tlmsid"] == "EOESTECN") | (cmds["type"] == "ORBPOINT")
-        cmds = cmds[ok]
+        state_cmds = cls.get_state_changing_commands(cmds)
 
-        connect_time = 0
-        connect_flag = False
+        for cmd in state_cmds:
+            transitions_dict[cmd["date"]]["sun_pos_mon"] = cls.callback
 
-        for cmd in cmds:
-            if cmd["tlmsid"] == "EOESTECN":
-                connect_time = DateTime(cmd["date"]).secs
+    @classmethod
+    def callback(cls, date, transitions, state, idx):
+        if state["eclipse_enable_spm"]:
+            transition = {
+                "date": secs2date(date2secs(date) + 11 * 60),
+                "sun_pos_mon": "ENAB",
+            }
+            add_transition(transitions, idx, transition)
 
-            elif cmd["type"] == "ORBPOINT":
-                if cmd["event_type"] in ("PENTRY", "LSPENTRY"):
-                    entry_time = DateTime(cmd["date"]).secs
-                    connect_flag = entry_time - connect_time < 125
 
-                elif cmd["event_type"] in ("PEXIT", "LSPEXIT") and connect_flag:
-                    scs33 = (
-                        DateTime(cmd["date"]) + 11 * 60 / 86400
-                    )  # 11 minutes in days
-                    transitions_dict[scs33.date]["sun_pos_mon"] = "ENAB"
-                    connect_flag = False
+class EclipseEnableSPM(BaseTransition):
+    """Flag to indicate whether SPM will be enabled 11 minutes after eclipse exit.
+
+    This is evaluated at the time of eclipse entry and checks that the most recent
+    battery connect command (via the ``battery_connect`` state) was within 2:05 minutes
+    of eclipse entry.
+    """
+
+    command_attributes = {"type": "ORBPOINT"}
+    command_params = {"event_type": ["PENTRY", "LSPENTRY"]}
+    state_keys = SPM_STATE_KEYS
+    default_value = False
+
+    @classmethod
+    def set_transitions(cls, transitions_dict, cmds, start, stop):
+        """
+        Set transitions for a Table of commands ``cmds``.
+
+        :param transitions_dict: global dict of transitions (updated in-place)
+        :param cmds: commands (CmdList)
+        :param start: start time for states
+        :param stop: stop time for states
+
+        :returns: None
+        """
+        # Preselect only commands that might have an impact here.
+        state_cmds = cls.get_state_changing_commands(cmds)
+
+        for cmd in state_cmds:
+            transitions_dict[cmd["date"]]["eclipse_enable_spm"] = cls.callback
+
+    @classmethod
+    def callback(cls, date, transitions, state, idx):
+        """Set flag if SPM will be enabled 11 minutes after eclipse exit.
+
+        ``battery_connect_time`` is the time of the battery connect EOESTECN command,
+        which must occur prior to this command which is eclipse entry.
+        """
+        battery_connect_time = date2secs(state["battery_connect"])
+        eclipse_entry_time = date2secs(date)
+        enable_spm = eclipse_entry_time - battery_connect_time < 125
+        transition = {"date": date, "eclipse_enable_spm": enable_spm}
+        add_transition(transitions, idx, transition)
+
+
+class BatteryConnect(BaseTransition):
+    """Most recent battery connect time (type=COMMAND_SW and tlmsid=EOESTECN)"""
+
+    command_attributes = {"tlmsid": "EOESTECN"}
+    state_keys = SPM_STATE_KEYS
+
+    default_value = "1999:001:00:00:00.000"
+
+    @classmethod
+    def set_transitions(cls, transitions, cmds, start, stop):
+        """
+        Set transitions for a Table of commands ``cmds``.
+
+        :param transitions_dict: global dict of transitions (updated in-place)
+        :param cmds: commands (CmdList)
+        :param start: start time for states
+        :param stop: stop time for states
+
+        :returns: None
+        """
+        state_cmds = cls.get_state_changing_commands(cmds)
+
+        for cmd in state_cmds:
+            transitions[cmd["date"]]["battery_connect"] = cmd["date"]
 
 
 class SCS84EnableTransition(FixedTransition):
@@ -1573,7 +1638,7 @@ def get_states(
             if "did not find transitions" in str(exc):
                 raise ValueError(
                     f"no continuity found for {start=}. Need to have state "
-                    f'transitions following first command at {cmds[0]["date"]} '
+                    f"transitions following first command at {cmds[0]['date']} "
                     "so use a later start date."
                 )
             else:
@@ -1946,7 +2011,7 @@ def get_chandra_states(main_args=None):
         "--merge-identical",
         default=False,
         action="store_true",
-        help="Merge adjacent states that have identical values " "(default=False)",
+        help="Merge adjacent states that have identical values (default=False)",
     )
     parser.add_argument("--outfile", help="Output file (default=stdout)")
 
