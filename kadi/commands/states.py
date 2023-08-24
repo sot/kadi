@@ -41,7 +41,7 @@ PCAD_STATE_KEYS = (
     + ["auto_npnt", "pcad_mode", "pitch", "off_nom_roll"]
 )
 
-# State keys for SIM-related transitions.
+# State keys for SPM-related transitions.
 SPM_STATE_KEYS = ["sun_pos_mon", "battery_connect", "eclipse_enable_spm"]
 
 # Default state keys (mostly matches classic command states list)
