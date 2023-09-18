@@ -1,20 +1,19 @@
 
 <!DOCTYPE html>
 
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
-    <title>Commands archive v1 &#8212; kadi 7.4.1 documentation</title>
+    <title>Commands archive v1 &#8212; kadi 7.6.0 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/bootstrap-astropy.css" />
     <link rel="stylesheet" type="text/css" href="_static/plot_directive.css" />
     
     <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-    <script src="_static/jquery.js"></script>
-    <script src="_static/underscore.js"></script>
     <script src="_static/doctools.js"></script>
+    <script src="_static/sphinx_highlight.js"></script>
     <script type="text/javascript" src="_static/sidebar.js"></script>
     <script type="text/javascript" src="_static/copybutton.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
@@ -61,7 +60,7 @@
 	 |
       </li>
       <li>
-	<a href="index.html">kadi 7.4.1 documentation</a>
+	<a href="index.html">kadi 7.6.0 documentation</a>
 	 &#187;
       </li>
       <li><a href="commands_states.html" accesskey="U">Commands and states</a> &#187;</li>
@@ -77,7 +76,7 @@
           <div class="body" role="main">
             
   <section id="commands-archive-v1">
-<h1>Commands archive v1<a class="headerlink" href="#commands-archive-v1" title="Permalink to this headline">¶</a></h1>
+<h1>Commands archive v1<a class="headerlink" href="#commands-archive-v1" title="Permalink to this heading">¶</a></h1>
 <p>In order to use the v1 version do the following:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">kadi</span> <span class="kn">import</span> <span class="n">commands</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">commands</span><span class="o">.</span><span class="n">conf</span><span class="o">.</span><span class="n">commands_version</span> <span class="o">=</span> <span class="s2">&quot;1&quot;</span>  <span class="c1"># must be the string &quot;1&quot; not int 1</span>
@@ -195,7 +194,7 @@ command table.  Note that command rows without that parameter will have a <code 
 </pre></div>
 </div>
 <section id="notes-and-caveats">
-<h2>Notes and caveats<a class="headerlink" href="#notes-and-caveats" title="Permalink to this headline">¶</a></h2>
+<h2>Notes and caveats<a class="headerlink" href="#notes-and-caveats" title="Permalink to this heading">¶</a></h2>
 <ul class="simple">
 <li><p>The exact set of load commands relies on the <a class="reference external" href="http://cxc.harvard.edu/mta/ASPECT/tool_doc/cmd_states">Chandra commanded states database</a> to determine which command
 loads ran on-board and for what duration.  This information comes from a combination of
@@ -244,12 +243,16 @@ archive is stored in two files with a total size about 52 Mb.</p></li>
 </ul>
 
 
-  <h4>Previous topic</h4>
-  <p class="topless"><a href="commands_v2.html"
-                        title="previous chapter">Commands archive v2 details</a></p>
-  <h4>Next topic</h4>
-  <p class="topless"><a href="api.html"
-                        title="next chapter">API documentation</a></p>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="commands_v2.html"
+                          title="previous chapter">Commands archive v2 details</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="api.html"
+                          title="next chapter">API documentation</a></p>
+  </div>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
     <ul class="this-page-menu">
@@ -273,7 +276,7 @@ archive is stored in two files with a total size about 52 Mb.</p></li>
     <a href="#">Back to Top</a></p>
   <p>
     &copy; Copyright 2013, Tom Aldcroft.<br/>
-    Created using <a href="http://www.sphinx-doc.org/en/stable/">Sphinx</a> 4.2.0. &nbsp;
+    Created using <a href="http://www.sphinx-doc.org/en/stable/">Sphinx</a> 6.1.3. &nbsp;
   </p>
 </footer>
   </body>
