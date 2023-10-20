@@ -172,7 +172,7 @@ def get_matching_block_idx_simple(cmds_recent, cmds_arch, min_match):
         i0_arch += 1
         if cmds_arch["date"][i0_arch] != date0:
             raise ValueError(
-                f"No matching commands block in archive found for recent_commands"
+                "No matching commands block in archive found for recent_commands"
             )
 
     logger.info(f"Found matching commands block in archive at {i0_arch}")
@@ -200,7 +200,8 @@ def get_cmds(
 
     :returns: CommandTable
     """
-    logger.info(f"Getting commands from {CxoTime(start).date} to {CxoTime(stop).date} for {scenario=}")
+    logger.info(
+        f"Getting commands from {CxoTime(start).date} to {CxoTime(stop).date} for {scenario=}")
     scenario = os.environ.get("KADI_SCENARIO", scenario)
     start = CxoTime("1999:001" if start is None else start)
     stop = (CxoTime.now() + 1 * u.year) if stop is None else CxoTime(stop)
