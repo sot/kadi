@@ -4,7 +4,7 @@ from pathlib import Path
 
 import astropy.units as u
 from cxotime import CxoTime
-from parse_cm.common import _coerce_type as coerce_type
+from ska_helpers.utils import convert_to_int_float_str
 from Quaternion import Quat
 
 from kadi.commands.core import CommandTable
@@ -166,7 +166,7 @@ def cmd_set_command(*args, date=None):
         if key == "TLMSID":
             cmd["tlmsid"] = val
         else:
-            params[key] = coerce_type(val)
+            params[key] = convert_to_int_float_str(val)
     cmd["params"] = params
 
     return (cmd,)
@@ -207,7 +207,7 @@ def get_cmds_from_event(date, event, params_str):
             args = [params_str]
         else:
             params_str = params_str.upper().split()
-            args = [coerce_type(p) for p in params_str]
+            args = [convert_to_int_float_str(p) for p in params_str]
     else:
         # Empty value means no args and implies params_str = np.ma.masked
         args = ()
