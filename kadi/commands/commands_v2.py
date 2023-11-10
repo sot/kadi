@@ -428,7 +428,7 @@ def update_archive_and_get_cmds_recent(
             # Apply end SCS from these commands to the current running loads.
             # Remove commands with date greater than end SCS date. In most
             # cases this does not cut anything.
-            for jj in range(0, ii):
+            for jj in range(ii):
                 prev_cmds = cmds_list[jj]
                 # First check for any overlap since prev_cmds is sorted by date.
                 if len(prev_cmds) > 0 and prev_cmds["date"][-1] > date_end:

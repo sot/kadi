@@ -131,7 +131,7 @@ def get_event_models(baseclass=None):
     import inspect
 
     models = {}
-    for name, var in globals().items():
+    for var in globals().values():
         if inspect.isclass(var) and issubclass(var, baseclass or BaseEvent):
             # Make an instance of event class to discover if it is an abstact base class.
             event = var()
@@ -547,7 +547,7 @@ class BaseEvent(BaseModel):
         Get load commands within start/stop interval for this event.
         Apply padding defined by interval_pad attribute.
         """
-        from .. import cmds as commands
+        from kadi import cmds as commands
 
         cmds = commands.filter(
             self.tstart - self.interval_pad.start, self.tstop + self.interval_pad.stop
@@ -2081,7 +2081,7 @@ class IFotEvent(BaseEvent):
         """
         Get events from iFOT web interface
         """
-        from .. import occweb
+        from kadi import occweb
 
         datestart = DateTime(start).date
         datestop = DateTime(stop).date
@@ -2110,7 +2110,7 @@ class IFotEvent(BaseEvent):
                 # The above still might not be OK because sometimes what is in the
                 # <prop>.START/STOP values is not a valid date.
                 try:
-                    DateTime(event[st]).date
+                    DateTime(event[st]).date  # noqa: B018
                 except Exception:
                     # Fail, roll back to the tstart/tstop version
                     logger.info(

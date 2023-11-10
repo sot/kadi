@@ -148,7 +148,7 @@ def test_acis():
     """
     state_keys = ["clocking", "power_cmd", "fep_count", "si_mode", "vid_board"]
     rc, rk = compare_states(
-        "2017:280:12:00:00", "2017:360:12:00:00", state_keys, state_keys
+        "2017:280:12:00:00", "2017:360:12:00:00", state_keys,
     )
 
 

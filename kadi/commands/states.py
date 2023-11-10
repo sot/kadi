@@ -493,7 +493,7 @@ class MechMove(FixedTransition):
             for val, attr in zip(vals, attrs):
                 if attr == "grating":
                     transitions_dict[date_start.date][attr] = val
-                else:
+                else:  # noqa: PLR5501
                     # 'letg' or 'hetg' insert/retract status, include the move
                     # interval here
                     if cls.apply_move_duration:
@@ -1339,7 +1339,7 @@ def decode_power(mnem):
     # convert the hex to decimal and "&" it with 63 (binary 111111)
     fepkey = int(powstr, 16) & 63
     # count the true binary bits
-    for bit in range(0, 6):
+    for bit in range(6):
         if fepkey & (1 << bit):
             fep_info["fep_count"] = fep_info["fep_count"] + 1
             fep_info["feps"] = fep_info["feps"] + str(bit) + " "
@@ -1348,7 +1348,7 @@ def decode_power(mnem):
     vidkey = int(powstr, 16) >> 8
 
     # count the true bits
-    for bit in range(0, 10):
+    for bit in range(10):
         if vidkey & (1 << bit):
             fep_info["ccd_count"] = fep_info["ccd_count"] + 1
             # position indicates I or S chip

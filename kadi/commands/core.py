@@ -693,11 +693,7 @@ class CommandTable(Table):
                     elif key == "packet(40)":
                         continue
                     elif (
-                        key.startswith("aopcads")
-                        or key.startswith("co")
-                        or key.startswith("afl")
-                        or key.startswith("2s1s")
-                        or key.startswith("2s2s")
+                        key.startswith(("aopcads", "co", "afl", "2s1s", "2s2s"))
                     ):
                         fmt = "{}={:d} "
                     else:

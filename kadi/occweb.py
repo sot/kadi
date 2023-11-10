@@ -284,7 +284,7 @@ def get_occweb_page(
             )
         except HTTPError as err:
             # Re-raise so caller can handle it with one exception class
-            raise requests.exceptions.HTTPError(str(err))
+            raise requests.exceptions.HTTPError(str(err)) from err
         pth = Path(cachefile)
         out = pth.read_bytes() if binary else pth.read_text()
     else:

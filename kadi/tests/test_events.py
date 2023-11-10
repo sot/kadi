@@ -6,7 +6,7 @@ from copy import deepcopy
 import numpy as np
 from Chandra.Time import DateTime
 
-from .. import events
+from kadi import events
 
 
 def test_xdg_config_home_env_var():
