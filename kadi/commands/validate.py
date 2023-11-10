@@ -26,10 +26,10 @@ import Ska.Shell
 import Ska.tdb
 from astropy.table import Table
 from cheta.utils import (
+    NoTelemetryError,
     get_ofp_states,
     get_telem_table,
     logical_intervals,
-    NoTelemetryError,
 )
 from cxotime import CxoTime
 

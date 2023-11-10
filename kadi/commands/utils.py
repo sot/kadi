@@ -8,7 +8,6 @@ import numpy as np
 import plotly.graph_objects as pgo
 from cxotime import CxoTime, CxoTimeLike
 
-
 __all__ = [
     "add_figure_regions",
     "compress_time_series",
