@@ -147,9 +147,7 @@ def test_acis():
     Test all ACIS states include vid_board for late-2017
     """
     state_keys = ["clocking", "power_cmd", "fep_count", "si_mode", "vid_board"]
-    rc, rk = compare_states(
-        "2017:280:12:00:00", "2017:360:12:00:00", state_keys,
-    )
+    rc, rk = compare_states("2017:280:12:00:00", "2017:360:12:00:00", state_keys)
 
 
 def test_cmd_line_interface(tmpdir):

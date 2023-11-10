@@ -692,9 +692,7 @@ class CommandTable(Table):
                         fmt = "{}={:.8e}"
                     elif key == "packet(40)":
                         continue
-                    elif (
-                        key.startswith(("aopcads", "co", "afl", "2s1s", "2s2s"))
-                    ):
+                    elif key.startswith(("aopcads", "co", "afl", "2s1s", "2s2s")):
                         fmt = "{}={:d} "
                     else:
                         fmt = "{}={}"

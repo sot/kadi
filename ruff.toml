@@ -24,6 +24,7 @@ select = [
 ]
 
 ignore = [
+  "ISC001", # Disable this for compatibility with ruff format
   "B028", # No explicit `stacklevel` keyword argument found
   "B905", # `zip()` without an explicit `strict=` parameter
   "E402", # module level import not at top of file
