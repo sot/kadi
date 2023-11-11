@@ -20,7 +20,7 @@ __all__ = ["read_backstop", "get_cmds_from_backstop", "CommandTable"]
 logger = logging.getLogger(__name__)
 
 
-class LazyVal(object):
+class LazyVal:
     def __init__(self, load_func):
         self._load_func = load_func
 
@@ -87,7 +87,7 @@ def load_pars_dict(version=None, file=None):
     return pars_dict
 
 
-@functools.lru_cache()
+@functools.lru_cache
 def load_name_to_cxotime(name):
     """Convert load name to date"""
     mon = name[:3].capitalize()
@@ -142,8 +142,10 @@ def read_backstop(backstop):
 
 def get_cmds_from_backstop(backstop, remove_starcat=False):
     """
-    Initialize a ``CommandTable`` from ``backstop``, which can either
-    be a string file name or a backstop table from ``parse_cm.read_backstop``.
+    Initialize a ``CommandTable`` from ``backstop``.
+
+    ``backstop`` can either be a string file name or a backstop table from
+    ``parse_cm.read_backstop``.
 
     :param backstop: str or Table
     :param remove_starcat: remove star catalog command parameters (default=False)
@@ -159,9 +161,7 @@ def get_cmds_from_backstop(backstop, remove_starcat=False):
     elif isinstance(backstop, Table):
         bs = backstop
     else:
-        raise ValueError(
-            f"`backstop` arg must be a string filename or " f"a backstop Table"
-        )
+        raise ValueError("`backstop` arg must be a string filename or a backstop Table")
 
     n_bs = len(bs)
     out = {}
@@ -355,7 +355,7 @@ class CommandRow(Row):
         return out + params
 
     def values(self):
-        return [self[key] for key in self.keys()]
+        return [self[key] for key in self.keys()]  # noqa: SIM118
 
     def items(self):
         return [(key, value) for key, value in zip(self.keys(), self.values())]
@@ -384,8 +384,10 @@ class CommandRow(Row):
 
 class CommandTable(Table):
     """
-    Astropy Table subclass that is specialized to handle commands via a
-    ``params`` column that is expected to be ``None`` or a dict of params.
+    Astropy Table subclass that is specialized to handle commands.
+
+    This uses a ``params`` column that is expected to be ``None`` or a dict of
+    params.
     """
 
     rev_pars_dict = TableAttribute()
@@ -431,12 +433,8 @@ class CommandTable(Table):
             )
             return out
 
-        elif (
-            isinstance(item, slice)
-            or isinstance(item, np.ndarray)
-            or isinstance(item, list)
-            or isinstance(item, tuple)
-            and all(isinstance(x, np.ndarray) for x in item)
+        elif isinstance(item, (slice, np.ndarray, list)) or (
+            isinstance(item, tuple) and all(isinstance(x, np.ndarray) for x in item)
         ):
             # here for the many ways to give a slice; a tuple of ndarray
             # is produced by np.where, as in t[np.where(t['a'] > 2)]
@@ -514,7 +512,8 @@ class CommandTable(Table):
         """
         Fetch all ``params`` for every row and force resolution of actual values.
 
-        This is handy for printing a command table and seeing all the parameters at once.
+        This is handy for printing a command table and seeing all the parameters
+        at once.
         """
         if "params" not in self.colnames:
             self["params"] = None
@@ -529,8 +528,8 @@ class CommandTable(Table):
                 and cmd["params"]["event_type"] == "RUNNING_LOAD_TERMINATION_TIME"
             ):
                 return cmd["date"]
-        else:
-            return None
+
+        return None
 
     def get_scheduled_stop_time(self):
         for idx in range(len(self), 0, -1):
@@ -540,13 +539,14 @@ class CommandTable(Table):
                 and cmd["params"]["event_type"] == "SCHEDULED_STOP_TIME"
             ):
                 return cmd["date"]
-        else:
-            return None
+
+        return None
 
     def add_cmds(self, cmds, rltt=None):
         """
-        Add CommandTable ``cmds`` to self and return the new CommandTable. The
-        commands table is maintained in order (date, step, scs).
+        Add CommandTable ``cmds`` to self and return the new CommandTable.
+
+        The commands table is maintained in order (date, step, scs).
 
         :param cmds: :class:`~kadi.commands.commands.CommandTable` of commands
         :param apply_rltt: bool, optional
@@ -585,15 +585,16 @@ class CommandTable(Table):
         indexes = self.argsort(["date"], kind="stable")
 
         with self.index_mode("freeze"):
-            for name, col in self.columns.items():
+            for col in self.columns.values():
                 # Make a new sorted column.  This requires that take() also copies
                 # relevant info attributes for mixin columns.
                 new_col = col.take(indexes, axis=0)
 
-                # First statement in try: will succeed if the column supports an in-place
-                # update, and matches the legacy behavior of astropy Table.  However,
-                # some mixin classes may not support this, so in that case just drop
-                # in the entire new column. See #9553 and #9536 for discussion.
+                # First statement in try: will succeed if the column supports an
+                # in-place update, and matches the legacy behavior of astropy
+                # Table.  However, some mixin classes may not support this, so
+                # in that case just drop in the entire new column. See #9553 and
+                # #9536 for discussion.
                 try:
                     col[:] = new_col
                 except Exception:
@@ -691,13 +692,7 @@ class CommandTable(Table):
                         fmt = "{}={:.8e}"
                     elif key == "packet(40)":
                         continue
-                    elif (
-                        key.startswith("aopcads")
-                        or key.startswith("co")
-                        or key.startswith("afl")
-                        or key.startswith("2s1s")
-                        or key.startswith("2s2s")
-                    ):
+                    elif key.startswith(("aopcads", "co", "afl", "2s1s", "2s2s")):
                         fmt = "{}={:d} "
                     else:
                         fmt = "{}={}"

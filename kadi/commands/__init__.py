@@ -71,5 +71,5 @@ class Conf(ConfigNamespace):
 conf = Conf()
 
 
-from .commands import *  # noqa
-from .core import *  # noqa
+from .commands import *
+from .core import *

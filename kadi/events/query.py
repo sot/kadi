@@ -200,9 +200,9 @@ class EventQuery(object):
                         self.interval_pad.start, self.interval_pad.stop
                     )
                 )
-            else:
-                if self.interval_pad.start != 0:
-                    bits.append(" pad={}".format(self.interval_pad.start))
+            elif self.interval_pad.start != 0:
+                bits.append(" pad={}".format(self.interval_pad.start))
+
             if self.filter_kwargs:
                 bits.append(
                     " "

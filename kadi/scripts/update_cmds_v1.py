@@ -174,9 +174,7 @@ def get_cmds(start, stop, mp_dir=MPLOGS_DIR):
         timeline_loads = db.fetchall(
             """SELECT * from timeline_loads
                                         WHERE datestop > '{}' AND datestart < '{}'
-                                        ORDER BY id""".format(
-                start.date, stop.date
-            )
+                                        ORDER BY id""".format(start.date, stop.date)
         )
 
         # Get non-load commands (from autonomous or ground SCS107, NSM, etc) in the
@@ -192,7 +190,8 @@ def get_cmds(start, stop, mp_dir=MPLOGS_DIR):
         nl_cmds = _tl_to_bs_cmds(nl_cmds, None, db)
         nl_cmds = fix_nonload_cmds(nl_cmds)
         logger.info(
-            f"Found {len(nl_cmds)} non-load commands between {tl_datestart} : {stop.date}"
+            f"Found {len(nl_cmds)} non-load commands between {tl_datestart} :"
+            f" {stop.date}"
         )
 
     logger.info(
@@ -319,7 +318,7 @@ def get_idx_cmds(cmds, pars_dict):
 
         # Define a consistently ordered tuple that has all command parameter information
         pars = cmd["params"]
-        keys = set(pars.keys()) - set(("SCS", "STEP", "TLMSID"))
+        keys = set(pars.keys()) - {"SCS", "STEP", "TLMSID"}
         if cmd["tlmsid"] == "AOSTRCAT":
             # Skip star catalog command because that has many (uninteresting) parameters
             # and increases the file size and load speed by an order of magnitude.
@@ -564,7 +563,7 @@ def read_backstop(filename):
     bs = []
     for bs_line in open(filename):
         bs_line = bs_line.replace(" ", "")
-        date, vcdu, cmd_type, paramstr = [x for x in bs_line.split("|")]
+        date, vcdu, cmd_type, paramstr = bs_line.split("|")
         vcdu = int(
             vcdu[:-1]
         )  # Get rid of final '0' from '8023268 0' (where space was stripped)

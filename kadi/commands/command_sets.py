@@ -4,8 +4,8 @@ from pathlib import Path
 
 import astropy.units as u
 from cxotime import CxoTime
-from ska_helpers.utils import convert_to_int_float_str
 from Quaternion import Quat
+from ska_helpers.utils import convert_to_int_float_str
 
 from kadi.commands.core import CommandTable
 
@@ -30,8 +30,7 @@ def cmd_set_obsid(obs_id, date=None):
 
 
 def cmd_set_maneuver(*args, date=None):
-    """Return a command set that initiates a maneuver to the given attitude
-    ``att``.
+    """Return a command set that initiates a maneuver to the given attitude ``att``.
 
     :param att: attitude compatible with Quat() initializer
     :returns: list of command defs suitable for generate_cmds()

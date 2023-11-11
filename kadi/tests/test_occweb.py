@@ -66,7 +66,7 @@ def test_put_get_user_none():
 # uses the /proj/sot/ska/data/aspect_authorization area, so existence of the right file
 # in there can just be checked by the get_auth routine
 user, passwd = occweb.get_auth()
-HAS_OCCWEB = True if user is not None else False
+HAS_OCCWEB = bool(user is not None)
 
 
 @pytest.mark.skipif(not HAS_OCCWEB, reason="No access to OCCweb")

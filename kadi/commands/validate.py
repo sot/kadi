@@ -10,7 +10,7 @@ or from the command-line application ``kadi_validate_states`` (defined in
 """
 import functools
 import logging
-from abc import ABC
+from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Optional
@@ -26,10 +26,10 @@ import Ska.Shell
 import Ska.tdb
 from astropy.table import Table
 from cheta.utils import (
+    NoTelemetryError,
     get_ofp_states,
     get_telem_table,
     logical_intervals,
-    NoTelemetryError,
 )
 from cxotime import CxoTime
 
@@ -117,7 +117,7 @@ class Validate(ABC):
     min_violation_duration = 32.81
 
     def __init__(self, stop=None, days: float = 14, no_exclude: bool = False):
-        """Base class for validation
+        """Base class for validation.
 
         :param stop: stop time for validation
         :param days: number of days for validation
@@ -150,6 +150,7 @@ class Validate(ABC):
             self.add_exclude_intervals()
         return self._tlm
 
+    @abstractmethod
     def update_tlm(self):
         """Update the telemetry values with any subclass-specific processing"""
 

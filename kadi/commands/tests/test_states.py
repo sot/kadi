@@ -120,6 +120,7 @@ def compare_states(
     start,
     stop,
     state_keys,
+    *,
     compare_state_keys=None,
     continuity=None,
     compare_dates=True,
@@ -146,9 +147,7 @@ def test_acis():
     Test all ACIS states include vid_board for late-2017
     """
     state_keys = ["clocking", "power_cmd", "fep_count", "si_mode", "vid_board"]
-    rc, rk = compare_states(
-        "2017:280:12:00:00", "2017:360:12:00:00", state_keys, state_keys
-    )
+    rc, rk = compare_states("2017:280:12:00:00", "2017:360:12:00:00", state_keys)
 
 
 def test_cmd_line_interface(tmpdir):
@@ -168,7 +167,7 @@ def test_cmd_line_interface(tmpdir):
             "obsid,si_mode,pcad_mode",
         ]
     )
-    with open(filename, "r") as fh:
+    with open(filename) as fh:
         out = fh.read()
 
     # Work around bug in astropy 3.0 where text table output has `\r\r\n` line endings
@@ -565,7 +564,7 @@ def test_get_continuity_keys():
 
 
 def test_get_continuity_fail():
-    with pytest.raises(ValueError) as err:
+    with pytest.raises(ValueError) as err:  # noqa: PT011
         states.get_continuity("2017:014:12:00:00", "letg", lookbacks=[3])
     assert "did not find transitions" in str(err)
 
@@ -640,7 +639,7 @@ def cmd_states_fetch_states(*args, **kwargs):
     and Chandra.cmd_states is no longer needed. From this point kadi will be
     the definitive reference for states.
     """
-    md5 = hashlib.md5()
+    md5 = hashlib.md5()  # noqa: S324
     md5.update(repr(args).encode("utf8"))
     md5.update(repr(kwargs).encode("utf8"))
     digest = md5.hexdigest()
@@ -656,7 +655,7 @@ def cmd_states_fetch_states(*args, **kwargs):
                 "cannot find test data. Define KADI_WRITE_TEST_DATA "
                 "env var to create it."
             )
-        import Chandra.cmd_states as cmd_states
+        import Chandra.cmd_states as cmd_states  # noqa: PLR0402
 
         cs = cmd_states.fetch_states(*args, **kwargs)
         cs = Table(cs)
@@ -706,7 +705,7 @@ def test_reduce_states_cmd_states():
 ###########################################################################
 
 
-def compare_backstop_history(history, state_key, compare_val=True):
+def compare_backstop_history(history, state_key, *, compare_val=True):
     hist = ascii.read(
         history,
         guess=False,
@@ -1428,7 +1427,7 @@ def test_acis_power_cmds():
     assert (test_states["fep_count"][pow_zero] == 0).all()
 
 
-def test_continuity_with_transitions_SPM():
+def test_continuity_with_transitions_SPM():  # noqa: N802
     """
     Test that continuity returns a dict that has the __transitions__ key set
     to a list of transitions that are needed for correct continuity.  Part of
@@ -1467,7 +1466,7 @@ def test_continuity_with_transitions_SPM():
     assert sts.pformat(max_lines=-1, max_width=-1) == exp
 
 
-def test_continuity_with_no_transitions_SPM():
+def test_continuity_with_no_transitions_SPM():  # noqa: N802
     """Test that continuity returns a dict that does NOT have the __transitions__
     key set if not needed.  Part of fix for #125.
 
@@ -1537,7 +1536,7 @@ def test_get_states_start_between_aouptarg_aomanuvr_cmds():
         "2021:025:23:43:14.731 2021:025:23:43:24.982        None      NMAN",
         "2021:025:23:43:24.982 2021:025:23:47:24.982 0.129399482      NMAN",
         "2021:025:23:47:24.982 2021:026:00:00:00.000 0.129399482      NPNT",
-    ]  # noqa
+    ]
 
     exp = Table.read(exp, format="ascii", fill_values=[("None", "0")])
     for name in ("datestart", "datestop", "pcad_mode"):

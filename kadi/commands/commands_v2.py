@@ -180,7 +180,7 @@ def get_matching_block_idx_simple(cmds_recent, cmds_arch, min_match):
 
 
 def get_cmds(
-    start=None, stop=None, inclusive_stop=False, scenario=None, **kwargs
+    start=None, stop=None, *, inclusive_stop=False, scenario=None, **kwargs
 ) -> CommandTable:
     """Get commands using loads table, relying entirely on RLTT.
 
@@ -201,7 +201,8 @@ def get_cmds(
     :returns: CommandTable
     """
     logger.info(
-        f"Getting commands from {CxoTime(start).date} to {CxoTime(stop).date} for {scenario=}")
+        f"Getting commands from {CxoTime(start).date} to {CxoTime(stop).date} for {scenario=}"
+    )
     scenario = os.environ.get("KADI_SCENARIO", scenario)
     start = CxoTime("1999:001" if start is None else start)
     stop = (CxoTime.now() + 1 * u.year) if stop is None else CxoTime(stop)
@@ -286,7 +287,8 @@ def get_cmds(
 # 4 weeks of weekly loads)?".  Imagine these inputs:
 #
 #   start = Apr-02-2022
-#   Loads = APR0122 (Never run due to anomaly), APR0622 (replan), APR0822,  APR1522, APR2222
+#   Loads = APR0122 (Never run due to anomaly), APR0622 (replan), APR0822,  APR1522,
+#           APR2222
 #   cmds_recent.meta["loads_start"] = Apr-01-2022 (first command in APR0122 approx)
 #
 # So what we care about is the first command in the applicable loads in the time
@@ -427,7 +429,7 @@ def update_archive_and_get_cmds_recent(
             # Apply end SCS from these commands to the current running loads.
             # Remove commands with date greater than end SCS date. In most
             # cases this does not cut anything.
-            for jj in range(0, ii):
+            for jj in range(ii):
                 prev_cmds = cmds_list[jj]
                 # First check for any overlap since prev_cmds is sorted by date.
                 if len(prev_cmds) > 0 and prev_cmds["date"][-1] > date_end:
@@ -692,8 +694,8 @@ def manvr_duration(q1, q2):
         if eps < 0:
             eps = 0
 
-    Tm = 4 * MANVR_DELTA + 2 * eps + tau
-    return Tm
+    tm = 4 * MANVR_DELTA + 2 * eps + tau
+    return tm
 
 
 def get_cmds_obs_final(cmds, pars_dict, rev_pars_dict, schedule_stop_time):
@@ -1005,7 +1007,7 @@ def clean_loads_dir(loads):
 
 
 def get_load_cmds_from_occweb_or_local(
-    dir_year_month=None, load_name=None, use_ska_dir=False
+    dir_year_month=None, load_name=None, *, use_ska_dir=False
 ) -> CommandTable:
     """Get the load cmds (backstop) for ``load_name`` within ``dir_year_month``
 

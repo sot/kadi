@@ -1,0 +1,70 @@
+# Copied originally from pandas
+target-version = "py310"
+
+# fix = true
+unfixable = []
+
+select = [
+  "I", # isort
+  "F", # pyflakes
+  "E", "W", # pycodestyle
+  "YTT", # flake8-2020
+  "B", # flake8-bugbear
+  "Q", # flake8-quotes
+  "T10", # flake8-debugger
+  "INT", # flake8-gettext
+  "PLC", "PLE", "PLR", "PLW", # pylint
+  "PIE", # misc lints
+  "PYI", # flake8-pyi
+  "TID", # tidy imports
+  "ISC", # implicit string concatenation
+  "TCH", # type-checking imports
+  "C4", # comprehensions
+  "PGH" # pygrep-hooks
+]
+
+ignore = [
+  "ISC001", # Disable this for compatibility with ruff format
+  "B028", # No explicit `stacklevel` keyword argument found
+  "B905", # `zip()` without an explicit `strict=` parameter
+  "E402", # module level import not at top of file
+  "E731", # do not assign a lambda expression, use a def
+  "PLC1901", # compare-to-empty-string
+  "PLR0911", # Too many returns
+  "PLR0912", # Too many branches
+  "PLR0913", # Too many arguments to function call
+  "PLR2004", # Magic number
+  "PYI021", # Docstrings should not be included in stubs
+  "PLR0915", # Too many statements
+  "PLW0603", # Global statements are discouraged
+  "PLW2901", # Redefined loop name
+]
+
+# TODO : fix these and stop ignoring
+extend-ignore = [
+  "B006", # Do not use mutable data structures for argument defaults
+  "C401", # Unnecessary generator (rewrite as a `set` comprehension)
+  "C402", # Unnecessary generator (rewrite as a dict comprehension)
+  "C405", # Unnecessary `list` literal (rewrite as a `set` literal)
+  "C408", # Unnecessary `dict` call (rewrite as a literal)
+  "C416", # Unnecessary `dict` comprehension (rewrite using `dict()`)
+  "PGH002", # warn is deprecated in favor of warning
+  "PGH004", # Use specific rule codes when using `noqa`
+  "PYI056", # Calling `.append()` on `__all__` may not be supported by all type checkers
+]
+
+exclude = [
+  "docs",
+  "utils",
+  "validate",
+  ".eggs",
+]
+
+[pycodestyle]
+max-line-length = 100 # E501 reports lines that exceed the length of 100.
+
+[lint.extend-per-file-ignores]
+"__init__.py" = ["E402", "F401", "F403"]
+"command_sets.py" = ["ARG001"]
+"**/tests/**" = ["D", "E501"]
+"states.py" = ["N801", "ARG003"]

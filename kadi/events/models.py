@@ -131,7 +131,7 @@ def get_event_models(baseclass=None):
     import inspect
 
     models = {}
-    for name, var in globals().items():
+    for var in globals().values():
         if inspect.isclass(var) and issubclass(var, baseclass or BaseEvent):
             # Make an instance of event class to discover if it is an abstact base class.
             event = var()
@@ -416,9 +416,9 @@ class BaseModel(models.Model):
             obsrq = fetch.Msid("cobsrqid", tstart, tstart + 200)
             if len(obsrq.vals) == 0:
                 logger.warn(
-                    f"WARNING: unable to get COBSRQID near "
+                    "WARNING: unable to get COBSRQID near "
                     f"{model_dict[cls._get_obsid_start_attr]}, "
-                    f"using obsid=-999"
+                    "using obsid=-999"
                 )
                 model_dict["obsid"] = -999
             else:
@@ -547,7 +547,7 @@ class BaseEvent(BaseModel):
         Get load commands within start/stop interval for this event.
         Apply padding defined by interval_pad attribute.
         """
-        from .. import cmds as commands
+        from kadi import cmds as commands
 
         cmds = commands.filter(
             self.tstart - self.interval_pad.start, self.tstop + self.interval_pad.stop
@@ -1357,7 +1357,7 @@ class Manvr(TlmEvent):
     prev_npnt_start = models.CharField(
         max_length=21,
         null=True,
-        help_text="Start time of previous " "AOPCADMD=NPNT before manvr",
+        help_text="Start time of previous AOPCADMD=NPNT before manvr",
     )
     nman_start = models.CharField(
         max_length=21, null=True, help_text="Start time of AOPCADMD=NMAN for manvr"
@@ -1400,13 +1400,13 @@ class Manvr(TlmEvent):
         help_text="Number of kalman dwells after manvr and before next manvr"
     )
     n_acq = models.IntegerField(
-        help_text="Number of AQXN intervals after " "manvr and before next manvr"
+        help_text="Number of AQXN intervals after manvr and before next manvr"
     )
     n_guide = models.IntegerField(
-        help_text="Number of GUID intervals after " "manvr and before next manvr"
+        help_text="Number of GUID intervals after manvr and before next manvr"
     )
     n_kalman = models.IntegerField(
-        help_text="Number of KALM intervals after " "manvr and before next manvr"
+        help_text="Number of KALM intervals after manvr and before next manvr"
     )
     anomalous = models.BooleanField(help_text="Key MSID shows off-nominal value")
     template = models.CharField(max_length=16, help_text="Matched maneuver template")
@@ -2081,7 +2081,7 @@ class IFotEvent(BaseEvent):
         """
         Get events from iFOT web interface
         """
-        from .. import occweb
+        from kadi import occweb
 
         datestart = DateTime(start).date
         datestop = DateTime(stop).date
@@ -2110,7 +2110,7 @@ class IFotEvent(BaseEvent):
                 # The above still might not be OK because sometimes what is in the
                 # <prop>.START/STOP values is not a valid date.
                 try:
-                    DateTime(event[st]).date
+                    DateTime(event[st]).date  # noqa: B018
                 except Exception:
                     # Fail, roll back to the tstart/tstop version
                     logger.info(
@@ -2440,10 +2440,10 @@ class Orbit(BaseEvent):
     start_radzone = models.CharField(max_length=21, help_text="Start time of rad zone")
     stop_radzone = models.CharField(max_length=21, help_text="Stop time of rad zone")
     dt_start_radzone = models.FloatField(
-        help_text="Start time of rad zone relative " "to perigee (sec)"
+        help_text="Start time of rad zone relative to perigee (sec)"
     )
     dt_stop_radzone = models.FloatField(
-        help_text="Stop time of rad zone relative " "to perigee (sec)"
+        help_text="Stop time of rad zone relative to perigee (sec)"
     )
     dur._kadi_format = "{:.1f}"
     t_perigee._kadi_format = "{:.1f}"
