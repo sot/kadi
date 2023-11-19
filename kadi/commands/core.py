@@ -106,8 +106,15 @@ def load_name_to_cxotime(name):
 def vstack_exact(tables):
     """Stack tables known to have identical types and columns and no metadata.
 
-    :param tables: list of tables
-    :returns: stacked table with same type as first table
+    Parameters
+    ----------
+    tables : list
+        List of tables
+
+    Returns
+    -------
+    Table
+        Stacked table with same type as first table
     """
     new_cols = []
     table0 = tables[0]
@@ -134,8 +141,14 @@ def read_backstop(backstop):
     This function is a wrapper around ``get_cmds_from_backstop`` but follows a
     more typical naming convention.
 
-    :param backstop: str or Table
-    :returns: :class:`~kadi.commands.commands.CommandTable` of commands
+    Parameters
+    ----------
+    backstop
+        str or Table
+
+    Returns
+    -------
+    :class:`~kadi.commands.commands.CommandTable` of commands
     """
     return get_cmds_from_backstop(backstop)
 
@@ -147,9 +160,16 @@ def get_cmds_from_backstop(backstop, remove_starcat=False):
     ``backstop`` can either be a string file name or a backstop table from
     ``parse_cm.read_backstop``.
 
-    :param backstop: str or Table
-    :param remove_starcat: remove star catalog command parameters (default=False)
-    :returns: :class:`~kadi.commands.commands.CommandTable` of commands
+    Parameters
+    ----------
+    backstop
+        str or Table
+    remove_starcat
+        remove star catalog command parameters (default=False)
+
+    Returns
+    -------
+    :class:`~kadi.commands.commands.CommandTable` of commands
     """
     if isinstance(backstop, Path):
         backstop = str(backstop)
@@ -225,23 +245,27 @@ def _find(
       >>> cmds = commands._find(type='acispkt', tlmsid='wsvidalldn')
       >>> cmds = commands._find(msid='aflcrset')
 
-    :param start: CxoTime format (optional)
+    Parameters
+    ----------
+    start : CxoTime format (optional)
         Start time, defaults to beginning of available commands (2002:001)
-    :param stop: CxoTime format (optional)
+    stop : CxoTime format (optional)
         Stop time, defaults to end of available commands
-    :param include_stop: bool (optional)
+    include_stop : bool (optional)
         If True, find commands with ``date <= stop``, otherwise ``date < stop``.
-    :param idx_cmds: CommandTable-like
+    idx_cmds : CommandTable-like
         Table of commands from the commands archive HDF5 file (e.g. ``cmds2.h5``).
         In reality this is a ``LazyVal`` which encapsulates a ``CommandTable``.
-    :param pars_dict: dict-like
+    pars_dict : dict-like
         Dict mapping a command parameters tuple to the index in the commands
         archive params pickle file.  This is a ``LazyVal`` which encapsulates a
         dict.
-    :param **kwargs: dict
+    **kwargs : dict
         Additional key=val keyword argument pairs to filter the results.
 
-    :returns: ``CommandTable`` of commands
+    Returns
+    -------
+    CommandTable
     """
     ok = np.ones(len(idx_cmds), dtype=bool)
     par_ok = np.zeros(len(idx_cmds), dtype=bool)
@@ -493,13 +517,18 @@ class CommandTable(Table):
         the ``date`` column is a byte string and the astropy unicode machinery
         ends up getting called a lot in a way that impacts performance badly.
 
-        :param date: str, sequence of str
+        Parameters
+        ----------
+        date : str, sequence of str
             Date(s) to search for.
-        :param side: {'left', 'right'}, optional
+        side : {'left', 'right'}, optional
             If 'left', the index of the first suitable location found is given.
             If 'right', return the last such index.  If there is no suitable
             index, return either 0 or N (where N is the length of `a`).
-        :returns: int
+
+        Returns
+        -------
+        int
             Index of row(s) corresponding to ``date``.
         """
         if isinstance(date, CxoTime):
@@ -548,10 +577,16 @@ class CommandTable(Table):
 
         The commands table is maintained in order (date, step, scs).
 
-        :param cmds: :class:`~kadi.commands.commands.CommandTable` of commands
-        :param apply_rltt: bool, optional
+        Parameters
+        ----------
+        cmds : CommandTable
+            Commands to add.
+        apply_rltt : bool, optional
             Clip existing commands to the RLTT of the new commands.
-        :returns: :class:`~kadi.commands.commands.CommandTable` of commands
+
+        Returns
+        -------
+        CommandTable
         """
         if rltt is not None:
             remove_idxs = np.where(self["date"] > rltt)[0]
@@ -613,8 +648,14 @@ class CommandTable(Table):
         - Add ``cmd`` key which is set to the ``type`` key
         - Make ``params`` keys uppercase.
 
-        :param ska_parsecm: bool, make output more Ska.ParseCM compatible
-        :return: list of dict
+        Parameters
+        ----------
+        ska_parsecm : bool
+            Make output more Ska.ParseCM compatible
+
+        Returns
+        -------
+        list of dict
         """
         self.fetch_params()
 
@@ -641,16 +682,22 @@ class CommandTable(Table):
     ):
         """Format the table in a human-readable format that is similar to backstop.
 
-        :param show_source: bool, optional
+        Parameters
+        ----------
+        show_source : bool, optional
             Show the source (load name) of each command (default=True)
-        :param show_nonload_meta: bool, optional
+        show_nonload_meta : bool, optional
             Show event and event_date for non-load commands (default=True)
-        :param sort_orbit_events: bool, optional
+        sort_orbit_events : bool, optional
             Sort orbit events at same date by event_type (default=False, mostly
             for testing)
-        :param max_params_width: int, optional
+        max_params_width : int, optional
             Maximum width of parameter values string (default=80)
-        :returns: list of lines
+
+        Returns
+        -------
+        list
+            List of lines.
         """
         lines = []
         has_params = "params" in self.colnames
@@ -726,18 +773,24 @@ class CommandTable(Table):
     def pprint_like_backstop(self, *, logger_func=None, logger_text="", **kwargs):
         """Format the table in a human-readable format that is similar to backstop.
 
-        :param logger_func: function, optional
+        Parameters
+        ----------
+        logger_func : function, optional
             Function to call with the formatted lines (default is print)
-        :param show_source: bool, optional
+        show_source : bool, optional
             Show the source (load name) of each command (default=True)
-        :param show_nonload_meta: bool, optional
+        show_nonload_meta : bool, optional
             Show event and event_date for non-load commands (default=True)
-        :param sort_orbit_events: bool, optional
+        sort_orbit_events : bool, optional
             Sort orbit events at same date by event_type (default=False, mostly
             for testing)
-        :param max_params_width: int, optional
+        max_params_width : int, optional
             Maximum width of parameter values string (default=80)
-        :returns: list of lines
+
+        Returns
+        -------
+        list
+            List of formatted lines.
         """
         lines = self.pformat_like_backstop(**kwargs)
         if logger_func is None:
@@ -814,14 +867,20 @@ def get_par_idx_update_pars_dict(pars_dict, cmd, params=None, rev_pars_dict=None
 
     This code was factored out verbatim from kadi.update_cmds.py.
 
-    :param pars_dict: dict of pars tuples
-    :param cmd: dict or CommandRow
+    Parameters
+    ----------
+    pars_dict
+        dict of pars tuples
+    cmd : dict or CommandRow
         Command for updated par_idx
-    :param pars: dict, optional
+    pars : dict, optional
         If provided, this is used instead of cmd['params']
-    :param rev_pars_dict: dict, optional
+    rev_pars_dict : dict, optional
         If provided, also update the reverse dict.
-    :returns: int
+
+    Returns
+    -------
+    int
         Params index (value of corresponding pars tuple dict key)
     """
     # Define a consistently ordered tuple that has all command parameter information

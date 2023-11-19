@@ -36,7 +36,9 @@ def test(*args, **kwargs):
 def create_config_file(overwrite=False):
     """Create the configuration file for the kadi package.
 
-    :param overwrite: bool
+    Parameters
+    ----------
+    overwrite : bool
         Force updating the file if it already exists.
     """
     from astropy import config

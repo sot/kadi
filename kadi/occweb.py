@@ -310,17 +310,23 @@ def get_occweb_dir(path, timeout=30, cache=False, user=None, password=None):
     credentials are stored in the file ``~/.netrc``. See the ``Ska.ftp`` package
     for details.
 
-    :param path: str, Path
+    Parameters
+    ----------
+    path : str, Path
         Relative path on OCCweb
-    :param timeout: int
+    timeout : int
         Timeout in seconds for the request
-    :param cache: bool
+    cache : bool
         If True, cache the result and check cache for subsequent calls
-    :param user: str, optional
+    user : str, optional
         Username for OCCweb authentication
-    :param password: str, optional
+    password : str, optional
         Password for OCCweb authentication
-    :returns: astropy Table
+
+    Returns
+    -------
+    out
+        astropy Table
         Table of directory entries
     """
     html = get_occweb_page(path, timeout=timeout, cache=cache)

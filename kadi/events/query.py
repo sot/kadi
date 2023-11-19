@@ -289,12 +289,20 @@ class EventQuery(object):
         [1]: https://docs.djangoproject.com/en/3.1/topics/db/queries/
         [2]: https://docs.djangoproject.com/en/3.1/ref/models/querysets/#field-lookups
 
-        :param start: start time (DateTime compatible format)
-        :param stop: stop time (DateTime compatible format)
-        :param obsid: obsid for event
-        :param subset: subset of matching events that are output
+        Parameters
+        ----------
+        start
+            start time (DateTime compatible format)
+        stop
+            stop time (DateTime compatible format)
+        obsid
+            obsid for event
+        subset
+            subset of matching events that are output
 
-        :returns: Django query set with matching events
+        Returns
+        -------
+        Django query set with matching events
         """
         cls = self.cls
         objs = cls.objects.all()

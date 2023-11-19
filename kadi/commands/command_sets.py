@@ -23,8 +23,14 @@ def cmd_set_rts(*args, date=None):
 def cmd_set_obsid(obs_id, date=None):
     """Return a command set that updates the commanded ObsID.
 
-    :param obsid: obsid
-    :returns: list of command defs suitable for generate_cmds()
+    Parameters
+    ----------
+    obsid
+        obsid
+
+    Returns
+    -------
+    list of command defs suitable for generate_cmds()
     """
     return (dict(type="MP_OBSID", tlmsid="COAOSQID", params=dict(ID=obs_id)),)
 
@@ -32,8 +38,14 @@ def cmd_set_obsid(obs_id, date=None):
 def cmd_set_maneuver(*args, date=None):
     """Return a command set that initiates a maneuver to the given attitude ``att``.
 
-    :param att: attitude compatible with Quat() initializer
-    :returns: list of command defs suitable for generate_cmds()
+    Parameters
+    ----------
+    att
+        attitude compatible with Quat() initializer
+
+    Returns
+    -------
+    list of command defs suitable for generate_cmds()
     """
     att = Quat(args)
     return (

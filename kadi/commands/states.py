@@ -174,9 +174,15 @@ class BaseTransition(metaclass=TransitionMeta):
           available command parameters, and ``match_value`` is either the required value
           or a list of required values (where at least one must match).
 
-        :param cmds: commands (:class:`~kadi.commands.commands.CommandTable`)
+        Parameters
+        ----------
+        cmds : CommandTable
+            Input commands
 
-        :returns: subset of ``cmds`` relevant for this Transition class (CmdList)
+        Returns
+        -------
+        CommandTable
+            Subset of ``cmds`` relevant for this Transition class
         """
         # First filter on command attributes.  These
         ok = np.ones(len(cmds), dtype=bool)
@@ -274,12 +280,20 @@ class FixedTransition(BaseTransition):
         """
         Set transitions for a Table of commands ``cmds``.
 
-        :param transitions_dict: global dict of transitions (updated in-place)
-        :param cmds: commands (CmdList)
-        :param start: start time for states
-        :param stop: stop time for states
+        Parameters
+        ----------
+        transitions_dict
+            global dict of transitions (updated in-place)
+        cmds
+            commands (CmdList)
+        start
+            start time for states
+        stop
+            stop time for states
 
-        :returns: None
+        Returns
+        -------
+        None
         """
         state_cmds = cls.get_state_changing_commands(cmds)
         vals = cls.transition_val
@@ -313,12 +327,20 @@ class ParamTransition(BaseTransition):
         """
         Set transitions for a Table of commands ``cmds``.
 
-        :param transitions_dict: global dict of transitions (updated in-place)
-        :param cmds: commands (CmdList)
-        :param start: start time for states
-        :param stop: stop time for states
+        Parameters
+        ----------
+        transitions_dict
+            global dict of transitions (updated in-place)
+        cmds
+            commands (CmdList)
+        start
+            start time for states
+        stop
+            stop time for states
 
-        :returns: None
+        Returns
+        -------
+        None
         """
         # cmds.rev_pars_dict is either None or a weakref to a dict
         rev_pars_dict = rpd() if (rpd := cmds.rev_pars_dict) else None
@@ -470,12 +492,20 @@ class MechMove(FixedTransition):
         """
         Set transitions for a Table of commands ``cmds``.
 
-        :param transitions_dict: global dict of transitions (updated in-place)
-        :param cmds: commands (CmdList)
-        :param start: start time for states
-        :param stop: stop time for states
+        Parameters
+        ----------
+        transitions_dict
+            global dict of transitions (updated in-place)
+        cmds
+            commands (CmdList)
+        start
+            start time for states
+        stop
+            stop time for states
 
-        :returns: None
+        Returns
+        -------
+        None
         """
         state_cmds = cls.get_state_changing_commands(cmds)
         vals = cls.transition_val
@@ -756,12 +786,20 @@ class SPMEclipseEnableTransition(BaseTransition):
         """
         Set transitions for a Table of commands ``cmds``.
 
-        :param transitions_dict: global dict of transitions (updated in-place)
-        :param cmds: commands (CmdList)
-        :param start: start time for states
-        :param stop: stop time for states
+        Parameters
+        ----------
+        transitions_dict
+            global dict of transitions (updated in-place)
+        cmds
+            commands (CmdList)
+        start
+            start time for states
+        stop
+            stop time for states
 
-        :returns: None
+        Returns
+        -------
+        None
         """
         # Preselect only commands that might have an impact here.
         state_cmds = cls.get_state_changing_commands(cmds)
@@ -797,12 +835,20 @@ class EclipseEnableSPM(BaseTransition):
         """
         Set transitions for a Table of commands ``cmds``.
 
-        :param transitions_dict: global dict of transitions (updated in-place)
-        :param cmds: commands (CmdList)
-        :param start: start time for states
-        :param stop: stop time for states
+        Parameters
+        ----------
+        transitions_dict
+            global dict of transitions (updated in-place)
+        cmds
+            commands (CmdList)
+        start
+            start time for states
+        stop
+            stop time for states
 
-        :returns: None
+        Returns
+        -------
+        None
         """
         # Preselect only commands that might have an impact here.
         state_cmds = cls.get_state_changing_commands(cmds)
@@ -837,12 +883,20 @@ class BatteryConnect(BaseTransition):
         """
         Set transitions for a Table of commands ``cmds``.
 
-        :param transitions_dict: global dict of transitions (updated in-place)
-        :param cmds: commands (CmdList)
-        :param start: start time for states
-        :param stop: stop time for states
+        Parameters
+        ----------
+        transitions_dict
+            global dict of transitions (updated in-place)
+        cmds
+            commands (CmdList)
+        start
+            start time for states
+        stop
+            stop time for states
 
-        :returns: None
+        Returns
+        -------
+        None
         """
         state_cmds = cls.get_state_changing_commands(cmds)
 
@@ -958,12 +1012,20 @@ class EphemerisUpdateTransition(BaseTransition):
         """
         Set transitions for a Table of commands ``cmds``.
 
-        :param transitions_dict: global dict of transitions (updated in-place)
-        :param cmds: commands (CmdList)
-        :param start: start time for states
-        :param stop: stop time for states
+        Parameters
+        ----------
+        transitions_dict
+            global dict of transitions (updated in-place)
+        cmds
+            commands (CmdList)
+        start
+            start time for states
+        stop
+            stop time for states
 
-        :returns: None
+        Returns
+        -------
+        None
         """
         state_cmds = cls.get_state_changing_commands(cmds)
 
@@ -991,12 +1053,20 @@ class SunVectorTransition(BaseTransition):
         """
         Set transitions for a Table of commands ``cmds``.
 
-        :param transitions_dict: global dict of transitions (updated in-place)
-        :param cmds: commands (CmdList)
-        :param start: start time for states
-        :param stop: stop time for states
+        Parameters
+        ----------
+        transitions_dict
+            global dict of transitions (updated in-place)
+        cmds
+            commands (CmdList)
+        start
+            start time for states
+        stop
+            stop time for states
 
-        :returns: None
+        Returns
+        -------
+        None
         """
         # np.ceil is used here to get 'times' between start/stop at even
         # increments of "sample_time" so that the commands will be at the same
@@ -1020,10 +1090,16 @@ class SunVectorTransition(BaseTransition):
         This will potentially update the ``pitch`` and ``off_nominal`` states if
         pcad_mode is NPNT.
 
-        :param date: date (str)
-        :param transitions: global list of transitions
-        :param state: current state (dict)
-        :param idx: current index into transitions
+        Parameters
+        ----------
+        date
+            date (str)
+        transitions
+            global list of transitions
+        state
+            current state (dict)
+        idx
+            current index into transitions
         """
         if state["pcad_mode"] == "NPNT":
             q_att = Quat([state[qc] for qc in QUAT_COMPS])
@@ -1067,12 +1143,20 @@ class DitherParamsTransition(BaseTransition):
         """
         Set transitions for a Table of commands ``cmds``.
 
-        :param transitions_dict: global dict of transitions (updated in-place)
-        :param cmds: commands (CmdList)
-        :param start: start time for states
-        :param stop: stop time for states
+        Parameters
+        ----------
+        transitions_dict
+            global dict of transitions (updated in-place)
+        cmds
+            commands (CmdList)
+        start
+            start time for states
+        stop
+            stop time for states
 
-        :returns: None
+        Returns
+        -------
+        None
         """
         state_cmds = cls.get_state_changing_commands(cmds)
 
@@ -1135,12 +1219,20 @@ class TargQuatTransition(BaseTransition):
         """
         Set transitions for a Table of commands ``cmds``.
 
-        :param transitions_dict: global dict of transitions (updated in-place)
-        :param cmds: commands (CmdList)
-        :param start: start time for states
-        :param stop: stop time for states
+        Parameters
+        ----------
+        transitions_dict
+            global dict of transitions (updated in-place)
+        cmds
+            commands (CmdList)
+        start
+            start time for states
+        stop
+            stop time for states
 
-        :returns: None
+        Returns
+        -------
+        None
         """
         state_cmds = cls.get_state_changing_commands(cmds)
 
@@ -1316,8 +1408,10 @@ def decode_power(mnem):
         'feps': '1 2 3 4 5 ',
         'vid_board': 1}
 
-    :param mnem: power command string
-
+    Parameters
+    ----------
+    mnem
+        power command string
     """
     fep_info = {
         "fep_count": 0,
@@ -1381,12 +1475,20 @@ class ACISTransition(BaseTransition):
         """
         Set transitions for a Table of commands ``cmds``.
 
-        :param transitions_dict: global dict of transitions (updated in-place)
-        :param cmds: commands (CmdList)
-        :param start: start time for states
-        :param stop: stop time for states
+        Parameters
+        ----------
+        transitions_dict
+            global dict of transitions (updated in-place)
+        cmds
+            commands (CmdList)
+        start
+            start time for states
+        stop
+            stop time for states
 
-        :returns: None
+        Returns
+        -------
+        None
         """
         state_cmds = cls.get_state_changing_commands(cmds)
         for cmd in state_cmds:
@@ -1447,12 +1549,20 @@ class ACISFP_SetPointTransition(BaseTransition):
         """
         Set transitions for a Table of commands ``cmds``.
 
-        :param transitions_dict: global dict of transitions (updated in-place)
-        :param cmds: commands (CmdList)
-        :param start: start time for states
-        :param stop: stop time for states
+        Parameters
+        ----------
+        transitions_dict
+            global dict of transitions (updated in-place)
+        cmds
+            commands (CmdList)
+        start
+            start time for states
+        stop
+            stop time for states
 
-        :returns: None
+        Returns
+        -------
+        None
         """
         state_cmds = cls.get_state_changing_commands(cmds)
         for cmd in state_cmds:
@@ -1501,10 +1611,16 @@ def get_transitions_list(cmds, state_keys, start, stop, continuity=None):
 
     If ``state_keys`` is None then all known state keys are included.
 
-    :param cmds: CmdList with spacecraft commands
-    :param state_keys: desired state keys (None, str, or list)
+    Parameters
+    ----------
+    cmds
+        CmdList with spacecraft commands
+    state_keys
+        desired state keys (None, str, or list)
 
-    :returns: list of dict (transitions), set of transition classes
+    Returns
+    -------
+    list of dict (transitions), set of transition classes
     """
     # To start, collect transitions in a dict keyed by date.  This auto-initializes
     # a dict whenever a new date is used, allowing (e.g.) a single step of::
@@ -1550,11 +1666,18 @@ def add_transition(transitions, idx, transition):
     function to generate downstream transitions.  The ManeuverTransition class
     is the canonical example.
 
-    :param transitions: global list of transition dicts
-    :param idx: current index into transitions in state processing
-    :param transition: transition to add (dict)
+    Parameters
+    ----------
+    transitions
+        global list of transition dicts
+    idx
+        current index into transitions in state processing
+    transition
+        transition to add (dict)
 
-    :returns: None
+    Returns
+    -------
+    None
     """
     # Prevent adding command before current command since the command
     # interpreter is a one-pass process.
@@ -1610,16 +1733,28 @@ def get_states(
     ``reduce_states()`` function separately to reduce to only the desired state
     keys.
 
-    :param start: start of states (optional, DateTime compatible)
-    :param stop: stop of states (optional, DateTime compatible)
-    :param state_keys: state keys of interest (optional, list or str or None)
-    :param cmds: input commands (optional, CmdList, CommandTable)
-    :param continuity: initial state (optional, dict)
-    :param reduce: call reduce_states() on output
-    :param merge_identical: merge identical states (see reduce_states() docs)
-    :param scenario: commands archive scenario to use
+    Parameters
+    ----------
+    start
+        start of states (optional, DateTime compatible)
+    stop
+        stop of states (optional, DateTime compatible)
+    state_keys
+        state keys of interest (optional, list or str or None)
+    cmds
+        input commands (optional, CmdList, CommandTable)
+    continuity
+        initial state (optional, dict)
+    reduce
+        call reduce_states() on output
+    merge_identical
+        merge identical states (see reduce_states() docs)
+    scenario
+        commands archive scenario to use
 
-    :returns: astropy Table of states
+    Returns
+    -------
+    astropy Table of states
     """
     # Define complete list of column names for output table corresponding to
     # each state key.  Maintain original order and uniqueness of keys.
@@ -1769,12 +1904,20 @@ def reduce_states(states, state_keys, merge_identical=False, all_keys=False) -> 
     However, if ``merge_identical`` is True then adacent states with identical
     values will be merged.
 
-    :param states: table of states
-    :param state_keys: notice transitions in this list of state keys
-    :param merge_identical: merge adjacent identical states
-    :param all_keys: if True, then all state keys are included in the output
+    Parameters
+    ----------
+    states
+        table of states
+    state_keys
+        notice transitions in this list of state keys
+    merge_identical
+        merge adjacent identical states
+    all_keys
+        if True, then all state keys are included in the output
 
-    :returns: Table of reduced states
+    Returns
+    -------
+    Table of reduced states
     """
     if not isinstance(states, Table):
         states = Table(states)
@@ -1851,12 +1994,20 @@ def get_continuity(
     is used.  This corresponds to the "classic" Chandra commanded states (obsid,
     ACIS, PCAD, and mechanisms).
 
-    :param date: date (DateTime compatible, default=NOW)
-    :param state_keys: list of state keys or str (one state key) or None
-    :param lookbacks: list of lookback times in days (default=[7, 30, 180, 1000])
-    :param scenario: commands archive scenario (default=None)
+    Parameters
+    ----------
+    date
+        date (DateTime compatible, default=NOW)
+    state_keys
+        list of state keys or str (one state key) or None
+    lookbacks
+        list of lookback times in days (default=[7, 30, 180, 1000])
+    scenario
+        commands archive scenario (default=None)
 
-    :returns: dict of state values
+    Returns
+    -------
+    dict of state values
     """
     if isinstance(state_keys, str):
         state_keys = [state_keys]
@@ -1966,10 +2117,16 @@ def get_continuity(
 def interpolate_states(states, times):
     """Interpolate ``states`` table at given times.
 
-    :param states: states (astropy states Table)
-    :param times: times (np.array or any DateTime compatible input)
+    Parameters
+    ----------
+    states
+        states (astropy states Table)
+    times
+        times (np.array or any DateTime compatible input)
 
-    :returns: ``states`` view at ``times``
+    Returns
+    -------
+    ``states`` view at ``times``
     """
     from astropy.table import Column
 
