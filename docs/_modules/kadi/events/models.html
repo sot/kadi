@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>kadi.events.models &#8212; kadi 7.6.0 documentation</title>
+    <title>kadi.events.models &#8212; kadi 7.7.0 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/bootstrap-astropy.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/plot_directive.css" />
@@ -46,7 +46,7 @@
     <h3>Navigation</h3>
     <ul>
       <li>
-	<a href="../../../index.html">kadi 7.6.0 documentation</a>
+	<a href="../../../index.html">kadi 7.7.0 documentation</a>
 	 &#187;
       </li>
       <li><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
@@ -195,7 +195,7 @@
     <span class="kn">import</span> <span class="nn">inspect</span>
 
     <span class="n">models</span> <span class="o">=</span> <span class="p">{}</span>
-    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">var</span> <span class="ow">in</span> <span class="nb">globals</span><span class="p">()</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+    <span class="k">for</span> <span class="n">var</span> <span class="ow">in</span> <span class="nb">globals</span><span class="p">()</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
         <span class="k">if</span> <span class="n">inspect</span><span class="o">.</span><span class="n">isclass</span><span class="p">(</span><span class="n">var</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">issubclass</span><span class="p">(</span><span class="n">var</span><span class="p">,</span> <span class="n">baseclass</span> <span class="ow">or</span> <span class="n">BaseEvent</span><span class="p">):</span>
             <span class="c1"># Make an instance of event class to discover if it is an abstact base class.</span>
             <span class="n">event</span> <span class="o">=</span> <span class="n">var</span><span class="p">()</span>
@@ -480,9 +480,9 @@
             <span class="n">obsrq</span> <span class="o">=</span> <span class="n">fetch</span><span class="o">.</span><span class="n">Msid</span><span class="p">(</span><span class="s2">&quot;cobsrqid&quot;</span><span class="p">,</span> <span class="n">tstart</span><span class="p">,</span> <span class="n">tstart</span> <span class="o">+</span> <span class="mi">200</span><span class="p">)</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">obsrq</span><span class="o">.</span><span class="n">vals</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
-                    <span class="sa">f</span><span class="s2">&quot;WARNING: unable to get COBSRQID near &quot;</span>
+                    <span class="s2">&quot;WARNING: unable to get COBSRQID near &quot;</span>
                     <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">model_dict</span><span class="p">[</span><span class="bp">cls</span><span class="o">.</span><span class="n">_get_obsid_start_attr</span><span class="p">]</span><span class="si">}</span><span class="s2">, &quot;</span>
-                    <span class="sa">f</span><span class="s2">&quot;using obsid=-999&quot;</span>
+                    <span class="s2">&quot;using obsid=-999&quot;</span>
                 <span class="p">)</span>
                 <span class="n">model_dict</span><span class="p">[</span><span class="s2">&quot;obsid&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">999</span>
             <span class="k">else</span><span class="p">:</span>
@@ -611,7 +611,7 @@
 <span class="sd">        Get load commands within start/stop interval for this event.</span>
 <span class="sd">        Apply padding defined by interval_pad attribute.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">cmds</span> <span class="k">as</span> <span class="n">commands</span>
+        <span class="kn">from</span> <span class="nn">kadi</span> <span class="kn">import</span> <span class="n">cmds</span> <span class="k">as</span> <span class="n">commands</span>
 
         <span class="n">cmds</span> <span class="o">=</span> <span class="n">commands</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">tstart</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">interval_pad</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tstop</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">interval_pad</span><span class="o">.</span><span class="n">stop</span>
@@ -1421,7 +1421,7 @@
     <span class="n">prev_npnt_start</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span>
         <span class="n">max_length</span><span class="o">=</span><span class="mi">21</span><span class="p">,</span>
         <span class="n">null</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-        <span class="n">help_text</span><span class="o">=</span><span class="s2">&quot;Start time of previous &quot;</span> <span class="s2">&quot;AOPCADMD=NPNT before manvr&quot;</span><span class="p">,</span>
+        <span class="n">help_text</span><span class="o">=</span><span class="s2">&quot;Start time of previous AOPCADMD=NPNT before manvr&quot;</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">nman_start</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span>
         <span class="n">max_length</span><span class="o">=</span><span class="mi">21</span><span class="p">,</span> <span class="n">null</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">help_text</span><span class="o">=</span><span class="s2">&quot;Start time of AOPCADMD=NMAN for manvr&quot;</span>
@@ -1464,13 +1464,13 @@
         <span class="n">help_text</span><span class="o">=</span><span class="s2">&quot;Number of kalman dwells after manvr and before next manvr&quot;</span>
     <span class="p">)</span>
     <span class="n">n_acq</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">IntegerField</span><span class="p">(</span>
-        <span class="n">help_text</span><span class="o">=</span><span class="s2">&quot;Number of AQXN intervals after &quot;</span> <span class="s2">&quot;manvr and before next manvr&quot;</span>
+        <span class="n">help_text</span><span class="o">=</span><span class="s2">&quot;Number of AQXN intervals after manvr and before next manvr&quot;</span>
     <span class="p">)</span>
     <span class="n">n_guide</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">IntegerField</span><span class="p">(</span>
-        <span class="n">help_text</span><span class="o">=</span><span class="s2">&quot;Number of GUID intervals after &quot;</span> <span class="s2">&quot;manvr and before next manvr&quot;</span>
+        <span class="n">help_text</span><span class="o">=</span><span class="s2">&quot;Number of GUID intervals after manvr and before next manvr&quot;</span>
     <span class="p">)</span>
     <span class="n">n_kalman</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">IntegerField</span><span class="p">(</span>
-        <span class="n">help_text</span><span class="o">=</span><span class="s2">&quot;Number of KALM intervals after &quot;</span> <span class="s2">&quot;manvr and before next manvr&quot;</span>
+        <span class="n">help_text</span><span class="o">=</span><span class="s2">&quot;Number of KALM intervals after manvr and before next manvr&quot;</span>
     <span class="p">)</span>
     <span class="n">anomalous</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">BooleanField</span><span class="p">(</span><span class="n">help_text</span><span class="o">=</span><span class="s2">&quot;Key MSID shows off-nominal value&quot;</span><span class="p">)</span>
     <span class="n">template</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span> <span class="n">help_text</span><span class="o">=</span><span class="s2">&quot;Matched maneuver template&quot;</span><span class="p">)</span>
@@ -2145,7 +2145,7 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Get events from iFOT web interface</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">occweb</span>
+        <span class="kn">from</span> <span class="nn">kadi</span> <span class="kn">import</span> <span class="n">occweb</span>
 
         <span class="n">datestart</span> <span class="o">=</span> <span class="n">DateTime</span><span class="p">(</span><span class="n">start</span><span class="p">)</span><span class="o">.</span><span class="n">date</span>
         <span class="n">datestop</span> <span class="o">=</span> <span class="n">DateTime</span><span class="p">(</span><span class="n">stop</span><span class="p">)</span><span class="o">.</span><span class="n">date</span>
@@ -2174,7 +2174,7 @@
                 <span class="c1"># The above still might not be OK because sometimes what is in the</span>
                 <span class="c1"># &lt;prop&gt;.START/STOP values is not a valid date.</span>
                 <span class="k">try</span><span class="p">:</span>
-                    <span class="n">DateTime</span><span class="p">(</span><span class="n">event</span><span class="p">[</span><span class="n">st</span><span class="p">])</span><span class="o">.</span><span class="n">date</span>
+                    <span class="n">DateTime</span><span class="p">(</span><span class="n">event</span><span class="p">[</span><span class="n">st</span><span class="p">])</span><span class="o">.</span><span class="n">date</span>  <span class="c1"># noqa: B018</span>
                 <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
                     <span class="c1"># Fail, roll back to the tstart/tstop version</span>
                     <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
@@ -2504,10 +2504,10 @@
     <span class="n">start_radzone</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">21</span><span class="p">,</span> <span class="n">help_text</span><span class="o">=</span><span class="s2">&quot;Start time of rad zone&quot;</span><span class="p">)</span>
     <span class="n">stop_radzone</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">21</span><span class="p">,</span> <span class="n">help_text</span><span class="o">=</span><span class="s2">&quot;Stop time of rad zone&quot;</span><span class="p">)</span>
     <span class="n">dt_start_radzone</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">FloatField</span><span class="p">(</span>
-        <span class="n">help_text</span><span class="o">=</span><span class="s2">&quot;Start time of rad zone relative &quot;</span> <span class="s2">&quot;to perigee (sec)&quot;</span>
+        <span class="n">help_text</span><span class="o">=</span><span class="s2">&quot;Start time of rad zone relative to perigee (sec)&quot;</span>
     <span class="p">)</span>
     <span class="n">dt_stop_radzone</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">FloatField</span><span class="p">(</span>
-        <span class="n">help_text</span><span class="o">=</span><span class="s2">&quot;Stop time of rad zone relative &quot;</span> <span class="s2">&quot;to perigee (sec)&quot;</span>
+        <span class="n">help_text</span><span class="o">=</span><span class="s2">&quot;Stop time of rad zone relative to perigee (sec)&quot;</span>
     <span class="p">)</span>
     <span class="n">dur</span><span class="o">.</span><span class="n">_kadi_format</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{:.1f}</span><span class="s2">&quot;</span>
     <span class="n">t_perigee</span><span class="o">.</span><span class="n">_kadi_format</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{:.1f}</span><span class="s2">&quot;</span>
