@@ -132,11 +132,18 @@ def _tl_to_bs_cmds(tl_cmds, tl_id, db):
     Ska.ParseCM.read_backstop().  This includes reading parameter values
     from the ``db``.
 
-    :param tl_cmds: numpy recarray of commands from timeline load segment
-    :param tl_id: timeline id
-    :param db: Ska.DBI db object
+    Parameters
+    ----------
+    tl_cmds
+        numpy recarray of commands from timeline load segment
+    tl_id
+        timeline id
+    db
+        Ska.DBI db object
 
-    :returns: list of command dicts
+    Returns
+    -------
+    list of command dicts
     """
     bs_cmds = [dict((col, row[col]) for col in tl_cmds.dtype.names) for row in tl_cmds]
     cmd_index = dict((x["id"], x) for x in bs_cmds)
@@ -535,8 +542,15 @@ def parse_params(paramstr):
     Parameter values are cast to the first type (int, float, or str) that
     succeeds.
 
-    :param paramstr: Comma separated string of key=val pairs
-    :rtype: dict of key=val pairs
+    Parameters
+    ----------
+    paramstr
+        Comma separated string of key=val pairs
+
+    Returns
+    -------
+    dict
+        Dict of key=val pairs
     """
     params = {}
     for opt in paramstr.split(","):
@@ -557,8 +571,15 @@ def read_backstop(filename):
     actual string with comma-separated parameters and ``params`` is the
     corresponding dict of key=val pairs.
 
-    :param filename: Backstop file name
-    :returns: list of dict for each command
+    Parameters
+    ----------
+    filename
+        Backstop file name
+
+    Returns
+    -------
+    list of dict
+        List of dict for each command
     """
     bs = []
     for bs_line in open(filename):

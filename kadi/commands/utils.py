@@ -226,11 +226,20 @@ def fill_gaps_with_nan(times: list, vals: list, max_gap: float, dt: float = 0.00
       times = [1, 2, 20, 21, 22]  => [1, 2, 2.001, 19.999, 20, 21, 22]
       vals = [1, 2, 3, 4, 5] => [1.0, 2.0, NaN, NaN, 3.0, 4.0, 5.0]
 
-    :param times: times
-    :param vals: values
-    :param max_gap: maximum gap in seconds
-    :param dt: time delta to use for filling gaps
-    :returns: times, vals with gaps filled with NaNs
+    Parameters
+    ----------
+    times
+        times
+    vals
+        values
+    max_gap
+        maximum gap in seconds
+    dt
+        time delta to use for filling gaps
+
+    Returns
+    -------
+    times, vals with gaps filled with NaNs
     """
     times = np.asarray(times, dtype=float)
     vals = np.asarray(vals, dtype=float)

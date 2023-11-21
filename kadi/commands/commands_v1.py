@@ -44,14 +44,20 @@ def get_cmds(start=None, stop=None, inclusive_stop=False, **kwargs):
       >>> tlmsid='wsvidalldn') cmds = commands.get_cmds(msid='aflcrset')
       >>> print(cmds)
 
-    :param start: DateTime format (optional) Start time, defaults to beginning
-        of available commands (2002:001)
-    :param stop: DateTime format (optional) Stop time, defaults to end of available
-        commands
-    :param inclusive_stop: bool, include commands at exactly ``stop`` if True.
-    :param kwargs: key=val keyword argument pairs for filtering
+    Parameters
+    ----------
+    start : DateTime format (optional)
+        Start time, defaults to beginning of available commands (2002:001)
+    stop : DateTime format (optional)
+        Stop time, defaults to end of available commands
+    inclusive_stop : bool
+        Include commands at exactly ``stop`` if True.
+    **kwargs : dict
+        key=val keyword argument pairs for filtering
 
-    :returns: :class:`~kadi.commands.commands.CommandTable` of commands
+    Returns
+    -------
+    :class:`~kadi.commands.commands.CommandTable` of commands
     """
     out = _find(start, stop, inclusive_stop, IDX_CMDS, PARS_DICT, **kwargs)
     out.rev_pars_dict = weakref.ref(REV_PARS_DICT)

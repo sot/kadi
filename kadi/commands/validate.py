@@ -119,9 +119,14 @@ class Validate(ABC):
     def __init__(self, stop=None, days: float = 14, no_exclude: bool = False):
         """Base class for validation.
 
-        :param stop: stop time for validation
-        :param days: number of days for validation
-        :param no_exclude: if True then do not exclude any data (for testing)
+        Parameters
+        ----------
+        stop
+            stop time for validation
+        days
+            number of days for validation
+        no_exclude
+            if True then do not exclude any data (for testing)
         """
         self.stop = CxoTime(stop)
         self.days = days
@@ -435,7 +440,9 @@ class Validate(ABC):
     def get_context(self) -> dict:
         """Get the standard context for a jinja2 template.
 
-        :returns: dict
+        Returns
+        -------
+        dict
         """
         title = f"{self.plot_attrs.title} (state name = {self.state_name!r})"
         context = {}
@@ -451,9 +458,17 @@ class Validate(ABC):
     ) -> str:
         """Get HTML for validator including section header, violations, and plot
 
-        :param context: optional dict of context for jinja2 template
-        :param template_text: optional Jinja2 template text
-        :returns: HTML string
+        Parameters
+        ----------
+        context
+            optional dict of context for jinja2 template
+        template_text
+            optional Jinja2 template text
+
+        Returns
+        -------
+        str
+            HTML string
         """
         if context is None:
             context = self.get_context()
@@ -739,10 +754,19 @@ def get_states(start: CxoTimeLike, stop: CxoTimeLike, state_keys: list) -> Table
     This is a thin wrapper around kadi.commands.states.get_states() that reduces the
     output time span slightly to ensure telemetry interpolation works.
 
-    :param start: start date (CxoTime-like)
-    :param stop: stop date (CxoTime-like)
-    :param state_keys: list of state keys to get
-    :returns: Table of states
+    Parameters
+    ----------
+    start
+        start date (CxoTime-like)
+    stop
+        stop date (CxoTime-like)
+    state_keys
+        list of state keys to get
+
+    Returns
+    -------
+    Table
+        States in the interval
     """
     from kadi.commands.states import get_states as get_states_kadi
 
@@ -776,12 +800,21 @@ def get_index_page_html(
 ):
     """Make a simple HTML page with all the validation plots and information.
 
-    :param stop: stop time for validation interval (CxoTime-like, default=now)
-    :param days: length of validation interval (days)
-    :param states: list of states to validate (default=all)
-    :param no_exclude: if True then do not exclude intervals (default=False)
+    Parameters
+    ----------
+    stop
+        stop time for validation interval (CxoTime-like, default=now)
+    days
+        length of validation interval (days)
+    states
+        list of states to validate (default=all)
+    no_exclude
+        if True then do not exclude intervals (default=False)
 
-    :returns: HTML string
+    Returns
+    -------
+    str
+        HTML string
     """
     validators = []
     violations = []

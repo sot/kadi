@@ -97,11 +97,16 @@ def _merge_cmds_archive_recent(start, scenario):
     - CMDS_RECENT cache has been set with that scenario.
     - Recent commands overlap the cmds archive
 
-    :parameter start: CxoTime-like,
+    Parameters
+    ----------
+    start : CxoTime-like
         Start time for returned commands
-    :parameter scenario: str
+    scenario : str
         Scenario name
-    :returns: CommandTable
+
+    Returns
+    -------
+    CommandTable
         Commands from cmds archive and all recent commands
     """
     cmds_recent = CMDS_RECENT[scenario]
@@ -184,21 +189,25 @@ def get_cmds(
 ) -> CommandTable:
     """Get commands using loads table, relying entirely on RLTT.
 
-    :param start: CxoTime-like
+    Parameters
+    ----------
+    start : CxoTime-like
         Start time for cmds
-    :param stop: CxoTime-like
+    stop : CxoTime-like
         Stop time for cmds
-    :param scenario: str, None
+    scenario : str, None
         Scenario name
-    :param inclusive_stop: bool
+    inclusive_stop : bool
         Include commands at exactly ``stop`` if True.
-    :param loads_stop: CxoTime-like, None
+    loads_stop : CxoTime-like, None
         Stop time for loads table (default is all available loads, but useful
         for development/testing work)
-    :param **kwargs: dict
+    **kwargs : dict
         key=val keyword argument pairs for filtering
 
-    :returns: CommandTable
+    Returns
+    -------
+    CommandTable
     """
     logger.info(
         f"Getting commands from {CxoTime(start).date} to {CxoTime(stop).date} for {scenario=}"
@@ -315,17 +324,21 @@ def update_archive_and_get_cmds_recent(
 
     This relies entirely on RLTT and load_events to assemble the commands.
 
-    :param scenario: str, None
+    Parameters
+    ----------
+    scenario : str, None
         Scenario name
-    :param lookback: int, Quantity, None
+    lookback : int, Quantity, None
         Lookback time from ``stop`` for recent loads. If None, use
         conf.default_lookback.
-    :param stop: CxoTime-like, None
+    stop : CxoTime-like, None
         Stop time for loads table (default is now + 21 days)
-    :param cache: bool
+    cache : bool
         Cache the result in CMDS_RECENT dict.
 
-    :returns: CommandTable
+    Returns
+    -------
+    CommandTable
     """
     # List of CommandTable objects from loads and cmd_events
     cmds_list: List[CommandTable] = []
@@ -473,14 +486,21 @@ def add_obs_cmds(cmds, pars_dict, rev_pars_dict, prev_att=None):
     - obsid: observation ID
     - starcat_idx: index of starcat in reversed params dict
 
-    :param cmds_recent: CommandTable
-    :param pars_dict: dict
+    Parameters
+    ----------
+    cmds_recent
+        CommandTable
+    pars_dict : dict
         Dictionary of parameters from the command table.
-    :param rev_pars_dict: dict
+    rev_pars_dict : dict
         Dictionary of parameters from the command table, with keys reversed.
-    :param prev_att: tuple
+    prev_att : tuple
         Continuity attitude. If not supplied the first obs is dropped.
-    :returns: CommandTable with added OBS commands
+
+    Returns
+    -------
+    CommandTable
+        Command table with added OBS commands
     """
     # Last command in cmds is the schedule stop time (i.e. obs_stop for the
     # last observation).
@@ -512,8 +532,14 @@ def add_obs_cmds(cmds, pars_dict, rev_pars_dict, prev_att=None):
 def get_state_cmds(cmds):
     """Get the state-changing commands need to create LOAD_EVENT OBS commands.
 
-    :param cmds: CommandTable of input commands.
-    :returns: CommandTable of state-changing commands.
+    Parameters
+    ----------
+    cmds
+        CommandTable of input commands.
+
+    Returns
+    -------
+    CommandTable of state-changing commands.
     """
     state_tlmsids = [
         "AOSTRCAT",
@@ -560,10 +586,17 @@ def get_cmds_obs_from_manvrs(cmds, prev_att=None):
     of the maneuver END for the second pass, where at the point in time of the
     maneuver end (obs start), all the state-changing commands have occurred.
 
-    :param cmds: CommandTable of state-changing commands.
-    :param prev_att: tuple
+    Parameters
+    ----------
+    cmds : CommandTable
+        CommandTable of state-changing commands.
+    prev_att : tuple
         Previous attitude (q1, q2, q3, q4)
-    :returns: CommandTable of OBS commands.
+
+    Returns
+    -------
+    CommandTable
+        OBS commands.
     """
     targ_att = None
     npnt_enab = False
@@ -666,12 +699,19 @@ MANVR_VMAX = 0.001309  # AKA omega
 def manvr_duration(q1, q2):
     """Calculate the duration of a maneuver from two quaternions
 
-    This is basically the same as the function in Chandra.Maneuver but
+    This is basically the same as the function in chandra_maneuver but
     optimized to work on a single 4-vector quaterion.
 
-    :param q1: list of 4 quaternion elements
-    :param q2: list of 4 quaternion elements
-    :returns: duration of maneuver in seconds
+    Parameters
+    ----------
+    q1
+        list of 4 quaternion elements
+    q2
+        list of 4 quaternion elements
+
+    Returns
+    -------
+    duration of maneuver in seconds
     """
     # Compute 4th element of delta quaternion q_manvr = q2 / q1
     q_manvr_3 = abs(-q2[0] * q1[0] - q2[1] * q1[1] - q2[2] * q1[2] + q2[3] * -q1[3])
@@ -707,12 +747,21 @@ def get_cmds_obs_final(cmds, pars_dict, rev_pars_dict, schedule_stop_time):
     The observation state is completed by encountering the next transition to
     NMM or NSM.
 
-    :param cmds: CommandTable of state-changing + OBS commands.
-    :param pars_dict: dict of parameters for commands
-    :param rev_pars_dict: reversed dict of parameters for commands
-    :param schedule_stop_time: date of last command
+    Parameters
+    ----------
+    cmds
+        CommandTable of state-changing + OBS commands.
+    pars_dict
+        dict of parameters for commands
+    rev_pars_dict
+        reversed dict of parameters for commands
+    schedule_stop_time
+        date of last command
 
-    :returns: CommandTable of OBS commands with all parameters filled in.
+    Returns
+    -------
+    CommandTable
+        OBS commands with all parameters filled in.
     """
     # Initialize state variables. Note that the first OBS command may end up
     # with bogus values for some of these, but this is OK because of the command
@@ -835,19 +884,30 @@ def log_context_obs(cmds, cmd, before=3600, after=3600, log_level="warning"):
 def is_google_id(scenario):
     """Return True if scenario appears to be a Google ID.
 
-    :param scenario: str, None
-    :returns: bool
+    Parameters
+    ----------
+    scenario
+        str, None
+
+    Returns
+    -------
+    bool
     """
     # Something better??
     return scenario is not None and len(scenario) > 35
 
 
-def update_cmd_events(scenario=None):
+def update_cmd_events(scenario=None) -> Table:
     """Update local cmd_events.csv from Google Sheets for ``scenario``.
 
-    :param scenario: str, None
+    Parameters
+    ----------
+    scenario : str, None
         Scenario name
-    :returns: Table
+
+    Returns
+    -------
+    Table
         Command events table
     """
     # Named scenarios with a name that isn't "flight" and does not look like a
@@ -886,9 +946,15 @@ def update_cmd_events(scenario=None):
 def get_cmd_events(scenario=None):
     """Get local cmd_events.csv for ``scenario``.
 
-    :param scenario: str, None
+    Parameters
+    ----------
+    scenario : str, None
         Scenario name
-    :returns: Table
+
+    Returns
+    -------
+    out
+        Table
         Command events table
     """
     cmd_events_path = paths.CMD_EVENTS_PATH(scenario)
@@ -1015,11 +1081,16 @@ def get_load_cmds_from_occweb_or_local(
     file is downloaded from OCCweb and is then parsed and saved as a gzipped
     pickle file of the corresponding CommandTable object.
 
-    :param dir_year_month: Path
+    Parameters
+    ----------
+    dir_year_month : Path
         Path to the directory containing the ``load_name`` directory.
-    :param load_name: str
+    load_name : str
         Load name in the usual format e.g. JAN0521A.
-    :returns: CommandTable
+
+    Returns
+    -------
+    CommandTable
         Backstop commands for the load.
     """
     # Determine output file name and make directory if necessary.
@@ -1097,18 +1168,20 @@ def update_cmds_archive(
     This updates the archive though ``stop`` date, where is required that the
     ``stop`` date is within ``lookback`` days of existing data in the archive.
 
-    :param lookback: int, None
+    Parameters
+    ----------
+    lookback : int, None
         Number of days to look back to get recent load commands from OCCweb.
         Default is ``conf.default_lookback`` (currently 30).
-    :param stop: CxoTime-like, None
+    stop : CxoTime-like, None
         Stop date to update the archive to. Default is NOW + 21 days.
-    :param log_level: int
+    log_level : int
         Logging level. Default is ``logging.INFO``.
-    :param scenario: str, None
+    scenario : str, None
         Scenario name for loads and command events
-    :param data_root: str, Path
+    data_root : str, Path
         Root directory where cmds2.h5 and cmds2.pkl are stored. Default is '.'.
-    :param match_prev_cmds: bool
+    match_prev_cmds : bool
         One-time use flag set to True to update the cmds archive near the v1/v2
         transition of APR1420B. See ``utils/migrate_cmds_to_cmds2.py`` for
         details.
@@ -1280,8 +1353,14 @@ def convert_aostrcat_to_acatable(params):
        MINMAG = min mag
        MAXMAG = max mag
 
-    :param params: dict of AOSTRCAT parameters
-    :returns: ACATable
+    Parameters
+    ----------
+    params
+        dict of AOSTRCAT parameters
+
+    Returns
+    -------
+    ACATable
     """
     from proseco.catalog import ACATable
 

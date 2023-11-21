@@ -32,16 +32,23 @@ def get_cmds(start=None, stop=None, inclusive_stop=False, scenario=None, **kwarg
       >>> tlmsid='wsvidalldn') cmds = commands.get_cmds(msid='aflcrset')
       >>> print(cmds)
 
-    :param start: DateTime format (optional) Start time, defaults to beginning
+    Parameters
+    ----------
+    start : DateTime format (optional) Start time, defaults to beginning
         of available commands (2002:001)
-    :param stop: DateTime format (optional) Stop time, defaults to end of available
+    stop : DateTime format (optional) Stop time, defaults to end of available
         commands
-    :param inclusive_stop: bool, include commands at exactly ``stop`` if True.
-    :param scenario: str, None
+    inclusive_stop
+        bool, include commands at exactly ``stop`` if True.
+    scenario : str, None
         Commands scenario (applicable only for V2 commands)
-    :param kwargs: key=val keyword argument pairs for filtering
+    kwargs
+        key=val keyword argument pairs for filtering
 
-    :returns: :class:`~kadi.commands.commands.CommandTable` of commands
+    Returns
+    -------
+    CommandTable
+        Commands in the interval and matching the filter criteria.
     """
     commands_version = os.environ.get("KADI_COMMANDS_VERSION", conf.commands_version)
     if commands_version == "2":

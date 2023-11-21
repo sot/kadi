@@ -63,9 +63,19 @@ def get_detector_and_sim_offset(simpos):
     Finds the detector with nominal SIM position closest to ``simpos``.
     Taken from fot_matlab_tools/MissionScheduling/axafutil/getSIFromPosition.m.
 
-    :param aca: ACATable
+    Parameters
+    ----------
+    aca : ACATable
         Input star catalog
-    :param simpos: int, SIM position (steps)
+    simpos
+        int, SIM position (steps)
+
+    Returns
+    -------
+    detector : str
+        Detector name
+    sim_offset : int
+        SIM offset (steps)
     """
     from proseco import characteristics_fid as FID
 
@@ -116,7 +126,9 @@ def set_star_ids(aca):
     This set the ID in-place to the brightest star within 1.5 arcsec of the
     commanded position.
 
-    :param aca: ACATable
+    Parameters
+    ----------
+    aca : ACATable
         Input star catalog
     """
     from chandra_aca.transform import radec_to_yagzag
@@ -156,8 +168,14 @@ def set_star_ids(aca):
 def convert_starcat_dict_to_acatable(starcat_dict: dict):
     """Convert star catalog dict to an ACATable, including obs metadata.
 
-    :param starcat_dict: dict of list with starcat values
-    :returns: ACATable
+    Parameters
+    ----------
+    starcat_dict
+        dict of list with starcat values
+
+    Returns
+    -------
+    ACATable
     """
     from proseco.acq import AcqTable
     from proseco.catalog import ACATable
@@ -182,7 +200,7 @@ def convert_starcat_dict_to_acatable(starcat_dict: dict):
 
 
 def convert_aostrcat_to_starcat_dict(params):
-    """Convert dict of AOSTRCAT parameters to an dict of list for each attribute.
+    """Convert dict of AOSTRCAT parameters to a dict of list for each attribute.
 
     The dict looks like::
 
@@ -201,9 +219,17 @@ def convert_aostrcat_to_starcat_dict(params):
        MINMAG = min mag
        MAXMAG = max mag
 
-    :param obs: dict of observation (OBS command) parameters
-    :param params: dict of AOSTRCAT parameters
-    :returns: dict of list for each catalog attribute
+    Parameters
+    ----------
+    obs
+        dict of observation (OBS command) parameters
+    params
+        dict of AOSTRCAT parameters
+
+    Returns
+    -------
+    dict of list
+        Dict of list keyed on each catalog attribute
     """
     for idx in range(1, 17):
         if params[f"minmag{idx}"] == params[f"maxmag{idx}"] == 0:
@@ -261,17 +287,27 @@ def get_starcats_as_table(
       >>> obss = obss[~obss['starcat_date'].mask]  # keep only obs with starcat
       >>> guides = table.join(guides, obss, keys=['starcat_date', 'obsid'])
 
-    :param start: CxoTime-like, None Start time (default=beginning of commands)
-    :param stop: CxoTime-like, None Stop time (default=end of commands)
-    :param obsid: int, None ObsID
-    :param unique: bool, if True return remove duplicate entries
-    :param scenario: str, None Scenario
-    :param cmds: CommandTable, None Use this command table instead of querying
-        the archive.
-    :param starcat_date: CxoTime-like, None
+    Parameters
+    ----------
+    start : CxoTime-like, None
+        Start time (default=beginning of commands)
+    stop : CxoTime-like, None
+        Stop time (default=end of commands)
+    obsid : int, None
+        ObsID
+    unique : bool
+        If True return remove duplicate entries
+    scenario : str, None
+        Scenario
+    cmds : CommandTable, None
+        Use this command table instead of querying the archive.
+    starcat_date : CxoTime-like, None
         Date of the observation's star catalog
-    :returns: astropy ``Table`` star catalog entries for matching observations.
 
+    Returns
+    -------
+    Table
+        Star catalog entries for matching observations.
     """
     starcats = get_starcats(
         obsid=obsid,
@@ -367,19 +403,29 @@ def get_starcats(
             1    10 31982136  ACQ  6x6   10.19   11.70   562.06  -186.39    20     1
             2    11 32375384  ACQ  6x6    9.79   11.30  1612.28  -428.24    20     1]
 
-    :param start: CxoTime-like, None Start time (default=beginning of commands)
-    :param stop: CxoTime-like, None Stop time (default=end of commands)
-    :param obsid: int, None ObsID
-    :param scenario: str, None Scenario
-    :param cmds: CommandTable, None Use this command table instead of querying
-        the archive.
-    :param as_dict: bool, False Return a list of dict instead of a list
-        of ACATable objects.
-    :param starcat_date: CxoTime-like, None
+    Parameters
+    ----------
+    start : CxoTime-like, None
+        Start time (default=beginning of commands)
+    stop : CxoTime-like, None
+        Stop time (default=end of commands)
+    obsid : int, None
+        ObsID
+    scenario : str, None
+        Scenario
+    cmds : CommandTable, None
+        Use this command table instead of querying the archive.
+    as_dict : bool, False
+        Return a list of dict instead of a list of ACATable objects.
+    starcat_date : CxoTime-like, None
         Date of the observation's star catalog
-    :param show_progress: bool,
+    show_progress : bool
         Show progress bar for long queries (default=False)
-    :returns: list of star catalogs (ACATable or dict) for matching observations.
+
+    Returns
+    -------
+    list
+        List of star catalogs (ACATable or dict) for matching observations.
     """
     import shelve
     from contextlib import ExitStack
@@ -515,15 +561,25 @@ def get_observations(
         'starcat_idx': 171677,
         'source': 'DEC3021A'}]
 
-    :param start: CxoTime-like, None Start time (default=beginning of commands)
-    :param stop: CxoTime-like, None Stop time (default=end of commands)
-    :param obsid: int, None ObsID
-    :param scenario: str, None Scenario
-    :param cmds: CommandTable, None Use this command table instead of querying
-        the archive.
-    :param starcat_date: CxoTime-like, None Date of the observation's star
-        catalog
-    :returns: list of dict Observation parameters for matching observations.
+    Parameters
+    ----------
+    start : CxoTime-like, None
+        Start time (default=beginning of commands)
+    stop : CxoTime-like, None
+        Stop time (default=end of commands)
+    obsid : int, None
+        ObsID
+    scenario : str, None
+        Scenario
+    cmds : CommandTable, None
+        Use this command table instead of querying the archive
+    starcat_date : CxoTime-like, None
+        Date of the observation's star catalog
+
+    Returns
+    -------
+    list of dict
+        Observation parameters for matching observations.
     """
     from kadi.commands.commands_v2 import get_cmds
 
@@ -593,13 +649,21 @@ def get_agasc_cone_fast(ra, dec, radius=1.5, date=None, matlab_pm_bug=False):
     This is a fast version of agasc.get_agasc_cone() that keeps the key columns
     in memory instead of accessing the H5 file each time.
 
-    :param dec: Declination (deg)
-    :param radius: Cone search radius (deg)
-    :param date: Date for proper motion (default=Now)
-    :param matlab_pm_bug: bool Apply MATLAB proper motion bug prior to
-        the MAY2118A loads (default=False)
+    Parameters
+    ----------
+    dec : float
+        Declination (deg)
+    radius : float
+        Cone search radius (deg)
+    date : CxoTime-like, None
+        Date for proper motion (default=Now)
+    matlab_pm_bug : bool
+        Apply MATLAB proper motion bug prior to the MAY2118A loads (default=False)
 
-    :returns: astropy Table of AGASC entries
+    Returns
+    -------
+    Table
+        Table of AGASC entries
     """
     global STARS_AGASC
 

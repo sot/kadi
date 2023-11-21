@@ -126,7 +126,9 @@ def get_event_models(baseclass=None):
     Get all Event models that represent actual events (and are not base
     or meta classes).
 
-    :returns: dict of {model_name:ModelClass, ...}
+    Returns
+    -------
+    dict of {model_name:ModelClass, ...}
     """
     import inspect
 
@@ -148,9 +150,12 @@ def fuzz_states(states, t_fuzz):
     other.  Logical intervals are just the subset of states with 'val' equal to a
     particular value.
 
-    :param states: table of states or intervals
-    :param t_fuzz: fuzz time in seconds
-    :returns fuzzed_states: table
+    Parameters
+    ----------
+    states
+        table of states or intervals
+    t_fuzz : fuzz time in seconds
+        :returns fuzzed_states: table
     """
     done = False
     state_has_val = "val" in states.dtype.names
@@ -505,7 +510,9 @@ class BaseModel(models.Model):
         Typically this is the obsid at the start of the event, but for maneuvers it is the
         obsid at the end of the maneuver.
 
-        :returns: obsid
+        Returns
+        -------
+        obsid
         """
         from . import query
 
@@ -641,8 +648,14 @@ class TlmEvent(Event):
         desired state for this event type.  The default is when
         ``event_msid == cls.event_val``, but subclasses may override this method.
 
-        :param event_msid: fetch.MSID object
-        :returns: boolean ndarray
+        Parameters
+        ----------
+        event_msid
+            fetch.MSID object
+
+        Returns
+        -------
+        boolean ndarray
         """
         event_msid = event_msidset[cls.event_msids[0]]
         bools = event_msid.vals == cls.event_val
