@@ -10,7 +10,7 @@ or from the command-line application ``kadi_validate_states`` (defined in
 """
 import functools
 import logging
-from abc import ABC, abstractmethod
+from abc import ABC
 from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Optional
@@ -155,8 +155,7 @@ class Validate(ABC):
             self.add_exclude_intervals()
         return self._tlm
 
-    @abstractmethod
-    def update_tlm(self):
+    def update_tlm(self):  # noqa: B027
         """Update the telemetry values with any subclass-specific processing"""
 
     @property
