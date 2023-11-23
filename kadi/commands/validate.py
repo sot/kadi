@@ -20,10 +20,7 @@ import jinja2
 import numpy as np
 import plotly.graph_objects as pgo
 import requests
-import Ska.Matplotlib
-import Ska.Numpy
-import Ska.Shell
-import Ska.tdb
+import ska_tdb
 from astropy.table import Table
 from cheta.utils import (
     NoTelemetryError,
@@ -483,7 +480,7 @@ class ValidateStateCode(Validate):
 
     @functools.cached_property
     def state_codes(self) -> Table:
-        tsc = Ska.tdb.msids.find(self.msid)[0].Tsc
+        tsc = ska_tdb.msids.find(self.msid)[0].Tsc
         _state_codes = Table(
             [tsc.data["LOW_RAW_COUNT"], tsc.data["STATE_CODE"]],
             names=["raw_val", "state_code"],

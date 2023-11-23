@@ -18,7 +18,7 @@ import astropy.units as u
 import numpy as np
 import requests
 from astropy.table import Table
-from Chandra.Maneuver import NSM_attitude
+from chandra_maneuver import NSM_attitude
 from cxotime import CxoTime
 from testr.test_helper import has_internet
 

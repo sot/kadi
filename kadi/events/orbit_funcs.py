@@ -7,7 +7,7 @@ import re
 from pathlib import Path
 
 import numpy as np
-from Chandra.Time import DateTime
+from chandra_time import DateTime
 
 
 class NotFoundError(Exception):

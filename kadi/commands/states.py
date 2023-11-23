@@ -10,11 +10,11 @@ import itertools
 import re
 
 import astropy.units as u
-import Chandra.Maneuver
+import chandra_maneuver
 import numpy as np
-import Ska.Sun
+import ska_sun
 from astropy.table import Column, Table
-from Chandra.Time import DateTime, date2secs, secs2date
+from chandra_time import DateTime, date2secs, secs2date
 from cxotime import CxoTime
 from Quaternion import Quat, quat_to_equatorial
 
@@ -1103,8 +1103,8 @@ class SunVectorTransition(BaseTransition):
         """
         if state["pcad_mode"] == "NPNT":
             q_att = Quat([state[qc] for qc in QUAT_COMPS])
-            state["pitch"] = Ska.Sun.pitch(q_att.ra, q_att.dec, date)
-            state["off_nom_roll"] = Ska.Sun.off_nominal_roll(q_att, date)
+            state["pitch"] = ska_sun.pitch(q_att.ra, q_att.dec, date)
+            state["off_nom_roll"] = ska_sun.off_nominal_roll(q_att, date)
 
 
 class DitherEnableTransition(FixedTransition):
@@ -1310,7 +1310,7 @@ class ManeuverTransition(BaseTransition):
         curr_att = [state[qc] for qc in QUAT_COMPS]
 
         # Get attitudes for the maneuver at about 5-minute intervals.
-        atts = Chandra.Maneuver.attitudes(
+        atts = chandra_maneuver.attitudes(
             curr_att, targ_att, tstart=DateTime(date).secs
         )
 
@@ -1327,7 +1327,7 @@ class ManeuverTransition(BaseTransition):
         # Add transitions for each bit of the maneuver.  Note that this sets the
         # attitude (q1..q4) at the *beginning* of each state, while setting
         # pitch and off_nominal_roll at the *midpoint* of each state.  This is
-        # for legacy compatibility with Chandra.cmd_states but might be
+        # for legacy compatibility with chandra_cmd_states but might be
         # something to change since it would probably be better to have the
         # midpoint attitude.
         dates = secs2date(atts.time)
@@ -1381,7 +1381,7 @@ class NormalSunTransition(ManeuverTransition):
         if None in curr_att:
             return
 
-        targ_att = Chandra.Maneuver.NSM_attitude(curr_att, date)
+        targ_att = chandra_maneuver.NSM_attitude(curr_att, date)
         for qc, targ_q in zip(QUAT_COMPS, targ_att.q):
             state["targ_" + qc] = targ_q
 

@@ -7,7 +7,7 @@ import pickle
 from pathlib import Path
 
 import numpy as np
-import Ska.DBI
+import ska_dbi
 from astropy.table import Column, Table, vstack
 from cxotime import CxoTime
 
@@ -105,7 +105,7 @@ def migrate_cmds1_to_cmds2(start=None):
     rev_pars_dict = commands_v1.REV_PARS_DICT._val.copy()
 
     # This code is to get the load name ("source") for each cmd
-    with Ska.DBI.DBI(dbi="sqlite", server=str(CMD_STATES_PATH)) as db:
+    with ska_dbi.DBI(dbi="sqlite", server=str(CMD_STATES_PATH)) as db:
         timelines = db.fetchall("""SELECT * from timelines""")
     timelines = Table(timelines)
 
