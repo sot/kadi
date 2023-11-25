@@ -54,7 +54,7 @@ setup(
     ],
     package_data={
         "kadi.commands": ["templates/*.html"],
-        "kadi.commands.tests": ["data/*.ecsv.gz"],
+        "kadi.commands.tests": ["data/*.gz"],
     },
     tests_require=["pytest"],
     data_files=data_files,
