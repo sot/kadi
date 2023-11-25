@@ -53,11 +53,11 @@ extend-ignore = [
   "PYI056", # Calling `.append()` on `__all__` may not be supported by all type checkers
 ]
 
-exclude = [
+extend-exclude = [
   "docs",
   "utils",
   "validate",
-  ".eggs",
+  "*.ipynb",
 ]
 
 [pycodestyle]
