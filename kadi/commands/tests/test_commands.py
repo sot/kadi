@@ -1202,7 +1202,7 @@ def test_scenario_with_rts(monkeypatch, fast_sun_position_method):
 2021:297:01:41:01.256 | COMMAND_SW       | AONM2NPE   | CMD_EVT  | event=Maneuver, event_date=2021:297:01:41:01, msid=AONM2NPE,
 2021:297:01:41:05.356 | MP_TARGQUAT      | AOUPTARQ   | CMD_EVT  | event=Maneuver, event_date=2021:297:01:41:01, q1=7.05469070e
 2021:297:01:41:11.250 | COMMAND_SW       | AOMANUVR   | CMD_EVT  | event=Maneuver, event_date=2021:297:01:41:01, msid=AOMANUVR,
-2021:297:02:05:11.042 | LOAD_EVENT       | OBS        | CMD_EVT  | manvr_start=2021:297:01:41:11.250, prev_att=(0.2854059718219
+2021:297:02:05:11.042 | LOAD_EVENT       | OBS        | CMD_EVT  | manvr_start=2021:297:01:41:11.250, prev_att=(0.2854059718181
 2021:297:02:12:42.886 | ORBPOINT         | None       | OCT1821A | event_type=EQF003M, scs=0
 2021:297:03:40:42.886 | ORBPOINT         | None       | OCT1821A | event_type=EQF005M, scs=0
 2021:297:03:40:42.886 | ORBPOINT         | None       | OCT1821A | event_type=EQF015M, scs=0
