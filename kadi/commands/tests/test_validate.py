@@ -108,7 +108,7 @@ def test_validate_subclasses():
 
 @pytest.mark.parametrize("cls", Validate.subclasses)
 @pytest.mark.parametrize("no_exclude", [False, True])
-def test_validate_regression(cls, no_exclude):
+def test_validate_regression(cls, no_exclude, fast_sun_position_method):
     """Test that validator data matches regression data
 
     This is likely to be fragile. In the future we may need helper function to output

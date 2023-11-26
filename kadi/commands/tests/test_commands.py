@@ -1134,7 +1134,7 @@ def test_get_cmds_from_event_all(idx):
 
 
 @pytest.mark.skipif(not HAS_INTERNET, reason="No internet connection")
-def test_scenario_with_rts(monkeypatch):
+def test_scenario_with_rts(monkeypatch, fast_sun_position_method):
     # Test a custom scenario with RTS. This is basically the same as the
     # example in the documentation.
     from kadi import paths

@@ -46,8 +46,6 @@ PCAD_STATE_KEYS = (
 # State keys for SPM-related transitions.
 SPM_STATE_KEYS = ["sun_pos_mon", "battery_connect", "eclipse_enable_spm"]
 
-SUN_POS_METHOD = "accurate"
-
 # Default state keys (mostly matches classic command states list)
 DEFAULT_STATE_KEYS = (
     "ccd_count",
@@ -1315,10 +1313,9 @@ class ManeuverTransition(BaseTransition):
         curr_att = [state[qc] for qc in QUAT_COMPS]
 
         # Get attitudes for the maneuver at about 5-minute intervals.
-        with ska_sun.conf.set_temp("sun_position_method_default", SUN_POS_METHOD):
-            atts = chandra_maneuver.attitudes(
-                curr_att, targ_att, tstart=DateTime(date).secs
-            )
+        atts = chandra_maneuver.attitudes(
+            curr_att, targ_att, tstart=DateTime(date).secs
+        )
 
         # Compute pitch and off-nominal roll at the midpoint of each interval, except
         # also include the exact last attitude.

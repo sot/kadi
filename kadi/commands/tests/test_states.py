@@ -283,7 +283,7 @@ def test_states_2017():
     assert np.all(np.abs(tk - tc) < 0.0015)
 
 
-def test_pitch_2017():
+def test_pitch_2017(fast_sun_position_method):
     """
     Test pitch for 100 days in 2017.  Includes 2017:066, 068, 090 anomalies.  This is done
     by interpolating states (at 200 second intervals) because the pitch generation differs
@@ -670,7 +670,7 @@ def cmd_states_fetch_states(*args, **kwargs):
     return cs
 
 
-def test_reduce_states_cmd_states():
+def test_reduce_states_cmd_states(fast_sun_position_method):
     """
     Test that simple get_states() call with defaults gives the same results
     as calling cmd_states.fetch_states().
