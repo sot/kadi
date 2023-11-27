@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>kadi.commands.observations &#8212; kadi 7.7.0 documentation</title>
+    <title>kadi.commands.observations &#8212; kadi 7.7.1 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/bootstrap-astropy.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/plot_directive.css" />
@@ -46,7 +46,7 @@
     <h3>Navigation</h3>
     <ul>
       <li>
-	<a href="../../../index.html">kadi 7.7.0 documentation</a>
+	<a href="../../../index.html">kadi 7.7.1 documentation</a>
 	 &#187;
       </li>
       <li><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
@@ -127,9 +127,19 @@
 <span class="sd">    Finds the detector with nominal SIM position closest to ``simpos``.</span>
 <span class="sd">    Taken from fot_matlab_tools/MissionScheduling/axafutil/getSIFromPosition.m.</span>
 
-<span class="sd">    :param aca: ACATable</span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    aca : ACATable</span>
 <span class="sd">        Input star catalog</span>
-<span class="sd">    :param simpos: int, SIM position (steps)</span>
+<span class="sd">    simpos</span>
+<span class="sd">        int, SIM position (steps)</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    detector : str</span>
+<span class="sd">        Detector name</span>
+<span class="sd">    sim_offset : int</span>
+<span class="sd">        SIM offset (steps)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">from</span> <span class="nn">proseco</span> <span class="kn">import</span> <span class="n">characteristics_fid</span> <span class="k">as</span> <span class="n">FID</span>
 
@@ -180,7 +190,9 @@
 <span class="sd">    This set the ID in-place to the brightest star within 1.5 arcsec of the</span>
 <span class="sd">    commanded position.</span>
 
-<span class="sd">    :param aca: ACATable</span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    aca : ACATable</span>
 <span class="sd">        Input star catalog</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">from</span> <span class="nn">chandra_aca.transform</span> <span class="kn">import</span> <span class="n">radec_to_yagzag</span>
@@ -220,8 +232,14 @@
 <span class="k">def</span> <span class="nf">convert_starcat_dict_to_acatable</span><span class="p">(</span><span class="n">starcat_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert star catalog dict to an ACATable, including obs metadata.</span>
 
-<span class="sd">    :param starcat_dict: dict of list with starcat values</span>
-<span class="sd">    :returns: ACATable</span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    starcat_dict</span>
+<span class="sd">        dict of list with starcat values</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    ACATable</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">from</span> <span class="nn">proseco.acq</span> <span class="kn">import</span> <span class="n">AcqTable</span>
     <span class="kn">from</span> <span class="nn">proseco.catalog</span> <span class="kn">import</span> <span class="n">ACATable</span>
@@ -246,7 +264,7 @@
 
 
 <span class="k">def</span> <span class="nf">convert_aostrcat_to_starcat_dict</span><span class="p">(</span><span class="n">params</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert dict of AOSTRCAT parameters to an dict of list for each attribute.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert dict of AOSTRCAT parameters to a dict of list for each attribute.</span>
 
 <span class="sd">    The dict looks like::</span>
 
@@ -265,9 +283,17 @@
 <span class="sd">       MINMAG = min mag</span>
 <span class="sd">       MAXMAG = max mag</span>
 
-<span class="sd">    :param obs: dict of observation (OBS command) parameters</span>
-<span class="sd">    :param params: dict of AOSTRCAT parameters</span>
-<span class="sd">    :returns: dict of list for each catalog attribute</span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    obs</span>
+<span class="sd">        dict of observation (OBS command) parameters</span>
+<span class="sd">    params</span>
+<span class="sd">        dict of AOSTRCAT parameters</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    dict of list</span>
+<span class="sd">        Dict of list keyed on each catalog attribute</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">17</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">params</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;minmag</span><span class="si">{</span><span class="n">idx</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">params</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;maxmag</span><span class="si">{</span><span class="n">idx</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
@@ -289,7 +315,7 @@
     <span class="k">return</span> <span class="n">aca</span>
 
 
-<div class="viewcode-block" id="get_starcats_as_table"><a class="viewcode-back" href="../../../api.html#kadi.commands.observations.get_starcats_as_table">[docs]</a><span class="k">def</span> <span class="nf">get_starcats_as_table</span><span class="p">(</span>
+<div class="viewcode-block" id="get_starcats_as_table"><a class="viewcode-back" href="../../../api_commands.html#kadi.commands.observations.get_starcats_as_table">[docs]</a><span class="k">def</span> <span class="nf">get_starcats_as_table</span><span class="p">(</span>
     <span class="n">start</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="n">stop</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="o">*</span><span class="p">,</span>
@@ -325,17 +351,27 @@
 <span class="sd">      &gt;&gt;&gt; obss = obss[~obss[&#39;starcat_date&#39;].mask]  # keep only obs with starcat</span>
 <span class="sd">      &gt;&gt;&gt; guides = table.join(guides, obss, keys=[&#39;starcat_date&#39;, &#39;obsid&#39;])</span>
 
-<span class="sd">    :param start: CxoTime-like, None Start time (default=beginning of commands)</span>
-<span class="sd">    :param stop: CxoTime-like, None Stop time (default=end of commands)</span>
-<span class="sd">    :param obsid: int, None ObsID</span>
-<span class="sd">    :param unique: bool, if True return remove duplicate entries</span>
-<span class="sd">    :param scenario: str, None Scenario</span>
-<span class="sd">    :param cmds: CommandTable, None Use this command table instead of querying</span>
-<span class="sd">        the archive.</span>
-<span class="sd">    :param starcat_date: CxoTime-like, None</span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    start : CxoTime-like, None</span>
+<span class="sd">        Start time (default=beginning of commands)</span>
+<span class="sd">    stop : CxoTime-like, None</span>
+<span class="sd">        Stop time (default=end of commands)</span>
+<span class="sd">    obsid : int, None</span>
+<span class="sd">        ObsID</span>
+<span class="sd">    unique : bool</span>
+<span class="sd">        If True return remove duplicate entries</span>
+<span class="sd">    scenario : str, None</span>
+<span class="sd">        Scenario</span>
+<span class="sd">    cmds : CommandTable, None</span>
+<span class="sd">        Use this command table instead of querying the archive.</span>
+<span class="sd">    starcat_date : CxoTime-like, None</span>
 <span class="sd">        Date of the observation&#39;s star catalog</span>
-<span class="sd">    :returns: astropy ``Table`` star catalog entries for matching observations.</span>
 
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    Table</span>
+<span class="sd">        Star catalog entries for matching observations.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">starcats</span> <span class="o">=</span> <span class="n">get_starcats</span><span class="p">(</span>
         <span class="n">obsid</span><span class="o">=</span><span class="n">obsid</span><span class="p">,</span>
@@ -365,7 +401,7 @@
     <span class="k">return</span> <span class="n">out</span></div>
 
 
-<div class="viewcode-block" id="get_starcats"><a class="viewcode-back" href="../../../api.html#kadi.commands.observations.get_starcats">[docs]</a><span class="k">def</span> <span class="nf">get_starcats</span><span class="p">(</span>
+<div class="viewcode-block" id="get_starcats"><a class="viewcode-back" href="../../../api_commands.html#kadi.commands.observations.get_starcats">[docs]</a><span class="k">def</span> <span class="nf">get_starcats</span><span class="p">(</span>
     <span class="n">start</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="n">stop</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="o">*</span><span class="p">,</span>
@@ -431,19 +467,29 @@
 <span class="sd">            1    10 31982136  ACQ  6x6   10.19   11.70   562.06  -186.39    20     1</span>
 <span class="sd">            2    11 32375384  ACQ  6x6    9.79   11.30  1612.28  -428.24    20     1]</span>
 
-<span class="sd">    :param start: CxoTime-like, None Start time (default=beginning of commands)</span>
-<span class="sd">    :param stop: CxoTime-like, None Stop time (default=end of commands)</span>
-<span class="sd">    :param obsid: int, None ObsID</span>
-<span class="sd">    :param scenario: str, None Scenario</span>
-<span class="sd">    :param cmds: CommandTable, None Use this command table instead of querying</span>
-<span class="sd">        the archive.</span>
-<span class="sd">    :param as_dict: bool, False Return a list of dict instead of a list</span>
-<span class="sd">        of ACATable objects.</span>
-<span class="sd">    :param starcat_date: CxoTime-like, None</span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    start : CxoTime-like, None</span>
+<span class="sd">        Start time (default=beginning of commands)</span>
+<span class="sd">    stop : CxoTime-like, None</span>
+<span class="sd">        Stop time (default=end of commands)</span>
+<span class="sd">    obsid : int, None</span>
+<span class="sd">        ObsID</span>
+<span class="sd">    scenario : str, None</span>
+<span class="sd">        Scenario</span>
+<span class="sd">    cmds : CommandTable, None</span>
+<span class="sd">        Use this command table instead of querying the archive.</span>
+<span class="sd">    as_dict : bool, False</span>
+<span class="sd">        Return a list of dict instead of a list of ACATable objects.</span>
+<span class="sd">    starcat_date : CxoTime-like, None</span>
 <span class="sd">        Date of the observation&#39;s star catalog</span>
-<span class="sd">    :param show_progress: bool,</span>
+<span class="sd">    show_progress : bool</span>
 <span class="sd">        Show progress bar for long queries (default=False)</span>
-<span class="sd">    :returns: list of star catalogs (ACATable or dict) for matching observations.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    list</span>
+<span class="sd">        List of star catalogs (ACATable or dict) for matching observations.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">shelve</span>
     <span class="kn">from</span> <span class="nn">contextlib</span> <span class="kn">import</span> <span class="n">ExitStack</span>
@@ -529,7 +575,7 @@
     <span class="k">return</span> <span class="n">starcats</span></div>
 
 
-<div class="viewcode-block" id="get_observations"><a class="viewcode-back" href="../../../api.html#kadi.commands.observations.get_observations">[docs]</a><span class="k">def</span> <span class="nf">get_observations</span><span class="p">(</span>
+<div class="viewcode-block" id="get_observations"><a class="viewcode-back" href="../../../api_commands.html#kadi.commands.observations.get_observations">[docs]</a><span class="k">def</span> <span class="nf">get_observations</span><span class="p">(</span>
     <span class="n">start</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">stop</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">obsid</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">scenario</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cmds</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">starcat_date</span><span class="o">=</span><span class="kc">None</span>
 <span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Get observations corresponding to input parameters.</span>
@@ -579,15 +625,25 @@
 <span class="sd">        &#39;starcat_idx&#39;: 171677,</span>
 <span class="sd">        &#39;source&#39;: &#39;DEC3021A&#39;}]</span>
 
-<span class="sd">    :param start: CxoTime-like, None Start time (default=beginning of commands)</span>
-<span class="sd">    :param stop: CxoTime-like, None Stop time (default=end of commands)</span>
-<span class="sd">    :param obsid: int, None ObsID</span>
-<span class="sd">    :param scenario: str, None Scenario</span>
-<span class="sd">    :param cmds: CommandTable, None Use this command table instead of querying</span>
-<span class="sd">        the archive.</span>
-<span class="sd">    :param starcat_date: CxoTime-like, None Date of the observation&#39;s star</span>
-<span class="sd">        catalog</span>
-<span class="sd">    :returns: list of dict Observation parameters for matching observations.</span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    start : CxoTime-like, None</span>
+<span class="sd">        Start time (default=beginning of commands)</span>
+<span class="sd">    stop : CxoTime-like, None</span>
+<span class="sd">        Stop time (default=end of commands)</span>
+<span class="sd">    obsid : int, None</span>
+<span class="sd">        ObsID</span>
+<span class="sd">    scenario : str, None</span>
+<span class="sd">        Scenario</span>
+<span class="sd">    cmds : CommandTable, None</span>
+<span class="sd">        Use this command table instead of querying the archive</span>
+<span class="sd">    starcat_date : CxoTime-like, None</span>
+<span class="sd">        Date of the observation&#39;s star catalog</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    list of dict</span>
+<span class="sd">        Observation parameters for matching observations.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">from</span> <span class="nn">kadi.commands.commands_v2</span> <span class="kn">import</span> <span class="n">get_cmds</span>
 
@@ -657,13 +713,21 @@
 <span class="sd">    This is a fast version of agasc.get_agasc_cone() that keeps the key columns</span>
 <span class="sd">    in memory instead of accessing the H5 file each time.</span>
 
-<span class="sd">    :param dec: Declination (deg)</span>
-<span class="sd">    :param radius: Cone search radius (deg)</span>
-<span class="sd">    :param date: Date for proper motion (default=Now)</span>
-<span class="sd">    :param matlab_pm_bug: bool Apply MATLAB proper motion bug prior to</span>
-<span class="sd">        the MAY2118A loads (default=False)</span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    dec : float</span>
+<span class="sd">        Declination (deg)</span>
+<span class="sd">    radius : float</span>
+<span class="sd">        Cone search radius (deg)</span>
+<span class="sd">    date : CxoTime-like, None</span>
+<span class="sd">        Date for proper motion (default=Now)</span>
+<span class="sd">    matlab_pm_bug : bool</span>
+<span class="sd">        Apply MATLAB proper motion bug prior to the MAY2118A loads (default=False)</span>
 
-<span class="sd">    :returns: astropy Table of AGASC entries</span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    Table</span>
+<span class="sd">        Table of AGASC entries</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">global</span> <span class="n">STARS_AGASC</span>
 

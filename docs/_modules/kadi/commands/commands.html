@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>kadi.commands.commands &#8212; kadi 7.7.0 documentation</title>
+    <title>kadi.commands.commands &#8212; kadi 7.7.1 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/bootstrap-astropy.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/plot_directive.css" />
@@ -46,7 +46,7 @@
     <h3>Navigation</h3>
     <ul>
       <li>
-	<a href="../../../index.html">kadi 7.7.0 documentation</a>
+	<a href="../../../index.html">kadi 7.7.1 documentation</a>
 	 &#187;
       </li>
       <li><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
@@ -69,7 +69,7 @@
 <span class="kn">from</span> <span class="nn">kadi.commands.observations</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># noqa</span>
 
 
-<div class="viewcode-block" id="get_cmds"><a class="viewcode-back" href="../../../api.html#kadi.commands.commands.get_cmds">[docs]</a><span class="k">def</span> <span class="nf">get_cmds</span><span class="p">(</span><span class="n">start</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">stop</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">inclusive_stop</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">scenario</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="get_cmds"><a class="viewcode-back" href="../../../api_commands.html#kadi.commands.commands.get_cmds">[docs]</a><span class="k">def</span> <span class="nf">get_cmds</span><span class="p">(</span><span class="n">start</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">stop</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">inclusive_stop</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">scenario</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Get commands beteween ``start`` and ``stop``.</span>
 
@@ -96,16 +96,23 @@
 <span class="sd">      &gt;&gt;&gt; tlmsid=&#39;wsvidalldn&#39;) cmds = commands.get_cmds(msid=&#39;aflcrset&#39;)</span>
 <span class="sd">      &gt;&gt;&gt; print(cmds)</span>
 
-<span class="sd">    :param start: DateTime format (optional) Start time, defaults to beginning</span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    start : DateTime format (optional) Start time, defaults to beginning</span>
 <span class="sd">        of available commands (2002:001)</span>
-<span class="sd">    :param stop: DateTime format (optional) Stop time, defaults to end of available</span>
+<span class="sd">    stop : DateTime format (optional) Stop time, defaults to end of available</span>
 <span class="sd">        commands</span>
-<span class="sd">    :param inclusive_stop: bool, include commands at exactly ``stop`` if True.</span>
-<span class="sd">    :param scenario: str, None</span>
+<span class="sd">    inclusive_stop</span>
+<span class="sd">        bool, include commands at exactly ``stop`` if True.</span>
+<span class="sd">    scenario : str, None</span>
 <span class="sd">        Commands scenario (applicable only for V2 commands)</span>
-<span class="sd">    :param kwargs: key=val keyword argument pairs for filtering</span>
+<span class="sd">    kwargs</span>
+<span class="sd">        key=val keyword argument pairs for filtering</span>
 
-<span class="sd">    :returns: :class:`~kadi.commands.commands.CommandTable` of commands</span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    CommandTable</span>
+<span class="sd">        Commands in the interval and matching the filter criteria.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">commands_version</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;KADI_COMMANDS_VERSION&quot;</span><span class="p">,</span> <span class="n">conf</span><span class="o">.</span><span class="n">commands_version</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">commands_version</span> <span class="o">==</span> <span class="s2">&quot;2&quot;</span><span class="p">:</span>
@@ -119,7 +126,7 @@
     <span class="k">return</span> <span class="n">cmds</span></div>
 
 
-<div class="viewcode-block" id="clear_caches"><a class="viewcode-back" href="../../../api.html#kadi.commands.commands.clear_caches">[docs]</a><span class="k">def</span> <span class="nf">clear_caches</span><span class="p">():</span>
+<div class="viewcode-block" id="clear_caches"><a class="viewcode-back" href="../../../api_commands.html#kadi.commands.commands.clear_caches">[docs]</a><span class="k">def</span> <span class="nf">clear_caches</span><span class="p">():</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Clear all commands caches.</span>
 
 <span class="sd">    This is useful for testing and in case upstream products like the Command</span>

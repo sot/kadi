@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>kadi.events.query &#8212; kadi 7.7.0 documentation</title>
+    <title>kadi.events.query &#8212; kadi 7.7.1 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/bootstrap-astropy.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/plot_directive.css" />
@@ -46,7 +46,7 @@
     <h3>Navigation</h3>
     <ul>
       <li>
-	<a href="../../../index.html">kadi 7.7.0 documentation</a>
+	<a href="../../../index.html">kadi 7.7.1 documentation</a>
 	 &#187;
       </li>
       <li><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
@@ -160,7 +160,7 @@
     <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">out_dates</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">out_vals</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="get_dates_vals"><a class="viewcode-back" href="../../../api.html#kadi.events.query.get_dates_vals">[docs]</a><span class="k">def</span> <span class="nf">get_dates_vals</span><span class="p">(</span><span class="n">intervals</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">):</span>
+<div class="viewcode-block" id="get_dates_vals"><a class="viewcode-back" href="../../../api_events.html#kadi.events.query.get_dates_vals">[docs]</a><span class="k">def</span> <span class="nf">get_dates_vals</span><span class="p">(</span><span class="n">intervals</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Convert a list of date 2-tuple intervals into a contiguous &quot;curve&quot; of</span>
 <span class="sd">    dates, vals values.  The dates and vals could be plotted.</span>
@@ -216,7 +216,7 @@
     <span class="k">return</span> <span class="n">intervals</span>
 
 
-<div class="viewcode-block" id="EventQuery"><a class="viewcode-back" href="../../../api.html#kadi.events.query.EventQuery">[docs]</a><span class="k">class</span> <span class="nc">EventQuery</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="EventQuery"><a class="viewcode-back" href="../../../api_events.html#kadi.events.query.EventQuery">[docs]</a><span class="k">class</span> <span class="nc">EventQuery</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    High-level interface for handling event queries.</span>
 
@@ -318,7 +318,7 @@
     <span class="k">def</span> <span class="nf">table</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">all</span><span class="p">()</span><span class="o">.</span><span class="n">table</span>
 
-<div class="viewcode-block" id="EventQuery.filter"><a class="viewcode-back" href="../../../api.html#kadi.events.query.EventQuery.filter">[docs]</a>    <span class="k">def</span> <span class="nf">filter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">stop</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">obsid</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">subset</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="EventQuery.filter"><a class="viewcode-back" href="../../../api_events.html#kadi.events.query.EventQuery.filter">[docs]</a>    <span class="k">def</span> <span class="nf">filter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">stop</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">obsid</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">subset</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Find events between ``start`` and ``stop``, or with the given ``obsid``, which</span>
 <span class="sd">        match the filter attributes in subsequent keyword arguments.  The matching events</span>
@@ -353,12 +353,20 @@
 <span class="sd">        [1]: https://docs.djangoproject.com/en/3.1/topics/db/queries/</span>
 <span class="sd">        [2]: https://docs.djangoproject.com/en/3.1/ref/models/querysets/#field-lookups</span>
 
-<span class="sd">        :param start: start time (DateTime compatible format)</span>
-<span class="sd">        :param stop: stop time (DateTime compatible format)</span>
-<span class="sd">        :param obsid: obsid for event</span>
-<span class="sd">        :param subset: subset of matching events that are output</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        start</span>
+<span class="sd">            start time (DateTime compatible format)</span>
+<span class="sd">        stop</span>
+<span class="sd">            stop time (DateTime compatible format)</span>
+<span class="sd">        obsid</span>
+<span class="sd">            obsid for event</span>
+<span class="sd">        subset</span>
+<span class="sd">            subset of matching events that are output</span>
 
-<span class="sd">        :returns: Django query set with matching events</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        Django query set with matching events</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">cls</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cls</span>
         <span class="n">objs</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
@@ -409,7 +417,7 @@
 
         <span class="k">return</span> <span class="n">objs</span></div>
 
-<div class="viewcode-block" id="EventQuery.all"><a class="viewcode-back" href="../../../api.html#kadi.events.query.EventQuery.all">[docs]</a>    <span class="k">def</span> <span class="nf">all</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="EventQuery.all"><a class="viewcode-back" href="../../../api_events.html#kadi.events.query.EventQuery.all">[docs]</a>    <span class="k">def</span> <span class="nf">all</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return all events as a Django query set object.</span>
 

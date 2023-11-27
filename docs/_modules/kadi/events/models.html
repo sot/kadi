@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>kadi.events.models &#8212; kadi 7.7.0 documentation</title>
+    <title>kadi.events.models &#8212; kadi 7.7.1 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/bootstrap-astropy.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/plot_directive.css" />
@@ -46,7 +46,7 @@
     <h3>Navigation</h3>
     <ul>
       <li>
-	<a href="../../../index.html">kadi 7.7.0 documentation</a>
+	<a href="../../../index.html">kadi 7.7.1 documentation</a>
 	 &#187;
       </li>
       <li><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
@@ -91,7 +91,7 @@
 <span class="p">)</span>
 
 
-<div class="viewcode-block" id="msidset_interpolate"><a class="viewcode-back" href="../../../api.html#kadi.events.models.msidset_interpolate">[docs]</a><span class="k">def</span> <span class="nf">msidset_interpolate</span><span class="p">(</span><span class="n">msidset</span><span class="p">,</span> <span class="n">dt</span><span class="p">,</span> <span class="n">time0</span><span class="p">):</span>
+<div class="viewcode-block" id="msidset_interpolate"><a class="viewcode-back" href="../../../api_events.html#kadi.events.models.msidset_interpolate">[docs]</a><span class="k">def</span> <span class="nf">msidset_interpolate</span><span class="p">(</span><span class="n">msidset</span><span class="p">,</span> <span class="n">dt</span><span class="p">,</span> <span class="n">time0</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Interpolate the ``msidset`` in-place to a common time basis, starting at ``time0``</span>
 <span class="sd">    and stepping by ``dt``.  This assumes an unfiltered MSIDset, and returns</span>
@@ -185,12 +185,14 @@
     <span class="k">return</span> <span class="n">changes</span>
 
 
-<div class="viewcode-block" id="get_event_models"><a class="viewcode-back" href="../../../api.html#kadi.events.models.get_event_models">[docs]</a><span class="k">def</span> <span class="nf">get_event_models</span><span class="p">(</span><span class="n">baseclass</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="get_event_models"><a class="viewcode-back" href="../../../api_events.html#kadi.events.models.get_event_models">[docs]</a><span class="k">def</span> <span class="nf">get_event_models</span><span class="p">(</span><span class="n">baseclass</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Get all Event models that represent actual events (and are not base</span>
 <span class="sd">    or meta classes).</span>
 
-<span class="sd">    :returns: dict of {model_name:ModelClass, ...}</span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    dict of {model_name:ModelClass, ...}</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">inspect</span>
 
@@ -205,16 +207,19 @@
     <span class="k">return</span> <span class="n">models</span></div>
 
 
-<div class="viewcode-block" id="fuzz_states"><a class="viewcode-back" href="../../../api.html#kadi.events.models.fuzz_states">[docs]</a><span class="k">def</span> <span class="nf">fuzz_states</span><span class="p">(</span><span class="n">states</span><span class="p">,</span> <span class="n">t_fuzz</span><span class="p">):</span>
+<div class="viewcode-block" id="fuzz_states"><a class="viewcode-back" href="../../../api_events.html#kadi.events.models.fuzz_states">[docs]</a><span class="k">def</span> <span class="nf">fuzz_states</span><span class="p">(</span><span class="n">states</span><span class="p">,</span> <span class="n">t_fuzz</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    For a set of `states` (from fetch.MSID.state_intervals()) or intervals (from</span>
 <span class="sd">    fetch.MSID.logical_intervals), merge any that are within `t_fuzz` seconds of each</span>
 <span class="sd">    other.  Logical intervals are just the subset of states with &#39;val&#39; equal to a</span>
 <span class="sd">    particular value.</span>
 
-<span class="sd">    :param states: table of states or intervals</span>
-<span class="sd">    :param t_fuzz: fuzz time in seconds</span>
-<span class="sd">    :returns fuzzed_states: table</span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    states</span>
+<span class="sd">        table of states or intervals</span>
+<span class="sd">    t_fuzz : fuzz time in seconds</span>
+<span class="sd">        :returns fuzzed_states: table</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">done</span> <span class="o">=</span> <span class="kc">False</span>
     <span class="n">state_has_val</span> <span class="o">=</span> <span class="s2">&quot;val&quot;</span> <span class="ow">in</span> <span class="n">states</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">names</span>
@@ -236,7 +241,7 @@
     <span class="k">return</span> <span class="n">states</span></div>
 
 
-<div class="viewcode-block" id="Pad"><a class="viewcode-back" href="../../../api.html#kadi.events.models.Pad">[docs]</a><span class="k">class</span> <span class="nc">Pad</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="Pad"><a class="viewcode-back" href="../../../api_events.html#kadi.events.models.Pad">[docs]</a><span class="k">class</span> <span class="nc">Pad</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Time padding at the start and stop of an interval.</span>
 
@@ -256,7 +261,7 @@
         <span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="IntervalPad"><a class="viewcode-back" href="../../../api.html#kadi.events.models.IntervalPad">[docs]</a><span class="k">class</span> <span class="nc">IntervalPad</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="IntervalPad"><a class="viewcode-back" href="../../../api_events.html#kadi.events.models.IntervalPad">[docs]</a><span class="k">class</span> <span class="nc">IntervalPad</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Data descriptor that sets and gets an interval pad.  This pad has</span>
 <span class="sd">    two values that are applied to the start and stop times for an interval,</span>
@@ -293,7 +298,7 @@
         <span class="n">instance</span><span class="o">.</span><span class="n">_pad</span> <span class="o">=</span> <span class="n">Pad</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">val_start</span><span class="p">),</span> <span class="nb">float</span><span class="p">(</span><span class="n">val_stop</span><span class="p">))</span></div>
 
 
-<div class="viewcode-block" id="Update"><a class="viewcode-back" href="../../../api.html#kadi.events.models.Update">[docs]</a><span class="k">class</span> <span class="nc">Update</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+<div class="viewcode-block" id="Update"><a class="viewcode-back" href="../../../api_events.html#kadi.events.models.Update">[docs]</a><span class="k">class</span> <span class="nc">Update</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Last telemetry which was searched for an update.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -305,7 +310,7 @@
         <span class="k">return</span> <span class="s2">&quot;name=</span><span class="si">{}</span><span class="s2"> date=</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">date</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="MyManager"><a class="viewcode-back" href="../../../api.html#kadi.events.models.MyManager">[docs]</a><span class="k">class</span> <span class="nc">MyManager</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Manager</span><span class="p">):</span>
+<div class="viewcode-block" id="MyManager"><a class="viewcode-back" href="../../../api_events.html#kadi.events.models.MyManager">[docs]</a><span class="k">class</span> <span class="nc">MyManager</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Manager</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Custom query manager that allows for overriding the default __repr__.</span>
 <span class="sd">    The purpose is to make a more user friendly output for event queries.</span>
@@ -318,7 +323,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">QuerySet</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="BaseModel"><a class="viewcode-back" href="../../../api.html#kadi.events.models.BaseModel">[docs]</a><span class="k">class</span> <span class="nc">BaseModel</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+<div class="viewcode-block" id="BaseModel"><a class="viewcode-back" href="../../../api_events.html#kadi.events.models.BaseModel">[docs]</a><span class="k">class</span> <span class="nc">BaseModel</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Base class for for all models.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -326,7 +331,7 @@
     <span class="n">_get_obsid_start_attr</span> <span class="o">=</span> <span class="s2">&quot;date&quot;</span>  <span class="c1"># Attribute to use for getting event obsid</span>
     <span class="n">update_priority</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># Priority order in update processing (higher =&gt; earlier)</span>
 
-<div class="viewcode-block" id="BaseModel.QuerySet"><a class="viewcode-back" href="../../../api.html#kadi.events.models.BaseModel.QuerySet">[docs]</a>    <span class="k">class</span> <span class="nc">QuerySet</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">QuerySet</span><span class="p">):</span>
+<div class="viewcode-block" id="BaseModel.QuerySet"><a class="viewcode-back" href="../../../api_events.html#kadi.events.models.BaseModel.QuerySet">[docs]</a>    <span class="k">class</span> <span class="nc">QuerySet</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">QuerySet</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        More user-friendly output from event queries.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -363,7 +368,7 @@
 
             <span class="k">return</span> <span class="n">dat</span>
 
-<div class="viewcode-block" id="BaseModel.QuerySet.select_overlapping"><a class="viewcode-back" href="../../../api.html#kadi.events.models.BaseModel.QuerySet.select_overlapping">[docs]</a>        <span class="k">def</span> <span class="nf">select_overlapping</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">query_event</span><span class="p">,</span> <span class="n">allow_partial</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<div class="viewcode-block" id="BaseModel.QuerySet.select_overlapping"><a class="viewcode-back" href="../../../api_events.html#kadi.events.models.BaseModel.QuerySet.select_overlapping">[docs]</a>        <span class="k">def</span> <span class="nf">select_overlapping</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">query_event</span><span class="p">,</span> <span class="n">allow_partial</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 <span class="w">            </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">            Select events which overlap with the specified ``query_event``.</span>
 
@@ -465,7 +470,7 @@
         <span class="n">abstract</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="n">ordering</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;start&quot;</span><span class="p">]</span>
 
-<div class="viewcode-block" id="BaseModel.from_dict"><a class="viewcode-back" href="../../../api.html#kadi.events.models.BaseModel.from_dict">[docs]</a>    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="BaseModel.from_dict"><a class="viewcode-back" href="../../../api_events.html#kadi.events.models.BaseModel.from_dict">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_dict</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">model_dict</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Set model from a dict `model_dict` which might have extra stuff not in</span>
@@ -497,7 +502,7 @@
                 <span class="nb">setattr</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">model</span></div>
 
-<div class="viewcode-block" id="BaseModel.get_model_fields"><a class="viewcode-back" href="../../../api.html#kadi.events.models.BaseModel.get_model_fields">[docs]</a>    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="BaseModel.get_model_fields"><a class="viewcode-back" href="../../../api_events.html#kadi.events.models.BaseModel.get_model_fields">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">get_model_fields</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return a list of model fields (works from class or instance).</span>
@@ -562,14 +567,16 @@
 
         <span class="k">return</span> <span class="n">intervals</span>
 
-<div class="viewcode-block" id="BaseModel.get_obsid"><a class="viewcode-back" href="../../../api.html#kadi.events.models.BaseModel.get_obsid">[docs]</a>    <span class="k">def</span> <span class="nf">get_obsid</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="BaseModel.get_obsid"><a class="viewcode-back" href="../../../api_events.html#kadi.events.models.BaseModel.get_obsid">[docs]</a>    <span class="k">def</span> <span class="nf">get_obsid</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return the obsid associated with the event.</span>
 
 <span class="sd">        Typically this is the obsid at the start of the event, but for maneuvers it is the</span>
 <span class="sd">        obsid at the end of the maneuver.</span>
 
-<span class="sd">        :returns: obsid</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        obsid</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">query</span>
 
@@ -591,7 +598,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__unicode__</span><span class="p">()</span></div>
 
 
-<div class="viewcode-block" id="BaseEvent"><a class="viewcode-back" href="../../../api.html#kadi.events.models.BaseEvent">[docs]</a><span class="k">class</span> <span class="nc">BaseEvent</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+<div class="viewcode-block" id="BaseEvent"><a class="viewcode-back" href="../../../api_events.html#kadi.events.models.BaseEvent">[docs]</a><span class="k">class</span> <span class="nc">BaseEvent</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Base class for any event that gets updated in update_events.main().  Note</span>
 <span class="sd">    that BaseModel is the base class for models like ManvrSeq that get</span>
@@ -606,7 +613,7 @@
     <span class="n">lookback</span> <span class="o">=</span> <span class="mi">21</span>  <span class="c1"># days of lookback</span>
     <span class="n">interval_pad</span> <span class="o">=</span> <span class="n">IntervalPad</span><span class="p">()</span>  <span class="c1"># interval padding before/ after event start/stop</span>
 
-<div class="viewcode-block" id="BaseEvent.get_commands"><a class="viewcode-back" href="../../../api.html#kadi.events.models.BaseEvent.get_commands">[docs]</a>    <span class="k">def</span> <span class="nf">get_commands</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="BaseEvent.get_commands"><a class="viewcode-back" href="../../../api_events.html#kadi.events.models.BaseEvent.get_commands">[docs]</a>    <span class="k">def</span> <span class="nf">get_commands</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Get load commands within start/stop interval for this event.</span>
 <span class="sd">        Apply padding defined by interval_pad attribute.</span>
@@ -621,7 +628,7 @@
     <span class="k">def</span> <span class="nf">__unicode__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="s2">&quot;start=</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">start</span><span class="p">)</span>
 
-<div class="viewcode-block" id="BaseEvent.get_next"><a class="viewcode-back" href="../../../api.html#kadi.events.models.BaseEvent.get_next">[docs]</a>    <span class="k">def</span> <span class="nf">get_next</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">queryset</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="BaseEvent.get_next"><a class="viewcode-back" href="../../../api_events.html#kadi.events.models.BaseEvent.get_next">[docs]</a>    <span class="k">def</span> <span class="nf">get_next</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">queryset</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Get the next object by primary key order</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -633,7 +640,7 @@
         <span class="k">except</span> <span class="ne">IndexError</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">False</span></div>
 
-<div class="viewcode-block" id="BaseEvent.get_previous"><a class="viewcode-back" href="../../../api.html#kadi.events.models.BaseEvent.get_previous">[docs]</a>    <span class="k">def</span> <span class="nf">get_previous</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">queryset</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="BaseEvent.get_previous"><a class="viewcode-back" href="../../../api_events.html#kadi.events.models.BaseEvent.get_previous">[docs]</a>    <span class="k">def</span> <span class="nf">get_previous</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">queryset</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Get the previous object by primary key order</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -646,7 +653,7 @@
             <span class="k">return</span> <span class="kc">False</span></div></div>
 
 
-<div class="viewcode-block" id="Event"><a class="viewcode-back" href="../../../api.html#kadi.events.models.Event">[docs]</a><span class="k">class</span> <span class="nc">Event</span><span class="p">(</span><span class="n">BaseEvent</span><span class="p">):</span>
+<div class="viewcode-block" id="Event"><a class="viewcode-back" href="../../../api_events.html#kadi.events.models.Event">[docs]</a><span class="k">class</span> <span class="nc">Event</span><span class="p">(</span><span class="n">BaseEvent</span><span class="p">):</span>
     <span class="n">start</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span>
         <span class="n">max_length</span><span class="o">=</span><span class="mi">21</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">help_text</span><span class="o">=</span><span class="s2">&quot;Start time (YYYY:DDD:HH:MM:SS)&quot;</span>
     <span class="p">)</span>
@@ -664,7 +671,7 @@
         <span class="k">return</span> <span class="s2">&quot;start=</span><span class="si">{}</span><span class="s2"> dur=</span><span class="si">{:.0f}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dur</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="TlmEvent"><a class="viewcode-back" href="../../../api.html#kadi.events.models.TlmEvent">[docs]</a><span class="k">class</span> <span class="nc">TlmEvent</span><span class="p">(</span><span class="n">Event</span><span class="p">):</span>
+<div class="viewcode-block" id="TlmEvent"><a class="viewcode-back" href="../../../api_events.html#kadi.events.models.TlmEvent">[docs]</a><span class="k">class</span> <span class="nc">TlmEvent</span><span class="p">(</span><span class="n">Event</span><span class="p">):</span>
     <span class="n">obsid</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">IntegerField</span><span class="p">(</span><span class="n">help_text</span><span class="o">=</span><span class="s2">&quot;Observation ID (COBSRQID)&quot;</span><span class="p">)</span>
 
     <span class="n">event_msids</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># must be overridden by derived class</span>
@@ -675,7 +682,7 @@
         <span class="n">abstract</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="n">ordering</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;start&quot;</span><span class="p">]</span>
 
-<div class="viewcode-block" id="TlmEvent.plot"><a class="viewcode-back" href="../../../api.html#kadi.events.models.TlmEvent.plot">[docs]</a>    <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fig</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="TlmEvent.plot"><a class="viewcode-back" href="../../../api_events.html#kadi.events.models.TlmEvent.plot">[docs]</a>    <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fig</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Wrapper interface to plotting routines in plot module.  This is factored out</span>
 <span class="sd">        of this module (models) to reduce loading of other modules (matplotlib) req&#39;d</span>
@@ -689,7 +696,7 @@
             <span class="n">plot_func</span> <span class="o">=</span> <span class="n">plot</span><span class="o">.</span><span class="n">tlm_event</span>
         <span class="n">plot_func</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">figsize</span><span class="p">,</span> <span class="n">fig</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="TlmEvent.get_extras"><a class="viewcode-back" href="../../../api.html#kadi.events.models.TlmEvent.get_extras">[docs]</a>    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="TlmEvent.get_extras"><a class="viewcode-back" href="../../../api_events.html#kadi.events.models.TlmEvent.get_extras">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">get_extras</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">event</span><span class="p">,</span> <span class="n">event_msidset</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Get extra stuff for the event based on telemetry available in event_msidset.</span>
@@ -698,21 +705,27 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="p">{}</span></div>
 
-<div class="viewcode-block" id="TlmEvent.get_state_times_bools"><a class="viewcode-back" href="../../../api.html#kadi.events.models.TlmEvent.get_state_times_bools">[docs]</a>    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="TlmEvent.get_state_times_bools"><a class="viewcode-back" href="../../../api_events.html#kadi.events.models.TlmEvent.get_state_times_bools">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">get_state_times_bools</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">event_msidset</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Get the boolean True/False array indicating when ``event_msid`` is in the</span>
 <span class="sd">        desired state for this event type.  The default is when</span>
 <span class="sd">        ``event_msid == cls.event_val``, but subclasses may override this method.</span>
 
-<span class="sd">        :param event_msid: fetch.MSID object</span>
-<span class="sd">        :returns: boolean ndarray</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        event_msid</span>
+<span class="sd">            fetch.MSID object</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        boolean ndarray</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">event_msid</span> <span class="o">=</span> <span class="n">event_msidset</span><span class="p">[</span><span class="bp">cls</span><span class="o">.</span><span class="n">event_msids</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
         <span class="n">bools</span> <span class="o">=</span> <span class="n">event_msid</span><span class="o">.</span><span class="n">vals</span> <span class="o">==</span> <span class="bp">cls</span><span class="o">.</span><span class="n">event_val</span>
         <span class="k">return</span> <span class="n">event_msid</span><span class="o">.</span><span class="n">times</span><span class="p">,</span> <span class="n">bools</span></div>
 
-<div class="viewcode-block" id="TlmEvent.get_msids_states"><a class="viewcode-back" href="../../../api.html#kadi.events.models.TlmEvent.get_msids_states">[docs]</a>    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="TlmEvent.get_msids_states"><a class="viewcode-back" href="../../../api_events.html#kadi.events.models.TlmEvent.get_msids_states">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">get_msids_states</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Get event and related MSIDs and compute the states corresponding</span>
@@ -771,7 +784,7 @@
 
         <span class="k">return</span> <span class="n">states</span><span class="p">,</span> <span class="n">event_msidset</span></div>
 
-<div class="viewcode-block" id="TlmEvent.get_events"><a class="viewcode-back" href="../../../api.html#kadi.events.models.TlmEvent.get_events">[docs]</a>    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="TlmEvent.get_events"><a class="viewcode-back" href="../../../api_events.html#kadi.events.models.TlmEvent.get_events">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">get_events</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Get events from telemetry defined by a simple rule that the value of</span>
@@ -812,7 +825,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_msidset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fetch_event</span><span class="p">()</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_msidset</span>
 
-<div class="viewcode-block" id="TlmEvent.fetch_event"><a class="viewcode-back" href="../../../api.html#kadi.events.models.TlmEvent.fetch_event">[docs]</a>    <span class="k">def</span> <span class="nf">fetch_event</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pad</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">extra_msids</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">filter_bad</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<div class="viewcode-block" id="TlmEvent.fetch_event"><a class="viewcode-back" href="../../../api_events.html#kadi.events.models.TlmEvent.fetch_event">[docs]</a>    <span class="k">def</span> <span class="nf">fetch_event</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pad</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">extra_msids</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">filter_bad</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Fetch an MSIDset of self.fetch_msids.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -827,7 +840,7 @@
         <span class="k">return</span> <span class="n">msidset</span></div></div>
 
 
-<div class="viewcode-block" id="Obsid"><a class="viewcode-back" href="../../../api.html#kadi.events.models.Obsid">[docs]</a><span class="k">class</span> <span class="nc">Obsid</span><span class="p">(</span><span class="n">TlmEvent</span><span class="p">):</span>
+<div class="viewcode-block" id="Obsid"><a class="viewcode-back" href="../../../api_events.html#kadi.events.models.Obsid">[docs]</a><span class="k">class</span> <span class="nc">Obsid</span><span class="p">(</span><span class="n">TlmEvent</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Observation identifier</span>
 
@@ -851,7 +864,7 @@
 
     <span class="n">update_priority</span> <span class="o">=</span> <span class="mi">1000</span>  <span class="c1"># Process Obsid first</span>
 
-<div class="viewcode-block" id="Obsid.get_events"><a class="viewcode-back" href="../../../api.html#kadi.events.models.Obsid.get_events">[docs]</a>    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="Obsid.get_events"><a class="viewcode-back" href="../../../api_events.html#kadi.events.models.Obsid.get_events">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">get_events</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Get obsid events from telemetry.  A event is defined by a</span>
@@ -884,7 +897,7 @@
         <span class="k">return</span> <span class="s2">&quot;start=</span><span class="si">{}</span><span class="s2"> dur=</span><span class="si">{:.0f}</span><span class="s2"> obsid=</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dur</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">obsid</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="TscMove"><a class="viewcode-back" href="../../../api.html#kadi.events.models.TscMove">[docs]</a><span class="k">class</span> <span class="nc">TscMove</span><span class="p">(</span><span class="n">TlmEvent</span><span class="p">):</span>
+<div class="viewcode-block" id="TscMove"><a class="viewcode-back" href="../../../api_events.html#kadi.events.models.TscMove">[docs]</a><span class="k">class</span> <span class="nc">TscMove</span><span class="p">(</span><span class="n">TlmEvent</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    SIM TSC translation</span>
 
@@ -929,7 +942,7 @@
 
     <span class="n">interval_pad</span> <span class="o">=</span> <span class="n">IntervalPad</span><span class="p">()</span>  <span class="c1"># interval padding before/ after event start/stop</span>
 
-<div class="viewcode-block" id="TscMove.get_extras"><a class="viewcode-back" href="../../../api.html#kadi.events.models.TscMove.get_extras">[docs]</a>    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="TscMove.get_extras"><a class="viewcode-back" href="../../../api_events.html#kadi.events.models.TscMove.get_extras">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">get_extras</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">event</span><span class="p">,</span> <span class="n">event_msidset</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Define start/stop_3tscpos and start/stop_det.</span>
@@ -949,7 +962,7 @@
         <span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="DarkCalReplica"><a class="viewcode-back" href="../../../api.html#kadi.events.models.DarkCalReplica">[docs]</a><span class="k">class</span> <span class="nc">DarkCalReplica</span><span class="p">(</span><span class="n">TlmEvent</span><span class="p">):</span>
+<div class="viewcode-block" id="DarkCalReplica"><a class="viewcode-back" href="../../../api_events.html#kadi.events.models.DarkCalReplica">[docs]</a><span class="k">class</span> <span class="nc">DarkCalReplica</span><span class="p">(</span><span class="n">TlmEvent</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    ACA dark current calibration replica</span>
 
@@ -976,7 +989,7 @@
     <span class="n">event_min_dur</span> <span class="o">=</span> <span class="mi">300</span></div>
 
 
-<div class="viewcode-block" id="DarkCal"><a class="viewcode-back" href="../../../api.html#kadi.events.models.DarkCal">[docs]</a><span class="k">class</span> <span class="nc">DarkCal</span><span class="p">(</span><span class="n">TlmEvent</span><span class="p">):</span>
+<div class="viewcode-block" id="DarkCal"><a class="viewcode-back" href="../../../api_events.html#kadi.events.models.DarkCal">[docs]</a><span class="k">class</span> <span class="nc">DarkCal</span><span class="p">(</span><span class="n">TlmEvent</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    ACA dark current calibration event</span>
 
@@ -1005,7 +1018,7 @@
     <span class="n">event_min_dur</span> <span class="o">=</span> <span class="mi">8000</span></div>
 
 
-<div class="viewcode-block" id="Scs107"><a class="viewcode-back" href="../../../api.html#kadi.events.models.Scs107">[docs]</a><span class="k">class</span> <span class="nc">Scs107</span><span class="p">(</span><span class="n">TlmEvent</span><span class="p">):</span>
+<div class="viewcode-block" id="Scs107"><a class="viewcode-back" href="../../../api_events.html#kadi.events.models.Scs107">[docs]</a><span class="k">class</span> <span class="nc">Scs107</span><span class="p">(</span><span class="n">TlmEvent</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    SCS107 run</span>
 
@@ -1043,7 +1056,7 @@
     <span class="n">event_time_fuzz</span> <span class="o">=</span> <span class="mi">600</span>  <span class="c1"># Earlier in the mission SCS107 resulted in two SIM moves</span>
     <span class="n">event_filter_bad</span> <span class="o">=</span> <span class="kc">False</span>
 
-<div class="viewcode-block" id="Scs107.get_state_times_bools"><a class="viewcode-back" href="../../../api.html#kadi.events.models.Scs107.get_state_times_bools">[docs]</a>    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="Scs107.get_state_times_bools"><a class="viewcode-back" href="../../../api_events.html#kadi.events.models.Scs107.get_state_times_bools">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">get_state_times_bools</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">msidset</span><span class="p">):</span>
         <span class="c1"># Interpolate all MSIDs to a common time.  Sync to the start of 3tscmove which is</span>
         <span class="c1"># sampled at 32.8 seconds</span>
@@ -1058,7 +1071,7 @@
         <span class="k">return</span> <span class="n">msidset</span><span class="o">.</span><span class="n">times</span><span class="p">,</span> <span class="n">scs107</span></div></div>
 
 
-<div class="viewcode-block" id="FaMove"><a class="viewcode-back" href="../../../api.html#kadi.events.models.FaMove">[docs]</a><span class="k">class</span> <span class="nc">FaMove</span><span class="p">(</span><span class="n">TlmEvent</span><span class="p">):</span>
+<div class="viewcode-block" id="FaMove"><a class="viewcode-back" href="../../../api_events.html#kadi.events.models.FaMove">[docs]</a><span class="k">class</span> <span class="nc">FaMove</span><span class="p">(</span><span class="n">TlmEvent</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    SIM FA translation</span>
 
@@ -1086,7 +1099,7 @@
     <span class="n">start_3fapos</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">IntegerField</span><span class="p">(</span><span class="n">help_text</span><span class="o">=</span><span class="s2">&quot;Start FA position (steps)&quot;</span><span class="p">)</span>
     <span class="n">stop_3fapos</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">IntegerField</span><span class="p">(</span><span class="n">help_text</span><span class="o">=</span><span class="s2">&quot;Stop FA position (steps)&quot;</span><span class="p">)</span>
 
-<div class="viewcode-block" id="FaMove.get_extras"><a class="viewcode-back" href="../../../api.html#kadi.events.models.FaMove.get_extras">[docs]</a>    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="FaMove.get_extras"><a class="viewcode-back" href="../../../api_events.html#kadi.events.models.FaMove.get_extras">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">get_extras</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">event</span><span class="p">,</span> <span class="n">event_msidset</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Define start/stop_3fapos.</span>
@@ -1105,7 +1118,7 @@
         <span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="GratingMove"><a class="viewcode-back" href="../../../api.html#kadi.events.models.GratingMove">[docs]</a><span class="k">class</span> <span class="nc">GratingMove</span><span class="p">(</span><span class="n">TlmEvent</span><span class="p">):</span>
+<div class="viewcode-block" id="GratingMove"><a class="viewcode-back" href="../../../api_events.html#kadi.events.models.GratingMove">[docs]</a><span class="k">class</span> <span class="nc">GratingMove</span><span class="p">(</span><span class="n">TlmEvent</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Grating movement (HETG or LETG)</span>
 
@@ -1153,13 +1166,13 @@
     <span class="n">event_msids</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;4mp28av&quot;</span><span class="p">,</span> <span class="s2">&quot;4lposaro&quot;</span><span class="p">,</span> <span class="s2">&quot;4hposaro&quot;</span><span class="p">]</span>
     <span class="n">event_time_fuzz</span> <span class="o">=</span> <span class="mi">10</span>
 
-<div class="viewcode-block" id="GratingMove.get_state_times_bools"><a class="viewcode-back" href="../../../api.html#kadi.events.models.GratingMove.get_state_times_bools">[docs]</a>    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="GratingMove.get_state_times_bools"><a class="viewcode-back" href="../../../api_events.html#kadi.events.models.GratingMove.get_state_times_bools">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">get_state_times_bools</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">event_msidset</span><span class="p">):</span>
         <span class="n">event_msid</span> <span class="o">=</span> <span class="n">event_msidset</span><span class="p">[</span><span class="s2">&quot;4mp28av&quot;</span><span class="p">]</span>
         <span class="n">moving</span> <span class="o">=</span> <span class="n">event_msid</span><span class="o">.</span><span class="n">vals</span> <span class="o">&gt;</span> <span class="mf">2.0</span>
         <span class="k">return</span> <span class="n">event_msid</span><span class="o">.</span><span class="n">times</span><span class="p">,</span> <span class="n">moving</span></div>
 
-<div class="viewcode-block" id="GratingMove.get_extras"><a class="viewcode-back" href="../../../api.html#kadi.events.models.GratingMove.get_extras">[docs]</a>    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="GratingMove.get_extras"><a class="viewcode-back" href="../../../api_events.html#kadi.events.models.GratingMove.get_extras">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">get_extras</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">event</span><span class="p">,</span> <span class="n">event_msidset</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Define start/stop grating positions for HETG and LETG</span>
@@ -1203,7 +1216,7 @@
         <span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="Dump"><a class="viewcode-back" href="../../../api.html#kadi.events.models.Dump">[docs]</a><span class="k">class</span> <span class="nc">Dump</span><span class="p">(</span><span class="n">TlmEvent</span><span class="p">):</span>
+<div class="viewcode-block" id="Dump"><a class="viewcode-back" href="../../../api_events.html#kadi.events.models.Dump">[docs]</a><span class="k">class</span> <span class="nc">Dump</span><span class="p">(</span><span class="n">TlmEvent</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Momentum unload either ground commanded or autonomous</span>
 
@@ -1229,13 +1242,13 @@
 
     <span class="nb">type</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">help_text</span><span class="o">=</span><span class="s2">&quot;Momentum unload type (GRND AUTO)&quot;</span><span class="p">)</span>
 
-<div class="viewcode-block" id="Dump.get_state_times_bools"><a class="viewcode-back" href="../../../api.html#kadi.events.models.Dump.get_state_times_bools">[docs]</a>    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="Dump.get_state_times_bools"><a class="viewcode-back" href="../../../api_events.html#kadi.events.models.Dump.get_state_times_bools">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">get_state_times_bools</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">event_msidset</span><span class="p">):</span>
         <span class="n">event_msid</span> <span class="o">=</span> <span class="n">event_msidset</span><span class="p">[</span><span class="s2">&quot;aounload&quot;</span><span class="p">]</span>
         <span class="n">unload</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">event_msid</span><span class="o">.</span><span class="n">vals</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;GRND&quot;</span><span class="p">,</span> <span class="s2">&quot;AUTO&quot;</span><span class="p">])</span>
         <span class="k">return</span> <span class="n">event_msid</span><span class="o">.</span><span class="n">times</span><span class="p">,</span> <span class="n">unload</span></div>
 
-<div class="viewcode-block" id="Dump.get_extras"><a class="viewcode-back" href="../../../api.html#kadi.events.models.Dump.get_extras">[docs]</a>    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="Dump.get_extras"><a class="viewcode-back" href="../../../api_events.html#kadi.events.models.Dump.get_extras">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">get_extras</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">event</span><span class="p">,</span> <span class="n">event_msidset</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Define unload type</span>
@@ -1250,7 +1263,7 @@
         <span class="k">return</span> <span class="s2">&quot;start=</span><span class="si">{}</span><span class="s2"> dur=</span><span class="si">{:.0f}</span><span class="s2"> type=</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dur</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="Eclipse"><a class="viewcode-back" href="../../../api.html#kadi.events.models.Eclipse">[docs]</a><span class="k">class</span> <span class="nc">Eclipse</span><span class="p">(</span><span class="n">TlmEvent</span><span class="p">):</span>
+<div class="viewcode-block" id="Eclipse"><a class="viewcode-back" href="../../../api_events.html#kadi.events.models.Eclipse">[docs]</a><span class="k">class</span> <span class="nc">Eclipse</span><span class="p">(</span><span class="n">TlmEvent</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Eclipse</span>
 
@@ -1275,7 +1288,7 @@
     <span class="n">fetch_event_msids</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;aoeclips&quot;</span><span class="p">,</span> <span class="s2">&quot;eb1k5&quot;</span><span class="p">,</span> <span class="s2">&quot;eb2k5&quot;</span><span class="p">,</span> <span class="s2">&quot;eb3k5&quot;</span><span class="p">]</span></div>
 
 
-<div class="viewcode-block" id="Manvr"><a class="viewcode-back" href="../../../api.html#kadi.events.models.Manvr">[docs]</a><span class="k">class</span> <span class="nc">Manvr</span><span class="p">(</span><span class="n">TlmEvent</span><span class="p">):</span>
+<div class="viewcode-block" id="Manvr"><a class="viewcode-back" href="../../../api_events.html#kadi.events.models.Manvr">[docs]</a><span class="k">class</span> <span class="nc">Manvr</span><span class="p">(</span><span class="n">TlmEvent</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Maneuver</span>
 
@@ -1510,7 +1523,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dur</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_dwell</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">template</span>
         <span class="p">)</span>
 
-<div class="viewcode-block" id="Manvr.get_dwells"><a class="viewcode-back" href="../../../api.html#kadi.events.models.Manvr.get_dwells">[docs]</a>    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="Manvr.get_dwells"><a class="viewcode-back" href="../../../api_events.html#kadi.events.models.Manvr.get_dwells">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">get_dwells</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">event</span><span class="p">,</span> <span class="n">changes</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Get the Kalman dwells associated with a maneuver event.</span>
@@ -1575,7 +1588,7 @@
 
         <span class="k">return</span> <span class="n">dwells</span></div>
 
-<div class="viewcode-block" id="Manvr.get_manvr_attrs"><a class="viewcode-back" href="../../../api.html#kadi.events.models.Manvr.get_manvr_attrs">[docs]</a>    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="Manvr.get_manvr_attrs"><a class="viewcode-back" href="../../../api_events.html#kadi.events.models.Manvr.get_manvr_attrs">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">get_manvr_attrs</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">changes</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Get attributes of the maneuver event and possible dwells based on</span>
@@ -1668,7 +1681,7 @@
 
         <span class="k">return</span> <span class="n">manvr_attrs</span></div>
 
-<div class="viewcode-block" id="Manvr.get_target_attitudes"><a class="viewcode-back" href="../../../api.html#kadi.events.models.Manvr.get_target_attitudes">[docs]</a>    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="Manvr.get_target_attitudes"><a class="viewcode-back" href="../../../api_events.html#kadi.events.models.Manvr.get_target_attitudes">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">get_target_attitudes</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">event</span><span class="p">,</span> <span class="n">msidset</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Define start/stop_aotarqt&lt;1..4&gt; and start/stop_ra,dec,roll</span>
@@ -1707,7 +1720,7 @@
 
         <span class="k">return</span> <span class="n">out</span></div>
 
-<div class="viewcode-block" id="Manvr.get_one_shot"><a class="viewcode-back" href="../../../api.html#kadi.events.models.Manvr.get_one_shot">[docs]</a>    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="Manvr.get_one_shot"><a class="viewcode-back" href="../../../api_events.html#kadi.events.models.Manvr.get_one_shot">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">get_one_shot</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">guide_start</span><span class="p">,</span> <span class="n">aux_msidset</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Define one_shot attribute (one-shot attitude update following maneuver)</span>
@@ -1742,7 +1755,7 @@
             <span class="s2">&quot;one_shot_yaw&quot;</span><span class="p">:</span> <span class="n">pm_att_err</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span>
         <span class="p">}</span></div>
 
-<div class="viewcode-block" id="Manvr.get_events"><a class="viewcode-back" href="../../../api.html#kadi.events.models.Manvr.get_events">[docs]</a>    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="Manvr.get_events"><a class="viewcode-back" href="../../../api_events.html#kadi.events.models.Manvr.get_events">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">get_events</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Get maneuver events from telemetry.</span>
@@ -1821,7 +1834,7 @@
         <span class="k">return</span> <span class="n">events</span></div></div>
 
 
-<div class="viewcode-block" id="Dwell"><a class="viewcode-back" href="../../../api.html#kadi.events.models.Dwell">[docs]</a><span class="k">class</span> <span class="nc">Dwell</span><span class="p">(</span><span class="n">Event</span><span class="p">):</span>
+<div class="viewcode-block" id="Dwell"><a class="viewcode-back" href="../../../api_events.html#kadi.events.models.Dwell">[docs]</a><span class="k">class</span> <span class="nc">Dwell</span><span class="p">(</span><span class="n">Event</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Dwell in Kalman mode</span>
 
@@ -1873,7 +1886,7 @@
         <span class="k">return</span> <span class="s2">&quot;start=</span><span class="si">{}</span><span class="s2"> dur=</span><span class="si">{:.0f}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dur</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="ManvrSeq"><a class="viewcode-back" href="../../../api.html#kadi.events.models.ManvrSeq">[docs]</a><span class="k">class</span> <span class="nc">ManvrSeq</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+<div class="viewcode-block" id="ManvrSeq"><a class="viewcode-back" href="../../../api_events.html#kadi.events.models.ManvrSeq">[docs]</a><span class="k">class</span> <span class="nc">ManvrSeq</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Maneuver sequence event</span>
 
@@ -1916,7 +1929,7 @@
         <span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="SafeSun"><a class="viewcode-back" href="../../../api.html#kadi.events.models.SafeSun">[docs]</a><span class="k">class</span> <span class="nc">SafeSun</span><span class="p">(</span><span class="n">TlmEvent</span><span class="p">):</span>
+<div class="viewcode-block" id="SafeSun"><a class="viewcode-back" href="../../../api_events.html#kadi.events.models.SafeSun">[docs]</a><span class="k">class</span> <span class="nc">SafeSun</span><span class="p">(</span><span class="n">TlmEvent</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Safe sun event</span>
 
@@ -1953,7 +1966,7 @@
     <span class="n">fetch_event_pad</span> <span class="o">=</span> <span class="mi">86400</span> <span class="o">/</span> <span class="mi">2</span>
     <span class="n">fetch_event_msids</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;conlofp&quot;</span><span class="p">,</span> <span class="s2">&quot;ctufmtsl&quot;</span><span class="p">,</span> <span class="s2">&quot;c1sqax&quot;</span><span class="p">,</span> <span class="s2">&quot;aopcadmd&quot;</span><span class="p">,</span> <span class="s2">&quot;61psts02&quot;</span><span class="p">]</span>
 
-<div class="viewcode-block" id="SafeSun.get_state_times_bools"><a class="viewcode-back" href="../../../api.html#kadi.events.models.SafeSun.get_state_times_bools">[docs]</a>    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="SafeSun.get_state_times_bools"><a class="viewcode-back" href="../../../api_events.html#kadi.events.models.SafeSun.get_state_times_bools">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">get_state_times_bools</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">msidset</span><span class="p">):</span>
         <span class="c1"># Second safemode has bad telemetry for the entire event so the standard</span>
         <span class="c1"># detection algorithm fails.  Just hardwire safemode #1 and fix up the</span>
@@ -1989,7 +2002,7 @@
         <span class="k">return</span> <span class="n">msidset</span><span class="o">.</span><span class="n">times</span><span class="p">,</span> <span class="n">safe_mode</span></div></div>
 
 
-<div class="viewcode-block" id="NormalSun"><a class="viewcode-back" href="../../../api.html#kadi.events.models.NormalSun">[docs]</a><span class="k">class</span> <span class="nc">NormalSun</span><span class="p">(</span><span class="n">TlmEvent</span><span class="p">):</span>
+<div class="viewcode-block" id="NormalSun"><a class="viewcode-back" href="../../../api_events.html#kadi.events.models.NormalSun">[docs]</a><span class="k">class</span> <span class="nc">NormalSun</span><span class="p">(</span><span class="n">TlmEvent</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Normal sun mode event</span>
 
@@ -2017,7 +2030,7 @@
     <span class="n">event_time_fuzz</span> <span class="o">=</span> <span class="mi">86400</span>  <span class="c1"># One full day of fuzz</span></div>
 
 
-<div class="viewcode-block" id="MajorEvent"><a class="viewcode-back" href="../../../api.html#kadi.events.models.MajorEvent">[docs]</a><span class="k">class</span> <span class="nc">MajorEvent</span><span class="p">(</span><span class="n">BaseEvent</span><span class="p">):</span>
+<div class="viewcode-block" id="MajorEvent"><a class="viewcode-back" href="../../../api_events.html#kadi.events.models.MajorEvent">[docs]</a><span class="k">class</span> <span class="nc">MajorEvent</span><span class="p">(</span><span class="n">BaseEvent</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Major event</span>
 
@@ -2086,7 +2099,7 @@
             <span class="n">descr</span> <span class="o">+=</span> <span class="s2">&quot; (&quot;</span> <span class="o">+</span> <span class="p">(</span><span class="n">note</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">note</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">30</span> <span class="k">else</span> <span class="n">note</span><span class="p">[:</span><span class="mi">27</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;...&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;)&quot;</span>
         <span class="k">return</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> (</span><span class="si">{}</span><span class="s2">) </span><span class="si">{}</span><span class="s2">: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">date</span><span class="p">[</span><span class="mi">5</span><span class="p">:],</span> <span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="p">,</span> <span class="n">descr</span><span class="p">)</span>
 
-<div class="viewcode-block" id="MajorEvent.get_events"><a class="viewcode-back" href="../../../api.html#kadi.events.models.MajorEvent.get_events">[docs]</a>    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="MajorEvent.get_events"><a class="viewcode-back" href="../../../api_events.html#kadi.events.models.MajorEvent.get_events">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">get_events</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Get Major Events from FDB and FOT tables on the OCCweb</span>
@@ -2117,7 +2130,7 @@
         <span class="k">return</span> <span class="n">events</span></div></div>
 
 
-<div class="viewcode-block" id="IFotEvent"><a class="viewcode-back" href="../../../api.html#kadi.events.models.IFotEvent">[docs]</a><span class="k">class</span> <span class="nc">IFotEvent</span><span class="p">(</span><span class="n">BaseEvent</span><span class="p">):</span>
+<div class="viewcode-block" id="IFotEvent"><a class="viewcode-back" href="../../../api_events.html#kadi.events.models.IFotEvent">[docs]</a><span class="k">class</span> <span class="nc">IFotEvent</span><span class="p">(</span><span class="n">BaseEvent</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Base class for events from the iFOT database</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -2140,7 +2153,7 @@
     <span class="n">ifot_props</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">ifot_types</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># Override automatic type inference for properties or columns</span>
 
-<div class="viewcode-block" id="IFotEvent.get_events"><a class="viewcode-back" href="../../../api.html#kadi.events.models.IFotEvent.get_events">[docs]</a>    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="IFotEvent.get_events"><a class="viewcode-back" href="../../../api_events.html#kadi.events.models.IFotEvent.get_events">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">get_events</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Get events from iFOT web interface</span>
@@ -2201,7 +2214,7 @@
         <span class="k">return</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ifot_id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">start</span><span class="p">[:</span><span class="mi">17</span><span class="p">])</span></div>
 
 
-<div class="viewcode-block" id="CAP"><a class="viewcode-back" href="../../../api.html#kadi.events.models.CAP">[docs]</a><span class="k">class</span> <span class="nc">CAP</span><span class="p">(</span><span class="n">IFotEvent</span><span class="p">):</span>
+<div class="viewcode-block" id="CAP"><a class="viewcode-back" href="../../../api_events.html#kadi.events.models.CAP">[docs]</a><span class="k">class</span> <span class="nc">CAP</span><span class="p">(</span><span class="n">IFotEvent</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    CAP from iFOT database</span>
 
@@ -2239,7 +2252,7 @@
         <span class="k">return</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">: </span><span class="si">{}</span><span class="s2"> </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">start</span><span class="p">[:</span><span class="mi">17</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">title</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="LoadSegment"><a class="viewcode-back" href="../../../api.html#kadi.events.models.LoadSegment">[docs]</a><span class="k">class</span> <span class="nc">LoadSegment</span><span class="p">(</span><span class="n">IFotEvent</span><span class="p">):</span>
+<div class="viewcode-block" id="LoadSegment"><a class="viewcode-back" href="../../../api_events.html#kadi.events.models.LoadSegment">[docs]</a><span class="k">class</span> <span class="nc">LoadSegment</span><span class="p">(</span><span class="n">IFotEvent</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Load segment</span>
 
@@ -2282,7 +2295,7 @@
         <span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="PassPlan"><a class="viewcode-back" href="../../../api.html#kadi.events.models.PassPlan">[docs]</a><span class="k">class</span> <span class="nc">PassPlan</span><span class="p">(</span><span class="n">IFotEvent</span><span class="p">):</span>
+<div class="viewcode-block" id="PassPlan"><a class="viewcode-back" href="../../../api_events.html#kadi.events.models.PassPlan">[docs]</a><span class="k">class</span> <span class="nc">PassPlan</span><span class="p">(</span><span class="n">IFotEvent</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Pass plan</span>
 
@@ -2357,7 +2370,7 @@
         <span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="DsnComm"><a class="viewcode-back" href="../../../api.html#kadi.events.models.DsnComm">[docs]</a><span class="k">class</span> <span class="nc">DsnComm</span><span class="p">(</span><span class="n">IFotEvent</span><span class="p">):</span>
+<div class="viewcode-block" id="DsnComm"><a class="viewcode-back" href="../../../api_events.html#kadi.events.models.DsnComm">[docs]</a><span class="k">class</span> <span class="nc">DsnComm</span><span class="p">(</span><span class="n">IFotEvent</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    DSN comm period</span>
 
@@ -2425,7 +2438,7 @@
     <span class="c1"># for potential schedule changes.</span>
     <span class="n">lookforward</span> <span class="o">=</span> <span class="mi">28</span>  <span class="c1"># Accept comms scheduled up to 28 days in advance</span>
 
-<div class="viewcode-block" id="DsnComm.get_extras"><a class="viewcode-back" href="../../../api.html#kadi.events.models.DsnComm.get_extras">[docs]</a>    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="DsnComm.get_extras"><a class="viewcode-back" href="../../../api_events.html#kadi.events.models.DsnComm.get_extras">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">get_extras</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">event</span><span class="p">,</span> <span class="n">event_msidset</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Define OC, CC and pass_plan if available</span>
@@ -2451,7 +2464,7 @@
         <span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="Orbit"><a class="viewcode-back" href="../../../api.html#kadi.events.models.Orbit">[docs]</a><span class="k">class</span> <span class="nc">Orbit</span><span class="p">(</span><span class="n">BaseEvent</span><span class="p">):</span>
+<div class="viewcode-block" id="Orbit"><a class="viewcode-back" href="../../../api_events.html#kadi.events.models.Orbit">[docs]</a><span class="k">class</span> <span class="nc">Orbit</span><span class="p">(</span><span class="n">BaseEvent</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Orbit</span>
 
@@ -2516,7 +2529,7 @@
 
     <span class="n">lookforward</span> <span class="o">=</span> <span class="mi">28</span>  <span class="c1"># Accept orbits planned up to 28 days in advance</span>
 
-<div class="viewcode-block" id="Orbit.get_events"><a class="viewcode-back" href="../../../api.html#kadi.events.models.Orbit.get_events">[docs]</a>    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="Orbit.get_events"><a class="viewcode-back" href="../../../api_events.html#kadi.events.models.Orbit.get_events">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">get_events</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Get Orbit Events from timeline reports.</span>
@@ -2564,7 +2577,7 @@
         <span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="OrbitPoint"><a class="viewcode-back" href="../../../api.html#kadi.events.models.OrbitPoint">[docs]</a><span class="k">class</span> <span class="nc">OrbitPoint</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+<div class="viewcode-block" id="OrbitPoint"><a class="viewcode-back" href="../../../api_events.html#kadi.events.models.OrbitPoint">[docs]</a><span class="k">class</span> <span class="nc">OrbitPoint</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Orbit point</span>
 
@@ -2596,7 +2609,7 @@
         <span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="RadZone"><a class="viewcode-back" href="../../../api.html#kadi.events.models.RadZone">[docs]</a><span class="k">class</span> <span class="nc">RadZone</span><span class="p">(</span><span class="n">Event</span><span class="p">):</span>
+<div class="viewcode-block" id="RadZone"><a class="viewcode-back" href="../../../api_events.html#kadi.events.models.RadZone">[docs]</a><span class="k">class</span> <span class="nc">RadZone</span><span class="p">(</span><span class="n">Event</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Radiation zone</span>
 
@@ -2626,7 +2639,7 @@
         <span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="AsciiTableEvent"><a class="viewcode-back" href="../../../api.html#kadi.events.models.AsciiTableEvent">[docs]</a><span class="k">class</span> <span class="nc">AsciiTableEvent</span><span class="p">(</span><span class="n">BaseEvent</span><span class="p">):</span>
+<div class="viewcode-block" id="AsciiTableEvent"><a class="viewcode-back" href="../../../api_events.html#kadi.events.models.AsciiTableEvent">[docs]</a><span class="k">class</span> <span class="nc">AsciiTableEvent</span><span class="p">(</span><span class="n">BaseEvent</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Base class for events defined by a simple quasi-static text table file.</span>
 <span class="sd">    Subclasses need to define the file name (lives in DATA_DIR()/&lt;filename&gt;)</span>
@@ -2637,7 +2650,7 @@
         <span class="n">abstract</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="n">ordering</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;start&quot;</span><span class="p">]</span>
 
-<div class="viewcode-block" id="AsciiTableEvent.get_extras"><a class="viewcode-back" href="../../../api.html#kadi.events.models.AsciiTableEvent.get_extras">[docs]</a>    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="AsciiTableEvent.get_extras"><a class="viewcode-back" href="../../../api_events.html#kadi.events.models.AsciiTableEvent.get_extras">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">get_extras</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">event</span><span class="p">,</span> <span class="n">interval</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Get extra stuff for the event based on fields in the interval.  This is a hook</span>
@@ -2645,7 +2658,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="p">{}</span></div>
 
-<div class="viewcode-block" id="AsciiTableEvent.get_events"><a class="viewcode-back" href="../../../api.html#kadi.events.models.AsciiTableEvent.get_events">[docs]</a>    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="AsciiTableEvent.get_events"><a class="viewcode-back" href="../../../api_events.html#kadi.events.models.AsciiTableEvent.get_events">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">get_events</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Get events from telemetry defined by a simple rule that the value of</span>
@@ -2693,7 +2706,7 @@
         <span class="k">return</span> <span class="n">events</span></div></div>
 
 
-<div class="viewcode-block" id="LttBad"><a class="viewcode-back" href="../../../api.html#kadi.events.models.LttBad">[docs]</a><span class="k">class</span> <span class="nc">LttBad</span><span class="p">(</span><span class="n">AsciiTableEvent</span><span class="p">):</span>
+<div class="viewcode-block" id="LttBad"><a class="viewcode-back" href="../../../api_events.html#kadi.events.models.LttBad">[docs]</a><span class="k">class</span> <span class="nc">LttBad</span><span class="p">(</span><span class="n">AsciiTableEvent</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    LTT bad intervals</span>
 
@@ -2741,7 +2754,7 @@
         <span class="n">intervals</span><span class="p">[</span><span class="s2">&quot;stop&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">DateTime</span><span class="p">(</span><span class="n">intervals</span><span class="p">[</span><span class="s2">&quot;tstart&quot;</span><span class="p">])</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">date</span>
         <span class="n">intervals</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="s2">&quot;start&quot;</span><span class="p">)</span>
 
-<div class="viewcode-block" id="LttBad.get_extras"><a class="viewcode-back" href="../../../api.html#kadi.events.models.LttBad.get_extras">[docs]</a>    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="LttBad.get_extras"><a class="viewcode-back" href="../../../api_events.html#kadi.events.models.LttBad.get_extras">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">get_extras</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">event</span><span class="p">,</span> <span class="n">interval</span><span class="p">):</span>
         <span class="n">out</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;msid&quot;</span><span class="p">,</span> <span class="s2">&quot;flag&quot;</span><span class="p">):</span>

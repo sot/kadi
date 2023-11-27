@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>kadi.commands.validate &#8212; kadi 7.7.0 documentation</title>
+    <title>kadi.commands.validate &#8212; kadi 7.7.1 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/bootstrap-astropy.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/plot_directive.css" />
@@ -46,7 +46,7 @@
     <h3>Navigation</h3>
     <ul>
       <li>
-	<a href="../../../index.html">kadi 7.7.0 documentation</a>
+	<a href="../../../index.html">kadi 7.7.1 documentation</a>
 	 &#187;
       </li>
       <li><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
@@ -74,7 +74,7 @@
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">import</span> <span class="nn">functools</span>
 <span class="kn">import</span> <span class="nn">logging</span>
-<span class="kn">from</span> <span class="nn">abc</span> <span class="kn">import</span> <span class="n">ABC</span><span class="p">,</span> <span class="n">abstractmethod</span>
+<span class="kn">from</span> <span class="nn">abc</span> <span class="kn">import</span> <span class="n">ABC</span>
 <span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
 <span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span>
@@ -133,7 +133,7 @@
 <span class="p">)</span>
 
 
-<div class="viewcode-block" id="PlotAttrs"><a class="viewcode-back" href="../../../api.html#kadi.commands.validate.PlotAttrs">[docs]</a><span class="nd">@dataclass</span>
+<div class="viewcode-block" id="PlotAttrs"><a class="viewcode-back" href="../../../api_validation.html#kadi.commands.validate.PlotAttrs">[docs]</a><span class="nd">@dataclass</span>
 <span class="k">class</span> <span class="nc">PlotAttrs</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Plot attributes for a Validate subclass.</span>
 
@@ -153,7 +153,7 @@
     <span class="n">max_gap_time</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">300</span></div>
 
 
-<div class="viewcode-block" id="Validate"><a class="viewcode-back" href="../../../api.html#kadi.commands.validate.Validate">[docs]</a><span class="k">class</span> <span class="nc">Validate</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
+<div class="viewcode-block" id="Validate"><a class="viewcode-back" href="../../../api_validation.html#kadi.commands.validate.Validate">[docs]</a><span class="k">class</span> <span class="nc">Validate</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Validate kadi command states against telemetry base class.</span>
 
 <span class="sd">    :param state_name: (str): Name of state to validate.</span>
@@ -183,9 +183,14 @@
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stop</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">days</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">14</span><span class="p">,</span> <span class="n">no_exclude</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Base class for validation.</span>
 
-<span class="sd">        :param stop: stop time for validation</span>
-<span class="sd">        :param days: number of days for validation</span>
-<span class="sd">        :param no_exclude: if True then do not exclude any data (for testing)</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        stop</span>
+<span class="sd">            stop time for validation</span>
+<span class="sd">        days</span>
+<span class="sd">            number of days for validation</span>
+<span class="sd">        no_exclude</span>
+<span class="sd">            if True then do not exclude any data (for testing)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">stop</span> <span class="o">=</span> <span class="n">CxoTime</span><span class="p">(</span><span class="n">stop</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">days</span> <span class="o">=</span> <span class="n">days</span>
@@ -214,8 +219,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">add_exclude_intervals</span><span class="p">()</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tlm</span>
 
-<div class="viewcode-block" id="Validate.update_tlm"><a class="viewcode-back" href="../../../api.html#kadi.commands.validate.Validate.update_tlm">[docs]</a>    <span class="nd">@abstractmethod</span>
-    <span class="k">def</span> <span class="nf">update_tlm</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="Validate.update_tlm"><a class="viewcode-back" href="../../../api_validation.html#kadi.commands.validate.Validate.update_tlm">[docs]</a>    <span class="k">def</span> <span class="nf">update_tlm</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>  <span class="c1"># noqa: B027</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Update the telemetry values with any subclass-specific processing&quot;&quot;&quot;</span></div>
 
     <span class="nd">@property</span>
@@ -253,7 +257,7 @@
             <span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_exclude_intervals</span>
 
-<div class="viewcode-block" id="Validate.add_exclude_intervals"><a class="viewcode-back" href="../../../api.html#kadi.commands.validate.Validate.add_exclude_intervals">[docs]</a>    <span class="k">def</span> <span class="nf">add_exclude_intervals</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="Validate.add_exclude_intervals"><a class="viewcode-back" href="../../../api_validation.html#kadi.commands.validate.Validate.add_exclude_intervals">[docs]</a>    <span class="k">def</span> <span class="nf">add_exclude_intervals</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Base method to exclude intervals, starting with intervals defined in the</span>
 <span class="sd">        Chandra Command Events Google Sheet.</span>
 
@@ -274,7 +278,7 @@
                     <span class="n">source</span><span class="o">=</span><span class="s2">&quot;Command Events sheet&quot;</span><span class="p">,</span>
                 <span class="p">)</span></div>
 
-<div class="viewcode-block" id="Validate.add_exclude_interval"><a class="viewcode-back" href="../../../api.html#kadi.commands.validate.Validate.add_exclude_interval">[docs]</a>    <span class="k">def</span> <span class="nf">add_exclude_interval</span><span class="p">(</span>
+<div class="viewcode-block" id="Validate.add_exclude_interval"><a class="viewcode-back" href="../../../api_validation.html#kadi.commands.validate.Validate.add_exclude_interval">[docs]</a>    <span class="k">def</span> <span class="nf">add_exclude_interval</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">start</span><span class="p">:</span> <span class="n">CxoTimeLike</span><span class="p">,</span>
         <span class="n">stop</span><span class="p">:</span> <span class="n">CxoTimeLike</span><span class="p">,</span>
@@ -322,7 +326,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">exclude_intervals</span><span class="o">.</span><span class="n">add_row</span><span class="p">(</span><span class="n">exclude</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">exclude_intervals</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="s2">&quot;start&quot;</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Validate.exclude_ofp_intervals_except"><a class="viewcode-back" href="../../../api.html#kadi.commands.validate.Validate.exclude_ofp_intervals_except">[docs]</a>    <span class="k">def</span> <span class="nf">exclude_ofp_intervals_except</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">states_expected</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]):</span>
+<div class="viewcode-block" id="Validate.exclude_ofp_intervals_except"><a class="viewcode-back" href="../../../api_validation.html#kadi.commands.validate.Validate.exclude_ofp_intervals_except">[docs]</a>    <span class="k">def</span> <span class="nf">exclude_ofp_intervals_except</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">states_expected</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Exclude intervals where OFP (on-board flight program) is not in the expected</span>
 <span class="sd">        state.</span>
 
@@ -340,7 +344,7 @@
                     <span class="n">comment</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;CONLOFP=</span><span class="si">{</span><span class="n">state</span><span class="p">[</span><span class="s1">&#39;val&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
                 <span class="p">)</span></div>
 
-<div class="viewcode-block" id="Validate.exclude_srdc_intervals"><a class="viewcode-back" href="../../../api.html#kadi.commands.validate.Validate.exclude_srdc_intervals">[docs]</a>    <span class="k">def</span> <span class="nf">exclude_srdc_intervals</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="Validate.exclude_srdc_intervals"><a class="viewcode-back" href="../../../api_validation.html#kadi.commands.validate.Validate.exclude_srdc_intervals">[docs]</a>    <span class="k">def</span> <span class="nf">exclude_srdc_intervals</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Check for SRDC&#39;s and exclude them from validation.&quot;&quot;&quot;</span>
         <span class="n">start</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">start</span> <span class="o">-</span> <span class="mi">20</span> <span class="o">*</span> <span class="n">u</span><span class="o">.</span><span class="n">min</span>  <span class="c1"># Catch SRDC start just before interval</span>
         <span class="n">cmds</span> <span class="o">=</span> <span class="n">kadi</span><span class="o">.</span><span class="n">commands</span><span class="o">.</span><span class="n">get_cmds</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">stop</span><span class="p">,</span> <span class="n">tlmsid</span><span class="o">=</span><span class="s2">&quot;COACTSX&quot;</span><span class="p">)</span>
@@ -383,7 +387,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_violations</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_violations</span><span class="p">()</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_violations</span>
 
-<div class="viewcode-block" id="Validate.get_violations_mask"><a class="viewcode-back" href="../../../api.html#kadi.commands.validate.Validate.get_violations_mask">[docs]</a>    <span class="k">def</span> <span class="nf">get_violations_mask</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<div class="viewcode-block" id="Validate.get_violations_mask"><a class="viewcode-back" href="../../../api_validation.html#kadi.commands.validate.Validate.get_violations_mask">[docs]</a>    <span class="k">def</span> <span class="nf">get_violations_mask</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the violations mask for this validation class</span>
 
 <span class="sd">        This is the default implementation for most validation classes which just checks</span>
@@ -392,7 +396,7 @@
         <span class="n">bad</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tlm_vals</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">state_vals</span><span class="p">)</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_delta_val</span>
         <span class="k">return</span> <span class="n">bad</span></div>
 
-<div class="viewcode-block" id="Validate.get_violations"><a class="viewcode-back" href="../../../api.html#kadi.commands.validate.Validate.get_violations">[docs]</a>    <span class="k">def</span> <span class="nf">get_violations</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Table</span><span class="p">:</span>
+<div class="viewcode-block" id="Validate.get_violations"><a class="viewcode-back" href="../../../api_validation.html#kadi.commands.validate.Validate.get_violations">[docs]</a>    <span class="k">def</span> <span class="nf">get_violations</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Table</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the violations mask for this validation class</span>
 
 <span class="sd">        This is the main method for each validation class. It returns a Table</span>
@@ -496,10 +500,12 @@
         <span class="p">)</span>
         <span class="k">return</span> <span class="n">html</span>
 
-<div class="viewcode-block" id="Validate.get_context"><a class="viewcode-back" href="../../../api.html#kadi.commands.validate.Validate.get_context">[docs]</a>    <span class="k">def</span> <span class="nf">get_context</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<div class="viewcode-block" id="Validate.get_context"><a class="viewcode-back" href="../../../api_validation.html#kadi.commands.validate.Validate.get_context">[docs]</a>    <span class="k">def</span> <span class="nf">get_context</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the standard context for a jinja2 template.</span>
 
-<span class="sd">        :returns: dict</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        dict</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">title</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">plot_attrs</span><span class="o">.</span><span class="n">title</span><span class="si">}</span><span class="s2"> (state name = </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">state_name</span><span class="si">!r}</span><span class="s2">)&quot;</span>
         <span class="n">context</span> <span class="o">=</span> <span class="p">{}</span>
@@ -510,14 +516,22 @@
         <span class="n">context</span><span class="p">[</span><span class="s2">&quot;exclude_intervals&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">exclude_intervals</span>
         <span class="k">return</span> <span class="n">context</span></div>
 
-<div class="viewcode-block" id="Validate.get_html"><a class="viewcode-back" href="../../../api.html#kadi.commands.validate.Validate.get_html">[docs]</a>    <span class="k">def</span> <span class="nf">get_html</span><span class="p">(</span>
+<div class="viewcode-block" id="Validate.get_html"><a class="viewcode-back" href="../../../api_validation.html#kadi.commands.validate.Validate.get_html">[docs]</a>    <span class="k">def</span> <span class="nf">get_html</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">template_text</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Get HTML for validator including section header, violations, and plot</span>
 
-<span class="sd">        :param context: optional dict of context for jinja2 template</span>
-<span class="sd">        :param template_text: optional Jinja2 template text</span>
-<span class="sd">        :returns: HTML string</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        context</span>
+<span class="sd">            optional dict of context for jinja2 template</span>
+<span class="sd">        template_text</span>
+<span class="sd">            optional Jinja2 template text</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        str</span>
+<span class="sd">            HTML string</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">context</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">context</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_context</span><span class="p">()</span>
@@ -623,7 +637,7 @@
                 <span class="p">)</span>
 
 
-<div class="viewcode-block" id="ValidatePitch"><a class="viewcode-back" href="../../../api.html#kadi.commands.validate.ValidatePitch">[docs]</a><span class="k">class</span> <span class="nc">ValidatePitch</span><span class="p">(</span><span class="n">ValidatePitchRollBase</span><span class="p">):</span>
+<div class="viewcode-block" id="ValidatePitch"><a class="viewcode-back" href="../../../api_validation.html#kadi.commands.validate.ValidatePitch">[docs]</a><span class="k">class</span> <span class="nc">ValidatePitch</span><span class="p">(</span><span class="n">ValidatePitchRollBase</span><span class="p">):</span>
     <span class="n">state_name</span> <span class="o">=</span> <span class="s2">&quot;pitch&quot;</span>
     <span class="n">msids</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;pitch_comp&quot;</span><span class="p">]</span>
     <span class="n">state_keys_extra</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;pcad_mode&quot;</span><span class="p">]</span>
@@ -641,7 +655,7 @@
     <span class="p">}</span></div>
 
 
-<div class="viewcode-block" id="ValidateRoll"><a class="viewcode-back" href="../../../api.html#kadi.commands.validate.ValidateRoll">[docs]</a><span class="k">class</span> <span class="nc">ValidateRoll</span><span class="p">(</span><span class="n">ValidatePitchRollBase</span><span class="p">):</span>
+<div class="viewcode-block" id="ValidateRoll"><a class="viewcode-back" href="../../../api_validation.html#kadi.commands.validate.ValidateRoll">[docs]</a><span class="k">class</span> <span class="nc">ValidateRoll</span><span class="p">(</span><span class="n">ValidatePitchRollBase</span><span class="p">):</span>
     <span class="n">state_name</span> <span class="o">=</span> <span class="s2">&quot;off_nom_roll&quot;</span>
     <span class="n">msids</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;roll_comp&quot;</span><span class="p">]</span>
     <span class="n">state_keys_extra</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;pitch&quot;</span><span class="p">,</span> <span class="s2">&quot;pcad_mode&quot;</span><span class="p">]</span>
@@ -659,29 +673,29 @@
     <span class="p">}</span></div>
 
 
-<div class="viewcode-block" id="ValidateDither"><a class="viewcode-back" href="../../../api.html#kadi.commands.validate.ValidateDither">[docs]</a><span class="k">class</span> <span class="nc">ValidateDither</span><span class="p">(</span><span class="n">ValidateStateCode</span><span class="p">):</span>
+<div class="viewcode-block" id="ValidateDither"><a class="viewcode-back" href="../../../api_validation.html#kadi.commands.validate.ValidateDither">[docs]</a><span class="k">class</span> <span class="nc">ValidateDither</span><span class="p">(</span><span class="n">ValidateStateCode</span><span class="p">):</span>
     <span class="n">state_name</span> <span class="o">=</span> <span class="s2">&quot;dither&quot;</span>
     <span class="n">msids</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;aodithen&quot;</span><span class="p">]</span>
     <span class="n">plot_attrs</span> <span class="o">=</span> <span class="n">PlotAttrs</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s2">&quot;Dither enable&quot;</span><span class="p">,</span> <span class="n">ylabel</span><span class="o">=</span><span class="s2">&quot;Dither&quot;</span><span class="p">)</span>
 
-<div class="viewcode-block" id="ValidateDither.add_exclude_intervals"><a class="viewcode-back" href="../../../api.html#kadi.commands.validate.ValidateDither.add_exclude_intervals">[docs]</a>    <span class="k">def</span> <span class="nf">add_exclude_intervals</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="ValidateDither.add_exclude_intervals"><a class="viewcode-back" href="../../../api_validation.html#kadi.commands.validate.ValidateDither.add_exclude_intervals">[docs]</a>    <span class="k">def</span> <span class="nf">add_exclude_intervals</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">add_exclude_intervals</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">exclude_ofp_intervals_except</span><span class="p">([</span><span class="s2">&quot;NRML&quot;</span><span class="p">])</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">exclude_srdc_intervals</span><span class="p">()</span></div></div>
 
 
-<div class="viewcode-block" id="ValidatePcadMode"><a class="viewcode-back" href="../../../api.html#kadi.commands.validate.ValidatePcadMode">[docs]</a><span class="k">class</span> <span class="nc">ValidatePcadMode</span><span class="p">(</span><span class="n">ValidateStateCode</span><span class="p">):</span>
+<div class="viewcode-block" id="ValidatePcadMode"><a class="viewcode-back" href="../../../api_validation.html#kadi.commands.validate.ValidatePcadMode">[docs]</a><span class="k">class</span> <span class="nc">ValidatePcadMode</span><span class="p">(</span><span class="n">ValidateStateCode</span><span class="p">):</span>
     <span class="n">state_name</span> <span class="o">=</span> <span class="s2">&quot;pcad_mode&quot;</span>
     <span class="n">msids</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;aopcadmd&quot;</span><span class="p">]</span>
     <span class="n">plot_attrs</span> <span class="o">=</span> <span class="n">PlotAttrs</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s2">&quot;PCAD mode&quot;</span><span class="p">,</span> <span class="n">ylabel</span><span class="o">=</span><span class="s2">&quot;PCAD mode&quot;</span><span class="p">)</span>
 
-<div class="viewcode-block" id="ValidatePcadMode.add_exclude_intervals"><a class="viewcode-back" href="../../../api.html#kadi.commands.validate.ValidatePcadMode.add_exclude_intervals">[docs]</a>    <span class="k">def</span> <span class="nf">add_exclude_intervals</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="ValidatePcadMode.add_exclude_intervals"><a class="viewcode-back" href="../../../api_validation.html#kadi.commands.validate.ValidatePcadMode.add_exclude_intervals">[docs]</a>    <span class="k">def</span> <span class="nf">add_exclude_intervals</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">add_exclude_intervals</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">exclude_ofp_intervals_except</span><span class="p">([</span><span class="s2">&quot;NRML&quot;</span><span class="p">])</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">exclude_srdc_intervals</span><span class="p">()</span></div></div>
 
 
-<div class="viewcode-block" id="ValidateSimpos"><a class="viewcode-back" href="../../../api.html#kadi.commands.validate.ValidateSimpos">[docs]</a><span class="k">class</span> <span class="nc">ValidateSimpos</span><span class="p">(</span><span class="n">ValidateSingleMsid</span><span class="p">):</span>
+<div class="viewcode-block" id="ValidateSimpos"><a class="viewcode-back" href="../../../api_validation.html#kadi.commands.validate.ValidateSimpos">[docs]</a><span class="k">class</span> <span class="nc">ValidateSimpos</span><span class="p">(</span><span class="n">ValidateSingleMsid</span><span class="p">):</span>
     <span class="n">state_name</span> <span class="o">=</span> <span class="s2">&quot;simpos&quot;</span>
     <span class="n">msids</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;3tscpos&quot;</span><span class="p">]</span>
     <span class="n">plot_attrs</span> <span class="o">=</span> <span class="n">PlotAttrs</span><span class="p">(</span>
@@ -692,7 +706,7 @@
     <span class="n">min_violation_duration</span> <span class="o">=</span> <span class="mi">420</span>  <span class="c1"># seconds</span></div>
 
 
-<div class="viewcode-block" id="ValidateObsid"><a class="viewcode-back" href="../../../api.html#kadi.commands.validate.ValidateObsid">[docs]</a><span class="k">class</span> <span class="nc">ValidateObsid</span><span class="p">(</span><span class="n">ValidateSingleMsid</span><span class="p">):</span>
+<div class="viewcode-block" id="ValidateObsid"><a class="viewcode-back" href="../../../api_validation.html#kadi.commands.validate.ValidateObsid">[docs]</a><span class="k">class</span> <span class="nc">ValidateObsid</span><span class="p">(</span><span class="n">ValidateSingleMsid</span><span class="p">):</span>
     <span class="n">state_name</span> <span class="o">=</span> <span class="s2">&quot;obsid&quot;</span>
     <span class="n">msids</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;cobsrqid&quot;</span><span class="p">]</span>
     <span class="n">plot_attrs</span> <span class="o">=</span> <span class="n">PlotAttrs</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s2">&quot;OBSID&quot;</span><span class="p">,</span> <span class="n">ylabel</span><span class="o">=</span><span class="s2">&quot;OBSID&quot;</span><span class="p">)</span></div>
@@ -733,12 +747,12 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tlm_vals</span>
 
 
-<div class="viewcode-block" id="ValidateLETG"><a class="viewcode-back" href="../../../api.html#kadi.commands.validate.ValidateLETG">[docs]</a><span class="k">class</span> <span class="nc">ValidateLETG</span><span class="p">(</span><span class="n">ValidateGrating</span><span class="p">):</span>
+<div class="viewcode-block" id="ValidateLETG"><a class="viewcode-back" href="../../../api_validation.html#kadi.commands.validate.ValidateLETG">[docs]</a><span class="k">class</span> <span class="nc">ValidateLETG</span><span class="p">(</span><span class="n">ValidateGrating</span><span class="p">):</span>
     <span class="n">state_name</span> <span class="o">=</span> <span class="s2">&quot;letg&quot;</span>
     <span class="n">plot_attrs</span> <span class="o">=</span> <span class="n">PlotAttrs</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s2">&quot;LETG&quot;</span><span class="p">,</span> <span class="n">ylabel</span><span class="o">=</span><span class="s2">&quot;LETG&quot;</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="ValidateHETG"><a class="viewcode-back" href="../../../api.html#kadi.commands.validate.ValidateHETG">[docs]</a><span class="k">class</span> <span class="nc">ValidateHETG</span><span class="p">(</span><span class="n">ValidateGrating</span><span class="p">):</span>
+<div class="viewcode-block" id="ValidateHETG"><a class="viewcode-back" href="../../../api_validation.html#kadi.commands.validate.ValidateHETG">[docs]</a><span class="k">class</span> <span class="nc">ValidateHETG</span><span class="p">(</span><span class="n">ValidateGrating</span><span class="p">):</span>
     <span class="n">state_name</span> <span class="o">=</span> <span class="s2">&quot;hetg&quot;</span>
     <span class="n">plot_attrs</span> <span class="o">=</span> <span class="n">PlotAttrs</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s2">&quot;HETG&quot;</span><span class="p">,</span> <span class="n">ylabel</span><span class="o">=</span><span class="s2">&quot;HETG&quot;</span><span class="p">)</span></div>
 
@@ -803,10 +817,19 @@
 <span class="sd">    This is a thin wrapper around kadi.commands.states.get_states() that reduces the</span>
 <span class="sd">    output time span slightly to ensure telemetry interpolation works.</span>
 
-<span class="sd">    :param start: start date (CxoTime-like)</span>
-<span class="sd">    :param stop: stop date (CxoTime-like)</span>
-<span class="sd">    :param state_keys: list of state keys to get</span>
-<span class="sd">    :returns: Table of states</span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    start</span>
+<span class="sd">        start date (CxoTime-like)</span>
+<span class="sd">    stop</span>
+<span class="sd">        stop date (CxoTime-like)</span>
+<span class="sd">    state_keys</span>
+<span class="sd">        list of state keys to get</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    Table</span>
+<span class="sd">        States in the interval</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">from</span> <span class="nn">kadi.commands.states</span> <span class="kn">import</span> <span class="n">get_states</span> <span class="k">as</span> <span class="n">get_states_kadi</span>
 
@@ -840,12 +863,21 @@
 <span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Make a simple HTML page with all the validation plots and information.</span>
 
-<span class="sd">    :param stop: stop time for validation interval (CxoTime-like, default=now)</span>
-<span class="sd">    :param days: length of validation interval (days)</span>
-<span class="sd">    :param states: list of states to validate (default=all)</span>
-<span class="sd">    :param no_exclude: if True then do not exclude intervals (default=False)</span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    stop</span>
+<span class="sd">        stop time for validation interval (CxoTime-like, default=now)</span>
+<span class="sd">    days</span>
+<span class="sd">        length of validation interval (days)</span>
+<span class="sd">    states</span>
+<span class="sd">        list of states to validate (default=all)</span>
+<span class="sd">    no_exclude</span>
+<span class="sd">        if True then do not exclude intervals (default=False)</span>
 
-<span class="sd">    :returns: HTML string</span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    str</span>
+<span class="sd">        HTML string</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">validators</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">violations</span> <span class="o">=</span> <span class="p">[]</span>
