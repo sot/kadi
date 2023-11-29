@@ -7,7 +7,7 @@ import warnings
 
 import django
 import numpy as np
-from Chandra.Time import DateTime
+from chandra_time import DateTime
 
 
 @contextlib.contextmanager
@@ -169,7 +169,7 @@ class EventQuery(object):
     A key feature is that EventQuery objects can be combined with boolean
     and, or, and not logic to generate composite EventQuery objects.  From
     there the intervals() output can be used to select or remove the intervals
-    from Ska.engarchive fetch datasets.
+    from cheta fetch datasets.
     """
 
     interval_pad = IntervalPad()  # descriptor defining a Pad for intervals

@@ -8,7 +8,7 @@ import time
 
 import numpy as np
 import pyyaks.logger
-from Chandra.Time import DateTime
+from chandra_time import DateTime
 from ska_helpers.run_info import log_run_info
 
 from kadi import __version__  # noqa

@@ -643,7 +643,7 @@ class CommandTable(Table):
         The command ``params`` are embedded as a dict for each command.
 
         If ``ska_parsecm`` is True then the output is made more compatible with
-        the legacy output from ``Ska.ParseCM.read_backstop()``, namely:
+        the legacy output from ``ska_parsecm.read_backstop()``, namely:
 
         - Add ``cmd`` key which is set to the ``type`` key
         - Make ``params`` keys uppercase.
@@ -651,7 +651,7 @@ class CommandTable(Table):
         Parameters
         ----------
         ska_parsecm : bool
-            Make output more Ska.ParseCM compatible
+            Make output more ska_parsecm compatible
 
         Returns
         -------

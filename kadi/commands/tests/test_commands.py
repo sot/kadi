@@ -10,7 +10,7 @@ import numpy as np
 import parse_cm.tests
 import pytest
 from astropy.table import Table, vstack
-from Chandra.Time import secs2date
+from chandra_time import secs2date
 from cxotime import CxoTime
 from Quaternion import Quat
 from testr.test_helper import has_internet

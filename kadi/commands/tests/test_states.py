@@ -9,9 +9,9 @@ import numpy as np
 import pytest
 from astropy.io import ascii
 from astropy.table import Table
-from Chandra.Time import DateTime
+from chandra_time import DateTime
+from cheta import fetch
 from cxotime import CxoTime
-from Ska.engarchive import fetch
 from testr.test_helper import has_internet
 
 warnings.filterwarnings(
@@ -253,7 +253,7 @@ def test_states_2017():
     Skip 'ccd_count' because https://github.com/sot/cmd_states/pull/39 changed
     that behavior.
 
-    Skip 'pitch' because Chandra.cmd_states only avoids pitch breaks within actual
+    Skip 'pitch' because chandra_cmd_states only avoids pitch breaks within actual
     maneuver commanding (so the NMAN period before maneuver starts is OK) while kadi
     will insert pitch breaks only in NPNT.  (Tested later).
     """
@@ -273,7 +273,7 @@ def test_states_2017():
     # uses the exact floating point time to start while kadi uses the string time
     # rounded to the nearest msec.  The float command time is not stored in kadi.
     # For this test drop the first state, which has a datestart mismatch because
-    # of the difference in startup between Chandra.cmd_states and kadi.states.
+    # of the difference in startup between chandra_cmd_states and kadi.states.
     rkstates = rkstates[1:]
     rcstates = rcstates[1:]
     bad = np.flatnonzero(rkstates["datestart"] != rcstates["datestart"])
@@ -287,7 +287,7 @@ def test_pitch_2017():
     """
     Test pitch for 100 days in 2017.  Includes 2017:066, 068, 090 anomalies.  This is done
     by interpolating states (at 200 second intervals) because the pitch generation differs
-    slightly between kadi and Chandra.cmd_states.  (See test_states_2017 note).
+    slightly between kadi and chandra_cmd_states.  (See test_states_2017 note).
 
     Make sure that pitch matches to within 0.5 deg in all samples, and 0.05 deg during
     NPNT.
@@ -633,10 +633,10 @@ def test_reduce_states_merge_identical(all_keys):
 
 
 def cmd_states_fetch_states(*args, **kwargs):
-    """Generate regression data files for states using Chandra.cmd_states.
+    """Generate regression data files for states using chandra_cmd_states.
 
     Once files have been created they are included in the package distribution
-    and Chandra.cmd_states is no longer needed. From this point kadi will be
+    and chandra_cmd_states is no longer needed. From this point kadi will be
     the definitive reference for states.
     """
     md5 = hashlib.md5()  # noqa: S324
@@ -655,7 +655,7 @@ def cmd_states_fetch_states(*args, **kwargs):
                 "cannot find test data. Define KADI_WRITE_TEST_DATA "
                 "env var to create it."
             )
-        import Chandra.cmd_states as cmd_states  # noqa: PLR0402
+        import chandra_cmd_states as cmd_states  # noqa: PLR0402
 
         cs = cmd_states.fetch_states(*args, **kwargs)
         cs = Table(cs)
@@ -1033,7 +1033,7 @@ def test_backstop_ephem_update():
 def test_backstop_radmon_no_scs107():
     """
     Test radmon states for nominal loads.  The current non-load commands from
-    Chandra.cmd_states does not have the RADMON disable associated with SCS107
+    chandra_cmd_states does not have the RADMON disable associated with SCS107
     runs.  This test does have a TOO interrupt.
     """
     history = """
@@ -1070,7 +1070,7 @@ def test_backstop_radmon_no_scs107():
 def test_backstop_radmon_with_scs107():
     """
     Test radmon states for nominal loads.  The current non-load commands from
-    Chandra.cmd_states does not have the RADMON disable associated with SCS107
+    chandra_cmd_states does not have the RADMON disable associated with SCS107
     runs.  This test will fail until that is corrected.
     """
     history = """
@@ -1522,7 +1522,7 @@ def test_get_states_start_between_aouptarg_aomanuvr_cmds():
 
     """
     # This fails prior to the fix with ValueError: cannot convert float NaN to
-    # integer in Chandra.Maneuver.
+    # integer in chandra_maneuver.
     sts = states.get_states(
         "2021:025:13:56:00.000",
         "2021:026:00:00:00",

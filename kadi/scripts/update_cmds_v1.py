@@ -7,10 +7,10 @@ from pathlib import Path
 
 import numpy as np
 import pyyaks.logger
-import Ska.DBI
-import Ska.File
+import ska_dbi
+import ska_file
 import tables
-from Chandra.Time import DateTime
+from chandra_time import DateTime
 from ska_helpers.retry import retry_call
 from ska_helpers.run_info import log_run_info
 
@@ -80,7 +80,7 @@ def get_opt(args=None):
 
 def fix_nonload_cmds(nl_cmds):
     """
-    Convert non-load commands commands dict format from Chandra.cmd_states
+    Convert non-load commands commands dict format from chandra_cmd_states
     to the values/structure needed here.  A typical value is shown below:
     {'cmd': u'SIMTRANS',               # Needs to be 'type'
     'date': u'2017:066:00:24:22.025',
@@ -129,7 +129,7 @@ def _tl_to_bs_cmds(tl_cmds, tl_id, db):
     """
     Convert the commands ``tl_cmds`` (numpy recarray) that occur in the
     timeline ``tl_id'' to a format mimicking backstop commands from
-    Ska.ParseCM.read_backstop().  This includes reading parameter values
+    ska_parsecm.read_backstop().  This includes reading parameter values
     from the ``db``.
 
     Parameters
@@ -139,7 +139,7 @@ def _tl_to_bs_cmds(tl_cmds, tl_id, db):
     tl_id
         timeline id
     db
-        Ska.DBI db object
+        ska_dbi db object
 
     Returns
     -------
@@ -170,14 +170,14 @@ def get_cmds(start, stop, mp_dir=MPLOGS_DIR):
     Get backstop commands corresponding to the supplied timeline load segments.
     The timeline load segments must be ordered by 'id'.
 
-    Return cmds in the format defined by Ska.ParseCM.read_backstop().
+    Return cmds in the format defined by ska_parsecm.read_backstop().
     """
     mp_dir = str(mp_dir)
 
     # Get timeline_loads within date range.  Also get non-load commands
     # within the date range covered by the timelines.
     server = os.path.join(os.environ["SKA"], "data", "cmd_states", "cmd_states.db3")
-    with Ska.DBI.DBI(dbi="sqlite", server=server) as db:
+    with ska_dbi.DBI(dbi="sqlite", server=server) as db:
         timeline_loads = db.fetchall(
             """SELECT * from timeline_loads
                                         WHERE datestop > '{}' AND datestart < '{}'
@@ -215,7 +215,7 @@ def get_cmds(start, stop, mp_dir=MPLOGS_DIR):
     orbit_cmd_files = set()
 
     for tl in timeline_loads:
-        bs_file = Ska.File.get_globfiles(
+        bs_file = ska_file.get_globfiles(
             os.path.join(mp_dir + tl.mp_dir, "*.backstop")
         )[0]
         if bs_file not in BACKSTOP_CACHE:

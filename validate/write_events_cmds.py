@@ -3,7 +3,7 @@
 import argparse
 import os
 
-from Chandra.Time import DateTime
+from chandra_time import DateTime
 
 import kadi.cmds
 import kadi.events

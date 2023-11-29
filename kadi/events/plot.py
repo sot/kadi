@@ -1,6 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import matplotlib.pyplot as plt
-from Ska.Matplotlib import plot_cxctime, remake_ticks
+from ska_matplotlib import plot_cxctime, remake_ticks
 
 R2A = 206264.8  # radians to arcsec
 

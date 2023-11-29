@@ -2,7 +2,7 @@
 import re
 
 from bs4 import BeautifulSoup as parse_html
-from Chandra.Time import DateTime
+from chandra_time import DateTime
 
 from kadi import occweb
 

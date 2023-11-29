@@ -8,8 +8,8 @@ Test cmds archive.
 import os
 
 import numpy as np
-import Ska.File
-from Chandra.Time import DateTime
+import ska_file
+from chandra_time import DateTime
 
 from kadi import update_cmds
 
@@ -24,7 +24,7 @@ def test_ingest():
     # Some funkiness to be able to use two different data root values
     # within the same python session.  Inject the correct PATH and make
     # sure the LazyVals will re-read.
-    data_root_tmp = Ska.File.TempDir()
+    data_root_tmp = ska_file.TempDir()
     data_root = data_root_tmp.name
     update_cmds.main(
         [
@@ -52,7 +52,7 @@ def test_ingest():
 
     # Second part of funkiness to be able to use two different data root values
     # within the same python session.
-    data_root_tmp = Ska.File.TempDir()
+    data_root_tmp = ska_file.TempDir()
     data_root = data_root_tmp.name
     os.environ["KADI"] = os.path.abspath(data_root)
 

@@ -12,10 +12,10 @@ http://asc.harvard.edu/mta_days/mta_otg/OTG_filtered.html
 >>> print mta_kadi_bad
 """
 import numpy as np
-import Ska.Numpy
+import ska_numpy
 from astropy.io import ascii
 from astropy.table import Table
-from Chandra.Time import DateTime
+from chandra_time import DateTime
 
 from kadi import events
 
@@ -38,7 +38,7 @@ mta_starts = DateTime(mta_moves["START_TIME"], format="greta").secs
 # Kadi to nearest MTA
 
 indexes = np.arange(len(mta_starts))
-i_nearest = Ska.Numpy.interpolate(
+i_nearest = ska_numpy.interpolate(
     indexes, mta_starts, kadi_starts, sorted=True, method="nearest"
 )
 mta_nearest = mta_moves[i_nearest]
@@ -54,7 +54,7 @@ kadi_mta_bad = kadi_mta[bad]
 # MTA to nearest Kadi
 
 indexes = np.arange(len(kadi_starts))
-i_nearest = Ska.Numpy.interpolate(
+i_nearest = ska_numpy.interpolate(
     indexes, kadi_starts, mta_starts, sorted=True, method="nearest"
 )
 kadi_nearest = kadi_moves[i_nearest]

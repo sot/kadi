@@ -4,15 +4,15 @@ import sys
 from itertools import count
 from pathlib import Path
 
+import cheta.fetch_eng as fetch
 import numpy as np
 import pyyaks.logger
-import Ska.engarchive.fetch_eng as fetch
 from astropy import table
-from Chandra.Time import DateTime
+from chandra_time import DateTime
+from cheta import utils
 from django.db import models
 from Quaternion import Quat
-from Ska.engarchive import utils
-from Ska.Numpy import interpolate
+from ska_numpy import interpolate
 
 from .manvr_templates import get_manvr_templates
 
@@ -329,7 +329,7 @@ class BaseModel(models.Model):
 
             :returns: list of overlapping events
             """
-            from Chandra.Time import DateTime
+            from chandra_time import DateTime
 
             from .query import combine_intervals
 

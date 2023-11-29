@@ -18,7 +18,7 @@ import requests
 from astropy.io import ascii
 from astropy.table import Table
 from astropy.utils.data import download_file
-from Chandra.Time import DateTime
+from chandra_time import DateTime
 
 # This is for deprecated functionality to cache to a local directory
 CACHE_DIR = "cache"
@@ -58,12 +58,12 @@ def get_auth(username=None, password=None):
     # If $SKA doesn't have occweb credentials try .netrc.
     if username is None:
         try:
-            import Ska.ftp
+            import ska_ftp
 
             # Do this as a tuple so the operation is atomic
             username, password = (
-                Ska.ftp.parse_netrc()["occweb"]["login"],
-                Ska.ftp.parse_netrc()["occweb"]["password"],
+                ska_ftp.parse_netrc()["occweb"]["login"],
+                ska_ftp.parse_netrc()["occweb"]["password"],
             )
         except Exception:
             pass
@@ -146,10 +146,10 @@ def ftp_put_to_lucky(ftp_dirname, local_files, user=None, logger=None):
     """
     import uuid
 
-    import Ska.File
-    import Ska.ftp
+    import ska_file
+    import ska_ftp
 
-    ftp = Ska.ftp.SFTP(LUCKY, logger=logger, user=user)
+    ftp = ska_ftp.SFTP(LUCKY, logger=logger, user=user)
     if user is None:
         user = ftp.ftp.get_channel().transport.get_username()
     ftp.cd("/home/{}".format(user))
@@ -162,7 +162,7 @@ def ftp_put_to_lucky(ftp_dirname, local_files, user=None, logger=None):
     for local_file in local_files:
         file_dir, file_base = os.path.split(os.path.abspath(local_file))
         ftp_file = str(uuid.uuid4())  # random unique identifier
-        with Ska.File.chdir(file_dir):
+        with ska_file.chdir(file_dir):
             ftp.put(file_base, ftp_file)
             destination_file = "{}/{}".format(ftp_dirname, file_base)
             # If final destination of file already exists, delete that file.
@@ -181,17 +181,17 @@ def ftp_get_from_lucky(ftp_dirname, local_files, user=None, logger=None):
     are copied to the corresponding local_files names.  This is the converse
     of ftp_put_to_lucky and thus requires unique basenames for all files.
     """
-    import Ska.File
-    import Ska.ftp
+    import ska_file
+    import ska_ftp
 
-    ftp = Ska.ftp.SFTP(LUCKY, logger=logger, user=user)
+    ftp = ska_ftp.SFTP(LUCKY, logger=logger, user=user)
     if user is None:
         user = ftp.ftp.get_channel().transport.get_username()
     ftp.cd("/home/{}/{}".format(user, ftp_dirname))
     for local_file in local_files:
         file_dir, file_base = os.path.split(os.path.abspath(local_file))
         if file_base in ftp.ls():
-            with Ska.File.chdir(file_dir):
+            with ska_file.chdir(file_dir):
                 ftp.get(file_base)
                 ftp.delete(file_base)
 
@@ -229,7 +229,7 @@ def get_occweb_page(
       \\noodle\vweb
 
     If ``user`` and ``password`` are not provided then it is required that
-    credentials are stored in the file ``~/.netrc``. See the ``Ska.ftp`` package
+    credentials are stored in the file ``~/.netrc``. See the ``ska_ftp`` package
     for details.
 
     If the page is not found then a ``requests.exceptions.HTTPError`` is raised.
@@ -307,7 +307,7 @@ def get_occweb_dir(path, timeout=30, cache=False, user=None, password=None):
       https://occweb.cfa.harvard.edu/occweb/<path>
 
     If ``user`` and ``password`` are not provided then it is required that
-    credentials are stored in the file ``~/.netrc``. See the ``Ska.ftp`` package
+    credentials are stored in the file ``~/.netrc``. See the ``ska_ftp`` package
     for details.
 
     Parameters

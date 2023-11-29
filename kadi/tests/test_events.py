@@ -4,7 +4,7 @@ import sys
 from copy import deepcopy
 
 import numpy as np
-from Chandra.Time import DateTime
+from chandra_time import DateTime
 
 from kadi import events
 

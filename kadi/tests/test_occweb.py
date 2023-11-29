@@ -5,14 +5,14 @@ from pathlib import Path
 
 import pytest
 import requests
-import Ska.File
-import Ska.ftp
+import ska_file
+import ska_ftp
 
 from kadi import occweb
 
 try:
-    Ska.ftp.parse_netrc()["lucky"]["login"]
-    lucky = Ska.ftp.SFTP(occweb.LUCKY)
+    ska_ftp.parse_netrc()["lucky"]["login"]
+    lucky = ska_ftp.SFTP(occweb.LUCKY)
 except Exception:
     HAS_LUCKY = False
 else:
@@ -24,8 +24,8 @@ def _test_put_get(user):
     filenames = ["test.dat", "test2.dat"]
 
     # Make a local temp dir and put files there
-    local_tmpdir = Ska.File.TempDir()
-    with Ska.File.chdir(local_tmpdir.name):
+    local_tmpdir = ska_file.TempDir()
+    with ska_file.chdir(local_tmpdir.name):
         for filename in filenames:
             open(filename, "w").write(filename)
         local_filenames = [os.path.abspath(x) for x in os.listdir(local_tmpdir.name)]
@@ -34,19 +34,19 @@ def _test_put_get(user):
     occweb.ftp_put_to_lucky(remote_tmpdir, local_filenames, user=user)
 
     # Make a new local temp dir for the return
-    local_tmpdir2 = Ska.File.TempDir()
+    local_tmpdir2 = ska_file.TempDir()
     local_filenames = [os.path.join(local_tmpdir2.name, x) for x in filenames]
     occweb.ftp_get_from_lucky(remote_tmpdir, local_filenames, user=user)
 
     # Clean up remote temp dir
-    lucky = Ska.ftp.SFTP(occweb.LUCKY)
+    lucky = ska_ftp.SFTP(occweb.LUCKY)
     if user is None:
         user = lucky.ftp.get_channel().transport.get_username()
     lucky.rmdir("/home/{}/{}".format(user, remote_tmpdir))
     lucky.close()
 
     # Make sure round-tripped files are the same
-    with Ska.File.chdir(local_tmpdir2.name):
+    with ska_file.chdir(local_tmpdir2.name):
         for filename in filenames:
             assert open(filename).read() == filename
 

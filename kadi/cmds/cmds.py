@@ -5,7 +5,7 @@ import warnings
 import numpy as np
 import tables
 from astropy.table import Table
-from Chandra.Time import DateTime
+from chandra_time import DateTime
 
 from kadi.paths import IDX_CMDS_PATH, PARS_DICT_PATH
 
