@@ -1104,11 +1104,11 @@ class SunVectorTransition(BaseTransition):
         if state["pcad_mode"] == "NPNT":
             ra, dec, roll = state["ra"], state["dec"], state["roll"]
             time = date2secs(date)
-            pitch = ska_sun.pitch(ra, dec, time)
-            off_nom_roll = ska_sun.off_nominal_roll([ra, dec, roll], time)
-
-            state["pitch"] = pitch
-            state["off_nom_roll"] = off_nom_roll
+            sun_ra, sun_dec = ska_sun.position(time)
+            state["pitch"] = ska_sun.pitch(ra, dec, sun_ra=sun_ra, sun_dec=sun_dec)
+            state["off_nom_roll"] = ska_sun.off_nominal_roll(
+                [ra, dec, roll], time, sun_ra=sun_ra, sun_dec=sun_dec
+            )
 
 
 class DitherEnableTransition(FixedTransition):
