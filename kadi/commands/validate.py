@@ -605,7 +605,7 @@ class ValidateRoll(ValidatePitchRollBase):
         max_delta_val=0.5,  # deg
     )
     max_delta_vals = {
-        "NPNT": 4,  # deg
+        "NPNT": 2,  # deg
         "NMAN": 10.0,  # deg
         "NSUN": 4.0,  # deg
     }
