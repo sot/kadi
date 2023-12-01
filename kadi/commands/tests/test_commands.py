@@ -269,7 +269,7 @@ def test_get_cmds_from_backstop_and_add_cmds(version_env):
 
 
 @pytest.mark.skipif("not HAS_MPDIR")
-def test_commands_create_archive_regress(tmpdir, version_env):
+def test_commands_create_archive_regress(tmpdir, version_env, fast_sun_position_method):
     """Create cmds archive from scratch and test that it matches flight
 
     This tests over an eventful month that includes IU reset/NSM, SCS-107

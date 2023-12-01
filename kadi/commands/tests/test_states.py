@@ -239,7 +239,7 @@ def test_acis_raw_mode():
     assert "TN_000B6" in kstates["si_mode"]
 
 
-def test_states_2017():
+def test_states_2017(fast_sun_position_method):
     """
     Test for 200 days in 2017.  Includes 2017:066, 068, 090 anomalies and
     2017:250-254 SCS107 + 251 CTI.
@@ -417,7 +417,7 @@ def test_dither():
     )
 
 
-def test_get_continuity_regress():
+def test_get_continuity_regress(fast_sun_position_method):
     """Regression test against values produced by get_continuity during development.
     Correctness not validated for all values.
     The particular time of 2018:001:12:00:00 happens during a maneuver, so this
@@ -1478,7 +1478,7 @@ def test_continuity_with_no_transitions_SPM():  # noqa: N802
     }
 
 
-def test_get_pitch_from_mid_maneuver():
+def test_get_pitch_from_mid_maneuver(fast_sun_position_method):
     """Regression test for the fix for #125.  Mostly the same as the test above, but for
     the Maneuver transition class.
 
@@ -1551,7 +1551,7 @@ def test_get_states_start_between_aouptarg_aomanuvr_cmds():
     assert cont["__dates__"]["q1"] == "2021:032:12:49:45.458"
 
 
-def test_get_continuity_and_pitch_from_mid_maneuver():
+def test_get_continuity_and_pitch_from_mid_maneuver(fast_sun_position_method):
     """Test for bug in continuity first noted at:
     https://github.com/acisops/acis_thermal_check/pull/30#issuecomment-665240053
 

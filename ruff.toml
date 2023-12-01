@@ -57,7 +57,6 @@ extend-exclude = [
   "docs",
   "utils",
   "validate",
-  "*.ipynb",
 ]
 
 [pycodestyle]
@@ -68,3 +67,4 @@ max-line-length = 100 # E501 reports lines that exceed the length of 100.
 "command_sets.py" = ["ARG001"]
 "**/tests/**" = ["D", "E501"]
 "states.py" = ["N801", "ARG003"]
+"**/*.ipynb" = ["B018"]
