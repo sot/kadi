@@ -606,7 +606,7 @@ class ValidateRoll(ValidatePitchRollBase):
     )
     max_delta_vals = {
         "NPNT": 2,  # deg
-        "NMAN": 10.0,  # deg
+        "NMAN": 12.0,  # deg
         "NSUN": 4.0,  # deg
     }
 
@@ -697,7 +697,7 @@ class ValidateSunPosMon(ValidateStateCode):
     state_name = "sun_pos_mon"
     msids = ["aopssupm"]
     plot_attrs = PlotAttrs(title="Sun position monitor", ylabel="Sun position monitor")
-    min_violation_duration = 300
+    min_violation_duration = 400
 
     def add_exclude_intervals(self):
         super().add_exclude_intervals()
