@@ -6,14 +6,15 @@ from pathlib import Path
 
 import jinja2
 import maude
+from astropy.table import Table
 from cheta import fetch
 from cxotime import CxoTime, CxoTimeLike
 
 import kadi
-from kadi.commands import conf
+import kadi.commands
 from kadi.commands.validate import Validate
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("kadi")
 
 
 def get_opt():
@@ -51,6 +52,13 @@ def get_opt():
         help="Include in-work events in validation (for checking new events)",
     )
     parser.add_argument(
+        "--email",
+        action="append",
+        dest="emails",
+        default=[],
+        help='Email address for notification (multiple allowed, use "TEST" for testing)',
+    )
+    parser.add_argument(
         "--version",
         action="version",
         version=f"%(prog)s {kadi.__version__}",
@@ -59,10 +67,10 @@ def get_opt():
     return parser
 
 
-def get_index_page_html(
+def run_validators(
     stop: CxoTimeLike, days: float, states: list[str], no_exclude: bool = False
-):
-    """Make a simple HTML page with all the validation plots and information.
+) -> list[Validate]:
+    """Run applicable validators and return list of validators.
 
     Parameters
     ----------
@@ -77,14 +85,12 @@ def get_index_page_html(
 
     Returns
     -------
-    str
-        HTML string
+    list
+        List of validators
     """
-    validators = []
-    violations = []
-    if stop is None:
-        stop = CxoTime.now()
+    stop = CxoTime(stop)
 
+    validators = []
     for cls in Validate.subclasses:
         if states and cls.state_name not in states:
             continue
@@ -93,25 +99,98 @@ def get_index_page_html(
         validator.html = validator.get_html()
         validators.append(validator)
 
-        for violation in validator.violations:
-            violations.append(
-                {
-                    "name": validator.state_name,
-                    "start": violation["start"],
-                    "stop": violation["stop"],
-                }
-            )
+    return validators
 
+
+def get_violations(validators: list[Validate]) -> list[dict]:
+    """Return list of violations from list of validators.
+
+    Parameters
+    ----------
+    validators : list
+        List of validators
+
+    Returns
+    -------
+    list
+        List of violations dicts, keys are "name", "start", "stop"
+    """
+    violations = [
+        {
+            "name": validator.state_name,
+            "start": violation["start"],
+            "stop": violation["stop"],
+        }
+        for validator in validators
+        for violation in validator.violations
+    ]
+    return violations
+
+
+def get_index_page_html(validators: list[Validate], violations: list[dict]) -> str:
+    """Make a simple HTML page with all the validation plots and information.
+
+    Parameters
+    ----------
+    validators : list[Validate]
+        List of processed validators
+    violations : list[dict]
+        List of violations dicts, keys are "name", "start", "stop"
+
+    Returns
+    -------
+    str
+        HTML string
+    """
     context = {
         "validators": validators,
         "violations": violations,
     }
-    index_template_file = Path(__file__).parent / "templates" / "index_validate.html"
+    index_template_file = (
+        Path(kadi.commands.__file__).parent / "templates" / "index_validate.html"
+    )
     index_template = index_template_file.read_text()
     template = jinja2.Template(index_template)
     html = template.render(context)
 
     return html
+
+
+def get_violations_text(violations: list[dict]) -> str:
+    """Get text for email or logger alert of validation violations.
+
+    Parameters
+    ----------
+    violations : list[dict]
+        List of violations dicts (see get_violations())
+
+    Returns
+    -------
+    str
+        Text for alert
+    """
+    lines = ["kadi validate_states processing found state violation(s):", ""]
+    lines.extend(Table(violations).pformat_all())
+    lines.extend(["", "See:https://cxc.harvard.edu/mta/ASPECT/validate_states/", ""])
+    text = "\n".join(lines)
+    return text
+
+
+def send_alert_email(text: str, opt: argparse.Namespace) -> None:
+    """Send an email alert for validation violations.
+
+    Parameters
+    ----------
+    text : str
+        Text for email
+    opt : argparse.Namespace
+        Command-line options
+    """
+    from acdc.common import send_mail
+
+    subject = "kadi validate_states: state violation(s)"
+    if opt.emails:
+        send_mail(logger, opt, subject, text, __file__)
 
 
 def main(args=None):
@@ -126,14 +205,21 @@ def main(args=None):
     maude.conf.cache_msid_queries = True
     fetch.CACHE = True
 
-    if opt.in_work:
-        conf.include_in_work_command_events = True
+    kadi.commands.conf.include_in_work_command_events = opt.in_work
 
-    html = get_index_page_html(opt.stop, opt.days, opt.states, opt.no_exclude)
+    validators = run_validators(opt.stop, opt.days, opt.states, opt.no_exclude)
+    violations = get_violations(validators)
+    html = get_index_page_html(validators, violations)
 
     out_dir = Path(opt.out_dir)
     out_dir.mkdir(exist_ok=True, parents=True)
     (out_dir / "index.html").write_text(html)
+
+    if violations:
+        violations_text = get_violations_text(violations)
+        logger.warning(violations_text)
+        if opt.emails:
+            send_alert_email(violations_text, opt)
 
 
 if __name__ == "__main__":
