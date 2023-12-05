@@ -53,11 +53,10 @@ extend-ignore = [
   "PYI056", # Calling `.append()` on `__all__` may not be supported by all type checkers
 ]
 
-exclude = [
+extend-exclude = [
   "docs",
   "utils",
   "validate",
-  ".eggs",
 ]
 
 [pycodestyle]
@@ -68,3 +67,4 @@ max-line-length = 100 # E501 reports lines that exceed the length of 100.
 "command_sets.py" = ["ARG001"]
 "**/tests/**" = ["D", "E501"]
 "states.py" = ["N801", "ARG003"]
+"**/*.ipynb" = ["B018"]

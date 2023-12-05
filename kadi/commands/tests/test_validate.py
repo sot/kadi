@@ -7,9 +7,10 @@ from pathlib import Path
 
 import numpy as np
 import pytest
+import ska_sun
 
 from kadi.commands.utils import compress_time_series
-from kadi.commands.validate import Validate
+from kadi.commands.validate import Validate, ValidateRoll
 
 # Regression testing for this 5-day period covering a safe mode with plenty of things
 # happening. There are a number of violations in this period and a couple of excluded
@@ -108,7 +109,7 @@ def test_validate_subclasses():
 
 @pytest.mark.parametrize("cls", Validate.subclasses)
 @pytest.mark.parametrize("no_exclude", [False, True])
-def test_validate_regression(cls, no_exclude):
+def test_validate_regression(cls, no_exclude, fast_sun_position_method):
     """Test that validator data matches regression data
 
     This is likely to be fragile. In the future we may need helper function to output
@@ -132,6 +133,17 @@ def test_validate_regression(cls, no_exclude):
             assert np.all(vals_obs == vals_exp)
 
     assert np.all(data_obs["violations"] == data_exp["violations"])
+
+
+def test_off_nominal_roll_violations():
+    """Test off_nominal_roll violations over a time range with tail sun observations"""
+    # Default sun position method is "accurate".
+    off_nom_roll_val = ValidateRoll(stop="2023:327:00:00:00", days=1)
+    assert len(off_nom_roll_val.violations) == 0
+
+    with ska_sun.conf.set_temp("sun_position_method_default", "fast"):
+        off_nom_roll2 = ValidateRoll(stop="2023:327:00:00:00", days=1)
+    assert len(off_nom_roll2.violations) == 3
 
 
 if __name__ == "__main__":

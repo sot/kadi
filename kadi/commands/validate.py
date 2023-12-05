@@ -68,14 +68,23 @@ EXCLUDE_INTERVALS_SHEET_URL = (
 
 @dataclass
 class PlotAttrs:
-    """Plot attributes for a Validate subclass.
+    """
+    Plot attributes for a Validate subclass.
 
-    :param title: (str): Plot title.
-    :param ylabel: (str): Y-axis label.
-    :param range: (list): Y-axis range (optional).
-    :param max_delta_time: (float): Maximum time delta before new data point is plotted.
-    :param max_delta_val: (float): Maximum value delta before new data point is plotted.
-    :param max_gap_time: (float): Maximum gap in time before plot gap is inserted.
+    Parameters
+    ----------
+    title : str
+        Plot title.
+    ylabel : str
+        Y-axis label.
+    range : list, optional
+        Y-axis range.
+    max_delta_time : float, optional
+        Maximum time delta before a new data point is plotted.
+    max_delta_val : float, default 0
+        Maximum value delta before a new data point is plotted.
+    max_gap_time : float, default 300
+        Maximum gap in time before a plot gap is inserted.
     """
 
     title: str
@@ -89,15 +98,36 @@ class PlotAttrs:
 class Validate(ABC):
     """Validate kadi command states against telemetry base class.
 
-    :param state_name: (str): Name of state to validate.
-    :param stop: (CxoTime): Stop time.
-    :param days: (float): Number of days to validate.
-    :param state_keys_extra: (list): Extra state keys needed for validation.
-    :param plot_attrs: (PlotAttrs): Attributes for plot.
-    :param msids: (list): MSIDs to fetch for telemetry.
-    :param max_delta_val: (float): Maximum value delta to signal a violation.
-    :param max_gap: (float): Maximum gap in telemetry before breaking an interval (sec).
-    :param min_violation_duration: (float): Minimum duration of a violation (sec).
+    Class attributes are as follows:
+
+    state_name : str
+        Name of state to validate.
+    stop : CxoTime
+        Stop time.
+    days : float
+        Number of days to validate.
+    state_keys_extra : list, optional
+        Extra state keys needed for validation.
+    plot_attrs : PlotAttrs
+        Attributes for plot.
+    msids : list
+        MSIDs to fetch for telemetry.
+    max_delta_val : float
+        Maximum value delta to signal a violation.
+    max_gap : float
+        Maximum gap in telemetry before breaking an interval (sec).
+    min_violation_duration : float
+        Minimum duration of a violation (sec).
+
+
+    Parameters
+    ----------
+    stop
+        stop time for validation
+    days
+        number of days for validation
+    no_exclude
+        if True then do not exclude any data (for testing)
     """
 
     subclasses = []
@@ -114,17 +144,7 @@ class Validate(ABC):
     min_violation_duration = 32.81
 
     def __init__(self, stop=None, days: float = 14, no_exclude: bool = False):
-        """Base class for validation.
-
-        Parameters
-        ----------
-        stop
-            stop time for validation
-        days
-            number of days for validation
-        no_exclude
-            if True then do not exclude any data (for testing)
-        """
+        """Base class for validation"""
         self.stop = CxoTime(stop)
         self.days = days
         self.start: CxoTime = self.stop - days * u.day
@@ -585,7 +605,7 @@ class ValidateRoll(ValidatePitchRollBase):
         max_delta_val=0.5,  # deg
     )
     max_delta_vals = {
-        "NPNT": 4,  # deg
+        "NPNT": 2,  # deg
         "NMAN": 10.0,  # deg
         "NSUN": 4.0,  # deg
     }

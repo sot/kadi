@@ -269,7 +269,7 @@ def test_get_cmds_from_backstop_and_add_cmds(version_env):
 
 
 @pytest.mark.skipif("not HAS_MPDIR")
-def test_commands_create_archive_regress(tmpdir, version_env):
+def test_commands_create_archive_regress(tmpdir, version_env, fast_sun_position_method):
     """Create cmds archive from scratch and test that it matches flight
 
     This tests over an eventful month that includes IU reset/NSM, SCS-107
@@ -1134,7 +1134,7 @@ def test_get_cmds_from_event_all(idx):
 
 
 @pytest.mark.skipif(not HAS_INTERNET, reason="No internet connection")
-def test_scenario_with_rts(monkeypatch):
+def test_scenario_with_rts(monkeypatch, fast_sun_position_method):
     # Test a custom scenario with RTS. This is basically the same as the
     # example in the documentation.
     from kadi import paths
@@ -1202,7 +1202,7 @@ def test_scenario_with_rts(monkeypatch):
 2021:297:01:41:01.256 | COMMAND_SW       | AONM2NPE   | CMD_EVT  | event=Maneuver, event_date=2021:297:01:41:01, msid=AONM2NPE,
 2021:297:01:41:05.356 | MP_TARGQUAT      | AOUPTARQ   | CMD_EVT  | event=Maneuver, event_date=2021:297:01:41:01, q1=7.05469070e
 2021:297:01:41:11.250 | COMMAND_SW       | AOMANUVR   | CMD_EVT  | event=Maneuver, event_date=2021:297:01:41:01, msid=AOMANUVR,
-2021:297:02:05:11.042 | LOAD_EVENT       | OBS        | CMD_EVT  | manvr_start=2021:297:01:41:11.250, prev_att=(0.2854059718219
+2021:297:02:05:11.042 | LOAD_EVENT       | OBS        | CMD_EVT  | manvr_start=2021:297:01:41:11.250, prev_att=(0.2854059718181
 2021:297:02:12:42.886 | ORBPOINT         | None       | OCT1821A | event_type=EQF003M, scs=0
 2021:297:03:40:42.886 | ORBPOINT         | None       | OCT1821A | event_type=EQF005M, scs=0
 2021:297:03:40:42.886 | ORBPOINT         | None       | OCT1821A | event_type=EQF015M, scs=0
