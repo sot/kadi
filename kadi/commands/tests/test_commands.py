@@ -1315,3 +1315,17 @@ def test_fill_gaps():
     is_nan = np.isnan(vals_out)
     assert np.all(is_nan == np.isnan(vals_exp))
     assert np.all(vals_out[~is_nan] == vals_exp[~is_nan])
+
+
+def test_get_rltt_scheduled_stop_time():
+    """RLTT and scheduled stop time are both 2023:009:04:14:00.000."""
+    cmds = commands.get_cmds("2023:009", "2023:010")
+    rltt = cmds.get_rltt()
+    assert rltt == "2023:009:04:14:00.000"
+
+    stt = cmds.get_scheduled_stop_time()
+    assert stt == "2023:009:04:14:00.000"
+
+    cmds = commands.get_cmds("2023:009:12:00:00", "2023:010")
+    assert cmds.get_rltt() is None
+    assert cmds.get_scheduled_stop_time() is None
