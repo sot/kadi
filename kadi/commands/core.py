@@ -566,7 +566,6 @@ class CommandTable(Table):
                 cmd["type"] == "LOAD_EVENT"
                 and cmd["params"].get("event_type") == "RUNNING_LOAD_TERMINATION_TIME"
             ):
-                print("RLTT", cmd["date"])
                 return cmd["date"]
 
         return None
