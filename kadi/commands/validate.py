@@ -28,13 +28,12 @@ from cheta.utils import (
     get_telem_table,
     logical_intervals,
 )
-from cxotime import CxoTime
+from cxotime import CxoTime, CxoTimeLike
 
 import kadi
 import kadi.commands
 from kadi.commands.states import interpolate_states, reduce_states
 from kadi.commands.utils import (
-    CxoTimeLike,
     add_figure_regions,
     compress_time_series,
     convert_state_code_to_raw_val,
@@ -792,58 +791,3 @@ def get_states(start: CxoTimeLike, stop: CxoTimeLike, state_keys: list) -> Table
     states[-1]["datestop"] = CxoTime(states[-1]["tstop"]).date
 
     return states
-
-
-def get_index_page_html(
-    stop: CxoTimeLike, days: float, states: List[str], no_exclude: bool = False
-):
-    """Make a simple HTML page with all the validation plots and information.
-
-    Parameters
-    ----------
-    stop
-        stop time for validation interval (CxoTime-like, default=now)
-    days
-        length of validation interval (days)
-    states
-        list of states to validate (default=all)
-    no_exclude
-        if True then do not exclude intervals (default=False)
-
-    Returns
-    -------
-    str
-        HTML string
-    """
-    validators = []
-    violations = []
-    if stop is None:
-        stop = CxoTime.now()
-
-    for cls in Validate.subclasses:
-        if states and cls.state_name not in states:
-            continue
-        logger.info(f"Validating {cls.state_name}")
-        validator: Validate = cls(stop=stop, days=days, no_exclude=no_exclude)
-        validator.html = validator.get_html()
-        validators.append(validator)
-
-        for violation in validator.violations:
-            violations.append(
-                {
-                    "name": validator.state_name,
-                    "start": violation["start"],
-                    "stop": violation["stop"],
-                }
-            )
-
-    context = {
-        "validators": validators,
-        "violations": violations,
-    }
-    index_template_file = Path(__file__).parent / "templates" / "index_validate.html"
-    index_template = index_template_file.read_text()
-    template = jinja2.Template(index_template)
-    html = template.render(context)
-
-    return html
