@@ -2,9 +2,7 @@
 import calendar
 import functools
 import logging
-import os
 import pickle
-import re
 import struct
 from pathlib import Path
 
@@ -602,8 +600,8 @@ class CommandTable(Table):
         ----------
         cmds : CommandTable
             Commands to add.
-        apply_rltt : bool, optional
-            Clip existing commands to the RLTT of the new commands.
+        rltt : str, optional
+            Clip existing commands to the RLTT (in "date" format) of the new commands.
 
         Returns
         -------
