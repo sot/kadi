@@ -4,6 +4,7 @@ import functools
 import logging
 import os
 import pickle
+import re
 import struct
 from pathlib import Path
 
@@ -13,9 +14,9 @@ from astropy.table import Column, Row, Table, TableAttribute, vstack
 from cxotime import CxoTime
 from ska_helpers import retry
 
-from kadi.paths import IDX_CMDS_PATH, PARS_DICT_PATH
+from kadi.paths import IDX_CMDS_PATH, PARS_DICT_PATH, ska_load_dir
 
-__all__ = ["read_backstop", "get_cmds_from_backstop", "CommandTable"]
+__all__ = ["read_backstop", "get_cmds_from_backstop", "CommandTable", "ska_load_dir"]
 
 logger = logging.getLogger(__name__)
 
@@ -181,9 +182,7 @@ def get_cmds_from_backstop(backstop, remove_starcat=False):
     elif isinstance(backstop, Table):
         bs = backstop
     else:
-        raise ValueError(
-            "`backstop` arg must be a string filename or a backstop Table"
-        )
+        raise ValueError("`backstop` arg must be a string filename or a backstop Table")
 
     n_bs = len(bs)
     out = {}
@@ -593,7 +592,7 @@ class CommandTable(Table):
 
         return None
 
-    def add_cmds(self, cmds, rltt=None):
+    def add_cmds(self, cmds: "CommandTable", rltt: str | None = None):
         """
         Add CommandTable ``cmds`` to self and return the new CommandTable.
 
@@ -970,16 +969,3 @@ def get_par_idx_update_pars_dict(pars_dict, cmd, params=None, rev_pars_dict=None
             rev_pars_dict[par_idx] = pars_tup
 
     return par_idx
-
-
-def ska_load_dir(load_name):
-    root = Path(os.environ["SKA"]) / "data" / "mpcrit1" / "mplogs"
-    year = load_name[5:7]
-    if year == "99":
-        year = 1999
-    else:
-        year = 2000 + int(year)
-    load_rev = load_name[-1].lower()
-    load_dir = load_name[:-1]
-    load_dir = root / str(year) / load_dir / f"ofls{load_rev}"
-    return load_dir

@@ -484,7 +484,7 @@ def update_archive_and_get_cmds_recent(
     return cmds_recent
 
 
-def add_obs_cmds(cmds, pars_dict, rev_pars_dict, prev_att=None):
+def add_obs_cmds(cmds: CommandTable, pars_dict, rev_pars_dict, prev_att=None):
     """Add LOAD_EVENT OBS commands with info about observations.
 
     This command includes the following:
