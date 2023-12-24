@@ -892,9 +892,9 @@ def test_get_starcats_as_table():
 @pytest.mark.parametrize(
     "par_str",
     [
-        "ACISPKT|  TLmSID= aa0000000 par1 = 1    par2=-1.0",
-        "AcisPKT|TLmSID=AA0000000 par1=1 par2=-1.0",
-        "ACISPKT|  TLmSID = aa0000000  par1  =1    par2 =  -1.0",
+        "ACISPKT|  TLmSID= aa0000000, par1 = 1 ,   par2=-1.0",
+        "AcisPKT|TLmSID=AA0000000 ,par1=1, par2=-1.0",
+        "ACISPKT|  TLmSID = aa0000000 , par1  =1,    par2 =  -1.0",
     ],
 )
 def test_get_cmds_from_event_case(par_str):
@@ -914,8 +914,8 @@ cmd_events_all_text = """\
     Event,Params
     Observing not run,FEB1422A
     Load not run,OCT2521A
-    Command,ACISPKT | TLMSID=AA00000000
-    Command not run,COMMAND_SW | TLMSID=4OHETGIN
+    Command,"ACISPKT | TLMSID= AA00000000, CMDS= 3, WORDS= 3, PACKET(40)= D80000300030603001300"
+    Command not run,"COMMAND_SW | TLMSID=4OHETGIN, HEX= 8050300, MSID= 4OHETGIN"
     RTS,"RTSLOAD,1_4_CTI,NUM_HOURS=39:00:00,SCS_NUM=135"
     Obsid,65527
     Maneuver,0.70546907 0.32988307 0.53440901 0.32847766
@@ -934,10 +934,10 @@ cmd_events_all_exps = [
         "2020:001:00:00:00.000 | LOAD_EVENT       | None       | CMD_EVT  | event=Load_not_run, event_date=2020:001:00:00:00, event_type=LOAD_NOT_RUN, load=OCT2521A, scs=0"  # noqa
     ],
     [
-        "2020:001:00:00:00.000 | ACISPKT          | AA00000000 | CMD_EVT  | event=Command, event_date=2020:001:00:00:00, scs=0"  # noqa
+        "2020:001:00:00:00.000 | ACISPKT          | AA00000000 | CMD_EVT  | event=Command, event_date=2020:001:00:00:00, cmds=3, words=3, scs=0"  # noqa
     ],
     [
-        "2020:001:00:00:00.000 | NOT_RUN          | 4OHETGIN   | CMD_EVT  | event=Command_not_run, event_date=2020:001:00:00:00, scs=0"  # noqa
+        "2020:001:00:00:00.000 | NOT_RUN          | 4OHETGIN   | CMD_EVT  | event=Command_not_run, event_date=2020:001:00:00:00, hex=8050300, msid=4OHETGIN, __type__=COMMAND_SW, scs=0"  # noqa
     ],
     [
         "2020:001:00:00:00.000 | COMMAND_SW       | OORMPEN    | CMD_EVT  | event=RTS,"

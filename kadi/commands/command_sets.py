@@ -1,9 +1,9 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-import re
 from pathlib import Path
 
 import astropy.units as u
 from cxotime import CxoTime
+from parse_cm.backstop import parse_backstop_params
 from Quaternion import Quat
 from ska_helpers.utils import convert_to_int_float_str
 
@@ -173,22 +173,17 @@ def cmd_set_hrc_not_run(load_name, date=None):
 
 
 def cmd_set_command(*args, date=None):
-    params_str = args[0]
+    """Parse Command or Command not run params string and return a command dict.
+
+    The format follows Backstop ``"<cmd_type> | PARAM1=VAL1, PARAM2=VAL2, .."``.
+    This code follows the key steps in parse_cm.backstop.read_backstop_as_list().
+    """
+    params_str = args[0].strip().replace(" ", "").upper()
+
     cmd_type, args_str = params_str.split("|", 1)
-    cmd = {"type": cmd_type.strip().upper()}
-
-    # Strip spaces around equals signs and uppercase args (note that later the
-    # keys are lowercased).
-    args_str = re.sub(r"\s*=\s*", "=", args_str).upper()
-
-    params = {}
-    for param in args_str.split():
-        key, val = param.split("=")
-        if key == "TLMSID":
-            cmd["tlmsid"] = val
-        else:
-            params[key] = convert_to_int_float_str(val)
-    cmd["params"] = params
+    params = parse_backstop_params(args_str)
+    tlmsid = params.pop("tlmsid", "None")
+    cmd = {"type": cmd_type, "tlmsid": tlmsid, "params": params}
 
     return (cmd,)
 
@@ -204,6 +199,8 @@ def cmd_set_end_scs(*args, date=None):
 
 def cmd_set_command_not_run(*args, date=None):
     (cmd,) = cmd_set_command(*args, date=date)
+    # Save original type which gets used later in CommandTable.remove_not_run_cmds().
+    cmd["params"]["__type__"] = cmd["type"]
     cmd["type"] = "NOT_RUN"
     return (cmd,)
 
