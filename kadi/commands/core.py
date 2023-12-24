@@ -877,10 +877,13 @@ class CommandTable(Table):
             cmd_not_run = self[idx]
             ok = (
                 (self["date"] == cmd_not_run["date"])
-                & (self["tlmsid"] == cmd_not_run["tlmsid"])
-                # Recover original command type
                 & (self["type"] == cmd_not_run["__type__"])
+                & (self["tlmsid"] == cmd_not_run["tlmsid"])
             )
+            for key in ("scs", "step"):
+                if cmd_not_run[key] != 0:
+                    ok &= self[key] == cmd_not_run[key]
+
             # Indexes of self commands that *might* match cmd_not_run.
             idxs = np.arange(len(self))[ok].tolist()
 

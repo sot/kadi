@@ -37,6 +37,7 @@ from kadi.scripts import update_cmds_v1, update_cmds_v2
 HAS_MPDIR = Path(os.environ["SKA"], "data", "mpcrit1", "mplogs", "2020").exists()
 HAS_INTERNET = has_internet()
 VERSIONS = ["1", "2"] if HAS_INTERNET else ["1"]
+DATA_DIR = Path(__file__).parent / "data"
 
 
 @pytest.fixture(scope="module", params=VERSIONS)
@@ -1417,3 +1418,95 @@ Definitive,2023:184:20:00:00.000,HRC not run,JUL0323A,Tom,Jean,F_HRC_SAFING 2023
     assert states_out == states_exp
 
     commands_v2.clear_caches()
+
+
+test_command_not_run_cases = [
+    {
+        # Matches multiple commands
+        "event": {
+            "date": "2023:351:13:30:33.849",
+            "event": "Command not run",
+            "params_str": "COMMAND_SW | TLMSID= COACTSX",
+        },
+        "removed": [3, 4],
+    },
+    {
+        # Matches one command with multiple criteria
+        "event": {
+            "date": "2023:351:13:30:33.849",
+            "event": "Command not run",
+            "params_str": (
+                "COMMAND_SW | TLMSID= COACTSX, HEX= 840B100, "
+                "MSID= COACTSX, COACTS1=177 , COACTS2=0 , SCS= 128, STEP= 690"
+            ),
+        },
+        "removed": [3],
+    },
+    {
+        # Wrong TLMSID
+        "event": {
+            "date": "2023:351:13:30:33.849",
+            "event": "Command not run",
+            "params_str": (
+                "COMMAND_SW | TLMSID= XXXXXXX, HEX= 840B100, "
+                "MSID= COACTSX, COACTS1=177 , COACTS2=0 , SCS= 128, STEP= 690"
+            ),
+        },
+        "removed": [],
+    },
+    {
+        # Wrong SCS
+        "event": {
+            "date": "2023:351:13:30:33.849",
+            "event": "Command not run",
+            "params_str": (
+                "COMMAND_SW | TLMSID= XXXXXXX, HEX= 840B100, "
+                "MSID= COACTSX, COACTS1=177 , COACTS2=0 , SCS= 133, STEP= 690"
+            ),
+        },
+        "removed": [],
+    },
+    {
+        # Wrong Step
+        "event": {
+            "date": "2023:351:13:30:33.849",
+            "event": "Command not run",
+            "params_str": (
+                "COMMAND_SW | TLMSID= XXXXXXX, HEX= 840B100, "
+                "MSID= COACTSX, COACTS1=177 , COACTS2=0 , SCS= 128, STEP= 111"
+            ),
+        },
+        "removed": [],
+    },
+    {
+        # No TLMSID
+        "event": {
+            "date": "2023:351:19:38:41.550",
+            "event": "Command not run",
+            "params_str": "SIMTRANS   | POS= 92904, SCS= 131, STEP= 1191",
+        },
+        "removed": [6],
+    },
+]
+
+
+@pytest.mark.parametrize("case", test_command_not_run_cases)
+def test_command_not_run(case):
+    backstop_text = """
+2023:351:13:30:32.824 | 0 0 | COMMAND_SW | TLMSID= AOMANUVR, HEX= 8034101, MSID= AOMANUVR, SCS= 128, STEP= 686
+2023:351:13:30:33.849 | 1 0 | COMMAND_SW | TLMSID= AOACRSTE, HEX= 8032001, MSID= AOACRSTE, SCS= 128, STEP= 688
+2023:351:13:30:33.849 | 2 0 | COMMAND_SW | TLMSID= COENASX, HEX= 844B100, MSID= COENASX, COENAS1=177 , SCS= 128, STEP= 689
+2023:351:13:30:33.849 | 3 0 | COMMAND_SW | TLMSID= COACTSX, HEX= 840B100, MSID= COACTSX, COACTS1=177 , COACTS2=0 , SCS= 128, STEP= 690
+2023:351:13:30:33.849 | 4 0 | COMMAND_SW | TLMSID= COACTSX, HEX= 8402600, MSID= COACTSX, COACTS1=38 , COACTS2=0 , SCS= 128, STEP= 691
+2023:351:13:30:55.373 | 5 0 | COMMAND_HW | TLMSID= 4MC5AEN, HEX= 4800012, MSID= 4MC5AEN, SCS= 131, STEP= 892
+2023:351:19:38:41.550 | 6 0 | SIMTRANS   | POS= 92904, SCS= 131, STEP= 1191
+    """  # noqa
+    cmds = commands.read_backstop(backstop_text.strip().splitlines())
+    cmds["source"] = "DEC1123A"
+    cmds_exp = cmds.copy()
+    cmds_exp.remove_rows(case["removed"])
+    cmds_from_event = get_cmds_from_event(**case["event"])
+    cmds_with_event = cmds.add_cmds(cmds_from_event)
+    cmds_with_event.sort_in_backstop_order()
+    cmds_with_event.remove_not_run_cmds()
+    assert cmds_with_event.pformat_like_backstop() == cmds_exp.pformat_like_backstop()
