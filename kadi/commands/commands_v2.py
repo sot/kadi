@@ -350,12 +350,12 @@ def update_archive_and_get_cmds_recent(
     # E.g. an SCS-107 near end of loads where next week vehicle loads only were
     # uplinked.
     not_run_loads = {}
-    for not_run_type in ("Load", "Observing"):
-        not_run_loads[not_run_type] = set(
-            cmd_event["Params"]
+    for not_run_type in ("Load", "Observing", "HRC"):
+        not_run_loads[not_run_type] = {
+            cmd_event["Params"]: cmd_event["Date"]
             for cmd_event in cmd_events
             if cmd_event["Event"] == f"{not_run_type} not run"
-        )
+        }
 
     # Update loads table and download/archive backstop files from OCCweb
     loads = update_loads(scenario, cmd_events=cmd_events, lookback=lookback, stop=stop)
@@ -375,6 +375,15 @@ def update_archive_and_get_cmds_recent(
         elif load_name in not_run_loads["Observing"]:
             # Cut observing commands
             bad = np.isin(cmds["scs"], [131, 132, 133])
+            cmds = cmds[~bad]
+        elif load_name in not_run_loads["HRC"]:
+            # Cut HRC state-changing commands
+            date = not_run_loads["HRC"][load_name]
+            bad = (
+                ((cmds["tlmsid"] == "COACTSX") & (cmds["coacts1"] == 134))
+                | ((cmds["tlmsid"] == "COENASX") & (cmds["coenas1"] == 89))
+                | ((cmds["tlmsid"] == "COENASX") & (cmds["coenas1"] == 90))
+            ) & (cmds["date"] > date)
             cmds = cmds[~bad]
 
         if len(cmds) > 0:

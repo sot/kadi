@@ -162,6 +162,14 @@ def cmd_set_observing_not_run(load_name, date=None):
     return (cmd,)
 
 
+def cmd_set_hrc_not_run(load_name, date=None):
+    cmd = {
+        "type": "LOAD_EVENT",
+        "params": {"EVENT_TYPE": "HRC_NOT_RUN", "LOAD": load_name},
+    }
+    return (cmd,)
+
+
 def cmd_set_command(*args, date=None):
     params_str = args[0]
     cmd_type, args_str = params_str.split("|", 1)

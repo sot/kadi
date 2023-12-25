@@ -1329,3 +1329,48 @@ def test_get_rltt_scheduled_stop_time():
     cmds = commands.get_cmds("2023:009:12:00:00", "2023:010")
     assert cmds.get_rltt() is None
     assert cmds.get_scheduled_stop_time() is None
+
+
+# For HRC not run testing
+stop_date_2023_12_20 = stop_date_fixture_factory("2023-12-20")
+
+
+@pytest.mark.skipif(not HAS_INTERNET, reason="No internet connection")
+def test_hrc_not_run_scenario(stop_date_2023_12_20):  # noqa: ARG001
+    """Test custom scenario with HRC not run"""
+    from kadi.commands.states import get_states
+
+    # First make the cmd_events.csv file for the scenario
+    scenario = "hrc_not_run"
+    cmds_dir = Path(commands_v2.conf.commands_dir) / scenario
+    cmds_dir.mkdir(exist_ok=True, parents=True)
+    # Note variation in format of date, since this comes from humans.
+    cmd_evts_text = """\
+State,Date,Event,Params,Author,Reviewer,Comment
+Definitive,2023:343:02:00:00.000,HRC not run,DEC1123A,Tom,Jean,F_HRC_SAFING at 2023:343:02:00:00
+"""
+    (cmds_dir / "cmd_events.csv").write_text(cmd_evts_text)
+
+    # Now get commands in a time range that includes the new command events
+    states = get_states(
+        start="2023:342:00:00:00",
+        stop="2023-12-20",
+        state_keys=["hrc_15v", "hrc_24v", "hrc_i", "hrc_s"],
+        merge_identical=True,
+    )
+    states_exp = [
+        "      datestart              datestop       hrc_15v hrc_24v hrc_i hrc_s",
+        "--------------------- --------------------- ------- ------- ----- -----",
+        "2023:342:00:00:00.000 2023:342:21:59:49.288     OFF     OFF   OFF   OFF",
+        "2023:342:21:59:49.288 2023:342:22:01:15.288      ON     OFF   OFF   OFF",
+        "2023:342:22:01:15.288 2023:343:01:56:06.385      ON     OFF    ON   OFF",
+        "2023:343:01:56:06.385 2023:343:01:56:18.385      ON     OFF   OFF   OFF",
+        "2023:343:01:56:18.385 2023:354:00:00:00.000     OFF     OFF   OFF   OFF",
+    ]
+
+    states_out = states[
+        "datestart", "datestop", "hrc_15v", "hrc_24v", "hrc_i", "hrc_s"
+    ].pformat_all()
+    assert states_out == states_exp
+
+    commands_v2.clear_caches()
