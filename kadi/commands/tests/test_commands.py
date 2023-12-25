@@ -37,7 +37,6 @@ from kadi.scripts import update_cmds_v1, update_cmds_v2
 HAS_MPDIR = Path(os.environ["SKA"], "data", "mpcrit1", "mplogs", "2020").exists()
 HAS_INTERNET = has_internet()
 VERSIONS = ["1", "2"] if HAS_INTERNET else ["1"]
-DATA_DIR = Path(__file__).parent / "data"
 
 
 @pytest.fixture(scope="module", params=VERSIONS)
