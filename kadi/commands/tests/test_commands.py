@@ -1332,45 +1332,88 @@ def test_get_rltt_scheduled_stop_time():
 
 
 # For HRC not run testing
-stop_date_2023_12_20 = stop_date_fixture_factory("2023-12-20")
+stop_date_2023200 = stop_date_fixture_factory("2023:200")
 
 
 @pytest.mark.skipif(not HAS_INTERNET, reason="No internet connection")
-def test_hrc_not_run_scenario(stop_date_2023_12_20):  # noqa: ARG001
+def test_hrc_not_run_scenario(stop_date_2023200):  # noqa: ARG001
     """Test custom scenario with HRC not run"""
     from kadi.commands.states import get_states
 
-    # First make the cmd_events.csv file for the scenario
+    # Baseline states WITHOUT the HRC not run command events
+    states_exp = [
+        "      datestart       hrc_i hrc_s hrc_24v hrc_15v",
+        "--------------------- ----- ----- ------- -------",
+        "2023:183:00:00:00.000   OFF   OFF     OFF     OFF",
+        "2023:184:18:42:15.224   OFF   OFF     OFF      ON",  # JUL0323A
+        "2023:184:18:43:41.224    ON   OFF     OFF      ON",
+        "2023:184:22:43:49.224   OFF   OFF     OFF      ON",
+        "2023:184:22:44:01.224   OFF   OFF     OFF     OFF",
+        "2023:190:23:39:43.615   OFF   OFF     OFF      ON",
+        "2023:190:23:39:44.615   OFF   OFF      ON      ON",  # Note 24V transition
+        "2023:190:23:41:17.615   OFF   OFF     OFF      ON",
+        "2023:190:23:42:45.615   OFF    ON     OFF      ON",
+        "2023:191:03:46:13.615   OFF   OFF     OFF      ON",
+        "2023:191:03:46:26.615   OFF   OFF     OFF     OFF",
+        "2023:194:20:03:50.666   OFF   OFF     OFF      ON",  # JUL1023A
+        "2023:194:20:03:51.666   OFF   OFF      ON      ON",
+        "2023:194:20:05:24.666   OFF   OFF     OFF      ON",
+        "2023:194:20:06:52.666    ON   OFF     OFF      ON",
+        "2023:194:23:13:40.666   OFF   OFF     OFF      ON",
+        "2023:194:23:13:52.666   OFF   OFF     OFF     OFF",
+    ]
+
+    keys = ["hrc_i", "hrc_s", "hrc_24v", "hrc_15v"]
+    states = get_states(
+        start="2023:183",
+        stop="2023:195",
+        state_keys=keys,
+        merge_identical=True,
+    )
+    states_out = states[["datestart"] + keys].pformat_all()
+    assert states_out == states_exp
+
+    # First make the cmd_events.csv file for the scenario where F_HRC_SAFING is run at
+    # 2023:184:20:00:00.000.
+    # Note that JUL0323A runs from 2023:183:16:39:00.000 to 2023:191:03:46:28.615.
+    # We expect the HRC to be off from 2023:184 2000z until the first observation in the
+    # JUL1023A loads which start at 2023:191:03:43:28.615
+
     scenario = "hrc_not_run"
     cmds_dir = Path(commands_v2.conf.commands_dir) / scenario
     cmds_dir.mkdir(exist_ok=True, parents=True)
     # Note variation in format of date, since this comes from humans.
     cmd_evts_text = """\
 State,Date,Event,Params,Author,Reviewer,Comment
-Definitive,2023:343:02:00:00.000,HRC not run,DEC1123A,Tom,Jean,F_HRC_SAFING at 2023:343:02:00:00
+Definitive,2023:184:20:00:00.000,HRC not run,JUL0323A,Tom,Jean,F_HRC_SAFING 2023:184:20:00:00
 """
     (cmds_dir / "cmd_events.csv").write_text(cmd_evts_text)
 
-    # Now get commands in a time range that includes the new command events
+    # Now get states in same time range for the HRC not run scenario.
+    keys = ["hrc_i", "hrc_s", "hrc_24v", "hrc_15v"]
     states = get_states(
-        start="2023:342:00:00:00",
-        stop="2023-12-20",
-        state_keys=["hrc_15v", "hrc_24v", "hrc_i", "hrc_s"],
+        start="2023:183",
+        stop="2023:195",
+        state_keys=keys,
         merge_identical=True,
+        scenario=scenario,
     )
     states_exp = [
-        "      datestart              datestop       hrc_15v hrc_24v hrc_i hrc_s",
-        "--------------------- --------------------- ------- ------- ----- -----",
-        "2023:342:00:00:00.000 2023:342:21:59:49.288     OFF     OFF   OFF   OFF",
-        "2023:342:21:59:49.288 2023:342:22:01:15.288      ON     OFF   OFF   OFF",
-        "2023:342:22:01:15.288 2023:343:01:56:06.385      ON     OFF    ON   OFF",
-        "2023:343:01:56:06.385 2023:343:01:56:18.385      ON     OFF   OFF   OFF",
-        "2023:343:01:56:18.385 2023:354:00:00:00.000     OFF     OFF   OFF   OFF",
+        "      datestart       hrc_i hrc_s hrc_24v hrc_15v",
+        "--------------------- ----- ----- ------- -------",
+        "2023:183:00:00:00.000   OFF   OFF     OFF     OFF",
+        "2023:184:18:42:15.224   OFF   OFF     OFF      ON",  # JUL0323A
+        "2023:184:18:43:41.224    ON   OFF     OFF      ON",
+        "2023:184:20:00:00.000   OFF   OFF     OFF     OFF",  # Shut off by HRC not run
+        "2023:194:20:03:50.666   OFF   OFF     OFF      ON",  # JUL1023A
+        "2023:194:20:03:51.666   OFF   OFF      ON      ON",
+        "2023:194:20:05:24.666   OFF   OFF     OFF      ON",
+        "2023:194:20:06:52.666    ON   OFF     OFF      ON",
+        "2023:194:23:13:40.666   OFF   OFF     OFF      ON",
+        "2023:194:23:13:52.666   OFF   OFF     OFF     OFF",
     ]
 
-    states_out = states[
-        "datestart", "datestop", "hrc_15v", "hrc_24v", "hrc_i", "hrc_s"
-    ].pformat_all()
+    states_out = states[["datestart"] + keys].pformat_all()
     assert states_out == states_exp
 
     commands_v2.clear_caches()
