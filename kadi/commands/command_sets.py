@@ -163,11 +163,13 @@ def cmd_set_observing_not_run(load_name, date=None):
 
 
 def cmd_set_hrc_not_run(load_name, date=None):
-    cmd = {
-        "type": "LOAD_EVENT",
-        "params": {"EVENT_TYPE": "HRC_NOT_RUN", "LOAD": load_name},
-    }
-    return (cmd,)
+    cmds = (
+        {"type": "COMMAND_HW", "tlmsid": "215PCAOF"},  # 15 V off
+        {"type": "COMMAND_HW", "tlmsid": "224PCAOF"},  # 24 V off
+        {"type": "COMMAND_HW", "tlmsid": "2IMHVOF"},  # HRC-I off
+        {"type": "COMMAND_HW", "tlmsid": "2SPHVOF"},  # HRC-S off
+    )
+    return cmds
 
 
 def cmd_set_command(*args, date=None):
