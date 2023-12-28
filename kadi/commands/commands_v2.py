@@ -380,7 +380,8 @@ def update_archive_and_get_cmds_recent(
             # Cut HRC state-changing commands
             date = not_run_loads["HRC"][load_name]
             bad = (
-                ((cmds["tlmsid"] == "COACTSX") & (cmds["coacts1"] == 134))
+                (cmds["tlmsid"] == "224PCAON")
+                | ((cmds["tlmsid"] == "COACTSX") & (cmds["coacts1"] == 134))
                 | ((cmds["tlmsid"] == "COENASX") & (cmds["coenas1"] == 89))
                 | ((cmds["tlmsid"] == "COENASX") & (cmds["coenas1"] == 90))
             ) & (cmds["date"] > date)
