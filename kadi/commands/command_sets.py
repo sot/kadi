@@ -162,6 +162,16 @@ def cmd_set_observing_not_run(load_name, date=None):
     return (cmd,)
 
 
+def cmd_set_hrc_not_run(load_name, date=None):
+    cmds = (
+        {"type": "COMMAND_HW", "tlmsid": "215PCAOF"},  # 15 V off
+        {"type": "COMMAND_HW", "tlmsid": "224PCAOF"},  # 24 V off
+        {"type": "COMMAND_HW", "tlmsid": "2IMHVOF"},  # HRC-I off
+        {"type": "COMMAND_HW", "tlmsid": "2SPHVOF"},  # HRC-S off
+    )
+    return cmds
+
+
 def cmd_set_command(*args, date=None):
     params_str = args[0]
     cmd_type, args_str = params_str.split("|", 1)
