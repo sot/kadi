@@ -402,7 +402,7 @@ def update_archive_and_get_cmds_recent(
     start = CxoTime(min(loads["cmd_start"]))
     stop = CxoTime(max(loads["cmd_stop"]))
     # Allow for variations in input format of date
-    dates = np.array([CxoTime(date).date for date in cmd_events["Date"]])
+    dates = np.array([CxoTime(date).date for date in cmd_events["Date"]], dtype=str)
     bad = (dates < (start - 14 * u.day).date) | (dates > stop.date)
     cmd_events = cmd_events[~bad]
     cmd_events_ids = [evt["Event"] + " at " + evt["Date"] for evt in cmd_events]

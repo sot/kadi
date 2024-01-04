@@ -868,15 +868,44 @@ class CommandTable(Table):
         the "Command not run" event in the Command Events sheet, e.g. the
         LETG retract command in the loads after the LETG insert anomaly.
         """
-        idxs_remove = set()
         idxs_not_run = np.where(self["type"] == "NOT_RUN")[0]
+        if len(idxs_not_run) == 0:
+            return
+
+        idxs_remove = set()
         for idx in idxs_not_run:
-            cmd = self[idx]
-            ok = (self["date"] == cmd["date"]) & (self["tlmsid"] == cmd["tlmsid"])
-            idxs_remove.update(np.where(ok)[0])
-        if idxs_remove:
-            logger.info(f"Removing {len(idxs_remove)} NOT_RUN cmds")
-            self.remove_rows(list(idxs_remove))
+            cmd_not_run = self[idx]
+            ok = (
+                (self["date"] == cmd_not_run["date"])
+                & (self["type"] == cmd_not_run["__type__"])
+                & (self["tlmsid"] == cmd_not_run["tlmsid"])
+            )
+            for key in ("scs", "step"):
+                if cmd_not_run[key] != 0:
+                    ok &= self[key] == cmd_not_run[key]
+
+            # Indexes of self commands that *might* match cmd_not_run.
+            idxs = np.arange(len(self))[ok].tolist()
+
+            # Now check that the params match.
+            idxs_match = []
+            for idx in idxs:
+                # Get the intersection of the keys in cmd_not_run["params"] and self["params"][idx]
+                self_params = self["params"][idx]
+                cmd_not_run_params = cmd_not_run["params"]
+                keys = set(cmd_not_run_params) & set(self_params)
+
+                # Check that the values match for all common keys
+                match = all(cmd_not_run_params[key] == self_params[key] for key in keys)
+                if match:
+                    idxs_match.append(idx)
+
+            idxs_remove.update(idxs_match)
+
+        logger.info(f"Removing {len(idxs_remove)} NOT_RUN cmds")
+        for idx in sorted(idxs_remove, reverse=True):
+            logger.debug(f"  {self[idx]}")
+        self.remove_rows(list(idxs_remove) + list(idxs_not_run))
 
 
 def get_par_idx_update_pars_dict(pars_dict, cmd, params=None, rev_pars_dict=None):
