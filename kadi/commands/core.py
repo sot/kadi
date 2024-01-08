@@ -131,25 +131,98 @@ def vstack_exact(tables):
     return out
 
 
-def read_backstop(backstop):
+def read_backstop(
+    backstop: str | Path,
+    add_observations: bool = False,
+) -> "CommandTable":
     """Read ``backstop`` and return a ``CommandTable``.
 
-    The ``backstop`` argument can be either be a string file name or a backstop
-    table from ``parse_cm.read_backstop``.
+    The ``backstop`` argument can be either be a string file name or path.
 
-    This function is a wrapper around ``get_cmds_from_backstop`` but follows a
-    more typical naming convention.
+    If ``add_observations`` is ``True`` then add OBS commands (default=False) into the
+    returned ``CommandTable``. This allows the returned ``CommandTable`` to be used in
+    calls to ``get_observations`` and ``get_starcats``.
+
+    The "source" column is set to the load name if it can be determined from the
+    backstop directory path, otherwise it is set to "None".
+
+    Examples
+    --------
+    >>> import kadi.commands as kc
+    >>> import parse_cm.paths
+    >>> path = parse_cm.paths.load_file_path('DEC1123A', "CR*.backstop", "backstop")
+    >>> cmds = kc.read_backstop(path, add_observations=True)
+    >>> obss = kc.get_observations(cmds=cmds)
+    >>> starcats = kc.get_starcats(cmds=cmds)
 
     Parameters
     ----------
-    backstop
-        str or Table
+    backstop: str or Path
+        Backstop file name or path
+    add_observations : bool
+        Add OBS commands (default=False) to allow get_observations() and get_starcats()
 
     Returns
     -------
     :class:`~kadi.commands.commands.CommandTable` of commands
     """
-    return get_cmds_from_backstop(backstop)
+    import parse_cm.paths
+
+    backstop = Path(backstop)
+    cmds = get_cmds_from_backstop(backstop)
+
+    try:
+        load_name = parse_cm.paths.load_name_from_load_dir(backstop.parent)
+    except parse_cm.paths.ParseLoadNameError:
+        load_name = "None"
+    cmds["source"] = load_name
+
+    if add_observations:
+        cmds = _add_observations_to_cmds(cmds)
+
+    return cmds
+
+
+def _add_observations_to_cmds(cmds: "CommandTable") -> "CommandTable":
+    """Add OBS commands to ``cmds`` and return new ``CommandTable``."""
+    import weakref
+
+    import kadi.commands.commands_v2 as kcc2
+    import kadi.commands.states as kcs
+
+    # Get continuity for attitude, obsid, and SIM position. These are part of OBS cmd.
+    rltt = cmds.get_rltt() or cmds["date"][0]
+    cont = kcs.get_continuity(
+        date=rltt, state_keys=["simpos", "obsid", "q1", "q2", "q3", "q4"]
+    )
+    prev_att = tuple(cont[f"q{ii}"] for ii in range(1, 5))
+
+    # Add observations to cmds. This uses the global PARS_DICT and REV_PARS_DICT from
+    # kadi.commands.commands_v2. The AOSTRCAT parameters are added there in-place. Since
+    # those global dicts are persistent and cannot be reloaded, there is no concern
+    # about collisions with a different version of the commands v2 database.
+    cmds_obs = kcc2.add_obs_cmds(
+        cmds,
+        kcc2.PARS_DICT,
+        kcc2.REV_PARS_DICT,
+        prev_att=prev_att,
+        prev_simpos=cont["simpos"],
+        prev_obsid=cont["obsid"],
+    )
+
+    # General implementation note: Using a weakref means that it is not possible to
+    # define local dicts to keep the starcat params "private" to the cmds object. These
+    # local dicts will go out of scope and the weakref becomes undefined. When commands
+    # V1 is removed then there is the possibility of removing the `rev_pars_dict`
+    # attribute. In general it is fragile and basically only works with the global
+    # REV_PARS_DICT anyway. For instance appending two command tables with different
+    # REV_PARS_DICTs will not work as expected.
+
+    # Add weakref to REV_PARS_DICT so that it can be used in CommandRow.__getitem__,
+    # in particular for getting star catalogs via the `starcat_idx` key in OBS commands.
+    cmds_obs.rev_pars_dict = weakref.ref(kcc2.REV_PARS_DICT)
+
+    return cmds_obs
 
 
 def get_cmds_from_backstop(backstop, remove_starcat=False):
