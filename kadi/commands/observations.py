@@ -541,7 +541,8 @@ def get_observations(
         'npnt_enab': True,
         'obs_start': '2007:002:04:46:58.056',
         'prev_att': (0.319214732, 0.535685207, 0.766039803, 0.155969017),
-        'starcat_idx': 144398,
+        'starcat_date': '2007:002:04:31:43.965',
+        'starcat_idx': 147908,
         'source': 'DEC2506C'}
 
         >>> obs_all = get_observations()  # All observations in commands archive
