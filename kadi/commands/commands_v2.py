@@ -484,7 +484,15 @@ def update_archive_and_get_cmds_recent(
     return cmds_recent
 
 
-def add_obs_cmds(cmds: CommandTable, pars_dict, rev_pars_dict, prev_att=None):
+def add_obs_cmds(
+    cmds: CommandTable,
+    pars_dict,
+    rev_pars_dict,
+    *,
+    prev_att=None,
+    prev_obsid=None,
+    prev_simpos=None,
+):
     """Add LOAD_EVENT OBS commands with info about observations.
 
     This command includes the following:
@@ -531,7 +539,12 @@ def add_obs_cmds(cmds: CommandTable, pars_dict, rev_pars_dict, prev_att=None):
     # `pars_dict` and `rev_pars_dict` in place.
     cmds_state_obs = cmds_state.add_cmds(cmds_obs)
     cmds_obs = get_cmds_obs_final(
-        cmds_state_obs, pars_dict, rev_pars_dict, schedule_stop_time
+        cmds_state_obs,
+        pars_dict,
+        rev_pars_dict,
+        schedule_stop_time,
+        prev_obsid=prev_obsid,
+        prev_simpos=prev_simpos,
     )
 
     # Finally add the OBS cmds to the recent cmds table.
@@ -748,7 +761,15 @@ def manvr_duration(q1, q2):
     return tm
 
 
-def get_cmds_obs_final(cmds, pars_dict, rev_pars_dict, schedule_stop_time):
+def get_cmds_obs_final(
+    cmds,
+    pars_dict,
+    rev_pars_dict,
+    schedule_stop_time,
+    *,
+    prev_obsid=None,
+    prev_simpos=None,
+):
     """Fill in the rest of params for each OBS command.
 
     Second pass of processing which implements a state machine to fill in the
@@ -778,10 +799,10 @@ def get_cmds_obs_final(cmds, pars_dict, rev_pars_dict, schedule_stop_time):
     # merging with the archive commands which are always correct. Nevertheless
     # use values that are not None to avoid errors. For `sim_pos`, if the SIM
     # has not been commanded in a long time then it will be at -99616.
-    obsid = -1
+    obsid = -1 if prev_obsid is None else prev_obsid
     starcat_idx = None
     starcat_date = None
-    sim_pos = -99616
+    sim_pos = -99616 if prev_simpos is None else prev_simpos
     obs_params = None
     cmd_obs_extras = []
 
