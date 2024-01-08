@@ -493,16 +493,21 @@ def add_obs_cmds(
     prev_obsid=None,
     prev_simpos=None,
 ):
-    """Add LOAD_EVENT OBS commands with info about observations.
+    """Add 'type=LOAD_EVENT tlmsid=OBS' commands with info about observations.
 
-    This command includes the following:
+    This command params includes the following:
 
     - manvr_start: date of maneuver start
     - npnt_enab: auto-transition to NPNT enabled
-    - obs_start: as the command date
-    - obs_stop: date of subsequent AONMMODE or AONSMSAF command)
+    - obs_start: start date of NPNT corresponding to the command date
+    - obs_stop: stop date of NPNT (subsequent AONMMODE or AONSMSAF command)
     - obsid: observation ID
-    - starcat_idx: index of starcat in reversed params dict
+    - prev_att: previous attitude (4-tuple of quaternion components)
+    - simpos: SIM position
+    - source: source of the observation (e.g. load name)
+    - starcat_date: date of starcat command (if available)
+    - starcat_idx: index of starcat in reversed params dict (if available)
+    - targ_att: target attitude (4-tuple of quaternion components)
 
     Parameters
     ----------
@@ -514,6 +519,10 @@ def add_obs_cmds(
         Dictionary of parameters from the command table, with keys reversed.
     prev_att : tuple
         Continuity attitude. If not supplied the first obs is dropped.
+    prev_obsid : int, optional
+        Previous obsid, default is -1.
+    prev_simpos : int, optional
+        Previous SIM position, default is -99616.
 
     Returns
     -------
@@ -788,6 +797,10 @@ def get_cmds_obs_final(
         reversed dict of parameters for commands
     schedule_stop_time
         date of last command
+    prev_obsid : int, optional
+        Previous obsid, default is -1.
+    prev_simpos : int, optional
+        Previous SIM position, default is -99616.
 
     Returns
     -------
