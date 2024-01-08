@@ -10,9 +10,12 @@ import numpy as np
 import tables
 from astropy.table import Column, Row, Table, TableAttribute, vstack
 from cxotime import CxoTime
+
+# Maintain back-compatibility with ska_load_dir func that was previously in this module
+from parse_cm.paths import load_dir_from_load_name as ska_load_dir
 from ska_helpers import retry
 
-from kadi.paths import IDX_CMDS_PATH, PARS_DICT_PATH, ska_load_dir
+from kadi.paths import IDX_CMDS_PATH, PARS_DICT_PATH
 
 __all__ = ["read_backstop", "get_cmds_from_backstop", "CommandTable", "ska_load_dir"]
 
@@ -168,12 +171,12 @@ def read_backstop(
     """
     import parse_cm.paths
 
-    backstop = Path(backstop)
     cmds = get_cmds_from_backstop(backstop)
 
     try:
+        backstop = Path(backstop)
         load_name = parse_cm.paths.load_name_from_load_dir(backstop.parent)
-    except parse_cm.paths.ParseLoadNameError:
+    except Exception:
         load_name = "None"
     cmds["source"] = load_name
 
