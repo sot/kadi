@@ -4,9 +4,11 @@ import functools
 import logging
 import pickle
 import struct
+import weakref
 from pathlib import Path
 
 import numpy as np
+import parse_cm.paths
 import tables
 from astropy.table import Column, Row, Table, TableAttribute, vstack
 from cxotime import CxoTime
@@ -17,7 +19,13 @@ from ska_helpers import retry
 
 from kadi.paths import IDX_CMDS_PATH, PARS_DICT_PATH
 
-__all__ = ["read_backstop", "get_cmds_from_backstop", "CommandTable", "ska_load_dir"]
+__all__ = [
+    "read_backstop",
+    "get_cmds_from_backstop",
+    "CommandTable",
+    "ska_load_dir",
+    "add_observations_to_cmds",
+]
 
 logger = logging.getLogger(__name__)
 
@@ -137,6 +145,7 @@ def vstack_exact(tables):
 def read_backstop(
     backstop: str | Path,
     add_observations: bool = False,
+    load_name=None,
 ) -> "CommandTable":
     """Read ``backstop`` and return a ``CommandTable``.
 
@@ -146,8 +155,10 @@ def read_backstop(
     returned ``CommandTable``. This allows the returned ``CommandTable`` to be used in
     calls to ``get_observations`` and ``get_starcats``.
 
-    The "source" column is set to the load name if it can be determined from the
-    backstop directory path, otherwise it is set to "None".
+    If ``load_name`` is provided then this is used for the "source" column in the
+    returned table. If not provided, the default is to use the load name if it can be
+    determined from the backstop directory path (e.g. "DEC1123A" from
+    "<rootdir>/2023/DEC1123/oflsa/CR344_2303.backstop"), otherwise it is set to "None".
 
     Examples
     --------
@@ -169,29 +180,57 @@ def read_backstop(
     -------
     :class:`~kadi.commands.commands.CommandTable` of commands
     """
-    import parse_cm.paths
+
+    # Get load name from backstop directory path
+    if isinstance(backstop, str | Path) and load_name is None:
+        backstop = Path(backstop)
+        try:
+            load_name = parse_cm.paths.load_name_from_load_dir(backstop.parent)
+        except parse_cm.paths.ParseLoadNameError:
+            pass
 
     cmds = get_cmds_from_backstop(backstop)
 
-    try:
-        backstop = Path(backstop)
-        load_name = parse_cm.paths.load_name_from_load_dir(backstop.parent)
-    except Exception:
-        load_name = "None"
-    cmds["source"] = load_name
-
     if add_observations:
-        cmds = _add_observations_to_cmds(cmds)
+        cmds = add_observations_to_cmds(cmds, load_name)
 
     return cmds
 
 
-def _add_observations_to_cmds(cmds: "CommandTable") -> "CommandTable":
-    """Add OBS commands to ``cmds`` and return new ``CommandTable``."""
-    import weakref
+def add_observations_to_cmds(
+    cmds: "CommandTable",
+    load_name: str | None = None,
+) -> "CommandTable":
+    """Add OBS commands to ``cmds`` and return new ``CommandTable``.
+
+    This function adds ``tlmsid=OBS`` commands into a copy of ``cmds`` and returns the
+    new ``CommandTable``. This allows the returned ``CommandTable`` to be used in calls
+    to ``get_observations`` and ``get_starcats``.
+
+    If ``load_name`` is provided then this is used for the "source" column in the
+    returned table. Otherwise the "source" column in ``cmds`` is used (if it exists) or
+    it is set to "None".
+
+    Parameters
+    ----------
+    cmds : CommandTable
+        Commands table to add observations.
+    load_name : str, optional
+        Load name to use for "source" column if provided.
+
+    Returns
+    -------
+    CommandTable
+        New commands table with observations added.
+    """
 
     import kadi.commands.commands_v2 as kcc2
     import kadi.commands.states as kcs
+
+    # Adding observations requires the "source" column to exist.
+    if "source" not in cmds.colnames or load_name is not None:
+        cmds = cmds.copy()
+        cmds["source"] = str(load_name)
 
     # Get continuity for attitude, obsid, and SIM position. These are part of OBS cmd.
     rltt = cmds.get_rltt() or cmds["date"][0]
