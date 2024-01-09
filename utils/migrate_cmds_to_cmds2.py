@@ -20,8 +20,8 @@ from kadi.commands.commands_v2 import (
 from kadi.commands.core import (
     get_cmds_from_backstop,
     get_par_idx_update_pars_dict,
-    ska_load_dir,
 )
+from parse_cm.paths import load_dir_from_load_name
 
 logger.setLevel(1)
 
@@ -189,7 +189,7 @@ def get_backstop_cmds_from_load_legacy(load):
     """This also updates the load cmd_start and cmd_stop as a side effect."""
     # THIS WILL BE MADE FASTER by using pre-generated gzipped CommandTable files
     load_name = load if isinstance(load, str) else load["name"]
-    load_dir = ska_load_dir(load_name)
+    load_dir = load_dir_from_load_name(load_name)
     backstop_files = list(load_dir.glob("CR*.backstop"))
     if len(backstop_files) != 1:
         raise ValueError(f"Expected 1 backstop file for {load_name}")

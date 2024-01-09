@@ -4,6 +4,7 @@ import functools
 import logging
 import pickle
 import struct
+import warnings
 import weakref
 from pathlib import Path
 
@@ -12,9 +13,6 @@ import parse_cm.paths
 import tables
 from astropy.table import Column, Row, Table, TableAttribute, vstack
 from cxotime import CxoTime
-
-# Maintain back-compatibility with ska_load_dir func that was previously in this module
-from parse_cm.paths import load_dir_from_load_name as ska_load_dir
 from ska_helpers import retry
 
 from kadi.paths import IDX_CMDS_PATH, PARS_DICT_PATH
@@ -23,7 +21,6 @@ __all__ = [
     "read_backstop",
     "get_cmds_from_backstop",
     "CommandTable",
-    "ska_load_dir",
     "add_observations_to_cmds",
 ]
 
@@ -227,7 +224,7 @@ def add_observations_to_cmds(
     import kadi.commands.commands_v2 as kcc2
     import kadi.commands.states as kcs
 
-    # Adding observations requires the "source" column to exist.
+    # Adding observations via add_obs_cmds() requires the "source" column to exist.
     if "source" not in cmds.colnames or load_name is not None:
         cmds = cmds.copy()
         cmds["source"] = str(load_name)
@@ -1082,3 +1079,16 @@ def get_par_idx_update_pars_dict(pars_dict, cmd, params=None, rev_pars_dict=None
             rev_pars_dict[par_idx] = pars_tup
 
     return par_idx
+
+
+def ska_load_dir(load_name: str) -> Path:
+    """Return a load directory path in $SKA/data from a load name like "DEC1123B"."""
+
+    warnings.warn(
+        "ska_load_dir() is deprecated. Use parse_cm.paths.load_dir_from_load_name()",
+        np.VisibleDeprecationWarning,
+        stacklevel=2,
+    )
+    from parse_cm.paths import load_dir_from_load_name
+
+    return load_dir_from_load_name(load_name)
