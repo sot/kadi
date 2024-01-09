@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
-    <title>Validation API &#8212; kadi 7.7.1 documentation</title>
+    <title>Validation API &#8212; kadi 7.8.0 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/bootstrap-astropy.css" />
     <link rel="stylesheet" type="text/css" href="_static/plot_directive.css" />
@@ -60,7 +60,7 @@
 	 |
       </li>
       <li>
-	<a href="index.html">kadi 7.7.1 documentation</a>
+	<a href="index.html">kadi 7.8.0 documentation</a>
 	 &#187;
       </li>
       <li><a href="api.html" accesskey="U">API documentation</a> &#187;</li>
@@ -90,14 +90,20 @@ or from the command-line application <code class="docutils literal notranslate">
 <dd><p>Plot attributes for a Validate subclass.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>title</strong> – (str): Plot title.</p></li>
-<li><p><strong>ylabel</strong> – (str): Y-axis label.</p></li>
-<li><p><strong>range</strong> – (list): Y-axis range (optional).</p></li>
-<li><p><strong>max_delta_time</strong> – (float): Maximum time delta before new data point is plotted.</p></li>
-<li><p><strong>max_delta_val</strong> – (float): Maximum value delta before new data point is plotted.</p></li>
-<li><p><strong>max_gap_time</strong> – (float): Maximum gap in time before plot gap is inserted.</p></li>
-</ul>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>title</strong><span class="classifier">str</span></dt><dd><p>Plot title.</p>
+</dd>
+<dt><strong>ylabel</strong><span class="classifier">str</span></dt><dd><p>Y-axis label.</p>
+</dd>
+<dt><strong>range</strong><span class="classifier">list, optional</span></dt><dd><p>Y-axis range.</p>
+</dd>
+<dt><strong>max_delta_time</strong><span class="classifier">float, optional</span></dt><dd><p>Maximum time delta before a new data point is plotted.</p>
+</dd>
+<dt><strong>max_delta_val</strong><span class="classifier">float, default 0</span></dt><dd><p>Maximum value delta before a new data point is plotted.</p>
+</dd>
+<dt><strong>max_gap_time</strong><span class="classifier">float, default 300</span></dt><dd><p>Maximum gap in time before a plot gap is inserted.</p>
+</dd>
+</dl>
 </dd>
 </dl>
 </dd></dl>
@@ -106,19 +112,37 @@ or from the command-line application <code class="docutils literal notranslate">
 <dt class="sig sig-object py" id="kadi.commands.validate.Validate">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">kadi.commands.validate.</span></span><span class="sig-name descname"><span class="pre">Validate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stop</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">days</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">14</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">no_exclude</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/commands/validate.html#Validate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.commands.validate.Validate" title="Permalink to this definition">¶</a></dt>
 <dd><p>Validate kadi command states against telemetry base class.</p>
+<p>Class attributes are as follows:</p>
+<dl class="simple">
+<dt>state_name<span class="classifier">str</span></dt><dd><p>Name of state to validate.</p>
+</dd>
+<dt>stop<span class="classifier">CxoTime</span></dt><dd><p>Stop time.</p>
+</dd>
+<dt>days<span class="classifier">float</span></dt><dd><p>Number of days to validate.</p>
+</dd>
+<dt>state_keys_extra<span class="classifier">list, optional</span></dt><dd><p>Extra state keys needed for validation.</p>
+</dd>
+<dt>plot_attrs<span class="classifier">PlotAttrs</span></dt><dd><p>Attributes for plot.</p>
+</dd>
+<dt>msids<span class="classifier">list</span></dt><dd><p>MSIDs to fetch for telemetry.</p>
+</dd>
+<dt>max_delta_val<span class="classifier">float</span></dt><dd><p>Maximum value delta to signal a violation.</p>
+</dd>
+<dt>max_gap<span class="classifier">float</span></dt><dd><p>Maximum gap in telemetry before breaking an interval (sec).</p>
+</dd>
+<dt>min_violation_duration<span class="classifier">float</span></dt><dd><p>Minimum duration of a violation (sec).</p>
+</dd>
+</dl>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>state_name</strong> – (str): Name of state to validate.</p></li>
-<li><p><strong>stop</strong> – (CxoTime): Stop time.</p></li>
-<li><p><strong>days</strong> – (float): Number of days to validate.</p></li>
-<li><p><strong>state_keys_extra</strong> – (list): Extra state keys needed for validation.</p></li>
-<li><p><strong>plot_attrs</strong> – (PlotAttrs): Attributes for plot.</p></li>
-<li><p><strong>msids</strong> – (list): MSIDs to fetch for telemetry.</p></li>
-<li><p><strong>max_delta_val</strong> – (float): Maximum value delta to signal a violation.</p></li>
-<li><p><strong>max_gap</strong> – (float): Maximum gap in telemetry before breaking an interval (sec).</p></li>
-<li><p><strong>min_violation_duration</strong> – (float): Minimum duration of a violation (sec).</p></li>
-</ul>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>stop</strong></dt><dd><p>stop time for validation</p>
+</dd>
+<dt><strong>days</strong></dt><dd><p>number of days for validation</p>
+</dd>
+<dt><strong>no_exclude</strong></dt><dd><p>if True then do not exclude any data (for testing)</p>
+</dd>
+</dl>
 </dd>
 </dl>
 <dl class="py method">
@@ -239,12 +263,6 @@ the states that come from kadi commands. This might be a single MSID
 pointing which comes from 3 quaternion components).</p>
 </dd></dl>
 
-<dl class="py method">
-<dt class="sig sig-object py" id="kadi.commands.validate.Validate.update_tlm">
-<span class="sig-name descname"><span class="pre">update_tlm</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/commands/validate.html#Validate.update_tlm"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.commands.validate.Validate.update_tlm" title="Permalink to this definition">¶</a></dt>
-<dd><p>Update the telemetry values with any subclass-specific processing</p>
-</dd></dl>
-
 </dd></dl>
 
 <dl class="py class">
@@ -337,7 +355,6 @@ making sure to call super().add_exclude_intervals() first.</p>
 <li><a class="reference internal" href="#kadi.commands.validate.Validate.msid"><code class="docutils literal notranslate"><span class="pre">Validate.msid</span></code></a></li>
 <li><a class="reference internal" href="#kadi.commands.validate.Validate.states_at_times"><code class="docutils literal notranslate"><span class="pre">Validate.states_at_times</span></code></a></li>
 <li><a class="reference internal" href="#kadi.commands.validate.Validate.tlm_vals"><code class="docutils literal notranslate"><span class="pre">Validate.tlm_vals</span></code></a></li>
-<li><a class="reference internal" href="#kadi.commands.validate.Validate.update_tlm"><code class="docutils literal notranslate"><span class="pre">Validate.update_tlm()</span></code></a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#kadi.commands.validate.ValidateDither"><code class="docutils literal notranslate"><span class="pre">ValidateDither</span></code></a><ul>

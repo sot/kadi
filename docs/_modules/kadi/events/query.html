@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>kadi.events.query &#8212; kadi 7.7.1 documentation</title>
+    <title>kadi.events.query &#8212; kadi 7.8.0 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/bootstrap-astropy.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/plot_directive.css" />
@@ -46,7 +46,7 @@
     <h3>Navigation</h3>
     <ul>
       <li>
-	<a href="../../../index.html">kadi 7.7.1 documentation</a>
+	<a href="../../../index.html">kadi 7.8.0 documentation</a>
 	 &#187;
       </li>
       <li><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
@@ -71,7 +71,7 @@
 
 <span class="kn">import</span> <span class="nn">django</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">Chandra.Time</span> <span class="kn">import</span> <span class="n">DateTime</span>
+<span class="kn">from</span> <span class="nn">chandra_time</span> <span class="kn">import</span> <span class="n">DateTime</span>
 
 
 <span class="nd">@contextlib</span><span class="o">.</span><span class="n">contextmanager</span>
@@ -233,7 +233,7 @@
 <span class="sd">    A key feature is that EventQuery objects can be combined with boolean</span>
 <span class="sd">    and, or, and not logic to generate composite EventQuery objects.  From</span>
 <span class="sd">    there the intervals() output can be used to select or remove the intervals</span>
-<span class="sd">    from Ska.engarchive fetch datasets.</span>
+<span class="sd">    from cheta fetch datasets.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">interval_pad</span> <span class="o">=</span> <span class="n">IntervalPad</span><span class="p">()</span>  <span class="c1"># descriptor defining a Pad for intervals</span>

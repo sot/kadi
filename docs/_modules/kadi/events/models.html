@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>kadi.events.models &#8212; kadi 7.7.1 documentation</title>
+    <title>kadi.events.models &#8212; kadi 7.8.0 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/bootstrap-astropy.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/plot_directive.css" />
@@ -46,7 +46,7 @@
     <h3>Navigation</h3>
     <ul>
       <li>
-	<a href="../../../index.html">kadi 7.7.1 documentation</a>
+	<a href="../../../index.html">kadi 7.8.0 documentation</a>
 	 &#187;
       </li>
       <li><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
@@ -68,15 +68,15 @@
 <span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">count</span>
 <span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
 
+<span class="kn">import</span> <span class="nn">cheta.fetch_eng</span> <span class="k">as</span> <span class="nn">fetch</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">pyyaks.logger</span>
-<span class="kn">import</span> <span class="nn">Ska.engarchive.fetch_eng</span> <span class="k">as</span> <span class="nn">fetch</span>
 <span class="kn">from</span> <span class="nn">astropy</span> <span class="kn">import</span> <span class="n">table</span>
-<span class="kn">from</span> <span class="nn">Chandra.Time</span> <span class="kn">import</span> <span class="n">DateTime</span>
+<span class="kn">from</span> <span class="nn">chandra_time</span> <span class="kn">import</span> <span class="n">DateTime</span>
+<span class="kn">from</span> <span class="nn">cheta</span> <span class="kn">import</span> <span class="n">utils</span>
 <span class="kn">from</span> <span class="nn">django.db</span> <span class="kn">import</span> <span class="n">models</span>
 <span class="kn">from</span> <span class="nn">Quaternion</span> <span class="kn">import</span> <span class="n">Quat</span>
-<span class="kn">from</span> <span class="nn">Ska.engarchive</span> <span class="kn">import</span> <span class="n">utils</span>
-<span class="kn">from</span> <span class="nn">Ska.Numpy</span> <span class="kn">import</span> <span class="n">interpolate</span>
+<span class="kn">from</span> <span class="nn">ska_numpy</span> <span class="kn">import</span> <span class="n">interpolate</span>
 
 <span class="kn">from</span> <span class="nn">.manvr_templates</span> <span class="kn">import</span> <span class="n">get_manvr_templates</span>
 
@@ -393,7 +393,7 @@
 
 <span class="sd">            :returns: list of overlapping events</span>
 <span class="sd">            &quot;&quot;&quot;</span>
-            <span class="kn">from</span> <span class="nn">Chandra.Time</span> <span class="kn">import</span> <span class="n">DateTime</span>
+            <span class="kn">from</span> <span class="nn">chandra_time</span> <span class="kn">import</span> <span class="n">DateTime</span>
 
             <span class="kn">from</span> <span class="nn">.query</span> <span class="kn">import</span> <span class="n">combine_intervals</span>
 
