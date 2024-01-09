@@ -20,6 +20,7 @@ import requests
 from astropy.table import Table
 from chandra_maneuver import NSM_attitude
 from cxotime import CxoTime
+from parse_cm.paths import load_dir_from_load_name
 from testr.test_helper import has_internet
 
 from kadi import occweb, paths
@@ -33,7 +34,6 @@ from kadi.commands.core import (
     load_idx_cmds,
     load_name_to_cxotime,
     load_pars_dict,
-    ska_load_dir,
     vstack_exact,
 )
 
@@ -1150,7 +1150,7 @@ def get_load_cmds_from_occweb_or_local(
         return cmds
 
     if use_ska_dir:
-        ska_dir = ska_load_dir(load_name)
+        ska_dir = load_dir_from_load_name(load_name)
         for filename in ska_dir.glob("CR????????.backstop"):
             backstop_text = filename.read_text()
             logger.info(f"Got backstop from {filename}")
