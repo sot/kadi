@@ -2,9 +2,9 @@
 import calendar
 import functools
 import logging
+import os
 import pickle
 import struct
-import warnings
 import weakref
 from pathlib import Path
 
@@ -1081,14 +1081,14 @@ def get_par_idx_update_pars_dict(pars_dict, cmd, params=None, rev_pars_dict=None
     return par_idx
 
 
-def ska_load_dir(load_name: str) -> Path:
-    """Return a load directory path in $SKA/data from a load name like "DEC1123B"."""
-
-    warnings.warn(
-        "ska_load_dir() is deprecated. Use parse_cm.paths.load_dir_from_load_name()",
-        np.VisibleDeprecationWarning,
-        stacklevel=2,
-    )
-    from parse_cm.paths import load_dir_from_load_name
-
-    return load_dir_from_load_name(load_name)
+def ska_load_dir(load_name):
+    root = Path(os.environ["SKA"]) / "data" / "mpcrit1" / "mplogs"
+    year = load_name[5:7]
+    if year == "99":
+        year = 1999
+    else:
+        year = 2000 + int(year)
+    load_rev = load_name[-1].lower()
+    load_dir = load_name[:-1]
+    load_dir = root / str(year) / load_dir / f"ofls{load_rev}"
+    return load_dir
