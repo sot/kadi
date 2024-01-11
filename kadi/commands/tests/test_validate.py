@@ -4,6 +4,7 @@ import functools
 import gzip
 import pickle
 from pathlib import Path
+import requests
 
 import numpy as np
 import pytest
@@ -25,7 +26,7 @@ REGRESSION_DAYS = 5
 try:
     get_command_sheet_exclude_intervals()
     CMD_SHEET_AVAILABLE = True
-except ConnectionError:
+except requests.exceptions.ConnectionError:
     CMD_SHEET_AVAILABLE = False
 
 
