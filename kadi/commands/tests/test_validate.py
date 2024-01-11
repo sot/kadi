@@ -10,7 +10,11 @@ import pytest
 import ska_sun
 
 from kadi.commands.utils import compress_time_series
-from kadi.commands.validate import Validate, ValidateRoll, get_command_sheet_exclude_intervals
+from kadi.commands.validate import (
+    Validate,
+    ValidateRoll,
+    get_command_sheet_exclude_intervals,
+)
 
 # Regression testing for this 5-day period covering a safe mode with plenty of things
 # happening. There are a number of violations in this period and a couple of excluded
