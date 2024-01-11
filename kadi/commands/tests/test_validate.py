@@ -4,10 +4,10 @@ import functools
 import gzip
 import pickle
 from pathlib import Path
-import requests
 
 import numpy as np
 import pytest
+import requests
 import ska_sun
 
 from kadi.commands.utils import compress_time_series
