@@ -127,7 +127,7 @@ def get_ifot(
     lines = [x for x in text.split("\t\n") if x.strip()]
 
     converters = {
-        key: [ascii.convert_numpy(getattr(np, type_))] for key, type_ in types.items()
+        key: [ascii.convert_numpy(type_)] for key, type_ in types.items()
     }
     dat = ascii.read(
         lines, format="tab", guess=False, converters=converters, fill_values=None
