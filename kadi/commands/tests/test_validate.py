@@ -7,14 +7,13 @@ from pathlib import Path
 
 import numpy as np
 import pytest
-import requests
 import ska_sun
+from testr.test_helper import has_internet
 
 from kadi.commands.utils import compress_time_series
 from kadi.commands.validate import (
     Validate,
     ValidateRoll,
-    get_command_sheet_exclude_intervals,
 )
 
 # Regression testing for this 5-day period covering a safe mode with plenty of things
@@ -23,11 +22,7 @@ from kadi.commands.validate import (
 REGRESSION_STOP = "2022:297"
 REGRESSION_DAYS = 5
 
-try:
-    get_command_sheet_exclude_intervals()
-    CMD_SHEET_AVAILABLE = True
-except requests.exceptions.ConnectionError:
-    CMD_SHEET_AVAILABLE = False
+HAS_INTERNET = has_internet()
 
 
 def write_regression_data(stop, days, no_exclude):
@@ -118,7 +113,7 @@ def test_validate_subclasses():
     assert set(data_all_exp.keys()) == {cls.state_name for cls in Validate.subclasses}
 
 
-@pytest.mark.skipif(not CMD_SHEET_AVAILABLE, reason="Command sheet not available")
+@pytest.mark.skipif(not HAS_INTERNET, reason="Command sheet not available")
 @pytest.mark.parametrize("cls", Validate.subclasses)
 @pytest.mark.parametrize("no_exclude", [False, True])
 def test_validate_regression(cls, no_exclude, fast_sun_position_method):
@@ -147,7 +142,7 @@ def test_validate_regression(cls, no_exclude, fast_sun_position_method):
     assert np.all(data_obs["violations"] == data_exp["violations"])
 
 
-@pytest.mark.skipif(not CMD_SHEET_AVAILABLE, reason="Command sheet not available")
+@pytest.mark.skipif(not HAS_INTERNET, reason="Command sheet not available")
 def test_off_nominal_roll_violations():
     """Test off_nominal_roll violations over a time range with tail sun observations"""
     # Default sun position method is "accurate".

@@ -7,6 +7,7 @@ import pytest
 import requests
 import ska_file
 import ska_ftp
+from testr.test_helper import has_internet
 
 from kadi import occweb
 
@@ -66,7 +67,7 @@ def test_put_get_user_none():
 # uses the /proj/sot/ska/data/aspect_authorization area, so existence of the right file
 # in there can just be checked by the get_auth routine
 user, passwd = occweb.get_auth()
-HAS_OCCWEB = bool(user is not None)
+HAS_OCCWEB = bool(user is not None) and has_internet()
 
 
 @pytest.mark.skipif(not HAS_OCCWEB, reason="No access to OCCweb")
@@ -139,6 +140,7 @@ def test_get_occweb_noodle(lowercase, backslash):
     assert files_path.pformat_all() == exp
 
 
+@pytest.mark.skipif(not HAS_OCCWEB, reason="No access to OCCweb")
 @pytest.mark.parametrize("noodle_path", occweb.NOODLE_OCCWEB_MAP)
 def test_all_get_occweb_noodle(noodle_path):
     """Make sure we can get a directory from noodle for all available
