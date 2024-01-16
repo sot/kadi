@@ -1855,7 +1855,7 @@ def get_states(
 
         # Process the transition.
         for key, value in transition.items():
-            if inspect.ismethod(value):
+            if callable(value):
                 # Special case of a functional transition that calls a function
                 # instead of directly updating the state.  The function might itself
                 # update the state or it might generate downstream transitions.
