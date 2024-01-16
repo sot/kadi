@@ -5,6 +5,7 @@ This is based entirely on known history of commands.
 """
 import collections
 import contextlib
+import functools
 import inspect
 import itertools
 import re
@@ -1578,6 +1579,108 @@ class ACISFP_SetPointTransition(BaseTransition):
                 if not match:
                     raise ValueError(f"unable to parse command {tlmsid}")
                 transitions[date].update(acisfp_setpoint=-float(match.group(1)))
+
+
+class FidsTransition(BaseTransition):
+    """
+    Fid light transitions.
+
+    This sets the "fids" to a Python set of FID IDs that are currently on.
+
+    The relevant fid light commands are shown below. Basically it comes down to AFLCxxDy
+    (fid id xx and driver y) commands, AFLCRSET and AFLCAAOF/AFLCAAON/AFLCABOF/AFLCABON
+    commands. The latter four are never used (we don't turn the fid light controllers on
+    or off in loads). This table is from the CDB in
+    ``$SKA/data/Ska.tdb/cdb/p010/cdb_command.csv``.
+    ::
+
+        cmd_mnemonic                 technical_name
+        ------------ ---------------------------------------------
+            AFLC01D1   drive flca fid light 1 (acis-1) on driver 1
+            AFLC01D2   drive flca fid light 1 (acis-1) on driver 2
+            AFLC01D3   drive flca fid light 1 (acis-1) on driver 3
+            AFLC01D4   drive flca fid light 1 (acis-1) on driver 4
+            AFLC02D1   drive flca fid light 2 (acis-2) on driver 1
+            AFLC02D2   drive flca fid light 2 (acis-2) on driver 2
+            AFLC02D3   drive flca fid light 2 (acis-2) on driver 3
+            AFLC02D4   drive flca fid light 2 (acis-2) on driver 4
+            AFLC03D1   drive flca fid light 3 (acis-3) on driver 1
+            AFLC03D2   drive flca fid light 3 (acis-3) on driver 2
+            AFLC03D3   drive flca fid light 3 (acis-3) on driver 3
+            AFLC03D4   drive flca fid light 3 (acis-3) on driver 4
+            AFLC04D1   drive flca fid light 4 (acis-4) on driver 1
+            AFLC04D2   drive flca fid light 4 (acis-4) on driver 2
+            AFLC04D3   drive flca fid light 4 (acis-4) on driver 3
+            AFLC04D4   drive flca fid light 4 (acis-4) on driver 4
+            AFLC05D1   drive flca fid light 5 (acis-5) on driver 1
+            AFLC05D2   drive flca fid light 5 (acis-5) on driver 2
+            AFLC05D3   drive flca fid light 5 (acis-5) on driver 3
+            AFLC05D4   drive flca fid light 5 (acis-5) on driver 4
+            AFLC06D1   drive flca fid light 6 (acis-6) on driver 1
+            AFLC06D2   drive flca fid light 6 (acis-6) on driver 2
+            AFLC06D3   drive flca fid light 6 (acis-6) on driver 3
+            AFLC06D4   drive flca fid light 6 (acis-6) on driver 4
+            AFLC07D1  drive flca fid light 7 (hrc-i-1) on driver 1
+            AFLC08D2  drive flca fid light 8 (hrc-i-2) on driver 2
+            AFLC09D3  drive flca fid light 9 (hrc-i-3) on driver 3
+            AFLC10D4 drive flca fid light 10 (hrc-i-4) on driver 4
+            AFLC11D1 drive flca fid light 11 (hrc-s-1) on driver 1
+            AFLC12D2 drive flca fid light 12 (hrc-s-3) on driver 2
+            AFLC13D3 drive flca fid light 13 (hrc-s-2) on driver 3
+            AFLC14D4 drive flca fid light 14 (hrc-s-4) on driver 4
+            AFLCAAOF                                  flca - a off
+            AFLCAAON                                   flca - a on
+            AFLCABOF                                  flca - b off
+            AFLCABON                                   flca - b on
+            AFLCRSET                      flca configuration reset
+    """
+
+    command_attributes = {"tlmsid": "AFIDP"}
+    state_keys = ["fids"]
+
+    @classmethod
+    def set_transitions(cls, transitions_dict, cmds, start, stop):
+        """
+        Set transitions for a Table of commands ``cmds``.
+
+        Parameters
+        ----------
+        transitions_dict
+            global dict of transitions (updated in-place)
+        cmds
+            commands (CmdList)
+        start
+            start time for states
+        stop
+            stop time for states
+
+        Returns
+        -------
+        None
+        """
+        state_cmds = cls.get_state_changing_commands(cmds)
+
+        for cmd in state_cmds:
+            msid = cmd["msid"]
+            if msid == "AFLCRSET" or re.match(r"AFLC \d\d D \d $", msid, re.VERBOSE):
+                transitions_dict[cmd["date"]]["fids"] = functools.partial(
+                    FidsTransition.fids_callback, msid
+                )
+
+    @staticmethod
+    def fids_callback(msid, date, transitions, state, idx):
+        """Update ``state`` for the given fid light command ``msid``."""
+        if msid == "AFLCRSET":
+            state["fids"] = set()
+        else:
+            # Only AFLCxxDy commands can make it here from set_transitions filtering
+            fid_id = int(msid[4:6])
+            # state["fids"] could be None at the beginning
+            fids = state["fids"]
+            if fids is None:
+                fids = set()
+            # Add the fid light to the ON set
+            state["fids"] = fids | {fid_id}
 
 
 ###################################################################
