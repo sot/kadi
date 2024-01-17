@@ -608,16 +608,17 @@ class CommandTable(Table):
         -------
         CommandTable
         """
+        orig = self
         if rltt is not None:
-            remove_idxs = np.where(self["date"] > rltt)[0]
-            self.remove_rows(remove_idxs)
+            ok = orig["date"] <= rltt
+            orig = orig[ok]
 
         try:
             # Substantially faster than plain Table vstack (this is slow due to
             # checks for strings overflowing and other generalities)
-            out = vstack_exact([self, cmds])
+            out = vstack_exact([orig, cmds])
         except ValueError:
-            out = vstack([self, cmds])
+            out = vstack([orig, cmds])
         out.sort_in_backstop_order()
         out.rev_pars_dict = self.rev_pars_dict
 
