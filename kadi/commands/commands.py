@@ -2,10 +2,13 @@ import functools
 import os
 
 from kadi.commands import conf
+from kadi.commands.core import CommandTable
 from kadi.commands.observations import *  # noqa
 
 
-def get_cmds(start=None, stop=None, inclusive_stop=False, scenario=None, **kwargs):
+def get_cmds(
+    start=None, stop=None, inclusive_stop=False, scenario=None, **kwargs
+) -> CommandTable:
     """
     Get commands beteween ``start`` and ``stop``.
 
