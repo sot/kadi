@@ -154,9 +154,16 @@ def read_backstop(
     calls to ``get_observations`` and ``get_starcats``.
 
     If ``load_name`` is provided then this is used for the "source" column in the
-    returned table. If not provided, the default is to use the load name if it can be
-    determined from the backstop directory path (e.g. "DEC1123A" from
-    "<rootdir>/2023/DEC1123/oflsa/CR344_2303.backstop"), otherwise it is set to "None".
+    returned table.
+
+    If ``load_name`` is not provided, the default is to use the load name if it can be
+    determined from the backstop directory path. This path must follow the SOT MP
+    naming convention where the directory path containing the backstop file looks like
+    ``<prefix>/<YEAR>/<MON><DD><YY>/ofls<REV>/*.backstop``. An example would be
+    ``/proj/sot/ska/data/mpcrit1/mplogs/2023/DEC1123/oflsa/CR344_2303.backstop``.
+
+    If reading a backstop file from a local directory then the load name should be
+    provided explicitly.
 
     Examples
     --------
