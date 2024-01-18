@@ -180,6 +180,8 @@ def read_backstop(
         Backstop file name or path
     add_observations : bool
         Add OBS commands (default=False) to allow get_observations() and get_starcats()
+    load_name : str, optional
+        Load name to use for "source" column if provided.
 
     Returns
     -------
