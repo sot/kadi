@@ -1509,3 +1509,62 @@ def test_command_not_run(case):
     cmds_with_event.sort_in_backstop_order()
     cmds_with_event.remove_not_run_cmds()
     assert cmds_with_event.pformat_like_backstop() == cmds_exp.pformat_like_backstop()
+
+
+def test_add_cmds():
+    """Test add_cmds with and without RLTT"""
+    cmds1_text = """
+2023:344:23:30:00.000 | 16200421 0 | COMMAND_SW | TLMSID= CMD1, SCS= 128, STEP= 0
+2023:344:23:32:59.999 | 16200421 0 | COMMAND_SW | TLMSID= CMD2, SCS= 128, STEP= 0
+2023:344:23:33:00.000 | 16201123 0 | COMMAND_SW | TLMSID= CMD3, SCS= 128, STEP= 0
+2023:344:23:33:00.000 | 16201123 0 | COMMAND_SW | TLMSID= CMD4, SCS= 128, STEP= 0
+2023:344:23:33:00.001 | 16201124 0 | COMMAND_SW | TLMSID= CMD5, SCS= 128, STEP= 0
+2023:344:23:34:00.000 | 16201124 0 | COMMAND_SW | TLMSID= CMD6, SCS= 128, STEP= 0
+"""
+
+    cmds2_text = """
+2023:344:23:30:00.000 | 16200421 0 | COMMAND_SW | TLMSID= CMD1_2, SCS= 130, STEP= 0
+2023:344:23:32:59.999 | 16200421 0 | COMMAND_SW | TLMSID= CMD2_2, SCS= 130, STEP= 0
+2023:344:23:33:00.000 |        0 0 | LOAD_EVENT | TYPE= RUNNING_LOAD_TERMINATION_TIME, SCS=0, STEP=0
+2023:344:23:33:00.000 | 16201123 0 | COMMAND_SW | TLMSID= CMD3_2, SCS= 130, STEP= 0
+2023:344:23:33:00.000 | 16201123 0 | COMMAND_SW | TLMSID= CMD4_2, SCS= 130, STEP= 0
+2023:344:23:33:00.001 | 16201124 0 | COMMAND_SW | TLMSID= CMD5_2, SCS= 130, STEP= 0
+2023:344:23:34:00.000 | 16201124 0 | COMMAND_SW | TLMSID= CMD6_2, SCS= 130, STEP= 0
+"""
+    cmds1 = commands.read_backstop(cmds1_text.strip().splitlines())
+    cmds2 = commands.read_backstop(cmds2_text.strip().splitlines())
+    cmds12_rltt = cmds1.add_cmds(cmds2, rltt=cmds2.get_rltt())
+    # Commands from cmds1 with date > 2023:344:23:33:00:000 (RLTT) are removed.
+    exp_rltt = [
+        "2023:344:23:30:00.000 | COMMAND_SW       | CMD1       |        0 | scs=128",
+        "2023:344:23:30:00.000 | COMMAND_SW       | CMD1_2     |        0 | scs=130",
+        "2023:344:23:32:59.999 | COMMAND_SW       | CMD2       |        0 | scs=128",
+        "2023:344:23:32:59.999 | COMMAND_SW       | CMD2_2     |        0 | scs=130",
+        "2023:344:23:33:00.000 | LOAD_EVENT       | None       |        0 | event_type=RUNNING_LOAD_TERMINATION_TIME, scs=0",
+        "2023:344:23:33:00.000 | COMMAND_SW       | CMD3       |        0 | scs=128",
+        "2023:344:23:33:00.000 | COMMAND_SW       | CMD4       |        0 | scs=128",
+        "2023:344:23:33:00.000 | COMMAND_SW       | CMD3_2     |        0 | scs=130",
+        "2023:344:23:33:00.000 | COMMAND_SW       | CMD4_2     |        0 | scs=130",
+        "2023:344:23:33:00.001 | COMMAND_SW       | CMD5_2     |        0 | scs=130",
+        "2023:344:23:34:00.000 | COMMAND_SW       | CMD6_2     |        0 | scs=130",
+    ]
+    assert cmds12_rltt.pformat_like_backstop() == exp_rltt
+
+    cmds12_no_rltt = cmds1.add_cmds(cmds2)
+    # All commands from both cmds1 and cmds2 are included.
+    exp_no_rltt = [
+        "2023:344:23:30:00.000 | COMMAND_SW       | CMD1       |        0 | scs=128",
+        "2023:344:23:30:00.000 | COMMAND_SW       | CMD1_2     |        0 | scs=130",
+        "2023:344:23:32:59.999 | COMMAND_SW       | CMD2       |        0 | scs=128",
+        "2023:344:23:32:59.999 | COMMAND_SW       | CMD2_2     |        0 | scs=130",
+        "2023:344:23:33:00.000 | LOAD_EVENT       | None       |        0 | event_type=RUNNING_LOAD_TERMINATION_TIME, scs=0",
+        "2023:344:23:33:00.000 | COMMAND_SW       | CMD3       |        0 | scs=128",
+        "2023:344:23:33:00.000 | COMMAND_SW       | CMD4       |        0 | scs=128",
+        "2023:344:23:33:00.000 | COMMAND_SW       | CMD3_2     |        0 | scs=130",
+        "2023:344:23:33:00.000 | COMMAND_SW       | CMD4_2     |        0 | scs=130",
+        "2023:344:23:33:00.001 | COMMAND_SW       | CMD5       |        0 | scs=128",
+        "2023:344:23:33:00.001 | COMMAND_SW       | CMD5_2     |        0 | scs=130",
+        "2023:344:23:34:00.000 | COMMAND_SW       | CMD6       |        0 | scs=128",
+        "2023:344:23:34:00.000 | COMMAND_SW       | CMD6_2     |        0 | scs=130",
+    ]
+    assert cmds12_no_rltt.pformat_like_backstop() == exp_no_rltt
