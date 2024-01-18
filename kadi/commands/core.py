@@ -15,6 +15,7 @@ from astropy.table import Column, Row, Table, TableAttribute, vstack
 from cxotime import CxoTime
 from ska_helpers import retry
 
+from kadi.commands import conf
 from kadi.paths import IDX_CMDS_PATH, PARS_DICT_PATH
 
 __all__ = [
@@ -741,7 +742,10 @@ class CommandTable(Table):
         This matches the order in backstop.
         """
         # Legacy sort for V1 commands archive
-        if "timeline_id" in self.colnames:
+        if (
+            os.environ.get("KADI_COMMANDS_VERSION", conf.commands_version) == "1"
+            and "timeline_id" in self.colnames
+        ):
             self.sort(["date", "step", "scs"])
             return
 
