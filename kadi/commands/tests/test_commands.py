@@ -1572,7 +1572,11 @@ def test_add_cmds():
 
 
 def test_read_backstop_with_observations():
-    """Test reading backstop with observations in it."""
+    """Test reading backstop with observations in it.
+
+    This tests reading the DEC1123A loads and showing that the observations and
+    star catalogs are exactly the same as in the flight commands archive.
+    """
     try:
         path = parse_cm.paths.load_file_path("DEC1123A", "CR*.backstop", "backstop")
     except FileNotFoundError:
@@ -1582,34 +1586,18 @@ def test_read_backstop_with_observations():
     obss = get_observations(cmds=cmds)
     starcats = get_starcats(cmds=cmds)
 
-    assert len(obss) == 78
-    assert len(starcats) == 72
-    exp_obs0 = {
-        "manvr_start": "2023:344:23:33:10.251",
-        "prev_att": (-0.587363502, -0.200242632, -0.205653644, 0.756712352),
-        "targ_att": (-0.42999167, -0.291196249, -0.689737261, 0.504553683),
-        "npnt_enab": True,
-        "obsid": 43907,
-        "simpos": -99616,
-        "obs_start": "2023:344:23:59:01.826",
-        "starcat_date": "2023:344:23:33:06.000",
-        "obs_stop": "2023:345:00:49:15.786",
-        "source": "DEC1123A",
-    }
-    exp_obs0["starcat_idx"] = obss[0]["starcat_idx"]
-    assert exp_obs0 == obss[0]
+    cmds_flight = commands.get_cmds(source="DEC1123A")
+    obss_cmds_flight = get_observations(cmds=cmds_flight)
+    starcats_cmds_flight = get_starcats(cmds=cmds_flight)
 
-    exp_starcat0 = [
-        "slot idx     id    type  sz  mag  maxmag   yang     zang   dim res halfw",
-        "---- --- --------- ---- --- ----- ------ -------- -------- --- --- -----",
-        "   0   1 549329720  BOT 8x8  7.08   8.59 -1771.09 -1552.73  28   1   160",
-        "   1   2 549329080  BOT 8x8  7.23   8.73 -1148.42  -542.93  28   1   160",
-        "   2   3 549329784  BOT 8x8  8.06   9.58  2316.16  -998.84  28   1   160",
-        "   3   4 549728064  BOT 8x8  8.89  10.44 -2354.67  2019.05  28   1   160",
-        "   4   5 549327128  BOT 8x8  8.88  10.45  2059.15  -891.17  20   1   120",
-        "   5   6 549718568  BOT 8x8  9.50  10.89  -236.94    48.26  28   1   160",
-        "   6   7 549333768  BOT 8x8  9.84  10.89  -550.44 -2025.54  28   1   160",
-        "   7   8 549729368  GUI 8x8  9.54  11.20  1857.78  1751.26   1   1    25",
-        "   7   9 549329640  ACQ 8x8  9.50  10.89 -2002.62 -1016.35  28   1   160",
-    ]
-    assert exp_starcat0 == starcats[0].pformat_all()
+    assert len(obss) == len(obss_cmds_flight)
+    assert len(starcats) == len(starcats_cmds_flight)
+
+    for obs, obs_flight in zip(obss, obss_cmds_flight):
+        # starcat idx will be different
+        obs.pop("starcat_idx", None)
+        obs_flight.pop("starcat_idx", None)
+        assert obs == obs_flight
+
+    for starcat, starcat_flight in zip(starcats, starcats_cmds_flight):
+        assert starcat.pformat_all() == starcat_flight.pformat_all()
