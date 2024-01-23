@@ -145,6 +145,7 @@ def read_backstop(
     backstop: str | Path,
     add_observations: bool = False,
     load_name=None,
+    fix_aouptarq: bool = False,
 ) -> "CommandTable":
     """Read ``backstop`` and return a ``CommandTable``.
 
@@ -183,6 +184,8 @@ def read_backstop(
         Add OBS commands (default=False) to allow get_observations() and get_starcats()
     load_name : str, optional
         Load name to use for "source" column if provided.
+    fix_aouptarq : bool, optional
+        Fix AOUPTARQ command Q4 values to match what OBC uses (default=True).
 
     Returns
     -------
@@ -197,7 +200,7 @@ def read_backstop(
         except parse_cm.paths.ParseLoadNameError:
             pass
 
-    cmds = get_cmds_from_backstop(backstop)
+    cmds = get_cmds_from_backstop(backstop, fix_aouptarq=fix_aouptarq)
 
     if add_observations:
         cmds = add_observations_to_cmds(cmds, load_name)
@@ -275,7 +278,11 @@ def add_observations_to_cmds(
     return cmds_obs
 
 
-def get_cmds_from_backstop(backstop, remove_starcat=False):
+def get_cmds_from_backstop(
+    backstop,
+    remove_starcat=False,
+    fix_aouptarq: bool = False,
+):
     """
     Initialize a ``CommandTable`` from ``backstop``.
 
@@ -288,6 +295,8 @@ def get_cmds_from_backstop(backstop, remove_starcat=False):
         str or Table
     remove_starcat
         remove star catalog command parameters (default=False)
+    fix_aouptarq : bool, optional
+        Fix AOUPTARQ command Q4 values to match what OBC uses (default=True).
 
     Returns
     -------
@@ -339,7 +348,53 @@ def get_cmds_from_backstop(backstop, remove_starcat=False):
     out = CommandTable(out)
     out["time"].info.format = ".3f"
 
+    if fix_aouptarq:
+        fix_aouptarq_cmds(out)
+
     return out
+
+
+def fix_aouptarq_cmds(cmds):
+    """Update AOUPSTARQ commands in ``cmds`` in-place to match what OBC uses.
+
+    Reference email from E. Martin "FW: Issue with MCC loading maneuver summary for
+    AUG1312A"::
+
+      Also of note is that when we command a new target quaternion, only the first
+      3 components are uplinked.  The Target Reference subfunction computes the
+      4th component as:
+
+      Q_Mag := ( Q_Targ_Cmd(1)*Q_Targ_Cmd(1) ) +
+              ( Q_Targ_Cmd(2)*Q_Targ_Cmd(2) ) +
+              ( Q_Targ_Cmd(3)*Q_Targ_Cmd(3) );
+      Q_Targ_Cmd(4) := SQRT( 1.0 - Q_Mag );
+      QUATERNION_NORMALIZE( Q_Targ_Cmd, Q_Targ_Cmd, Q_Norm_OK );
+
+    Parameters
+    ----------
+    cmds : CommandTable
+        Commands table to fix
+
+    Returns
+    -------
+    None
+    """
+    idxs = np.where(cmds["tlmsid"] == "AOUPTARQ")[0]
+    for idx in idxs:
+        params = cmds["params"][idx]
+        q_backstop = [params[f"q{ii}"] for ii in range(1, 5)]
+        # Quaternion components 1-3 uplinked as float32, but used by OBC as float64.
+        q_uplink = np.array(q_backstop, dtype=np.float32)
+        if q_uplink[3] < 0:
+            q_uplink *= -1
+            print(f"{q_uplink=}")
+        q_obc = q_uplink.astype(np.float64)
+        q4 = np.sqrt(np.abs(1.0 - np.sum(q_obc[:3] ** 2)))
+        q_obc[3] = q4
+        norm = np.linalg.norm(q_obc)
+        q_obc /= norm
+        for ii in range(1, 5):
+            params[f"q{ii}"] = q_obc[ii - 1]
 
 
 def _find(
