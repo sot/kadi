@@ -495,8 +495,7 @@ def add_obs_cmds(
 ):
     """Add 'type=LOAD_EVENT tlmsid=OBS' commands with info about observations.
 
-    This command params includes the following:
-
+    These "OBS" commands include the following params:
     - manvr_start: date of maneuver start
     - npnt_enab: auto-transition to NPNT enabled
     - obs_start: start date of NPNT corresponding to the command date
