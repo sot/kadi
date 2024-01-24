@@ -5,17 +5,26 @@ import logging
 import os
 import pickle
 import struct
+import warnings
+import weakref
 from pathlib import Path
 
 import numpy as np
+import parse_cm.paths
 import tables
 from astropy.table import Column, Row, Table, TableAttribute, vstack
 from cxotime import CxoTime
 from ska_helpers import retry
 
+from kadi.commands import conf
 from kadi.paths import IDX_CMDS_PATH, PARS_DICT_PATH
 
-__all__ = ["read_backstop", "get_cmds_from_backstop", "CommandTable"]
+__all__ = [
+    "read_backstop",
+    "get_cmds_from_backstop",
+    "CommandTable",
+    "add_observations_to_cmds",
+]
 
 logger = logging.getLogger(__name__)
 
@@ -132,25 +141,146 @@ def vstack_exact(tables):
     return out
 
 
-def read_backstop(backstop):
+def read_backstop(
+    backstop: str | Path | list[str],
+    add_observations: bool = False,
+    load_name=None,
+) -> "CommandTable":
     """Read ``backstop`` and return a ``CommandTable``.
 
-    The ``backstop`` argument can be either be a string file name or a backstop
-    table from ``parse_cm.read_backstop``.
+    The ``backstop`` argument can be either be a string or Path to a backstop file or
+    a list of lines from a backstop file.
 
-    This function is a wrapper around ``get_cmds_from_backstop`` but follows a
-    more typical naming convention.
+    If ``add_observations`` is ``True`` then add OBS commands (default=False) into the
+    returned ``CommandTable``. This allows the returned ``CommandTable`` to be used in
+    calls to ``get_observations`` and ``get_starcats``.
+
+    If ``load_name`` is provided then this is used for the "source" column in the
+    returned table.
+
+    If ``load_name`` is not provided, the default is to use the load name if it can be
+    determined from the backstop directory path. This path must follow the SOT MP
+    naming convention where the directory path containing the backstop file looks like
+    ``<prefix>/<YEAR>/<MON><DD><YY>/ofls<REV>/*.backstop``. An example would be
+    ``/proj/sot/ska/data/mpcrit1/mplogs/2023/DEC1123/oflsa/CR344_2303.backstop``.
+
+    If reading a backstop file from a local directory or from a list of lines then the
+    load name should be provided explicitly.
+
+    Examples
+    --------
+    >>> import kadi.commands as kc
+    >>> import parse_cm.paths
+    >>> path = parse_cm.paths.load_file_path('DEC1123A', "CR*.backstop", "backstop")
+    >>> cmds = kc.read_backstop(path, add_observations=True)
+    >>> obss = kc.get_observations(cmds=cmds)
+    >>> starcats = kc.get_starcats(cmds=cmds)
 
     Parameters
     ----------
-    backstop
-        str or Table
+    backstop: str or Path or list of str
+        Backstop file name or path, or backstop file contents as a list of str
+    add_observations : bool
+        Add OBS commands (default=False) to allow get_observations() and get_starcats()
+    load_name : str, optional
+        Load name to use for "source" column if provided.
 
     Returns
     -------
     :class:`~kadi.commands.commands.CommandTable` of commands
     """
-    return get_cmds_from_backstop(backstop)
+
+    # Get load name from backstop directory path
+    if isinstance(backstop, str | Path) and load_name is None:
+        backstop = Path(backstop)
+        try:
+            load_name = parse_cm.paths.load_name_from_load_dir(backstop.parent)
+        except parse_cm.paths.ParseLoadNameError:
+            pass
+
+    if isinstance(backstop, Table):
+        warnings.warn(
+            "Passing a Table to read_backstop() is deprecated and will raise "
+            "an exception in a future release.",
+            FutureWarning,
+        )
+
+    cmds = get_cmds_from_backstop(backstop)
+
+    if add_observations:
+        cmds = add_observations_to_cmds(cmds, load_name)
+
+    return cmds
+
+
+def add_observations_to_cmds(
+    cmds: "CommandTable",
+    load_name: str | None = None,
+) -> "CommandTable":
+    """Add OBS commands to ``cmds`` and return new ``CommandTable``.
+
+    This function adds ``tlmsid=OBS`` commands into a copy of ``cmds`` and returns the
+    new ``CommandTable``. This allows the returned ``CommandTable`` to be used in calls
+    to ``get_observations`` and ``get_starcats``.
+
+    If ``load_name`` is provided then this is used for the "source" column in the
+    returned table. Otherwise the "source" column in ``cmds`` is used (if it exists) or
+    it is set to "None".
+
+    Parameters
+    ----------
+    cmds : CommandTable
+        Commands table to add observations.
+    load_name : str, optional
+        Load name to use for "source" column if provided.
+
+    Returns
+    -------
+    CommandTable
+        New commands table with observations added.
+    """
+
+    import kadi.commands.commands_v2 as kcc2
+    import kadi.commands.states as kcs
+
+    # Adding observations via add_obs_cmds() requires the "source" column to exist.
+    if "source" not in cmds.colnames or load_name is not None:
+        cmds = cmds.copy()
+        cmds["source"] = str(load_name)
+
+    # Get continuity for attitude, obsid, and SIM position. These are part of OBS cmd.
+    rltt = cmds.get_rltt() or cmds["date"][0]
+    cont = kcs.get_continuity(
+        date=rltt, state_keys=["simpos", "obsid", "q1", "q2", "q3", "q4"]
+    )
+    prev_att = tuple(cont[f"q{ii}"] for ii in range(1, 5))
+
+    # Add observations to cmds. This uses the global PARS_DICT and REV_PARS_DICT from
+    # kadi.commands.commands_v2. The AOSTRCAT parameters are added there in-place. Since
+    # those global dicts are persistent and cannot be reloaded, there is no concern
+    # about collisions with a different version of the commands v2 database.
+    cmds_obs = kcc2.add_obs_cmds(
+        cmds,
+        kcc2.PARS_DICT,
+        kcc2.REV_PARS_DICT,
+        prev_att=prev_att,
+        prev_simpos=cont["simpos"],
+        prev_obsid=cont["obsid"],
+    )
+
+    # General implementation note: Using a weakref means that it is not possible to
+    # define local dicts to keep the starcat params "private" to the cmds object. These
+    # local dicts will go out of scope and the weakref becomes undefined. When commands
+    # V1 is removed then there is the possibility of removing the `rev_pars_dict`
+    # attribute. In general it is fragile and basically only works with the global
+    # REV_PARS_DICT anyway. For instance appending two command tables with different
+    # REV_PARS_DICTs will not work as expected.
+
+    # Add weakref to REV_PARS_DICT so that it can be used in CommandRow.__getitem__,
+    # in particular for getting star catalogs via the `starcat_idx` key in OBS commands.
+    cmds_obs.rev_pars_dict = weakref.ref(kcc2.REV_PARS_DICT)
+
+    return cmds_obs
 
 
 def get_cmds_from_backstop(backstop, remove_starcat=False):
@@ -591,7 +721,7 @@ class CommandTable(Table):
 
         return None
 
-    def add_cmds(self, cmds, rltt=None):
+    def add_cmds(self, cmds: "CommandTable", rltt: str | None = None):
         """
         Add CommandTable ``cmds`` to self and return the new CommandTable.
 
@@ -601,8 +731,8 @@ class CommandTable(Table):
         ----------
         cmds : CommandTable
             Commands to add.
-        apply_rltt : bool, optional
-            Clip existing commands to the RLTT of the new commands.
+        rltt : str, optional
+            Clip existing commands to the RLTT (in "date" format) of the new commands.
 
         Returns
         -------
@@ -630,7 +760,10 @@ class CommandTable(Table):
         This matches the order in backstop.
         """
         # Legacy sort for V1 commands archive
-        if "timeline_id" in self.colnames:
+        if (
+            os.environ.get("KADI_COMMANDS_VERSION", conf.commands_version) == "1"
+            and "timeline_id" in self.colnames
+        ):
             self.sort(["date", "step", "scs"])
             return
 

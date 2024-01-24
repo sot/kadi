@@ -2,11 +2,11 @@ import os
 import warnings
 from pathlib import Path
 
-import astropy.units as u
-import numpy as np
-
 # Use data file from parse_cm.test for get_cmds_from_backstop test.
 # This package is a dependency
+import astropy.units as u
+import numpy as np
+import parse_cm.paths
 import parse_cm.tests
 import pytest
 from astropy.table import Table, vstack
@@ -30,6 +30,7 @@ from kadi.commands import (
     get_observations,
     get_starcats,
     get_starcats_as_table,
+    read_backstop,
 )
 from kadi.commands.command_sets import get_cmds_from_event
 from kadi.scripts import update_cmds_v1, update_cmds_v2
@@ -1540,9 +1541,9 @@ def test_add_cmds():
         "2023:344:23:30:00.000 | COMMAND_SW       | CMD1_2     |        0 | scs=130",
         "2023:344:23:32:59.999 | COMMAND_SW       | CMD2       |        0 | scs=128",
         "2023:344:23:32:59.999 | COMMAND_SW       | CMD2_2     |        0 | scs=130",
-        "2023:344:23:33:00.000 | LOAD_EVENT       | None       |        0 | event_type=RUNNING_LOAD_TERMINATION_TIME, scs=0",
         "2023:344:23:33:00.000 | COMMAND_SW       | CMD3       |        0 | scs=128",
         "2023:344:23:33:00.000 | COMMAND_SW       | CMD4       |        0 | scs=128",
+        "2023:344:23:33:00.000 | LOAD_EVENT       | None       |        0 | event_type=RUNNING_LOAD_TERMINATION_TIME, scs=0",
         "2023:344:23:33:00.000 | COMMAND_SW       | CMD3_2     |        0 | scs=130",
         "2023:344:23:33:00.000 | COMMAND_SW       | CMD4_2     |        0 | scs=130",
         "2023:344:23:33:00.001 | COMMAND_SW       | CMD5_2     |        0 | scs=130",
@@ -1557,9 +1558,9 @@ def test_add_cmds():
         "2023:344:23:30:00.000 | COMMAND_SW       | CMD1_2     |        0 | scs=130",
         "2023:344:23:32:59.999 | COMMAND_SW       | CMD2       |        0 | scs=128",
         "2023:344:23:32:59.999 | COMMAND_SW       | CMD2_2     |        0 | scs=130",
-        "2023:344:23:33:00.000 | LOAD_EVENT       | None       |        0 | event_type=RUNNING_LOAD_TERMINATION_TIME, scs=0",
         "2023:344:23:33:00.000 | COMMAND_SW       | CMD3       |        0 | scs=128",
         "2023:344:23:33:00.000 | COMMAND_SW       | CMD4       |        0 | scs=128",
+        "2023:344:23:33:00.000 | LOAD_EVENT       | None       |        0 | event_type=RUNNING_LOAD_TERMINATION_TIME, scs=0",
         "2023:344:23:33:00.000 | COMMAND_SW       | CMD3_2     |        0 | scs=130",
         "2023:344:23:33:00.000 | COMMAND_SW       | CMD4_2     |        0 | scs=130",
         "2023:344:23:33:00.001 | COMMAND_SW       | CMD5       |        0 | scs=128",
@@ -1568,3 +1569,35 @@ def test_add_cmds():
         "2023:344:23:34:00.000 | COMMAND_SW       | CMD6_2     |        0 | scs=130",
     ]
     assert cmds12_no_rltt.pformat_like_backstop() == exp_no_rltt
+
+
+def test_read_backstop_with_observations():
+    """Test reading backstop with observations in it.
+
+    This tests reading the DEC1123A loads and showing that the observations and
+    star catalogs are exactly the same as in the flight commands archive.
+    """
+    try:
+        path = parse_cm.paths.load_file_path("DEC1123A", "CR*.backstop", "backstop")
+    except FileNotFoundError:
+        pytest.skip("No backstop file found")
+
+    cmds = read_backstop(path, add_observations=True)
+    obss = get_observations(cmds=cmds)
+    starcats = get_starcats(cmds=cmds)
+
+    cmds_flight = commands.get_cmds(source="DEC1123A")
+    obss_cmds_flight = get_observations(cmds=cmds_flight)
+    starcats_cmds_flight = get_starcats(cmds=cmds_flight)
+
+    assert len(obss) == len(obss_cmds_flight)
+    assert len(starcats) == len(starcats_cmds_flight)
+
+    for obs, obs_flight in zip(obss, obss_cmds_flight):
+        # starcat idx will be different
+        obs.pop("starcat_idx", None)
+        obs_flight.pop("starcat_idx", None)
+        assert obs == obs_flight
+
+    for starcat, starcat_flight in zip(starcats, starcats_cmds_flight):
+        assert starcat.pformat_all() == starcat_flight.pformat_all()

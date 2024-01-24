@@ -449,7 +449,9 @@ def get_starcats(
     rev_pars_dict = REV_PARS_DICT if cmds is None else cmds.rev_pars_dict()
 
     with ExitStack() as context_stack:
-        if conf.cache_starcats:
+        if conf.cache_starcats and cmds is None:
+            # Using shelve provides a persistent cache of star catalogs. Only do this
+            # when using the global commands archive, not when `cmds` are provided.
             starcats_db = context_stack.enter_context(
                 shelve.open(str(STARCATS_CACHE_PATH()))
             )
@@ -539,7 +541,8 @@ def get_observations(
         'npnt_enab': True,
         'obs_start': '2007:002:04:46:58.056',
         'prev_att': (0.319214732, 0.535685207, 0.766039803, 0.155969017),
-        'starcat_idx': 144398,
+        'starcat_date': '2007:002:04:31:43.965',
+        'starcat_idx': 147908,
         'source': 'DEC2506C'}
 
         >>> obs_all = get_observations()  # All observations in commands archive

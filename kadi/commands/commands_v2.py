@@ -20,6 +20,7 @@ import requests
 from astropy.table import Table
 from chandra_maneuver import NSM_attitude
 from cxotime import CxoTime
+from parse_cm.paths import load_dir_from_load_name
 from testr.test_helper import has_internet
 
 from kadi import occweb, paths
@@ -33,7 +34,6 @@ from kadi.commands.core import (
     load_idx_cmds,
     load_name_to_cxotime,
     load_pars_dict,
-    ska_load_dir,
     vstack_exact,
 )
 
@@ -484,17 +484,29 @@ def update_archive_and_get_cmds_recent(
     return cmds_recent
 
 
-def add_obs_cmds(cmds, pars_dict, rev_pars_dict, prev_att=None):
-    """Add LOAD_EVENT OBS commands with info about observations.
+def add_obs_cmds(
+    cmds: CommandTable,
+    pars_dict,
+    rev_pars_dict,
+    *,
+    prev_att=None,
+    prev_obsid=None,
+    prev_simpos=None,
+):
+    """Add 'type=LOAD_EVENT tlmsid=OBS' commands with info about observations.
 
-    This command includes the following:
-
+    These "OBS" commands include the following params:
     - manvr_start: date of maneuver start
     - npnt_enab: auto-transition to NPNT enabled
-    - obs_start: as the command date
-    - obs_stop: date of subsequent AONMMODE or AONSMSAF command)
+    - obs_start: start date of NPNT corresponding to the command date
+    - obs_stop: stop date of NPNT (subsequent AONMMODE or AONSMSAF command)
     - obsid: observation ID
-    - starcat_idx: index of starcat in reversed params dict
+    - prev_att: previous attitude (4-tuple of quaternion components)
+    - simpos: SIM position
+    - source: source of the observation (e.g. load name)
+    - starcat_date: date of starcat command (if available)
+    - starcat_idx: index of starcat in reversed params dict (if available)
+    - targ_att: target attitude (4-tuple of quaternion components)
 
     Parameters
     ----------
@@ -506,6 +518,10 @@ def add_obs_cmds(cmds, pars_dict, rev_pars_dict, prev_att=None):
         Dictionary of parameters from the command table, with keys reversed.
     prev_att : tuple
         Continuity attitude. If not supplied the first obs is dropped.
+    prev_obsid : int, optional
+        Previous obsid, default is -1.
+    prev_simpos : int, optional
+        Previous SIM position, default is -99616.
 
     Returns
     -------
@@ -531,7 +547,12 @@ def add_obs_cmds(cmds, pars_dict, rev_pars_dict, prev_att=None):
     # `pars_dict` and `rev_pars_dict` in place.
     cmds_state_obs = cmds_state.add_cmds(cmds_obs)
     cmds_obs = get_cmds_obs_final(
-        cmds_state_obs, pars_dict, rev_pars_dict, schedule_stop_time
+        cmds_state_obs,
+        pars_dict,
+        rev_pars_dict,
+        schedule_stop_time,
+        prev_obsid=prev_obsid,
+        prev_simpos=prev_simpos,
     )
 
     # Finally add the OBS cmds to the recent cmds table.
@@ -748,7 +769,15 @@ def manvr_duration(q1, q2):
     return tm
 
 
-def get_cmds_obs_final(cmds, pars_dict, rev_pars_dict, schedule_stop_time):
+def get_cmds_obs_final(
+    cmds,
+    pars_dict,
+    rev_pars_dict,
+    schedule_stop_time,
+    *,
+    prev_obsid=None,
+    prev_simpos=None,
+):
     """Fill in the rest of params for each OBS command.
 
     Second pass of processing which implements a state machine to fill in the
@@ -767,6 +796,10 @@ def get_cmds_obs_final(cmds, pars_dict, rev_pars_dict, schedule_stop_time):
         reversed dict of parameters for commands
     schedule_stop_time
         date of last command
+    prev_obsid : int, optional
+        Previous obsid, default is -1.
+    prev_simpos : int, optional
+        Previous SIM position, default is -99616.
 
     Returns
     -------
@@ -778,10 +811,10 @@ def get_cmds_obs_final(cmds, pars_dict, rev_pars_dict, schedule_stop_time):
     # merging with the archive commands which are always correct. Nevertheless
     # use values that are not None to avoid errors. For `sim_pos`, if the SIM
     # has not been commanded in a long time then it will be at -99616.
-    obsid = -1
+    obsid = -1 if prev_obsid is None else prev_obsid
     starcat_idx = None
     starcat_date = None
-    sim_pos = -99616
+    sim_pos = -99616 if prev_simpos is None else prev_simpos
     obs_params = None
     cmd_obs_extras = []
 
@@ -1116,7 +1149,7 @@ def get_load_cmds_from_occweb_or_local(
         return cmds
 
     if use_ska_dir:
-        ska_dir = ska_load_dir(load_name)
+        ska_dir = load_dir_from_load_name(load_name)
         for filename in ska_dir.glob("CR????????.backstop"):
             backstop_text = filename.read_text()
             logger.info(f"Got backstop from {filename}")
