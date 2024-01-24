@@ -5,6 +5,7 @@ import logging
 import os
 import pickle
 import struct
+import warnings
 import weakref
 from pathlib import Path
 
@@ -141,13 +142,14 @@ def vstack_exact(tables):
 
 
 def read_backstop(
-    backstop: str | Path,
+    backstop: str | Path | list[str],
     add_observations: bool = False,
     load_name=None,
 ) -> "CommandTable":
     """Read ``backstop`` and return a ``CommandTable``.
 
-    The ``backstop`` argument can be either be a string file name or path.
+    The ``backstop`` argument can be either be a string or Path to a backstop file or
+    a list of lines from a backstop file.
 
     If ``add_observations`` is ``True`` then add OBS commands (default=False) into the
     returned ``CommandTable``. This allows the returned ``CommandTable`` to be used in
@@ -162,8 +164,8 @@ def read_backstop(
     ``<prefix>/<YEAR>/<MON><DD><YY>/ofls<REV>/*.backstop``. An example would be
     ``/proj/sot/ska/data/mpcrit1/mplogs/2023/DEC1123/oflsa/CR344_2303.backstop``.
 
-    If reading a backstop file from a local directory then the load name should be
-    provided explicitly.
+    If reading a backstop file from a local directory or from a list of lines then the
+    load name should be provided explicitly.
 
     Examples
     --------
@@ -176,8 +178,8 @@ def read_backstop(
 
     Parameters
     ----------
-    backstop: str or Path
-        Backstop file name or path
+    backstop: str or Path or list of str
+        Backstop file name or path, or backstop file contents as a list of str
     add_observations : bool
         Add OBS commands (default=False) to allow get_observations() and get_starcats()
     load_name : str, optional
@@ -195,6 +197,13 @@ def read_backstop(
             load_name = parse_cm.paths.load_name_from_load_dir(backstop.parent)
         except parse_cm.paths.ParseLoadNameError:
             pass
+
+    if isinstance(backstop, Table):
+        warnings.warn(
+            "Passing a Table to read_backstop() is deprecated and will raise "
+            "an exception in a future release.",
+            FutureWarning,
+        )
 
     cmds = get_cmds_from_backstop(backstop)
 
