@@ -21,6 +21,7 @@ warnings.filterwarnings(
     message="kadi commands v1 is deprecated, use v2 instead",
 )
 
+import kadi.commands.states as kcs
 from kadi import commands
 from kadi.commands import (
     commands_v1,
@@ -553,6 +554,72 @@ Date,Event,Params,Author,Comment
         " hex=7E00000, msid=CNOOPLR, scs=128",
     ]
     assert cmds.pformat_like_backstop() == exp
+    commands_v2.clear_caches()
+
+
+stop_date_2024_01_30 = stop_date_fixture_factory("2024-01-30")
+
+
+@pytest.mark.skipif(not HAS_INTERNET, reason="No internet connection")
+def test_nsm_offset_pitch_command_event(stop_date_2024_01_30):  # noqa: ARG001
+    """Test custom scenario with NSM offset pitch load event command"""
+    # First make the cmd_events.csv file for the scenario
+    scenario = "test_nsm_offset_pitch"
+    cmds_dir = Path(commands_v2.conf.commands_dir) / scenario
+    cmds_dir.mkdir(exist_ok=True, parents=True)
+    # Note variation in format of date, since this comes from humans.
+    cmd_evts_text = """\
+State,Date,Event,Params,Author,Reviewer,Comment
+Definitive,2024:025:00:00:00.000,Maneuver sun pitch,160,Tom Aldcroft,John Scott,
+Definitive,2024:024:09:44:06.000,NSM,,John Scott,Julia Zachary,
+"""
+    (cmds_dir / "cmd_events.csv").write_text(cmd_evts_text)
+
+    # Now get commands in a time range that includes the new command events
+    cmds = commands_v2.get_cmds(
+        "2024-01-24 12:00:00", "2024-01-25 02:00:00", scenario=scenario
+    )
+    cmds = cmds[(cmds["tlmsid"] != "OBS") & (cmds["type"] != "ORBPOINT")]
+    exp = [
+        "2024:025:00:00:00.000 | LOAD_EVENT       | SUN_PITCH  | CMD_EVT  |"
+        " event=Maneuver_sun_pitch, event_date=2024:025:00:00:00, pitch=160, scs=0"
+    ]
+
+    assert cmds.pformat_like_backstop() == exp
+
+    states = kcs.get_states(
+        "2024:024:09:00:00",
+        "2024:025:12:00:00",
+        state_keys=["pitch", "pcad_mode"],
+        scenario=scenario,
+    )
+    exp = [
+        "      datestart       pitch pcad_mode",
+        "--------------------- ----- ---------",
+        "2024:024:09:00:00.000 172.7      NPNT",
+        "2024:024:09:13:49.112 172.7      NMAN",
+        "2024:024:09:13:59.363 170.9      NMAN",
+        "2024:024:09:18:48.003 162.4      NMAN",
+        "2024:024:09:23:36.644 145.8      NMAN",
+        "2024:024:09:28:25.284 126.1      NMAN",
+        "2024:024:09:33:13.925 109.8      NMAN",
+        "2024:024:09:38:02.565 101.5      NMAN",
+        "2024:024:09:42:51.205  99.6      NPNT",
+        "2024:024:09:44:06.000  97.2      NSUN",
+        "2024:024:09:49:20.973  92.4      NSUN",
+        "2024:024:09:54:35.946  90.0      NSUN",
+        "2024:025:00:00:00.000  93.0      NSUN",
+        "2024:025:00:05:17.540 104.5      NSUN",
+        "2024:025:00:10:35.081 125.2      NSUN",
+        "2024:025:00:15:52.621 146.0      NSUN",
+        "2024:025:00:21:10.161 157.4      NSUN",
+        "2024:025:00:26:27.701 160.0      NSUN",
+    ]
+
+    out = states["datestart", "pitch", "pcad_mode"]
+    out["pitch"].format = ".1f"
+    assert out.pformat_all() == exp
+
     commands_v2.clear_caches()
 
 
