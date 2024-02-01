@@ -1522,9 +1522,6 @@ class ACISTransition(BaseTransition):
             elif tlmsid == "WSFEPALLUP":
                 transitions[date].update(fep_count=6, power_cmd=tlmsid)
 
-            elif tlmsid.startswith("WC"):
-                transitions[date].update(si_mode="CC_" + tlmsid[2:7])
-
             # Two special-case raw-mode SI modes
             # (https://github.com/sot/cmd_states/issues/23)
             elif tlmsid == "WT000B5024":
@@ -1533,9 +1530,15 @@ class ACISTransition(BaseTransition):
             elif tlmsid == "WT000B7024":
                 transitions[date].update(si_mode="TN_000B6")
 
-            elif tlmsid.startswith("WT"):
-                transitions[date].update(si_mode="TE_" + tlmsid[2:7])
-
+            elif tlmsid[:2] in ("WT", "WC"):
+                mode = {'WT': 'TE', 'WC': 'CC'}[tlmsid[:2]]
+                digits = int(pblk_cmd[2:7], 16)
+                if digits % 2 != 0:
+                    digits -= 1
+                    end = ""
+                else:
+                    end = "B"
+                transitions[date].update(si_mode=f"{mode}_{digits:05X}{end}")
 
 class ACISFP_SetPointTransition(BaseTransition):
     """
