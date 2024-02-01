@@ -1394,7 +1394,7 @@ class NormalSunTransition(ManeuverTransition):
         cls.add_manvr_transitions(date, transitions, state, idx)
 
 
-class ManeuverToPitchTransition(ManeuverTransition):
+class ManeuverSunPitchTransition(ManeuverTransition):
     """
     Like ``ManeuverTransition`` except perform a pure-pitch maneuver from attitude.
 
@@ -1415,13 +1415,6 @@ class ManeuverToPitchTransition(ManeuverTransition):
 
     @staticmethod
     def callback(pitch, date, transitions, state, idx):
-        """
-        This is a transition function callback.
-
-        It directly sets the state pcad_mode to NSUN and target quaternion to
-        the expected sun pointed attitude.  It then calls the parent method to
-        add the actual maneuver.
-        """
         # Setup for maneuver to sun-pointed attitude from current att
         curr_att = [state[qc] for qc in QUAT_COMPS]
 
@@ -1438,6 +1431,48 @@ class ManeuverToPitchTransition(ManeuverTransition):
         )
         targ_att = ska_sun.apply_sun_pitch_yaw(
             curr_att, pitch=pitch - curr_pitch, yaw=0, sun_ra=sun_ra, sun_dec=sun_dec
+        )
+        for qc, targ_q in zip(QUAT_COMPS, targ_att.q):
+            state["targ_" + qc] = targ_q
+
+        # Do the maneuver
+        ManeuverTransition.add_manvr_transitions(date, transitions, state, idx)
+
+
+class ManeuverSunRaslTransition(ManeuverTransition):
+    """
+    Like ``ManeuverTransition`` except roll about the sun line.
+
+    This does not change the PCAD mode.
+    """
+
+    command_attributes = {"type": "LOAD_EVENT", "tlmsid": "SUN_RASL"}
+    state_keys = PCAD_STATE_KEYS
+
+    @classmethod
+    def set_transitions(cls, transitions, cmds, start, stop):
+        state_cmds = cls.get_state_changing_commands(cmds)
+
+        for cmd in state_cmds:
+            transitions[cmd["date"]]["maneuver_transition"] = functools.partial(
+                cls.callback, cmd["params"]["rasl"]
+            )
+
+    @staticmethod
+    def callback(rasl, date, transitions, state, idx):
+        # Setup for maneuver to sun-pointed attitude from current att
+        curr_att = [state[qc] for qc in QUAT_COMPS]
+
+        # If current attitude is not defined then just drop the NSM maneuver on
+        # the floor. The state will start getting defined when the first normal
+        # maneuver happens.
+        if None in curr_att:
+            return
+
+        curr_att = Quat(curr_att)
+        sun_ra, sun_dec = ska_sun.position(date)
+        targ_att = ska_sun.apply_sun_pitch_yaw(
+            curr_att, yaw=rasl, sun_ra=sun_ra, sun_dec=sun_dec
         )
         for qc, targ_q in zip(QUAT_COMPS, targ_att.q):
             state["targ_" + qc] = targ_q

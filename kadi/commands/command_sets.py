@@ -139,9 +139,9 @@ def cmd_set_maneuver_sun_pitch(pitch, date=None):
     return (cmd,)
 
 
-def cmd_set_maneuver_roll_sun(roll, date=None):
+def cmd_set_maneuver_sun_rasl(rasl, date=None):
     """Maneuver by ``angle`` degrees in roll about Sun line (relative to current)."""
-    cmd = dict(type="LOAD_EVENT", tlmsid="ROLL_SUN", params={"ROLL": roll})
+    cmd = dict(type="LOAD_EVENT", tlmsid="SUN_RASL", params={"RASL": rasl})
     return (cmd,)
 
 
