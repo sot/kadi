@@ -579,12 +579,12 @@ Definitive,2024:024:09:44:06,NSM,,,,
 
     # Now get commands in a time range that includes the new command events
     cmds = commands_v2.get_cmds(
-        "2024-01-24 12:00:00", "2024-01-25 02:00:00", scenario=scenario
+        "2024-01-24 12:00:00", "2024-01-25 05:00:00", scenario=scenario
     )
     cmds = cmds[(cmds["tlmsid"] != "OBS") & (cmds["type"] != "ORBPOINT")]
     exp = [
-        "2024:025:00:00:00.000 | LOAD_EVENT       | SUN_PITCH  | CMD_EVT  |"
-        " event=Maneuver_sun_pitch, event_date=2024:025:00:00:00, pitch=160, scs=0"
+        "2024:025:00:00:00.000 | LOAD_EVENT       | SUN_PITCH  | CMD_EVT  | event=Maneuver_sun_pitch, event_date=2024:025:00:00:00, pitch=160, scs=0",
+        "2024:025:04:00:00.000 | LOAD_EVENT       | SUN_RASL   | CMD_EVT  | event=Maneuver_sun_rasl, event_date=2024:025:04:00:00, rasl=90, scs=0",
     ]
 
     assert cmds.pformat_like_backstop() == exp
