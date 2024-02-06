@@ -77,6 +77,18 @@ DEFAULT_STATE_KEYS = (
     "vid_board",
 )
 
+NIL_SIMODES = {
+    "WT00DAA014": "H2C_0002",
+    "WT00D96014": "H2C_0001",
+    "WT00D98014": "H1C_0001",
+    "WT00452024": "HIE_0002",
+    "WT0023C024": "HSE_0002",
+    "WT0023A024": "HSO_0002",
+    "WT00D06014": "HIE_0003",
+    "WT00D0A014": "HSE_0003",
+    "WT00D08014": "HSO_0003"
+}
+
 
 @contextlib.contextmanager
 def disable_grating_move_duration():
@@ -1529,7 +1541,12 @@ class ACISTransition(BaseTransition):
 
             elif tlmsid == "WT000B7024":
                 transitions[date].update(si_mode="TN_000B6")
-
+            
+            # Special case for NIL SI modes 
+            elif tlsmid in NIL_SIMODES:
+            
+                translations[date].update(si_mode=NIL_SIMODES[tlmsid])
+                
             elif tlmsid[:2] in ("WT", "WC"):
                 mode = {'WT': 'TE', 'WC': 'CC'}[tlmsid[:2]]
                 digits = int(pblk_cmd[2:7], 16)
