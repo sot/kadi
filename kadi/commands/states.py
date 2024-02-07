@@ -1541,19 +1541,19 @@ class ACISTransition(BaseTransition):
 
             elif tlmsid == "WT000B7024":
                 transitions[date].update(si_mode="TN_000B6")
-            
-            # Special case for NIL SI modes 
-            elif tlsmid in NIL_SIMODES:
-            
-                translations[date].update(si_mode=NIL_SIMODES[tlmsid])
-                
-            # All other SI modes: this logic uses the PBLK command to 
+
+            # Special case for NIL SI modes
+            elif tlmsid in NIL_SIMODES:
+
+                transitions[date].update(si_mode=NIL_SIMODES[tlmsid])
+
+            # All other SI modes: this logic uses the PBLK command to
             # determine the SI mode hex string, which depends in part on
             # whether a bias is being (re)computed.
             elif tlmsid[:2] in ("WT", "WC"):
-                mode = {'WT': 'TE', 'WC': 'CC'}[tlmsid[:2]]
+                mode = {"WT": "TE", "WC": "CC"}[tlmsid[:2]]
                 # find the hex digits in the PBLK command
-                digits = int(pblk_cmd[2:7], 16)
+                digits = int(tlmsid[2:7], 16)
                 if digits % 2 != 0:
                     # A bias is not being computed
                     digits -= 1
