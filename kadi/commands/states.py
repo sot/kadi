@@ -1552,7 +1552,7 @@ class ACISTransition(BaseTransition):
         # Special case for NIL SI modes
         elif tlmsid in NIL_SIMODES:
             si_mode = NIL_SIMODES[tlmsid]
-            
+
         # All other SI modes: this logic uses the PBLK command to
         # determine the SI mode hex string, which depends in part on
         # whether a bias is being (re)computed.
@@ -1568,13 +1568,12 @@ class ACISTransition(BaseTransition):
                 # A bias is being computed
                 end = "B"
             si_mode = f"{mode}_{digits:05X}{end}"
-        
-        else:
-            # Should never end up here. 
-            raise ValueError(f"Unknown ACIS parameter block command: {tlmsid}")
-        
-        state["si_mode"] = si_mode
 
+        else:
+            # Should never end up here.
+            raise ValueError(f"Unknown ACIS parameter block command: {tlmsid}")
+
+        state["si_mode"] = si_mode
 
 
 class ACISFP_SetPointTransition(BaseTransition):
