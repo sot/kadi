@@ -86,7 +86,7 @@ NIL_SIMODES = {
     "WT0023A024": "HSO_0002",
     "WT00D06014": "HIE_0003",
     "WT00D0A014": "HSE_0003",
-    "WT00D08014": "HSO_0003"
+    "WT00D08014": "HSO_0003",
 }
 
 
@@ -1544,7 +1544,6 @@ class ACISTransition(BaseTransition):
 
             # Special case for NIL SI modes
             elif tlmsid in NIL_SIMODES:
-
                 transitions[date].update(si_mode=NIL_SIMODES[tlmsid])
 
             # All other SI modes: this logic uses the PBLK command to
@@ -1562,6 +1561,7 @@ class ACISTransition(BaseTransition):
                     # A bias is being computed
                     end = "B"
                 transitions[date].update(si_mode=f"{mode}_{digits:05X}{end}")
+
 
 class ACISFP_SetPointTransition(BaseTransition):
     """
