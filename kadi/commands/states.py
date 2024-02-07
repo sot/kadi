@@ -1534,33 +1534,47 @@ class ACISTransition(BaseTransition):
             elif tlmsid == "WSFEPALLUP":
                 transitions[date].update(fep_count=6, power_cmd=tlmsid)
 
-            # Two special-case raw-mode SI modes
-            # (https://github.com/sot/cmd_states/issues/23)
-            elif tlmsid == "WT000B5024":
-                transitions[date].update(si_mode="TN_000B4")
-
-            elif tlmsid == "WT000B7024":
-                transitions[date].update(si_mode="TN_000B6")
-
-            # Special case for NIL SI modes
-            elif tlmsid in NIL_SIMODES:
-                transitions[date].update(si_mode=NIL_SIMODES[tlmsid])
-
-            # All other SI modes: this logic uses the PBLK command to
-            # determine the SI mode hex string, which depends in part on
-            # whether a bias is being (re)computed.
             elif tlmsid[:2] in ("WT", "WC"):
-                mode = {"WT": "TE", "WC": "CC"}[tlmsid[:2]]
-                # find the hex digits in the PBLK command
-                digits = int(tlmsid[2:7], 16)
-                if digits % 2 != 0:
-                    # A bias is not being computed
-                    digits -= 1
-                    end = ""
-                else:
-                    # A bias is being computed
-                    end = "B"
-                transitions[date].update(si_mode=f"{mode}_{digits:05X}{end}")
+                transitions[cmd["date"]]["si_mode"] = functools.partial(
+                    ACISTransition.simode_callback, tlmsid
+                )
+
+    @staticmethod
+    def simode_callback(tlmsid, date, transitions, state, idx):
+        # Two special-case raw-mode SI modes
+        # (https://github.com/sot/cmd_states/issues/23)
+        if tlmsid == "WT000B5024":
+            si_mode = "TN_000B4"
+
+        elif tlmsid == "WT000B7024":
+            si_mode = "TN_000B6"
+
+        # Special case for NIL SI modes
+        elif tlmsid in NIL_SIMODES:
+            si_mode = NIL_SIMODES[tlmsid]
+            
+        # All other SI modes: this logic uses the PBLK command to
+        # determine the SI mode hex string, which depends in part on
+        # whether a bias is being (re)computed.
+        elif tlmsid[:2] in ("WT", "WC"):
+            mode = {"WT": "TE", "WC": "CC"}[tlmsid[:2]]
+            # find the hex digits in the PBLK command
+            digits = int(tlmsid[2:7], 16)
+            if digits % 2 != 0:
+                # A bias is not being computed
+                digits -= 1
+                end = ""
+            else:
+                # A bias is being computed
+                end = "B"
+            si_mode = f"{mode}_{digits:05X}{end}"
+        
+        else:
+            # Should never end up here. 
+            raise ValueError(f"Unknown ACIS parameter block command: {tlmsid}")
+        
+        state["si_mode"] = si_mode
+
 
 
 class ACISFP_SetPointTransition(BaseTransition):
