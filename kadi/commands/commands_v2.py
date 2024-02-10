@@ -981,6 +981,9 @@ def update_cmd_events(scenario=None) -> Table:
     ok = np.isin(cmd_events["State"], allowed_states)
     cmd_events = cmd_events[ok]
 
+    # If KADI_COMMANDS_DEFAULT_STOP is set, filter out events after that date.
+    cmd_events = filter_cmd_events_default_stop(cmd_events)
+
     logger.info(f"Writing {len(cmd_events)} cmd_events to {cmd_events_path}")
     cmd_events.write(cmd_events_path, format="csv", overwrite=True)
     return cmd_events
@@ -1003,6 +1006,22 @@ def get_cmd_events(scenario=None):
     cmd_events_path = paths.CMD_EVENTS_PATH(scenario)
     logger.info(f"Reading command events {cmd_events_path}")
     cmd_events = Table.read(str(cmd_events_path), format="csv", fill_values=[])
+
+    # If KADI_COMMANDS_DEFAULT_STOP is set, filter out events after that date.
+    cmd_events = filter_cmd_events_default_stop(cmd_events)
+
+    return cmd_events
+
+
+def filter_cmd_events_default_stop(cmd_events):
+    if (stop := os.environ.get("KADI_COMMANDS_DEFAULT_STOP")) is not None:
+        stop = CxoTime(stop)
+        ok = CxoTime(cmd_events["Date"]).date <= stop.date
+        logger.debug(
+            f"Filtering cmd_events to stop date {stop.date} "
+            f"({np.count_nonzero(ok)} vs {len(cmd_events)})"
+        )
+        cmd_events = cmd_events[ok]
     return cmd_events
 
 

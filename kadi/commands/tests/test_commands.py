@@ -372,7 +372,8 @@ def stop_date_fixture_factory(stop_date):
     return stop_date_fixture
 
 
-stop_date_2021_10_24 = stop_date_fixture_factory("2021-10-24")
+# 2021:297 0300z just after recovery maneuver following 2021:296 NSM
+stop_date_2021_10_24 = stop_date_fixture_factory("2021-10-24 03:00:00")
 stop_date_2020_12_03 = stop_date_fixture_factory("2020-12-03")
 
 
