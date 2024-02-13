@@ -639,7 +639,7 @@ Definitive,2024:024:09:44:06,NSM,,,,
     pitch2, rasl2 = ska_sun.get_sun_pitch_yaw(q2.ra, q2.dec, dates[1])
     assert np.isclose(pitch1, 160, atol=0.1)
     assert np.isclose(pitch2, 160, atol=0.5)
-    assert np.isclose(rasl2 - rasl1, 90, atol=0.5)
+    assert np.isclose((rasl2 - rasl1) % 360, 90, atol=0.5)
 
     commands_v2.clear_caches()
 
