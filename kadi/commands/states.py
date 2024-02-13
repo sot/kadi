@@ -1485,6 +1485,7 @@ class ACISTransition(BaseTransition):
         "fep_count",
         "si_mode",
         "ccd_count",
+        "obsid",
     ]
 
     @classmethod
@@ -1552,6 +1553,10 @@ class ACISTransition(BaseTransition):
         # Special case for NIL SI modes
         elif tlmsid in NIL_SIMODES:
             si_mode = NIL_SIMODES[tlmsid]
+            # Value of SIMODE in some cases depends on whether obsid is
+            # an odd or even number
+            if si_mode.startswith("HIE") and state["obsid"] % 2 != 0:
+                si_mode = si_mode.replace("HIE", "HIO")
 
         # All other SI modes: this logic uses the PBLK command to
         # determine the SI mode hex string, which depends in part on
