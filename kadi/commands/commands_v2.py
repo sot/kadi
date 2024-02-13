@@ -1016,7 +1016,9 @@ def get_cmd_events(scenario=None):
 def filter_cmd_events_default_stop(cmd_events):
     if (stop := os.environ.get("KADI_COMMANDS_DEFAULT_STOP")) is not None:
         stop = CxoTime(stop)
-        ok = CxoTime(cmd_events["Date"]).date <= stop.date
+        # Filter table based on stop date. Need to use CxoTime on each event separately
+        # because the date format could be inconsistent.
+        ok = [CxoTime(cmd_event["Date"]).date <= stop.date for cmd_event in cmd_events]
         logger.debug(
             f"Filtering cmd_events to stop date {stop.date} "
             f"({np.count_nonzero(ok)} vs {len(cmd_events)})"

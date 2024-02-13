@@ -364,7 +364,7 @@ def stop_date_fixture_factory(stop_date):
     def stop_date_fixture(monkeypatch):
         commands_v2.clear_caches()
         monkeypatch.setenv("KADI_COMMANDS_DEFAULT_STOP", stop_date)
-        cmds_dir = Path(conf.commands_dir) / stop_date
+        cmds_dir = Path(conf.commands_dir) / CxoTime(stop_date).iso[:9]
         with commands_v2.conf.set_temp("commands_dir", str(cmds_dir)):
             yield
         commands_v2.clear_caches()
@@ -373,7 +373,7 @@ def stop_date_fixture_factory(stop_date):
 
 
 # 2021:297 0300z just after recovery maneuver following 2021:296 NSM
-stop_date_2021_10_24 = stop_date_fixture_factory("2021-10-24 03:00:00")
+stop_date_2021_10_24 = stop_date_fixture_factory("2021-10-24T03:00:00")
 stop_date_2020_12_03 = stop_date_fixture_factory("2020-12-03")
 
 
@@ -528,7 +528,7 @@ def test_cmds_scenario(stop_date_2020_12_03):  # noqa: ARG001
     # First make the cmd_events.csv file for the scenario
     scenario = "test_acis"
     cmds_dir = Path(commands_v2.conf.commands_dir) / scenario
-    cmds_dir.mkdir(exist_ok=True)
+    cmds_dir.mkdir(exist_ok=True, parents=True)
     # Note variation in format of date, since this comes from humans.
     cmd_evts_text = """\
 Date,Event,Params,Author,Comment
