@@ -142,10 +142,13 @@ def compare_states(
     return rcstates, rkstates
 
 
-def test_acis():
+def test_acis_vidboard():
     # Test all ACIS states include vid_board for late-2017
     state_keys = ["clocking", "power_cmd", "fep_count", "vid_board"]
     rc, rk = compare_states("2017:280:12:00:00", "2017:360:12:00:00", state_keys)
+
+
+def test_acis_simode():
     # Test that the simode state for HRC observations is correct
     # Before Nov 2022
     sts = states.get_states(
@@ -193,6 +196,17 @@ def test_acis():
     )
     idxs = (sts["radmon"] == "ENAB") & (sts["simpos"] < -50000) & (sts["clocking"] == 1)
     assert np.all(sts["si_mode"][idxs] == "H2C_0002")
+    # Test bias and no-bias SIMODEs
+    sts = states.get_states(
+        "2024:028:05:53:56.363",
+        "2024:028:17:17:52.589",
+        merge_identical=True,
+        state_keys=["si_mode", "obsid", "clocking"],
+    )
+    acis_run = sts["clocking"] == 1
+    assert np.all(sts["si_mode"][acis_run & sts["obsid"] == 27148] == "TE_006E6B")
+    assert np.all(sts["si_mode"][acis_run & sts["obsid"] == 27073] == "TE_006E6")
+    assert np.all(sts["si_mode"][acis_run & sts["obsid"] == 29216] == "TE_006E6")
 
 
 def test_cmd_line_interface(tmpdir):
