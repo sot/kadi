@@ -146,7 +146,7 @@ def test_acis():
     """
     Test all ACIS states include vid_board for late-2017
     """
-    state_keys = ["clocking", "power_cmd", "fep_count", "si_mode", "vid_board"]
+    state_keys = ["clocking", "power_cmd", "fep_count", "vid_board"]
     rc, rk = compare_states("2017:280:12:00:00", "2017:360:12:00:00", state_keys)
 
 
@@ -198,7 +198,6 @@ def test_quick():
             "power_cmd",
             "fep_count",
             "vid_board",
-            "si_mode",
             "ccd_count",
         ]
         + ["q1", "q2", "q3", "q4", "pcad_mode", "dither", "ra", "dec", "roll"]
@@ -714,7 +713,7 @@ def test_reduce_states_cmd_states(fast_sun_position_method):
 
     assert len(ksr) == len(cs)
 
-    assert_all_close_states(cs, ksr, set(state_keys) - set(["trans_keys"]))
+    assert_all_close_states(cs, ksr, set(state_keys) - set(["trans_keys", "si_mode"]))
 
     assert np.all(ksr["datestart"][1:] == cs["datestart"][1:])
     assert np.all(ksr["datestop"][:-1] == cs["datestop"][:-1])
