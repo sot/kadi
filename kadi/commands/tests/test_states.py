@@ -143,11 +143,56 @@ def compare_states(
 
 
 def test_acis():
-    """
-    Test all ACIS states include vid_board for late-2017
-    """
+    # Test all ACIS states include vid_board for late-2017
     state_keys = ["clocking", "power_cmd", "fep_count", "vid_board"]
     rc, rk = compare_states("2017:280:12:00:00", "2017:360:12:00:00", state_keys)
+    # Test that the simode state for HRC observations is correct
+    # Before Nov 2022
+    sts = states.get_states(
+        "2019:140:01:04:00",
+        "2019:146:23:52:00",
+        merge_identical=True,
+        state_keys=[
+            "si_mode",
+            "simpos",
+            "clocking",
+            "radmon",
+            "obsid",
+            "fep_count",
+            "format",
+        ],
+    )
+    idxs = (
+        (sts["radmon"] == "ENAB") & (sts["clocking"] == 1) & (sts["format"] == "FMT1")
+    )
+    eidxs = idxs & (sts["obsid"] % 2 == 0)
+    oidxs = idxs & (sts["obsid"] % 2 != 0)
+    sidxs = sts["simpos"] < -90000
+    iidxs = (sts["simpos"] > -60000) & (sts["simpos"] < -40000)
+    chps4 = sts["fep_count"] == 4
+    chps5 = sts["fep_count"] == 5
+    assert np.all(sts["si_mode"][eidxs & iidxs & chps5] == "HIE_0002")
+    assert np.all(sts["si_mode"][eidxs & iidxs & chps4] == "HIE_0003")
+    assert np.all(sts["si_mode"][oidxs & iidxs] == "HIO_0002")
+    assert np.all(sts["si_mode"][oidxs & sidxs] == "HSO_0002")
+    # Between Nov 2022 and Feb 2024
+    sts = states.get_states(
+        "2023:060:02:00:00",
+        "2023:260:02:00:00",
+        merge_identical=True,
+        state_keys=["si_mode", "simpos", "clocking", "radmon"],
+    )
+    idxs = (sts["radmon"] == "ENAB") & (sts["simpos"] < -50000) & (sts["clocking"] == 1)
+    assert np.all(sts["si_mode"][idxs] == "H2C_0001")
+    # After Feb 2024
+    sts = states.get_states(
+        "2024:040:02:00:00",
+        "2024:050:02:00:00",
+        merge_identical=True,
+        state_keys=["si_mode", "simpos", "clocking", "radmon"],
+    )
+    idxs = (sts["radmon"] == "ENAB") & (sts["simpos"] < -50000) & (sts["clocking"] == 1)
+    assert np.all(sts["si_mode"][idxs] == "H2C_0002")
 
 
 def test_cmd_line_interface(tmpdir):
