@@ -2367,7 +2367,7 @@ class DsnComm(IFotEvent):
         "soe",
         "station",
     ]
-    ifot_types = {"DSN_COMM.bot": "str", "DSN_COMM.eot": "str"}
+    ifot_types = {"DSN_COMM.bot": str, "DSN_COMM.eot": str}
 
     lookback = 21  # days of lookback
     lookback_delete = 7  # Remove all comms in database prior to 7 days ago to account

@@ -126,11 +126,8 @@ def get_ifot(
     text = re.sub(r"\r\n", " ", text)
     lines = [x for x in text.split("\t\n") if x.strip()]
 
-    converters = {
-        key: [ascii.convert_numpy(getattr(np, type_))] for key, type_ in types.items()
-    }
     dat = ascii.read(
-        lines, format="tab", guess=False, converters=converters, fill_values=None
+        lines, format="tab", guess=False, converters=types, fill_values=None
     )
     return dat
 
