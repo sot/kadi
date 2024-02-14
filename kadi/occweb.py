@@ -13,7 +13,6 @@ from collections import OrderedDict as odict
 from pathlib import Path
 
 import configobj
-import numpy as np
 import requests
 from astropy.io import ascii
 from astropy.table import Table
@@ -99,10 +98,47 @@ def get_url(page, timeout=TIMEOUT):
 
 
 def get_ifot(
-    event_type, start=None, stop=None, props=[], columns=[], timeout=TIMEOUT, types={}
+    event_type,
+    start=None,
+    stop=None,
+    props=None,
+    columns=None,
+    timeout=TIMEOUT,
+    types=None,
 ):
+    """Get the iFOT event table for a given event type.
+
+    Parameters
+    ----------
+    event_type : str
+        Event type (e.g. "ECLIPSE", "LOADSEG", "CAP")
+    start : str, CxoTimeLike
+        Start time for query
+    stop : str, CxoTimeLike
+        Stop time for query
+    props : list of str
+        List of iFOT properties to return
+    columns : list of str
+        List of columns to return
+    timeout : float
+        Timeout for the request
+    types : dict
+        Dictionary of column types
+
+    Returns
+    -------
+    dat : astropy.table.Table
+        Table of iFOT events
+    """
     start = DateTime("1998:001:12:00:00" if start is None else start)
     stop = DateTime(stop)
+    if props is None:
+        props = []
+    if columns is None:
+        columns = []
+    if types is None:
+        types = {}
+
     event_props = ".".join([event_type] + props)
 
     params = odict(
