@@ -208,6 +208,14 @@ def test_acis_simode():
     assert np.all(sts["si_mode"][acis_run & sts["obsid"] == 27073] == "TE_006E6")
     assert np.all(sts["si_mode"][acis_run & sts["obsid"] == 29216] == "TE_006E6")
 
+    # Minimal test for ACIS raw mode SI modes to verify that they are found in
+    # a period of time known to have raw mode commanding.
+    kstates = states.get_states(
+        start="2017:189:12:00:00", stop="2017:197:12:00:00", state_keys=["si_mode"]
+    )
+    assert "TN_000B4" in kstates["si_mode"]
+    assert "TN_000B6" in kstates["si_mode"]
+
 
 def test_cmd_line_interface(tmpdir):
     """
@@ -284,17 +292,6 @@ def test_quick():
 
     assert np.all(rc["datestart"][1:] == rk["datestart"][1:])
     assert np.all(rc["datestop"][:-1] == rk["datestop"][:-1])
-
-
-def test_acis_raw_mode():
-    """Test ACIS raw-mode SI modes"""
-    # Minimal test that they are found in a period of time known to have
-    # raw mode commanding.
-    kstates = states.get_states(
-        start="2017:189:12:00:00", stop="2017:197:12:00:00", state_keys=["si_mode"]
-    )
-    assert "TN_000B4" in kstates["si_mode"]
-    assert "TN_000B6" in kstates["si_mode"]
 
 
 def test_states_2017(fast_sun_position_method):
