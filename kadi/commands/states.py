@@ -1542,6 +1542,11 @@ class ACISTransition(BaseTransition):
 
     @staticmethod
     def simode_callback(tlmsid, date, transitions, state, idx):
+        # Other SIMODEs than the ones caught here exist in the
+        # ACIS tables, and may be used in execptional circumstances
+        # such as anomalies or special tests. The ones that are
+        # listed here are commonly used in schedules.
+
         # Two special-case raw-mode SI modes
         # (https://github.com/sot/cmd_states/issues/23)
         if tlmsid == "WT000B5024":
@@ -1575,8 +1580,10 @@ class ACISTransition(BaseTransition):
             si_mode = f"{mode}_{digits:05X}{end}"
 
         else:
-            # Should never end up here.
-            raise ValueError(f"Unknown ACIS parameter block command: {tlmsid}")
+            # We have ended up with an SIMODE that is not typical,
+            # potentially due to an anomaly or a test. We simply
+            # set "undef" here.
+            si_mode = "undef"
 
         state["si_mode"] = si_mode
 
