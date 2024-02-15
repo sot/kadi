@@ -133,6 +133,18 @@ def cmd_set_nsm(date=None):
     return out
 
 
+def cmd_set_maneuver_sun_pitch(pitch, date=None):
+    """Maneuver to ``pitch`` Sun pitch angle (absolute)."""
+    cmd = dict(type="LOAD_EVENT", tlmsid="SUN_PITCH", params={"PITCH": pitch})
+    return (cmd,)
+
+
+def cmd_set_maneuver_sun_rasl(rasl, date=None):
+    """Maneuver by ``angle`` degrees in roll about Sun line (relative to current)."""
+    cmd = dict(type="LOAD_EVENT", tlmsid="SUN_RASL", params={"RASL": rasl})
+    return (cmd,)
+
+
 def cmd_set_safe_mode(date=None):
     safe_mode_cmds = (
         dict(type="COMMAND_SW", tlmsid="ACPCSFSU"),  # CPE set pcad mode to safe sun
