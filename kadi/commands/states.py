@@ -77,6 +77,18 @@ DEFAULT_STATE_KEYS = (
     "vid_board",
 )
 
+NIL_SIMODES = {
+    "WT00DAA014": "H2C_0002",
+    "WT00D96014": "H2C_0001",
+    "WT00D98014": "H1C_0001",
+    "WT00452024": "HIE_0002",
+    "WT0023C024": "HSE_0002",
+    "WT0023A024": "HSO_0002",
+    "WT00D06014": "HIE_0003",
+    "WT00D0A014": "HSE_0003",
+    "WT00D08014": "HSO_0003",
+}
+
 
 @contextlib.contextmanager
 def disable_grating_move_duration():
@@ -1560,6 +1572,7 @@ class ACISTransition(BaseTransition):
         "fep_count",
         "si_mode",
         "ccd_count",
+        "obsid",
     ]
 
     @classmethod
@@ -1609,19 +1622,57 @@ class ACISTransition(BaseTransition):
             elif tlmsid == "WSFEPALLUP":
                 transitions[date].update(fep_count=6, power_cmd=tlmsid)
 
-            elif tlmsid.startswith("WC"):
-                transitions[date].update(si_mode="CC_" + tlmsid[2:7])
+            elif tlmsid[:2] in ("WT", "WC"):
+                transitions[cmd["date"]]["si_mode"] = functools.partial(
+                    ACISTransition.simode_callback, tlmsid
+                )
 
-            # Two special-case raw-mode SI modes
-            # (https://github.com/sot/cmd_states/issues/23)
-            elif tlmsid == "WT000B5024":
-                transitions[date].update(si_mode="TN_000B4")
+    @staticmethod
+    def simode_callback(tlmsid, date, transitions, state, idx):
+        # Other SIMODEs than the ones caught here exist in the
+        # ACIS tables, and may be used in execptional circumstances
+        # such as anomalies or special tests. The ones that are
+        # listed here are commonly used in schedules.
 
-            elif tlmsid == "WT000B7024":
-                transitions[date].update(si_mode="TN_000B6")
+        # Two special-case raw-mode SI modes
+        # (https://github.com/sot/cmd_states/issues/23)
+        if tlmsid == "WT000B5024":
+            si_mode = "TN_000B4"
 
-            elif tlmsid.startswith("WT"):
-                transitions[date].update(si_mode="TE_" + tlmsid[2:7])
+        elif tlmsid == "WT000B7024":
+            si_mode = "TN_000B6"
+
+        # Special case for NIL SI modes
+        elif tlmsid in NIL_SIMODES:
+            si_mode = NIL_SIMODES[tlmsid]
+            # Value of SIMODE in some cases depends on whether obsid is
+            # an odd or even number
+            if si_mode.startswith("HIE") and state["obsid"] % 2 != 0:
+                si_mode = si_mode.replace("HIE", "HIO")
+
+        # All other SI modes: this logic uses the PBLK command to
+        # determine the SI mode hex string, which depends in part on
+        # whether a bias is being (re)computed.
+        elif tlmsid[:2] in ("WT", "WC"):
+            mode = {"WT": "TE", "WC": "CC"}[tlmsid[:2]]
+            # find the hex digits in the PBLK command
+            digits = int(tlmsid[2:7], 16)
+            if digits % 2 != 0:
+                # A bias is not being computed
+                digits -= 1
+                end = ""
+            else:
+                # A bias is being computed
+                end = "B"
+            si_mode = f"{mode}_{digits:05X}{end}"
+
+        else:
+            # We have ended up with an SIMODE that is not typical,
+            # potentially due to an anomaly or a test. We simply
+            # set "undef" here.
+            si_mode = "undef"
+
+        state["si_mode"] = si_mode
 
 
 class ACISFP_SetPointTransition(BaseTransition):

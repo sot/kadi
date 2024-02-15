@@ -142,12 +142,79 @@ def compare_states(
     return rcstates, rkstates
 
 
-def test_acis():
-    """
-    Test all ACIS states include vid_board for late-2017
-    """
-    state_keys = ["clocking", "power_cmd", "fep_count", "si_mode", "vid_board"]
+def test_acis_vidboard():
+    # Test all ACIS states include vid_board for late-2017
+    state_keys = ["clocking", "power_cmd", "fep_count", "vid_board"]
     rc, rk = compare_states("2017:280:12:00:00", "2017:360:12:00:00", state_keys)
+
+
+def test_acis_simode():
+    # Test that the simode state for HRC observations is correct
+    # Before Nov 2022
+    sts = states.get_states(
+        "2019:140:01:04:00",
+        "2019:146:23:52:00",
+        merge_identical=True,
+        state_keys=[
+            "si_mode",
+            "simpos",
+            "clocking",
+            "radmon",
+            "obsid",
+            "fep_count",
+            "format",
+        ],
+    )
+    idxs = (
+        (sts["radmon"] == "ENAB") & (sts["clocking"] == 1) & (sts["format"] == "FMT1")
+    )
+    eidxs = idxs & (sts["obsid"] % 2 == 0)
+    oidxs = idxs & (sts["obsid"] % 2 != 0)
+    sidxs = sts["simpos"] < -90000
+    iidxs = (sts["simpos"] > -60000) & (sts["simpos"] < -40000)
+    chps4 = sts["fep_count"] == 4
+    chps5 = sts["fep_count"] == 5
+    assert np.all(sts["si_mode"][eidxs & iidxs & chps5] == "HIE_0002")
+    assert np.all(sts["si_mode"][eidxs & iidxs & chps4] == "HIE_0003")
+    assert np.all(sts["si_mode"][oidxs & iidxs] == "HIO_0002")
+    assert np.all(sts["si_mode"][oidxs & sidxs] == "HSO_0002")
+    # Between Nov 2022 and Feb 2024
+    sts = states.get_states(
+        "2023:060:02:00:00",
+        "2023:260:02:00:00",
+        merge_identical=True,
+        state_keys=["si_mode", "simpos", "clocking", "radmon"],
+    )
+    idxs = (sts["radmon"] == "ENAB") & (sts["simpos"] < -50000) & (sts["clocking"] == 1)
+    assert np.all(sts["si_mode"][idxs] == "H2C_0001")
+    # After Feb 2024
+    sts = states.get_states(
+        "2024:040:02:00:00",
+        "2024:050:02:00:00",
+        merge_identical=True,
+        state_keys=["si_mode", "simpos", "clocking", "radmon"],
+    )
+    idxs = (sts["radmon"] == "ENAB") & (sts["simpos"] < -50000) & (sts["clocking"] == 1)
+    assert np.all(sts["si_mode"][idxs] == "H2C_0002")
+    # Test bias and no-bias SIMODEs
+    sts = states.get_states(
+        "2024:028:05:53:56.363",
+        "2024:028:17:17:52.589",
+        merge_identical=True,
+        state_keys=["si_mode", "obsid", "clocking"],
+    )
+    acis_run = sts["clocking"] == 1
+    assert np.all(sts["si_mode"][acis_run & sts["obsid"] == 27148] == "TE_006E6B")
+    assert np.all(sts["si_mode"][acis_run & sts["obsid"] == 27073] == "TE_006E6")
+    assert np.all(sts["si_mode"][acis_run & sts["obsid"] == 29216] == "TE_006E6")
+
+    # Minimal test for ACIS raw mode SI modes to verify that they are found in
+    # a period of time known to have raw mode commanding.
+    kstates = states.get_states(
+        start="2017:189:12:00:00", stop="2017:197:12:00:00", state_keys=["si_mode"]
+    )
+    assert "TN_000B4" in kstates["si_mode"]
+    assert "TN_000B6" in kstates["si_mode"]
 
 
 def test_cmd_line_interface(tmpdir):
@@ -175,15 +242,15 @@ def test_cmd_line_interface(tmpdir):
     # at which point python turns the \n into \r\n.
     lines = [line for line in out.splitlines() if line.strip()]
     assert lines == [
-        "             datestart               datestop  obsid   si_mode  pcad_mode ",
-        " 2017:001:21:00:00.000  2017:001:21:02:06.467  18140  TE_008FC       NPNT ",
-        " 2017:001:21:02:06.467  2017:001:21:05:06.467  18140  TE_008FC       NMAN ",
-        " 2017:001:21:05:06.467  2017:001:21:06:41.467  19973  TE_008FC       NMAN ",
-        " 2017:001:21:06:41.467  2017:001:21:23:02.282  19973  TE_00A58       NMAN ",
-        " 2017:001:21:23:02.282  2017:002:11:23:43.185  19973  TE_00A58       NPNT ",
-        " 2017:002:11:23:43.185  2017:002:11:26:43.185  19973  TE_00A58       NMAN ",
-        " 2017:002:11:26:43.185  2017:002:11:29:29.870  50432  TE_00A58       NMAN ",
-        " 2017:002:11:29:29.870  2017:002:11:30:00.000  50432  TE_00A58       NPNT ",
+        "             datestart               datestop  obsid    si_mode  pcad_mode ",
+        " 2017:001:21:00:00.000  2017:001:21:02:06.467  18140  TE_008FCB       NPNT ",
+        " 2017:001:21:02:06.467  2017:001:21:05:06.467  18140  TE_008FCB       NMAN ",
+        " 2017:001:21:05:06.467  2017:001:21:06:41.467  19973  TE_008FCB       NMAN ",
+        " 2017:001:21:06:41.467  2017:001:21:23:02.282  19973  TE_00A58B       NMAN ",
+        " 2017:001:21:23:02.282  2017:002:11:23:43.185  19973  TE_00A58B       NPNT ",
+        " 2017:002:11:23:43.185  2017:002:11:26:43.185  19973  TE_00A58B       NMAN ",
+        " 2017:002:11:26:43.185  2017:002:11:29:29.870  50432  TE_00A58B       NMAN ",
+        " 2017:002:11:29:29.870  2017:002:11:30:00.000  50432  TE_00A58B       NPNT ",
     ]
 
 
@@ -198,7 +265,6 @@ def test_quick():
             "power_cmd",
             "fep_count",
             "vid_board",
-            "si_mode",
             "ccd_count",
         ]
         + ["q1", "q2", "q3", "q4", "pcad_mode", "dither", "ra", "dec", "roll"]
@@ -226,17 +292,6 @@ def test_quick():
 
     assert np.all(rc["datestart"][1:] == rk["datestart"][1:])
     assert np.all(rc["datestop"][:-1] == rk["datestop"][:-1])
-
-
-def test_acis_raw_mode():
-    """Test ACIS raw-mode SI modes"""
-    # Minimal test that they are found in a period of time known to have
-    # raw mode commanding.
-    kstates = states.get_states(
-        start="2017:189:12:00:00", stop="2017:197:12:00:00", state_keys=["si_mode"]
-    )
-    assert "TN_000B4" in kstates["si_mode"]
-    assert "TN_000B6" in kstates["si_mode"]
 
 
 def test_states_2017(fast_sun_position_method):
@@ -467,7 +522,7 @@ def test_get_continuity_regress(fast_sun_position_method):
         "q4": 0.048491903554710794,
         "ra": 158.0145560201608,
         "roll": 84.946493470873875,
-        "si_mode": "TE_005C6",
+        "si_mode": "TE_005C6B",
         "simfa_pos": -468,
         "simpos": 75624,
         "targ_q1": 0.304190361,
@@ -714,7 +769,7 @@ def test_reduce_states_cmd_states(fast_sun_position_method):
 
     assert len(ksr) == len(cs)
 
-    assert_all_close_states(cs, ksr, set(state_keys) - set(["trans_keys"]))
+    assert_all_close_states(cs, ksr, set(state_keys) - set(["trans_keys", "si_mode"]))
 
     assert np.all(ksr["datestart"][1:] == cs["datestart"][1:])
     assert np.all(ksr["datestop"][:-1] == cs["datestop"][:-1])
