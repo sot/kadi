@@ -981,6 +981,9 @@ def update_cmd_events(scenario=None) -> Table:
     ok = np.isin(cmd_events["State"], allowed_states)
     cmd_events = cmd_events[ok]
 
+    # If KADI_COMMANDS_DEFAULT_STOP is set, filter out events after that date.
+    cmd_events = filter_cmd_events_default_stop(cmd_events)
+
     logger.info(f"Writing {len(cmd_events)} cmd_events to {cmd_events_path}")
     cmd_events.write(cmd_events_path, format="csv", overwrite=True)
     return cmd_events
@@ -1003,6 +1006,24 @@ def get_cmd_events(scenario=None):
     cmd_events_path = paths.CMD_EVENTS_PATH(scenario)
     logger.info(f"Reading command events {cmd_events_path}")
     cmd_events = Table.read(str(cmd_events_path), format="csv", fill_values=[])
+
+    # If KADI_COMMANDS_DEFAULT_STOP is set, filter out events after that date.
+    cmd_events = filter_cmd_events_default_stop(cmd_events)
+
+    return cmd_events
+
+
+def filter_cmd_events_default_stop(cmd_events):
+    if (stop := os.environ.get("KADI_COMMANDS_DEFAULT_STOP")) is not None:
+        stop = CxoTime(stop)
+        # Filter table based on stop date. Need to use CxoTime on each event separately
+        # because the date format could be inconsistent.
+        ok = [CxoTime(cmd_event["Date"]).date <= stop.date for cmd_event in cmd_events]
+        logger.debug(
+            f"Filtering cmd_events to stop date {stop.date} "
+            f"({np.count_nonzero(ok)} vs {len(cmd_events)})"
+        )
+        cmd_events = cmd_events[ok]
     return cmd_events
 
 
@@ -1315,26 +1336,12 @@ def get_matching_block_idx(cmds_arch, cmds_recent):
     idx_arch_recent = cmds_arch.find_date(cmds_recent["date"][0])
     logger.info("Selecting commands from cmds_arch[{}:]".format(idx_arch_recent))
     cmds_arch_recent = cmds_arch[idx_arch_recent:]
+    cmds_arch_recent.rev_pars_dict = weakref.ref(REV_PARS_DICT)
 
-    # Define the column names that specify a complete and unique row
-    key_names = ("date", "type", "tlmsid", "scs", "step", "source", "vcdu")
+    arch_vals = get_list_for_matching(cmds_arch_recent)
+    recent_vals = get_list_for_matching(cmds_recent)
 
-    recent_vals = [
-        tuple(
-            row[x].decode("ascii") if isinstance(row[x], bytes) else str(row[x])
-            for x in key_names
-        )
-        for row in cmds_arch_recent
-    ]
-    arch_vals = [
-        tuple(
-            row[x].decode("ascii") if isinstance(row[x], bytes) else str(row[x])
-            for x in key_names
-        )
-        for row in cmds_recent
-    ]
-
-    diff = difflib.SequenceMatcher(a=recent_vals, b=arch_vals, autojunk=False)
+    diff = difflib.SequenceMatcher(a=arch_vals, b=recent_vals, autojunk=False)
 
     matching_blocks = diff.get_matching_blocks()
     logger.info("Matching blocks for (a) recent commands and (b) existing HDF5")
@@ -1360,6 +1367,32 @@ def get_matching_block_idx(cmds_arch, cmds_recent):
     idx0_arch = idx_arch_recent + block.a + block.size
 
     return idx0_arch, idx0_recent
+
+
+def get_list_for_matching(cmds: CommandTable) -> list[tuple]:
+    # Define the column names that specify a complete and unique row
+    keys = ("date", "type", "tlmsid", "scs", "step", "source", "vcdu")
+    rows = []
+    for cmd in cmds:
+        row = tuple(
+            cmd[key].decode("ascii") if isinstance(cmd[key], bytes) else str(cmd[key])
+            for key in keys
+        )
+        # Special case for OBS command. The obs_stop param can change during anomaly
+        # recovery when there is a CMD_EVT maneuver but no subsequent maneuver to define
+        # obs_stop. In theory we could include these params in the match tuple for every
+        # command in the matching, but it turns out that (for reasons I don't fully
+        # understand) the AOSTRCAT yang and zang params are very slightly different at
+        # floating point precision level, so the matches fail. Since all the other
+        # commands are not mutable in this way we just apply this for OBS commands.
+        if cmd["tlmsid"] == "OBS":
+            row_params = tuple(
+                (key, cmd["params"][key]) for key in sorted(cmd["params"])
+            )
+            row += row_params
+        rows.append(row)
+
+    return rows
 
 
 TYPE_MAP = ["ACQ", "GUI", "BOT", "FID", "MON"]
