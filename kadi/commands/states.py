@@ -782,7 +782,7 @@ class SPMEclipseEnableTransition(BaseTransition):
     Automatic enable of sun position monitor.
 
     This occurs 11 minutes after eclipse exit, but only if the battery-connect
-    command occurs within 2:05 minutes of eclipse entry.
+    command occurs within 2.5 minutes of eclipse entry.
 
     Connect batteries is an event type COMMAND_SW and TLMSID= EOESTECN
     Eclipse entry is event type ORBPOINT with TYPE=PENTRY or TYPE=LSPENTRY
@@ -834,7 +834,7 @@ class EclipseEnableSPM(BaseTransition):
     """Flag to indicate whether SPM will be enabled 11 minutes after eclipse exit.
 
     This is evaluated at the time of eclipse entry and checks that the most recent
-    battery connect command (via the ``battery_connect`` state) was within 2:05 minutes
+    battery connect command (via the ``battery_connect`` state) was within 2.5 minutes
     of eclipse entry.
     """
 
@@ -878,7 +878,7 @@ class EclipseEnableSPM(BaseTransition):
         """
         battery_connect_time = date2secs(state["battery_connect"])
         eclipse_entry_time = date2secs(date)
-        enable_spm = eclipse_entry_time - battery_connect_time < 125
+        enable_spm = eclipse_entry_time - battery_connect_time < 150
         transition = {"date": date, "eclipse_enable_spm": enable_spm}
         add_transition(transitions, idx, transition)
 
