@@ -1854,7 +1854,7 @@ def test_sun_pos_mon_within_eclipse():
         assert sts[names][-2:].pformat_all() == exp
 
 
-def test_sun_pos_mon_within_eclipse_no_spm_enab():
+def test_sun_pos_mon_within_eclipse_no_spm_enab(monkeypatch):
     """
     Test a case where battery connect is more than 125 sec before pentry.
 
@@ -1862,6 +1862,12 @@ def test_sun_pos_mon_within_eclipse_no_spm_enab():
     2005:014:15:33:49.164 | ORBPOINT         | None       | JAN1005B | PENTRY
     2005:014:16:38:09.164 | ORBPOINT         | None       | JAN1005B | PEXIT
     """
+    # PR #323 changed the time threshold from 125 to 135 sec. Here we monkeypatch back
+    # to 125 sec to test the case where battery connect is more than 125 sec
+    # before pentry. From telemetry this case with a dt of around 133 sec actually did
+    # end up with the SPM enabled.
+    monkeypatch.setattr(states.EclipseEnableSPM, "BATTERY_CONNECT_MAX_DT", 125)
+
     sts = states.get_states(
         "2005:014:16:38:10",  # Just after pexit
         "2005:014:17:00:00",  # 22 min later
