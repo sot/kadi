@@ -782,7 +782,7 @@ class SPMEclipseEnableTransition(BaseTransition):
     Automatic enable of sun position monitor.
 
     This occurs 11 minutes after eclipse exit, but only if the battery-connect
-    command occurs within 2.5 minutes of eclipse entry.
+    command occurs within 135 seconds of eclipse entry.
 
     Connect batteries is an event type COMMAND_SW and TLMSID= EOESTECN
     Eclipse entry is event type ORBPOINT with TYPE=PENTRY or TYPE=LSPENTRY
