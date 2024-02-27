@@ -1,18 +1,17 @@
-
 <!DOCTYPE html>
 
-<html lang="en">
+<html lang="en" data-content_root="../../../">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>kadi.events.query &#8212; kadi 7.8.1 documentation</title>
-    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/bootstrap-astropy.css" />
+    <title>kadi.events.query &#8212; kadi 7.9.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/bootstrap-astropy.css?v=f4f7060c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/plot_directive.css" />
     
-    <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
-    <script src="../../../_static/doctools.js"></script>
-    <script src="../../../_static/sphinx_highlight.js"></script>
+    <script src="../../../_static/documentation_options.js?v=a678aa7c"></script>
+    <script src="../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script type="text/javascript" src="../../../_static/sidebar.js"></script>
     <script type="text/javascript" src="../../../_static/copybutton.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
@@ -46,7 +45,7 @@
     <h3>Navigation</h3>
     <ul>
       <li>
-	<a href="../../../index.html">kadi 7.8.1 documentation</a>
+	<a href="../../../index.html">kadi 7.9.0 documentation</a>
 	 &#187;
       </li>
       <li><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
@@ -160,7 +159,9 @@
     <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">out_dates</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">out_vals</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="get_dates_vals"><a class="viewcode-back" href="../../../api_events.html#kadi.events.query.get_dates_vals">[docs]</a><span class="k">def</span> <span class="nf">get_dates_vals</span><span class="p">(</span><span class="n">intervals</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">):</span>
+<div class="viewcode-block" id="get_dates_vals">
+<a class="viewcode-back" href="../../../api_events.html#kadi.events.query.get_dates_vals">[docs]</a>
+<span class="k">def</span> <span class="nf">get_dates_vals</span><span class="p">(</span><span class="n">intervals</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Convert a list of date 2-tuple intervals into a contiguous &quot;curve&quot; of</span>
 <span class="sd">    dates, vals values.  The dates and vals could be plotted.</span>
@@ -202,6 +203,7 @@
     <span class="k">return</span> <span class="n">dates</span><span class="p">,</span> <span class="n">vals</span></div>
 
 
+
 <span class="k">def</span> <span class="nf">combine_intervals</span><span class="p">(</span><span class="n">op</span><span class="p">,</span> <span class="n">intervals0</span><span class="p">,</span> <span class="n">intervals1</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">):</span>
     <span class="n">dates0</span><span class="p">,</span> <span class="n">vals0</span> <span class="o">=</span> <span class="n">get_dates_vals</span><span class="p">(</span><span class="n">intervals0</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">)</span>
     <span class="n">dates1</span><span class="p">,</span> <span class="n">vals1</span> <span class="o">=</span> <span class="n">get_dates_vals</span><span class="p">(</span><span class="n">intervals1</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">)</span>
@@ -216,7 +218,9 @@
     <span class="k">return</span> <span class="n">intervals</span>
 
 
-<div class="viewcode-block" id="EventQuery"><a class="viewcode-back" href="../../../api_events.html#kadi.events.query.EventQuery">[docs]</a><span class="k">class</span> <span class="nc">EventQuery</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="EventQuery">
+<a class="viewcode-back" href="../../../api_events.html#kadi.events.query.EventQuery">[docs]</a>
+<span class="k">class</span> <span class="nc">EventQuery</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    High-level interface for handling event queries.</span>
 
@@ -318,7 +322,9 @@
     <span class="k">def</span> <span class="nf">table</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">all</span><span class="p">()</span><span class="o">.</span><span class="n">table</span>
 
-<div class="viewcode-block" id="EventQuery.filter"><a class="viewcode-back" href="../../../api_events.html#kadi.events.query.EventQuery.filter">[docs]</a>    <span class="k">def</span> <span class="nf">filter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">stop</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">obsid</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">subset</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="EventQuery.filter">
+<a class="viewcode-back" href="../../../api_events.html#kadi.events.query.EventQuery.filter">[docs]</a>
+    <span class="k">def</span> <span class="nf">filter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">stop</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">obsid</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">subset</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Find events between ``start`` and ``stop``, or with the given ``obsid``, which</span>
 <span class="sd">        match the filter attributes in subsequent keyword arguments.  The matching events</span>
@@ -417,7 +423,10 @@
 
         <span class="k">return</span> <span class="n">objs</span></div>
 
-<div class="viewcode-block" id="EventQuery.all"><a class="viewcode-back" href="../../../api_events.html#kadi.events.query.EventQuery.all">[docs]</a>    <span class="k">def</span> <span class="nf">all</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+<div class="viewcode-block" id="EventQuery.all">
+<a class="viewcode-back" href="../../../api_events.html#kadi.events.query.EventQuery.all">[docs]</a>
+    <span class="k">def</span> <span class="nf">all</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return all events as a Django query set object.</span>
 
@@ -440,7 +449,9 @@
 <span class="sd">          2011:187:12:28:53.816 2011:190:20:39:17.416 426342600.0 426631223.6 288623.6</span>
 <span class="sd">          2012:150:03:33:09.816 2012:151:12:31:49.416 454649656.0 454768375.6 118719.6</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">filter</span><span class="p">()</span></div></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">filter</span><span class="p">()</span></div>
+</div>
+
 
 
 <span class="k">class</span> <span class="nc">LttBadEventQuery</span><span class="p">(</span><span class="n">EventQuery</span><span class="p">):</span>
@@ -491,7 +502,7 @@
     <a href="#">Back to Top</a></p>
   <p>
     &copy; Copyright 2013, Tom Aldcroft.<br/>
-    Created using <a href="http://www.sphinx-doc.org/en/stable/">Sphinx</a> 6.1.3. &nbsp;
+    Created using <a href="http://www.sphinx-doc.org/en/stable/">Sphinx</a> 7.2.6. &nbsp;
   </p>
 </footer>
   </body>

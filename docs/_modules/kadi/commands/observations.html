@@ -1,18 +1,17 @@
-
 <!DOCTYPE html>
 
-<html lang="en">
+<html lang="en" data-content_root="../../../">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>kadi.commands.observations &#8212; kadi 7.8.1 documentation</title>
-    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/bootstrap-astropy.css" />
+    <title>kadi.commands.observations &#8212; kadi 7.9.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/bootstrap-astropy.css?v=f4f7060c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/plot_directive.css" />
     
-    <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
-    <script src="../../../_static/doctools.js"></script>
-    <script src="../../../_static/sphinx_highlight.js"></script>
+    <script src="../../../_static/documentation_options.js?v=a678aa7c"></script>
+    <script src="../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script type="text/javascript" src="../../../_static/sidebar.js"></script>
     <script type="text/javascript" src="../../../_static/copybutton.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
@@ -46,7 +45,7 @@
     <h3>Navigation</h3>
     <ul>
       <li>
-	<a href="../../../index.html">kadi 7.8.1 documentation</a>
+	<a href="../../../index.html">kadi 7.9.0 documentation</a>
 	 &#187;
       </li>
       <li><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
@@ -315,7 +314,9 @@
     <span class="k">return</span> <span class="n">aca</span>
 
 
-<div class="viewcode-block" id="get_starcats_as_table"><a class="viewcode-back" href="../../../api_commands.html#kadi.commands.observations.get_starcats_as_table">[docs]</a><span class="k">def</span> <span class="nf">get_starcats_as_table</span><span class="p">(</span>
+<div class="viewcode-block" id="get_starcats_as_table">
+<a class="viewcode-back" href="../../../api_commands.html#kadi.commands.observations.get_starcats_as_table">[docs]</a>
+<span class="k">def</span> <span class="nf">get_starcats_as_table</span><span class="p">(</span>
     <span class="n">start</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="n">stop</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="o">*</span><span class="p">,</span>
@@ -401,7 +402,10 @@
     <span class="k">return</span> <span class="n">out</span></div>
 
 
-<div class="viewcode-block" id="get_starcats"><a class="viewcode-back" href="../../../api_commands.html#kadi.commands.observations.get_starcats">[docs]</a><span class="k">def</span> <span class="nf">get_starcats</span><span class="p">(</span>
+
+<div class="viewcode-block" id="get_starcats">
+<a class="viewcode-back" href="../../../api_commands.html#kadi.commands.observations.get_starcats">[docs]</a>
+<span class="k">def</span> <span class="nf">get_starcats</span><span class="p">(</span>
     <span class="n">start</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="n">stop</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="o">*</span><span class="p">,</span>
@@ -513,7 +517,9 @@
     <span class="n">rev_pars_dict</span> <span class="o">=</span> <span class="n">REV_PARS_DICT</span> <span class="k">if</span> <span class="n">cmds</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">cmds</span><span class="o">.</span><span class="n">rev_pars_dict</span><span class="p">()</span>
 
     <span class="k">with</span> <span class="n">ExitStack</span><span class="p">()</span> <span class="k">as</span> <span class="n">context_stack</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">conf</span><span class="o">.</span><span class="n">cache_starcats</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">conf</span><span class="o">.</span><span class="n">cache_starcats</span> <span class="ow">and</span> <span class="n">cmds</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># Using shelve provides a persistent cache of star catalogs. Only do this</span>
+            <span class="c1"># when using the global commands archive, not when `cmds` are provided.</span>
             <span class="n">starcats_db</span> <span class="o">=</span> <span class="n">context_stack</span><span class="o">.</span><span class="n">enter_context</span><span class="p">(</span>
                 <span class="n">shelve</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">STARCATS_CACHE_PATH</span><span class="p">()))</span>
             <span class="p">)</span>
@@ -575,7 +581,10 @@
     <span class="k">return</span> <span class="n">starcats</span></div>
 
 
-<div class="viewcode-block" id="get_observations"><a class="viewcode-back" href="../../../api_commands.html#kadi.commands.observations.get_observations">[docs]</a><span class="k">def</span> <span class="nf">get_observations</span><span class="p">(</span>
+
+<div class="viewcode-block" id="get_observations">
+<a class="viewcode-back" href="../../../api_commands.html#kadi.commands.observations.get_observations">[docs]</a>
+<span class="k">def</span> <span class="nf">get_observations</span><span class="p">(</span>
     <span class="n">start</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">stop</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">obsid</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">scenario</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cmds</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">starcat_date</span><span class="o">=</span><span class="kc">None</span>
 <span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Get observations corresponding to input parameters.</span>
@@ -603,7 +612,8 @@
 <span class="sd">        &#39;npnt_enab&#39;: True,</span>
 <span class="sd">        &#39;obs_start&#39;: &#39;2007:002:04:46:58.056&#39;,</span>
 <span class="sd">        &#39;prev_att&#39;: (0.319214732, 0.535685207, 0.766039803, 0.155969017),</span>
-<span class="sd">        &#39;starcat_idx&#39;: 144398,</span>
+<span class="sd">        &#39;starcat_date&#39;: &#39;2007:002:04:31:43.965&#39;,</span>
+<span class="sd">        &#39;starcat_idx&#39;: 147908,</span>
 <span class="sd">        &#39;source&#39;: &#39;DEC2506C&#39;}</span>
 
 <span class="sd">        &gt;&gt;&gt; obs_all = get_observations()  # All observations in commands archive</span>
@@ -706,6 +716,7 @@
     <span class="k">return</span> <span class="n">obss</span></div>
 
 
+
 <span class="k">def</span> <span class="nf">get_agasc_cone_fast</span><span class="p">(</span><span class="n">ra</span><span class="p">,</span> <span class="n">dec</span><span class="p">,</span> <span class="n">radius</span><span class="o">=</span><span class="mf">1.5</span><span class="p">,</span> <span class="n">date</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">matlab_pm_bug</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Get AGASC catalog entries within ``radius`` degrees of ``ra``, ``dec``.</span>
@@ -801,7 +812,7 @@
     <a href="#">Back to Top</a></p>
   <p>
     &copy; Copyright 2013, Tom Aldcroft.<br/>
-    Created using <a href="http://www.sphinx-doc.org/en/stable/">Sphinx</a> 6.1.3. &nbsp;
+    Created using <a href="http://www.sphinx-doc.org/en/stable/">Sphinx</a> 7.2.6. &nbsp;
   </p>
 </footer>
   </body>

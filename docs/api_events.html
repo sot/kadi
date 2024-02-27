@@ -1,19 +1,18 @@
-
 <!DOCTYPE html>
 
-<html lang="en">
+<html lang="en" data-content_root="./">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Events API &#8212; kadi 7.8.1 documentation</title>
-    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="_static/bootstrap-astropy.css" />
+    <title>Events API &#8212; kadi 7.9.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="_static/bootstrap-astropy.css?v=f4f7060c" />
     <link rel="stylesheet" type="text/css" href="_static/plot_directive.css" />
     
-    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-    <script src="_static/doctools.js"></script>
-    <script src="_static/sphinx_highlight.js"></script>
+    <script src="_static/documentation_options.js?v=a678aa7c"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script type="text/javascript" src="_static/sidebar.js"></script>
     <script type="text/javascript" src="_static/copybutton.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
@@ -60,7 +59,7 @@
 	 |
       </li>
       <li>
-	<a href="index.html">kadi 7.8.1 documentation</a>
+	<a href="index.html">kadi 7.9.0 documentation</a>
 	 &#187;
       </li>
       <li><a href="api.html" accesskey="U">API documentation</a> &#187;</li>
@@ -76,25 +75,25 @@
           <div class="body" role="main">
             
   <section id="events-api">
-<h1>Events API<a class="headerlink" href="#events-api" title="Permalink to this heading">¶</a></h1>
+<h1>Events API<a class="headerlink" href="#events-api" title="Link to this heading">¶</a></h1>
 <section id="module-kadi.events.models">
-<span id="event-models"></span><h2>Event models<a class="headerlink" href="#module-kadi.events.models" title="Permalink to this heading">¶</a></h2>
+<span id="event-models"></span><h2>Event models<a class="headerlink" href="#module-kadi.events.models" title="Link to this heading">¶</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="kadi.events.models.AsciiTableEvent">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">kadi.events.models.</span></span><span class="sig-name descname"><span class="pre">AsciiTableEvent</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#AsciiTableEvent"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.AsciiTableEvent" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">kadi.events.models.</span></span><span class="sig-name descname"><span class="pre">AsciiTableEvent</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#AsciiTableEvent"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.AsciiTableEvent" title="Link to this definition">¶</a></dt>
 <dd><p>Base class for events defined by a simple quasi-static text table file.
 Subclasses need to define the file name (lives in DATA_DIR()/&lt;filename&gt;)
 and the start and stop column names.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="kadi.events.models.AsciiTableEvent.get_events">
-<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_events</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stop</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#AsciiTableEvent.get_events"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.AsciiTableEvent.get_events" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_events</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stop</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#AsciiTableEvent.get_events"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.AsciiTableEvent.get_events" title="Link to this definition">¶</a></dt>
 <dd><p>Get events from telemetry defined by a simple rule that the value of
 <cite>event_msids[0]</cite> == <cite>event_val</cite>.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="kadi.events.models.AsciiTableEvent.get_extras">
-<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_extras</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interval</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#AsciiTableEvent.get_extras"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.AsciiTableEvent.get_extras" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_extras</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interval</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#AsciiTableEvent.get_extras"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.AsciiTableEvent.get_extras" title="Link to this definition">¶</a></dt>
 <dd><p>Get extra stuff for the event based on fields in the interval.  This is a hook
 within get_events() that should be overridden in individual classes.</p>
 </dd></dl>
@@ -103,26 +102,26 @@ within get_events() that should be overridden in individual classes.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="kadi.events.models.BaseEvent">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">kadi.events.models.</span></span><span class="sig-name descname"><span class="pre">BaseEvent</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#BaseEvent"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.BaseEvent" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">kadi.events.models.</span></span><span class="sig-name descname"><span class="pre">BaseEvent</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#BaseEvent"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.BaseEvent" title="Link to this definition">¶</a></dt>
 <dd><p>Base class for any event that gets updated in update_events.main().  Note
 that BaseModel is the base class for models like ManvrSeq that get
 generated as part of another event class.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="kadi.events.models.BaseEvent.get_commands">
-<span class="sig-name descname"><span class="pre">get_commands</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#BaseEvent.get_commands"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.BaseEvent.get_commands" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">get_commands</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#BaseEvent.get_commands"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.BaseEvent.get_commands" title="Link to this definition">¶</a></dt>
 <dd><p>Get load commands within start/stop interval for this event.
 Apply padding defined by interval_pad attribute.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="kadi.events.models.BaseEvent.get_next">
-<span class="sig-name descname"><span class="pre">get_next</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">queryset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#BaseEvent.get_next"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.BaseEvent.get_next" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">get_next</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">queryset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#BaseEvent.get_next"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.BaseEvent.get_next" title="Link to this definition">¶</a></dt>
 <dd><p>Get the next object by primary key order</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="kadi.events.models.BaseEvent.get_previous">
-<span class="sig-name descname"><span class="pre">get_previous</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">queryset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#BaseEvent.get_previous"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.BaseEvent.get_previous" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">get_previous</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">queryset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#BaseEvent.get_previous"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.BaseEvent.get_previous" title="Link to this definition">¶</a></dt>
 <dd><p>Get the previous object by primary key order</p>
 </dd></dl>
 
@@ -130,15 +129,15 @@ Apply padding defined by interval_pad attribute.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="kadi.events.models.BaseModel">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">kadi.events.models.</span></span><span class="sig-name descname"><span class="pre">BaseModel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#BaseModel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.BaseModel" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">kadi.events.models.</span></span><span class="sig-name descname"><span class="pre">BaseModel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#BaseModel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.BaseModel" title="Link to this definition">¶</a></dt>
 <dd><p>Base class for for all models.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="kadi.events.models.BaseModel.QuerySet">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">QuerySet</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">query</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">using</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hints</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#BaseModel.QuerySet"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.BaseModel.QuerySet" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">QuerySet</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">query</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">using</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hints</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#BaseModel.QuerySet"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.BaseModel.QuerySet" title="Link to this definition">¶</a></dt>
 <dd><p>More user-friendly output from event queries.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="kadi.events.models.BaseModel.QuerySet.select_overlapping">
-<span class="sig-name descname"><span class="pre">select_overlapping</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">query_event</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">allow_partial</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#BaseModel.QuerySet.select_overlapping"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.BaseModel.QuerySet.select_overlapping" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">select_overlapping</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">query_event</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">allow_partial</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#BaseModel.QuerySet.select_overlapping"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.BaseModel.QuerySet.select_overlapping" title="Link to this definition">¶</a></dt>
 <dd><p>Select events which overlap with the specified <code class="docutils literal notranslate"><span class="pre">query_event</span></code>.</p>
 <p>By default partial overlap between the self events and the <code class="docutils literal notranslate"><span class="pre">query_event</span></code>
 intervals is sufficient.  However, if <code class="docutils literal notranslate"><span class="pre">allow_partial=False</span></code>, then
@@ -172,20 +171,20 @@ boolean expression)</p></li>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="kadi.events.models.BaseModel.from_dict">
-<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logger</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#BaseModel.from_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.BaseModel.from_dict" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logger</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#BaseModel.from_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.BaseModel.from_dict" title="Link to this definition">¶</a></dt>
 <dd><p>Set model from a dict <cite>model_dict</cite> which might have extra stuff not in
 Model.  If <cite>logger</cite> is supplied then log output at debug level.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="kadi.events.models.BaseModel.get_model_fields">
-<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_model_fields</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#BaseModel.get_model_fields"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.BaseModel.get_model_fields" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_model_fields</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#BaseModel.get_model_fields"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.BaseModel.get_model_fields" title="Link to this definition">¶</a></dt>
 <dd><p>Return a list of model fields (works from class or instance).</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="kadi.events.models.BaseModel.get_obsid">
-<span class="sig-name descname"><span class="pre">get_obsid</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#BaseModel.get_obsid"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.BaseModel.get_obsid" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">get_obsid</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#BaseModel.get_obsid"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.BaseModel.get_obsid" title="Link to this definition">¶</a></dt>
 <dd><p>Return the obsid associated with the event.</p>
 <p>Typically this is the obsid at the start of the event, but for maneuvers it is the
 obsid at the end of the maneuver.</p>
@@ -202,7 +201,7 @@ obsid at the end of the maneuver.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="kadi.events.models.CAP">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">kadi.events.models.</span></span><span class="sig-name descname"><span class="pre">CAP</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#CAP"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.CAP" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">kadi.events.models.</span></span><span class="sig-name descname"><span class="pre">CAP</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#CAP"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.CAP" title="Link to this definition">¶</a></dt>
 <dd><p>CAP from iFOT database</p>
 <p><strong>Event definition</strong>: CAP from iFOT database</p>
 <p><strong>Fields</strong></p>
@@ -262,19 +261,19 @@ obsid at the end of the maneuver.</p>
 </table>
 <dl class="py exception">
 <dt class="sig sig-object py" id="kadi.events.models.CAP.DoesNotExist">
-<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">DoesNotExist</span></span><a class="headerlink" href="#kadi.events.models.CAP.DoesNotExist" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">DoesNotExist</span></span><a class="headerlink" href="#kadi.events.models.CAP.DoesNotExist" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py exception">
 <dt class="sig sig-object py" id="kadi.events.models.CAP.MultipleObjectsReturned">
-<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">MultipleObjectsReturned</span></span><a class="headerlink" href="#kadi.events.models.CAP.MultipleObjectsReturned" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">MultipleObjectsReturned</span></span><a class="headerlink" href="#kadi.events.models.CAP.MultipleObjectsReturned" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="kadi.events.models.DarkCal">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">kadi.events.models.</span></span><span class="sig-name descname"><span class="pre">DarkCal</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#DarkCal"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.DarkCal" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">kadi.events.models.</span></span><span class="sig-name descname"><span class="pre">DarkCal</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#DarkCal"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.DarkCal" title="Link to this definition">¶</a></dt>
 <dd><p>ACA dark current calibration event</p>
 <p><strong>Event definition</strong>: interval where <code class="docutils literal notranslate"><span class="pre">CIUMACAC</span> <span class="pre">=</span> <span class="pre">ON</span></code></p>
 <p>CIUMACAC is the IU MODE ACA CALIBRATION INDICATOR.  Individual intervals
@@ -316,19 +315,19 @@ within one day are joined together to a single calibration event.</p>
 </table>
 <dl class="py exception">
 <dt class="sig sig-object py" id="kadi.events.models.DarkCal.DoesNotExist">
-<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">DoesNotExist</span></span><a class="headerlink" href="#kadi.events.models.DarkCal.DoesNotExist" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">DoesNotExist</span></span><a class="headerlink" href="#kadi.events.models.DarkCal.DoesNotExist" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py exception">
 <dt class="sig sig-object py" id="kadi.events.models.DarkCal.MultipleObjectsReturned">
-<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">MultipleObjectsReturned</span></span><a class="headerlink" href="#kadi.events.models.DarkCal.MultipleObjectsReturned" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">MultipleObjectsReturned</span></span><a class="headerlink" href="#kadi.events.models.DarkCal.MultipleObjectsReturned" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="kadi.events.models.DarkCalReplica">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">kadi.events.models.</span></span><span class="sig-name descname"><span class="pre">DarkCalReplica</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#DarkCalReplica"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.DarkCalReplica" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">kadi.events.models.</span></span><span class="sig-name descname"><span class="pre">DarkCalReplica</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#DarkCalReplica"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.DarkCalReplica" title="Link to this definition">¶</a></dt>
 <dd><p>ACA dark current calibration replica</p>
 <p><strong>Event definition</strong>: interval where <code class="docutils literal notranslate"><span class="pre">CIUMACAC</span> <span class="pre">=</span> <span class="pre">ON</span></code></p>
 <p>CIUMACAC is the IU MODE ACA CALIBRATION INDICATOR.</p>
@@ -369,19 +368,19 @@ within one day are joined together to a single calibration event.</p>
 </table>
 <dl class="py exception">
 <dt class="sig sig-object py" id="kadi.events.models.DarkCalReplica.DoesNotExist">
-<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">DoesNotExist</span></span><a class="headerlink" href="#kadi.events.models.DarkCalReplica.DoesNotExist" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">DoesNotExist</span></span><a class="headerlink" href="#kadi.events.models.DarkCalReplica.DoesNotExist" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py exception">
 <dt class="sig sig-object py" id="kadi.events.models.DarkCalReplica.MultipleObjectsReturned">
-<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">MultipleObjectsReturned</span></span><a class="headerlink" href="#kadi.events.models.DarkCalReplica.MultipleObjectsReturned" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">MultipleObjectsReturned</span></span><a class="headerlink" href="#kadi.events.models.DarkCalReplica.MultipleObjectsReturned" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="kadi.events.models.DsnComm">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">kadi.events.models.</span></span><span class="sig-name descname"><span class="pre">DsnComm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#DsnComm"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.DsnComm" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">kadi.events.models.</span></span><span class="sig-name descname"><span class="pre">DsnComm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#DsnComm"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.DsnComm" title="Link to this definition">¶</a></dt>
 <dd><p>DSN comm period</p>
 <dl class="simple">
 <dt><strong>Event definition</strong>: DSN comm pass beginning of support to end of support (not</dt><dd><p>beginning / end of track).</p>
@@ -468,17 +467,17 @@ within one day are joined together to a single calibration event.</p>
 </table>
 <dl class="py exception">
 <dt class="sig sig-object py" id="kadi.events.models.DsnComm.DoesNotExist">
-<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">DoesNotExist</span></span><a class="headerlink" href="#kadi.events.models.DsnComm.DoesNotExist" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">DoesNotExist</span></span><a class="headerlink" href="#kadi.events.models.DsnComm.DoesNotExist" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py exception">
 <dt class="sig sig-object py" id="kadi.events.models.DsnComm.MultipleObjectsReturned">
-<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">MultipleObjectsReturned</span></span><a class="headerlink" href="#kadi.events.models.DsnComm.MultipleObjectsReturned" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">MultipleObjectsReturned</span></span><a class="headerlink" href="#kadi.events.models.DsnComm.MultipleObjectsReturned" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="kadi.events.models.DsnComm.get_extras">
-<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_extras</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">event_msidset</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#DsnComm.get_extras"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.DsnComm.get_extras" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_extras</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">event_msidset</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#DsnComm.get_extras"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.DsnComm.get_extras" title="Link to this definition">¶</a></dt>
 <dd><p>Define OC, CC and pass_plan if available</p>
 </dd></dl>
 
@@ -486,7 +485,7 @@ within one day are joined together to a single calibration event.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="kadi.events.models.Dump">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">kadi.events.models.</span></span><span class="sig-name descname"><span class="pre">Dump</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#Dump"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.Dump" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">kadi.events.models.</span></span><span class="sig-name descname"><span class="pre">Dump</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#Dump"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.Dump" title="Link to this definition">¶</a></dt>
 <dd><p>Momentum unload either ground commanded or autonomous</p>
 <p><strong>Event definition</strong>: interval where <code class="docutils literal notranslate"><span class="pre">AOUNLOAD</span> <span class="pre">=</span> <span class="pre">GRND</span></code> or <code class="docutils literal notranslate"><span class="pre">AOUNLOAD</span> <span class="pre">=</span> <span class="pre">AUTO</span></code></p>
 <p><strong>Fields</strong></p>
@@ -530,23 +529,23 @@ within one day are joined together to a single calibration event.</p>
 </table>
 <dl class="py exception">
 <dt class="sig sig-object py" id="kadi.events.models.Dump.DoesNotExist">
-<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">DoesNotExist</span></span><a class="headerlink" href="#kadi.events.models.Dump.DoesNotExist" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">DoesNotExist</span></span><a class="headerlink" href="#kadi.events.models.Dump.DoesNotExist" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py exception">
 <dt class="sig sig-object py" id="kadi.events.models.Dump.MultipleObjectsReturned">
-<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">MultipleObjectsReturned</span></span><a class="headerlink" href="#kadi.events.models.Dump.MultipleObjectsReturned" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">MultipleObjectsReturned</span></span><a class="headerlink" href="#kadi.events.models.Dump.MultipleObjectsReturned" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="kadi.events.models.Dump.get_extras">
-<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_extras</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">event_msidset</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#Dump.get_extras"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.Dump.get_extras" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_extras</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">event_msidset</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#Dump.get_extras"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.Dump.get_extras" title="Link to this definition">¶</a></dt>
 <dd><p>Define unload type</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="kadi.events.models.Dump.get_state_times_bools">
-<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_state_times_bools</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event_msidset</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#Dump.get_state_times_bools"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.Dump.get_state_times_bools" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_state_times_bools</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event_msidset</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#Dump.get_state_times_bools"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.Dump.get_state_times_bools" title="Link to this definition">¶</a></dt>
 <dd><p>Get the boolean True/False array indicating when <code class="docutils literal notranslate"><span class="pre">event_msid</span></code> is in the
 desired state for this event type.  The default is when
 <code class="docutils literal notranslate"><span class="pre">event_msid</span> <span class="pre">==</span> <span class="pre">cls.event_val</span></code>, but subclasses may override this method.</p>
@@ -569,7 +568,7 @@ desired state for this event type.  The default is when
 
 <dl class="py class">
 <dt class="sig sig-object py" id="kadi.events.models.Dwell">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">kadi.events.models.</span></span><span class="sig-name descname"><span class="pre">Dwell</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#Dwell"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.Dwell" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">kadi.events.models.</span></span><span class="sig-name descname"><span class="pre">Dwell</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#Dwell"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.Dwell" title="Link to this definition">¶</a></dt>
 <dd><p>Dwell in Kalman mode</p>
 <p><strong>Event definition</strong>: contiguous interval of AOACASEQ = KALM between:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Start</span><span class="p">:</span> <span class="n">AOACASEQ</span> <span class="o">==&gt;</span> <span class="n">KALM</span>  <span class="p">(</span><span class="n">transition</span> <span class="kn">from</span> <span class="nn">any</span> <span class="n">state</span> <span class="n">to</span> <span class="n">KALM</span><span class="p">)</span>
@@ -634,19 +633,19 @@ window commanding or multiple acquisition attempts).</p>
 </table>
 <dl class="py exception">
 <dt class="sig sig-object py" id="kadi.events.models.Dwell.DoesNotExist">
-<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">DoesNotExist</span></span><a class="headerlink" href="#kadi.events.models.Dwell.DoesNotExist" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">DoesNotExist</span></span><a class="headerlink" href="#kadi.events.models.Dwell.DoesNotExist" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py exception">
 <dt class="sig sig-object py" id="kadi.events.models.Dwell.MultipleObjectsReturned">
-<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">MultipleObjectsReturned</span></span><a class="headerlink" href="#kadi.events.models.Dwell.MultipleObjectsReturned" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">MultipleObjectsReturned</span></span><a class="headerlink" href="#kadi.events.models.Dwell.MultipleObjectsReturned" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="kadi.events.models.Eclipse">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">kadi.events.models.</span></span><span class="sig-name descname"><span class="pre">Eclipse</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#Eclipse"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.Eclipse" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">kadi.events.models.</span></span><span class="sig-name descname"><span class="pre">Eclipse</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#Eclipse"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.Eclipse" title="Link to this definition">¶</a></dt>
 <dd><p><strong>Event definition</strong>: interval where <code class="docutils literal notranslate"><span class="pre">AOECLIPS</span> <span class="pre">=</span> <span class="pre">ECL</span></code></p>
 <p><strong>Fields</strong></p>
 <table class="docutils align-default">
@@ -685,24 +684,24 @@ window commanding or multiple acquisition attempts).</p>
 </table>
 <dl class="py exception">
 <dt class="sig sig-object py" id="kadi.events.models.Eclipse.DoesNotExist">
-<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">DoesNotExist</span></span><a class="headerlink" href="#kadi.events.models.Eclipse.DoesNotExist" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">DoesNotExist</span></span><a class="headerlink" href="#kadi.events.models.Eclipse.DoesNotExist" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py exception">
 <dt class="sig sig-object py" id="kadi.events.models.Eclipse.MultipleObjectsReturned">
-<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">MultipleObjectsReturned</span></span><a class="headerlink" href="#kadi.events.models.Eclipse.MultipleObjectsReturned" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">MultipleObjectsReturned</span></span><a class="headerlink" href="#kadi.events.models.Eclipse.MultipleObjectsReturned" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="kadi.events.models.Event">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">kadi.events.models.</span></span><span class="sig-name descname"><span class="pre">Event</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#Event"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.Event" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">kadi.events.models.</span></span><span class="sig-name descname"><span class="pre">Event</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#Event"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.Event" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="kadi.events.models.FaMove">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">kadi.events.models.</span></span><span class="sig-name descname"><span class="pre">FaMove</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#FaMove"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.FaMove" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">kadi.events.models.</span></span><span class="sig-name descname"><span class="pre">FaMove</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#FaMove"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.FaMove" title="Link to this definition">¶</a></dt>
 <dd><p>SIM FA translation</p>
 <p><strong>Event definition</strong>: interval where <code class="docutils literal notranslate"><span class="pre">3FAMOVE</span> <span class="pre">=</span> <span class="pre">MOVE</span></code></p>
 <p><strong>Fields</strong></p>
@@ -750,17 +749,17 @@ window commanding or multiple acquisition attempts).</p>
 </table>
 <dl class="py exception">
 <dt class="sig sig-object py" id="kadi.events.models.FaMove.DoesNotExist">
-<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">DoesNotExist</span></span><a class="headerlink" href="#kadi.events.models.FaMove.DoesNotExist" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">DoesNotExist</span></span><a class="headerlink" href="#kadi.events.models.FaMove.DoesNotExist" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py exception">
 <dt class="sig sig-object py" id="kadi.events.models.FaMove.MultipleObjectsReturned">
-<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">MultipleObjectsReturned</span></span><a class="headerlink" href="#kadi.events.models.FaMove.MultipleObjectsReturned" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">MultipleObjectsReturned</span></span><a class="headerlink" href="#kadi.events.models.FaMove.MultipleObjectsReturned" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="kadi.events.models.FaMove.get_extras">
-<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_extras</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">event_msidset</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#FaMove.get_extras"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.FaMove.get_extras" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_extras</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">event_msidset</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#FaMove.get_extras"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.FaMove.get_extras" title="Link to this definition">¶</a></dt>
 <dd><p>Define start/stop_3fapos.</p>
 </dd></dl>
 
@@ -768,7 +767,7 @@ window commanding or multiple acquisition attempts).</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="kadi.events.models.GratingMove">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">kadi.events.models.</span></span><span class="sig-name descname"><span class="pre">GratingMove</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#GratingMove"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.GratingMove" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">kadi.events.models.</span></span><span class="sig-name descname"><span class="pre">GratingMove</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#GratingMove"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.GratingMove" title="Link to this definition">¶</a></dt>
 <dd><p>Grating movement (HETG or LETG)</p>
 <p><strong>Event definition</strong>: interval with 4MP28AV &gt; 2.0 V  (MCE A + 28 VOLT MONITOR)</p>
 <p>This event detects grating motion via the MCE-A 28 volt monitor.  Due to
@@ -838,23 +837,23 @@ where no grating motion is seen.  These have grating=UNKN (unknown).</p>
 </table>
 <dl class="py exception">
 <dt class="sig sig-object py" id="kadi.events.models.GratingMove.DoesNotExist">
-<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">DoesNotExist</span></span><a class="headerlink" href="#kadi.events.models.GratingMove.DoesNotExist" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">DoesNotExist</span></span><a class="headerlink" href="#kadi.events.models.GratingMove.DoesNotExist" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py exception">
 <dt class="sig sig-object py" id="kadi.events.models.GratingMove.MultipleObjectsReturned">
-<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">MultipleObjectsReturned</span></span><a class="headerlink" href="#kadi.events.models.GratingMove.MultipleObjectsReturned" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">MultipleObjectsReturned</span></span><a class="headerlink" href="#kadi.events.models.GratingMove.MultipleObjectsReturned" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="kadi.events.models.GratingMove.get_extras">
-<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_extras</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">event_msidset</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#GratingMove.get_extras"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.GratingMove.get_extras" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_extras</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">event_msidset</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#GratingMove.get_extras"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.GratingMove.get_extras" title="Link to this definition">¶</a></dt>
 <dd><p>Define start/stop grating positions for HETG and LETG</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="kadi.events.models.GratingMove.get_state_times_bools">
-<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_state_times_bools</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event_msidset</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#GratingMove.get_state_times_bools"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.GratingMove.get_state_times_bools" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_state_times_bools</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event_msidset</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#GratingMove.get_state_times_bools"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.GratingMove.get_state_times_bools" title="Link to this definition">¶</a></dt>
 <dd><p>Get the boolean True/False array indicating when <code class="docutils literal notranslate"><span class="pre">event_msid</span></code> is in the
 desired state for this event type.  The default is when
 <code class="docutils literal notranslate"><span class="pre">event_msid</span> <span class="pre">==</span> <span class="pre">cls.event_val</span></code>, but subclasses may override this method.</p>
@@ -877,11 +876,11 @@ desired state for this event type.  The default is when
 
 <dl class="py class">
 <dt class="sig sig-object py" id="kadi.events.models.IFotEvent">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">kadi.events.models.</span></span><span class="sig-name descname"><span class="pre">IFotEvent</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#IFotEvent"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.IFotEvent" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">kadi.events.models.</span></span><span class="sig-name descname"><span class="pre">IFotEvent</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#IFotEvent"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.IFotEvent" title="Link to this definition">¶</a></dt>
 <dd><p>Base class for events from the iFOT database</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="kadi.events.models.IFotEvent.get_events">
-<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_events</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stop</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#IFotEvent.get_events"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.IFotEvent.get_events" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_events</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stop</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#IFotEvent.get_events"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.IFotEvent.get_events" title="Link to this definition">¶</a></dt>
 <dd><p>Get events from iFOT web interface</p>
 </dd></dl>
 
@@ -889,7 +888,7 @@ desired state for this event type.  The default is when
 
 <dl class="py class">
 <dt class="sig sig-object py" id="kadi.events.models.IntervalPad">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">kadi.events.models.</span></span><span class="sig-name descname"><span class="pre">IntervalPad</span></span><a class="reference internal" href="_modules/kadi/events/models.html#IntervalPad"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.IntervalPad" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">kadi.events.models.</span></span><span class="sig-name descname"><span class="pre">IntervalPad</span></span><a class="reference internal" href="_modules/kadi/events/models.html#IntervalPad"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.IntervalPad" title="Link to this definition">¶</a></dt>
 <dd><p>Data descriptor that sets and gets an interval pad.  This pad has
 two values that are applied to the start and stop times for an interval,
 respectively.</p>
@@ -897,7 +896,7 @@ respectively.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="kadi.events.models.LoadSegment">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">kadi.events.models.</span></span><span class="sig-name descname"><span class="pre">LoadSegment</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#LoadSegment"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.LoadSegment" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">kadi.events.models.</span></span><span class="sig-name descname"><span class="pre">LoadSegment</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#LoadSegment"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.LoadSegment" title="Link to this definition">¶</a></dt>
 <dd><p>Load segment</p>
 <p><strong>Event definition</strong>: Load segment from iFOT database</p>
 <p><strong>Fields</strong></p>
@@ -953,19 +952,19 @@ respectively.</p>
 </table>
 <dl class="py exception">
 <dt class="sig sig-object py" id="kadi.events.models.LoadSegment.DoesNotExist">
-<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">DoesNotExist</span></span><a class="headerlink" href="#kadi.events.models.LoadSegment.DoesNotExist" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">DoesNotExist</span></span><a class="headerlink" href="#kadi.events.models.LoadSegment.DoesNotExist" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py exception">
 <dt class="sig sig-object py" id="kadi.events.models.LoadSegment.MultipleObjectsReturned">
-<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">MultipleObjectsReturned</span></span><a class="headerlink" href="#kadi.events.models.LoadSegment.MultipleObjectsReturned" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">MultipleObjectsReturned</span></span><a class="headerlink" href="#kadi.events.models.LoadSegment.MultipleObjectsReturned" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="kadi.events.models.LttBad">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">kadi.events.models.</span></span><span class="sig-name descname"><span class="pre">LttBad</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#LttBad"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.LttBad" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">kadi.events.models.</span></span><span class="sig-name descname"><span class="pre">LttBad</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#LttBad"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.LttBad" title="Link to this definition">¶</a></dt>
 <dd><p>LTT bad intervals</p>
 <p><strong>Fields</strong></p>
 <table class="docutils align-default">
@@ -1012,17 +1011,17 @@ respectively.</p>
 </table>
 <dl class="py exception">
 <dt class="sig sig-object py" id="kadi.events.models.LttBad.DoesNotExist">
-<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">DoesNotExist</span></span><a class="headerlink" href="#kadi.events.models.LttBad.DoesNotExist" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">DoesNotExist</span></span><a class="headerlink" href="#kadi.events.models.LttBad.DoesNotExist" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py exception">
 <dt class="sig sig-object py" id="kadi.events.models.LttBad.MultipleObjectsReturned">
-<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">MultipleObjectsReturned</span></span><a class="headerlink" href="#kadi.events.models.LttBad.MultipleObjectsReturned" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">MultipleObjectsReturned</span></span><a class="headerlink" href="#kadi.events.models.LttBad.MultipleObjectsReturned" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="kadi.events.models.LttBad.get_extras">
-<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_extras</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interval</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#LttBad.get_extras"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.LttBad.get_extras" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_extras</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interval</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#LttBad.get_extras"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.LttBad.get_extras" title="Link to this definition">¶</a></dt>
 <dd><p>Get extra stuff for the event based on fields in the interval.  This is a hook
 within get_events() that should be overridden in individual classes.</p>
 </dd></dl>
@@ -1031,7 +1030,7 @@ within get_events() that should be overridden in individual classes.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="kadi.events.models.MajorEvent">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">kadi.events.models.</span></span><span class="sig-name descname"><span class="pre">MajorEvent</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#MajorEvent"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.MajorEvent" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">kadi.events.models.</span></span><span class="sig-name descname"><span class="pre">MajorEvent</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#MajorEvent"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.MajorEvent" title="Link to this definition">¶</a></dt>
 <dd><p>Major event</p>
 <dl class="simple">
 <dt><strong>Event definition</strong>: events from the two lists maintained by the FOT and</dt><dd><p>the FDB (systems engineering).</p>
@@ -1087,17 +1086,17 @@ represent an interval of time (<code class="docutils literal notranslate"><span 
 </table>
 <dl class="py exception">
 <dt class="sig sig-object py" id="kadi.events.models.MajorEvent.DoesNotExist">
-<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">DoesNotExist</span></span><a class="headerlink" href="#kadi.events.models.MajorEvent.DoesNotExist" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">DoesNotExist</span></span><a class="headerlink" href="#kadi.events.models.MajorEvent.DoesNotExist" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py exception">
 <dt class="sig sig-object py" id="kadi.events.models.MajorEvent.MultipleObjectsReturned">
-<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">MultipleObjectsReturned</span></span><a class="headerlink" href="#kadi.events.models.MajorEvent.MultipleObjectsReturned" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">MultipleObjectsReturned</span></span><a class="headerlink" href="#kadi.events.models.MajorEvent.MultipleObjectsReturned" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="kadi.events.models.MajorEvent.get_events">
-<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_events</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stop</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#MajorEvent.get_events"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.MajorEvent.get_events" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_events</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stop</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#MajorEvent.get_events"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.MajorEvent.get_events" title="Link to this definition">¶</a></dt>
 <dd><p>Get Major Events from FDB and FOT tables on the OCCweb</p>
 </dd></dl>
 
@@ -1105,7 +1104,7 @@ represent an interval of time (<code class="docutils literal notranslate"><span 
 
 <dl class="py class">
 <dt class="sig sig-object py" id="kadi.events.models.Manvr">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">kadi.events.models.</span></span><span class="sig-name descname"><span class="pre">Manvr</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#Manvr"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.Manvr" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">kadi.events.models.</span></span><span class="sig-name descname"><span class="pre">Manvr</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#Manvr"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.Manvr" title="Link to this definition">¶</a></dt>
 <dd><p>Maneuver</p>
 <p><strong>Event definition</strong>: interval where <code class="docutils literal notranslate"><span class="pre">AOFATTMD</span> <span class="pre">=</span> <span class="pre">MNVR</span></code> (spacecraft actually maneuvering)</p>
 <p>The maneuver event includes a number of attributes that give a detailed
@@ -1327,17 +1326,17 @@ to the start of the next maneuver:</p>
 </dl>
 <dl class="py exception">
 <dt class="sig sig-object py" id="kadi.events.models.Manvr.DoesNotExist">
-<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">DoesNotExist</span></span><a class="headerlink" href="#kadi.events.models.Manvr.DoesNotExist" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">DoesNotExist</span></span><a class="headerlink" href="#kadi.events.models.Manvr.DoesNotExist" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py exception">
 <dt class="sig sig-object py" id="kadi.events.models.Manvr.MultipleObjectsReturned">
-<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">MultipleObjectsReturned</span></span><a class="headerlink" href="#kadi.events.models.Manvr.MultipleObjectsReturned" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">MultipleObjectsReturned</span></span><a class="headerlink" href="#kadi.events.models.Manvr.MultipleObjectsReturned" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="kadi.events.models.Manvr.get_dwells">
-<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_dwells</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">changes</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#Manvr.get_dwells"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.Manvr.get_dwells" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_dwells</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">changes</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#Manvr.get_dwells"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.Manvr.get_dwells" title="Link to this definition">¶</a></dt>
 <dd><p>Get the Kalman dwells associated with a maneuver event.</p>
 <p>A Kalman dwell is the contiguous interval of AOACASEQ = KALM between:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Start</span><span class="p">:</span> <span class="n">AOACASEQ</span> <span class="o">==&gt;</span> <span class="n">KALM</span>  <span class="p">(</span><span class="n">transition</span> <span class="kn">from</span> <span class="nn">any</span> <span class="n">state</span> <span class="n">to</span> <span class="n">KALM</span><span class="p">)</span>
@@ -1353,26 +1352,26 @@ window commanding or multiple acquisition attempts).</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="kadi.events.models.Manvr.get_events">
-<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_events</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stop</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#Manvr.get_events"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.Manvr.get_events" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_events</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stop</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#Manvr.get_events"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.Manvr.get_events" title="Link to this definition">¶</a></dt>
 <dd><p>Get maneuver events from telemetry.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="kadi.events.models.Manvr.get_manvr_attrs">
-<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_manvr_attrs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">changes</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#Manvr.get_manvr_attrs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.Manvr.get_manvr_attrs" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_manvr_attrs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">changes</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#Manvr.get_manvr_attrs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.Manvr.get_manvr_attrs" title="Link to this definition">¶</a></dt>
 <dd><p>Get attributes of the maneuver event and possible dwells based on
 the MSID <cite>changes</cite>.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="kadi.events.models.Manvr.get_one_shot">
-<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_one_shot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">guide_start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aux_msidset</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#Manvr.get_one_shot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.Manvr.get_one_shot" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_one_shot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">guide_start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aux_msidset</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#Manvr.get_one_shot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.Manvr.get_one_shot" title="Link to this definition">¶</a></dt>
 <dd><p>Define one_shot attribute (one-shot attitude update following maneuver)</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="kadi.events.models.Manvr.get_target_attitudes">
-<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_target_attitudes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msidset</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#Manvr.get_target_attitudes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.Manvr.get_target_attitudes" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_target_attitudes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msidset</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#Manvr.get_target_attitudes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.Manvr.get_target_attitudes" title="Link to this definition">¶</a></dt>
 <dd><p>Define start/stop_aotarqt&lt;1..4&gt; and start/stop_ra,dec,roll</p>
 </dd></dl>
 
@@ -1380,7 +1379,7 @@ the MSID <cite>changes</cite>.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="kadi.events.models.ManvrSeq">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">kadi.events.models.</span></span><span class="sig-name descname"><span class="pre">ManvrSeq</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#ManvrSeq"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.ManvrSeq" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">kadi.events.models.</span></span><span class="sig-name descname"><span class="pre">ManvrSeq</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#ManvrSeq"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.ManvrSeq" title="Link to this definition">¶</a></dt>
 <dd><p>Maneuver sequence event</p>
 <p>Each entry in this table corresponds to a state transition for an MSID
 that is relevant to the sequence of events comprising a maneuver event.</p>
@@ -1433,19 +1432,19 @@ that is relevant to the sequence of events comprising a maneuver event.</p>
 </table>
 <dl class="py exception">
 <dt class="sig sig-object py" id="kadi.events.models.ManvrSeq.DoesNotExist">
-<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">DoesNotExist</span></span><a class="headerlink" href="#kadi.events.models.ManvrSeq.DoesNotExist" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">DoesNotExist</span></span><a class="headerlink" href="#kadi.events.models.ManvrSeq.DoesNotExist" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py exception">
 <dt class="sig sig-object py" id="kadi.events.models.ManvrSeq.MultipleObjectsReturned">
-<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">MultipleObjectsReturned</span></span><a class="headerlink" href="#kadi.events.models.ManvrSeq.MultipleObjectsReturned" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">MultipleObjectsReturned</span></span><a class="headerlink" href="#kadi.events.models.ManvrSeq.MultipleObjectsReturned" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="kadi.events.models.MyManager">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">kadi.events.models.</span></span><span class="sig-name descname"><span class="pre">MyManager</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#MyManager"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.MyManager" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">kadi.events.models.</span></span><span class="sig-name descname"><span class="pre">MyManager</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#MyManager"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.MyManager" title="Link to this definition">¶</a></dt>
 <dd><p>Custom query manager that allows for overriding the default __repr__.
 The purpose is to make a more user friendly output for event queries.</p>
 <p><a class="reference external" href="http://stackoverflow.com/questions/2163151/custom-queryset-and-manager-without-breaking-dry">http://stackoverflow.com/questions/2163151/custom-queryset-and-manager-without-breaking-dry</a>
@@ -1454,7 +1453,7 @@ The purpose is to make a more user friendly output for event queries.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="kadi.events.models.NormalSun">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">kadi.events.models.</span></span><span class="sig-name descname"><span class="pre">NormalSun</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#NormalSun"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.NormalSun" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">kadi.events.models.</span></span><span class="sig-name descname"><span class="pre">NormalSun</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#NormalSun"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.NormalSun" title="Link to this definition">¶</a></dt>
 <dd><p>Normal sun mode event</p>
 <p><strong>Event definition</strong>: interval when PCAD mode <code class="docutils literal notranslate"><span class="pre">AOPCADMD</span> <span class="pre">=</span> <span class="pre">NSUN</span></code></p>
 <p>During a safing event and recovery this MSID can toggle to different values,
@@ -1496,19 +1495,19 @@ so NormalSun events within 4 hours of each other are merged.</p>
 </table>
 <dl class="py exception">
 <dt class="sig sig-object py" id="kadi.events.models.NormalSun.DoesNotExist">
-<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">DoesNotExist</span></span><a class="headerlink" href="#kadi.events.models.NormalSun.DoesNotExist" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">DoesNotExist</span></span><a class="headerlink" href="#kadi.events.models.NormalSun.DoesNotExist" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py exception">
 <dt class="sig sig-object py" id="kadi.events.models.NormalSun.MultipleObjectsReturned">
-<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">MultipleObjectsReturned</span></span><a class="headerlink" href="#kadi.events.models.NormalSun.MultipleObjectsReturned" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">MultipleObjectsReturned</span></span><a class="headerlink" href="#kadi.events.models.NormalSun.MultipleObjectsReturned" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="kadi.events.models.Obsid">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">kadi.events.models.</span></span><span class="sig-name descname"><span class="pre">Obsid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#Obsid"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.Obsid" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">kadi.events.models.</span></span><span class="sig-name descname"><span class="pre">Obsid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#Obsid"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.Obsid" title="Link to this definition">¶</a></dt>
 <dd><p>Observation identifier</p>
 <p><strong>Event definition</strong>: interval where <code class="docutils literal notranslate"><span class="pre">COBSRQID</span></code> is unchanged.</p>
 <p><strong>Fields</strong></p>
@@ -1548,17 +1547,17 @@ so NormalSun events within 4 hours of each other are merged.</p>
 </table>
 <dl class="py exception">
 <dt class="sig sig-object py" id="kadi.events.models.Obsid.DoesNotExist">
-<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">DoesNotExist</span></span><a class="headerlink" href="#kadi.events.models.Obsid.DoesNotExist" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">DoesNotExist</span></span><a class="headerlink" href="#kadi.events.models.Obsid.DoesNotExist" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py exception">
 <dt class="sig sig-object py" id="kadi.events.models.Obsid.MultipleObjectsReturned">
-<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">MultipleObjectsReturned</span></span><a class="headerlink" href="#kadi.events.models.Obsid.MultipleObjectsReturned" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">MultipleObjectsReturned</span></span><a class="headerlink" href="#kadi.events.models.Obsid.MultipleObjectsReturned" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="kadi.events.models.Obsid.get_events">
-<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_events</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stop</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#Obsid.get_events"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.Obsid.get_events" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_events</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stop</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#Obsid.get_events"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.Obsid.get_events" title="Link to this definition">¶</a></dt>
 <dd><p>Get obsid events from telemetry.  A event is defined by a
 contiguous interval of the telemetered obsid.</p>
 </dd></dl>
@@ -1567,7 +1566,7 @@ contiguous interval of the telemetered obsid.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="kadi.events.models.Orbit">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">kadi.events.models.</span></span><span class="sig-name descname"><span class="pre">Orbit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#Orbit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.Orbit" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">kadi.events.models.</span></span><span class="sig-name descname"><span class="pre">Orbit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#Orbit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.Orbit" title="Link to this definition">¶</a></dt>
 <dd><p><strong>Event definition</strong>: single Chandra orbit starting from ascending node crossing</p>
 <p>Full orbit, with dates corresponding to start (ORBIT ASCENDING NODE CROSSING), stop,
 apogee, perigee, radzone start and radzone stop.  Radzone is defined as the time
@@ -1639,17 +1638,17 @@ prematurely disable RADMON.</p>
 </table>
 <dl class="py exception">
 <dt class="sig sig-object py" id="kadi.events.models.Orbit.DoesNotExist">
-<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">DoesNotExist</span></span><a class="headerlink" href="#kadi.events.models.Orbit.DoesNotExist" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">DoesNotExist</span></span><a class="headerlink" href="#kadi.events.models.Orbit.DoesNotExist" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py exception">
 <dt class="sig sig-object py" id="kadi.events.models.Orbit.MultipleObjectsReturned">
-<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">MultipleObjectsReturned</span></span><a class="headerlink" href="#kadi.events.models.Orbit.MultipleObjectsReturned" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">MultipleObjectsReturned</span></span><a class="headerlink" href="#kadi.events.models.Orbit.MultipleObjectsReturned" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="kadi.events.models.Orbit.get_events">
-<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_events</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stop</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#Orbit.get_events"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.Orbit.get_events" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_events</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stop</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#Orbit.get_events"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.Orbit.get_events" title="Link to this definition">¶</a></dt>
 <dd><p>Get Orbit Events from timeline reports.</p>
 </dd></dl>
 
@@ -1657,7 +1656,7 @@ prematurely disable RADMON.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="kadi.events.models.OrbitPoint">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">kadi.events.models.</span></span><span class="sig-name descname"><span class="pre">OrbitPoint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#OrbitPoint"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.OrbitPoint" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">kadi.events.models.</span></span><span class="sig-name descname"><span class="pre">OrbitPoint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#OrbitPoint"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.OrbitPoint" title="Link to this definition">¶</a></dt>
 <dd><p>Orbit point</p>
 <p><strong>Fields</strong></p>
 <table class="docutils align-default">
@@ -1692,19 +1691,19 @@ prematurely disable RADMON.</p>
 </table>
 <dl class="py exception">
 <dt class="sig sig-object py" id="kadi.events.models.OrbitPoint.DoesNotExist">
-<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">DoesNotExist</span></span><a class="headerlink" href="#kadi.events.models.OrbitPoint.DoesNotExist" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">DoesNotExist</span></span><a class="headerlink" href="#kadi.events.models.OrbitPoint.DoesNotExist" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py exception">
 <dt class="sig sig-object py" id="kadi.events.models.OrbitPoint.MultipleObjectsReturned">
-<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">MultipleObjectsReturned</span></span><a class="headerlink" href="#kadi.events.models.OrbitPoint.MultipleObjectsReturned" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">MultipleObjectsReturned</span></span><a class="headerlink" href="#kadi.events.models.OrbitPoint.MultipleObjectsReturned" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="kadi.events.models.Pad">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">kadi.events.models.</span></span><span class="sig-name descname"><span class="pre">Pad</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stop</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#Pad"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.Pad" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">kadi.events.models.</span></span><span class="sig-name descname"><span class="pre">Pad</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stop</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#Pad"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.Pad" title="Link to this definition">¶</a></dt>
 <dd><p>Time padding at the start and stop of an interval.</p>
 <p>Positive values always make the interval <em>bigger</em> in each direction, so
 a pad of 300 seconds makes the interval a total of 10 minutes longer (5 minutes
@@ -1714,7 +1713,7 @@ later and end 5 minutes earlier.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="kadi.events.models.PassPlan">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">kadi.events.models.</span></span><span class="sig-name descname"><span class="pre">PassPlan</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#PassPlan"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.PassPlan" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">kadi.events.models.</span></span><span class="sig-name descname"><span class="pre">PassPlan</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#PassPlan"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.PassPlan" title="Link to this definition">¶</a></dt>
 <dd><p>Pass plan</p>
 <p><strong>Event definition</strong>: Pass plan from iFOT</p>
 <p><strong>Fields</strong></p>
@@ -1822,19 +1821,19 @@ later and end 5 minutes earlier.</p>
 </table>
 <dl class="py exception">
 <dt class="sig sig-object py" id="kadi.events.models.PassPlan.DoesNotExist">
-<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">DoesNotExist</span></span><a class="headerlink" href="#kadi.events.models.PassPlan.DoesNotExist" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">DoesNotExist</span></span><a class="headerlink" href="#kadi.events.models.PassPlan.DoesNotExist" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py exception">
 <dt class="sig sig-object py" id="kadi.events.models.PassPlan.MultipleObjectsReturned">
-<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">MultipleObjectsReturned</span></span><a class="headerlink" href="#kadi.events.models.PassPlan.MultipleObjectsReturned" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">MultipleObjectsReturned</span></span><a class="headerlink" href="#kadi.events.models.PassPlan.MultipleObjectsReturned" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="kadi.events.models.RadZone">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">kadi.events.models.</span></span><span class="sig-name descname"><span class="pre">RadZone</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#RadZone"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.RadZone" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">kadi.events.models.</span></span><span class="sig-name descname"><span class="pre">RadZone</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#RadZone"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.RadZone" title="Link to this definition">¶</a></dt>
 <dd><p>Radiation zone</p>
 <p><strong>Fields</strong></p>
 <table class="docutils align-default">
@@ -1881,19 +1880,19 @@ later and end 5 minutes earlier.</p>
 </table>
 <dl class="py exception">
 <dt class="sig sig-object py" id="kadi.events.models.RadZone.DoesNotExist">
-<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">DoesNotExist</span></span><a class="headerlink" href="#kadi.events.models.RadZone.DoesNotExist" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">DoesNotExist</span></span><a class="headerlink" href="#kadi.events.models.RadZone.DoesNotExist" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py exception">
 <dt class="sig sig-object py" id="kadi.events.models.RadZone.MultipleObjectsReturned">
-<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">MultipleObjectsReturned</span></span><a class="headerlink" href="#kadi.events.models.RadZone.MultipleObjectsReturned" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">MultipleObjectsReturned</span></span><a class="headerlink" href="#kadi.events.models.RadZone.MultipleObjectsReturned" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="kadi.events.models.SafeSun">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">kadi.events.models.</span></span><span class="sig-name descname"><span class="pre">SafeSun</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#SafeSun"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.SafeSun" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">kadi.events.models.</span></span><span class="sig-name descname"><span class="pre">SafeSun</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#SafeSun"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.SafeSun" title="Link to this definition">¶</a></dt>
 <dd><p>Safe sun event</p>
 <p><strong>Event definition</strong>: interval from safe mode entry to recovery to OBC control.</p>
 <p>Specifically, it is considered part of the safe mode condition if any of the
@@ -1944,17 +1943,17 @@ following are True:</p>
 </table>
 <dl class="py exception">
 <dt class="sig sig-object py" id="kadi.events.models.SafeSun.DoesNotExist">
-<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">DoesNotExist</span></span><a class="headerlink" href="#kadi.events.models.SafeSun.DoesNotExist" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">DoesNotExist</span></span><a class="headerlink" href="#kadi.events.models.SafeSun.DoesNotExist" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py exception">
 <dt class="sig sig-object py" id="kadi.events.models.SafeSun.MultipleObjectsReturned">
-<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">MultipleObjectsReturned</span></span><a class="headerlink" href="#kadi.events.models.SafeSun.MultipleObjectsReturned" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">MultipleObjectsReturned</span></span><a class="headerlink" href="#kadi.events.models.SafeSun.MultipleObjectsReturned" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="kadi.events.models.SafeSun.get_state_times_bools">
-<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_state_times_bools</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">msidset</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#SafeSun.get_state_times_bools"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.SafeSun.get_state_times_bools" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_state_times_bools</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">msidset</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#SafeSun.get_state_times_bools"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.SafeSun.get_state_times_bools" title="Link to this definition">¶</a></dt>
 <dd><p>Get the boolean True/False array indicating when <code class="docutils literal notranslate"><span class="pre">event_msid</span></code> is in the
 desired state for this event type.  The default is when
 <code class="docutils literal notranslate"><span class="pre">event_msid</span> <span class="pre">==</span> <span class="pre">cls.event_val</span></code>, but subclasses may override this method.</p>
@@ -1977,7 +1976,7 @@ desired state for this event type.  The default is when
 
 <dl class="py class">
 <dt class="sig sig-object py" id="kadi.events.models.Scs107">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">kadi.events.models.</span></span><span class="sig-name descname"><span class="pre">Scs107</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#Scs107"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.Scs107" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">kadi.events.models.</span></span><span class="sig-name descname"><span class="pre">Scs107</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#Scs107"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.Scs107" title="Link to this definition">¶</a></dt>
 <dd><p>SCS107 run</p>
 <p><strong>Event definition</strong>: interval with the following combination of state values:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="mi">3</span><span class="n">TSCMOVE</span> <span class="o">=</span> <span class="n">MOVE</span>
@@ -2031,17 +2030,17 @@ SCS107 events within 600 seconds are combined into a single event.</p>
 </table>
 <dl class="py exception">
 <dt class="sig sig-object py" id="kadi.events.models.Scs107.DoesNotExist">
-<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">DoesNotExist</span></span><a class="headerlink" href="#kadi.events.models.Scs107.DoesNotExist" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">DoesNotExist</span></span><a class="headerlink" href="#kadi.events.models.Scs107.DoesNotExist" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py exception">
 <dt class="sig sig-object py" id="kadi.events.models.Scs107.MultipleObjectsReturned">
-<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">MultipleObjectsReturned</span></span><a class="headerlink" href="#kadi.events.models.Scs107.MultipleObjectsReturned" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">MultipleObjectsReturned</span></span><a class="headerlink" href="#kadi.events.models.Scs107.MultipleObjectsReturned" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="kadi.events.models.Scs107.get_state_times_bools">
-<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_state_times_bools</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">msidset</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#Scs107.get_state_times_bools"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.Scs107.get_state_times_bools" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_state_times_bools</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">msidset</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#Scs107.get_state_times_bools"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.Scs107.get_state_times_bools" title="Link to this definition">¶</a></dt>
 <dd><p>Get the boolean True/False array indicating when <code class="docutils literal notranslate"><span class="pre">event_msid</span></code> is in the
 desired state for this event type.  The default is when
 <code class="docutils literal notranslate"><span class="pre">event_msid</span> <span class="pre">==</span> <span class="pre">cls.event_val</span></code>, but subclasses may override this method.</p>
@@ -2064,23 +2063,23 @@ desired state for this event type.  The default is when
 
 <dl class="py class">
 <dt class="sig sig-object py" id="kadi.events.models.TlmEvent">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">kadi.events.models.</span></span><span class="sig-name descname"><span class="pre">TlmEvent</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#TlmEvent"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.TlmEvent" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">kadi.events.models.</span></span><span class="sig-name descname"><span class="pre">TlmEvent</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#TlmEvent"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.TlmEvent" title="Link to this definition">¶</a></dt>
 <dd><dl class="py method">
 <dt class="sig sig-object py" id="kadi.events.models.TlmEvent.fetch_event">
-<span class="sig-name descname"><span class="pre">fetch_event</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pad</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extra_msids</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_bad</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#TlmEvent.fetch_event"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.TlmEvent.fetch_event" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">fetch_event</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pad</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extra_msids</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_bad</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#TlmEvent.fetch_event"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.TlmEvent.fetch_event" title="Link to this definition">¶</a></dt>
 <dd><p>Fetch an MSIDset of self.fetch_msids.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="kadi.events.models.TlmEvent.get_events">
-<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_events</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stop</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#TlmEvent.get_events"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.TlmEvent.get_events" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_events</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stop</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#TlmEvent.get_events"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.TlmEvent.get_events" title="Link to this definition">¶</a></dt>
 <dd><p>Get events from telemetry defined by a simple rule that the value of
 <cite>event_msids[0]</cite> == <cite>event_val</cite>.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="kadi.events.models.TlmEvent.get_extras">
-<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_extras</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">event_msidset</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#TlmEvent.get_extras"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.TlmEvent.get_extras" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_extras</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">event_msidset</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#TlmEvent.get_extras"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.TlmEvent.get_extras" title="Link to this definition">¶</a></dt>
 <dd><p>Get extra stuff for the event based on telemetry available in event_msidset.
 This is a hook within get_events() that should be overridden in individual
 classes.</p>
@@ -2088,14 +2087,14 @@ classes.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="kadi.events.models.TlmEvent.get_msids_states">
-<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_msids_states</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stop</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#TlmEvent.get_msids_states"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.TlmEvent.get_msids_states" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_msids_states</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stop</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#TlmEvent.get_msids_states"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.TlmEvent.get_msids_states" title="Link to this definition">¶</a></dt>
 <dd><p>Get event and related MSIDs and compute the states corresponding
 to the event.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="kadi.events.models.TlmEvent.get_state_times_bools">
-<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_state_times_bools</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event_msidset</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#TlmEvent.get_state_times_bools"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.TlmEvent.get_state_times_bools" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_state_times_bools</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event_msidset</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#TlmEvent.get_state_times_bools"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.TlmEvent.get_state_times_bools" title="Link to this definition">¶</a></dt>
 <dd><p>Get the boolean True/False array indicating when <code class="docutils literal notranslate"><span class="pre">event_msid</span></code> is in the
 desired state for this event type.  The default is when
 <code class="docutils literal notranslate"><span class="pre">event_msid</span> <span class="pre">==</span> <span class="pre">cls.event_val</span></code>, but subclasses may override this method.</p>
@@ -2116,13 +2115,13 @@ desired state for this event type.  The default is when
 
 <dl class="py property">
 <dt class="sig sig-object py" id="kadi.events.models.TlmEvent.msidset">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">msidset</span></span><a class="headerlink" href="#kadi.events.models.TlmEvent.msidset" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">msidset</span></span><a class="headerlink" href="#kadi.events.models.TlmEvent.msidset" title="Link to this definition">¶</a></dt>
 <dd><p>fetch.MSIDset of self.fetch_event_msids.  By default filter_bad is True.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="kadi.events.models.TlmEvent.plot">
-<span class="sig-name descname"><span class="pre">plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fig</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#TlmEvent.plot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.TlmEvent.plot" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fig</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#TlmEvent.plot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.TlmEvent.plot" title="Link to this definition">¶</a></dt>
 <dd><p>Wrapper interface to plotting routines in plot module.  This is factored out
 of this module (models) to reduce loading of other modules (matplotlib) req’d
 for plotting.</p>
@@ -2132,7 +2131,7 @@ for plotting.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="kadi.events.models.TscMove">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">kadi.events.models.</span></span><span class="sig-name descname"><span class="pre">TscMove</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#TscMove"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.TscMove" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">kadi.events.models.</span></span><span class="sig-name descname"><span class="pre">TscMove</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#TscMove"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.TscMove" title="Link to this definition">¶</a></dt>
 <dd><p>SIM TSC translation</p>
 <p><strong>Event definition</strong>: interval where <code class="docutils literal notranslate"><span class="pre">3TSCMOVE</span> <span class="pre">=</span> <span class="pre">MOVE</span></code></p>
 <p>In addition to reporting the start and stop TSC position, these positions are also
@@ -2196,17 +2195,17 @@ the stop time + 66 seconds) is also included.</p>
 </table>
 <dl class="py exception">
 <dt class="sig sig-object py" id="kadi.events.models.TscMove.DoesNotExist">
-<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">DoesNotExist</span></span><a class="headerlink" href="#kadi.events.models.TscMove.DoesNotExist" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">DoesNotExist</span></span><a class="headerlink" href="#kadi.events.models.TscMove.DoesNotExist" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py exception">
 <dt class="sig sig-object py" id="kadi.events.models.TscMove.MultipleObjectsReturned">
-<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">MultipleObjectsReturned</span></span><a class="headerlink" href="#kadi.events.models.TscMove.MultipleObjectsReturned" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">MultipleObjectsReturned</span></span><a class="headerlink" href="#kadi.events.models.TscMove.MultipleObjectsReturned" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="kadi.events.models.TscMove.get_extras">
-<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_extras</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">event_msidset</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#TscMove.get_extras"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.TscMove.get_extras" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_extras</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">event_msidset</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#TscMove.get_extras"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.TscMove.get_extras" title="Link to this definition">¶</a></dt>
 <dd><p>Define start/stop_3tscpos and start/stop_det.</p>
 </dd></dl>
 
@@ -2214,23 +2213,23 @@ the stop time + 66 seconds) is also included.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="kadi.events.models.Update">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">kadi.events.models.</span></span><span class="sig-name descname"><span class="pre">Update</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#Update"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.Update" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">kadi.events.models.</span></span><span class="sig-name descname"><span class="pre">Update</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#Update"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.Update" title="Link to this definition">¶</a></dt>
 <dd><p>Last telemetry which was searched for an update.</p>
 <dl class="py exception">
 <dt class="sig sig-object py" id="kadi.events.models.Update.DoesNotExist">
-<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">DoesNotExist</span></span><a class="headerlink" href="#kadi.events.models.Update.DoesNotExist" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">DoesNotExist</span></span><a class="headerlink" href="#kadi.events.models.Update.DoesNotExist" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py exception">
 <dt class="sig sig-object py" id="kadi.events.models.Update.MultipleObjectsReturned">
-<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">MultipleObjectsReturned</span></span><a class="headerlink" href="#kadi.events.models.Update.MultipleObjectsReturned" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">MultipleObjectsReturned</span></span><a class="headerlink" href="#kadi.events.models.Update.MultipleObjectsReturned" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="kadi.events.models.fuzz_states">
-<span class="sig-prename descclassname"><span class="pre">kadi.events.models.</span></span><span class="sig-name descname"><span class="pre">fuzz_states</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">states</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t_fuzz</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#fuzz_states"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.fuzz_states" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">kadi.events.models.</span></span><span class="sig-name descname"><span class="pre">fuzz_states</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">states</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t_fuzz</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#fuzz_states"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.fuzz_states" title="Link to this definition">¶</a></dt>
 <dd><p>For a set of <cite>states</cite> (from fetch.MSID.state_intervals()) or intervals (from
 fetch.MSID.logical_intervals), merge any that are within <cite>t_fuzz</cite> seconds of each
 other.  Logical intervals are just the subset of states with ‘val’ equal to a
@@ -2253,7 +2252,7 @@ particular value.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="kadi.events.models.get_event_models">
-<span class="sig-prename descclassname"><span class="pre">kadi.events.models.</span></span><span class="sig-name descname"><span class="pre">get_event_models</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">baseclass</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#get_event_models"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.get_event_models" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">kadi.events.models.</span></span><span class="sig-name descname"><span class="pre">get_event_models</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">baseclass</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#get_event_models"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.get_event_models" title="Link to this definition">¶</a></dt>
 <dd><p>Get all Event models that represent actual events (and are not base
 or meta classes).</p>
 <dl class="field-list simple">
@@ -2267,7 +2266,7 @@ or meta classes).</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="kadi.events.models.msidset_interpolate">
-<span class="sig-prename descclassname"><span class="pre">kadi.events.models.</span></span><span class="sig-name descname"><span class="pre">msidset_interpolate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">msidset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#msidset_interpolate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.msidset_interpolate" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">kadi.events.models.</span></span><span class="sig-name descname"><span class="pre">msidset_interpolate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">msidset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/models.html#msidset_interpolate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.models.msidset_interpolate" title="Link to this definition">¶</a></dt>
 <dd><p>Interpolate the <code class="docutils literal notranslate"><span class="pre">msidset</span></code> in-place to a common time basis, starting at <code class="docutils literal notranslate"><span class="pre">time0</span></code>
 and stepping by <code class="docutils literal notranslate"><span class="pre">dt</span></code>.  This assumes an unfiltered MSIDset, and returns
 a filtered MSIDset.</p>
@@ -2275,10 +2274,10 @@ a filtered MSIDset.</p>
 
 </section>
 <section id="module-kadi.events.query">
-<span id="event-queries"></span><h2>Event queries<a class="headerlink" href="#module-kadi.events.query" title="Permalink to this heading">¶</a></h2>
+<span id="event-queries"></span><h2>Event queries<a class="headerlink" href="#module-kadi.events.query" title="Link to this heading">¶</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="kadi.events.query.EventQuery">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">kadi.events.query.</span></span><span class="sig-name descname"><span class="pre">EventQuery</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cls</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">left</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">right</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">op</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pad</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">filter_kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/query.html#EventQuery"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.query.EventQuery" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">kadi.events.query.</span></span><span class="sig-name descname"><span class="pre">EventQuery</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cls</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">left</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">right</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">op</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pad</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">filter_kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/query.html#EventQuery"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.query.EventQuery" title="Link to this definition">¶</a></dt>
 <dd><p>High-level interface for handling event queries.</p>
 <p>This includes a few key methods:</p>
 <ul class="simple">
@@ -2295,7 +2294,7 @@ there the intervals() output can be used to select or remove the intervals
 from cheta fetch datasets.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="kadi.events.query.EventQuery.all">
-<span class="sig-name descname"><span class="pre">all</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/query.html#EventQuery.all"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.query.EventQuery.all" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">all</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/query.html#EventQuery.all"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.query.EventQuery.all" title="Link to this definition">¶</a></dt>
 <dd><p>Return all events as a Django query set object.</p>
 <p>Example:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">kadi</span> <span class="kn">import</span> <span class="n">events</span>
@@ -2320,7 +2319,7 @@ from cheta fetch datasets.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="kadi.events.query.EventQuery.filter">
-<span class="sig-name descname"><span class="pre">filter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stop</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obsid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/query.html#EventQuery.filter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.query.EventQuery.filter" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">filter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stop</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obsid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/query.html#EventQuery.filter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.query.EventQuery.filter" title="Link to this definition">¶</a></dt>
 <dd><p>Find events between <code class="docutils literal notranslate"><span class="pre">start</span></code> and <code class="docutils literal notranslate"><span class="pre">stop</span></code>, or with the given <code class="docutils literal notranslate"><span class="pre">obsid</span></code>, which
 match the filter attributes in subsequent keyword arguments.  The matching events
 are returned as a Django query set [1].</p>
@@ -2375,7 +2374,7 @@ maneuver events with one dwell.  The full list of field lookups is at [2].</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="kadi.events.query.get_dates_vals">
-<span class="sig-prename descclassname"><span class="pre">kadi.events.query.</span></span><span class="sig-name descname"><span class="pre">get_dates_vals</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">intervals</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stop</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/query.html#get_dates_vals"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.query.get_dates_vals" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">kadi.events.query.</span></span><span class="sig-name descname"><span class="pre">get_dates_vals</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">intervals</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stop</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/events/query.html#get_dates_vals"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.events.query.get_dates_vals" title="Link to this definition">¶</a></dt>
 <dd><p>Convert a list of date 2-tuple intervals into a contiguous “curve” of
 dates, vals values.  The dates and vals could be plotted.</p>
 </dd></dl>
@@ -2625,7 +2624,7 @@ dates, vals values.  The dates and vals could be plotted.</p>
     <a href="#">Back to Top</a></p>
   <p>
     &copy; Copyright 2013, Tom Aldcroft.<br/>
-    Created using <a href="http://www.sphinx-doc.org/en/stable/">Sphinx</a> 6.1.3. &nbsp;
+    Created using <a href="http://www.sphinx-doc.org/en/stable/">Sphinx</a> 7.2.6. &nbsp;
   </p>
 </footer>
   </body>

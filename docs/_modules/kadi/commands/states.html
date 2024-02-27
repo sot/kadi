@@ -1,18 +1,17 @@
-
 <!DOCTYPE html>
 
-<html lang="en">
+<html lang="en" data-content_root="../../../">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>kadi.commands.states &#8212; kadi 7.8.1 documentation</title>
-    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/bootstrap-astropy.css" />
+    <title>kadi.commands.states &#8212; kadi 7.9.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/bootstrap-astropy.css?v=f4f7060c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/plot_directive.css" />
     
-    <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
-    <script src="../../../_static/doctools.js"></script>
-    <script src="../../../_static/sphinx_highlight.js"></script>
+    <script src="../../../_static/documentation_options.js?v=a678aa7c"></script>
+    <script src="../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script type="text/javascript" src="../../../_static/sidebar.js"></script>
     <script type="text/javascript" src="../../../_static/copybutton.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
@@ -46,7 +45,7 @@
     <h3>Navigation</h3>
     <ul>
       <li>
-	<a href="../../../index.html">kadi 7.8.1 documentation</a>
+	<a href="../../../index.html">kadi 7.9.0 documentation</a>
 	 &#187;
       </li>
       <li><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
@@ -69,6 +68,7 @@
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">import</span> <span class="nn">collections</span>
 <span class="kn">import</span> <span class="nn">contextlib</span>
+<span class="kn">import</span> <span class="nn">functools</span>
 <span class="kn">import</span> <span class="nn">inspect</span>
 <span class="kn">import</span> <span class="nn">itertools</span>
 <span class="kn">import</span> <span class="nn">re</span>
@@ -80,7 +80,7 @@
 <span class="kn">from</span> <span class="nn">astropy.table</span> <span class="kn">import</span> <span class="n">Column</span><span class="p">,</span> <span class="n">Table</span>
 <span class="kn">from</span> <span class="nn">chandra_time</span> <span class="kn">import</span> <span class="n">DateTime</span><span class="p">,</span> <span class="n">date2secs</span><span class="p">,</span> <span class="n">secs2date</span>
 <span class="kn">from</span> <span class="nn">cxotime</span> <span class="kn">import</span> <span class="n">CxoTime</span>
-<span class="kn">from</span> <span class="nn">Quaternion</span> <span class="kn">import</span> <span class="n">quat_to_equatorial</span>
+<span class="kn">from</span> <span class="nn">Quaternion</span> <span class="kn">import</span> <span class="n">Quat</span><span class="p">,</span> <span class="n">quat_to_equatorial</span>
 
 <span class="kn">from</span> <span class="nn">kadi</span> <span class="kn">import</span> <span class="n">commands</span>
 
@@ -140,8 +140,22 @@
     <span class="s2">&quot;vid_board&quot;</span><span class="p">,</span>
 <span class="p">)</span>
 
+<span class="n">NIL_SIMODES</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;WT00DAA014&quot;</span><span class="p">:</span> <span class="s2">&quot;H2C_0002&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;WT00D96014&quot;</span><span class="p">:</span> <span class="s2">&quot;H2C_0001&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;WT00D98014&quot;</span><span class="p">:</span> <span class="s2">&quot;H1C_0001&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;WT00452024&quot;</span><span class="p">:</span> <span class="s2">&quot;HIE_0002&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;WT0023C024&quot;</span><span class="p">:</span> <span class="s2">&quot;HSE_0002&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;WT0023A024&quot;</span><span class="p">:</span> <span class="s2">&quot;HSO_0002&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;WT00D06014&quot;</span><span class="p">:</span> <span class="s2">&quot;HIE_0003&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;WT00D0A014&quot;</span><span class="p">:</span> <span class="s2">&quot;HSE_0003&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;WT00D08014&quot;</span><span class="p">:</span> <span class="s2">&quot;HSO_0003&quot;</span><span class="p">,</span>
+<span class="p">}</span>
 
-<div class="viewcode-block" id="disable_grating_move_duration"><a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.disable_grating_move_duration">[docs]</a><span class="nd">@contextlib</span><span class="o">.</span><span class="n">contextmanager</span>
+
+<div class="viewcode-block" id="disable_grating_move_duration">
+<a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.disable_grating_move_duration">[docs]</a>
+<span class="nd">@contextlib</span><span class="o">.</span><span class="n">contextmanager</span>
 <span class="k">def</span> <span class="nf">disable_grating_move_duration</span><span class="p">():</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Temporarily disable the grating move duration</span>
@@ -152,11 +166,17 @@
     <span class="n">MechMove</span><span class="o">.</span><span class="n">apply_move_duration</span> <span class="o">=</span> <span class="n">apply_move_duration</span></div>
 
 
-<div class="viewcode-block" id="NoTransitionsError"><a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.NoTransitionsError">[docs]</a><span class="k">class</span> <span class="nc">NoTransitionsError</span><span class="p">(</span><span class="ne">ValueError</span><span class="p">):</span>
+
+<div class="viewcode-block" id="NoTransitionsError">
+<a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.NoTransitionsError">[docs]</a>
+<span class="k">class</span> <span class="nc">NoTransitionsError</span><span class="p">(</span><span class="ne">ValueError</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;No transitions found within commands&quot;&quot;&quot;</span></div>
 
 
-<div class="viewcode-block" id="TransKeysSet"><a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.TransKeysSet">[docs]</a><span class="k">class</span> <span class="nc">TransKeysSet</span><span class="p">(</span><span class="nb">set</span><span class="p">):</span>
+
+<div class="viewcode-block" id="TransKeysSet">
+<a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.TransKeysSet">[docs]</a>
+<span class="k">class</span> <span class="nc">TransKeysSet</span><span class="p">(</span><span class="nb">set</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Like set() but with more compact str output for table printing&quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -166,7 +186,10 @@
         <span class="k">return</span> <span class="n">TransKeysSet</span><span class="p">(</span><span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__and__</span><span class="p">(</span><span class="n">other</span><span class="p">))</span></div>
 
 
-<div class="viewcode-block" id="StateDict"><a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.StateDict">[docs]</a><span class="k">class</span> <span class="nc">StateDict</span><span class="p">(</span><span class="nb">dict</span><span class="p">):</span>
+
+<div class="viewcode-block" id="StateDict">
+<a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.StateDict">[docs]</a>
+<span class="k">class</span> <span class="nc">StateDict</span><span class="p">(</span><span class="nb">dict</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Dict for state key/val pairs.</span>
 
@@ -181,9 +204,13 @@
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__setitem__</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">trans_keys</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
 
-<div class="viewcode-block" id="StateDict.copy"><a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.StateDict.copy">[docs]</a>    <span class="k">def</span> <span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="StateDict.copy">
+<a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.StateDict.copy">[docs]</a>
+    <span class="k">def</span> <span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Copy without trans_keys&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">StateDict</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div></div>
+        <span class="k">return</span> <span class="n">StateDict</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
+</div>
+
 
 
 <span class="c1">###################################################################</span>
@@ -191,7 +218,9 @@
 <span class="c1">###################################################################</span>
 
 
-<div class="viewcode-block" id="TransitionMeta"><a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.TransitionMeta">[docs]</a><span class="k">class</span> <span class="nc">TransitionMeta</span><span class="p">(</span><span class="nb">type</span><span class="p">):</span>
+<div class="viewcode-block" id="TransitionMeta">
+<a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.TransitionMeta">[docs]</a>
+<span class="k">class</span> <span class="nc">TransitionMeta</span><span class="p">(</span><span class="nb">type</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Metaclass that adds the class to the TRANSITIONS dict.</span>
 
@@ -217,12 +246,17 @@
         <span class="k">return</span> <span class="bp">cls</span></div>
 
 
-<div class="viewcode-block" id="BaseTransition"><a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.BaseTransition">[docs]</a><span class="k">class</span> <span class="nc">BaseTransition</span><span class="p">(</span><span class="n">metaclass</span><span class="o">=</span><span class="n">TransitionMeta</span><span class="p">):</span>
+
+<div class="viewcode-block" id="BaseTransition">
+<a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.BaseTransition">[docs]</a>
+<span class="k">class</span> <span class="nc">BaseTransition</span><span class="p">(</span><span class="n">metaclass</span><span class="o">=</span><span class="n">TransitionMeta</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Base transition class from which all actual transition classes are derived.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="BaseTransition.get_state_changing_commands"><a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.BaseTransition.get_state_changing_commands">[docs]</a>    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="BaseTransition.get_state_changing_commands">
+<a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.BaseTransition.get_state_changing_commands">[docs]</a>
+    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">get_state_changing_commands</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">cmds</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Get commands that match the required attributes for state changing commands.</span>
@@ -276,6 +310,7 @@
 
         <span class="k">return</span> <span class="n">out_cmds</span></div>
 
+
     <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">_auto_update_docstring</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -326,7 +361,10 @@
         <span class="bp">cls</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">docs</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="FixedTransition"><a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.FixedTransition">[docs]</a><span class="k">class</span> <span class="nc">FixedTransition</span><span class="p">(</span><span class="n">BaseTransition</span><span class="p">):</span>
+
+<div class="viewcode-block" id="FixedTransition">
+<a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.FixedTransition">[docs]</a>
+<span class="k">class</span> <span class="nc">FixedTransition</span><span class="p">(</span><span class="n">BaseTransition</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Transitions for fixed attribute.</span>
 
@@ -339,7 +377,9 @@
 <span class="sd">    :param transition_val: single transition value or list of values</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="FixedTransition.set_transitions"><a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.FixedTransition.set_transitions">[docs]</a>    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="FixedTransition.set_transitions">
+<a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.FixedTransition.set_transitions">[docs]</a>
+    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">set_transitions</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">transitions_dict</span><span class="p">,</span> <span class="n">cmds</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Set transitions for a Table of commands ``cmds``.</span>
@@ -371,10 +411,14 @@
         <span class="k">for</span> <span class="n">cmd</span> <span class="ow">in</span> <span class="n">state_cmds</span><span class="p">:</span>
             <span class="n">date</span> <span class="o">=</span> <span class="n">cmd</span><span class="p">[</span><span class="s2">&quot;date&quot;</span><span class="p">]</span>
             <span class="k">for</span> <span class="n">val</span><span class="p">,</span> <span class="n">attr</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">vals</span><span class="p">,</span> <span class="n">attrs</span><span class="p">):</span>
-                <span class="n">transitions_dict</span><span class="p">[</span><span class="n">date</span><span class="p">][</span><span class="n">attr</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span></div></div>
+                <span class="n">transitions_dict</span><span class="p">[</span><span class="n">date</span><span class="p">][</span><span class="n">attr</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span></div>
+</div>
 
 
-<div class="viewcode-block" id="ParamTransition"><a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.ParamTransition">[docs]</a><span class="k">class</span> <span class="nc">ParamTransition</span><span class="p">(</span><span class="n">BaseTransition</span><span class="p">):</span>
+
+<div class="viewcode-block" id="ParamTransition">
+<a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.ParamTransition">[docs]</a>
+<span class="k">class</span> <span class="nc">ParamTransition</span><span class="p">(</span><span class="n">BaseTransition</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Transitions for case of attribute that gets set to value defined by cmd param.</span>
 
@@ -386,7 +430,9 @@
 <span class="sd">    :param cmd_param_key: command parameter name (str or list of str)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="ParamTransition.set_transitions"><a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.ParamTransition.set_transitions">[docs]</a>    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="ParamTransition.set_transitions">
+<a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.ParamTransition.set_transitions">[docs]</a>
+    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">set_transitions</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">transitions_dict</span><span class="p">,</span> <span class="n">cmds</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Set transitions for a Table of commands ``cmds``.</span>
@@ -426,7 +472,9 @@
                 <span class="n">params</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">rev_pars_dict</span><span class="p">[</span><span class="n">cmd</span><span class="p">[</span><span class="s2">&quot;idx&quot;</span><span class="p">]])</span>
 
             <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">param_key</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">names</span><span class="p">,</span> <span class="n">param_keys</span><span class="p">):</span>
-                <span class="n">transitions_dict</span><span class="p">[</span><span class="n">date</span><span class="p">][</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="n">param_key</span><span class="p">]</span></div></div>
+                <span class="n">transitions_dict</span><span class="p">[</span><span class="n">date</span><span class="p">][</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="n">param_key</span><span class="p">]</span></div>
+</div>
+
 
 
 <span class="c1">###################################################################</span>
@@ -434,7 +482,9 @@
 <span class="c1">###################################################################</span>
 
 
-<div class="viewcode-block" id="Format1_Transition"><a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.Format1_Transition">[docs]</a><span class="k">class</span> <span class="nc">Format1_Transition</span><span class="p">(</span><span class="n">FixedTransition</span><span class="p">):</span>
+<div class="viewcode-block" id="Format1_Transition">
+<a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.Format1_Transition">[docs]</a>
+<span class="k">class</span> <span class="nc">Format1_Transition</span><span class="p">(</span><span class="n">FixedTransition</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Transition to telemetry format 1&quot;&quot;&quot;</span>
 
     <span class="n">command_attributes</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;tlmsid&quot;</span><span class="p">:</span> <span class="s2">&quot;CSELFMT1&quot;</span><span class="p">}</span>
@@ -443,7 +493,10 @@
     <span class="n">transition_val</span> <span class="o">=</span> <span class="s2">&quot;FMT1&quot;</span></div>
 
 
-<div class="viewcode-block" id="Format2_Transition"><a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.Format2_Transition">[docs]</a><span class="k">class</span> <span class="nc">Format2_Transition</span><span class="p">(</span><span class="n">FixedTransition</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Format2_Transition">
+<a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.Format2_Transition">[docs]</a>
+<span class="k">class</span> <span class="nc">Format2_Transition</span><span class="p">(</span><span class="n">FixedTransition</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Transition to telemetry format 2&quot;&quot;&quot;</span>
 
     <span class="n">command_attributes</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;tlmsid&quot;</span><span class="p">:</span> <span class="s2">&quot;CSELFMT2&quot;</span><span class="p">}</span>
@@ -452,7 +505,10 @@
     <span class="n">transition_val</span> <span class="o">=</span> <span class="s2">&quot;FMT2&quot;</span></div>
 
 
-<div class="viewcode-block" id="Format3_Transition"><a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.Format3_Transition">[docs]</a><span class="k">class</span> <span class="nc">Format3_Transition</span><span class="p">(</span><span class="n">FixedTransition</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Format3_Transition">
+<a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.Format3_Transition">[docs]</a>
+<span class="k">class</span> <span class="nc">Format3_Transition</span><span class="p">(</span><span class="n">FixedTransition</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Transition to telemetry format 3&quot;&quot;&quot;</span>
 
     <span class="n">command_attributes</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;tlmsid&quot;</span><span class="p">:</span> <span class="s2">&quot;CSELFMT3&quot;</span><span class="p">}</span>
@@ -461,7 +517,10 @@
     <span class="n">transition_val</span> <span class="o">=</span> <span class="s2">&quot;FMT3&quot;</span></div>
 
 
-<div class="viewcode-block" id="Format4_Transition"><a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.Format4_Transition">[docs]</a><span class="k">class</span> <span class="nc">Format4_Transition</span><span class="p">(</span><span class="n">FixedTransition</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Format4_Transition">
+<a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.Format4_Transition">[docs]</a>
+<span class="k">class</span> <span class="nc">Format4_Transition</span><span class="p">(</span><span class="n">FixedTransition</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Transition to telemetry format 4&quot;&quot;&quot;</span>
 
     <span class="n">command_attributes</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;tlmsid&quot;</span><span class="p">:</span> <span class="s2">&quot;CSELFMT4&quot;</span><span class="p">}</span>
@@ -470,7 +529,10 @@
     <span class="n">transition_val</span> <span class="o">=</span> <span class="s2">&quot;FMT4&quot;</span></div>
 
 
-<div class="viewcode-block" id="Format5_Transition"><a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.Format5_Transition">[docs]</a><span class="k">class</span> <span class="nc">Format5_Transition</span><span class="p">(</span><span class="n">FixedTransition</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Format5_Transition">
+<a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.Format5_Transition">[docs]</a>
+<span class="k">class</span> <span class="nc">Format5_Transition</span><span class="p">(</span><span class="n">FixedTransition</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Transition to telemetry format 5&quot;&quot;&quot;</span>
 
     <span class="n">command_attributes</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;tlmsid&quot;</span><span class="p">:</span> <span class="s2">&quot;CSELFMT5&quot;</span><span class="p">}</span>
@@ -479,7 +541,10 @@
     <span class="n">transition_val</span> <span class="o">=</span> <span class="s2">&quot;FMT5&quot;</span></div>
 
 
-<div class="viewcode-block" id="Format6_Transition"><a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.Format6_Transition">[docs]</a><span class="k">class</span> <span class="nc">Format6_Transition</span><span class="p">(</span><span class="n">FixedTransition</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Format6_Transition">
+<a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.Format6_Transition">[docs]</a>
+<span class="k">class</span> <span class="nc">Format6_Transition</span><span class="p">(</span><span class="n">FixedTransition</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Transition to telemetry format 6&quot;&quot;&quot;</span>
 
     <span class="n">command_attributes</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;tlmsid&quot;</span><span class="p">:</span> <span class="s2">&quot;CSELFMT6&quot;</span><span class="p">}</span>
@@ -488,7 +553,10 @@
     <span class="n">transition_val</span> <span class="o">=</span> <span class="s2">&quot;FMT6&quot;</span></div>
 
 
-<div class="viewcode-block" id="SubFormatEPS_Transition"><a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.SubFormatEPS_Transition">[docs]</a><span class="k">class</span> <span class="nc">SubFormatEPS_Transition</span><span class="p">(</span><span class="n">FixedTransition</span><span class="p">):</span>
+
+<div class="viewcode-block" id="SubFormatEPS_Transition">
+<a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.SubFormatEPS_Transition">[docs]</a>
+<span class="k">class</span> <span class="nc">SubFormatEPS_Transition</span><span class="p">(</span><span class="n">FixedTransition</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Transition to telemetry EPS subformat&quot;&quot;&quot;</span>
 
     <span class="n">command_attributes</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;tlmsid&quot;</span><span class="p">:</span> <span class="s2">&quot;OFMTSEPS&quot;</span><span class="p">}</span>
@@ -497,7 +565,10 @@
     <span class="n">transition_val</span> <span class="o">=</span> <span class="s2">&quot;EPS&quot;</span></div>
 
 
-<div class="viewcode-block" id="SubFormatNRM_Transition"><a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.SubFormatNRM_Transition">[docs]</a><span class="k">class</span> <span class="nc">SubFormatNRM_Transition</span><span class="p">(</span><span class="n">FixedTransition</span><span class="p">):</span>
+
+<div class="viewcode-block" id="SubFormatNRM_Transition">
+<a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.SubFormatNRM_Transition">[docs]</a>
+<span class="k">class</span> <span class="nc">SubFormatNRM_Transition</span><span class="p">(</span><span class="n">FixedTransition</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Transition to telemetry NRM subformat&quot;&quot;&quot;</span>
 
     <span class="n">command_attributes</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;tlmsid&quot;</span><span class="p">:</span> <span class="s2">&quot;OFMTSNRM&quot;</span><span class="p">}</span>
@@ -506,7 +577,10 @@
     <span class="n">transition_val</span> <span class="o">=</span> <span class="s2">&quot;NORM&quot;</span></div>
 
 
-<div class="viewcode-block" id="SubFormatPDG_Transition"><a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.SubFormatPDG_Transition">[docs]</a><span class="k">class</span> <span class="nc">SubFormatPDG_Transition</span><span class="p">(</span><span class="n">FixedTransition</span><span class="p">):</span>
+
+<div class="viewcode-block" id="SubFormatPDG_Transition">
+<a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.SubFormatPDG_Transition">[docs]</a>
+<span class="k">class</span> <span class="nc">SubFormatPDG_Transition</span><span class="p">(</span><span class="n">FixedTransition</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Transition to telemetry PDG subformat&quot;&quot;&quot;</span>
 
     <span class="n">command_attributes</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;tlmsid&quot;</span><span class="p">:</span> <span class="s2">&quot;OFMTSPDG&quot;</span><span class="p">}</span>
@@ -515,7 +589,10 @@
     <span class="n">transition_val</span> <span class="o">=</span> <span class="s2">&quot;PDG&quot;</span></div>
 
 
-<div class="viewcode-block" id="SubFormatSSR_Transition"><a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.SubFormatSSR_Transition">[docs]</a><span class="k">class</span> <span class="nc">SubFormatSSR_Transition</span><span class="p">(</span><span class="n">FixedTransition</span><span class="p">):</span>
+
+<div class="viewcode-block" id="SubFormatSSR_Transition">
+<a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.SubFormatSSR_Transition">[docs]</a>
+<span class="k">class</span> <span class="nc">SubFormatSSR_Transition</span><span class="p">(</span><span class="n">FixedTransition</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Transition to telemetry SSR subformat&quot;&quot;&quot;</span>
 
     <span class="n">command_attributes</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;tlmsid&quot;</span><span class="p">:</span> <span class="s2">&quot;OFMTSSSR&quot;</span><span class="p">}</span>
@@ -524,12 +601,15 @@
     <span class="n">transition_val</span> <span class="o">=</span> <span class="s2">&quot;SSR&quot;</span></div>
 
 
+
 <span class="c1">###################################################################</span>
 <span class="c1"># Mech transitions</span>
 <span class="c1">###################################################################</span>
 
 
-<div class="viewcode-block" id="MechMove"><a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.MechMove">[docs]</a><span class="k">class</span> <span class="nc">MechMove</span><span class="p">(</span><span class="n">FixedTransition</span><span class="p">):</span>
+<div class="viewcode-block" id="MechMove">
+<a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.MechMove">[docs]</a>
+<span class="k">class</span> <span class="nc">MechMove</span><span class="p">(</span><span class="n">FixedTransition</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Transitions for mech moves that have non-zero duration.</span>
 
@@ -551,7 +631,9 @@
 
     <span class="n">apply_move_duration</span> <span class="o">=</span> <span class="kc">True</span>
 
-<div class="viewcode-block" id="MechMove.set_transitions"><a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.MechMove.set_transitions">[docs]</a>    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="MechMove.set_transitions">
+<a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.MechMove.set_transitions">[docs]</a>
+    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">set_transitions</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">transitions_dict</span><span class="p">,</span> <span class="n">cmds</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Set transitions for a Table of commands ``cmds``.</span>
@@ -594,10 +676,14 @@
                         <span class="n">transitions_dict</span><span class="p">[</span><span class="n">date_start</span><span class="o">.</span><span class="n">date</span><span class="p">][</span><span class="n">attr</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span> <span class="o">+</span> <span class="s2">&quot;_MOVE&quot;</span>
                         <span class="n">transitions_dict</span><span class="p">[</span><span class="n">date_stop</span><span class="o">.</span><span class="n">date</span><span class="p">][</span><span class="n">attr</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span>
                     <span class="k">else</span><span class="p">:</span>
-                        <span class="n">transitions_dict</span><span class="p">[</span><span class="n">date_start</span><span class="o">.</span><span class="n">date</span><span class="p">][</span><span class="n">attr</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span></div></div>
+                        <span class="n">transitions_dict</span><span class="p">[</span><span class="n">date_start</span><span class="o">.</span><span class="n">date</span><span class="p">][</span><span class="n">attr</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span></div>
+</div>
 
 
-<div class="viewcode-block" id="HETG_INSR_Transition"><a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.HETG_INSR_Transition">[docs]</a><span class="k">class</span> <span class="nc">HETG_INSR_Transition</span><span class="p">(</span><span class="n">MechMove</span><span class="p">):</span>
+
+<div class="viewcode-block" id="HETG_INSR_Transition">
+<a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.HETG_INSR_Transition">[docs]</a>
+<span class="k">class</span> <span class="nc">HETG_INSR_Transition</span><span class="p">(</span><span class="n">MechMove</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;HETG insertion&quot;&quot;&quot;</span>
 
     <span class="n">command_attributes</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;tlmsid&quot;</span><span class="p">:</span> <span class="s2">&quot;4OHETGIN&quot;</span><span class="p">}</span>
@@ -607,7 +693,10 @@
     <span class="n">move_duration</span> <span class="o">=</span> <span class="mi">157</span> <span class="o">*</span> <span class="n">u</span><span class="o">.</span><span class="n">s</span></div>
 
 
-<div class="viewcode-block" id="HETG_RETR_Transition"><a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.HETG_RETR_Transition">[docs]</a><span class="k">class</span> <span class="nc">HETG_RETR_Transition</span><span class="p">(</span><span class="n">MechMove</span><span class="p">):</span>
+
+<div class="viewcode-block" id="HETG_RETR_Transition">
+<a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.HETG_RETR_Transition">[docs]</a>
+<span class="k">class</span> <span class="nc">HETG_RETR_Transition</span><span class="p">(</span><span class="n">MechMove</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;HETG retraction&quot;&quot;&quot;</span>
 
     <span class="n">command_attributes</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;tlmsid&quot;</span><span class="p">:</span> <span class="s2">&quot;4OHETGRE&quot;</span><span class="p">}</span>
@@ -617,7 +706,10 @@
     <span class="n">move_duration</span> <span class="o">=</span> <span class="mi">153</span> <span class="o">*</span> <span class="n">u</span><span class="o">.</span><span class="n">s</span></div>
 
 
-<div class="viewcode-block" id="LETG_INSR_Transition"><a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.LETG_INSR_Transition">[docs]</a><span class="k">class</span> <span class="nc">LETG_INSR_Transition</span><span class="p">(</span><span class="n">MechMove</span><span class="p">):</span>
+
+<div class="viewcode-block" id="LETG_INSR_Transition">
+<a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.LETG_INSR_Transition">[docs]</a>
+<span class="k">class</span> <span class="nc">LETG_INSR_Transition</span><span class="p">(</span><span class="n">MechMove</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;LETG insertion&quot;&quot;&quot;</span>
 
     <span class="n">command_attributes</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;tlmsid&quot;</span><span class="p">:</span> <span class="s2">&quot;4OLETGIN&quot;</span><span class="p">}</span>
@@ -627,7 +719,10 @@
     <span class="n">move_duration</span> <span class="o">=</span> <span class="mi">203</span> <span class="o">*</span> <span class="n">u</span><span class="o">.</span><span class="n">s</span></div>
 
 
-<div class="viewcode-block" id="LETG_RETR_Transition"><a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.LETG_RETR_Transition">[docs]</a><span class="k">class</span> <span class="nc">LETG_RETR_Transition</span><span class="p">(</span><span class="n">MechMove</span><span class="p">):</span>
+
+<div class="viewcode-block" id="LETG_RETR_Transition">
+<a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.LETG_RETR_Transition">[docs]</a>
+<span class="k">class</span> <span class="nc">LETG_RETR_Transition</span><span class="p">(</span><span class="n">MechMove</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;LETG retraction&quot;&quot;&quot;</span>
 
     <span class="n">command_attributes</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;tlmsid&quot;</span><span class="p">:</span> <span class="s2">&quot;4OLETGRE&quot;</span><span class="p">}</span>
@@ -637,7 +732,10 @@
     <span class="n">move_duration</span> <span class="o">=</span> <span class="mi">203</span> <span class="o">*</span> <span class="n">u</span><span class="o">.</span><span class="n">s</span></div>
 
 
-<div class="viewcode-block" id="SimTscTransition"><a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.SimTscTransition">[docs]</a><span class="k">class</span> <span class="nc">SimTscTransition</span><span class="p">(</span><span class="n">ParamTransition</span><span class="p">):</span>
+
+<div class="viewcode-block" id="SimTscTransition">
+<a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.SimTscTransition">[docs]</a>
+<span class="k">class</span> <span class="nc">SimTscTransition</span><span class="p">(</span><span class="n">ParamTransition</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;SIM translating science compartment translation&quot;&quot;&quot;</span>
 
     <span class="n">command_attributes</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;SIMTRANS&quot;</span><span class="p">}</span>
@@ -646,7 +744,10 @@
     <span class="n">cmd_param_key</span> <span class="o">=</span> <span class="s2">&quot;pos&quot;</span></div>
 
 
-<div class="viewcode-block" id="SimFocusTransition"><a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.SimFocusTransition">[docs]</a><span class="k">class</span> <span class="nc">SimFocusTransition</span><span class="p">(</span><span class="n">ParamTransition</span><span class="p">):</span>
+
+<div class="viewcode-block" id="SimFocusTransition">
+<a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.SimFocusTransition">[docs]</a>
+<span class="k">class</span> <span class="nc">SimFocusTransition</span><span class="p">(</span><span class="n">ParamTransition</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;SIM focus assembly translation&quot;&quot;&quot;</span>
 
     <span class="n">command_attributes</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;SIMFOCUS&quot;</span><span class="p">}</span>
@@ -655,12 +756,15 @@
     <span class="n">cmd_param_key</span> <span class="o">=</span> <span class="s2">&quot;pos&quot;</span></div>
 
 
+
 <span class="c1">###################################################################</span>
 <span class="c1"># HRC transitions</span>
 <span class="c1">###################################################################</span>
 
 
-<div class="viewcode-block" id="Hrc15vOn_Transition"><a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.Hrc15vOn_Transition">[docs]</a><span class="k">class</span> <span class="nc">Hrc15vOn_Transition</span><span class="p">(</span><span class="n">FixedTransition</span><span class="p">):</span>
+<div class="viewcode-block" id="Hrc15vOn_Transition">
+<a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.Hrc15vOn_Transition">[docs]</a>
+<span class="k">class</span> <span class="nc">Hrc15vOn_Transition</span><span class="p">(</span><span class="n">FixedTransition</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;HRC 15V ON from hardware 215PCAON command&quot;&quot;&quot;</span>
 
     <span class="n">command_attributes</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;tlmsid&quot;</span><span class="p">:</span> <span class="s2">&quot;215PCAON&quot;</span><span class="p">}</span>
@@ -669,7 +773,10 @@
     <span class="n">transition_val</span> <span class="o">=</span> <span class="s2">&quot;ON&quot;</span></div>
 
 
-<div class="viewcode-block" id="Hrc15vOn_SCS134_Transition"><a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.Hrc15vOn_SCS134_Transition">[docs]</a><span class="k">class</span> <span class="nc">Hrc15vOn_SCS134_Transition</span><span class="p">(</span><span class="n">FixedTransition</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Hrc15vOn_SCS134_Transition">
+<a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.Hrc15vOn_SCS134_Transition">[docs]</a>
+<span class="k">class</span> <span class="nc">Hrc15vOn_SCS134_Transition</span><span class="p">(</span><span class="n">FixedTransition</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;HRC 15V ON from SCS-134&quot;&quot;&quot;</span>
 
     <span class="n">command_attributes</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;tlmsid&quot;</span><span class="p">:</span> <span class="s2">&quot;COACTSX&quot;</span><span class="p">,</span> <span class="s2">&quot;coacts1&quot;</span><span class="p">:</span> <span class="mi">134</span><span class="p">}</span>
@@ -678,7 +785,10 @@
     <span class="n">transition_val</span> <span class="o">=</span> <span class="s2">&quot;ON&quot;</span></div>
 
 
-<div class="viewcode-block" id="Hrc15vOff_Transition"><a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.Hrc15vOff_Transition">[docs]</a><span class="k">class</span> <span class="nc">Hrc15vOff_Transition</span><span class="p">(</span><span class="n">FixedTransition</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Hrc15vOff_Transition">
+<a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.Hrc15vOff_Transition">[docs]</a>
+<span class="k">class</span> <span class="nc">Hrc15vOff_Transition</span><span class="p">(</span><span class="n">FixedTransition</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;HRC 15V OFF&quot;&quot;&quot;</span>
 
     <span class="n">command_attributes</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;tlmsid&quot;</span><span class="p">:</span> <span class="s2">&quot;215PCAOF&quot;</span><span class="p">}</span>
@@ -687,7 +797,10 @@
     <span class="n">transition_val</span> <span class="o">=</span> <span class="s2">&quot;OFF&quot;</span></div>
 
 
-<div class="viewcode-block" id="Hrc24vOn_Transition"><a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.Hrc24vOn_Transition">[docs]</a><span class="k">class</span> <span class="nc">Hrc24vOn_Transition</span><span class="p">(</span><span class="n">FixedTransition</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Hrc24vOn_Transition">
+<a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.Hrc24vOn_Transition">[docs]</a>
+<span class="k">class</span> <span class="nc">Hrc24vOn_Transition</span><span class="p">(</span><span class="n">FixedTransition</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;HRC 24V ON&quot;&quot;&quot;</span>
 
     <span class="n">command_attributes</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;tlmsid&quot;</span><span class="p">:</span> <span class="s2">&quot;224PCAON&quot;</span><span class="p">}</span>
@@ -696,7 +809,10 @@
     <span class="n">transition_val</span> <span class="o">=</span> <span class="s2">&quot;ON&quot;</span></div>
 
 
-<div class="viewcode-block" id="Hrc24vOff_Transition"><a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.Hrc24vOff_Transition">[docs]</a><span class="k">class</span> <span class="nc">Hrc24vOff_Transition</span><span class="p">(</span><span class="n">FixedTransition</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Hrc24vOff_Transition">
+<a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.Hrc24vOff_Transition">[docs]</a>
+<span class="k">class</span> <span class="nc">Hrc24vOff_Transition</span><span class="p">(</span><span class="n">FixedTransition</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;HRC 24V OFF&quot;&quot;&quot;</span>
 
     <span class="n">command_attributes</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;tlmsid&quot;</span><span class="p">:</span> <span class="s2">&quot;224PCAOF&quot;</span><span class="p">}</span>
@@ -705,7 +821,10 @@
     <span class="n">transition_val</span> <span class="o">=</span> <span class="s2">&quot;OFF&quot;</span></div>
 
 
-<div class="viewcode-block" id="HrcIOn_Transition"><a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.HrcIOn_Transition">[docs]</a><span class="k">class</span> <span class="nc">HrcIOn_Transition</span><span class="p">(</span><span class="n">FixedTransition</span><span class="p">):</span>
+
+<div class="viewcode-block" id="HrcIOn_Transition">
+<a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.HrcIOn_Transition">[docs]</a>
+<span class="k">class</span> <span class="nc">HrcIOn_Transition</span><span class="p">(</span><span class="n">FixedTransition</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;HRC-I ON&quot;&quot;&quot;</span>
 
     <span class="n">command_attributes</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;tlmsid&quot;</span><span class="p">:</span> <span class="s2">&quot;COENASX&quot;</span><span class="p">,</span> <span class="s2">&quot;coenas1&quot;</span><span class="p">:</span> <span class="mi">89</span><span class="p">}</span>
@@ -714,7 +833,10 @@
     <span class="n">transition_val</span> <span class="o">=</span> <span class="s2">&quot;ON&quot;</span></div>
 
 
-<div class="viewcode-block" id="HrcIOff_Transition"><a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.HrcIOff_Transition">[docs]</a><span class="k">class</span> <span class="nc">HrcIOff_Transition</span><span class="p">(</span><span class="n">FixedTransition</span><span class="p">):</span>
+
+<div class="viewcode-block" id="HrcIOff_Transition">
+<a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.HrcIOff_Transition">[docs]</a>
+<span class="k">class</span> <span class="nc">HrcIOff_Transition</span><span class="p">(</span><span class="n">FixedTransition</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;HRC-I OFF&quot;&quot;&quot;</span>
 
     <span class="n">command_attributes</span> <span class="o">=</span> <span class="p">{</span>
@@ -725,7 +847,10 @@
     <span class="n">transition_val</span> <span class="o">=</span> <span class="s2">&quot;OFF&quot;</span></div>
 
 
-<div class="viewcode-block" id="HrcSOn_Transition"><a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.HrcSOn_Transition">[docs]</a><span class="k">class</span> <span class="nc">HrcSOn_Transition</span><span class="p">(</span><span class="n">FixedTransition</span><span class="p">):</span>
+
+<div class="viewcode-block" id="HrcSOn_Transition">
+<a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.HrcSOn_Transition">[docs]</a>
+<span class="k">class</span> <span class="nc">HrcSOn_Transition</span><span class="p">(</span><span class="n">FixedTransition</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;HRC-S ON&quot;&quot;&quot;</span>
 
     <span class="n">command_attributes</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;tlmsid&quot;</span><span class="p">:</span> <span class="s2">&quot;COENASX&quot;</span><span class="p">,</span> <span class="s2">&quot;coenas1&quot;</span><span class="p">:</span> <span class="mi">90</span><span class="p">}</span>
@@ -734,7 +859,10 @@
     <span class="n">transition_val</span> <span class="o">=</span> <span class="s2">&quot;ON&quot;</span></div>
 
 
-<div class="viewcode-block" id="HrcSOff_Transition"><a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.HrcSOff_Transition">[docs]</a><span class="k">class</span> <span class="nc">HrcSOff_Transition</span><span class="p">(</span><span class="n">FixedTransition</span><span class="p">):</span>
+
+<div class="viewcode-block" id="HrcSOff_Transition">
+<a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.HrcSOff_Transition">[docs]</a>
+<span class="k">class</span> <span class="nc">HrcSOff_Transition</span><span class="p">(</span><span class="n">FixedTransition</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;HRC-S OFF&quot;&quot;&quot;</span>
 
     <span class="n">command_attributes</span> <span class="o">=</span> <span class="p">{</span>
@@ -745,12 +873,15 @@
     <span class="n">transition_val</span> <span class="o">=</span> <span class="s2">&quot;OFF&quot;</span></div>
 
 
+
 <span class="c1">###################################################################</span>
 <span class="c1"># OBC etc transitions</span>
 <span class="c1">###################################################################</span>
 
 
-<div class="viewcode-block" id="ObsidTransition"><a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.ObsidTransition">[docs]</a><span class="k">class</span> <span class="nc">ObsidTransition</span><span class="p">(</span><span class="n">ParamTransition</span><span class="p">):</span>
+<div class="viewcode-block" id="ObsidTransition">
+<a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.ObsidTransition">[docs]</a>
+<span class="k">class</span> <span class="nc">ObsidTransition</span><span class="p">(</span><span class="n">ParamTransition</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Obsid update&quot;&quot;&quot;</span>
 
     <span class="n">command_attributes</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;MP_OBSID&quot;</span><span class="p">}</span>
@@ -759,7 +890,10 @@
     <span class="n">cmd_param_key</span> <span class="o">=</span> <span class="s2">&quot;id&quot;</span></div>
 
 
-<div class="viewcode-block" id="EclipseEntryTimerTransition"><a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.EclipseEntryTimerTransition">[docs]</a><span class="k">class</span> <span class="nc">EclipseEntryTimerTransition</span><span class="p">(</span><span class="n">ParamTransition</span><span class="p">):</span>
+
+<div class="viewcode-block" id="EclipseEntryTimerTransition">
+<a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.EclipseEntryTimerTransition">[docs]</a>
+<span class="k">class</span> <span class="nc">EclipseEntryTimerTransition</span><span class="p">(</span><span class="n">ParamTransition</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Eclipse entry timer update&quot;&quot;&quot;</span>
 
     <span class="n">command_attributes</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;tlmsid&quot;</span><span class="p">:</span> <span class="s2">&quot;EOECLETO&quot;</span><span class="p">}</span>
@@ -768,7 +902,10 @@
     <span class="n">cmd_param_key</span> <span class="o">=</span> <span class="s2">&quot;timecnt&quot;</span></div>
 
 
-<div class="viewcode-block" id="EclipsePenumbraEntryTransition"><a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.EclipsePenumbraEntryTransition">[docs]</a><span class="k">class</span> <span class="nc">EclipsePenumbraEntryTransition</span><span class="p">(</span><span class="n">FixedTransition</span><span class="p">):</span>
+
+<div class="viewcode-block" id="EclipsePenumbraEntryTransition">
+<a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.EclipsePenumbraEntryTransition">[docs]</a>
+<span class="k">class</span> <span class="nc">EclipsePenumbraEntryTransition</span><span class="p">(</span><span class="n">FixedTransition</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Eclipse penumbra entry&quot;&quot;&quot;</span>
 
     <span class="n">command_attributes</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;ORBPOINT&quot;</span><span class="p">}</span>
@@ -778,7 +915,10 @@
     <span class="n">transition_val</span> <span class="o">=</span> <span class="s2">&quot;PENUMBRA&quot;</span></div>
 
 
-<div class="viewcode-block" id="EclipsePenumbraExitTransition"><a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.EclipsePenumbraExitTransition">[docs]</a><span class="k">class</span> <span class="nc">EclipsePenumbraExitTransition</span><span class="p">(</span><span class="n">FixedTransition</span><span class="p">):</span>
+
+<div class="viewcode-block" id="EclipsePenumbraExitTransition">
+<a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.EclipsePenumbraExitTransition">[docs]</a>
+<span class="k">class</span> <span class="nc">EclipsePenumbraExitTransition</span><span class="p">(</span><span class="n">FixedTransition</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Eclipse penumbra exit&quot;&quot;&quot;</span>
 
     <span class="n">command_attributes</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;ORBPOINT&quot;</span><span class="p">}</span>
@@ -788,7 +928,10 @@
     <span class="n">transition_val</span> <span class="o">=</span> <span class="s2">&quot;DAY&quot;</span></div>
 
 
-<div class="viewcode-block" id="EclipseUmbraEntryTransition"><a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.EclipseUmbraEntryTransition">[docs]</a><span class="k">class</span> <span class="nc">EclipseUmbraEntryTransition</span><span class="p">(</span><span class="n">FixedTransition</span><span class="p">):</span>
+
+<div class="viewcode-block" id="EclipseUmbraEntryTransition">
+<a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.EclipseUmbraEntryTransition">[docs]</a>
+<span class="k">class</span> <span class="nc">EclipseUmbraEntryTransition</span><span class="p">(</span><span class="n">FixedTransition</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Eclipse umbra entry&quot;&quot;&quot;</span>
 
     <span class="n">command_attributes</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;ORBPOINT&quot;</span><span class="p">}</span>
@@ -798,7 +941,10 @@
     <span class="n">transition_val</span> <span class="o">=</span> <span class="s2">&quot;UMBRA&quot;</span></div>
 
 
-<div class="viewcode-block" id="EclipseUmbraExitTransition"><a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.EclipseUmbraExitTransition">[docs]</a><span class="k">class</span> <span class="nc">EclipseUmbraExitTransition</span><span class="p">(</span><span class="n">FixedTransition</span><span class="p">):</span>
+
+<div class="viewcode-block" id="EclipseUmbraExitTransition">
+<a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.EclipseUmbraExitTransition">[docs]</a>
+<span class="k">class</span> <span class="nc">EclipseUmbraExitTransition</span><span class="p">(</span><span class="n">FixedTransition</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Eclipse umbra exit&quot;&quot;&quot;</span>
 
     <span class="n">command_attributes</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;ORBPOINT&quot;</span><span class="p">}</span>
@@ -808,7 +954,10 @@
     <span class="n">transition_val</span> <span class="o">=</span> <span class="s2">&quot;PENUMBRA&quot;</span></div>
 
 
-<div class="viewcode-block" id="SPMEnableTransition"><a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.SPMEnableTransition">[docs]</a><span class="k">class</span> <span class="nc">SPMEnableTransition</span><span class="p">(</span><span class="n">FixedTransition</span><span class="p">):</span>
+
+<div class="viewcode-block" id="SPMEnableTransition">
+<a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.SPMEnableTransition">[docs]</a>
+<span class="k">class</span> <span class="nc">SPMEnableTransition</span><span class="p">(</span><span class="n">FixedTransition</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Sun position monitor enable&quot;&quot;&quot;</span>
 
     <span class="n">command_attributes</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;tlmsid&quot;</span><span class="p">:</span> <span class="s2">&quot;AOFUNCEN&quot;</span><span class="p">}</span>
@@ -818,7 +967,10 @@
     <span class="n">transition_val</span> <span class="o">=</span> <span class="s2">&quot;ENAB&quot;</span></div>
 
 
-<div class="viewcode-block" id="SPMDisableTransition"><a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.SPMDisableTransition">[docs]</a><span class="k">class</span> <span class="nc">SPMDisableTransition</span><span class="p">(</span><span class="n">FixedTransition</span><span class="p">):</span>
+
+<div class="viewcode-block" id="SPMDisableTransition">
+<a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.SPMDisableTransition">[docs]</a>
+<span class="k">class</span> <span class="nc">SPMDisableTransition</span><span class="p">(</span><span class="n">FixedTransition</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Sun position monitor disable&quot;&quot;&quot;</span>
 
     <span class="n">command_attributes</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;tlmsid&quot;</span><span class="p">:</span> <span class="s2">&quot;AOFUNCDS&quot;</span><span class="p">}</span>
@@ -828,12 +980,15 @@
     <span class="n">transition_val</span> <span class="o">=</span> <span class="s2">&quot;DISA&quot;</span></div>
 
 
-<div class="viewcode-block" id="SPMEclipseEnableTransition"><a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.SPMEclipseEnableTransition">[docs]</a><span class="k">class</span> <span class="nc">SPMEclipseEnableTransition</span><span class="p">(</span><span class="n">BaseTransition</span><span class="p">):</span>
+
+<div class="viewcode-block" id="SPMEclipseEnableTransition">
+<a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.SPMEclipseEnableTransition">[docs]</a>
+<span class="k">class</span> <span class="nc">SPMEclipseEnableTransition</span><span class="p">(</span><span class="n">BaseTransition</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Automatic enable of sun position monitor.</span>
 
 <span class="sd">    This occurs 11 minutes after eclipse exit, but only if the battery-connect</span>
-<span class="sd">    command occurs within 2:05 minutes of eclipse entry.</span>
+<span class="sd">    command occurs within 135 seconds of eclipse entry.</span>
 
 <span class="sd">    Connect batteries is an event type COMMAND_SW and TLMSID= EOESTECN</span>
 <span class="sd">    Eclipse entry is event type ORBPOINT with TYPE=PENTRY or TYPE=LSPENTRY</span>
@@ -845,7 +1000,9 @@
     <span class="n">state_keys</span> <span class="o">=</span> <span class="n">SPM_STATE_KEYS</span>
     <span class="n">default_value</span> <span class="o">=</span> <span class="kc">False</span>
 
-<div class="viewcode-block" id="SPMEclipseEnableTransition.set_transitions"><a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.SPMEclipseEnableTransition.set_transitions">[docs]</a>    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="SPMEclipseEnableTransition.set_transitions">
+<a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.SPMEclipseEnableTransition.set_transitions">[docs]</a>
+    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">set_transitions</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">transitions_dict</span><span class="p">,</span> <span class="n">cmds</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Set transitions for a Table of commands ``cmds``.</span>
@@ -871,6 +1028,7 @@
         <span class="k">for</span> <span class="n">cmd</span> <span class="ow">in</span> <span class="n">state_cmds</span><span class="p">:</span>
             <span class="n">transitions_dict</span><span class="p">[</span><span class="n">cmd</span><span class="p">[</span><span class="s2">&quot;date&quot;</span><span class="p">]][</span><span class="s2">&quot;sun_pos_mon&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">callback</span></div>
 
+
     <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">callback</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">date</span><span class="p">,</span> <span class="n">transitions</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">idx</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">state</span><span class="p">[</span><span class="s2">&quot;eclipse_enable_spm&quot;</span><span class="p">]:</span>
@@ -881,12 +1039,18 @@
             <span class="n">add_transition</span><span class="p">(</span><span class="n">transitions</span><span class="p">,</span> <span class="n">idx</span><span class="p">,</span> <span class="n">transition</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="EclipseEnableSPM"><a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.EclipseEnableSPM">[docs]</a><span class="k">class</span> <span class="nc">EclipseEnableSPM</span><span class="p">(</span><span class="n">BaseTransition</span><span class="p">):</span>
+
+<div class="viewcode-block" id="EclipseEnableSPM">
+<a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.EclipseEnableSPM">[docs]</a>
+<span class="k">class</span> <span class="nc">EclipseEnableSPM</span><span class="p">(</span><span class="n">BaseTransition</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Flag to indicate whether SPM will be enabled 11 minutes after eclipse exit.</span>
 
 <span class="sd">    This is evaluated at the time of eclipse entry and checks that the most recent</span>
-<span class="sd">    battery connect command (via the ``battery_connect`` state) was within 2:05 minutes</span>
+<span class="sd">    battery connect command (via the ``battery_connect`` state) was within 135 seconds</span>
 <span class="sd">    of eclipse entry.</span>
+
+<span class="sd">    See email thread &quot;Criteria for SPM auto-enable following eclipse&quot; around 2024-Feb-17</span>
+<span class="sd">    for more details on the 135 second threshold.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">command_attributes</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;ORBPOINT&quot;</span><span class="p">}</span>
@@ -894,7 +1058,11 @@
     <span class="n">state_keys</span> <span class="o">=</span> <span class="n">SPM_STATE_KEYS</span>
     <span class="n">default_value</span> <span class="o">=</span> <span class="kc">False</span>
 
-<div class="viewcode-block" id="EclipseEnableSPM.set_transitions"><a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.EclipseEnableSPM.set_transitions">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="n">BATTERY_CONNECT_MAX_DT</span> <span class="o">=</span> <span class="mi">135</span>  <span class="c1"># seconds</span>
+
+<div class="viewcode-block" id="EclipseEnableSPM.set_transitions">
+<a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.EclipseEnableSPM.set_transitions">[docs]</a>
+    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">set_transitions</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">transitions_dict</span><span class="p">,</span> <span class="n">cmds</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Set transitions for a Table of commands ``cmds``.</span>
@@ -920,21 +1088,31 @@
         <span class="k">for</span> <span class="n">cmd</span> <span class="ow">in</span> <span class="n">state_cmds</span><span class="p">:</span>
             <span class="n">transitions_dict</span><span class="p">[</span><span class="n">cmd</span><span class="p">[</span><span class="s2">&quot;date&quot;</span><span class="p">]][</span><span class="s2">&quot;eclipse_enable_spm&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">callback</span></div>
 
-<div class="viewcode-block" id="EclipseEnableSPM.callback"><a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.EclipseEnableSPM.callback">[docs]</a>    <span class="nd">@classmethod</span>
+
+<div class="viewcode-block" id="EclipseEnableSPM.callback">
+<a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.EclipseEnableSPM.callback">[docs]</a>
+    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">callback</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">date</span><span class="p">,</span> <span class="n">transitions</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">idx</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Set flag if SPM will be enabled 11 minutes after eclipse exit.</span>
 
-<span class="sd">        ``battery_connect_time`` is the time of the battery connect EOESTECN command,</span>
+<span class="sd">        ``battery_connect`` is the time of the battery connect EOESTECN command,</span>
 <span class="sd">        which must occur prior to this command which is eclipse entry.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">battery_connect_time</span> <span class="o">=</span> <span class="n">date2secs</span><span class="p">(</span><span class="n">state</span><span class="p">[</span><span class="s2">&quot;battery_connect&quot;</span><span class="p">])</span>
         <span class="n">eclipse_entry_time</span> <span class="o">=</span> <span class="n">date2secs</span><span class="p">(</span><span class="n">date</span><span class="p">)</span>
-        <span class="n">enable_spm</span> <span class="o">=</span> <span class="n">eclipse_entry_time</span> <span class="o">-</span> <span class="n">battery_connect_time</span> <span class="o">&lt;</span> <span class="mi">125</span>
+        <span class="c1"># By definition, the battery connect time is always less than the eclipse entry.</span>
+        <span class="n">enable_spm</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">eclipse_entry_time</span> <span class="o">-</span> <span class="n">battery_connect_time</span> <span class="o">&lt;</span> <span class="bp">cls</span><span class="o">.</span><span class="n">BATTERY_CONNECT_MAX_DT</span>
+        <span class="p">)</span>
         <span class="n">transition</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;date&quot;</span><span class="p">:</span> <span class="n">date</span><span class="p">,</span> <span class="s2">&quot;eclipse_enable_spm&quot;</span><span class="p">:</span> <span class="n">enable_spm</span><span class="p">}</span>
-        <span class="n">add_transition</span><span class="p">(</span><span class="n">transitions</span><span class="p">,</span> <span class="n">idx</span><span class="p">,</span> <span class="n">transition</span><span class="p">)</span></div></div>
+        <span class="n">add_transition</span><span class="p">(</span><span class="n">transitions</span><span class="p">,</span> <span class="n">idx</span><span class="p">,</span> <span class="n">transition</span><span class="p">)</span></div>
+</div>
 
 
-<div class="viewcode-block" id="BatteryConnect"><a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.BatteryConnect">[docs]</a><span class="k">class</span> <span class="nc">BatteryConnect</span><span class="p">(</span><span class="n">BaseTransition</span><span class="p">):</span>
+
+<div class="viewcode-block" id="BatteryConnect">
+<a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.BatteryConnect">[docs]</a>
+<span class="k">class</span> <span class="nc">BatteryConnect</span><span class="p">(</span><span class="n">BaseTransition</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Most recent battery connect time (type=COMMAND_SW and tlmsid=EOESTECN)&quot;&quot;&quot;</span>
 
     <span class="n">command_attributes</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;tlmsid&quot;</span><span class="p">:</span> <span class="s2">&quot;EOESTECN&quot;</span><span class="p">}</span>
@@ -942,7 +1120,9 @@
 
     <span class="n">default_value</span> <span class="o">=</span> <span class="s2">&quot;1999:001:00:00:00.000&quot;</span>
 
-<div class="viewcode-block" id="BatteryConnect.set_transitions"><a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.BatteryConnect.set_transitions">[docs]</a>    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="BatteryConnect.set_transitions">
+<a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.BatteryConnect.set_transitions">[docs]</a>
+    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">set_transitions</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">transitions</span><span class="p">,</span> <span class="n">cmds</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Set transitions for a Table of commands ``cmds``.</span>
@@ -965,10 +1145,14 @@
         <span class="n">state_cmds</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">get_state_changing_commands</span><span class="p">(</span><span class="n">cmds</span><span class="p">)</span>
 
         <span class="k">for</span> <span class="n">cmd</span> <span class="ow">in</span> <span class="n">state_cmds</span><span class="p">:</span>
-            <span class="n">transitions</span><span class="p">[</span><span class="n">cmd</span><span class="p">[</span><span class="s2">&quot;date&quot;</span><span class="p">]][</span><span class="s2">&quot;battery_connect&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cmd</span><span class="p">[</span><span class="s2">&quot;date&quot;</span><span class="p">]</span></div></div>
+            <span class="n">transitions</span><span class="p">[</span><span class="n">cmd</span><span class="p">[</span><span class="s2">&quot;date&quot;</span><span class="p">]][</span><span class="s2">&quot;battery_connect&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cmd</span><span class="p">[</span><span class="s2">&quot;date&quot;</span><span class="p">]</span></div>
+</div>
 
 
-<div class="viewcode-block" id="SCS84EnableTransition"><a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.SCS84EnableTransition">[docs]</a><span class="k">class</span> <span class="nc">SCS84EnableTransition</span><span class="p">(</span><span class="n">FixedTransition</span><span class="p">):</span>
+
+<div class="viewcode-block" id="SCS84EnableTransition">
+<a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.SCS84EnableTransition">[docs]</a>
+<span class="k">class</span> <span class="nc">SCS84EnableTransition</span><span class="p">(</span><span class="n">FixedTransition</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;SCS-84 enable&quot;&quot;&quot;</span>
 
     <span class="n">command_attributes</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;tlmsid&quot;</span><span class="p">:</span> <span class="s2">&quot;COENASX&quot;</span><span class="p">}</span>
@@ -979,7 +1163,10 @@
     <span class="n">default_value</span> <span class="o">=</span> <span class="s2">&quot;DISA&quot;</span></div>
 
 
-<div class="viewcode-block" id="SCS84DisableTransition"><a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.SCS84DisableTransition">[docs]</a><span class="k">class</span> <span class="nc">SCS84DisableTransition</span><span class="p">(</span><span class="n">FixedTransition</span><span class="p">):</span>
+
+<div class="viewcode-block" id="SCS84DisableTransition">
+<a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.SCS84DisableTransition">[docs]</a>
+<span class="k">class</span> <span class="nc">SCS84DisableTransition</span><span class="p">(</span><span class="n">FixedTransition</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;SCS-84 disable&quot;&quot;&quot;</span>
 
     <span class="n">command_attributes</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;tlmsid&quot;</span><span class="p">:</span> <span class="s2">&quot;CODISASX&quot;</span><span class="p">}</span>
@@ -989,7 +1176,10 @@
     <span class="n">transition_val</span> <span class="o">=</span> <span class="s2">&quot;DISA&quot;</span></div>
 
 
-<div class="viewcode-block" id="SCS98EnableTransition"><a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.SCS98EnableTransition">[docs]</a><span class="k">class</span> <span class="nc">SCS98EnableTransition</span><span class="p">(</span><span class="n">FixedTransition</span><span class="p">):</span>
+
+<div class="viewcode-block" id="SCS98EnableTransition">
+<a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.SCS98EnableTransition">[docs]</a>
+<span class="k">class</span> <span class="nc">SCS98EnableTransition</span><span class="p">(</span><span class="n">FixedTransition</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;SCS-98 enable&quot;&quot;&quot;</span>
 
     <span class="n">command_attributes</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;tlmsid&quot;</span><span class="p">:</span> <span class="s2">&quot;COENASX&quot;</span><span class="p">}</span>
@@ -999,7 +1189,10 @@
     <span class="n">transition_val</span> <span class="o">=</span> <span class="s2">&quot;ENAB&quot;</span></div>
 
 
-<div class="viewcode-block" id="SCS98DisableTransition"><a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.SCS98DisableTransition">[docs]</a><span class="k">class</span> <span class="nc">SCS98DisableTransition</span><span class="p">(</span><span class="n">FixedTransition</span><span class="p">):</span>
+
+<div class="viewcode-block" id="SCS98DisableTransition">
+<a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.SCS98DisableTransition">[docs]</a>
+<span class="k">class</span> <span class="nc">SCS98DisableTransition</span><span class="p">(</span><span class="n">FixedTransition</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;SCS-98 disable&quot;&quot;&quot;</span>
 
     <span class="n">command_attributes</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;tlmsid&quot;</span><span class="p">:</span> <span class="s2">&quot;CODISASX&quot;</span><span class="p">}</span>
@@ -1009,7 +1202,10 @@
     <span class="n">transition_val</span> <span class="o">=</span> <span class="s2">&quot;DISA&quot;</span></div>
 
 
-<div class="viewcode-block" id="RadmonEnableTransition"><a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.RadmonEnableTransition">[docs]</a><span class="k">class</span> <span class="nc">RadmonEnableTransition</span><span class="p">(</span><span class="n">FixedTransition</span><span class="p">):</span>
+
+<div class="viewcode-block" id="RadmonEnableTransition">
+<a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.RadmonEnableTransition">[docs]</a>
+<span class="k">class</span> <span class="nc">RadmonEnableTransition</span><span class="p">(</span><span class="n">FixedTransition</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;RADMON enable&quot;&quot;&quot;</span>
 
     <span class="n">command_attributes</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;tlmsid&quot;</span><span class="p">:</span> <span class="s2">&quot;OORMPEN&quot;</span><span class="p">}</span>
@@ -1018,7 +1214,10 @@
     <span class="n">transition_val</span> <span class="o">=</span> <span class="s2">&quot;ENAB&quot;</span></div>
 
 
-<div class="viewcode-block" id="RadmonDisableTransition"><a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.RadmonDisableTransition">[docs]</a><span class="k">class</span> <span class="nc">RadmonDisableTransition</span><span class="p">(</span><span class="n">FixedTransition</span><span class="p">):</span>
+
+<div class="viewcode-block" id="RadmonDisableTransition">
+<a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.RadmonDisableTransition">[docs]</a>
+<span class="k">class</span> <span class="nc">RadmonDisableTransition</span><span class="p">(</span><span class="n">FixedTransition</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;RADMON disable&quot;&quot;&quot;</span>
 
     <span class="n">command_attributes</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;tlmsid&quot;</span><span class="p">:</span> <span class="s2">&quot;OORMPDS&quot;</span><span class="p">}</span>
@@ -1027,7 +1226,10 @@
     <span class="n">transition_val</span> <span class="o">=</span> <span class="s2">&quot;DISA&quot;</span></div>
 
 
-<div class="viewcode-block" id="OrbitPointTransition"><a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.OrbitPointTransition">[docs]</a><span class="k">class</span> <span class="nc">OrbitPointTransition</span><span class="p">(</span><span class="n">ParamTransition</span><span class="p">):</span>
+
+<div class="viewcode-block" id="OrbitPointTransition">
+<a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.OrbitPointTransition">[docs]</a>
+<span class="k">class</span> <span class="nc">OrbitPointTransition</span><span class="p">(</span><span class="n">ParamTransition</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Orbit point state based on backstop ephemeris entries&quot;&quot;&quot;</span>
 
     <span class="n">command_attributes</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;ORBPOINT&quot;</span><span class="p">}</span>
@@ -1036,7 +1238,10 @@
     <span class="n">cmd_param_key</span> <span class="o">=</span> <span class="s2">&quot;event_type&quot;</span></div>
 
 
-<div class="viewcode-block" id="EphemerisTransition"><a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.EphemerisTransition">[docs]</a><span class="k">class</span> <span class="nc">EphemerisTransition</span><span class="p">(</span><span class="n">ParamTransition</span><span class="p">):</span>
+
+<div class="viewcode-block" id="EphemerisTransition">
+<a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.EphemerisTransition">[docs]</a>
+<span class="k">class</span> <span class="nc">EphemerisTransition</span><span class="p">(</span><span class="n">ParamTransition</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;On-board ephemeris update values&quot;&quot;&quot;</span>
 
     <span class="n">command_attributes</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;tlmsid&quot;</span><span class="p">:</span> <span class="s2">&quot;AOEPHUPS&quot;</span><span class="p">}</span>
@@ -1061,7 +1266,10 @@
     <span class="n">cmd_param_key</span> <span class="o">=</span> <span class="n">state_keys</span></div>
 
 
-<div class="viewcode-block" id="EphemerisUpdateTransition"><a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.EphemerisUpdateTransition">[docs]</a><span class="k">class</span> <span class="nc">EphemerisUpdateTransition</span><span class="p">(</span><span class="n">BaseTransition</span><span class="p">):</span>
+
+<div class="viewcode-block" id="EphemerisUpdateTransition">
+<a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.EphemerisUpdateTransition">[docs]</a>
+<span class="k">class</span> <span class="nc">EphemerisUpdateTransition</span><span class="p">(</span><span class="n">BaseTransition</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    On-board ephemeris update date.</span>
 
@@ -1071,7 +1279,9 @@
     <span class="n">command_attributes</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;tlmsid&quot;</span><span class="p">:</span> <span class="s2">&quot;AOEPHUPS&quot;</span><span class="p">}</span>
     <span class="n">state_keys</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;ephem_update&quot;</span><span class="p">]</span>
 
-<div class="viewcode-block" id="EphemerisUpdateTransition.set_transitions"><a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.EphemerisUpdateTransition.set_transitions">[docs]</a>    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="EphemerisUpdateTransition.set_transitions">
+<a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.EphemerisUpdateTransition.set_transitions">[docs]</a>
+    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">set_transitions</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">transitions_dict</span><span class="p">,</span> <span class="n">cmds</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Set transitions for a Table of commands ``cmds``.</span>
@@ -1095,13 +1305,17 @@
 
         <span class="k">for</span> <span class="n">cmd</span> <span class="ow">in</span> <span class="n">state_cmds</span><span class="p">:</span>
             <span class="n">date</span> <span class="o">=</span> <span class="n">cmd</span><span class="p">[</span><span class="s2">&quot;date&quot;</span><span class="p">]</span>
-            <span class="n">transitions_dict</span><span class="p">[</span><span class="n">date</span><span class="p">][</span><span class="s2">&quot;ephem_update&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">date</span><span class="p">[:</span><span class="mi">8</span><span class="p">]</span></div></div>
+            <span class="n">transitions_dict</span><span class="p">[</span><span class="n">date</span><span class="p">][</span><span class="s2">&quot;ephem_update&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">date</span><span class="p">[:</span><span class="mi">8</span><span class="p">]</span></div>
+</div>
+
 
 
 <span class="c1">###################################################################</span>
 
 
-<div class="viewcode-block" id="SunVectorTransition"><a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.SunVectorTransition">[docs]</a><span class="k">class</span> <span class="nc">SunVectorTransition</span><span class="p">(</span><span class="n">BaseTransition</span><span class="p">):</span>
+<div class="viewcode-block" id="SunVectorTransition">
+<a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.SunVectorTransition">[docs]</a>
+<span class="k">class</span> <span class="nc">SunVectorTransition</span><span class="p">(</span><span class="n">BaseTransition</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Add transitions between start/stop every 10 ksec.</span>
 
@@ -1112,7 +1326,9 @@
 
     <span class="n">state_keys</span> <span class="o">=</span> <span class="n">PCAD_STATE_KEYS</span>
 
-<div class="viewcode-block" id="SunVectorTransition.set_transitions"><a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.SunVectorTransition.set_transitions">[docs]</a>    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="SunVectorTransition.set_transitions">
+<a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.SunVectorTransition.set_transitions">[docs]</a>
+    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">set_transitions</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">transitions_dict</span><span class="p">,</span> <span class="n">cmds</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Set transitions for a Table of commands ``cmds``.</span>
@@ -1146,7 +1362,10 @@
         <span class="k">for</span> <span class="n">date</span> <span class="ow">in</span> <span class="n">dates</span><span class="p">:</span>
             <span class="n">transitions_dict</span><span class="p">[</span><span class="n">date</span><span class="p">][</span><span class="s2">&quot;update_sun_vector&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">update_sun_vector_state</span></div>
 
-<div class="viewcode-block" id="SunVectorTransition.update_sun_vector_state"><a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.SunVectorTransition.update_sun_vector_state">[docs]</a>    <span class="nd">@classmethod</span>
+
+<div class="viewcode-block" id="SunVectorTransition.update_sun_vector_state">
+<a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.SunVectorTransition.update_sun_vector_state">[docs]</a>
+    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">update_sun_vector_state</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">date</span><span class="p">,</span> <span class="n">transitions</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">idx</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Transition callback method for ``pitch`` / ``off_nom_roll`` states.</span>
@@ -1172,10 +1391,14 @@
             <span class="n">state</span><span class="p">[</span><span class="s2">&quot;pitch&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ska_sun</span><span class="o">.</span><span class="n">pitch</span><span class="p">(</span><span class="n">ra</span><span class="p">,</span> <span class="n">dec</span><span class="p">,</span> <span class="n">sun_ra</span><span class="o">=</span><span class="n">sun_ra</span><span class="p">,</span> <span class="n">sun_dec</span><span class="o">=</span><span class="n">sun_dec</span><span class="p">)</span>
             <span class="n">state</span><span class="p">[</span><span class="s2">&quot;off_nom_roll&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ska_sun</span><span class="o">.</span><span class="n">off_nominal_roll</span><span class="p">(</span>
                 <span class="p">[</span><span class="n">ra</span><span class="p">,</span> <span class="n">dec</span><span class="p">,</span> <span class="n">roll</span><span class="p">],</span> <span class="n">time</span><span class="p">,</span> <span class="n">sun_ra</span><span class="o">=</span><span class="n">sun_ra</span><span class="p">,</span> <span class="n">sun_dec</span><span class="o">=</span><span class="n">sun_dec</span>
-            <span class="p">)</span></div></div>
+            <span class="p">)</span></div>
+</div>
 
 
-<div class="viewcode-block" id="DitherEnableTransition"><a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.DitherEnableTransition">[docs]</a><span class="k">class</span> <span class="nc">DitherEnableTransition</span><span class="p">(</span><span class="n">FixedTransition</span><span class="p">):</span>
+
+<div class="viewcode-block" id="DitherEnableTransition">
+<a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.DitherEnableTransition">[docs]</a>
+<span class="k">class</span> <span class="nc">DitherEnableTransition</span><span class="p">(</span><span class="n">FixedTransition</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Dither enable&quot;&quot;&quot;</span>
 
     <span class="n">command_attributes</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;tlmsid&quot;</span><span class="p">:</span> <span class="s2">&quot;AOENDITH&quot;</span><span class="p">}</span>
@@ -1184,7 +1407,10 @@
     <span class="n">transition_val</span> <span class="o">=</span> <span class="s2">&quot;ENAB&quot;</span></div>
 
 
-<div class="viewcode-block" id="DitherDisableTransition"><a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.DitherDisableTransition">[docs]</a><span class="k">class</span> <span class="nc">DitherDisableTransition</span><span class="p">(</span><span class="n">FixedTransition</span><span class="p">):</span>
+
+<div class="viewcode-block" id="DitherDisableTransition">
+<a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.DitherDisableTransition">[docs]</a>
+<span class="k">class</span> <span class="nc">DitherDisableTransition</span><span class="p">(</span><span class="n">FixedTransition</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Dither disable&quot;&quot;&quot;</span>
 
     <span class="n">command_attributes</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;tlmsid&quot;</span><span class="p">:</span> <span class="s2">&quot;AODSDITH&quot;</span><span class="p">}</span>
@@ -1193,7 +1419,10 @@
     <span class="n">transition_val</span> <span class="o">=</span> <span class="s2">&quot;DISA&quot;</span></div>
 
 
-<div class="viewcode-block" id="DitherParamsTransition"><a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.DitherParamsTransition">[docs]</a><span class="k">class</span> <span class="nc">DitherParamsTransition</span><span class="p">(</span><span class="n">BaseTransition</span><span class="p">):</span>
+
+<div class="viewcode-block" id="DitherParamsTransition">
+<a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.DitherParamsTransition">[docs]</a>
+<span class="k">class</span> <span class="nc">DitherParamsTransition</span><span class="p">(</span><span class="n">BaseTransition</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Dither parameters&quot;&quot;&quot;</span>
 
     <span class="n">command_attributes</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;tlmsid&quot;</span><span class="p">:</span> <span class="s2">&quot;AODITPAR&quot;</span><span class="p">}</span>
@@ -1206,7 +1435,9 @@
         <span class="s2">&quot;dither_period_yaw&quot;</span><span class="p">,</span>
     <span class="p">]</span>
 
-<div class="viewcode-block" id="DitherParamsTransition.set_transitions"><a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.DitherParamsTransition.set_transitions">[docs]</a>    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="DitherParamsTransition.set_transitions">
+<a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.DitherParamsTransition.set_transitions">[docs]</a>
+    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">set_transitions</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">transitions_dict</span><span class="p">,</span> <span class="n">cmds</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Set transitions for a Table of commands ``cmds``.</span>
@@ -1237,10 +1468,14 @@
                 <span class="s2">&quot;dither_period_pitch&quot;</span><span class="p">:</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="n">cmd</span><span class="p">[</span><span class="s2">&quot;ratep&quot;</span><span class="p">],</span>
                 <span class="s2">&quot;dither_period_yaw&quot;</span><span class="p">:</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="n">cmd</span><span class="p">[</span><span class="s2">&quot;ratey&quot;</span><span class="p">],</span>
             <span class="p">}</span>
-            <span class="n">transitions_dict</span><span class="p">[</span><span class="n">cmd</span><span class="p">[</span><span class="s2">&quot;date&quot;</span><span class="p">]]</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">dither</span><span class="p">)</span></div></div>
+            <span class="n">transitions_dict</span><span class="p">[</span><span class="n">cmd</span><span class="p">[</span><span class="s2">&quot;date&quot;</span><span class="p">]]</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">dither</span><span class="p">)</span></div>
+</div>
 
 
-<div class="viewcode-block" id="NMM_Transition"><a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.NMM_Transition">[docs]</a><span class="k">class</span> <span class="nc">NMM_Transition</span><span class="p">(</span><span class="n">FixedTransition</span><span class="p">):</span>
+
+<div class="viewcode-block" id="NMM_Transition">
+<a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.NMM_Transition">[docs]</a>
+<span class="k">class</span> <span class="nc">NMM_Transition</span><span class="p">(</span><span class="n">FixedTransition</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Transition to Normal Maneuver Mode&quot;&quot;&quot;</span>
 
     <span class="n">command_attributes</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;tlmsid&quot;</span><span class="p">:</span> <span class="s2">&quot;AONMMODE&quot;</span><span class="p">}</span>
@@ -1249,7 +1484,10 @@
     <span class="n">transition_val</span> <span class="o">=</span> <span class="s2">&quot;NMAN&quot;</span></div>
 
 
-<div class="viewcode-block" id="NPM_Transition"><a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.NPM_Transition">[docs]</a><span class="k">class</span> <span class="nc">NPM_Transition</span><span class="p">(</span><span class="n">FixedTransition</span><span class="p">):</span>
+
+<div class="viewcode-block" id="NPM_Transition">
+<a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.NPM_Transition">[docs]</a>
+<span class="k">class</span> <span class="nc">NPM_Transition</span><span class="p">(</span><span class="n">FixedTransition</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Transition to Normal Point Mode&quot;&quot;&quot;</span>
 
     <span class="n">command_attributes</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;tlmsid&quot;</span><span class="p">:</span> <span class="s2">&quot;AONPMODE&quot;</span><span class="p">}</span>
@@ -1258,7 +1496,10 @@
     <span class="n">transition_val</span> <span class="o">=</span> <span class="s2">&quot;NPNT&quot;</span></div>
 
 
-<div class="viewcode-block" id="AutoNPMEnableTransition"><a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.AutoNPMEnableTransition">[docs]</a><span class="k">class</span> <span class="nc">AutoNPMEnableTransition</span><span class="p">(</span><span class="n">FixedTransition</span><span class="p">):</span>
+
+<div class="viewcode-block" id="AutoNPMEnableTransition">
+<a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.AutoNPMEnableTransition">[docs]</a>
+<span class="k">class</span> <span class="nc">AutoNPMEnableTransition</span><span class="p">(</span><span class="n">FixedTransition</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Enable automatic transition to Normal Point Mode&quot;&quot;&quot;</span>
 
     <span class="n">command_attributes</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;tlmsid&quot;</span><span class="p">:</span> <span class="s2">&quot;AONM2NPE&quot;</span><span class="p">}</span>
@@ -1267,7 +1508,10 @@
     <span class="n">transition_val</span> <span class="o">=</span> <span class="s2">&quot;ENAB&quot;</span></div>
 
 
-<div class="viewcode-block" id="AutoNPMDisableTransition"><a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.AutoNPMDisableTransition">[docs]</a><span class="k">class</span> <span class="nc">AutoNPMDisableTransition</span><span class="p">(</span><span class="n">FixedTransition</span><span class="p">):</span>
+
+<div class="viewcode-block" id="AutoNPMDisableTransition">
+<a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.AutoNPMDisableTransition">[docs]</a>
+<span class="k">class</span> <span class="nc">AutoNPMDisableTransition</span><span class="p">(</span><span class="n">FixedTransition</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Disable automatic transition to Normal Point Mode&quot;&quot;&quot;</span>
 
     <span class="n">command_attributes</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;tlmsid&quot;</span><span class="p">:</span> <span class="s2">&quot;AONM2NPD&quot;</span><span class="p">}</span>
@@ -1276,13 +1520,18 @@
     <span class="n">transition_val</span> <span class="o">=</span> <span class="s2">&quot;DISA&quot;</span></div>
 
 
-<div class="viewcode-block" id="TargQuatTransition"><a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.TargQuatTransition">[docs]</a><span class="k">class</span> <span class="nc">TargQuatTransition</span><span class="p">(</span><span class="n">BaseTransition</span><span class="p">):</span>
+
+<div class="viewcode-block" id="TargQuatTransition">
+<a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.TargQuatTransition">[docs]</a>
+<span class="k">class</span> <span class="nc">TargQuatTransition</span><span class="p">(</span><span class="n">BaseTransition</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Commanded target quaternion&quot;&quot;&quot;</span>
 
     <span class="n">command_attributes</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;MP_TARGQUAT&quot;</span><span class="p">}</span>
     <span class="n">state_keys</span> <span class="o">=</span> <span class="n">PCAD_STATE_KEYS</span>
 
-<div class="viewcode-block" id="TargQuatTransition.set_transitions"><a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.TargQuatTransition.set_transitions">[docs]</a>    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="TargQuatTransition.set_transitions">
+<a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.TargQuatTransition.set_transitions">[docs]</a>
+    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">set_transitions</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">transitions</span><span class="p">,</span> <span class="n">cmds</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Set transitions for a Table of commands ``cmds``.</span>
@@ -1307,10 +1556,14 @@
         <span class="k">for</span> <span class="n">cmd</span> <span class="ow">in</span> <span class="n">state_cmds</span><span class="p">:</span>
             <span class="n">transition</span> <span class="o">=</span> <span class="n">transitions</span><span class="p">[</span><span class="n">cmd</span><span class="p">[</span><span class="s2">&quot;date&quot;</span><span class="p">]]</span>
             <span class="k">for</span> <span class="n">qc</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;q1&quot;</span><span class="p">,</span> <span class="s2">&quot;q2&quot;</span><span class="p">,</span> <span class="s2">&quot;q3&quot;</span><span class="p">,</span> <span class="s2">&quot;q4&quot;</span><span class="p">):</span>
-                <span class="n">transition</span><span class="p">[</span><span class="s2">&quot;targ_&quot;</span> <span class="o">+</span> <span class="n">qc</span><span class="p">]</span> <span class="o">=</span> <span class="n">cmd</span><span class="p">[</span><span class="n">qc</span><span class="p">]</span></div></div>
+                <span class="n">transition</span><span class="p">[</span><span class="s2">&quot;targ_&quot;</span> <span class="o">+</span> <span class="n">qc</span><span class="p">]</span> <span class="o">=</span> <span class="n">cmd</span><span class="p">[</span><span class="n">qc</span><span class="p">]</span></div>
+</div>
 
 
-<div class="viewcode-block" id="ManeuverTransition"><a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.ManeuverTransition">[docs]</a><span class="k">class</span> <span class="nc">ManeuverTransition</span><span class="p">(</span><span class="n">BaseTransition</span><span class="p">):</span>
+
+<div class="viewcode-block" id="ManeuverTransition">
+<a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.ManeuverTransition">[docs]</a>
+<span class="k">class</span> <span class="nc">ManeuverTransition</span><span class="p">(</span><span class="n">BaseTransition</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Execute maneuver.</span>
 
@@ -1330,7 +1583,9 @@
         <span class="k">for</span> <span class="n">cmd</span> <span class="ow">in</span> <span class="n">state_cmds</span><span class="p">:</span>
             <span class="n">transitions</span><span class="p">[</span><span class="n">cmd</span><span class="p">[</span><span class="s2">&quot;date&quot;</span><span class="p">]][</span><span class="s2">&quot;maneuver_transition&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">callback</span>
 
-<div class="viewcode-block" id="ManeuverTransition.callback"><a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.ManeuverTransition.callback">[docs]</a>    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="ManeuverTransition.callback">
+<a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.ManeuverTransition.callback">[docs]</a>
+    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">callback</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">date</span><span class="p">,</span> <span class="n">transitions</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">idx</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Transition function callback to generate downstream transitions.</span>
@@ -1351,7 +1606,10 @@
             <span class="n">transition</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;date&quot;</span><span class="p">:</span> <span class="n">end_manvr_date</span><span class="p">,</span> <span class="s2">&quot;pcad_mode&quot;</span><span class="p">:</span> <span class="s2">&quot;NPNT&quot;</span><span class="p">}</span>
             <span class="n">add_transition</span><span class="p">(</span><span class="n">transitions</span><span class="p">,</span> <span class="n">idx</span><span class="p">,</span> <span class="n">transition</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="ManeuverTransition.add_manvr_transitions"><a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.ManeuverTransition.add_manvr_transitions">[docs]</a>    <span class="nd">@classmethod</span>
+
+<div class="viewcode-block" id="ManeuverTransition.add_manvr_transitions">
+<a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.ManeuverTransition.add_manvr_transitions">[docs]</a>
+    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">add_manvr_transitions</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">date</span><span class="p">,</span> <span class="n">transitions</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">idx</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        This does the main work of adding transitions for a maneuver.</span>
@@ -1414,10 +1672,14 @@
 
             <span class="n">add_transition</span><span class="p">(</span><span class="n">transitions</span><span class="p">,</span> <span class="n">idx</span><span class="p">,</span> <span class="n">transition</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">date</span>  <span class="c1"># Date of end of maneuver.</span></div></div>
+        <span class="k">return</span> <span class="n">date</span>  <span class="c1"># Date of end of maneuver.</span></div>
+</div>
 
 
-<div class="viewcode-block" id="NormalSunTransition"><a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.NormalSunTransition">[docs]</a><span class="k">class</span> <span class="nc">NormalSunTransition</span><span class="p">(</span><span class="n">ManeuverTransition</span><span class="p">):</span>
+
+<div class="viewcode-block" id="NormalSunTransition">
+<a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.NormalSunTransition">[docs]</a>
+<span class="k">class</span> <span class="nc">NormalSunTransition</span><span class="p">(</span><span class="n">ManeuverTransition</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Same as ``ManeuverTransition`` except perform maneuver to NSM.</span>
 
@@ -1428,7 +1690,9 @@
     <span class="n">command_attributes</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;tlmsid&quot;</span><span class="p">:</span> <span class="s2">&quot;AONSMSAF&quot;</span><span class="p">}</span>
     <span class="n">state_keys</span> <span class="o">=</span> <span class="n">PCAD_STATE_KEYS</span>
 
-<div class="viewcode-block" id="NormalSunTransition.callback"><a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.NormalSunTransition.callback">[docs]</a>    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="NormalSunTransition.callback">
+<a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.NormalSunTransition.callback">[docs]</a>
+    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">callback</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">date</span><span class="p">,</span> <span class="n">transitions</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">idx</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        This is a transition function callback.</span>
@@ -1454,13 +1718,116 @@
             <span class="n">state</span><span class="p">[</span><span class="s2">&quot;targ_&quot;</span> <span class="o">+</span> <span class="n">qc</span><span class="p">]</span> <span class="o">=</span> <span class="n">targ_q</span>
 
         <span class="c1"># Do the maneuver</span>
-        <span class="bp">cls</span><span class="o">.</span><span class="n">add_manvr_transitions</span><span class="p">(</span><span class="n">date</span><span class="p">,</span> <span class="n">transitions</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">idx</span><span class="p">)</span></div></div>
+        <span class="bp">cls</span><span class="o">.</span><span class="n">add_manvr_transitions</span><span class="p">(</span><span class="n">date</span><span class="p">,</span> <span class="n">transitions</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">idx</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="ManeuverSunPitchTransition">
+<a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.ManeuverSunPitchTransition">[docs]</a>
+<span class="k">class</span> <span class="nc">ManeuverSunPitchTransition</span><span class="p">(</span><span class="n">ManeuverTransition</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Like ``ManeuverTransition`` except perform a pure-pitch maneuver from attitude.</span>
+
+<span class="sd">    This does not change the PCAD mode.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">command_attributes</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;LOAD_EVENT&quot;</span><span class="p">,</span> <span class="s2">&quot;tlmsid&quot;</span><span class="p">:</span> <span class="s2">&quot;SUN_PITCH&quot;</span><span class="p">}</span>
+    <span class="n">state_keys</span> <span class="o">=</span> <span class="n">PCAD_STATE_KEYS</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">set_transitions</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">transitions</span><span class="p">,</span> <span class="n">cmds</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">):</span>
+        <span class="n">state_cmds</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">get_state_changing_commands</span><span class="p">(</span><span class="n">cmds</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">cmd</span> <span class="ow">in</span> <span class="n">state_cmds</span><span class="p">:</span>
+            <span class="n">transitions</span><span class="p">[</span><span class="n">cmd</span><span class="p">[</span><span class="s2">&quot;date&quot;</span><span class="p">]][</span><span class="s2">&quot;maneuver_transition&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span>
+                <span class="bp">cls</span><span class="o">.</span><span class="n">callback</span><span class="p">,</span> <span class="n">cmd</span><span class="p">[</span><span class="s2">&quot;params&quot;</span><span class="p">][</span><span class="s2">&quot;pitch&quot;</span><span class="p">]</span>
+            <span class="p">)</span>
+
+<div class="viewcode-block" id="ManeuverSunPitchTransition.callback">
+<a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.ManeuverSunPitchTransition.callback">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">callback</span><span class="p">(</span><span class="n">pitch</span><span class="p">,</span> <span class="n">date</span><span class="p">,</span> <span class="n">transitions</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">idx</span><span class="p">):</span>
+        <span class="c1"># Setup for maneuver to sun-pointed attitude from current att</span>
+        <span class="n">curr_att</span> <span class="o">=</span> <span class="p">[</span><span class="n">state</span><span class="p">[</span><span class="n">qc</span><span class="p">]</span> <span class="k">for</span> <span class="n">qc</span> <span class="ow">in</span> <span class="n">QUAT_COMPS</span><span class="p">]</span>
+
+        <span class="c1"># If current attitude is not defined then just drop the NSM maneuver on</span>
+        <span class="c1"># the floor. The state will start getting defined when the first normal</span>
+        <span class="c1"># maneuver happens.</span>
+        <span class="k">if</span> <span class="kc">None</span> <span class="ow">in</span> <span class="n">curr_att</span><span class="p">:</span>
+            <span class="k">return</span>
+
+        <span class="n">curr_att</span> <span class="o">=</span> <span class="n">Quat</span><span class="p">(</span><span class="n">curr_att</span><span class="p">)</span>
+        <span class="n">sun_ra</span><span class="p">,</span> <span class="n">sun_dec</span> <span class="o">=</span> <span class="n">ska_sun</span><span class="o">.</span><span class="n">position</span><span class="p">(</span><span class="n">date</span><span class="p">)</span>
+        <span class="n">curr_pitch</span> <span class="o">=</span> <span class="n">ska_sun</span><span class="o">.</span><span class="n">pitch</span><span class="p">(</span>
+            <span class="n">curr_att</span><span class="o">.</span><span class="n">ra</span><span class="p">,</span> <span class="n">curr_att</span><span class="o">.</span><span class="n">dec</span><span class="p">,</span> <span class="n">sun_ra</span><span class="o">=</span><span class="n">sun_ra</span><span class="p">,</span> <span class="n">sun_dec</span><span class="o">=</span><span class="n">sun_dec</span>
+        <span class="p">)</span>
+        <span class="n">targ_att</span> <span class="o">=</span> <span class="n">ska_sun</span><span class="o">.</span><span class="n">apply_sun_pitch_yaw</span><span class="p">(</span>
+            <span class="n">curr_att</span><span class="p">,</span> <span class="n">pitch</span><span class="o">=</span><span class="n">pitch</span> <span class="o">-</span> <span class="n">curr_pitch</span><span class="p">,</span> <span class="n">yaw</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">sun_ra</span><span class="o">=</span><span class="n">sun_ra</span><span class="p">,</span> <span class="n">sun_dec</span><span class="o">=</span><span class="n">sun_dec</span>
+        <span class="p">)</span>
+        <span class="k">for</span> <span class="n">qc</span><span class="p">,</span> <span class="n">targ_q</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">QUAT_COMPS</span><span class="p">,</span> <span class="n">targ_att</span><span class="o">.</span><span class="n">q</span><span class="p">):</span>
+            <span class="n">state</span><span class="p">[</span><span class="s2">&quot;targ_&quot;</span> <span class="o">+</span> <span class="n">qc</span><span class="p">]</span> <span class="o">=</span> <span class="n">targ_q</span>
+
+        <span class="c1"># Do the maneuver</span>
+        <span class="n">ManeuverTransition</span><span class="o">.</span><span class="n">add_manvr_transitions</span><span class="p">(</span><span class="n">date</span><span class="p">,</span> <span class="n">transitions</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">idx</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="ManeuverSunRaslTransition">
+<a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.ManeuverSunRaslTransition">[docs]</a>
+<span class="k">class</span> <span class="nc">ManeuverSunRaslTransition</span><span class="p">(</span><span class="n">ManeuverTransition</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Like ``ManeuverTransition`` except roll about the sun line.</span>
+
+<span class="sd">    This does not change the PCAD mode.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">command_attributes</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;LOAD_EVENT&quot;</span><span class="p">,</span> <span class="s2">&quot;tlmsid&quot;</span><span class="p">:</span> <span class="s2">&quot;SUN_RASL&quot;</span><span class="p">}</span>
+    <span class="n">state_keys</span> <span class="o">=</span> <span class="n">PCAD_STATE_KEYS</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">set_transitions</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">transitions</span><span class="p">,</span> <span class="n">cmds</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">):</span>
+        <span class="n">state_cmds</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">get_state_changing_commands</span><span class="p">(</span><span class="n">cmds</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">cmd</span> <span class="ow">in</span> <span class="n">state_cmds</span><span class="p">:</span>
+            <span class="n">transitions</span><span class="p">[</span><span class="n">cmd</span><span class="p">[</span><span class="s2">&quot;date&quot;</span><span class="p">]][</span><span class="s2">&quot;maneuver_transition&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span>
+                <span class="bp">cls</span><span class="o">.</span><span class="n">callback</span><span class="p">,</span> <span class="n">cmd</span><span class="p">[</span><span class="s2">&quot;params&quot;</span><span class="p">][</span><span class="s2">&quot;rasl&quot;</span><span class="p">]</span>
+            <span class="p">)</span>
+
+<div class="viewcode-block" id="ManeuverSunRaslTransition.callback">
+<a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.ManeuverSunRaslTransition.callback">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">callback</span><span class="p">(</span><span class="n">rasl</span><span class="p">,</span> <span class="n">date</span><span class="p">,</span> <span class="n">transitions</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">idx</span><span class="p">):</span>
+        <span class="c1"># Setup for maneuver to sun-pointed attitude from current att</span>
+        <span class="n">curr_att</span> <span class="o">=</span> <span class="p">[</span><span class="n">state</span><span class="p">[</span><span class="n">qc</span><span class="p">]</span> <span class="k">for</span> <span class="n">qc</span> <span class="ow">in</span> <span class="n">QUAT_COMPS</span><span class="p">]</span>
+
+        <span class="c1"># If current attitude is not defined then just drop the NSM maneuver on</span>
+        <span class="c1"># the floor. The state will start getting defined when the first normal</span>
+        <span class="c1"># maneuver happens.</span>
+        <span class="k">if</span> <span class="kc">None</span> <span class="ow">in</span> <span class="n">curr_att</span><span class="p">:</span>
+            <span class="k">return</span>
+
+        <span class="n">curr_att</span> <span class="o">=</span> <span class="n">Quat</span><span class="p">(</span><span class="n">curr_att</span><span class="p">)</span>
+        <span class="n">sun_ra</span><span class="p">,</span> <span class="n">sun_dec</span> <span class="o">=</span> <span class="n">ska_sun</span><span class="o">.</span><span class="n">position</span><span class="p">(</span><span class="n">date</span><span class="p">)</span>
+        <span class="n">targ_att</span> <span class="o">=</span> <span class="n">ska_sun</span><span class="o">.</span><span class="n">apply_sun_pitch_yaw</span><span class="p">(</span>
+            <span class="n">curr_att</span><span class="p">,</span> <span class="n">yaw</span><span class="o">=</span><span class="n">rasl</span><span class="p">,</span> <span class="n">sun_ra</span><span class="o">=</span><span class="n">sun_ra</span><span class="p">,</span> <span class="n">sun_dec</span><span class="o">=</span><span class="n">sun_dec</span>
+        <span class="p">)</span>
+        <span class="k">for</span> <span class="n">qc</span><span class="p">,</span> <span class="n">targ_q</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">QUAT_COMPS</span><span class="p">,</span> <span class="n">targ_att</span><span class="o">.</span><span class="n">q</span><span class="p">):</span>
+            <span class="n">state</span><span class="p">[</span><span class="s2">&quot;targ_&quot;</span> <span class="o">+</span> <span class="n">qc</span><span class="p">]</span> <span class="o">=</span> <span class="n">targ_q</span>
+
+        <span class="c1"># Do the maneuver</span>
+        <span class="n">ManeuverTransition</span><span class="o">.</span><span class="n">add_manvr_transitions</span><span class="p">(</span><span class="n">date</span><span class="p">,</span> <span class="n">transitions</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">idx</span><span class="p">)</span></div>
+</div>
+
 
 
 <span class="c1">###################################################################</span>
 <span class="c1"># ACIS transitions</span>
 <span class="c1">###################################################################</span>
-<div class="viewcode-block" id="decode_power"><a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.decode_power">[docs]</a><span class="k">def</span> <span class="nf">decode_power</span><span class="p">(</span><span class="n">mnem</span><span class="p">):</span>
+<div class="viewcode-block" id="decode_power">
+<a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.decode_power">[docs]</a>
+<span class="k">def</span> <span class="nf">decode_power</span><span class="p">(</span><span class="n">mnem</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Decode number of chips and feps from a ACIS power command.</span>
 
@@ -1523,7 +1890,10 @@
     <span class="k">return</span> <span class="n">fep_info</span></div>
 
 
-<div class="viewcode-block" id="ACISTransition"><a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.ACISTransition">[docs]</a><span class="k">class</span> <span class="nc">ACISTransition</span><span class="p">(</span><span class="n">BaseTransition</span><span class="p">):</span>
+
+<div class="viewcode-block" id="ACISTransition">
+<a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.ACISTransition">[docs]</a>
+<span class="k">class</span> <span class="nc">ACISTransition</span><span class="p">(</span><span class="n">BaseTransition</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Implement transitions for ACIS states.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -1536,9 +1906,12 @@
         <span class="s2">&quot;fep_count&quot;</span><span class="p">,</span>
         <span class="s2">&quot;si_mode&quot;</span><span class="p">,</span>
         <span class="s2">&quot;ccd_count&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;obsid&quot;</span><span class="p">,</span>
     <span class="p">]</span>
 
-<div class="viewcode-block" id="ACISTransition.set_transitions"><a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.ACISTransition.set_transitions">[docs]</a>    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="ACISTransition.set_transitions">
+<a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.ACISTransition.set_transitions">[docs]</a>
+    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">set_transitions</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">transitions</span><span class="p">,</span> <span class="n">cmds</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Set transitions for a Table of commands ``cmds``.</span>
@@ -1585,22 +1958,64 @@
             <span class="k">elif</span> <span class="n">tlmsid</span> <span class="o">==</span> <span class="s2">&quot;WSFEPALLUP&quot;</span><span class="p">:</span>
                 <span class="n">transitions</span><span class="p">[</span><span class="n">date</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">fep_count</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span> <span class="n">power_cmd</span><span class="o">=</span><span class="n">tlmsid</span><span class="p">)</span>
 
-            <span class="k">elif</span> <span class="n">tlmsid</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;WC&quot;</span><span class="p">):</span>
-                <span class="n">transitions</span><span class="p">[</span><span class="n">date</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">si_mode</span><span class="o">=</span><span class="s2">&quot;CC_&quot;</span> <span class="o">+</span> <span class="n">tlmsid</span><span class="p">[</span><span class="mi">2</span><span class="p">:</span><span class="mi">7</span><span class="p">])</span>
-
-            <span class="c1"># Two special-case raw-mode SI modes</span>
-            <span class="c1"># (https://github.com/sot/cmd_states/issues/23)</span>
-            <span class="k">elif</span> <span class="n">tlmsid</span> <span class="o">==</span> <span class="s2">&quot;WT000B5024&quot;</span><span class="p">:</span>
-                <span class="n">transitions</span><span class="p">[</span><span class="n">date</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">si_mode</span><span class="o">=</span><span class="s2">&quot;TN_000B4&quot;</span><span class="p">)</span>
-
-            <span class="k">elif</span> <span class="n">tlmsid</span> <span class="o">==</span> <span class="s2">&quot;WT000B7024&quot;</span><span class="p">:</span>
-                <span class="n">transitions</span><span class="p">[</span><span class="n">date</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">si_mode</span><span class="o">=</span><span class="s2">&quot;TN_000B6&quot;</span><span class="p">)</span>
-
-            <span class="k">elif</span> <span class="n">tlmsid</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;WT&quot;</span><span class="p">):</span>
-                <span class="n">transitions</span><span class="p">[</span><span class="n">date</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">si_mode</span><span class="o">=</span><span class="s2">&quot;TE_&quot;</span> <span class="o">+</span> <span class="n">tlmsid</span><span class="p">[</span><span class="mi">2</span><span class="p">:</span><span class="mi">7</span><span class="p">])</span></div></div>
+            <span class="k">elif</span> <span class="n">tlmsid</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;WT&quot;</span><span class="p">,</span> <span class="s2">&quot;WC&quot;</span><span class="p">):</span>
+                <span class="n">transitions</span><span class="p">[</span><span class="n">cmd</span><span class="p">[</span><span class="s2">&quot;date&quot;</span><span class="p">]][</span><span class="s2">&quot;si_mode&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span>
+                    <span class="n">ACISTransition</span><span class="o">.</span><span class="n">simode_callback</span><span class="p">,</span> <span class="n">tlmsid</span>
+                <span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="ACISFP_SetPointTransition"><a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.ACISFP_SetPointTransition">[docs]</a><span class="k">class</span> <span class="nc">ACISFP_SetPointTransition</span><span class="p">(</span><span class="n">BaseTransition</span><span class="p">):</span>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">simode_callback</span><span class="p">(</span><span class="n">tlmsid</span><span class="p">,</span> <span class="n">date</span><span class="p">,</span> <span class="n">transitions</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">idx</span><span class="p">):</span>
+        <span class="c1"># Other SIMODEs than the ones caught here exist in the</span>
+        <span class="c1"># ACIS tables, and may be used in execptional circumstances</span>
+        <span class="c1"># such as anomalies or special tests. The ones that are</span>
+        <span class="c1"># listed here are commonly used in schedules.</span>
+
+        <span class="c1"># Two special-case raw-mode SI modes</span>
+        <span class="c1"># (https://github.com/sot/cmd_states/issues/23)</span>
+        <span class="k">if</span> <span class="n">tlmsid</span> <span class="o">==</span> <span class="s2">&quot;WT000B5024&quot;</span><span class="p">:</span>
+            <span class="n">si_mode</span> <span class="o">=</span> <span class="s2">&quot;TN_000B4&quot;</span>
+
+        <span class="k">elif</span> <span class="n">tlmsid</span> <span class="o">==</span> <span class="s2">&quot;WT000B7024&quot;</span><span class="p">:</span>
+            <span class="n">si_mode</span> <span class="o">=</span> <span class="s2">&quot;TN_000B6&quot;</span>
+
+        <span class="c1"># Special case for NIL SI modes</span>
+        <span class="k">elif</span> <span class="n">tlmsid</span> <span class="ow">in</span> <span class="n">NIL_SIMODES</span><span class="p">:</span>
+            <span class="n">si_mode</span> <span class="o">=</span> <span class="n">NIL_SIMODES</span><span class="p">[</span><span class="n">tlmsid</span><span class="p">]</span>
+            <span class="c1"># Value of SIMODE in some cases depends on whether obsid is</span>
+            <span class="c1"># an odd or even number</span>
+            <span class="k">if</span> <span class="n">si_mode</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;HIE&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">state</span><span class="p">[</span><span class="s2">&quot;obsid&quot;</span><span class="p">]</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">si_mode</span> <span class="o">=</span> <span class="n">si_mode</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;HIE&quot;</span><span class="p">,</span> <span class="s2">&quot;HIO&quot;</span><span class="p">)</span>
+
+        <span class="c1"># All other SI modes: this logic uses the PBLK command to</span>
+        <span class="c1"># determine the SI mode hex string, which depends in part on</span>
+        <span class="c1"># whether a bias is being (re)computed.</span>
+        <span class="k">elif</span> <span class="n">tlmsid</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;WT&quot;</span><span class="p">,</span> <span class="s2">&quot;WC&quot;</span><span class="p">):</span>
+            <span class="n">mode</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;WT&quot;</span><span class="p">:</span> <span class="s2">&quot;TE&quot;</span><span class="p">,</span> <span class="s2">&quot;WC&quot;</span><span class="p">:</span> <span class="s2">&quot;CC&quot;</span><span class="p">}[</span><span class="n">tlmsid</span><span class="p">[:</span><span class="mi">2</span><span class="p">]]</span>
+            <span class="c1"># find the hex digits in the PBLK command</span>
+            <span class="n">digits</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">tlmsid</span><span class="p">[</span><span class="mi">2</span><span class="p">:</span><span class="mi">7</span><span class="p">],</span> <span class="mi">16</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">digits</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="c1"># A bias is not being computed</span>
+                <span class="n">digits</span> <span class="o">-=</span> <span class="mi">1</span>
+                <span class="n">end</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># A bias is being computed</span>
+                <span class="n">end</span> <span class="o">=</span> <span class="s2">&quot;B&quot;</span>
+            <span class="n">si_mode</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">mode</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">digits</span><span class="si">:</span><span class="s2">05X</span><span class="si">}{</span><span class="n">end</span><span class="si">}</span><span class="s2">&quot;</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># We have ended up with an SIMODE that is not typical,</span>
+            <span class="c1"># potentially due to an anomaly or a test. We simply</span>
+            <span class="c1"># set &quot;undef&quot; here.</span>
+            <span class="n">si_mode</span> <span class="o">=</span> <span class="s2">&quot;undef&quot;</span>
+
+        <span class="n">state</span><span class="p">[</span><span class="s2">&quot;si_mode&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">si_mode</span></div>
+
+
+
+<div class="viewcode-block" id="ACISFP_SetPointTransition">
+<a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.ACISFP_SetPointTransition">[docs]</a>
+<span class="k">class</span> <span class="nc">ACISFP_SetPointTransition</span><span class="p">(</span><span class="n">BaseTransition</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Implement transitions for ACIS focal plane temperature setpoint state.</span>
 
@@ -1612,7 +2027,9 @@
     <span class="n">state_keys</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;acisfp_setpoint&quot;</span><span class="p">]</span>
     <span class="n">default_value</span> <span class="o">=</span> <span class="o">-</span><span class="mf">121.0</span>
 
-<div class="viewcode-block" id="ACISFP_SetPointTransition.set_transitions"><a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.ACISFP_SetPointTransition.set_transitions">[docs]</a>    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="ACISFP_SetPointTransition.set_transitions">
+<a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.ACISFP_SetPointTransition.set_transitions">[docs]</a>
+    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">set_transitions</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">transitions</span><span class="p">,</span> <span class="n">cmds</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Set transitions for a Table of commands ``cmds``.</span>
@@ -1641,7 +2058,120 @@
                 <span class="n">match</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;(\d+)$&quot;</span><span class="p">,</span> <span class="n">tlmsid</span><span class="p">)</span>
                 <span class="k">if</span> <span class="ow">not</span> <span class="n">match</span><span class="p">:</span>
                     <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;unable to parse command </span><span class="si">{</span><span class="n">tlmsid</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-                <span class="n">transitions</span><span class="p">[</span><span class="n">date</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">acisfp_setpoint</span><span class="o">=-</span><span class="nb">float</span><span class="p">(</span><span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)))</span></div></div>
+                <span class="n">transitions</span><span class="p">[</span><span class="n">date</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">acisfp_setpoint</span><span class="o">=-</span><span class="nb">float</span><span class="p">(</span><span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)))</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="FidsTransition">
+<a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.FidsTransition">[docs]</a>
+<span class="k">class</span> <span class="nc">FidsTransition</span><span class="p">(</span><span class="n">BaseTransition</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Fid light transitions.</span>
+
+<span class="sd">    This sets the &quot;fids&quot; to a Python set of FID IDs that are currently on.</span>
+
+<span class="sd">    The relevant fid light commands are shown below. Basically it comes down to AFLCxxDy</span>
+<span class="sd">    (fid id xx and driver y) commands, AFLCRSET and AFLCAAOF/AFLCAAON/AFLCABOF/AFLCABON</span>
+<span class="sd">    commands. The latter four are never used (we don&#39;t turn the fid light controllers on</span>
+<span class="sd">    or off in loads). This table is from the CDB in</span>
+<span class="sd">    ``$SKA/data/Ska.tdb/cdb/p010/cdb_command.csv``.</span>
+<span class="sd">    ::</span>
+
+<span class="sd">        cmd_mnemonic                 technical_name</span>
+<span class="sd">        ------------ ---------------------------------------------</span>
+<span class="sd">            AFLC01D1   drive flca fid light 1 (acis-1) on driver 1</span>
+<span class="sd">            AFLC01D2   drive flca fid light 1 (acis-1) on driver 2</span>
+<span class="sd">            AFLC01D3   drive flca fid light 1 (acis-1) on driver 3</span>
+<span class="sd">            AFLC01D4   drive flca fid light 1 (acis-1) on driver 4</span>
+<span class="sd">            AFLC02D1   drive flca fid light 2 (acis-2) on driver 1</span>
+<span class="sd">            AFLC02D2   drive flca fid light 2 (acis-2) on driver 2</span>
+<span class="sd">            AFLC02D3   drive flca fid light 2 (acis-2) on driver 3</span>
+<span class="sd">            AFLC02D4   drive flca fid light 2 (acis-2) on driver 4</span>
+<span class="sd">            AFLC03D1   drive flca fid light 3 (acis-3) on driver 1</span>
+<span class="sd">            AFLC03D2   drive flca fid light 3 (acis-3) on driver 2</span>
+<span class="sd">            AFLC03D3   drive flca fid light 3 (acis-3) on driver 3</span>
+<span class="sd">            AFLC03D4   drive flca fid light 3 (acis-3) on driver 4</span>
+<span class="sd">            AFLC04D1   drive flca fid light 4 (acis-4) on driver 1</span>
+<span class="sd">            AFLC04D2   drive flca fid light 4 (acis-4) on driver 2</span>
+<span class="sd">            AFLC04D3   drive flca fid light 4 (acis-4) on driver 3</span>
+<span class="sd">            AFLC04D4   drive flca fid light 4 (acis-4) on driver 4</span>
+<span class="sd">            AFLC05D1   drive flca fid light 5 (acis-5) on driver 1</span>
+<span class="sd">            AFLC05D2   drive flca fid light 5 (acis-5) on driver 2</span>
+<span class="sd">            AFLC05D3   drive flca fid light 5 (acis-5) on driver 3</span>
+<span class="sd">            AFLC05D4   drive flca fid light 5 (acis-5) on driver 4</span>
+<span class="sd">            AFLC06D1   drive flca fid light 6 (acis-6) on driver 1</span>
+<span class="sd">            AFLC06D2   drive flca fid light 6 (acis-6) on driver 2</span>
+<span class="sd">            AFLC06D3   drive flca fid light 6 (acis-6) on driver 3</span>
+<span class="sd">            AFLC06D4   drive flca fid light 6 (acis-6) on driver 4</span>
+<span class="sd">            AFLC07D1  drive flca fid light 7 (hrc-i-1) on driver 1</span>
+<span class="sd">            AFLC08D2  drive flca fid light 8 (hrc-i-2) on driver 2</span>
+<span class="sd">            AFLC09D3  drive flca fid light 9 (hrc-i-3) on driver 3</span>
+<span class="sd">            AFLC10D4 drive flca fid light 10 (hrc-i-4) on driver 4</span>
+<span class="sd">            AFLC11D1 drive flca fid light 11 (hrc-s-1) on driver 1</span>
+<span class="sd">            AFLC12D2 drive flca fid light 12 (hrc-s-3) on driver 2</span>
+<span class="sd">            AFLC13D3 drive flca fid light 13 (hrc-s-2) on driver 3</span>
+<span class="sd">            AFLC14D4 drive flca fid light 14 (hrc-s-4) on driver 4</span>
+<span class="sd">            AFLCAAOF                                  flca - a off</span>
+<span class="sd">            AFLCAAON                                   flca - a on</span>
+<span class="sd">            AFLCABOF                                  flca - b off</span>
+<span class="sd">            AFLCABON                                   flca - b on</span>
+<span class="sd">            AFLCRSET                      flca configuration reset</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">command_attributes</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;tlmsid&quot;</span><span class="p">:</span> <span class="s2">&quot;AFIDP&quot;</span><span class="p">}</span>
+    <span class="n">state_keys</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;fids&quot;</span><span class="p">]</span>
+
+<div class="viewcode-block" id="FidsTransition.set_transitions">
+<a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.FidsTransition.set_transitions">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">set_transitions</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">transitions_dict</span><span class="p">,</span> <span class="n">cmds</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set transitions for a Table of commands ``cmds``.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        transitions_dict</span>
+<span class="sd">            global dict of transitions (updated in-place)</span>
+<span class="sd">        cmds</span>
+<span class="sd">            commands (CmdList)</span>
+<span class="sd">        start</span>
+<span class="sd">            start time for states</span>
+<span class="sd">        stop</span>
+<span class="sd">            stop time for states</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">state_cmds</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">get_state_changing_commands</span><span class="p">(</span><span class="n">cmds</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">cmd</span> <span class="ow">in</span> <span class="n">state_cmds</span><span class="p">:</span>
+            <span class="n">msid</span> <span class="o">=</span> <span class="n">cmd</span><span class="p">[</span><span class="s2">&quot;msid&quot;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">msid</span> <span class="o">==</span> <span class="s2">&quot;AFLCRSET&quot;</span> <span class="ow">or</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;AFLC \d\d D \d $&quot;</span><span class="p">,</span> <span class="n">msid</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">):</span>
+                <span class="n">transitions_dict</span><span class="p">[</span><span class="n">cmd</span><span class="p">[</span><span class="s2">&quot;date&quot;</span><span class="p">]][</span><span class="s2">&quot;fids&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span>
+                    <span class="n">FidsTransition</span><span class="o">.</span><span class="n">fids_callback</span><span class="p">,</span> <span class="n">msid</span>
+                <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="FidsTransition.fids_callback">
+<a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.FidsTransition.fids_callback">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">fids_callback</span><span class="p">(</span><span class="n">msid</span><span class="p">,</span> <span class="n">date</span><span class="p">,</span> <span class="n">transitions</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">idx</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Update ``state`` for the given fid light command ``msid``.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">msid</span> <span class="o">==</span> <span class="s2">&quot;AFLCRSET&quot;</span><span class="p">:</span>
+            <span class="n">state</span><span class="p">[</span><span class="s2">&quot;fids&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Only AFLCxxDy commands can make it here from set_transitions filtering</span>
+            <span class="n">fid_id</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">msid</span><span class="p">[</span><span class="mi">4</span><span class="p">:</span><span class="mi">6</span><span class="p">])</span>
+            <span class="c1"># state[&quot;fids&quot;] could be None at the beginning</span>
+            <span class="n">fids</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="s2">&quot;fids&quot;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">fids</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">fids</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+            <span class="c1"># Add the fid light to the ON set</span>
+            <span class="n">state</span><span class="p">[</span><span class="s2">&quot;fids&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">fids</span> <span class="o">|</span> <span class="p">{</span><span class="n">fid_id</span><span class="p">}</span></div>
+</div>
+
 
 
 <span class="c1">###################################################################</span>
@@ -1649,7 +2179,9 @@
 <span class="c1">###################################################################</span>
 
 
-<div class="viewcode-block" id="get_transition_classes"><a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.get_transition_classes">[docs]</a><span class="k">def</span> <span class="nf">get_transition_classes</span><span class="p">(</span><span class="n">state_keys</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="get_transition_classes">
+<a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.get_transition_classes">[docs]</a>
+<span class="k">def</span> <span class="nf">get_transition_classes</span><span class="p">(</span><span class="n">state_keys</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Get BaseTransition subclasses in module for ``state_keys``.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -1669,7 +2201,10 @@
     <span class="k">return</span> <span class="n">trans_classes</span></div>
 
 
-<div class="viewcode-block" id="get_transitions_list"><a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.get_transitions_list">[docs]</a><span class="k">def</span> <span class="nf">get_transitions_list</span><span class="p">(</span><span class="n">cmds</span><span class="p">,</span> <span class="n">state_keys</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">,</span> <span class="n">continuity</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+<div class="viewcode-block" id="get_transitions_list">
+<a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.get_transitions_list">[docs]</a>
+<span class="k">def</span> <span class="nf">get_transitions_list</span><span class="p">(</span><span class="n">cmds</span><span class="p">,</span> <span class="n">state_keys</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">,</span> <span class="n">continuity</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Get transitions for given set of ``cmds`` and ``state_keys``.</span>
 
@@ -1724,7 +2259,10 @@
     <span class="k">return</span> <span class="n">transitions_list</span></div>
 
 
-<div class="viewcode-block" id="add_transition"><a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.add_transition">[docs]</a><span class="k">def</span> <span class="nf">add_transition</span><span class="p">(</span><span class="n">transitions</span><span class="p">,</span> <span class="n">idx</span><span class="p">,</span> <span class="n">transition</span><span class="p">):</span>
+
+<div class="viewcode-block" id="add_transition">
+<a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.add_transition">[docs]</a>
+<span class="k">def</span> <span class="nf">add_transition</span><span class="p">(</span><span class="n">transitions</span><span class="p">,</span> <span class="n">idx</span><span class="p">,</span> <span class="n">transition</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Add ``transition`` to the ``transitions`` list.</span>
 
@@ -1765,7 +2303,10 @@
         <span class="n">transitions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">transition</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="get_states"><a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.get_states">[docs]</a><span class="k">def</span> <span class="nf">get_states</span><span class="p">(</span>
+
+<div class="viewcode-block" id="get_states">
+<a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.get_states">[docs]</a>
+<span class="k">def</span> <span class="nf">get_states</span><span class="p">(</span>
     <span class="n">start</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="n">stop</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="n">state_keys</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -1866,7 +2407,7 @@
                     <span class="sa">f</span><span class="s2">&quot;no continuity found for </span><span class="si">{</span><span class="n">start</span><span class="si">=}</span><span class="s2">. Need to have state &quot;</span>
                     <span class="sa">f</span><span class="s2">&quot;transitions following first command at </span><span class="si">{</span><span class="n">cmds</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;date&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> &quot;</span>
                     <span class="s2">&quot;so use a later start date.&quot;</span>
-                <span class="p">)</span> <span class="kn">from</span> <span class="bp">None</span>
+                <span class="p">)</span> <span class="kn">from</span> <span class="kc">None</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">raise</span>
 
@@ -1919,7 +2460,7 @@
 
         <span class="c1"># Process the transition.</span>
         <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">transition</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="k">if</span> <span class="n">inspect</span><span class="o">.</span><span class="n">ismethod</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">callable</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
                 <span class="c1"># Special case of a functional transition that calls a function</span>
                 <span class="c1"># instead of directly updating the state.  The function might itself</span>
                 <span class="c1"># update the state or it might generate downstream transitions.</span>
@@ -1955,7 +2496,10 @@
     <span class="k">return</span> <span class="n">out</span></div>
 
 
-<div class="viewcode-block" id="reduce_states"><a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.reduce_states">[docs]</a><span class="k">def</span> <span class="nf">reduce_states</span><span class="p">(</span><span class="n">states</span><span class="p">,</span> <span class="n">state_keys</span><span class="p">,</span> <span class="n">merge_identical</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">all_keys</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Table</span><span class="p">:</span>
+
+<div class="viewcode-block" id="reduce_states">
+<a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.reduce_states">[docs]</a>
+<span class="k">def</span> <span class="nf">reduce_states</span><span class="p">(</span><span class="n">states</span><span class="p">,</span> <span class="n">state_keys</span><span class="p">,</span> <span class="n">merge_identical</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">all_keys</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Table</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Reduce input ``states`` so only transitions in ``state_keys`` are in output.</span>
 
@@ -2039,7 +2583,10 @@
     <span class="k">return</span> <span class="n">out</span></div>
 
 
-<div class="viewcode-block" id="get_continuity"><a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.get_continuity">[docs]</a><span class="k">def</span> <span class="nf">get_continuity</span><span class="p">(</span>
+
+<div class="viewcode-block" id="get_continuity">
+<a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.get_continuity">[docs]</a>
+<span class="k">def</span> <span class="nf">get_continuity</span><span class="p">(</span>
     <span class="n">date</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">state_keys</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">lookbacks</span><span class="o">=</span><span class="p">(</span><span class="mi">7</span><span class="p">,</span> <span class="mi">30</span><span class="p">,</span> <span class="mi">180</span><span class="p">,</span> <span class="mi">1000</span><span class="p">),</span> <span class="n">scenario</span><span class="o">=</span><span class="kc">None</span>
 <span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
@@ -2182,7 +2729,10 @@
     <span class="k">return</span> <span class="n">continuity</span></div>
 
 
-<div class="viewcode-block" id="interpolate_states"><a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.interpolate_states">[docs]</a><span class="k">def</span> <span class="nf">interpolate_states</span><span class="p">(</span><span class="n">states</span><span class="p">,</span> <span class="n">times</span><span class="p">):</span>
+
+<div class="viewcode-block" id="interpolate_states">
+<a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.interpolate_states">[docs]</a>
+<span class="k">def</span> <span class="nf">interpolate_states</span><span class="p">(</span><span class="n">states</span><span class="p">,</span> <span class="n">times</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Interpolate ``states`` table at given times.</span>
 
 <span class="sd">    Parameters</span>
@@ -2213,6 +2763,7 @@
     <span class="k">return</span> <span class="n">out</span></div>
 
 
+
 <span class="k">def</span> <span class="nf">_unique</span><span class="p">(</span><span class="n">seq</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Return unique elements of ``seq`` in order&quot;&quot;&quot;</span>
     <span class="n">seen</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
@@ -2220,7 +2771,9 @@
     <span class="k">return</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">seq</span> <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">x</span> <span class="ow">in</span> <span class="n">seen</span> <span class="ow">or</span> <span class="n">seen_add</span><span class="p">(</span><span class="n">x</span><span class="p">))]</span>
 
 
-<div class="viewcode-block" id="print_state_keys_transition_classes_docs"><a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.print_state_keys_transition_classes_docs">[docs]</a><span class="k">def</span> <span class="nf">print_state_keys_transition_classes_docs</span><span class="p">():</span>
+<div class="viewcode-block" id="print_state_keys_transition_classes_docs">
+<a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.print_state_keys_transition_classes_docs">[docs]</a>
+<span class="k">def</span> <span class="nf">print_state_keys_transition_classes_docs</span><span class="p">():</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Sort transition classes into a data structure keyed by state_keys</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -2236,7 +2789,10 @@
         <span class="nb">print</span><span class="p">()</span></div>
 
 
-<div class="viewcode-block" id="get_chandra_states"><a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.get_chandra_states">[docs]</a><span class="k">def</span> <span class="nf">get_chandra_states</span><span class="p">(</span><span class="n">main_args</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+<div class="viewcode-block" id="get_chandra_states">
+<a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.get_chandra_states">[docs]</a>
+<span class="k">def</span> <span class="nf">get_chandra_states</span><span class="p">(</span><span class="n">main_args</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Command line interface to output commanded states over a date range.</span>
 
@@ -2273,6 +2829,7 @@
     <span class="k">del</span> <span class="n">states</span><span class="p">[</span><span class="s2">&quot;tstop&quot;</span><span class="p">]</span>
 
     <span class="n">ascii</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">states</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="n">opt</span><span class="o">.</span><span class="n">outfile</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;fixed_width&quot;</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span></div>
+
 </pre></div>
 
             <div class="clearer"></div>
@@ -2300,7 +2857,7 @@
     <a href="#">Back to Top</a></p>
   <p>
     &copy; Copyright 2013, Tom Aldcroft.<br/>
-    Created using <a href="http://www.sphinx-doc.org/en/stable/">Sphinx</a> 6.1.3. &nbsp;
+    Created using <a href="http://www.sphinx-doc.org/en/stable/">Sphinx</a> 7.2.6. &nbsp;
   </p>
 </footer>
   </body>

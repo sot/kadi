@@ -1,19 +1,18 @@
-
 <!DOCTYPE html>
 
-<html lang="en">
+<html lang="en" data-content_root="./">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Chandra events &#8212; kadi 7.8.1 documentation</title>
-    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="_static/bootstrap-astropy.css" />
+    <title>Chandra events &#8212; kadi 7.9.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="_static/bootstrap-astropy.css?v=f4f7060c" />
     <link rel="stylesheet" type="text/css" href="_static/plot_directive.css" />
     
-    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-    <script src="_static/doctools.js"></script>
-    <script src="_static/sphinx_highlight.js"></script>
+    <script src="_static/documentation_options.js?v=a678aa7c"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script type="text/javascript" src="_static/sidebar.js"></script>
     <script type="text/javascript" src="_static/copybutton.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
@@ -60,7 +59,7 @@
 	 |
       </li>
       <li>
-	<a href="index.html">kadi 7.8.1 documentation</a>
+	<a href="index.html">kadi 7.9.0 documentation</a>
 	 &#187;
       </li>
       
@@ -75,9 +74,9 @@
           <div class="body" role="main">
             
   <section id="chandra-events">
-<h1>Chandra events<a class="headerlink" href="#chandra-events" title="Permalink to this heading">¶</a></h1>
+<h1>Chandra events<a class="headerlink" href="#chandra-events" title="Link to this heading">¶</a></h1>
 <section id="overview">
-<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this heading">¶</a></h2>
+<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading">¶</a></h2>
 <p>The kadi Chandra events database stores a variety of events that are useful in
 performing analysis or establishing situational awareness (i.e. what was happening
 around March 2017?).  Examples include:</p>
@@ -92,7 +91,7 @@ Chandra events that are available within the Kadi archive.  Each type of event i
 essentially a database table with a number of data fields, some of them common to all
 event types and some of them unique.</p>
 <section id="interval-events">
-<h3>Interval events<a class="headerlink" href="#interval-events" title="Permalink to this heading">¶</a></h3>
+<h3>Interval events<a class="headerlink" href="#interval-events" title="Link to this heading">¶</a></h3>
 <p>Most of the event types represent an <strong>interval of time</strong> with some defining characteristic,
 for instance maneuvers (<a class="reference internal" href="api_events.html#kadi.events.models.Manvr" title="kadi.events.models.Manvr"><code class="xref py py-class docutils literal notranslate"><span class="pre">Manvr</span></code></a>), radiation zones (<a class="reference internal" href="api_events.html#kadi.events.models.RadZone" title="kadi.events.models.RadZone"><code class="xref py py-class docutils literal notranslate"><span class="pre">RadZone</span></code></a>) or SIM TSC translations
 (<a class="reference internal" href="api_events.html#kadi.events.models.TscMove" title="kadi.events.models.TscMove"><code class="xref py py-class docutils literal notranslate"><span class="pre">TscMove</span></code></a>).  The documentation for each event type contains the event defintion, for
@@ -194,7 +193,7 @@ provides a host of information about each comm pass:</p>
 </table>
 </section>
 <section id="non-interval-events">
-<h3>Non-interval events<a class="headerlink" href="#non-interval-events" title="Permalink to this heading">¶</a></h3>
+<h3>Non-interval events<a class="headerlink" href="#non-interval-events" title="Link to this heading">¶</a></h3>
 <p>The event types <a class="reference internal" href="api_events.html#kadi.events.models.MajorEvent" title="kadi.events.models.MajorEvent"><code class="xref py py-class docutils literal notranslate"><span class="pre">MajorEvent</span></code></a>, <a class="reference internal" href="api_events.html#kadi.events.models.ManvrSeq" title="kadi.events.models.ManvrSeq"><code class="xref py py-class docutils literal notranslate"><span class="pre">ManvrSeq</span></code></a>, and <a class="reference internal" href="api_events.html#kadi.events.models.OrbitPoint" title="kadi.events.models.OrbitPoint"><code class="xref py py-class docutils literal notranslate"><span class="pre">OrbitPoint</span></code></a> are a bit different in that
 they refer to <strong>moment in time</strong> rather than an interval.  For these types the only field
 they all have in common is <code class="docutils literal notranslate"><span class="pre">date</span></code>.  For example the <a class="reference internal" href="api_events.html#kadi.events.models.MajorEvent" title="kadi.events.models.MajorEvent"><code class="xref py py-class docutils literal notranslate"><span class="pre">MajorEvent</span></code></a> type has the following fields:</p>
@@ -244,7 +243,7 @@ stop time.</p>
 </section>
 </section>
 <section id="getting-started">
-<h2>Getting started<a class="headerlink" href="#getting-started" title="Permalink to this heading">¶</a></h2>
+<h2>Getting started<a class="headerlink" href="#getting-started" title="Link to this heading">¶</a></h2>
 <p>To start using the Kadi archive you first need to fire up IPython in the Ska environment.
 From a shell terminal window do:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">%</span> <span class="n">ska3</span>
@@ -265,7 +264,7 @@ Python or IPython interactive prompt.  You do not actually type these characters
 </div>
 </section>
 <section id="get-events-as-a-table">
-<h2>Get events as a table<a class="headerlink" href="#get-events-as-a-table" title="Permalink to this heading">¶</a></h2>
+<h2>Get events as a table<a class="headerlink" href="#get-events-as-a-table" title="Link to this heading">¶</a></h2>
 <p>The most basic operation is to get some events from the Kadi archive.  So let’s find all
 the SIM TSC moves since 2012:001:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">tsc_moves</span> <span class="o">=</span> <span class="n">events</span><span class="o">.</span><span class="n">tsc_moves</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">start</span><span class="o">=</span><span class="s1">&#39;2012:001&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">table</span>
@@ -322,7 +321,7 @@ modulation for each SIM translation as a function of time:</p>
 </div>
 <img alt="_images/tsc_moves.png" src="_images/tsc_moves.png" />
 <section id="events-and-obsids">
-<h3>Events and obsids<a class="headerlink" href="#events-and-obsids" title="Permalink to this heading">¶</a></h3>
+<h3>Events and obsids<a class="headerlink" href="#events-and-obsids" title="Link to this heading">¶</a></h3>
 <p>With <code class="docutils literal notranslate"><span class="pre">kadi</span></code> it’s easy to find the obsid for a particular event using the
 <a class="reference internal" href="api_events.html#kadi.events.models.BaseModel.get_obsid" title="kadi.events.models.BaseModel.get_obsid"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_obsid()</span></code></a> method of an event object that is
 returned from a filter query.  The following example asks for all maneuvers within the
@@ -376,7 +375,7 @@ Kalman dwell(s), star catalog and OR / ER.</p>
 </section>
 </section>
 <section id="getting-help">
-<h2>Getting help<a class="headerlink" href="#getting-help" title="Permalink to this heading">¶</a></h2>
+<h2>Getting help<a class="headerlink" href="#getting-help" title="Link to this heading">¶</a></h2>
 <p>There are a lot of event types in <cite>kadi</cite> and it’s not easy to remember everything.
 Here we will make use of the IPython <code class="docutils literal notranslate"><span class="pre">?</span></code> function to get help on objects.
 Starting from the top, you can list the available event types with the following:</p>
@@ -529,7 +528,7 @@ Examples::
 </div>
 </section>
 <section id="use-events-to-filter-telemetry">
-<h2>Use events to filter telemetry<a class="headerlink" href="#use-events-to-filter-telemetry" title="Permalink to this heading">¶</a></h2>
+<h2>Use events to filter telemetry<a class="headerlink" href="#use-events-to-filter-telemetry" title="Link to this heading">¶</a></h2>
 <p>Another common operation is using event intervals to filter telemetry data.  A simple
 example is looking at EPHIN E1300 rates only outside of rad zone.  A more complicated
 example is plotting OBC rate data only during “quiet” periods, which means during normal
@@ -569,7 +568,7 @@ returns a brand new MSID object and leaves the original untouched:</p>
 </div>
 </section>
 <section id="more-on-intervals-and-padding">
-<h2>More on intervals and padding<a class="headerlink" href="#more-on-intervals-and-padding" title="Permalink to this heading">¶</a></h2>
+<h2>More on intervals and padding<a class="headerlink" href="#more-on-intervals-and-padding" title="Link to this heading">¶</a></h2>
 <p>The event intervals themselves within a particular time range can be accessed as a list of
 <code class="docutils literal notranslate"><span class="pre">(start,</span> <span class="pre">stop)</span></code> with the <code class="docutils literal notranslate"><span class="pre">intervals()</span></code> method:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">events</span><span class="o">.</span><span class="n">rad_zones</span><span class="o">.</span><span class="n">intervals</span><span class="p">(</span><span class="s1">&#39;2012:020&#39;</span><span class="p">,</span> <span class="s1">&#39;2012:030&#39;</span><span class="p">)</span>
@@ -619,7 +618,7 @@ discouraged</em>, but shown below for reference since this used to be the accept
 </pre></div>
 </div>
 <section id="boolean-combinations">
-<h3>Boolean combinations<a class="headerlink" href="#boolean-combinations" title="Permalink to this heading">¶</a></h3>
+<h3>Boolean combinations<a class="headerlink" href="#boolean-combinations" title="Link to this heading">¶</a></h3>
 <p>The real power of intervals is that they can be combined with boolean expressions and can
 be padded on either end to make it easy to create complex time filters.  Using the results
 in the previous section, we can create a composite event which is when there is a grating
@@ -652,7 +651,7 @@ of interest:</p>
 <img alt="_images/complex_event_filter.png" src="_images/complex_event_filter.png" />
 </section>
 <section id="filtering-the-interval-events">
-<h3>Filtering the interval events<a class="headerlink" href="#filtering-the-interval-events" title="Permalink to this heading">¶</a></h3>
+<h3>Filtering the interval events<a class="headerlink" href="#filtering-the-interval-events" title="Link to this heading">¶</a></h3>
 <p>The examples shown above share the feature that the selected intervals were defined
 using <em>all</em> of the events for a particular type.  However, it is also possible to
 select only a subset of the available events based on other filter criteria.  For
@@ -686,7 +685,7 @@ do:</p>
 </pre></div>
 </div>
 <section id="ltt-bad-times">
-<h4>LTT bad times<a class="headerlink" href="#ltt-bad-times" title="Permalink to this heading">¶</a></h4>
+<h4>LTT bad times<a class="headerlink" href="#ltt-bad-times" title="Link to this heading">¶</a></h4>
 <p>Another example of practical interest is using the LTT bad times event to remove bad times
 for long-term trending plots by MSID.  Before explaining more about what is going on, here is
 an example of filtering out LTT bad times (for the impatient):</p>
@@ -721,7 +720,7 @@ many (including all those shown here) do not.  You can find the non-matches with
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">msid</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">events</span><span class="o">.</span><span class="n">ltt_bads</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="s1">&#39;1999:001&#39;</span><span class="p">))</span>
 <span class="go">                 if not (x.msid in fetch.content or &#39;DP_&#39; + x.msid in fetch.content)))</span>
 <span class="go">[u&#39;*&#39;, u&#39;3SDAGV&#39;, u&#39;3SDFATSV&#39;, u&#39;3SDM15V&#39;, u&#39;3SDP15V&#39;, u&#39;3SDP5V&#39;, u&#39;3SDTSTSV&#39;, u&#39;5EHSE300&#39;, u&#39;ABIASZ&#39;,</span>
-<span class="gp">...</span>
+<span class="go">...</span>
 <span class="go">u&#39;ROLL_BIAS_DIFF&#39;, u&#39;SAMYTEMDEL&#39;, u&#39;SAPYTEMDEL&#39;, u&#39;TFCAG&#39;, u&#39;TFCDG&#39;, u&#39;VECANGLE_DIFF&#39;,</span>
 <span class="go">u&#39;YAW_BIAS_DIFF&#39;, u&#39;YAW_CTRL&#39;, u&#39;YAW_STAB&#39;, u&#39;YAW_STAB_PERF&#39;]</span>
 </pre></div>
@@ -732,11 +731,11 @@ MSIDs.  The bad intervals with <code class="docutils literal notranslate"><span 
 <span class="go">&lt;LttBad: start=1999:270:00:00:00.000 msid=* flag=*&gt;</span>
 <span class="go">&lt;LttBad: start=1999:291:00:00:00.000 msid=* flag=*&gt;</span>
 <span class="go">&lt;LttBad: start=1999:295:00:00:00.000 msid=* flag=*&gt;</span>
-<span class="gp">...</span>
+<span class="go">...</span>
 <span class="go">&lt;LttBad: start=2011:190:00:00:00.000 msid=* flag=*&gt;</span>
 <span class="go">&lt;LttBad: start=2011:191:00:00:00.000 msid=AACCCDPT flag=A&gt;</span>
 <span class="go">&lt;LttBad: start=2011:192:00:00:00.000 msid=AACCCDPT flag=A&gt;</span>
-<span class="gp">...</span>
+<span class="go">...</span>
 <span class="go">&lt;LttBad: start=2011:302:00:00:00.000 msid=AACCCDPT flag=A&gt;</span>
 <span class="go">&lt;LttBad: start=2012:150:00:00:00.000 msid=* flag=*&gt;</span>
 <span class="go">&lt;LttBad: start=2012:151:00:00:00.000 msid=* flag=*&gt;</span>
@@ -745,7 +744,7 @@ MSIDs.  The bad intervals with <code class="docutils literal notranslate"><span 
 </section>
 </section>
 <section id="selecting-overlapping-events">
-<h3>Selecting overlapping events<a class="headerlink" href="#selecting-overlapping-events" title="Permalink to this heading">¶</a></h3>
+<h3>Selecting overlapping events<a class="headerlink" href="#selecting-overlapping-events" title="Link to this heading">¶</a></h3>
 <p>Frequently you are interested in getting events based on overlap with other events.  Examples include:</p>
 <ul class="simple">
 <li><p>Select maneuver events either inside or outside the radiation zone.</p></li>
@@ -835,12 +834,12 @@ into the maneuver.</p>
 </section>
 </section>
 <section id="details">
-<h2>Details<a class="headerlink" href="#details" title="Permalink to this heading">¶</a></h2>
+<h2>Details<a class="headerlink" href="#details" title="Link to this heading">¶</a></h2>
 <p>The advanced usage section is incomplete, however examples of advanced
 usage are demonstrated in thie <a class="reference external" href="http://nbviewer.ipython.org/url/cxc.harvard.edu/mta/ASPECT/ipynb/kadi_demo.ipynb">Kadi demo IPython notebook</a>.
 Please refer to this notebook and download and run it.</p>
 <section id="event-definitions">
-<h3>Event definitions<a class="headerlink" href="#event-definitions" title="Permalink to this heading">¶</a></h3>
+<h3>Event definitions<a class="headerlink" href="#event-definitions" title="Link to this heading">¶</a></h3>
 <table class="docutils align-default">
 <thead>
 <tr class="row-odd"><th class="head"><p>Event class</p></th>
@@ -945,7 +944,7 @@ Please refer to this notebook and download and run it.</p>
 </table>
 </section>
 <section id="event-filtering">
-<h3>Event filtering<a class="headerlink" href="#event-filtering" title="Permalink to this heading">¶</a></h3>
+<h3>Event filtering<a class="headerlink" href="#event-filtering" title="Link to this heading">¶</a></h3>
 <p>The <a class="reference internal" href="api_events.html#kadi.events.query.EventQuery" title="kadi.events.query.EventQuery"><code class="xref py py-class docutils literal notranslate"><span class="pre">EventQuery</span></code></a> <a class="reference internal" href="api_events.html#kadi.events.query.EventQuery.filter" title="kadi.events.query.EventQuery.filter"><code class="xref py py-func docutils literal notranslate"><span class="pre">filter()</span></code></a>
 method allows you to find events between <code class="docutils literal notranslate"><span class="pre">start</span></code> and <code class="docutils literal notranslate"><span class="pre">stop</span></code>, or with the given
 <code class="docutils literal notranslate"><span class="pre">obsid</span></code>, which match the filter attributes in subsequent keyword arguments.  The
@@ -985,7 +984,7 @@ Django documentation on <a class="reference external" href="https://docs.djangop
 </pre></div>
 </div>
 <section id="advanced-filtering">
-<h4>Advanced filtering<a class="headerlink" href="#advanced-filtering" title="Permalink to this heading">¶</a></h4>
+<h4>Advanced filtering<a class="headerlink" href="#advanced-filtering" title="Link to this heading">¶</a></h4>
 <p>The result of a <a class="reference internal" href="api_events.html#kadi.events.query.EventQuery.filter" title="kadi.events.query.EventQuery.filter"><code class="xref py py-func docutils literal notranslate"><span class="pre">filter()</span></code></a> query is a Django
 <code class="docutils literal notranslate"><span class="pre">QuerySet</span></code> object.  From this starting point you can chain additional queries
 or take advantage of any of the <code class="docutils literal notranslate"><span class="pre">QuerySet</span></code> functionality described in
@@ -1087,7 +1086,7 @@ logic, you can use <a class="reference external" href="https://docs.djangoprojec
     <a href="#">Back to Top</a></p>
   <p>
     &copy; Copyright 2013, Tom Aldcroft.<br/>
-    Created using <a href="http://www.sphinx-doc.org/en/stable/">Sphinx</a> 6.1.3. &nbsp;
+    Created using <a href="http://www.sphinx-doc.org/en/stable/">Sphinx</a> 7.2.6. &nbsp;
   </p>
 </footer>
   </body>

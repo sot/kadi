@@ -1,19 +1,18 @@
-
 <!DOCTYPE html>
 
-<html lang="en">
+<html lang="en" data-content_root="./">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Commands archive v2 details &#8212; kadi 7.8.1 documentation</title>
-    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="_static/bootstrap-astropy.css" />
+    <title>Commands archive v2 details &#8212; kadi 7.9.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="_static/bootstrap-astropy.css?v=f4f7060c" />
     <link rel="stylesheet" type="text/css" href="_static/plot_directive.css" />
     
-    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-    <script src="_static/doctools.js"></script>
-    <script src="_static/sphinx_highlight.js"></script>
+    <script src="_static/documentation_options.js?v=a678aa7c"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script type="text/javascript" src="_static/sidebar.js"></script>
     <script type="text/javascript" src="_static/copybutton.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
@@ -60,7 +59,7 @@
 	 |
       </li>
       <li>
-	<a href="index.html">kadi 7.8.1 documentation</a>
+	<a href="index.html">kadi 7.9.0 documentation</a>
 	 &#187;
       </li>
       <li><a href="commands_states.html" accesskey="U">Commands and states</a> &#187;</li>
@@ -76,9 +75,9 @@
           <div class="body" role="main">
             
   <section id="commands-archive-v2-details">
-<h1>Commands archive v2 details<a class="headerlink" href="#commands-archive-v2-details" title="Permalink to this heading">¶</a></h1>
+<h1>Commands archive v2 details<a class="headerlink" href="#commands-archive-v2-details" title="Link to this heading">¶</a></h1>
 <section id="concept-overview">
-<h2>Concept overview<a class="headerlink" href="#concept-overview" title="Permalink to this heading">¶</a></h2>
+<h2>Concept overview<a class="headerlink" href="#concept-overview" title="Link to this heading">¶</a></h2>
 <p>The key concept underlying version 2 is that it uses web resources to always
 provide the most current set of executed and planned load and non-load commands.
 This is true even in rapidly changing circumstances such as anomaly recovery or
@@ -97,7 +96,7 @@ directory tree. This is used to automatically find all recent approved loads
 and incorporate them into the load commands archive.</p>
 </section>
 <section id="differences-from-v1">
-<h2>Differences from v1<a class="headerlink" href="#differences-from-v1" title="Permalink to this heading">¶</a></h2>
+<h2>Differences from v1<a class="headerlink" href="#differences-from-v1" title="Link to this heading">¶</a></h2>
 <p>Apart from the fundamental change in data sources mentioned above, some key
 changes from v1 are as follows:</p>
 <ul class="simple">
@@ -120,7 +119,7 @@ configuration file to control behavior of the package. See the
 </ul>
 </section>
 <section id="scenarios">
-<h2>Scenarios<a class="headerlink" href="#scenarios" title="Permalink to this heading">¶</a></h2>
+<h2>Scenarios<a class="headerlink" href="#scenarios" title="Link to this heading">¶</a></h2>
 <p>A scenario is an specific version of events that you like to evaluate. The
 default scenario is the <a class="reference external" href="https://docs.google.com/spreadsheets/d/19d6XqBhWoFjC-z1lS1nM6wLE_zjr4GYB1lOvrEGCbKQ">Chandra Command Events</a> sheet.</p>
 <p>Providing for alternate scenarios is a key feature of the commands archive v2.
@@ -135,7 +134,7 @@ Examples include:</p>
 </ul>
 <p>One special scenario is the “flight” scenario, discussed below.</p>
 <section id="flight-scenario-no-network">
-<h3>Flight scenario (no network)<a class="headerlink" href="#flight-scenario-no-network" title="Permalink to this heading">¶</a></h3>
+<h3>Flight scenario (no network)<a class="headerlink" href="#flight-scenario-no-network" title="Link to this heading">¶</a></h3>
 <p>In the case of production applications that are running on the HEAD or GRETA
 networks or where it is not possible or desirable to access the network to
 update the local loads, the special <code class="docutils literal notranslate"><span class="pre">&quot;flight&quot;</span></code> scenario can be used.</p>
@@ -150,7 +149,7 @@ kadi external web resources.</p>
 workstations if they cannot access the Chandra Command Events Google sheet.</p>
 </section>
 <section id="custom-scenario-example">
-<h3>Custom scenario example<a class="headerlink" href="#custom-scenario-example" title="Permalink to this heading">¶</a></h3>
+<h3>Custom scenario example<a class="headerlink" href="#custom-scenario-example" title="Link to this heading">¶</a></h3>
 <p>This example shows the steps to programmatically add an ACIS CTI in the midst
 of the 2021:296 NSM recovery:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">kadi</span> <span class="kn">import</span> <span class="n">paths</span>
@@ -211,7 +210,7 @@ $ dpa_check \
 </section>
 </section>
 <section id="configuration-options">
-<span id="id1"></span><h2>Configuration options<a class="headerlink" href="#configuration-options" title="Permalink to this heading">¶</a></h2>
+<span id="id1"></span><h2>Configuration options<a class="headerlink" href="#configuration-options" title="Link to this heading">¶</a></h2>
 <p>The kadi commands configuration options are stored in the file
 <code class="docutils literal notranslate"><span class="pre">~/.kadi/config/kadi.cfg</span></code>. The location of this file is fixed.</p>
 <p>The available options with the default settings are as follows:</p>
@@ -247,7 +246,7 @@ $ dpa_check \
 </pre></div>
 </div>
 <section id="modify-options">
-<h3>Modify options<a class="headerlink" href="#modify-options" title="Permalink to this heading">¶</a></h3>
+<h3>Modify options<a class="headerlink" href="#modify-options" title="Link to this heading">¶</a></h3>
 <p>To modify a configuration there a few options. First is programmatically within
 Python to change a parameter for all subsequent code:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">kadi.commands</span> <span class="kn">import</span> <span class="n">conf</span><span class="p">,</span> <span class="n">get_cmds</span>
@@ -274,7 +273,7 @@ forgetting to revert it later.</p>
 </section>
 </section>
 <section id="environment-variables">
-<h2>Environment variables<a class="headerlink" href="#environment-variables" title="Permalink to this heading">¶</a></h2>
+<h2>Environment variables<a class="headerlink" href="#environment-variables" title="Link to this heading">¶</a></h2>
 <dl class="simple">
 <dt><code class="docutils literal notranslate"><span class="pre">KADI</span></code></dt><dd><p>Override the default location of kadi flight data files <code class="docutils literal notranslate"><span class="pre">cmds2.h5</span></code> and
 <code class="docutils literal notranslate"><span class="pre">cmds2.pkl</span></code>.</p>
@@ -294,9 +293,9 @@ override the flight commands.</p>
 </dl>
 </section>
 <section id="data-files-and-resources">
-<h2>Data files and resources<a class="headerlink" href="#data-files-and-resources" title="Permalink to this heading">¶</a></h2>
+<h2>Data files and resources<a class="headerlink" href="#data-files-and-resources" title="Link to this heading">¶</a></h2>
 <section id="flight-archive-files">
-<h3>Flight archive files<a class="headerlink" href="#flight-archive-files" title="Permalink to this heading">¶</a></h3>
+<h3>Flight archive files<a class="headerlink" href="#flight-archive-files" title="Link to this heading">¶</a></h3>
 <p>The flight archive of commands and associated parameters are stored in the two
 files listed below. These files are kept up to date each 10 minutes on the
 HEAD server and must synced at least once each 3 weeks to GRETA and other
@@ -311,7 +310,7 @@ archive data files.</p>
 </dl>
 </section>
 <section id="local-archive-files">
-<h3>Local archive files<a class="headerlink" href="#local-archive-files" title="Permalink to this heading">¶</a></h3>
+<h3>Local archive files<a class="headerlink" href="#local-archive-files" title="Link to this heading">¶</a></h3>
 <p>The local archive is maintain by using the <a class="reference internal" href="#web-resources">Web resources</a> below. These files
 are stored in <code class="docutils literal notranslate"><span class="pre">~/.kadi</span></code> by default but the location is configurable.</p>
 <dl class="simple">
@@ -333,7 +332,7 @@ directory is not specific to a scenario and so the top-level version is used.</p
 </dl>
 </section>
 <section id="web-resources">
-<h3>Web resources<a class="headerlink" href="#web-resources" title="Permalink to this heading">¶</a></h3>
+<h3>Web resources<a class="headerlink" href="#web-resources" title="Link to this heading">¶</a></h3>
 <dl class="simple">
 <dt><a class="reference external" href="https://docs.google.com/spreadsheets/d/19d6XqBhWoFjC-z1lS1nM6wLE_zjr4GYB1lOvrEGCbKQ">Chandra Command Events</a> Google sheet</dt><dd><p>Centralized repository which contains information about “command events” that
 impact the as-run commanding on Chandra. This document is viewable by anyone
@@ -348,7 +347,7 @@ and incorporate them into the load commands archive.</p>
 </dl>
 </section>
 <section id="configuration-and-other-files">
-<h3>Configuration and other files<a class="headerlink" href="#configuration-and-other-files" title="Permalink to this heading">¶</a></h3>
+<h3>Configuration and other files<a class="headerlink" href="#configuration-and-other-files" title="Link to this heading">¶</a></h3>
 <p>These files are in the user home directory <code class="docutils literal notranslate"><span class="pre">~/.kadi</span></code>. This directory location
 is not configurable as they are set by the <a class="reference external" href="https://docs.astropy.org/en/stable/config/index.html">astropy configuration sub-package</a>.</p>
 <dl class="simple">
@@ -430,7 +429,7 @@ is not configurable as they are set by the <a class="reference external" href="h
     <a href="#">Back to Top</a></p>
   <p>
     &copy; Copyright 2013, Tom Aldcroft.<br/>
-    Created using <a href="http://www.sphinx-doc.org/en/stable/">Sphinx</a> 6.1.3. &nbsp;
+    Created using <a href="http://www.sphinx-doc.org/en/stable/">Sphinx</a> 7.2.6. &nbsp;
   </p>
 </footer>
   </body>
