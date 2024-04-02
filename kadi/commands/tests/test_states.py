@@ -12,7 +12,6 @@ from astropy.table import Table
 from chandra_time import DateTime
 from cheta import fetch
 from cxotime import CxoTime
-from testr.test_helper import has_internet
 
 warnings.filterwarnings(
     "ignore",
