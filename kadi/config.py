@@ -8,7 +8,66 @@ and https://github.com/astropy/astropy/issues/12960.
 """  # noqa
 
 from astropy import config
+from astropy.config import ConfigNamespace
 
 
 class ConfigItem(config.ConfigItem):
     rootname = "kadi"
+
+
+class Conf(ConfigNamespace):
+    """
+    Configuration parameters for kadi.
+    """
+
+    default_lookback = ConfigItem(
+        30, "Default lookback for previous approved loads (days)."
+    )
+    cache_loads_in_astropy_cache = ConfigItem(
+        False,
+        "Cache backstop downloads in the astropy cache. Should typically be False, "
+        "but useful during development to avoid re-downloading backstops.",
+    )
+    cache_starcats = ConfigItem(
+        True,
+        "Cache star catalogs that are retrieved to a file to avoid repeating the "
+        "slow process of identifying fid and stars in catalogs. The cache file is "
+        "conf.commands_dir/starcats.db.",
+    )
+    clean_loads_dir = ConfigItem(
+        True,
+        "Clean backstop loads (like APR1421B.pkl.gz) in the loads directory that are "
+        "older than the default lookback. Most users will want this to be True, but "
+        "for development or if you always want a copy of the loads set to False.",
+    )
+    commands_dir = ConfigItem(
+        "~/.kadi",
+        "Directory where command loads and command events are stored after "
+        "downloading from Google Sheets and OCCweb.",
+    )
+
+    cmd_events_flight_id = ConfigItem(
+        "19d6XqBhWoFjC-z1lS1nM6wLE_zjr4GYB1lOvrEGCbKQ",
+        "Google Sheet ID for command events (flight scenario).",
+    )
+
+    cmd_events_exclude_intervals_gid = ConfigItem(
+        "1681877928",
+        "Google Sheet gid for validation exclude intervals in command events",
+    )
+
+    star_id_match_halfwidth = ConfigItem(
+        1.5, "Half-width box size of star ID match for get_starcats() (arcsec)."
+    )
+
+    fid_id_match_halfwidth = ConfigItem(
+        40, "Half-width box size of fid ID match for get_starcats() (arcsec)."
+    )
+
+    include_in_work_command_events = ConfigItem(
+        False, "Include In-work command events that are not yet approved."
+    )
+
+
+# Create a configuration instance for the user
+conf = Conf()
