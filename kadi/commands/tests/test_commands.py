@@ -226,6 +226,7 @@ def test_get_cmds_from_backstop_and_add_cmds():
 
 
 @pytest.mark.skipif("not HAS_MPDIR")
+@pytest.mark.skipif(not HAS_INTERNET, reason="No internet connection")
 def test_commands_create_archive_regress(tmpdir, fast_sun_position_method):
     """Create cmds archive from scratch and test that it matches flight
 
@@ -1320,6 +1321,7 @@ def test_no_rltt_for_not_run_load(stop_date_2022_236):  # noqa: ARG001
 stop_date_2022_352 = stop_date_fixture_factory("2022-12-17")
 
 
+@pytest.mark.skipif(not HAS_INTERNET, reason="No internet connection")
 def test_30_day_lookback_issue(stop_date_2022_352):  # noqa: ARG001
     """Test for fix in PR #265 of somewhat obscure issue where a query
     within the default 30-day lookback could give zero commands. Prior to
