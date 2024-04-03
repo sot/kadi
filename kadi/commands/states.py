@@ -3,6 +3,7 @@ Provide functions for dynamically determining Chandra commanded states.
 
 This is based entirely on known history of commands.
 """
+
 import collections
 import contextlib
 import functools
