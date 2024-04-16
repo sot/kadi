@@ -5,19 +5,19 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Commands archive v2 details &#8212; kadi 7.9.0 documentation</title>
+    <title>Commands archive v2 details &#8212; kadi 7.10.0 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="_static/bootstrap-astropy.css?v=f4f7060c" />
     <link rel="stylesheet" type="text/css" href="_static/plot_directive.css" />
     
-    <script src="_static/documentation_options.js?v=a678aa7c"></script>
+    <script src="_static/documentation_options.js?v=e849c607"></script>
     <script src="_static/doctools.js?v=888ff710"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script type="text/javascript" src="_static/sidebar.js"></script>
     <script type="text/javascript" src="_static/copybutton.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Commands archive v1" href="commands_v1.html" />
+    <link rel="next" title="API documentation" href="api.html" />
     <link rel="prev" title="Commands and states" href="commands_states.html" />
     <link href='https://fonts.googleapis.com/css?family=Source+Sans+Pro:200,600' rel='stylesheet' type='text/css'/>
 
@@ -48,7 +48,7 @@
     <h3>Navigation</h3>
     <ul>
       <li class="right">
-	<a href="commands_v1.html" title="Commands archive v1">
+	<a href="api.html" title="API documentation">
 	  next &raquo;
 	</a>
       </li>
@@ -59,7 +59,7 @@
 	 |
       </li>
       <li>
-	<a href="index.html">kadi 7.9.0 documentation</a>
+	<a href="index.html">kadi 7.10.0 documentation</a>
 	 &#187;
       </li>
       <li><a href="commands_states.html" accesskey="U">Commands and states</a> &#187;</li>
@@ -94,29 +94,6 @@ of managers. This spreadsheet will be maintained by FOT MP in a timely manner
 <p>The other key web resource is the OCCweb <a class="reference external" href="https://occweb.cfa.harvard.edu/occweb/FOT/mission_planning/PRODUCTS/APPR_LOADS/">FOT mission planning approved load products</a>
 directory tree. This is used to automatically find all recent approved loads
 and incorporate them into the load commands archive.</p>
-</section>
-<section id="differences-from-v1">
-<h2>Differences from v1<a class="headerlink" href="#differences-from-v1" title="Link to this heading">¶</a></h2>
-<p>Apart from the fundamental change in data sources mentioned above, some key
-changes from v1 are as follows:</p>
-<ul class="simple">
-<li><p>Commands table includes a <code class="docutils literal notranslate"><span class="pre">source</span></code> column that defines the source of the
-command. Most commonly this is a weekly load name, but it can also indicate
-a non-load command event for which further details are provided in the command
-parameters.</p></li>
-<li><p>Information about each distinct observation is embedded into the command
-archive as <code class="docutils literal notranslate"><span class="pre">LOAD_EVENT</span></code> pseudo-commands. The
-<a class="reference internal" href="api_commands.html#kadi.commands.observations.get_observations" title="kadi.commands.observations.get_observations"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_observations()</span></code></a> provides a fast and
-convenient way to find observations, both past and planned. See the
-<a class="reference internal" href="commands_states.html#getting-observations"><span class="std std-ref">Getting observations</span></a> section for more details.</p></li>
-<li><p>Information about each ACA star catalog is stored in the command
-archive. The <a class="reference internal" href="api_commands.html#kadi.commands.observations.get_observations" title="kadi.commands.observations.get_observations"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_observations()</span></code></a> provides a
-convenient way to find ACA star catalogs, both past and planned. See the
-<a class="reference internal" href="commands_states.html#getting-star-catalogs"><span class="std std-ref">Getting star catalogs</span></a> section for more details.</p></li>
-<li><p>There are configuration options which can be set programmatically or in a fixed
-configuration file to control behavior of the package. See the
-<a class="reference internal" href="#id1">Configuration options</a> section for more details.</p></li>
-</ul>
 </section>
 <section id="scenarios">
 <h2>Scenarios<a class="headerlink" href="#scenarios" title="Link to this heading">¶</a></h2>
@@ -154,7 +131,6 @@ workstations if they cannot access the Chandra Command Events Google sheet.</p>
 of the 2021:296 NSM recovery:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">kadi</span> <span class="kn">import</span> <span class="n">paths</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">kadi.commands</span> <span class="kn">import</span> <span class="n">conf</span><span class="p">,</span> <span class="n">get_cmds</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">conf</span><span class="o">.</span><span class="n">commands_version</span> <span class="o">=</span> <span class="s1">&#39;2&#39;</span>
 
 <span class="gp">&gt;&gt;&gt; </span><span class="n">cmds</span> <span class="o">=</span> <span class="n">get_cmds</span><span class="p">(</span><span class="n">start</span><span class="o">=</span><span class="s1">&#39;2022:001&#39;</span><span class="p">)</span>  <span class="c1"># Ensure local cmd_events.csv is up to date</span>
 
@@ -231,10 +207,6 @@ $ dpa_check \
 <span class="c1">## downloading from Google Sheets and OCCweb.</span>
 <span class="n">commands_dir</span> <span class="o">=</span> <span class="o">~/.</span><span class="n">kadi</span>
 
-<span class="c1">## Default version of kadi commands (&quot;1&quot; or &quot;2&quot;).  Overridden by</span>
-<span class="c1">## KADI_COMMANDS_VERSION environment variable.</span>
-<span class="n">commands_version</span> <span class="o">=</span> <span class="mi">2</span>
-
 <span class="c1">## Google Sheet ID for command events (flight scenario).</span>
 <span class="n">cmd_events_flight_id</span> <span class="o">=</span> <span class="mi">19</span><span class="n">d6XqBhWoFjC</span><span class="o">-</span><span class="n">z1lS1nM6wLE_zjr4GYB1lOvrEGCbKQ</span>
 
@@ -256,9 +228,9 @@ Python to change a parameter for all subsequent code:</p>
 </pre></div>
 </div>
 <p>You can also temporarily change an option within a context manager:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">conf</span><span class="o">.</span><span class="n">set_temp</span><span class="p">(</span><span class="s1">&#39;commands_version&#39;</span><span class="p">,</span> <span class="s1">&#39;2&#39;</span><span class="p">):</span>
-<span class="gp">... </span>    <span class="n">cmds2</span> <span class="o">=</span> <span class="n">get_cmds</span><span class="p">(</span><span class="s1">&#39;2022:001&#39;</span><span class="p">,</span> <span class="s1">&#39;2022:002&#39;</span><span class="p">)</span>  <span class="c1"># Use commands v2</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">cmds1</span> <span class="o">=</span> <span class="n">get_cmds</span><span class="p">(</span><span class="s1">&#39;2022:001&#39;</span><span class="p">,</span> <span class="s1">&#39;2022:002&#39;</span><span class="p">)</span>  <span class="c1"># Use commands v1</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">conf</span><span class="o">.</span><span class="n">set_temp</span><span class="p">(</span><span class="s1">&#39;include_in_work_command_events&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="n">cmds_in_work</span> <span class="o">=</span> <span class="n">get_cmds</span><span class="p">(</span><span class="s1">&#39;2022:001&#39;</span><span class="p">,</span> <span class="s1">&#39;2022:002&#39;</span><span class="p">)</span>  <span class="c1"># Use Commands In-work events</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cmds_flight</span> <span class="o">=</span> <span class="n">get_cmds</span><span class="p">(</span><span class="s1">&#39;2022:001&#39;</span><span class="p">,</span> <span class="s1">&#39;2022:002&#39;</span><span class="p">)</span>  <span class="c1"># Use only Predictive or Definitive</span>
 </pre></div>
 </div>
 <p>For an even-more permanent solution you can write out the configuration file
@@ -277,9 +249,6 @@ forgetting to revert it later.</p>
 <dl class="simple">
 <dt><code class="docutils literal notranslate"><span class="pre">KADI</span></code></dt><dd><p>Override the default location of kadi flight data files <code class="docutils literal notranslate"><span class="pre">cmds2.h5</span></code> and
 <code class="docutils literal notranslate"><span class="pre">cmds2.pkl</span></code>.</p>
-</dd>
-<dt><code class="docutils literal notranslate"><span class="pre">KADI_COMMANDS_VERSION</span></code></dt><dd><p>Override the default kadi commands version. In order to use the commands
-archive v2 you should set this to <code class="docutils literal notranslate"><span class="pre">2</span></code>.</p>
 </dd>
 <dt><code class="docutils literal notranslate"><span class="pre">KADI_COMMANDS_DEFAULT_STOP</span></code></dt><dd><p>For testing and demonstration purposes, this environment variable can be set
 to a date which is used as the default stop time for commands. In effect this
@@ -373,7 +342,6 @@ is not configurable as they are set by the <a class="reference external" href="h
 <ul>
 <li><a class="reference internal" href="#">Commands archive v2 details</a><ul>
 <li><a class="reference internal" href="#concept-overview">Concept overview</a></li>
-<li><a class="reference internal" href="#differences-from-v1">Differences from v1</a></li>
 <li><a class="reference internal" href="#scenarios">Scenarios</a><ul>
 <li><a class="reference internal" href="#flight-scenario-no-network">Flight scenario (no network)</a></li>
 <li><a class="reference internal" href="#custom-scenario-example">Custom scenario example</a></li>
@@ -403,8 +371,8 @@ is not configurable as they are set by the <a class="reference external" href="h
   </div>
   <div>
     <h4>Next topic</h4>
-    <p class="topless"><a href="commands_v1.html"
-                          title="next chapter">Commands archive v1</a></p>
+    <p class="topless"><a href="api.html"
+                          title="next chapter">API documentation</a></p>
   </div>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>

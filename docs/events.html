@@ -5,12 +5,12 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Chandra events &#8212; kadi 7.9.0 documentation</title>
+    <title>Chandra events &#8212; kadi 7.10.0 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="_static/bootstrap-astropy.css?v=f4f7060c" />
     <link rel="stylesheet" type="text/css" href="_static/plot_directive.css" />
     
-    <script src="_static/documentation_options.js?v=a678aa7c"></script>
+    <script src="_static/documentation_options.js?v=e849c607"></script>
     <script src="_static/doctools.js?v=888ff710"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script type="text/javascript" src="_static/sidebar.js"></script>
@@ -59,7 +59,7 @@
 	 |
       </li>
       <li>
-	<a href="index.html">kadi 7.9.0 documentation</a>
+	<a href="index.html">kadi 7.10.0 documentation</a>
 	 &#187;
       </li>
       
@@ -93,9 +93,9 @@ event types and some of them unique.</p>
 <section id="interval-events">
 <h3>Interval events<a class="headerlink" href="#interval-events" title="Link to this heading">¶</a></h3>
 <p>Most of the event types represent an <strong>interval of time</strong> with some defining characteristic,
-for instance maneuvers (<a class="reference internal" href="api_events.html#kadi.events.models.Manvr" title="kadi.events.models.Manvr"><code class="xref py py-class docutils literal notranslate"><span class="pre">Manvr</span></code></a>), radiation zones (<a class="reference internal" href="api_events.html#kadi.events.models.RadZone" title="kadi.events.models.RadZone"><code class="xref py py-class docutils literal notranslate"><span class="pre">RadZone</span></code></a>) or SIM TSC translations
-(<a class="reference internal" href="api_events.html#kadi.events.models.TscMove" title="kadi.events.models.TscMove"><code class="xref py py-class docutils literal notranslate"><span class="pre">TscMove</span></code></a>).  The documentation for each event type contains the event defintion, for
-example the <a class="reference internal" href="api_events.html#kadi.events.models.Eclipse" title="kadi.events.models.Eclipse"><code class="xref py py-class docutils literal notranslate"><span class="pre">Eclipse</span></code></a> event is the interval where <code class="docutils literal notranslate"><span class="pre">AOECLIPS</span> <span class="pre">=</span> <span class="pre">'ECL'</span></code>.</p>
+for instance maneuvers (<code class="xref py py-class docutils literal notranslate"><span class="pre">Manvr</span></code>), radiation zones (<code class="xref py py-class docutils literal notranslate"><span class="pre">RadZone</span></code>) or SIM TSC translations
+(<code class="xref py py-class docutils literal notranslate"><span class="pre">TscMove</span></code>).  The documentation for each event type contains the event defintion, for
+example the <code class="xref py py-class docutils literal notranslate"><span class="pre">Eclipse</span></code> event is the interval where <code class="docutils literal notranslate"><span class="pre">AOECLIPS</span> <span class="pre">=</span> <span class="pre">'ECL'</span></code>.</p>
 <p>These “interval” event types all share the following fields:</p>
 <table class="docutils align-default">
 <thead>
@@ -122,8 +122,8 @@ example the <a class="reference internal" href="api_events.html#kadi.events.mode
 </tbody>
 </table>
 <p>Many of the event types have additional fields that are specific to that type.  For
-example the <a class="reference internal" href="api_events.html#kadi.events.models.FaMove" title="kadi.events.models.FaMove"><code class="xref py py-class docutils literal notranslate"><span class="pre">FaMove</span></code></a> event also provides the values of the FA step position
-<code class="docutils literal notranslate"><span class="pre">3FAPOS</span></code> before and after the SIM focus assembly translation, and the <a class="reference internal" href="api_events.html#kadi.events.models.DsnComm" title="kadi.events.models.DsnComm"><code class="xref py py-class docutils literal notranslate"><span class="pre">DsnComm</span></code></a> event
+example the <code class="xref py py-class docutils literal notranslate"><span class="pre">FaMove</span></code> event also provides the values of the FA step position
+<code class="docutils literal notranslate"><span class="pre">3FAPOS</span></code> before and after the SIM focus assembly translation, and the <code class="xref py py-class docutils literal notranslate"><span class="pre">DsnComm</span></code> event
 provides a host of information about each comm pass:</p>
 <table class="docutils align-default">
 <thead>
@@ -194,9 +194,9 @@ provides a host of information about each comm pass:</p>
 </section>
 <section id="non-interval-events">
 <h3>Non-interval events<a class="headerlink" href="#non-interval-events" title="Link to this heading">¶</a></h3>
-<p>The event types <a class="reference internal" href="api_events.html#kadi.events.models.MajorEvent" title="kadi.events.models.MajorEvent"><code class="xref py py-class docutils literal notranslate"><span class="pre">MajorEvent</span></code></a>, <a class="reference internal" href="api_events.html#kadi.events.models.ManvrSeq" title="kadi.events.models.ManvrSeq"><code class="xref py py-class docutils literal notranslate"><span class="pre">ManvrSeq</span></code></a>, and <a class="reference internal" href="api_events.html#kadi.events.models.OrbitPoint" title="kadi.events.models.OrbitPoint"><code class="xref py py-class docutils literal notranslate"><span class="pre">OrbitPoint</span></code></a> are a bit different in that
+<p>The event types <code class="xref py py-class docutils literal notranslate"><span class="pre">MajorEvent</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">ManvrSeq</span></code>, and <code class="xref py py-class docutils literal notranslate"><span class="pre">OrbitPoint</span></code> are a bit different in that
 they refer to <strong>moment in time</strong> rather than an interval.  For these types the only field
-they all have in common is <code class="docutils literal notranslate"><span class="pre">date</span></code>.  For example the <a class="reference internal" href="api_events.html#kadi.events.models.MajorEvent" title="kadi.events.models.MajorEvent"><code class="xref py py-class docutils literal notranslate"><span class="pre">MajorEvent</span></code></a> type has the following fields:</p>
+they all have in common is <code class="docutils literal notranslate"><span class="pre">date</span></code>.  For example the <code class="xref py py-class docutils literal notranslate"><span class="pre">MajorEvent</span></code> type has the following fields:</p>
 <table class="docutils align-default">
 <thead>
 <tr class="row-odd"><th class="head"><p>Field</p></th>
@@ -238,7 +238,7 @@ they all have in common is <code class="docutils literal notranslate"><span clas
 <p>Even though many Chandra Major Events (such as a safe mode) are really intervals in time,
 the source databases do not encapsulate that information so the derived Kadi database is
 likewise ignorant of the actual interval.  For the specific case of safe mode events the
-appropriate event type is actually <a class="reference internal" href="api_events.html#kadi.events.models.SafeSun" title="kadi.events.models.SafeSun"><code class="xref py py-class docutils literal notranslate"><span class="pre">SafeSun</span></code></a>, which <em>does</em> have a meaningful start and
+appropriate event type is actually <code class="xref py py-class docutils literal notranslate"><span class="pre">SafeSun</span></code>, which <em>does</em> have a meaningful start and
 stop time.</p>
 </section>
 </section>
@@ -323,7 +323,7 @@ modulation for each SIM translation as a function of time:</p>
 <section id="events-and-obsids">
 <h3>Events and obsids<a class="headerlink" href="#events-and-obsids" title="Link to this heading">¶</a></h3>
 <p>With <code class="docutils literal notranslate"><span class="pre">kadi</span></code> it’s easy to find the obsid for a particular event using the
-<a class="reference internal" href="api_events.html#kadi.events.models.BaseModel.get_obsid" title="kadi.events.models.BaseModel.get_obsid"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_obsid()</span></code></a> method of an event object that is
+<code class="xref py py-func docutils literal notranslate"><span class="pre">get_obsid()</span></code> method of an event object that is
 returned from a filter query.  The following example asks for all maneuvers within the
 range 2013:001:12:00:00 to 2013:002:12:00:00.  It then prints the obsid for the first
 matching maneuver, then prints the obsid for all matching maneuvers.  Note that in this
@@ -367,7 +367,7 @@ with the maneuver via the <code class="docutils literal notranslate"><span class
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>For most event types the event obsid (as returned by
-<a class="reference internal" href="api_events.html#kadi.events.models.BaseModel.get_obsid" title="kadi.events.models.BaseModel.get_obsid"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_obsid()</span></code></a>) is defined as the obsid at the start
+<code class="xref py py-func docutils literal notranslate"><span class="pre">get_obsid()</span></code>) is defined as the obsid at the start
 of the event.  The exception is maneuver events, for which it makes most sense to use
 the obsid at the <em>end</em> of the maneuver since that is the obsid for the corresponding
 Kalman dwell(s), star catalog and OR / ER.</p>
@@ -751,9 +751,9 @@ MSIDs.  The bad intervals with <code class="docutils literal notranslate"><span 
 <li><p>Select SIM moves that occur during a maneuver.</p></li>
 <li><p>Select maneuvers that have a SIM or Grating move.</p></li>
 </ul>
-<p>This is possible using the <a class="reference internal" href="api_events.html#kadi.events.models.BaseModel.QuerySet.select_overlapping" title="kadi.events.models.BaseModel.QuerySet.select_overlapping"><code class="xref py py-func docutils literal notranslate"><span class="pre">select_overlapping()</span></code></a>
+<p>This is possible using the <code class="xref py py-func docutils literal notranslate"><span class="pre">select_overlapping()</span></code>
 method of a <cite>QuerySet</cite> object.  A <cite>QuerySet</cite> is the object that gets returned when you use
-the <a class="reference internal" href="api_events.html#kadi.events.query.EventQuery.filter" title="kadi.events.query.EventQuery.filter"><code class="xref py py-func docutils literal notranslate"><span class="pre">filter()</span></code></a> or <a class="reference internal" href="api_events.html#kadi.events.query.EventQuery.all" title="kadi.events.query.EventQuery.all"><code class="xref py py-func docutils literal notranslate"><span class="pre">all()</span></code></a>
+the <code class="xref py py-func docutils literal notranslate"><span class="pre">filter()</span></code> or <code class="xref py py-func docutils literal notranslate"><span class="pre">all()</span></code>
 methods.</p>
 <p>This is all easiest to see by example.  Start by getting a subset of maneuvers that
 occurred between 2001:001:00:00:00 and 2001:003:00:00:00:</p>
@@ -848,95 +848,95 @@ Please refer to this notebook and download and run it.</p>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p><a class="reference internal" href="api_events.html#kadi.events.models.CAP" title="kadi.events.models.CAP"><code class="xref py py-class docutils literal notranslate"><span class="pre">CAP</span></code></a></p></td>
+<tr class="row-even"><td><p><code class="xref py py-class docutils literal notranslate"><span class="pre">CAP</span></code></p></td>
 <td><p><a class="reference internal" href="event_descriptions.html#event-cap"><span class="std std-ref">CAP from iFOT database</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">caps</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="api_events.html#kadi.events.models.DarkCal" title="kadi.events.models.DarkCal"><code class="xref py py-class docutils literal notranslate"><span class="pre">DarkCal</span></code></a></p></td>
+<tr class="row-odd"><td><p><code class="xref py py-class docutils literal notranslate"><span class="pre">DarkCal</span></code></p></td>
 <td><p><a class="reference internal" href="event_descriptions.html#event-dark-cal"><span class="std std-ref">ACA dark current calibration event</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">dark_cals</span></code></p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="api_events.html#kadi.events.models.DarkCalReplica" title="kadi.events.models.DarkCalReplica"><code class="xref py py-class docutils literal notranslate"><span class="pre">DarkCalReplica</span></code></a></p></td>
+<tr class="row-even"><td><p><code class="xref py py-class docutils literal notranslate"><span class="pre">DarkCalReplica</span></code></p></td>
 <td><p><a class="reference internal" href="event_descriptions.html#event-dark-cal-replica"><span class="std std-ref">ACA dark current calibration replica</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">dark_cal_replicas</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="api_events.html#kadi.events.models.DsnComm" title="kadi.events.models.DsnComm"><code class="xref py py-class docutils literal notranslate"><span class="pre">DsnComm</span></code></a></p></td>
+<tr class="row-odd"><td><p><code class="xref py py-class docutils literal notranslate"><span class="pre">DsnComm</span></code></p></td>
 <td><p><a class="reference internal" href="event_descriptions.html#event-dsn-comm"><span class="std std-ref">DSN comm period</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">dsn_comms</span></code></p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="api_events.html#kadi.events.models.Dump" title="kadi.events.models.Dump"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dump</span></code></a></p></td>
+<tr class="row-even"><td><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Dump</span></code></p></td>
 <td><p><a class="reference internal" href="event_descriptions.html#event-dump"><span class="std std-ref">Momentum unload either ground commanded or autonomous</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">dumps</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="api_events.html#kadi.events.models.Dwell" title="kadi.events.models.Dwell"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dwell</span></code></a></p></td>
+<tr class="row-odd"><td><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Dwell</span></code></p></td>
 <td><p><a class="reference internal" href="event_descriptions.html#event-dwell"><span class="std std-ref">Dwell in Kalman mode</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">dwells</span></code></p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="api_events.html#kadi.events.models.Eclipse" title="kadi.events.models.Eclipse"><code class="xref py py-class docutils literal notranslate"><span class="pre">Eclipse</span></code></a></p></td>
+<tr class="row-even"><td><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Eclipse</span></code></p></td>
 <td><p><a class="reference internal" href="event_descriptions.html#event-eclipse"><span class="std std-ref">Eclipse</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">eclipses</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="api_events.html#kadi.events.models.FaMove" title="kadi.events.models.FaMove"><code class="xref py py-class docutils literal notranslate"><span class="pre">FaMove</span></code></a></p></td>
+<tr class="row-odd"><td><p><code class="xref py py-class docutils literal notranslate"><span class="pre">FaMove</span></code></p></td>
 <td><p><a class="reference internal" href="event_descriptions.html#event-fa-move"><span class="std std-ref">SIM FA translation</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">fa_moves</span></code></p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="api_events.html#kadi.events.models.GratingMove" title="kadi.events.models.GratingMove"><code class="xref py py-class docutils literal notranslate"><span class="pre">GratingMove</span></code></a></p></td>
+<tr class="row-even"><td><p><code class="xref py py-class docutils literal notranslate"><span class="pre">GratingMove</span></code></p></td>
 <td><p><a class="reference internal" href="event_descriptions.html#event-grating-move"><span class="std std-ref">Grating movement (HETG or LETG)</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">grating_moves</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="api_events.html#kadi.events.models.LoadSegment" title="kadi.events.models.LoadSegment"><code class="xref py py-class docutils literal notranslate"><span class="pre">LoadSegment</span></code></a></p></td>
+<tr class="row-odd"><td><p><code class="xref py py-class docutils literal notranslate"><span class="pre">LoadSegment</span></code></p></td>
 <td><p><a class="reference internal" href="event_descriptions.html#event-load-segment"><span class="std std-ref">Load segment</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">load_segments</span></code></p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="api_events.html#kadi.events.models.LttBad" title="kadi.events.models.LttBad"><code class="xref py py-class docutils literal notranslate"><span class="pre">LttBad</span></code></a></p></td>
+<tr class="row-even"><td><p><code class="xref py py-class docutils literal notranslate"><span class="pre">LttBad</span></code></p></td>
 <td><p><a class="reference internal" href="event_descriptions.html#event-ltt-bad"><span class="std std-ref">LTT bad intervals</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">ltt_bads</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="api_events.html#kadi.events.models.MajorEvent" title="kadi.events.models.MajorEvent"><code class="xref py py-class docutils literal notranslate"><span class="pre">MajorEvent</span></code></a></p></td>
+<tr class="row-odd"><td><p><code class="xref py py-class docutils literal notranslate"><span class="pre">MajorEvent</span></code></p></td>
 <td><p><a class="reference internal" href="event_descriptions.html#event-major-event"><span class="std std-ref">Major event</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">major_events</span></code></p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="api_events.html#kadi.events.models.Manvr" title="kadi.events.models.Manvr"><code class="xref py py-class docutils literal notranslate"><span class="pre">Manvr</span></code></a></p></td>
+<tr class="row-even"><td><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Manvr</span></code></p></td>
 <td><p><a class="reference internal" href="event_descriptions.html#event-manvr"><span class="std std-ref">Maneuver</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">manvrs</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="api_events.html#kadi.events.models.ManvrSeq" title="kadi.events.models.ManvrSeq"><code class="xref py py-class docutils literal notranslate"><span class="pre">ManvrSeq</span></code></a></p></td>
+<tr class="row-odd"><td><p><code class="xref py py-class docutils literal notranslate"><span class="pre">ManvrSeq</span></code></p></td>
 <td><p><a class="reference internal" href="event_descriptions.html#event-manvr-seq"><span class="std std-ref">Maneuver sequence event</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">manvr_seqs</span></code></p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="api_events.html#kadi.events.models.NormalSun" title="kadi.events.models.NormalSun"><code class="xref py py-class docutils literal notranslate"><span class="pre">NormalSun</span></code></a></p></td>
+<tr class="row-even"><td><p><code class="xref py py-class docutils literal notranslate"><span class="pre">NormalSun</span></code></p></td>
 <td><p><a class="reference internal" href="event_descriptions.html#event-normal-sun"><span class="std std-ref">Normal sun mode event</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">normal_suns</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="api_events.html#kadi.events.models.Obsid" title="kadi.events.models.Obsid"><code class="xref py py-class docutils literal notranslate"><span class="pre">Obsid</span></code></a></p></td>
+<tr class="row-odd"><td><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Obsid</span></code></p></td>
 <td><p><a class="reference internal" href="event_descriptions.html#event-obsid"><span class="std std-ref">Observation identifier</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">obsids</span></code></p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="api_events.html#kadi.events.models.Orbit" title="kadi.events.models.Orbit"><code class="xref py py-class docutils literal notranslate"><span class="pre">Orbit</span></code></a></p></td>
+<tr class="row-even"><td><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Orbit</span></code></p></td>
 <td><p><a class="reference internal" href="event_descriptions.html#event-orbit"><span class="std std-ref">Orbit</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">orbits</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="api_events.html#kadi.events.models.OrbitPoint" title="kadi.events.models.OrbitPoint"><code class="xref py py-class docutils literal notranslate"><span class="pre">OrbitPoint</span></code></a></p></td>
+<tr class="row-odd"><td><p><code class="xref py py-class docutils literal notranslate"><span class="pre">OrbitPoint</span></code></p></td>
 <td><p><a class="reference internal" href="event_descriptions.html#event-orbit-point"><span class="std std-ref">Orbit point</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">orbit_points</span></code></p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="api_events.html#kadi.events.models.PassPlan" title="kadi.events.models.PassPlan"><code class="xref py py-class docutils literal notranslate"><span class="pre">PassPlan</span></code></a></p></td>
+<tr class="row-even"><td><p><code class="xref py py-class docutils literal notranslate"><span class="pre">PassPlan</span></code></p></td>
 <td><p><a class="reference internal" href="event_descriptions.html#event-pass-plan"><span class="std std-ref">Pass plan</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">pass_plans</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="api_events.html#kadi.events.models.RadZone" title="kadi.events.models.RadZone"><code class="xref py py-class docutils literal notranslate"><span class="pre">RadZone</span></code></a></p></td>
+<tr class="row-odd"><td><p><code class="xref py py-class docutils literal notranslate"><span class="pre">RadZone</span></code></p></td>
 <td><p><a class="reference internal" href="event_descriptions.html#event-rad-zone"><span class="std std-ref">Radiation zone</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">rad_zones</span></code></p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="api_events.html#kadi.events.models.SafeSun" title="kadi.events.models.SafeSun"><code class="xref py py-class docutils literal notranslate"><span class="pre">SafeSun</span></code></a></p></td>
+<tr class="row-even"><td><p><code class="xref py py-class docutils literal notranslate"><span class="pre">SafeSun</span></code></p></td>
 <td><p><a class="reference internal" href="event_descriptions.html#event-safe-sun"><span class="std std-ref">Safe sun event</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">safe_suns</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="api_events.html#kadi.events.models.Scs107" title="kadi.events.models.Scs107"><code class="xref py py-class docutils literal notranslate"><span class="pre">Scs107</span></code></a></p></td>
+<tr class="row-odd"><td><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Scs107</span></code></p></td>
 <td><p><a class="reference internal" href="event_descriptions.html#event-scs107"><span class="std std-ref">SCS107 run</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">scs107s</span></code></p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="api_events.html#kadi.events.models.TscMove" title="kadi.events.models.TscMove"><code class="xref py py-class docutils literal notranslate"><span class="pre">TscMove</span></code></a></p></td>
+<tr class="row-even"><td><p><code class="xref py py-class docutils literal notranslate"><span class="pre">TscMove</span></code></p></td>
 <td><p><a class="reference internal" href="event_descriptions.html#event-tsc-move"><span class="std std-ref">SIM TSC translation</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">tsc_moves</span></code></p></td>
 </tr>
@@ -945,7 +945,7 @@ Please refer to this notebook and download and run it.</p>
 </section>
 <section id="event-filtering">
 <h3>Event filtering<a class="headerlink" href="#event-filtering" title="Link to this heading">¶</a></h3>
-<p>The <a class="reference internal" href="api_events.html#kadi.events.query.EventQuery" title="kadi.events.query.EventQuery"><code class="xref py py-class docutils literal notranslate"><span class="pre">EventQuery</span></code></a> <a class="reference internal" href="api_events.html#kadi.events.query.EventQuery.filter" title="kadi.events.query.EventQuery.filter"><code class="xref py py-func docutils literal notranslate"><span class="pre">filter()</span></code></a>
+<p>The <code class="xref py py-class docutils literal notranslate"><span class="pre">EventQuery</span></code> <code class="xref py py-func docutils literal notranslate"><span class="pre">filter()</span></code>
 method allows you to find events between <code class="docutils literal notranslate"><span class="pre">start</span></code> and <code class="docutils literal notranslate"><span class="pre">stop</span></code>, or with the given
 <code class="docutils literal notranslate"><span class="pre">obsid</span></code>, which match the filter attributes in subsequent keyword arguments.  The
 matching events are returned as a Django query set [1].</p>
@@ -974,7 +974,7 @@ Django documentation on <a class="reference external" href="https://docs.djangop
 <span class="gp">&gt;&gt;&gt; </span><span class="n">events</span><span class="o">.</span><span class="n">manvrs</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">obsid</span><span class="o">=</span><span class="mi">14305</span><span class="p">)</span>  <span class="c1"># Manveuver(s) where obsid=14305 at start</span>
 </pre></div>
 </div>
-<p>To get all of the events use the <a class="reference internal" href="api_events.html#kadi.events.query.EventQuery.all" title="kadi.events.query.EventQuery.all"><code class="xref py py-func docutils literal notranslate"><span class="pre">all()</span></code></a> method:</p>
+<p>To get all of the events use the <code class="xref py py-func docutils literal notranslate"><span class="pre">all()</span></code> method:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">events</span><span class="o">.</span><span class="n">normal_suns</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
 <span class="go">&lt;NormalSun: start=2000:027:13:33:38.872 dur=1020&gt;</span>
 <span class="go">&lt;NormalSun: start=2000:049:03:23:08.544 dur=126872&gt;</span>
@@ -985,7 +985,7 @@ Django documentation on <a class="reference external" href="https://docs.djangop
 </div>
 <section id="advanced-filtering">
 <h4>Advanced filtering<a class="headerlink" href="#advanced-filtering" title="Link to this heading">¶</a></h4>
-<p>The result of a <a class="reference internal" href="api_events.html#kadi.events.query.EventQuery.filter" title="kadi.events.query.EventQuery.filter"><code class="xref py py-func docutils literal notranslate"><span class="pre">filter()</span></code></a> query is a Django
+<p>The result of a <code class="xref py py-func docutils literal notranslate"><span class="pre">filter()</span></code> query is a Django
 <code class="docutils literal notranslate"><span class="pre">QuerySet</span></code> object.  From this starting point you can chain additional queries
 or take advantage of any of the <code class="docutils literal notranslate"><span class="pre">QuerySet</span></code> functionality described in
 <a class="reference external" href="https://docs.djangoproject.com/en/3.1/topics/db/queries/">Making queries</a>.</p>

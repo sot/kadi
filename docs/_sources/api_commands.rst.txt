@@ -5,7 +5,7 @@ Commands API
 Commands
 --------
 
-.. automodule:: kadi.commands.commands
+.. automodule:: kadi.commands.commands_v2
    :members:
 
 Observations

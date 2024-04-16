@@ -5,12 +5,12 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Commands API &#8212; kadi 7.9.0 documentation</title>
+    <title>Commands API &#8212; kadi 7.10.0 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="_static/bootstrap-astropy.css?v=f4f7060c" />
     <link rel="stylesheet" type="text/css" href="_static/plot_directive.css" />
     
-    <script src="_static/documentation_options.js?v=a678aa7c"></script>
+    <script src="_static/documentation_options.js?v=e849c607"></script>
     <script src="_static/doctools.js?v=888ff710"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script type="text/javascript" src="_static/sidebar.js"></script>
@@ -59,7 +59,7 @@
 	 |
       </li>
       <li>
-	<a href="index.html">kadi 7.9.0 documentation</a>
+	<a href="index.html">kadi 7.10.0 documentation</a>
 	 &#187;
       </li>
       <li><a href="api.html" accesskey="U">API documentation</a> &#187;</li>
@@ -76,327 +76,14 @@
             
   <section id="commands-api">
 <h1>Commands API<a class="headerlink" href="#commands-api" title="Link to this heading">¶</a></h1>
-<section id="module-kadi.commands.commands">
-<span id="commands"></span><h2>Commands<a class="headerlink" href="#module-kadi.commands.commands" title="Link to this heading">¶</a></h2>
-<dl class="py function">
-<dt class="sig sig-object py" id="kadi.commands.commands.clear_caches">
-<span class="sig-prename descclassname"><span class="pre">kadi.commands.commands.</span></span><span class="sig-name descname"><span class="pre">clear_caches</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/commands/commands.html#clear_caches"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.commands.commands.clear_caches" title="Link to this definition">¶</a></dt>
-<dd><p>Clear all commands caches.</p>
-<p>This is useful for testing and in case upstream products like the Command
-Events sheet have changed during a session.</p>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="kadi.commands.commands.get_cmds">
-<span class="sig-prename descclassname"><span class="pre">kadi.commands.commands.</span></span><span class="sig-name descname"><span class="pre">get_cmds</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stop</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inclusive_stop</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scenario</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/commands/commands.html#get_cmds"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.commands.commands.get_cmds" title="Link to this definition">¶</a></dt>
-<dd><p>Get commands beteween <code class="docutils literal notranslate"><span class="pre">start</span></code> and <code class="docutils literal notranslate"><span class="pre">stop</span></code>.</p>
-<p>By default the interval is <code class="docutils literal notranslate"><span class="pre">start</span></code> &lt;= date &lt; <code class="docutils literal notranslate"><span class="pre">stop</span></code>, but if
-<code class="docutils literal notranslate"><span class="pre">inclusive_stop=True</span></code> then the interval is <code class="docutils literal notranslate"><span class="pre">start</span></code> &lt;= date &lt;= <code class="docutils literal notranslate"><span class="pre">stop</span></code>.</p>
-<p>Additional <code class="docutils literal notranslate"><span class="pre">key=val</span></code> pairs can be supplied to further filter the results.
-Both <code class="docutils literal notranslate"><span class="pre">key</span></code> and <code class="docutils literal notranslate"><span class="pre">val</span></code> are case insensitive.  In addition to the any of
-the command parameters such as TLMSID, MSID, SCS, STEP, or POS, the <code class="docutils literal notranslate"><span class="pre">key</span></code>
-can be:</p>
-<dl class="simple">
-<dt>type</dt><dd><p>Command type e.g. COMMAND_SW, COMMAND_HW, ACISPKT, SIMTRANS</p>
-</dd>
-<dt>date</dt><dd><p>Exact date of command e.g. ‘2013:003:22:11:45.530’</p>
-</dd>
-</dl>
-<p>If <code class="docutils literal notranslate"><span class="pre">date</span></code> is provided then <code class="docutils literal notranslate"><span class="pre">start</span></code> and <code class="docutils literal notranslate"><span class="pre">stop</span></code> values are ignored.</p>
-<p>Examples:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">kadi</span> <span class="kn">import</span> <span class="n">commands</span> <span class="n">cmds</span> <span class="o">=</span> <span class="n">commands</span><span class="o">.</span><span class="n">get_cmds</span><span class="p">(</span><span class="s1">&#39;2012:001&#39;</span><span class="p">,</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="s1">&#39;2012:030&#39;</span><span class="p">)</span> <span class="n">cmds</span> <span class="o">=</span> <span class="n">commands</span><span class="o">.</span><span class="n">get_cmds</span><span class="p">(</span><span class="s1">&#39;2012:001&#39;</span><span class="p">,</span> <span class="s1">&#39;2012:030&#39;</span><span class="p">,</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">type</span><span class="o">=</span><span class="s1">&#39;simtrans&#39;</span><span class="p">)</span> <span class="n">cmds</span> <span class="o">=</span> <span class="n">commands</span><span class="o">.</span><span class="n">get_cmds</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s1">&#39;acispkt&#39;</span><span class="p">,</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">tlmsid</span><span class="o">=</span><span class="s1">&#39;wsvidalldn&#39;</span><span class="p">)</span> <span class="n">cmds</span> <span class="o">=</span> <span class="n">commands</span><span class="o">.</span><span class="n">get_cmds</span><span class="p">(</span><span class="n">msid</span><span class="o">=</span><span class="s1">&#39;aflcrset&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">cmds</span><span class="p">)</span>
-</pre></div>
-</div>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>start</strong><span class="classifier">DateTime format (optional) Start time, defaults to beginning</span></dt><dd><p>of available commands (2002:001)</p>
-</dd>
-<dt><strong>stop</strong><span class="classifier">DateTime format (optional) Stop time, defaults to end of available</span></dt><dd><p>commands</p>
-</dd>
-<dt><strong>inclusive_stop</strong></dt><dd><p>bool, include commands at exactly <code class="docutils literal notranslate"><span class="pre">stop</span></code> if True.</p>
-</dd>
-<dt><strong>scenario</strong><span class="classifier">str, None</span></dt><dd><p>Commands scenario (applicable only for V2 commands)</p>
-</dd>
-<dt><strong>kwargs</strong></dt><dd><p>key=val keyword argument pairs for filtering</p>
-</dd>
-</dl>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><dl class="simple">
-<dt>CommandTable</dt><dd><p>Commands in the interval and matching the filter criteria.</p>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
+<section id="commands">
+<h2>Commands<a class="headerlink" href="#commands" title="Link to this heading">¶</a></h2>
 </section>
-<section id="module-kadi.commands.observations">
-<span id="observations"></span><h2>Observations<a class="headerlink" href="#module-kadi.commands.observations" title="Link to this heading">¶</a></h2>
-<dl class="py function">
-<dt class="sig sig-object py" id="kadi.commands.observations.get_observations">
-<span class="sig-prename descclassname"><span class="pre">kadi.commands.observations.</span></span><span class="sig-name descname"><span class="pre">get_observations</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stop</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obsid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scenario</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">starcat_date</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/commands/observations.html#get_observations"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.commands.observations.get_observations" title="Link to this definition">¶</a></dt>
-<dd><p>Get observations corresponding to input parameters.</p>
-<p>The <code class="docutils literal notranslate"><span class="pre">start</span></code>, <code class="docutils literal notranslate"><span class="pre">stop</span></code>, <code class="docutils literal notranslate"><span class="pre">starcat_date</span></code> and <code class="docutils literal notranslate"><span class="pre">obsid</span></code> parameters serve as
-matching filters on the list of observations that is returned.</p>
-<p>Over the mission there are thousands of instances of multiple observations
-with the same obsid, so this function always returns a list of observation
-parameters even when <code class="docutils literal notranslate"><span class="pre">obsid</span></code> is specified. This most frequently occurs
-after any unexpected stoppage of the observng loads (SCS-107) which
-therefore cancels subsequent obsid commanding. In many cases you can just
-use the first element.</p>
-<p>Examples:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">kadi.commands</span> <span class="kn">import</span> <span class="n">get_observations</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">obs</span> <span class="o">=</span> <span class="n">get_observations</span><span class="p">(</span><span class="n">obsid</span><span class="o">=</span><span class="mi">8008</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">obs</span>
-<span class="go">{&#39;obsid&#39;: 8008,</span>
-<span class="go">&#39;simpos&#39;: 92904,</span>
-<span class="go">&#39;obs_stop&#39;: &#39;2007:002:18:04:28.965&#39;,</span>
-<span class="go">&#39;manvr_start&#39;: &#39;2007:002:04:31:48.216&#39;,</span>
-<span class="go">&#39;targ_att&#39;: (0.149614271, 0.490896707, 0.831470649, 0.21282047),</span>
-<span class="go">&#39;npnt_enab&#39;: True,</span>
-<span class="go">&#39;obs_start&#39;: &#39;2007:002:04:46:58.056&#39;,</span>
-<span class="go">&#39;prev_att&#39;: (0.319214732, 0.535685207, 0.766039803, 0.155969017),</span>
-<span class="go">&#39;starcat_date&#39;: &#39;2007:002:04:31:43.965&#39;,</span>
-<span class="go">&#39;starcat_idx&#39;: 147908,</span>
-<span class="go">&#39;source&#39;: &#39;DEC2506C&#39;}</span>
-
-<span class="gp">&gt;&gt;&gt; </span><span class="n">obs_all</span> <span class="o">=</span> <span class="n">get_observations</span><span class="p">()</span>  <span class="c1"># All observations in commands archive</span>
-
-<span class="go"># Might be convenient to handle this as a Table &gt;&gt;&gt; from astropy.table</span>
-<span class="go">import Table &gt;&gt;&gt; obs_all = Table(obs_all)</span>
-
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">kadi.commands</span> <span class="kn">import</span> <span class="n">get_observations</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">get_observations</span><span class="p">(</span><span class="n">starcat_date</span><span class="o">=</span><span class="s1">&#39;2022:001:17:00:58.521&#39;</span><span class="p">)</span>
-<span class="go">[{&#39;obsid&#39;: 23800,</span>
-<span class="go">&#39;simpos&#39;: 75624,</span>
-<span class="go">&#39;obs_stop&#39;: &#39;2022:002:01:24:53.004&#39;,</span>
-<span class="go">&#39;manvr_start&#39;: &#39;2022:001:17:01:02.772&#39;,</span>
-<span class="go">&#39;targ_att&#39;: (0.177875061, 0.452625075, 0.827436517, 0.280784286),</span>
-<span class="go">&#39;npnt_enab&#39;: True,</span>
-<span class="go">&#39;obs_start&#39;: &#39;2022:001:17:33:53.255&#39;,</span>
-<span class="go">&#39;prev_att&#39;: (0.116555575, -0.407948573, -0.759717367, 0.492770009),</span>
-<span class="go">&#39;starcat_date&#39;: &#39;2022:001:17:00:58.521&#39;,</span>
-<span class="go">&#39;starcat_idx&#39;: 171677,</span>
-<span class="go">&#39;source&#39;: &#39;DEC3021A&#39;}]</span>
-</pre></div>
-</div>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>start</strong><span class="classifier">CxoTime-like, None</span></dt><dd><p>Start time (default=beginning of commands)</p>
-</dd>
-<dt><strong>stop</strong><span class="classifier">CxoTime-like, None</span></dt><dd><p>Stop time (default=end of commands)</p>
-</dd>
-<dt><strong>obsid</strong><span class="classifier">int, None</span></dt><dd><p>ObsID</p>
-</dd>
-<dt><strong>scenario</strong><span class="classifier">str, None</span></dt><dd><p>Scenario</p>
-</dd>
-<dt><strong>cmds</strong><span class="classifier">CommandTable, None</span></dt><dd><p>Use this command table instead of querying the archive</p>
-</dd>
-<dt><strong>starcat_date</strong><span class="classifier">CxoTime-like, None</span></dt><dd><p>Date of the observation’s star catalog</p>
-</dd>
-</dl>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><dl class="simple">
-<dt>list of dict</dt><dd><p>Observation parameters for matching observations.</p>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="kadi.commands.observations.get_starcats">
-<span class="sig-prename descclassname"><span class="pre">kadi.commands.observations.</span></span><span class="sig-name descname"><span class="pre">get_starcats</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stop</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obsid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scenario</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">as_dict</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">starcat_date</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_progress</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/commands/observations.html#get_starcats"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.commands.observations.get_starcats" title="Link to this definition">¶</a></dt>
-<dd><p>Get a list of star catalogs corresponding to input parameters.</p>
-<p>The <code class="docutils literal notranslate"><span class="pre">start</span></code>, <code class="docutils literal notranslate"><span class="pre">stop</span></code> and <code class="docutils literal notranslate"><span class="pre">obsid</span></code> parameters serve as matching filters
-on the list of star catalogs that is returned.</p>
-<p>By default the result is a list of <code class="docutils literal notranslate"><span class="pre">ACATable</span></code> objects similar to the
-output of <code class="docutils literal notranslate"><span class="pre">proseco.get_aca_catalog</span></code>.</p>
-<p>If <code class="docutils literal notranslate"><span class="pre">as_dict</span></code> is <code class="docutils literal notranslate"><span class="pre">True</span></code> then the the result is a list of dictionaries
-with the same keys as the table columns plus a special “meta” key. The
-“meta” value is a dict with relevant metadata including the obsid, att,
-date, duration, sim_offset, and detctor. This method is substantially faster
-than the default.</p>
-<p>There are numerous instances of multiple observations with the same obsid,
-so this function always returns a list of star catalogs even when <code class="docutils literal notranslate"><span class="pre">obsid</span></code>
-is specified. In most cases you can just use the first element.</p>
-<p>The <code class="docutils literal notranslate"><span class="pre">mag</span></code> column corresponds to the AGASC magnitude <em>without</em> the AGASC
-supplement.</p>
-<p>Star ID’s are determined by finding the brightest AGASC star within a search
-box centered at the catalog location. The search box is 1.5 arcsec halfwidth
-in size, but it can be changed by setting the <code class="docutils literal notranslate"><span class="pre">star_id_match_halfwidth</span></code>
-configuration parameter. Fid ID’s are determined similarly by computing fid
-locations given the commanded SIM-Z position. The default box size is 40
-arcsec halfwidth, but it can be changed by setting the
-<code class="docutils literal notranslate"><span class="pre">fid_id_match_halfwidth</span></code> configuration parameter.</p>
-<p>The first time each particular star catalog is fetched, the star and fid
-ID’s are computed which is relatively slow. The resulting star catalog is
-(by default) cached in the <code class="docutils literal notranslate"><span class="pre">~/.kadi/starcats.db</span></code> file. Subsequent calls
-are significantly faster.</p>
-<p>Example:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">kadi.commands</span> <span class="kn">import</span> <span class="n">get_starcats</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">cat</span> <span class="o">=</span> <span class="n">get_starcats</span><span class="p">(</span><span class="n">obsid</span><span class="o">=</span><span class="mi">8008</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">cat</span>
-<span class="go">[&lt;ACATable length=11&gt;</span>
-<span class="go">slot  idx     id    type  sz    mag    maxmag   yang     zang    dim   res</span>
-<span class="go">int64 int64  int64   str3 str3 float64 float64 float64  float64  int64 int64</span>
-<span class="go">----- ----- -------- ---- ---- ------- ------- -------- -------- ----- -----</span>
-<span class="go">    0     1        1  FID  8x8    7.00    8.00   937.71  -829.17     1     1</span>
-<span class="go">    1     2        5  FID  8x8    7.00    8.00 -1810.42  1068.87     1     1</span>
-<span class="go">    2     3        6  FID  8x8    7.00    8.00   403.68  1712.93     1     1</span>
-<span class="go">    3     4 31075128  BOT  6x6    9.35   10.86  -318.22  1202.41    20     1</span>
-<span class="go">    4     5 31076560  BOT  6x6    9.70   11.20  -932.79  -354.55    20     1</span>
-<span class="go">    5     6 31463496  BOT  6x6    9.46   10.97  2026.85  1399.61    20     1</span>
-<span class="go">    6     7 31983336  BOT  6x6    8.64   10.14   890.71 -1600.39    20     1</span>
-<span class="go">    7     8 32374896  BOT  6x6    9.17   10.66  2023.08 -2021.72    13     1</span>
-<span class="go">    0     9 31075368  ACQ  6x6    9.13   10.64    54.04   754.79    20     1</span>
-<span class="go">    1    10 31982136  ACQ  6x6   10.19   11.70   562.06  -186.39    20     1</span>
-<span class="go">    2    11 32375384  ACQ  6x6    9.79   11.30  1612.28  -428.24    20     1]</span>
-</pre></div>
-</div>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>start</strong><span class="classifier">CxoTime-like, None</span></dt><dd><p>Start time (default=beginning of commands)</p>
-</dd>
-<dt><strong>stop</strong><span class="classifier">CxoTime-like, None</span></dt><dd><p>Stop time (default=end of commands)</p>
-</dd>
-<dt><strong>obsid</strong><span class="classifier">int, None</span></dt><dd><p>ObsID</p>
-</dd>
-<dt><strong>scenario</strong><span class="classifier">str, None</span></dt><dd><p>Scenario</p>
-</dd>
-<dt><strong>cmds</strong><span class="classifier">CommandTable, None</span></dt><dd><p>Use this command table instead of querying the archive.</p>
-</dd>
-<dt><strong>as_dict</strong><span class="classifier">bool, False</span></dt><dd><p>Return a list of dict instead of a list of ACATable objects.</p>
-</dd>
-<dt><strong>starcat_date</strong><span class="classifier">CxoTime-like, None</span></dt><dd><p>Date of the observation’s star catalog</p>
-</dd>
-<dt><strong>show_progress</strong><span class="classifier">bool</span></dt><dd><p>Show progress bar for long queries (default=False)</p>
-</dd>
-</dl>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><dl class="simple">
-<dt>list</dt><dd><p>List of star catalogs (ACATable or dict) for matching observations.</p>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="kadi.commands.observations.get_starcats_as_table">
-<span class="sig-prename descclassname"><span class="pre">kadi.commands.observations.</span></span><span class="sig-name descname"><span class="pre">get_starcats_as_table</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stop</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obsid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unique</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scenario</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">starcat_date</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/commands/observations.html#get_starcats_as_table"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.commands.observations.get_starcats_as_table" title="Link to this definition">¶</a></dt>
-<dd><p>Get a single table of star catalog entries corresponding to input parameters.</p>
-<p>This function calls <code class="docutils literal notranslate"><span class="pre">get_starcats</span></code> with the same parameters and then
-concatenates the results into a single table for convenience. In addition
-to the usual star catalog columns, the <code class="docutils literal notranslate"><span class="pre">obsid</span></code> and <code class="docutils literal notranslate"><span class="pre">starcat_date</span></code> are
-included.</p>
-<p>The <code class="docutils literal notranslate"><span class="pre">unique</span></code> parameter can be set to <code class="docutils literal notranslate"><span class="pre">True</span></code> to only return unique star
-catalog entries. There are numerous instances of a single commanded star
-catalogs that is associated with two ObsIDs, for instance ACIS undercover
-observations. To get only the first one, set <code class="docutils literal notranslate"><span class="pre">unique=True</span></code>.</p>
-<p>In the following example we get every unique commanded guide star in 2020
-and then join that with the corresponding observation information:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">kadi.commands</span> <span class="kn">import</span> <span class="n">get_starcats_as_table</span><span class="p">,</span> <span class="n">get_observations</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">astropy</span> <span class="kn">import</span> <span class="n">table</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">start</span><span class="o">=</span><span class="s1">&#39;2020:001&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">stop</span><span class="o">=</span><span class="s1">&#39;2021:001&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">aces</span> <span class="o">=</span> <span class="n">get_starcats_as_table</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">,</span> <span class="n">unique</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ok</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">aces</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">],</span> <span class="p">[</span><span class="s1">&#39;GUI&#39;</span><span class="p">,</span> <span class="s1">&#39;BOT&#39;</span><span class="p">])</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">guides</span> <span class="o">=</span> <span class="n">aces</span><span class="p">[</span><span class="n">ok</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">obss</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">Table</span><span class="p">(</span><span class="n">get_observations</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">obss</span> <span class="o">=</span> <span class="n">obss</span><span class="p">[</span><span class="o">~</span><span class="n">obss</span><span class="p">[</span><span class="s1">&#39;starcat_date&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">mask</span><span class="p">]</span>  <span class="c1"># keep only obs with starcat</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">guides</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">guides</span><span class="p">,</span> <span class="n">obss</span><span class="p">,</span> <span class="n">keys</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;starcat_date&#39;</span><span class="p">,</span> <span class="s1">&#39;obsid&#39;</span><span class="p">])</span>
-</pre></div>
-</div>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>start</strong><span class="classifier">CxoTime-like, None</span></dt><dd><p>Start time (default=beginning of commands)</p>
-</dd>
-<dt><strong>stop</strong><span class="classifier">CxoTime-like, None</span></dt><dd><p>Stop time (default=end of commands)</p>
-</dd>
-<dt><strong>obsid</strong><span class="classifier">int, None</span></dt><dd><p>ObsID</p>
-</dd>
-<dt><strong>unique</strong><span class="classifier">bool</span></dt><dd><p>If True return remove duplicate entries</p>
-</dd>
-<dt><strong>scenario</strong><span class="classifier">str, None</span></dt><dd><p>Scenario</p>
-</dd>
-<dt><strong>cmds</strong><span class="classifier">CommandTable, None</span></dt><dd><p>Use this command table instead of querying the archive.</p>
-</dd>
-<dt><strong>starcat_date</strong><span class="classifier">CxoTime-like, None</span></dt><dd><p>Date of the observation’s star catalog</p>
-</dd>
-</dl>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><dl class="simple">
-<dt>Table</dt><dd><p>Star catalog entries for matching observations.</p>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
+<section id="observations">
+<h2>Observations<a class="headerlink" href="#observations" title="Link to this heading">¶</a></h2>
 </section>
-<section id="module-kadi.commands.utils">
-<span id="utils"></span><h2>Utils<a class="headerlink" href="#module-kadi.commands.utils" title="Link to this heading">¶</a></h2>
-<dl class="py class">
-<dt class="sig sig-object py" id="kadi.commands.utils.TimeSeriesChunk">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">kadi.commands.utils.</span></span><span class="sig-name descname"><span class="pre">TimeSeriesChunk</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">first</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#kadi.commands.utils.TimeSeriesPoint" title="kadi.commands.utils.TimeSeriesPoint"><span class="pre">kadi.commands.utils.TimeSeriesPoint</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#kadi.commands.utils.TimeSeriesPoint" title="kadi.commands.utils.TimeSeriesPoint"><span class="pre">kadi.commands.utils.TimeSeriesPoint</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#kadi.commands.utils.TimeSeriesPoint" title="kadi.commands.utils.TimeSeriesPoint"><span class="pre">kadi.commands.utils.TimeSeriesPoint</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">last</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#kadi.commands.utils.TimeSeriesPoint" title="kadi.commands.utils.TimeSeriesPoint"><span class="pre">kadi.commands.utils.TimeSeriesPoint</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/commands/utils.html#TimeSeriesChunk"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.commands.utils.TimeSeriesChunk" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="kadi.commands.utils.TimeSeriesPoint">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">kadi.commands.utils.</span></span><span class="sig-name descname"><span class="pre">TimeSeriesPoint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">time</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">val</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/commands/utils.html#TimeSeriesPoint"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.commands.utils.TimeSeriesPoint" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="kadi.commands.utils.add_figure_regions">
-<span class="sig-prename descclassname"><span class="pre">kadi.commands.utils.</span></span><span class="sig-name descname"><span class="pre">add_figure_regions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fig</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Figure</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figure_start</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">CxoTime</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.26)"><span class="pre">ndarray</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">_SupportsArray</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v1.26)"><span class="pre">dtype</span></a><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">_NestedSequence</span><span class="p"><span class="pre">[</span></span><span class="pre">_SupportsArray</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v1.26)"><span class="pre">dtype</span></a><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">complex</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">bytes</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">_NestedSequence</span><span class="p"><span class="pre">[</span></span><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">complex</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">bytes</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figure_stop</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">CxoTime</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.26)"><span class="pre">ndarray</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">_SupportsArray</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v1.26)"><span class="pre">dtype</span></a><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">_NestedSequence</span><span class="p"><span class="pre">[</span></span><span class="pre">_SupportsArray</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v1.26)"><span class="pre">dtype</span></a><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">complex</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">bytes</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">_NestedSequence</span><span class="p"><span class="pre">[</span></span><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">complex</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">bytes</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">region_starts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">CxoTime</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.26)"><span class="pre">ndarray</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">_SupportsArray</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v1.26)"><span class="pre">dtype</span></a><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">_NestedSequence</span><span class="p"><span class="pre">[</span></span><span class="pre">_SupportsArray</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v1.26)"><span class="pre">dtype</span></a><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">complex</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">bytes</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">_NestedSequence</span><span class="p"><span class="pre">[</span></span><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">complex</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">bytes</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">region_stops</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">CxoTime</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.26)"><span class="pre">ndarray</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">_SupportsArray</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v1.26)"><span class="pre">dtype</span></a><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">_NestedSequence</span><span class="p"><span class="pre">[</span></span><span class="pre">_SupportsArray</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v1.26)"><span class="pre">dtype</span></a><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">complex</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">bytes</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">_NestedSequence</span><span class="p"><span class="pre">[</span></span><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">complex</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">bytes</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'black'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">opacity</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">line_width</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">3</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/commands/utils.html#add_figure_regions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.commands.utils.add_figure_regions" title="Link to this definition">¶</a></dt>
-<dd><p>Add regions to a figure with a date-based x-axis</p>
-<p><code class="docutils literal notranslate"><span class="pre">figure_start</span></code> and <code class="docutils literal notranslate"><span class="pre">figure_stop</span></code> are the start and stop times for the figure.
-<code class="docutils literal notranslate"><span class="pre">region_starts</span></code> and <code class="docutils literal notranslate"><span class="pre">region_stops</span></code> are lists of start/stop times for regions.</p>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="kadi.commands.utils.fill_gaps_with_nan">
-<span class="sig-prename descclassname"><span class="pre">kadi.commands.utils.</span></span><span class="sig-name descname"><span class="pre">fill_gaps_with_nan</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">times</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vals</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_gap</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.001</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/commands/utils.html#fill_gaps_with_nan"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.commands.utils.fill_gaps_with_nan" title="Link to this definition">¶</a></dt>
-<dd><p>Fill gaps in <code class="docutils literal notranslate"><span class="pre">vals</span></code> with NaNs where gaps in <code class="docutils literal notranslate"><span class="pre">times</span></code> is more than <code class="docutils literal notranslate"><span class="pre">max_gap</span></code>.</p>
-<p>Do something like:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">times</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">21</span><span class="p">,</span> <span class="mi">22</span><span class="p">]</span>  <span class="o">=&gt;</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mf">2.001</span><span class="p">,</span> <span class="mf">19.999</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">21</span><span class="p">,</span> <span class="mi">22</span><span class="p">]</span>
-<span class="n">vals</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">]</span> <span class="o">=&gt;</span> <span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="n">NaN</span><span class="p">,</span> <span class="n">NaN</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">]</span>
-</pre></div>
-</div>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>times</strong></dt><dd><p>times</p>
-</dd>
-<dt><strong>vals</strong></dt><dd><p>values</p>
-</dd>
-<dt><strong>max_gap</strong></dt><dd><p>maximum gap in seconds</p>
-</dd>
-<dt><strong>dt</strong></dt><dd><p>time delta to use for filling gaps</p>
-</dd>
-</dl>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><dl class="simple">
-<dt>times, vals with gaps filled with NaNs</dt><dd></dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
+<section id="utils">
+<h2>Utils<a class="headerlink" href="#utils" title="Link to this heading">¶</a></h2>
 </section>
 </section>
 
@@ -412,24 +99,9 @@ and then join that with the corresponding observation information:</p>
             </a></p><h3>Page Contents</h3>
 <ul>
 <li><a class="reference internal" href="#">Commands API</a><ul>
-<li><a class="reference internal" href="#module-kadi.commands.commands">Commands</a><ul>
-<li><a class="reference internal" href="#kadi.commands.commands.clear_caches"><code class="docutils literal notranslate"><span class="pre">clear_caches()</span></code></a></li>
-<li><a class="reference internal" href="#kadi.commands.commands.get_cmds"><code class="docutils literal notranslate"><span class="pre">get_cmds()</span></code></a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#module-kadi.commands.observations">Observations</a><ul>
-<li><a class="reference internal" href="#kadi.commands.observations.get_observations"><code class="docutils literal notranslate"><span class="pre">get_observations()</span></code></a></li>
-<li><a class="reference internal" href="#kadi.commands.observations.get_starcats"><code class="docutils literal notranslate"><span class="pre">get_starcats()</span></code></a></li>
-<li><a class="reference internal" href="#kadi.commands.observations.get_starcats_as_table"><code class="docutils literal notranslate"><span class="pre">get_starcats_as_table()</span></code></a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#module-kadi.commands.utils">Utils</a><ul>
-<li><a class="reference internal" href="#kadi.commands.utils.TimeSeriesChunk"><code class="docutils literal notranslate"><span class="pre">TimeSeriesChunk</span></code></a></li>
-<li><a class="reference internal" href="#kadi.commands.utils.TimeSeriesPoint"><code class="docutils literal notranslate"><span class="pre">TimeSeriesPoint</span></code></a></li>
-<li><a class="reference internal" href="#kadi.commands.utils.add_figure_regions"><code class="docutils literal notranslate"><span class="pre">add_figure_regions()</span></code></a></li>
-<li><a class="reference internal" href="#kadi.commands.utils.fill_gaps_with_nan"><code class="docutils literal notranslate"><span class="pre">fill_gaps_with_nan()</span></code></a></li>
-</ul>
-</li>
+<li><a class="reference internal" href="#commands">Commands</a></li>
+<li><a class="reference internal" href="#observations">Observations</a></li>
+<li><a class="reference internal" href="#utils">Utils</a></li>
 </ul>
 </li>
 </ul>
