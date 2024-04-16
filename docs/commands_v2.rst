@@ -27,29 +27,6 @@ The other key web resource is the OCCweb `FOT mission planning approved load pro
 directory tree. This is used to automatically find all recent approved loads
 and incorporate them into the load commands archive.
 
-Differences from v1
--------------------
-
-Apart from the fundamental change in data sources mentioned above, some key
-changes from v1 are as follows:
-
-- Commands table includes a ``source`` column that defines the source of the
-  command. Most commonly this is a weekly load name, but it can also indicate
-  a non-load command event for which further details are provided in the command
-  parameters.
-- Information about each distinct observation is embedded into the command
-  archive as ``LOAD_EVENT`` pseudo-commands. The
-  :func:`~kadi.commands.observations.get_observations` provides a fast and
-  convenient way to find observations, both past and planned. See the
-  :ref:`getting-observations` section for more details.
-- Information about each ACA star catalog is stored in the command
-  archive. The :func:`~kadi.commands.observations.get_observations` provides a
-  convenient way to find ACA star catalogs, both past and planned. See the
-  :ref:`getting-star-catalogs` section for more details.
-- There are configuration options which can be set programmatically or in a fixed
-  configuration file to control behavior of the package. See the
-  `Configuration options`_ section for more details.
-
 Scenarios
 ---------
 
@@ -95,7 +72,6 @@ of the 2021:296 NSM recovery::
 
     >>> from kadi import paths
     >>> from kadi.commands import conf, get_cmds
-    >>> conf.commands_version = '2'
 
     >>> cmds = get_cmds(start='2022:001')  # Ensure local cmd_events.csv is up to date
 
@@ -174,10 +150,6 @@ The available options with the default settings are as follows::
     ## downloading from Google Sheets and OCCweb.
     commands_dir = ~/.kadi
 
-    ## Default version of kadi commands ("1" or "2").  Overridden by
-    ## KADI_COMMANDS_VERSION environment variable.
-    commands_version = 2
-
     ## Google Sheet ID for command events (flight scenario).
     cmd_events_flight_id = 19d6XqBhWoFjC-z1lS1nM6wLE_zjr4GYB1lOvrEGCbKQ
 
@@ -200,9 +172,9 @@ Python to change a parameter for all subsequent code::
 
 You can also temporarily change an option within a context manager::
 
-    >>> with conf.set_temp('commands_version', '2'):
-    ...     cmds2 = get_cmds('2022:001', '2022:002')  # Use commands v2
-    >>> cmds1 = get_cmds('2022:001', '2022:002')  # Use commands v1
+    >>> with conf.set_temp('include_in_work_command_events', True):
+    ...     cmds_in_work = get_cmds('2022:001', '2022:002')  # Use Commands In-work events
+    >>> cmds_flight = get_cmds('2022:001', '2022:002')  # Use only Predictive or Definitive
 
 For an even-more permanent solution you can write out the configuration file
 to disk and then edit it. Be wary of "temporarily" changing an option and  then
@@ -220,10 +192,6 @@ Environment variables
 ``KADI``
   Override the default location of kadi flight data files ``cmds2.h5`` and
   ``cmds2.pkl``.
-
-``KADI_COMMANDS_VERSION``
-  Override the default kadi commands version. In order to use the commands
-  archive v2 you should set this to ``2``.
 
 ``KADI_COMMANDS_DEFAULT_STOP``
   For testing and demonstration purposes, this environment variable can be set

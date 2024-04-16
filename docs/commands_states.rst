@@ -13,16 +13,11 @@ The Commands archive is a table of every load command that has been run, or is c
 approved to be run, on the spacecraft since 2002.  This archive accounts for load stoppages,
 replans, and certain non-load commands like ACIS CTI runs or Normal Sun Mode transitions.
 
-As of this release there are two versions of the commands archive:
-
-- `Commands archive v2`_ (flight): this provides improved timeliness during
-  anomalies and better team-wide communication of non-load spacecraft
-  commanding. This relies on the `Chandra Command Events`_ sheet and OCCweb FOT
-  mission planning approved load products to maintain the commands database.
-- `Commands archive v1`_ (legacy): this is the legacy version and
-  relies on iFOT load segments and the Chandra.cmd_states timelines database to
-  maintain the commands database. It is currently deprecated and will be
-  removed in a future release.
+The flight `Commands archive v2`_  relies on the `Chandra Command Events`_ sheet and
+OCCweb FOT mission planning approved load products to maintain the commands database.
+This archive provides an up-to-date view of commands and states even during anomalies.
+The `Chandra Command Events`_ sheet is kept current during anomalies by FOT MP and helps
+facilitate team-wide communication of non-load spacecraft commanding.
 
 **States and continuity**
 
@@ -341,21 +336,6 @@ permanently disable caching you can edit your configuration file (see
     >>> from kadi.commands import get_starcats, conf
     >>> with conf.set_temp('cache_starcats', False):
     ...    starcats = get_starcats('2022:001', '2022:002')
-
-Commands archive v1
--------------------
-
-Version 1 of the commands archive is provided for legacy support but it will be
-removed in a future release.
-
-For details of the commands v1 archive please see:
-please see:
-
-.. toctree::
-   :maxdepth: 2
-
-   commands_v1.rst
-
 
 Chandra states and continuity
 ------------------------------

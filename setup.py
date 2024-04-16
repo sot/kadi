@@ -28,7 +28,6 @@ else:
 entry_points = {
     "console_scripts": [
         "get_chandra_states = kadi.commands.states:get_chandra_states",
-        "kadi_update_cmds = kadi.scripts.update_cmds_v1:main",
         "kadi_update_cmds_v2 = kadi.scripts.update_cmds_v2:main",
         "kadi_update_events = kadi.scripts.update_events:main",
         "kadi_validate_states = kadi.scripts.validate_states:main",

@@ -2,7 +2,6 @@
 import calendar
 import functools
 import logging
-import os
 import pickle
 import struct
 import warnings
@@ -16,7 +15,6 @@ from astropy.table import Column, Row, Table, TableAttribute, vstack
 from cxotime import CxoTime
 from ska_helpers import retry
 
-from kadi.commands import conf
 from kadi.paths import IDX_CMDS_PATH, PARS_DICT_PATH
 
 __all__ = [
@@ -759,14 +757,6 @@ class CommandTable(Table):
 
         This matches the order in backstop.
         """
-        # Legacy sort for V1 commands archive
-        if (
-            os.environ.get("KADI_COMMANDS_VERSION", conf.commands_version) == "1"
-            and "timeline_id" in self.colnames
-        ):
-            self.sort(["date", "step", "scs"])
-            return
-
         # For V2 use stable sort just on date, preserving the existing order.
         # Copied verbatim from astropy.table.Table.sort except 'stable' sort.
         # (Astropy sort does not provide `kind` argument for .sort(), hopefully

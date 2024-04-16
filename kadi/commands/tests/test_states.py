@@ -2,7 +2,6 @@ import functools
 import gzip
 import hashlib
 import os
-import warnings
 from pathlib import Path
 
 import numpy as np
@@ -12,13 +11,6 @@ from astropy.table import Table
 from chandra_time import DateTime
 from cheta import fetch
 from cxotime import CxoTime
-from testr.test_helper import has_internet
-
-warnings.filterwarnings(
-    "ignore",
-    category=FutureWarning,
-    message="kadi commands v1 is deprecated, use v2 instead",
-)
 
 from kadi import commands  # noqa: E402
 from kadi.commands import states  # noqa: E402
@@ -28,23 +20,6 @@ try:
     HAS_PITCH = True
 except Exception:
     HAS_PITCH = False
-
-VERSIONS = ["1", "2"] if has_internet() else ["1"]
-
-
-@pytest.fixture(scope="module", params=VERSIONS)
-def version(request):
-    return request.param
-
-
-@pytest.fixture(autouse=True)
-def version_env(monkeypatch, version):
-    if version is None:
-        monkeypatch.delenv("KADI_COMMANDS_VERSION", raising=False)
-    else:
-        monkeypatch.setenv("KADI_COMMANDS_VERSION", version)
-    return version
-
 
 # Canonical state0 giving spacecraft state at beginning of timelines
 # 2002:007:13 fetch --start 2002:007:13:00:00 --stop 2002:007:13:02:00 aoattqt1

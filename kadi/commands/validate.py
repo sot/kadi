@@ -8,6 +8,7 @@ Chandra telemetry.  The classes are designed to be run either standalone
 or from the command-line application ``kadi_validate_states`` (defined in
 ``kadi.scripts.validate_states``).
 """
+
 import functools
 import logging
 from abc import ABC

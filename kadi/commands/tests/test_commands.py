@@ -1,5 +1,4 @@
 import os
-import warnings
 from pathlib import Path
 
 # Use data file from parse_cm.test for get_cmds_from_backstop test.
@@ -16,16 +15,9 @@ from cxotime import CxoTime
 from Quaternion import Quat
 from testr.test_helper import has_internet
 
-warnings.filterwarnings(
-    "ignore",
-    category=FutureWarning,
-    message="kadi commands v1 is deprecated, use v2 instead",
-)
-
 import kadi.commands.states as kcs
 from kadi import commands
 from kadi.commands import (
-    commands_v1,
     commands_v2,
     conf,
     core,
@@ -35,55 +27,32 @@ from kadi.commands import (
     read_backstop,
 )
 from kadi.commands.command_sets import get_cmds_from_event
-from kadi.scripts import update_cmds_v1, update_cmds_v2
+from kadi.scripts import update_cmds_v2
 
 HAS_MPDIR = Path(os.environ["SKA"], "data", "mpcrit1", "mplogs", "2020").exists()
 HAS_INTERNET = has_internet()
-VERSIONS = ["1", "2"] if HAS_INTERNET else ["1"]
-
-
-@pytest.fixture(scope="module", params=VERSIONS)
-def version(request):
-    return request.param
-
-
-@pytest.fixture()
-def version_env(monkeypatch, version):
-    if version is None:
-        monkeypatch.delenv("KADI_COMMANDS_VERSION", raising=False)
-    else:
-        monkeypatch.setenv("KADI_COMMANDS_VERSION", version)
-    return version
 
 
 @pytest.fixture(scope="module", autouse=True)
 def cmds_dir(tmp_path_factory):
-    with commands_v2.conf.set_temp("cache_loads_in_astropy_cache", True):
-        with commands_v2.conf.set_temp("clean_loads_dir", False):
+    with commands.conf.set_temp("cache_loads_in_astropy_cache", True):
+        with commands.conf.set_temp("clean_loads_dir", False):
             cmds_dir = tmp_path_factory.mktemp("cmds_dir")
-            with commands_v2.conf.set_temp("commands_dir", str(cmds_dir)):
+            with commands.conf.set_temp("commands_dir", str(cmds_dir)):
                 yield
 
 
-def test_find(version):
-    if version == "1":
-        idx_cmds = commands_v1.IDX_CMDS
-        pars_dict = commands_v1.PARS_DICT
-    else:
-        idx_cmds = commands_v2.IDX_CMDS
-        pars_dict = commands_v2.PARS_DICT
+def test_find():
+    idx_cmds = commands_v2.IDX_CMDS
+    pars_dict = commands_v2.PARS_DICT
 
     cs = core._find(
         "2012:029:12:00:00", "2012:030:12:00:00", idx_cmds=idx_cmds, pars_dict=pars_dict
     )
     assert isinstance(cs, Table)
-    assert len(cs) == 147 if version == "1" else 151  # OBS commands in v2 only
-    if version == "1":
-        assert np.all(cs["timeline_id"][:10] == 426098447)
-        assert np.all(cs["timeline_id"][-10:] == 426098448)
-    else:
-        assert np.all(cs["source"][:10] == "JAN2612A")
-        assert np.all(cs["source"][-10:] == "JAN3012C")
+    assert len(cs) == 151
+    assert np.all(cs["source"][:10] == "JAN2612A")
+    assert np.all(cs["source"][-10:] == "JAN3012C")
     assert cs["date"][0] == "2012:029:13:00:00.000"
     assert cs["date"][-1] == "2012:030:11:00:01.285"
     assert cs["tlmsid"][-1] == "CTXBON"
@@ -122,16 +91,12 @@ def test_find(version):
     assert len(cs) == 2494
 
 
-def test_get_cmds(version_env):
+def test_get_cmds():
     cs = commands.get_cmds("2012:029:12:00:00", "2012:030:12:00:00")
     assert isinstance(cs, commands.CommandTable)
-    assert len(cs) == 147 if version_env == "1" else 151  # OBS commands in v2 only
-    if version_env == "2":
-        assert np.all(cs["source"][:10] == "JAN2612A")
-        assert np.all(cs["source"][-10:] == "JAN3012C")
-    else:
-        assert np.all(cs["timeline_id"][:10] == 426098447)
-        assert np.all(cs["timeline_id"][-10:] == 426098448)
+    assert len(cs) == 151  # OBS commands in v2 only
+    assert np.all(cs["source"][:10] == "JAN2612A")
+    assert np.all(cs["source"][-10:] == "JAN3012C")
     assert cs["date"][0] == "2012:029:13:00:00.000"
     assert cs["date"][-1] == "2012:030:11:00:01.285"
     assert cs["tlmsid"][-1] == "CTXBON"
@@ -145,29 +110,19 @@ def test_get_cmds(version_env):
 
     assert repr(cmd).startswith("<Cmd 2012:030:08:27:02.000 SIMTRANS")
     assert str(cmd).startswith("2012:030:08:27:02.000 SIMTRANS")
-    if version_env == "2":
-        assert repr(cmd).endswith(
-            "scs=133 step=161 source=JAN3012C vcdu=15639968 pos=73176>"
-        )
-        assert str(cmd).endswith(
-            "scs=133 step=161 source=JAN3012C vcdu=15639968 pos=73176"
-        )
-    else:
-        assert repr(cmd).endswith(
-            "scs=133 step=161 timeline_id=426098449 vcdu=15639968 pos=73176>"
-        )
-        assert str(cmd).endswith(
-            "scs=133 step=161 timeline_id=426098449 vcdu=15639968 pos=73176"
-        )
+    assert repr(cmd).endswith(
+        "scs=133 step=161 source=JAN3012C vcdu=15639968 pos=73176>"
+    )
+    assert str(cmd).endswith("scs=133 step=161 source=JAN3012C vcdu=15639968 pos=73176")
 
     assert cmd["pos"] == 73176
     assert cmd["step"] == 161
 
 
-def test_get_cmds_zero_length_result(version_env):
+def test_get_cmds_zero_length_result():
     cmds = commands.get_cmds(date="2017:001:12:00:00")
     assert len(cmds) == 0
-    source_name = "source" if version_env == "2" else "timeline_id"
+    source_name = "source"
     assert cmds.colnames == [
         "idx",
         "date",
@@ -182,7 +137,7 @@ def test_get_cmds_zero_length_result(version_env):
     ]
 
 
-def test_get_cmds_inclusive_stop(version_env):  # noqa: ARG001
+def test_get_cmds_inclusive_stop():
     # get_cmds returns start <= date < stop for inclusive_stop=False (default)
     # or start <= date <= stop for inclusive_stop=True.
     # Query over a range that includes two commands at exactly start and stop.
@@ -194,7 +149,7 @@ def test_get_cmds_inclusive_stop(version_env):  # noqa: ARG001
     assert np.all(cmds["date"] == [start, stop])
 
 
-def test_cmds_as_list_of_dict(version_env):  # noqa: ARG001
+def test_cmds_as_list_of_dict():
     cmds = commands.get_cmds("2020:140", "2020:141")
     cmds_list = cmds.as_list_of_dict()
     assert isinstance(cmds_list, list)
@@ -205,7 +160,7 @@ def test_cmds_as_list_of_dict(version_env):  # noqa: ARG001
         assert np.all(cmds_rt[name] == cmds[name])
 
 
-def test_cmds_as_list_of_dict_ska_parsecm(version_env):
+def test_cmds_as_list_of_dict_ska_parsecm():
     """Test the ska_parsecm=True compatibility mode for list_of_dict"""
     cmds = commands.get_cmds("2020:140", "2020:141")
     cmds_list = cmds.as_list_of_dict(ska_parsecm=True)
@@ -222,10 +177,9 @@ def test_cmds_as_list_of_dict_ska_parsecm(version_env):
         "tlmsid": "CIMODESL",
         "type": "COMMAND_HW",
         "vcdu": 12516929,
+        "source": "MAY1820A",
     }
-    exp.update(
-        {"timeline_id": 426104285} if version_env == "1" else {"source": "MAY1820A"}
-    )
+
     assert cmds_list[0] == exp
 
     for cmd in cmds_list:
@@ -233,14 +187,14 @@ def test_cmds_as_list_of_dict_ska_parsecm(version_env):
         assert all(param.upper() == param for param in cmd["params"])
 
 
-def test_get_cmds_from_backstop_and_add_cmds(version_env):
+def test_get_cmds_from_backstop_and_add_cmds():
     bs_file = Path(parse_cm.tests.__file__).parent / "data" / "CR182_0803.backstop"
     bs_cmds = commands.get_cmds_from_backstop(bs_file, remove_starcat=True)
 
     cmds = commands.get_cmds(start="2018:182:00:00:00", stop="2018:182:08:00:00")
 
     assert len(bs_cmds) == 674
-    assert len(cmds) == 56 if version_env == "1" else 57
+    assert len(cmds) == 57
 
     # Get rid of source and timeline_id columns which can vary between v1 and v2
     for cs in bs_cmds, cmds:
@@ -272,15 +226,13 @@ def test_get_cmds_from_backstop_and_add_cmds(version_env):
 
 
 @pytest.mark.skipif("not HAS_MPDIR")
-def test_commands_create_archive_regress(tmpdir, version_env, fast_sun_position_method):
+@pytest.mark.skipif(not HAS_INTERNET, reason="No internet connection")
+def test_commands_create_archive_regress(tmpdir, fast_sun_position_method):
     """Create cmds archive from scratch and test that it matches flight
 
     This tests over an eventful month that includes IU reset/NSM, SCS-107
     (radiation), fast replan, loads approved but not uplinked, etc.
     """
-    update_cmds = update_cmds_v2 if version_env == "2" else update_cmds_v1
-    commands = commands_v2 if version_env == "2" else commands_v1
-
     kadi_orig = os.environ.get("KADI")
     start = CxoTime("2021:290")
     stop = start + 30 * u.day
@@ -290,17 +242,17 @@ def test_commands_create_archive_regress(tmpdir, version_env, fast_sun_position_
     with conf.set_temp("commands_dir", str(tmpdir)):
         try:
             os.environ["KADI"] = str(tmpdir)
-            update_cmds.main(
+            update_cmds_v2.main(
                 (
-                    "--lookback=30" if version_env == "2" else f"--start={start.date}",
+                    "--lookback=30",
                     f"--stop={stop.date}",
                     f"--data-root={tmpdir}",
                 )
             )
             # Force reload of LazyVal
-            del commands.IDX_CMDS._val
-            del commands.PARS_DICT._val
-            del commands.REV_PARS_DICT._val
+            del commands_v2.IDX_CMDS._val
+            del commands_v2.PARS_DICT._val
+            del commands_v2.REV_PARS_DICT._val
 
             # Make sure we are seeing the temporary cmds archive
             cmds_empty = commands.get_cmds(start - 60 * u.day, start - 50 * u.day)
@@ -352,24 +304,18 @@ def test_commands_create_archive_regress(tmpdir, version_env, fast_sun_position_
             else:
                 os.environ["KADI"] = kadi_orig
 
-            # Force reload
-            if version_env == "1":
-                del commands.IDX_CMDS._val
-                del commands.PARS_DICT._val
-                del commands.REV_PARS_DICT._val
-            else:
-                commands_v2.clear_caches()
+            commands.clear_caches()
 
 
 def stop_date_fixture_factory(stop_date):
     @pytest.fixture()
     def stop_date_fixture(monkeypatch):
-        commands_v2.clear_caches()
+        commands.clear_caches()
         monkeypatch.setenv("KADI_COMMANDS_DEFAULT_STOP", stop_date)
         cmds_dir = Path(conf.commands_dir) / CxoTime(stop_date).iso[:9]
-        with commands_v2.conf.set_temp("commands_dir", str(cmds_dir)):
+        with commands.conf.set_temp("commands_dir", str(cmds_dir)):
             yield
-        commands_v2.clear_caches()
+        commands.clear_caches()
 
     return stop_date_fixture
 
@@ -381,19 +327,19 @@ stop_date_2020_12_03 = stop_date_fixture_factory("2020-12-03")
 
 @pytest.mark.skipif(not HAS_INTERNET, reason="No internet connection")
 def test_get_cmds_v2_arch_only(stop_date_2020_12_03):  # noqa: ARG001
-    cmds = commands_v2.get_cmds(start="2020-01-01", stop="2020-01-02")
+    cmds = commands.get_cmds(start="2020-01-01", stop="2020-01-02")
     cmds = cmds[cmds["tlmsid"] != "OBS"]
     assert len(cmds) == 153
     assert np.all(cmds["idx"] != -1)
     # Also do a zero-length query
-    cmds = commands_v2.get_cmds(start="2020-01-01", stop="2020-01-01")
+    cmds = commands.get_cmds(start="2020-01-01", stop="2020-01-01")
     assert len(cmds) == 0
-    commands_v2.clear_caches()
+    commands.clear_caches()
 
 
 @pytest.mark.skipif(not HAS_INTERNET, reason="No internet connection")
 def test_get_cmds_v2_arch_recent(stop_date_2020_12_03):  # noqa: ARG001
-    cmds = commands_v2.get_cmds(start="2020-09-01", stop="2020-12-01")
+    cmds = commands.get_cmds(start="2020-09-01", stop="2020-12-01")
     cmds = cmds[cmds["tlmsid"] != "OBS"]
 
     # Since recent matches arch in the past, even though the results are a mix
@@ -404,14 +350,14 @@ def test_get_cmds_v2_arch_recent(stop_date_2020_12_03):  # noqa: ARG001
     # PR #248: made this change from 17640 to 17644
     assert 17640 <= len(cmds) <= 17644
 
-    commands_v2.clear_caches()
+    commands.clear_caches()
 
 
 @pytest.mark.skipif(not HAS_INTERNET, reason="No internet connection")
 def test_get_cmds_v2_recent_only(stop_date_2020_12_03):  # noqa: ARG001
     # This query stop is well beyond the default stop date, so it should get
     # only commands out to the end of the NOV3020A loads (~ Dec 7).
-    cmds = commands_v2.get_cmds(start="2020-12-01", stop="2021-01-01")
+    cmds = commands.get_cmds(start="2020-12-01", stop="2021-01-01")
     cmds = cmds[cmds["tlmsid"] != "OBS"]
     assert len(cmds) == 1523
     assert np.all(cmds["idx"] == -1)
@@ -432,21 +378,21 @@ def test_get_cmds_v2_recent_only(stop_date_2020_12_03):  # noqa: ARG001
     ]
     # fmt: on
     # Same for no stop date
-    cmds = commands_v2.get_cmds(start="2020-12-01", stop=None)
+    cmds = commands.get_cmds(start="2020-12-01", stop=None)
     cmds = cmds[cmds["tlmsid"] != "OBS"]
     assert len(cmds) == 1523
     assert np.all(cmds["idx"] == -1)
 
     # zero-length query
-    cmds = commands_v2.get_cmds(start="2020-12-01", stop="2020-12-01")
+    cmds = commands.get_cmds(start="2020-12-01", stop="2020-12-01")
     assert len(cmds) == 0
-    commands_v2.clear_caches()
+    commands.clear_caches()
 
 
 @pytest.mark.skipif(not HAS_INTERNET, reason="No internet connection")
 def test_get_cmds_nsm_2021(stop_date_2021_10_24):  # noqa: ARG001
     """NSM at ~2021:296:10:41. This tests non-load commands from cmd_events."""
-    cmds = commands_v2.get_cmds("2021:296:10:35:00")  # , '2021:298:01:58:00')
+    cmds = commands.get_cmds("2021:296:10:35:00")  # , '2021:298:01:58:00')
     cmds = cmds[cmds["tlmsid"] != "OBS"]
     exp = [
         "2021:296:10:35:00.000 | COMMAND_HW       | CIMODESL   | OCT1821A | "
@@ -521,7 +467,7 @@ def test_get_cmds_nsm_2021(stop_date_2021_10_24):  # noqa: ARG001
         "event_type=SCHEDULED_STOP_TIME, scs=0",
     ]
     assert cmds.pformat_like_backstop(max_params_width=200) == exp
-    commands_v2.clear_caches()
+    commands.clear_caches()
 
 
 @pytest.mark.skipif(not HAS_INTERNET, reason="No internet connection")
@@ -529,7 +475,7 @@ def test_cmds_scenario(stop_date_2020_12_03):  # noqa: ARG001
     """Test custom scenario with a couple of ACIS commands"""
     # First make the cmd_events.csv file for the scenario
     scenario = "test_acis"
-    cmds_dir = Path(commands_v2.conf.commands_dir) / scenario
+    cmds_dir = Path(commands.conf.commands_dir) / scenario
     cmds_dir.mkdir(exist_ok=True, parents=True)
     # Note variation in format of date, since this comes from humans.
     cmd_evts_text = """\
@@ -540,7 +486,7 @@ Date,Event,Params,Author,Comment
     (cmds_dir / "cmd_events.csv").write_text(cmd_evts_text)
 
     # Now get commands in a time range that includes the new command events
-    cmds = commands_v2.get_cmds(
+    cmds = commands.get_cmds(
         "2020-12-01 00:08:00", "2020-12-01 00:09:00", scenario=scenario
     )
     cmds = cmds[cmds["tlmsid"] != "OBS"]
@@ -555,7 +501,7 @@ Date,Event,Params,Author,Comment
         " hex=7E00000, msid=CNOOPLR, scs=128",
     ]
     assert cmds.pformat_like_backstop() == exp
-    commands_v2.clear_caches()
+    commands.clear_caches()
 
 
 stop_date_2024_01_30 = stop_date_fixture_factory("2024-01-30")
@@ -566,7 +512,7 @@ def test_nsm_offset_pitch_rasl_command_events(stop_date_2024_01_30):  # noqa: AR
     """Test custom scenario with NSM offset pitch load event command"""
     # First make the cmd_events.csv file for the scenario
     scenario = "test_nsm_offset_pitch"
-    cmds_dir = Path(commands_v2.conf.commands_dir) / scenario
+    cmds_dir = Path(commands.conf.commands_dir) / scenario
     cmds_dir.mkdir(exist_ok=True, parents=True)
     # Note variation in format of date, since this comes from humans.
     cmd_evts_text = """\
@@ -578,7 +524,7 @@ Definitive,2024:024:09:44:06,NSM,,,,
     (cmds_dir / "cmd_events.csv").write_text(cmd_evts_text)
 
     # Now get commands in a time range that includes the new command events
-    cmds = commands_v2.get_cmds(
+    cmds = commands.get_cmds(
         "2024-01-24 12:00:00", "2024-01-25 05:00:00", scenario=scenario
     )
     cmds = cmds[(cmds["tlmsid"] != "OBS") & (cmds["type"] != "ORBPOINT")]
@@ -641,7 +587,7 @@ Definitive,2024:024:09:44:06,NSM,,,,
     assert np.isclose(pitch2, 160, atol=0.5)
     assert np.isclose((rasl2 - rasl1) % 360, 90, atol=0.5)
 
-    commands_v2.clear_caches()
+    commands.clear_caches()
 
 
 def test_command_set_bsh():
@@ -661,7 +607,7 @@ def test_command_set_bsh():
 2000:001:00:01:17.960 | ACISPKT          | WSPOW00000 | CMD_EVT  | event=Bright_star_hold, event_date=2000:001:00:00:00, scs=0"""  # noqa
 
     assert cmds.pformat_like_backstop(max_params_width=None) == exp.splitlines()
-    commands_v2.clear_caches()
+    commands.clear_caches()
 
 
 def test_command_set_safe_mode():
@@ -684,7 +630,7 @@ def test_command_set_safe_mode():
 2000:001:00:01:17.960 | ACISPKT          | WSPOW00000 | CMD_EVT  | event=Safe_mode, event_date=2000:001:00:00:00, scs=0
 2000:001:00:01:17.960 | COMMAND_SW       | AODSDITH   | CMD_EVT  | event=Safe_mode, event_date=2000:001:00:00:00, scs=0"""  # noqa
     assert cmds.pformat_like_backstop(max_params_width=None) == exp.splitlines()
-    commands_v2.clear_caches()
+    commands.clear_caches()
 
 
 @pytest.mark.skipif(not HAS_INTERNET, reason="No internet connection")
@@ -702,9 +648,7 @@ State,Date,Event,Params,Author,Comment
 Definitive,2020:337:00:00:00,Bright star hold,,Tom Aldcroft,
 """
     )
-    cmds = commands_v2.get_cmds(
-        start="2020:336:21:48:00", stop="2020:338", scenario="bsh"
-    )
+    cmds = commands.get_cmds(start="2020:336:21:48:00", stop="2020:338", scenario="bsh")
     exp = [
         "2020:336:21:48:03.312 | LOAD_EVENT       | OBS        | NOV3020A | "
         "manvr_start=2020:336:21:09:24.361, prev_att=(-0.242373434, -0.348723922, "
@@ -757,7 +701,7 @@ Definitive,2020:337:00:00:00,Bright star hold,,Tom Aldcroft,
         "event_type=XALT1, scs=0",
     ]
     assert cmds.pformat_like_backstop() == exp
-    commands_v2.clear_caches()
+    commands.clear_caches()
 
 
 @pytest.mark.skipif(not HAS_INTERNET, reason="No internet connection")
@@ -890,7 +834,7 @@ def test_get_starcats_each_year(year):
 
 def test_get_starcats_with_cmds():
     start, stop = "2021:365:19:00:00", "2022:002:01:25:00"
-    cmds = commands_v2.get_cmds(start, stop, scenario="flight")
+    cmds = commands.get_cmds(start, stop, scenario="flight")
     starcats0 = get_starcats(start, stop)
     starcats1 = get_starcats(cmds=cmds)
     assert len(starcats0) == len(starcats1)
@@ -943,7 +887,7 @@ def test_get_starcats_date():
     sc = get_starcats(obsid=8008, scenario="flight")[0]
     obs = get_observations(obsid=8008, scenario="flight")[0]
     assert sc.date == obs["starcat_date"] == "2007:002:04:31:43.965"
-    cmds = commands_v2.get_cmds("2007:002", "2007:003")
+    cmds = commands.get_cmds("2007:002", "2007:003")
     sc_cmd = cmds[cmds["date"] == obs["starcat_date"]][0]
     assert sc_cmd["type"] == "MP_STARCAT"
 
@@ -1229,7 +1173,6 @@ def test_scenario_with_rts(monkeypatch, fast_sun_position_method):
     # example in the documentation.
     from kadi import paths
 
-    monkeypatch.setenv("KADI_COMMANDS_VERSION", "2")
     monkeypatch.setenv("KADI_COMMANDS_DEFAULT_STOP", "2021:299")
 
     # Ensure local cmd_events.csv is up to date by requesting "recent" commands
@@ -1370,7 +1313,7 @@ def test_no_rltt_for_not_run_load(stop_date_2022_236):  # noqa: ARG001
         "2022:233:18:10:57.000 WSPOW0002A 135",
         "2022:233:18:12:00.000 RS_0000001 135",
     ]
-    cmds = commands_v2.get_cmds("2022:232:03:00:00", "2022:233:18:30:00")
+    cmds = commands.get_cmds("2022:232:03:00:00", "2022:233:18:30:00")
     cmds = cmds[cmds["type"] == "ACISPKT"]
     assert cmds["date", "tlmsid", "scs"].pformat() == exp
 
@@ -1378,16 +1321,17 @@ def test_no_rltt_for_not_run_load(stop_date_2022_236):  # noqa: ARG001
 stop_date_2022_352 = stop_date_fixture_factory("2022-12-17")
 
 
+@pytest.mark.skipif(not HAS_INTERNET, reason="No internet connection")
 def test_30_day_lookback_issue(stop_date_2022_352):  # noqa: ARG001
     """Test for fix in PR #265 of somewhat obscure issue where a query
     within the default 30-day lookback could give zero commands. Prior to
     the fix the query below would give zero commands (with the default stop date
     set accordingly)."""  # noqa: D205, D209
-    cmds = commands_v2.get_cmds("2022:319", "2022:324")
+    cmds = commands.get_cmds("2022:319", "2022:324")
     assert len(cmds) > 200
 
     # Hit the CMDS_RECENT cache as well
-    cmds = commands_v2.get_cmds("2022:319:00:00:01", "2022:324:00:00:01")
+    cmds = commands.get_cmds("2022:319:00:00:01", "2022:324:00:00:01")
     assert len(cmds) > 200
 
 
@@ -1470,7 +1414,7 @@ def test_hrc_not_run_scenario(stop_date_2023200):  # noqa: ARG001
     # JUL1023A loads which start at 2023:191:03:43:28.615
 
     scenario = "hrc_not_run"
-    cmds_dir = Path(commands_v2.conf.commands_dir) / scenario
+    cmds_dir = Path(commands.conf.commands_dir) / scenario
     cmds_dir.mkdir(exist_ok=True, parents=True)
     # Note variation in format of date, since this comes from humans.
     cmd_evts_text = """\
@@ -1506,7 +1450,7 @@ Definitive,2023:184:20:00:00.000,HRC not run,JUL0323A,Tom,Jean,F_HRC_SAFING 2023
     states_out = states[["datestart"] + keys].pformat_all()
     assert states_out == states_exp
 
-    commands_v2.clear_caches()
+    commands.clear_caches()
 
 
 test_command_not_run_cases = [
