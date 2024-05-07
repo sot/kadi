@@ -882,6 +882,9 @@ class EclipseEnableSPM(BaseTransition):
         ``battery_connect`` is the time of the battery connect EOESTECN command,
         which must occur prior to this command which is eclipse entry.
         """
+        if state["battery_connect"] is None:
+            return
+
         battery_connect_time = date2secs(state["battery_connect"])
         eclipse_entry_time = date2secs(date)
         # By definition, the battery connect time is always less than the eclipse entry.
@@ -1124,6 +1127,9 @@ class SunVectorTransition(BaseTransition):
             current index into transitions
         """
         if state["pcad_mode"] == "NPNT":
+            if any(state[key] is None for key in ("ra", "dec", "roll")):
+                return
+
             ra, dec, roll = state["ra"], state["dec"], state["roll"]
             time = date2secs(date)
             sun_ra, sun_dec = ska_sun.position(time)
@@ -1653,6 +1659,12 @@ class ACISTransition(BaseTransition):
 
         # Special case for NIL SI modes
         elif tlmsid in NIL_SIMODES:
+            # Ensure that the obsid is set. When evaluating continuity the code can get
+            # to this point with obsid=None. Instead do nothing here and let obsid get
+            # defined and the code will come back here with a longer lookback.
+            if state["obsid"] is None:
+                return
+
             si_mode = NIL_SIMODES[tlmsid]
             # Value of SIMODE in some cases depends on whether obsid is
             # an odd or even number
@@ -1822,12 +1834,12 @@ class FidsTransition(BaseTransition):
         else:
             # Only AFLCxxDy commands can make it here from set_transitions filtering
             fid_id = int(msid[4:6])
-            # state["fids"] could be None at the beginning
-            fids = state["fids"]
-            if fids is None:
-                fids = set()
+            # state["fids"] could be None at the beginning so wait until an AFLCRSET
+            # command to define it.
+            if state["fids"] is None:
+                return
             # Add the fid light to the ON set
-            state["fids"] = fids | {fid_id}
+            state["fids"] = state["fids"] | {fid_id}
 
 
 ###################################################################

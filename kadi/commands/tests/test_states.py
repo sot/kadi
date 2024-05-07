@@ -6,6 +6,7 @@ from pathlib import Path
 
 import numpy as np
 import pytest
+from astropy import units as u
 from astropy.io import ascii
 from astropy.table import Table
 from chandra_time import DateTime
@@ -1856,3 +1857,37 @@ def test_sun_pos_mon_within_eclipse_no_spm_enab(monkeypatch):
     ]
     names = ["datestart"] + states.SPM_STATE_KEYS
     assert sts[names].pformat_all() == exp
+
+
+def test_get_continuity_acis_cmd_requires_obsid():
+    """See https://github.com/sot/kadi/issues/325.
+
+    These are times where the requested time - lookback lands before a particular ACIS
+    power command that needs obsid but after the obsid command. Without the fix for #325
+    this would raise an exception.
+    """
+    for time in ["2021:205:09:35:06.322", "2021:020:07:04:40.280"]:
+        states.get_continuity(time)
+
+
+def test_get_continuity_spm_eclipse():
+    """Similar to above but for sun_pos_mon.
+
+    This tests a corner case where the requested time - lookback is between the
+    eclipse entry and battery connect. Previously this would call
+    ``chandra_datetime.date2secs(None)`` which *should* fail but instead was giving a
+    date in 1858. The end result was OK but this was a bit accidental.
+    """
+    cont = states.get_continuity(
+        CxoTime("2017:087:07:47:59.838") + 7 * u.day, state_keys=states.SPM_STATE_KEYS
+    )
+    assert cont == {
+        "sun_pos_mon": "DISA",
+        "battery_connect": "2017:087:07:47:55.838",
+        "eclipse_enable_spm": True,
+        "__dates__": {
+            "sun_pos_mon": "2017:093:07:47:03.821",
+            "battery_connect": "2017:087:07:47:55.838",
+            "eclipse_enable_spm": "2017:087:07:49:55.838",
+        },
+    }
