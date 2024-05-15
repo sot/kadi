@@ -5,12 +5,12 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Commands and states &#8212; kadi 7.10.0 documentation</title>
+    <title>Commands and states &#8212; kadi 7.10.1 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="_static/bootstrap-astropy.css?v=f4f7060c" />
     <link rel="stylesheet" type="text/css" href="_static/plot_directive.css" />
     
-    <script src="_static/documentation_options.js?v=e849c607"></script>
+    <script src="_static/documentation_options.js?v=4c31421e"></script>
     <script src="_static/doctools.js?v=888ff710"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script type="text/javascript" src="_static/sidebar.js"></script>
@@ -59,7 +59,7 @@
 	 |
       </li>
       <li>
-	<a href="index.html">kadi 7.10.0 documentation</a>
+	<a href="index.html">kadi 7.10.1 documentation</a>
 	 &#187;
       </li>
       
@@ -248,7 +248,7 @@ command table.  Note that command rows without that parameter will have a <code 
 contain information about observations in the loads. An “observation” is defined
 as a dwell in normal point mode following a maneuver and includes most OR’s and
 ER’s. These are most easily accessed via the
-<code class="xref py py-func docutils literal notranslate"><span class="pre">get_observations()</span></code> function. For example:</p>
+<a class="reference internal" href="api_commands.html#kadi.commands.observations.get_observations" title="kadi.commands.observations.get_observations"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_observations()</span></code></a> function. For example:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">kadi.commands</span> <span class="kn">import</span> <span class="n">get_observations</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">obss</span> <span class="o">=</span> <span class="n">get_observations</span><span class="p">(</span><span class="n">obsid</span><span class="o">=</span><span class="mi">26330</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">obss</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
@@ -330,14 +330,14 @@ directly:</p>
 </pre></div>
 </div>
 <p>As with <code class="xref py py-func docutils literal notranslate"><span class="pre">get_cmds()</span></code> in the v2 archive, you can provide a
-<code class="docutils literal notranslate"><span class="pre">scenario</span></code> keyword to <code class="xref py py-func docutils literal notranslate"><span class="pre">get_observations()</span></code> to
+<code class="docutils literal notranslate"><span class="pre">scenario</span></code> keyword to <a class="reference internal" href="api_commands.html#kadi.commands.observations.get_observations" title="kadi.commands.observations.get_observations"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_observations()</span></code></a> to
 select a custom or <code class="docutils literal notranslate"><span class="pre">'flight'</span></code> scenario.</p>
 </section>
 </section>
 <section id="getting-star-catalogs">
 <span id="id2"></span><h3>Getting star catalogs<a class="headerlink" href="#getting-star-catalogs" title="Link to this heading">¶</a></h3>
 <p>The ACA star catalogs associated with observations can be retrieved using the
-<code class="xref py py-func docutils literal notranslate"><span class="pre">get_starcats()</span></code> function. For example:</p>
+<a class="reference internal" href="api_commands.html#kadi.commands.observations.get_starcats" title="kadi.commands.observations.get_starcats"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_starcats()</span></code></a> function. For example:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">kadi.commands</span> <span class="kn">import</span> <span class="n">get_starcats</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">acas</span> <span class="o">=</span> <span class="n">get_starcats</span><span class="p">(</span><span class="n">obsid</span><span class="o">=</span><span class="mi">26330</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">acas</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
@@ -375,7 +375,7 @@ of converting each catalog into an <code class="docutils literal notranslate"><s
 <h4>Getting a Table of catalog entries<a class="headerlink" href="#getting-a-table-of-catalog-entries" title="Link to this heading">¶</a></h4>
 <p>For some use cases you want a single table of all star catalog entries matching
 the specified criteria. This can be done with the
-<code class="xref py py-func docutils literal notranslate"><span class="pre">get_starcats_as_table()</span></code> function. This is
+<a class="reference internal" href="api_commands.html#kadi.commands.observations.get_starcats_as_table" title="kadi.commands.observations.get_starcats_as_table"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_starcats_as_table()</span></code></a> function. This is
 roughly the equivalent of doing a Table <code class="docutils literal notranslate"><span class="pre">vstack</span></code> of the individual
 <code class="docutils literal notranslate"><span class="pre">ACATable</span></code> catalogs but is much faster. In addition two columns <code class="docutils literal notranslate"><span class="pre">obsid</span></code> and
 <code class="docutils literal notranslate"><span class="pre">starcat_date</span></code> are added to provide this information for each entry.</p>
@@ -412,7 +412,7 @@ The identifer for each of these quantities is referred to as a <code class="docu
 <h3>States<a class="headerlink" href="#states" title="Link to this heading">¶</a></h3>
 <p>A commanded state is an interval of time over which certain parameters of interest (obsid,
 SIM-Z position, commanded attitude, ACIS power configuration, etc) are unchanged.</p>
-<p>The <code class="xref py py-func docutils literal notranslate"><span class="pre">get_states()</span></code> function is the workhorse for dynamic commanded states.  This
+<p>The <a class="reference internal" href="api_states.html#kadi.commands.states.get_states" title="kadi.commands.states.get_states"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_states()</span></code></a> function is the workhorse for dynamic commanded states.  This
 function is fairly flexible and is roughly equivalent to the combination of the legacy
 <code class="docutils literal notranslate"><span class="pre">Chandra.cmd_states</span></code> functions <code class="xref py py-func docutils literal notranslate"><span class="pre">get_states()</span></code>
 and  <code class="xref py py-func docutils literal notranslate"><span class="pre">fetch_states()</span></code>.</p>
@@ -449,7 +449,7 @@ exactly the input <code class="docutils literal notranslate"><span class="pre">s
 only “know” the states over the time range for which commands were requested.</p>
 <p>The astute reader will notice that the 3rd through 6th row says <code class="docutils literal notranslate"><span class="pre">clocking</span></code> was
 updated, but looking at values they are all <code class="docutils literal notranslate"><span class="pre">0</span></code>.  What’s going on?  The answer is that,
-by default, <code class="xref py py-func docutils literal notranslate"><span class="pre">get_states()</span></code> breaks the state if the value was <em>commanded</em>, regardless of
+by default, <a class="reference internal" href="api_states.html#kadi.commands.states.get_states" title="kadi.commands.states.get_states"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_states()</span></code></a> breaks the state if the value was <em>commanded</em>, regardless of
 whether the value actually changed.  So let’s dig in to the commands at exactly the state
 transition time of the 3rd row:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">commands</span><span class="o">.</span><span class="n">get_cmds</span><span class="p">(</span><span class="n">date</span><span class="o">=</span><span class="s1">&#39;2017:001:21:05:06.467&#39;</span><span class="p">))</span>
@@ -557,7 +557,7 @@ All of the supported state keys that reproduce backstop history files are tested
 </section>
 <section id="states-from-commands">
 <h4>States from commands<a class="headerlink" href="#states-from-commands" title="Link to this heading">¶</a></h4>
-<p>Instead of relying on <code class="xref py py-func docutils literal notranslate"><span class="pre">get_states()</span></code> to get the commands and continuity, you can do things
+<p>Instead of relying on <a class="reference internal" href="api_states.html#kadi.commands.states.get_states" title="kadi.commands.states.get_states"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_states()</span></code></a> to get the commands and continuity, you can do things
 manually.  For example:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">start</span><span class="p">,</span> <span class="n">stop</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;2017:001:21:00:00&#39;</span><span class="p">,</span> <span class="s1">&#39;2017:002:11:29:00&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">state_keys</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;obsid&#39;</span><span class="p">,</span> <span class="s1">&#39;simpos&#39;</span><span class="p">,</span> <span class="s1">&#39;clocking&#39;</span><span class="p">]</span>
@@ -577,7 +577,7 @@ manually.  For example:</p>
 <span class="go">2017:002:11:26:43.185 2017:002:11:26:43.185 50432 -99616        0           obsid</span>
 </pre></div>
 </div>
-<p>In the call to <code class="xref py py-func docutils literal notranslate"><span class="pre">get_states()</span></code>, if you omit the <code class="docutils literal notranslate"><span class="pre">continuity</span></code> argument it will be determined
+<p>In the call to <a class="reference internal" href="api_states.html#kadi.commands.states.get_states" title="kadi.commands.states.get_states"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_states()</span></code></a>, if you omit the <code class="docutils literal notranslate"><span class="pre">continuity</span></code> argument it will be determined
 internally using the first command date.</p>
 <p>This manual process is normally what would be done in a load review code where one needs
 to consider up to four different elements:</p>
@@ -626,9 +626,9 @@ process more straightforward.  E.g.:</p>
 <section id="continuity">
 <h3>Continuity<a class="headerlink" href="#continuity" title="Link to this heading">¶</a></h3>
 <p>To get the continuity state for a desired set of state keys at a certain time, use
-<code class="xref py py-func docutils literal notranslate"><span class="pre">get_continuity()</span></code>.  Before doing this, recall that in IPython one can always get
+<a class="reference internal" href="api_states.html#kadi.commands.states.get_continuity" title="kadi.commands.states.get_continuity"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_continuity()</span></code></a>.  Before doing this, recall that in IPython one can always get
 help on a function, class, or method with <code class="docutils literal notranslate"><span class="pre">&lt;something&gt;?</span></code> or <code class="docutils literal notranslate"><span class="pre">help(&lt;something&gt;)</span></code>.
-So here is how to get help on the <code class="xref py py-func docutils literal notranslate"><span class="pre">get_continuity()</span></code>:</p>
+So here is how to get help on the <a class="reference internal" href="api_states.html#kadi.commands.states.get_continuity" title="kadi.commands.states.get_continuity"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_continuity()</span></code></a>:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>&gt;&gt;&gt; states.get_continuity?
 Signature: states.get_continuity(date=None, state_keys=None, lookbacks=(7, 30, 180, 1000))
 Docstring:
@@ -717,131 +717,131 @@ state keys shown below is used:</p>
 classes which affect the keys.</p>
 <dl class="simple">
 <dt><code class="docutils literal notranslate"><span class="pre">acisfp_setpoint</span></code></dt><dd><ul class="simple">
-<li><p><code class="xref py py-class docutils literal notranslate"><span class="pre">ACISFP_SetPointTransition</span></code></p></li>
+<li><p><a class="reference internal" href="api_states.html#kadi.commands.states.ACISFP_SetPointTransition" title="kadi.commands.states.ACISFP_SetPointTransition"><code class="xref py py-class docutils literal notranslate"><span class="pre">ACISFP_SetPointTransition</span></code></a></p></li>
 </ul>
 </dd>
 <dt><code class="docutils literal notranslate"><span class="pre">aoephem1</span></code>, <code class="docutils literal notranslate"><span class="pre">aoephem2</span></code>, <code class="docutils literal notranslate"><span class="pre">aoratio</span></code>, <code class="docutils literal notranslate"><span class="pre">aoargper</span></code>, <code class="docutils literal notranslate"><span class="pre">aoeccent</span></code>, <code class="docutils literal notranslate"><span class="pre">ao1minus</span></code>, <code class="docutils literal notranslate"><span class="pre">ao1plus</span></code>, <code class="docutils literal notranslate"><span class="pre">aomotion</span></code>, <code class="docutils literal notranslate"><span class="pre">aoiterat</span></code>, <code class="docutils literal notranslate"><span class="pre">aoorbang</span></code>, <code class="docutils literal notranslate"><span class="pre">aoperige</span></code>, <code class="docutils literal notranslate"><span class="pre">aoascend</span></code>, <code class="docutils literal notranslate"><span class="pre">aosini</span></code>, <code class="docutils literal notranslate"><span class="pre">aoslr</span></code>, <code class="docutils literal notranslate"><span class="pre">aosqrtmu</span></code></dt><dd><ul class="simple">
-<li><p><code class="xref py py-class docutils literal notranslate"><span class="pre">EphemerisTransition</span></code></p></li>
+<li><p><a class="reference internal" href="api_states.html#kadi.commands.states.EphemerisTransition" title="kadi.commands.states.EphemerisTransition"><code class="xref py py-class docutils literal notranslate"><span class="pre">EphemerisTransition</span></code></a></p></li>
 </ul>
 </dd>
 <dt><code class="docutils literal notranslate"><span class="pre">clocking</span></code>, <code class="docutils literal notranslate"><span class="pre">power_cmd</span></code>, <code class="docutils literal notranslate"><span class="pre">vid_board</span></code>, <code class="docutils literal notranslate"><span class="pre">fep_count</span></code>, <code class="docutils literal notranslate"><span class="pre">si_mode</span></code>, <code class="docutils literal notranslate"><span class="pre">ccd_count</span></code></dt><dd><ul class="simple">
-<li><p><code class="xref py py-class docutils literal notranslate"><span class="pre">ACISTransition</span></code></p></li>
+<li><p><a class="reference internal" href="api_states.html#kadi.commands.states.ACISTransition" title="kadi.commands.states.ACISTransition"><code class="xref py py-class docutils literal notranslate"><span class="pre">ACISTransition</span></code></a></p></li>
 </ul>
 </dd>
 <dt><code class="docutils literal notranslate"><span class="pre">dither</span></code></dt><dd><ul class="simple">
-<li><p><code class="xref py py-class docutils literal notranslate"><span class="pre">DitherDisableTransition</span></code></p></li>
-<li><p><code class="xref py py-class docutils literal notranslate"><span class="pre">DitherEnableTransition</span></code></p></li>
+<li><p><a class="reference internal" href="api_states.html#kadi.commands.states.DitherDisableTransition" title="kadi.commands.states.DitherDisableTransition"><code class="xref py py-class docutils literal notranslate"><span class="pre">DitherDisableTransition</span></code></a></p></li>
+<li><p><a class="reference internal" href="api_states.html#kadi.commands.states.DitherEnableTransition" title="kadi.commands.states.DitherEnableTransition"><code class="xref py py-class docutils literal notranslate"><span class="pre">DitherEnableTransition</span></code></a></p></li>
 </ul>
 </dd>
 <dt><code class="docutils literal notranslate"><span class="pre">dither_phase_pitch</span></code>, <code class="docutils literal notranslate"><span class="pre">dither_phase_yaw</span></code>, <code class="docutils literal notranslate"><span class="pre">dither_ampl_pitch</span></code>, <code class="docutils literal notranslate"><span class="pre">dither_ampl_yaw</span></code>, <code class="docutils literal notranslate"><span class="pre">dither_period_pitch</span></code>, <code class="docutils literal notranslate"><span class="pre">dither_period_yaw</span></code></dt><dd><ul class="simple">
-<li><p><code class="xref py py-class docutils literal notranslate"><span class="pre">DitherParamsTransition</span></code></p></li>
+<li><p><a class="reference internal" href="api_states.html#kadi.commands.states.DitherParamsTransition" title="kadi.commands.states.DitherParamsTransition"><code class="xref py py-class docutils literal notranslate"><span class="pre">DitherParamsTransition</span></code></a></p></li>
 </ul>
 </dd>
 <dt><code class="docutils literal notranslate"><span class="pre">eclipse</span></code></dt><dd><ul class="simple">
-<li><p><code class="xref py py-class docutils literal notranslate"><span class="pre">EclipsePenumbraEntryTransition</span></code></p></li>
-<li><p><code class="xref py py-class docutils literal notranslate"><span class="pre">EclipsePenumbraExitTransition</span></code></p></li>
-<li><p><code class="xref py py-class docutils literal notranslate"><span class="pre">EclipseUmbraEntryTransition</span></code></p></li>
-<li><p><code class="xref py py-class docutils literal notranslate"><span class="pre">EclipseUmbraExitTransition</span></code></p></li>
+<li><p><a class="reference internal" href="api_states.html#kadi.commands.states.EclipsePenumbraEntryTransition" title="kadi.commands.states.EclipsePenumbraEntryTransition"><code class="xref py py-class docutils literal notranslate"><span class="pre">EclipsePenumbraEntryTransition</span></code></a></p></li>
+<li><p><a class="reference internal" href="api_states.html#kadi.commands.states.EclipsePenumbraExitTransition" title="kadi.commands.states.EclipsePenumbraExitTransition"><code class="xref py py-class docutils literal notranslate"><span class="pre">EclipsePenumbraExitTransition</span></code></a></p></li>
+<li><p><a class="reference internal" href="api_states.html#kadi.commands.states.EclipseUmbraEntryTransition" title="kadi.commands.states.EclipseUmbraEntryTransition"><code class="xref py py-class docutils literal notranslate"><span class="pre">EclipseUmbraEntryTransition</span></code></a></p></li>
+<li><p><a class="reference internal" href="api_states.html#kadi.commands.states.EclipseUmbraExitTransition" title="kadi.commands.states.EclipseUmbraExitTransition"><code class="xref py py-class docutils literal notranslate"><span class="pre">EclipseUmbraExitTransition</span></code></a></p></li>
 </ul>
 </dd>
 <dt><code class="docutils literal notranslate"><span class="pre">eclipse_timer</span></code></dt><dd><ul class="simple">
-<li><p><code class="xref py py-class docutils literal notranslate"><span class="pre">EclipseEntryTimerTransition</span></code></p></li>
+<li><p><a class="reference internal" href="api_states.html#kadi.commands.states.EclipseEntryTimerTransition" title="kadi.commands.states.EclipseEntryTimerTransition"><code class="xref py py-class docutils literal notranslate"><span class="pre">EclipseEntryTimerTransition</span></code></a></p></li>
 </ul>
 </dd>
 <dt><code class="docutils literal notranslate"><span class="pre">ephem_update</span></code></dt><dd><ul class="simple">
-<li><p><code class="xref py py-class docutils literal notranslate"><span class="pre">EphemerisUpdateTransition</span></code></p></li>
+<li><p><a class="reference internal" href="api_states.html#kadi.commands.states.EphemerisUpdateTransition" title="kadi.commands.states.EphemerisUpdateTransition"><code class="xref py py-class docutils literal notranslate"><span class="pre">EphemerisUpdateTransition</span></code></a></p></li>
 </ul>
 </dd>
 <dt><code class="docutils literal notranslate"><span class="pre">format</span></code></dt><dd><ul class="simple">
-<li><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Format1_Transition</span></code></p></li>
-<li><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Format2_Transition</span></code></p></li>
-<li><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Format3_Transition</span></code></p></li>
-<li><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Format4_Transition</span></code></p></li>
-<li><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Format5_Transition</span></code></p></li>
-<li><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Format6_Transition</span></code></p></li>
+<li><p><a class="reference internal" href="api_states.html#kadi.commands.states.Format1_Transition" title="kadi.commands.states.Format1_Transition"><code class="xref py py-class docutils literal notranslate"><span class="pre">Format1_Transition</span></code></a></p></li>
+<li><p><a class="reference internal" href="api_states.html#kadi.commands.states.Format2_Transition" title="kadi.commands.states.Format2_Transition"><code class="xref py py-class docutils literal notranslate"><span class="pre">Format2_Transition</span></code></a></p></li>
+<li><p><a class="reference internal" href="api_states.html#kadi.commands.states.Format3_Transition" title="kadi.commands.states.Format3_Transition"><code class="xref py py-class docutils literal notranslate"><span class="pre">Format3_Transition</span></code></a></p></li>
+<li><p><a class="reference internal" href="api_states.html#kadi.commands.states.Format4_Transition" title="kadi.commands.states.Format4_Transition"><code class="xref py py-class docutils literal notranslate"><span class="pre">Format4_Transition</span></code></a></p></li>
+<li><p><a class="reference internal" href="api_states.html#kadi.commands.states.Format5_Transition" title="kadi.commands.states.Format5_Transition"><code class="xref py py-class docutils literal notranslate"><span class="pre">Format5_Transition</span></code></a></p></li>
+<li><p><a class="reference internal" href="api_states.html#kadi.commands.states.Format6_Transition" title="kadi.commands.states.Format6_Transition"><code class="xref py py-class docutils literal notranslate"><span class="pre">Format6_Transition</span></code></a></p></li>
 </ul>
 </dd>
 <dt><code class="docutils literal notranslate"><span class="pre">hrc_15v</span></code></dt><dd><ul class="simple">
-<li><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Hrc15vOff_Transition</span></code></p></li>
-<li><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Hrc15vOn_SCS134_Transition</span></code></p></li>
-<li><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Hrc15vOn_Transition</span></code></p></li>
+<li><p><a class="reference internal" href="api_states.html#kadi.commands.states.Hrc15vOff_Transition" title="kadi.commands.states.Hrc15vOff_Transition"><code class="xref py py-class docutils literal notranslate"><span class="pre">Hrc15vOff_Transition</span></code></a></p></li>
+<li><p><a class="reference internal" href="api_states.html#kadi.commands.states.Hrc15vOn_SCS134_Transition" title="kadi.commands.states.Hrc15vOn_SCS134_Transition"><code class="xref py py-class docutils literal notranslate"><span class="pre">Hrc15vOn_SCS134_Transition</span></code></a></p></li>
+<li><p><a class="reference internal" href="api_states.html#kadi.commands.states.Hrc15vOn_Transition" title="kadi.commands.states.Hrc15vOn_Transition"><code class="xref py py-class docutils literal notranslate"><span class="pre">Hrc15vOn_Transition</span></code></a></p></li>
 </ul>
 </dd>
 <dt><code class="docutils literal notranslate"><span class="pre">hrc_24v</span></code></dt><dd><ul class="simple">
-<li><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Hrc24vOff_Transition</span></code></p></li>
-<li><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Hrc24vOn_Transition</span></code></p></li>
+<li><p><a class="reference internal" href="api_states.html#kadi.commands.states.Hrc24vOff_Transition" title="kadi.commands.states.Hrc24vOff_Transition"><code class="xref py py-class docutils literal notranslate"><span class="pre">Hrc24vOff_Transition</span></code></a></p></li>
+<li><p><a class="reference internal" href="api_states.html#kadi.commands.states.Hrc24vOn_Transition" title="kadi.commands.states.Hrc24vOn_Transition"><code class="xref py py-class docutils literal notranslate"><span class="pre">Hrc24vOn_Transition</span></code></a></p></li>
 </ul>
 </dd>
 <dt><code class="docutils literal notranslate"><span class="pre">hrc_i</span></code></dt><dd><ul class="simple">
-<li><p><code class="xref py py-class docutils literal notranslate"><span class="pre">HrcIOff_Transition</span></code></p></li>
-<li><p><code class="xref py py-class docutils literal notranslate"><span class="pre">HrcIOn_Transition</span></code></p></li>
+<li><p><a class="reference internal" href="api_states.html#kadi.commands.states.HrcIOff_Transition" title="kadi.commands.states.HrcIOff_Transition"><code class="xref py py-class docutils literal notranslate"><span class="pre">HrcIOff_Transition</span></code></a></p></li>
+<li><p><a class="reference internal" href="api_states.html#kadi.commands.states.HrcIOn_Transition" title="kadi.commands.states.HrcIOn_Transition"><code class="xref py py-class docutils literal notranslate"><span class="pre">HrcIOn_Transition</span></code></a></p></li>
 </ul>
 </dd>
 <dt><code class="docutils literal notranslate"><span class="pre">hrc_s</span></code></dt><dd><ul class="simple">
-<li><p><code class="xref py py-class docutils literal notranslate"><span class="pre">HrcSOff_Transition</span></code></p></li>
-<li><p><code class="xref py py-class docutils literal notranslate"><span class="pre">HrcSOn_Transition</span></code></p></li>
+<li><p><a class="reference internal" href="api_states.html#kadi.commands.states.HrcSOff_Transition" title="kadi.commands.states.HrcSOff_Transition"><code class="xref py py-class docutils literal notranslate"><span class="pre">HrcSOff_Transition</span></code></a></p></li>
+<li><p><a class="reference internal" href="api_states.html#kadi.commands.states.HrcSOn_Transition" title="kadi.commands.states.HrcSOn_Transition"><code class="xref py py-class docutils literal notranslate"><span class="pre">HrcSOn_Transition</span></code></a></p></li>
 </ul>
 </dd>
 <dt><code class="docutils literal notranslate"><span class="pre">letg</span></code>, <code class="docutils literal notranslate"><span class="pre">hetg</span></code>, <code class="docutils literal notranslate"><span class="pre">grating</span></code></dt><dd><ul class="simple">
-<li><p><code class="xref py py-class docutils literal notranslate"><span class="pre">HETG_INSR_Transition</span></code></p></li>
-<li><p><code class="xref py py-class docutils literal notranslate"><span class="pre">HETG_RETR_Transition</span></code></p></li>
-<li><p><code class="xref py py-class docutils literal notranslate"><span class="pre">LETG_INSR_Transition</span></code></p></li>
-<li><p><code class="xref py py-class docutils literal notranslate"><span class="pre">LETG_RETR_Transition</span></code></p></li>
+<li><p><a class="reference internal" href="api_states.html#kadi.commands.states.HETG_INSR_Transition" title="kadi.commands.states.HETG_INSR_Transition"><code class="xref py py-class docutils literal notranslate"><span class="pre">HETG_INSR_Transition</span></code></a></p></li>
+<li><p><a class="reference internal" href="api_states.html#kadi.commands.states.HETG_RETR_Transition" title="kadi.commands.states.HETG_RETR_Transition"><code class="xref py py-class docutils literal notranslate"><span class="pre">HETG_RETR_Transition</span></code></a></p></li>
+<li><p><a class="reference internal" href="api_states.html#kadi.commands.states.LETG_INSR_Transition" title="kadi.commands.states.LETG_INSR_Transition"><code class="xref py py-class docutils literal notranslate"><span class="pre">LETG_INSR_Transition</span></code></a></p></li>
+<li><p><a class="reference internal" href="api_states.html#kadi.commands.states.LETG_RETR_Transition" title="kadi.commands.states.LETG_RETR_Transition"><code class="xref py py-class docutils literal notranslate"><span class="pre">LETG_RETR_Transition</span></code></a></p></li>
 </ul>
 </dd>
 <dt><code class="docutils literal notranslate"><span class="pre">obsid</span></code></dt><dd><ul class="simple">
-<li><p><code class="xref py py-class docutils literal notranslate"><span class="pre">ObsidTransition</span></code></p></li>
+<li><p><a class="reference internal" href="api_states.html#kadi.commands.states.ObsidTransition" title="kadi.commands.states.ObsidTransition"><code class="xref py py-class docutils literal notranslate"><span class="pre">ObsidTransition</span></code></a></p></li>
 </ul>
 </dd>
 <dt><code class="docutils literal notranslate"><span class="pre">orbit_point</span></code></dt><dd><ul class="simple">
-<li><p><code class="xref py py-class docutils literal notranslate"><span class="pre">OrbitPointTransition</span></code></p></li>
+<li><p><a class="reference internal" href="api_states.html#kadi.commands.states.OrbitPointTransition" title="kadi.commands.states.OrbitPointTransition"><code class="xref py py-class docutils literal notranslate"><span class="pre">OrbitPointTransition</span></code></a></p></li>
 </ul>
 </dd>
 <dt><code class="docutils literal notranslate"><span class="pre">q1</span></code>, <code class="docutils literal notranslate"><span class="pre">q2</span></code>, <code class="docutils literal notranslate"><span class="pre">q3</span></code>, <code class="docutils literal notranslate"><span class="pre">q4</span></code>, <code class="docutils literal notranslate"><span class="pre">targ_q1</span></code>, <code class="docutils literal notranslate"><span class="pre">targ_q2</span></code>, <code class="docutils literal notranslate"><span class="pre">targ_q3</span></code>, <code class="docutils literal notranslate"><span class="pre">targ_q4</span></code>, <code class="docutils literal notranslate"><span class="pre">ra</span></code>, <code class="docutils literal notranslate"><span class="pre">dec</span></code>, <code class="docutils literal notranslate"><span class="pre">roll</span></code>, <code class="docutils literal notranslate"><span class="pre">auto_npnt</span></code>, <code class="docutils literal notranslate"><span class="pre">pcad_mode</span></code>, <code class="docutils literal notranslate"><span class="pre">pitch</span></code>, <code class="docutils literal notranslate"><span class="pre">off_nom_roll</span></code></dt><dd><ul class="simple">
-<li><p><code class="xref py py-class docutils literal notranslate"><span class="pre">AutoNPMDisableTransition</span></code></p></li>
-<li><p><code class="xref py py-class docutils literal notranslate"><span class="pre">AutoNPMEnableTransition</span></code></p></li>
-<li><p><code class="xref py py-class docutils literal notranslate"><span class="pre">ManeuverTransition</span></code></p></li>
-<li><p><code class="xref py py-class docutils literal notranslate"><span class="pre">NMM_Transition</span></code></p></li>
-<li><p><code class="xref py py-class docutils literal notranslate"><span class="pre">NPM_Transition</span></code></p></li>
-<li><p><code class="xref py py-class docutils literal notranslate"><span class="pre">NormalSunTransition</span></code></p></li>
-<li><p><code class="xref py py-class docutils literal notranslate"><span class="pre">SunVectorTransition</span></code></p></li>
-<li><p><code class="xref py py-class docutils literal notranslate"><span class="pre">TargQuatTransition</span></code></p></li>
+<li><p><a class="reference internal" href="api_states.html#kadi.commands.states.AutoNPMDisableTransition" title="kadi.commands.states.AutoNPMDisableTransition"><code class="xref py py-class docutils literal notranslate"><span class="pre">AutoNPMDisableTransition</span></code></a></p></li>
+<li><p><a class="reference internal" href="api_states.html#kadi.commands.states.AutoNPMEnableTransition" title="kadi.commands.states.AutoNPMEnableTransition"><code class="xref py py-class docutils literal notranslate"><span class="pre">AutoNPMEnableTransition</span></code></a></p></li>
+<li><p><a class="reference internal" href="api_states.html#kadi.commands.states.ManeuverTransition" title="kadi.commands.states.ManeuverTransition"><code class="xref py py-class docutils literal notranslate"><span class="pre">ManeuverTransition</span></code></a></p></li>
+<li><p><a class="reference internal" href="api_states.html#kadi.commands.states.NMM_Transition" title="kadi.commands.states.NMM_Transition"><code class="xref py py-class docutils literal notranslate"><span class="pre">NMM_Transition</span></code></a></p></li>
+<li><p><a class="reference internal" href="api_states.html#kadi.commands.states.NPM_Transition" title="kadi.commands.states.NPM_Transition"><code class="xref py py-class docutils literal notranslate"><span class="pre">NPM_Transition</span></code></a></p></li>
+<li><p><a class="reference internal" href="api_states.html#kadi.commands.states.NormalSunTransition" title="kadi.commands.states.NormalSunTransition"><code class="xref py py-class docutils literal notranslate"><span class="pre">NormalSunTransition</span></code></a></p></li>
+<li><p><a class="reference internal" href="api_states.html#kadi.commands.states.SunVectorTransition" title="kadi.commands.states.SunVectorTransition"><code class="xref py py-class docutils literal notranslate"><span class="pre">SunVectorTransition</span></code></a></p></li>
+<li><p><a class="reference internal" href="api_states.html#kadi.commands.states.TargQuatTransition" title="kadi.commands.states.TargQuatTransition"><code class="xref py py-class docutils literal notranslate"><span class="pre">TargQuatTransition</span></code></a></p></li>
 </ul>
 </dd>
 <dt><code class="docutils literal notranslate"><span class="pre">radmon</span></code></dt><dd><ul class="simple">
-<li><p><code class="xref py py-class docutils literal notranslate"><span class="pre">RadmonDisableTransition</span></code></p></li>
-<li><p><code class="xref py py-class docutils literal notranslate"><span class="pre">RadmonEnableTransition</span></code></p></li>
+<li><p><a class="reference internal" href="api_states.html#kadi.commands.states.RadmonDisableTransition" title="kadi.commands.states.RadmonDisableTransition"><code class="xref py py-class docutils literal notranslate"><span class="pre">RadmonDisableTransition</span></code></a></p></li>
+<li><p><a class="reference internal" href="api_states.html#kadi.commands.states.RadmonEnableTransition" title="kadi.commands.states.RadmonEnableTransition"><code class="xref py py-class docutils literal notranslate"><span class="pre">RadmonEnableTransition</span></code></a></p></li>
 </ul>
 </dd>
 <dt><code class="docutils literal notranslate"><span class="pre">scs84</span></code></dt><dd><ul class="simple">
-<li><p><code class="xref py py-class docutils literal notranslate"><span class="pre">SCS84DisableTransition</span></code></p></li>
-<li><p><code class="xref py py-class docutils literal notranslate"><span class="pre">SCS84EnableTransition</span></code></p></li>
+<li><p><a class="reference internal" href="api_states.html#kadi.commands.states.SCS84DisableTransition" title="kadi.commands.states.SCS84DisableTransition"><code class="xref py py-class docutils literal notranslate"><span class="pre">SCS84DisableTransition</span></code></a></p></li>
+<li><p><a class="reference internal" href="api_states.html#kadi.commands.states.SCS84EnableTransition" title="kadi.commands.states.SCS84EnableTransition"><code class="xref py py-class docutils literal notranslate"><span class="pre">SCS84EnableTransition</span></code></a></p></li>
 </ul>
 </dd>
 <dt><code class="docutils literal notranslate"><span class="pre">scs98</span></code></dt><dd><ul class="simple">
-<li><p><code class="xref py py-class docutils literal notranslate"><span class="pre">SCS98DisableTransition</span></code></p></li>
-<li><p><code class="xref py py-class docutils literal notranslate"><span class="pre">SCS98EnableTransition</span></code></p></li>
+<li><p><a class="reference internal" href="api_states.html#kadi.commands.states.SCS98DisableTransition" title="kadi.commands.states.SCS98DisableTransition"><code class="xref py py-class docutils literal notranslate"><span class="pre">SCS98DisableTransition</span></code></a></p></li>
+<li><p><a class="reference internal" href="api_states.html#kadi.commands.states.SCS98EnableTransition" title="kadi.commands.states.SCS98EnableTransition"><code class="xref py py-class docutils literal notranslate"><span class="pre">SCS98EnableTransition</span></code></a></p></li>
 </ul>
 </dd>
 <dt><code class="docutils literal notranslate"><span class="pre">simfa_pos</span></code></dt><dd><ul class="simple">
-<li><p><code class="xref py py-class docutils literal notranslate"><span class="pre">SimFocusTransition</span></code></p></li>
+<li><p><a class="reference internal" href="api_states.html#kadi.commands.states.SimFocusTransition" title="kadi.commands.states.SimFocusTransition"><code class="xref py py-class docutils literal notranslate"><span class="pre">SimFocusTransition</span></code></a></p></li>
 </ul>
 </dd>
 <dt><code class="docutils literal notranslate"><span class="pre">simpos</span></code></dt><dd><ul class="simple">
-<li><p><code class="xref py py-class docutils literal notranslate"><span class="pre">SimTscTransition</span></code></p></li>
+<li><p><a class="reference internal" href="api_states.html#kadi.commands.states.SimTscTransition" title="kadi.commands.states.SimTscTransition"><code class="xref py py-class docutils literal notranslate"><span class="pre">SimTscTransition</span></code></a></p></li>
 </ul>
 </dd>
 <dt><code class="docutils literal notranslate"><span class="pre">subformat</span></code></dt><dd><ul class="simple">
-<li><p><code class="xref py py-class docutils literal notranslate"><span class="pre">SubFormatEPS_Transition</span></code></p></li>
-<li><p><code class="xref py py-class docutils literal notranslate"><span class="pre">SubFormatNRM_Transition</span></code></p></li>
-<li><p><code class="xref py py-class docutils literal notranslate"><span class="pre">SubFormatPDG_Transition</span></code></p></li>
-<li><p><code class="xref py py-class docutils literal notranslate"><span class="pre">SubFormatSSR_Transition</span></code></p></li>
+<li><p><a class="reference internal" href="api_states.html#kadi.commands.states.SubFormatEPS_Transition" title="kadi.commands.states.SubFormatEPS_Transition"><code class="xref py py-class docutils literal notranslate"><span class="pre">SubFormatEPS_Transition</span></code></a></p></li>
+<li><p><a class="reference internal" href="api_states.html#kadi.commands.states.SubFormatNRM_Transition" title="kadi.commands.states.SubFormatNRM_Transition"><code class="xref py py-class docutils literal notranslate"><span class="pre">SubFormatNRM_Transition</span></code></a></p></li>
+<li><p><a class="reference internal" href="api_states.html#kadi.commands.states.SubFormatPDG_Transition" title="kadi.commands.states.SubFormatPDG_Transition"><code class="xref py py-class docutils literal notranslate"><span class="pre">SubFormatPDG_Transition</span></code></a></p></li>
+<li><p><a class="reference internal" href="api_states.html#kadi.commands.states.SubFormatSSR_Transition" title="kadi.commands.states.SubFormatSSR_Transition"><code class="xref py py-class docutils literal notranslate"><span class="pre">SubFormatSSR_Transition</span></code></a></p></li>
 </ul>
 </dd>
 <dt><code class="docutils literal notranslate"><span class="pre">sun_pos_mon</span></code></dt><dd><ul class="simple">
-<li><p><code class="xref py py-class docutils literal notranslate"><span class="pre">SPMDisableTransition</span></code></p></li>
-<li><p><code class="xref py py-class docutils literal notranslate"><span class="pre">SPMEclipseEnableTransition</span></code></p></li>
-<li><p><code class="xref py py-class docutils literal notranslate"><span class="pre">SPMEnableTransition</span></code></p></li>
+<li><p><a class="reference internal" href="api_states.html#kadi.commands.states.SPMDisableTransition" title="kadi.commands.states.SPMDisableTransition"><code class="xref py py-class docutils literal notranslate"><span class="pre">SPMDisableTransition</span></code></a></p></li>
+<li><p><a class="reference internal" href="api_states.html#kadi.commands.states.SPMEclipseEnableTransition" title="kadi.commands.states.SPMEclipseEnableTransition"><code class="xref py py-class docutils literal notranslate"><span class="pre">SPMEclipseEnableTransition</span></code></a></p></li>
+<li><p><a class="reference internal" href="api_states.html#kadi.commands.states.SPMEnableTransition" title="kadi.commands.states.SPMEnableTransition"><code class="xref py py-class docutils literal notranslate"><span class="pre">SPMEnableTransition</span></code></a></p></li>
 </ul>
 </dd>
 </dl>
@@ -851,18 +851,18 @@ classes which affect the keys.</p>
 <p>Basic design concepts for transition classes:</p>
 <ul>
 <li><p>All state-key specific information is encapsulated in Transition classes.  These inherit
-from <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseTransition</span></code> and have attributes to specify:</p>
+from <a class="reference internal" href="api_states.html#kadi.commands.states.BaseTransition" title="kadi.commands.states.BaseTransition"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseTransition</span></code></a> and have attributes to specify:</p>
 <ul class="simple">
 <li><p>Command that generates state change</p></li>
 <li><p>State key(s) that require this transition</p></li>
 </ul>
 </li>
-<li><p>Simple cases are handled using <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseTransition</span></code> sub-classes
+<li><p>Simple cases are handled using <a class="reference internal" href="api_states.html#kadi.commands.states.BaseTransition" title="kadi.commands.states.BaseTransition"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseTransition</span></code></a> sub-classes
 that need only define class attributes.</p></li>
 <li><p>Transition classes are never instantiated, they contain only class methods.</p></li>
 <li><p>Transition classes have two key methods:</p>
 <dl class="simple">
-<dt><code class="xref py py-func docutils literal notranslate"><span class="pre">get_state_changing_commands()</span></code></dt><dd><p>Quickly get a list of applicable commands using (usually) numpy filtering
+<dt><a class="reference internal" href="api_states.html#kadi.commands.states.BaseTransition.get_state_changing_commands" title="kadi.commands.states.BaseTransition.get_state_changing_commands"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_state_changing_commands()</span></code></a></dt><dd><p>Quickly get a list of applicable commands using (usually) numpy filtering
 instead of looping and if/elif through every command.  This is done in the
 method and allows for getting a year of states in &lt; 10-20 seconds.  This
 requirement drives some other code complexity, in particular transition
@@ -895,8 +895,8 @@ the current state.</p>
 <h3>User-defined states<a class="headerlink" href="#user-defined-states" title="Link to this heading">¶</a></h3>
 <p>One of the driving factors in the design of the commanded states module is making it easy
 for users to create custom states with minimal effort.  With the available base classes,
-and in particular <code class="xref py py-class docutils literal notranslate"><span class="pre">FixedTransition</span></code> and
-<code class="xref py py-class docutils literal notranslate"><span class="pre">ParamTransition</span></code>, it is often just a few lines of code.</p>
+and in particular <a class="reference internal" href="api_states.html#kadi.commands.states.FixedTransition" title="kadi.commands.states.FixedTransition"><code class="xref py py-class docutils literal notranslate"><span class="pre">FixedTransition</span></code></a> and
+<a class="reference internal" href="api_states.html#kadi.commands.states.ParamTransition" title="kadi.commands.states.ParamTransition"><code class="xref py py-class docutils literal notranslate"><span class="pre">ParamTransition</span></code></a>, it is often just a few lines of code.</p>
 <p>For example, if we were interested in the state of the IU mode select, we look at examples
 of the relevant command, which in this case is <code class="docutils literal notranslate"><span class="pre">CIMODESL</span></code>.</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">cmds</span> <span class="o">=</span> <span class="n">commands</span><span class="o">.</span><span class="n">get_cmds</span><span class="p">(</span><span class="s1">&#39;2017:360&#39;</span><span class="p">,</span> <span class="s1">&#39;2018:001&#39;</span><span class="p">,</span> <span class="n">tlmsid</span><span class="o">=</span><span class="s1">&#39;CIMODESL&#39;</span><span class="p">)</span>
@@ -905,9 +905,9 @@ of the relevant command, which in this case is <code class="docutils literal not
 </pre></div>
 </div>
 <p>Here we see that the IU mode state value is captured in the <code class="docutils literal notranslate"><span class="pre">msid</span></code> parameter.  That tells
-us this can be implemented as a <code class="xref py py-class docutils literal notranslate"><span class="pre">ParamTransition</span></code> sub-class.
+us this can be implemented as a <a class="reference internal" href="api_states.html#kadi.commands.states.ParamTransition" title="kadi.commands.states.ParamTransition"><code class="xref py py-class docutils literal notranslate"><span class="pre">ParamTransition</span></code></a> sub-class.
 This class is documented, but in practice it is probably easiest to look through the available
-classes in the code and find an example.  In this case the <code class="xref py py-class docutils literal notranslate"><span class="pre">ObsidTransition</span></code> class:</p>
+classes in the code and find an example.  In this case the <a class="reference internal" href="api_states.html#kadi.commands.states.ObsidTransition" title="kadi.commands.states.ObsidTransition"><code class="xref py py-class docutils literal notranslate"><span class="pre">ObsidTransition</span></code></a> class:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">ObsidTransition</span><span class="p">(</span><span class="n">ParamTransition</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Obsid update&quot;&quot;&quot;</span>
     <span class="n">command_attributes</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;MP_OBSID&#39;</span><span class="p">}</span>
@@ -936,7 +936,7 @@ words, when the user requests states or continuity, they generally provide a <co
 specifying which keys are desired.  If the user <code class="docutils literal notranslate"><span class="pre">state_keys</span></code> overlaps with the class <code class="docutils literal notranslate"><span class="pre">state_keys</span></code>,
 then this class will be processed.</p></li>
 <li><p>The <code class="docutils literal notranslate"><span class="pre">transition_key</span></code> and <code class="docutils literal notranslate"><span class="pre">cmd_param_key</span></code> attributes are specific to the
-<code class="xref py py-class docutils literal notranslate"><span class="pre">ParamTransition</span></code> base class and indicate the <em>name</em> of the
+<a class="reference internal" href="api_states.html#kadi.commands.states.ParamTransition" title="kadi.commands.states.ParamTransition"><code class="xref py py-class docutils literal notranslate"><span class="pre">ParamTransition</span></code></a> base class and indicate the <em>name</em> of the
 state to update using the <em>value</em> of the  specified command parameter, respectively.</p></li>
 </ul>
 <div class="admonition note">
