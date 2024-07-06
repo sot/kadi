@@ -1363,8 +1363,10 @@ class ManeuverTransition(BaseTransition):
         # something to change since it would probably be better to have the
         # midpoint attitude.
         dates = secs2date(atts.time)
-        for att, date, pitch, off_nom_roll in zip(atts, dates, pitches, off_nom_rolls):
-            transition = {"date": date}
+        for att, date_att, pitch, off_nom_roll in zip(
+            atts, dates, pitches, off_nom_rolls
+        ):
+            transition = {"date": date_att}
             att_q = np.array([att[x] for x in QUAT_COMPS])
             for qc, q_i in zip(QUAT_COMPS, att_q):
                 transition[qc] = q_i
@@ -1378,7 +1380,7 @@ class ManeuverTransition(BaseTransition):
 
             add_transition(transitions, idx, transition)
 
-        return date  # Date of end of maneuver.
+        return date_att  # Date of end of maneuver.
 
 
 class NormalSunTransition(ManeuverTransition):
