@@ -150,11 +150,13 @@ def set_star_ids(aca: dict) -> None:
     aca : dict
         Input star catalog
     """
+    from kadi.config import conf
+
     date = aca["meta"]["date"]
-    if date < "2024:203":
+    if date < conf.date_start_agasc1p8_earliest:
         # Always 1p7 before 2024-July-21 (before JUL2224 loads)
         versions = ["1p7"]
-    elif date < "2024:233":
+    elif date < conf.date_start_agasc1p8_latest:
         # Could be 1p8 or 1p7 within 30 days later (uncertainty in promotion date)
         versions = ["1p8", "1p7"]
     else:
@@ -167,7 +169,7 @@ def set_star_ids(aca: dict) -> None:
     # practice, and a warning is issue in any case.
     err_star_id = None
     for version in versions:
-        agasc_file = agasc.get_agasc_file(version)
+        agasc_file = agasc.get_agasc_filename(version=version)
         try:
             _set_star_ids(aca, agasc_file)
         except StarIdentificationFailed as err:

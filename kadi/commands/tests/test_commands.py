@@ -832,6 +832,42 @@ def test_get_starcats_each_year(year):
         assert np.all(starcat["id"][ok] != -999)
 
 
+def test_get_starcat_agasc1p8_then_1p7():
+    """
+    For obsid 2576, try AGASC 1.8 then fall back to 1.7 and show successful star
+    identification.
+    """
+    with (
+        conf.set_temp("cache_starcats", False),
+        conf.set_temp("date_start_agasc1p8_earliest", "1994:001"),
+    ):
+        starcat = get_starcats(
+            "2002:365:18:00:00", "2002:365:19:00:00", scenario="flight"
+        )[0]
+        assert np.all(starcat["id"] != -999)
+        assert np.all(starcat["mag"] != -999)
+
+
+def test_get_starcat_only_agasc1p8():
+    """For obsids 3829 and 2576, try AGASC 1.8 only
+
+    For 3829 star identification should succeed, for 2576 it fails.
+    """
+    with (
+        conf.set_temp("cache_starcats", False),
+        conf.set_temp("date_start_agasc1p8_earliest", "1994:001"),
+        conf.set_temp("date_start_agasc1p8_latest", "1994:002"),
+    ):
+        # Force AGASC 1.7 and show that star identification fails
+        starcats = get_starcats(
+            "2002:365:16:00:00", "2002:365:19:00:00", scenario="flight"
+        )
+        assert np.count_nonzero(starcats[0]["id"] == -999) == 0
+        assert np.count_nonzero(starcats[0]["mag"] == -999) == 0
+        assert np.count_nonzero(starcats[1]["id"] == -999) == 3
+        assert np.count_nonzero(starcats[1]["mag"] == -999) == 3
+
+
 def test_get_starcats_with_cmds():
     start, stop = "2021:365:19:00:00", "2022:002:01:25:00"
     cmds = commands.get_cmds(start, stop, scenario="flight")
