@@ -38,9 +38,6 @@ PAR_MAPS = [
 # Cache of observations by scenario
 OBSERVATIONS = {}
 
-# Cache of important columns in proseco_agasc_1p7.h5
-STARS_AGASC = None
-
 # Standard column order for ACATable
 STARCAT_NAMES = [
     "slot",
@@ -138,12 +135,14 @@ def set_star_ids(aca: dict) -> None:
     ``aca`` is a dict of list with starcat values along with a ``meta`` key containing
     relevant observation info. This is from ``convert_aostrcat_to_starcat_dict()``.
 
-    This set the ``id`` and ``mag`` in-place to the brightest star within 1.5 arcsec of
+    This sets the ``id`` and ``mag`` in-place to the brightest star within 1.5 arcsec of
     the commanded position.
 
     This function uses AGASC 1.7 or 1.8, depending on the observation date. For dates
-    before 2024-Jul-21, AGASC 1.7 is used. Between 2024-Jul-21 and 2024-Aug-19, both
-    versions are tried (1.8 then 1.7). After 2024-Aug-19, only 1.8 is used.
+    before 2024-Jul-21, AGASC 1.7 is used. Between 2024-Jul-28 and 2024-Aug-19, both
+    versions are tried (1.8 then 1.7). After 2024-Aug-19, only 1.8 is used. These are
+    defined in the configuration parameters ``date_start_agasc1p8_earliest`` and
+    ``date_start_agasc1p8_latest``.
 
     Parameters
     ----------
