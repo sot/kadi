@@ -151,37 +151,17 @@ def set_star_ids(aca: dict) -> None:
     """
     from kadi.config import conf
 
-    date = aca["meta"]["date"]
-    if date < conf.date_start_agasc1p8_earliest:
-        # Always 1p7 before 2024-July-21 (before JUL2224 loads)
-        versions = ["1p7"]
-    elif date < conf.date_start_agasc1p8_latest:
-        # Could be 1p8 or 1p7 within 30 days later (uncertainty in promotion date)
-        versions = ["1p8", "1p7"]
-    else:
-        # Always 1p8 after 30 days after JUL2224
-        versions = ["1p8"]
+    version = "1p7" if aca["meta"]["date"] < conf.date_start_agasc1p8 else "1p8"
 
-    # Try allowed versions and stop on first success. If no success then issue warning.
+    # Try the AGASC version for that date. If no success then issue warning.
     # Be aware that _set_star_ids works in place so the try/except is not atomic so the
     # ``aca`` dict can be partially updated. This is not expected to be an issue in
     # practice, and a warning is issue in any case.
-    err_star_id = None
-    for version in versions:
-        try:
-            agasc_file = agasc.get_agasc_filename(version=version)
-        except FileNotFoundError:
-            logger.warning(f"AGASC {version} file not found")
-            continue
-        try:
-            _set_star_ids(aca, agasc_file)
-        except StarIdentificationFailed as err:
-            err_star_id = err
-        else:
-            break
-    else:
-        # All versions failed, issue warning
-        logger.warning(str(err_star_id))
+    agasc_file = agasc.get_agasc_filename(version=version)
+    try:
+        _set_star_ids(aca, agasc_file)
+    except StarIdentificationFailed as err:
+        logger.warning(str(err))
 
 
 def _set_star_ids(aca: dict, agasc_file: str) -> None:

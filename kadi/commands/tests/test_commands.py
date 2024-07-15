@@ -841,14 +841,14 @@ def test_get_starcats_each_year(year):
         assert np.all(starcat["id"][ok] != -999)
 
 
-def test_get_starcat_agasc1p8_then_1p7():
+def test_get_starcat_only_agasc1p7():
     """
-    For obsid 2576, try AGASC 1.8 then fall back to 1.7 and show successful star
+    For obsids 3829 and 2576, try AGASC 1.7 only and show successful star
     identification.
     """
     with (
         conf.set_temp("cache_starcats", False),
-        conf.set_temp("date_start_agasc1p8_earliest", "1994:001"),
+        conf.set_temp("date_start_agasc1p8", "2003:001"),
     ):
         starcat = get_starcats(
             "2002:365:18:00:00", "2002:365:19:00:00", scenario="flight"
@@ -865,10 +865,9 @@ def test_get_starcat_only_agasc1p8():
     """
     with (
         conf.set_temp("cache_starcats", False),
-        conf.set_temp("date_start_agasc1p8_earliest", "1994:001"),
-        conf.set_temp("date_start_agasc1p8_latest", "1994:002"),
+        conf.set_temp("date_start_agasc1p8", "1994:001"),
     ):
-        # Force AGASC 1.7 and show that star identification fails
+        # Force AGASC 1.8 and show that star identification fails
         with ska_helpers.utils.set_log_level(kadi.logger, "CRITICAL"):
             starcats = get_starcats(
                 "2002:365:16:00:00", "2002:365:19:00:00", scenario="flight"
