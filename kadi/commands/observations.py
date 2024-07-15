@@ -168,7 +168,11 @@ def set_star_ids(aca: dict) -> None:
     # practice, and a warning is issue in any case.
     err_star_id = None
     for version in versions:
-        agasc_file = agasc.get_agasc_filename(version=version)
+        try:
+            agasc_file = agasc.get_agasc_filename(version=version)
+        except FileNotFoundError:
+            logger.warning(f"AGASC {version} file not found")
+            continue
         try:
             _set_star_ids(aca, agasc_file)
         except StarIdentificationFailed as err:

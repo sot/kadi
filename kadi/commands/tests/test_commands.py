@@ -3,6 +3,7 @@ from pathlib import Path
 
 # Use data file from parse_cm.test for get_cmds_from_backstop test.
 # This package is a dependency
+import agasc
 import astropy.units as u
 import numpy as np
 import parse_cm.paths
@@ -31,6 +32,12 @@ from kadi.scripts import update_cmds_v2
 
 HAS_MPDIR = Path(os.environ["SKA"], "data", "mpcrit1", "mplogs", "2020").exists()
 HAS_INTERNET = has_internet()
+
+try:
+    agasc.get_agasc_filename(version="1p8")
+    HAS_AGASC_1P8 = True
+except FileNotFoundError:
+    HAS_AGASC_1P8 = False
 
 
 @pytest.fixture(scope="module", autouse=True)
@@ -848,6 +855,7 @@ def test_get_starcat_agasc1p8_then_1p7():
         assert np.all(starcat["mag"] != -999)
 
 
+@pytest.mark.skipif(not HAS_AGASC_1P8, reason="AGASC 1.8 not available")
 def test_get_starcat_only_agasc1p8():
     """For obsids 3829 and 2576, try AGASC 1.8 only
 
