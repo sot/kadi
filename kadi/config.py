@@ -69,12 +69,12 @@ class Conf(ConfigNamespace):
     )
 
     date_start_agasc1p8_earliest = ConfigItem(
-        "2024:203",  # 2024-July-21
+        "2024:210",  # 2024-July-28
         "Start date (earliest) for using AGASC 1.8 catalog.",
     )
 
     date_start_agasc1p8_latest = ConfigItem(
-        "2024:233",  # 2024-July-21 + 30 days
+        "2024:233",  # 2024-July-28 + 23 days
         "Start date (latest) for using AGASC 1.8 catalog.",
     )
 
