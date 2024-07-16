@@ -4,12 +4,12 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>kadi.commands.states &#8212; kadi 7.10.1 documentation</title>
+    <title>kadi.commands.states &#8212; kadi 7.11.0 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="../../../_static/bootstrap-astropy.css?v=f4f7060c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/plot_directive.css" />
     
-    <script src="../../../_static/documentation_options.js?v=4c31421e"></script>
+    <script src="../../../_static/documentation_options.js?v=999c8c5e"></script>
     <script src="../../../_static/doctools.js?v=888ff710"></script>
     <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script type="text/javascript" src="../../../_static/sidebar.js"></script>
@@ -45,7 +45,7 @@
     <h3>Navigation</h3>
     <ul>
       <li>
-	<a href="../../../index.html">kadi 7.10.1 documentation</a>
+	<a href="../../../index.html">kadi 7.11.0 documentation</a>
 	 &#187;
       </li>
       <li><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
@@ -1664,8 +1664,10 @@
         <span class="c1"># something to change since it would probably be better to have the</span>
         <span class="c1"># midpoint attitude.</span>
         <span class="n">dates</span> <span class="o">=</span> <span class="n">secs2date</span><span class="p">(</span><span class="n">atts</span><span class="o">.</span><span class="n">time</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">att</span><span class="p">,</span> <span class="n">date</span><span class="p">,</span> <span class="n">pitch</span><span class="p">,</span> <span class="n">off_nom_roll</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">atts</span><span class="p">,</span> <span class="n">dates</span><span class="p">,</span> <span class="n">pitches</span><span class="p">,</span> <span class="n">off_nom_rolls</span><span class="p">):</span>
-            <span class="n">transition</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;date&quot;</span><span class="p">:</span> <span class="n">date</span><span class="p">}</span>
+        <span class="k">for</span> <span class="n">att</span><span class="p">,</span> <span class="n">date_att</span><span class="p">,</span> <span class="n">pitch</span><span class="p">,</span> <span class="n">off_nom_roll</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span>
+            <span class="n">atts</span><span class="p">,</span> <span class="n">dates</span><span class="p">,</span> <span class="n">pitches</span><span class="p">,</span> <span class="n">off_nom_rolls</span>
+        <span class="p">):</span>
+            <span class="n">transition</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;date&quot;</span><span class="p">:</span> <span class="n">date_att</span><span class="p">}</span>
             <span class="n">att_q</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">att</span><span class="p">[</span><span class="n">x</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">QUAT_COMPS</span><span class="p">])</span>
             <span class="k">for</span> <span class="n">qc</span><span class="p">,</span> <span class="n">q_i</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">QUAT_COMPS</span><span class="p">,</span> <span class="n">att_q</span><span class="p">):</span>
                 <span class="n">transition</span><span class="p">[</span><span class="n">qc</span><span class="p">]</span> <span class="o">=</span> <span class="n">q_i</span>
@@ -1679,7 +1681,7 @@
 
             <span class="n">add_transition</span><span class="p">(</span><span class="n">transitions</span><span class="p">,</span> <span class="n">idx</span><span class="p">,</span> <span class="n">transition</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">date</span>  <span class="c1"># Date of end of maneuver.</span></div>
+        <span class="k">return</span> <span class="n">date_att</span>  <span class="c1"># Date of end of maneuver.</span></div>
 </div>
 
 

@@ -4,12 +4,12 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>kadi.commands.observations &#8212; kadi 7.10.1 documentation</title>
+    <title>kadi.commands.observations &#8212; kadi 7.11.0 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="../../../_static/bootstrap-astropy.css?v=f4f7060c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/plot_directive.css" />
     
-    <script src="../../../_static/documentation_options.js?v=4c31421e"></script>
+    <script src="../../../_static/documentation_options.js?v=999c8c5e"></script>
     <script src="../../../_static/doctools.js?v=888ff710"></script>
     <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script type="text/javascript" src="../../../_static/sidebar.js"></script>
@@ -45,7 +45,7 @@
     <h3>Navigation</h3>
     <ul>
       <li>
-	<a href="../../../index.html">kadi 7.10.1 documentation</a>
+	<a href="../../../index.html">kadi 7.11.0 documentation</a>
 	 &#187;
       </li>
       <li><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
@@ -67,6 +67,7 @@
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">defaultdict</span>
 <span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
 
+<span class="kn">import</span> <span class="nn">agasc</span>
 <span class="kn">import</span> <span class="nn">astropy.units</span> <span class="k">as</span> <span class="nn">u</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">astropy.table</span> <span class="kn">import</span> <span class="n">Table</span>
@@ -99,9 +100,6 @@
 
 <span class="c1"># Cache of observations by scenario</span>
 <span class="n">OBSERVATIONS</span> <span class="o">=</span> <span class="p">{}</span>
-
-<span class="c1"># Cache of important columns in proseco_agasc_1p7.h5</span>
-<span class="n">STARS_AGASC</span> <span class="o">=</span> <span class="kc">None</span>
 
 <span class="c1"># Standard column order for ACATable</span>
 <span class="n">STARCAT_NAMES</span> <span class="o">=</span> <span class="p">[</span>
@@ -149,7 +147,14 @@
     <span class="k">return</span> <span class="n">detector</span><span class="p">,</span> <span class="n">sim_offset</span>
 
 
-<span class="k">def</span> <span class="nf">set_fid_ids</span><span class="p">(</span><span class="n">aca</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">set_fid_ids</span><span class="p">(</span><span class="n">aca</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Find the FID ID for each FID in the ACA.</span>
+
+<span class="sd">    ``aca`` is a dict of list with starcat values along with a ``meta`` key containing</span>
+<span class="sd">    relevant observation info. This is from ``convert_aostrcat_to_starcat_dict()``.</span>
+
+<span class="sd">    This function sets the ``id`` and ``mag`` in-place to the closest FID.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">from</span> <span class="nn">proseco.fid</span> <span class="kn">import</span> <span class="n">get_fid_positions</span>
 
     <span class="kn">from</span> <span class="nn">kadi.commands</span> <span class="kn">import</span> <span class="n">conf</span>
@@ -183,16 +188,83 @@
         <span class="c1"># because the SIM is translated so don&#39;t warn in this case.</span>
 
 
-<span class="k">def</span> <span class="nf">set_star_ids</span><span class="p">(</span><span class="n">aca</span><span class="p">):</span>
+<span class="k">class</span> <span class="nc">StarIdentificationFailed</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Exception raised when star identification fails.&quot;&quot;&quot;</span>
+
+
+<span class="k">def</span> <span class="nf">set_star_ids</span><span class="p">(</span><span class="n">aca</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Find the star ID for each star in the ACA.</span>
 
-<span class="sd">    This set the ID in-place to the brightest star within 1.5 arcsec of the</span>
+<span class="sd">    ``aca`` is a dict of list with starcat values along with a ``meta`` key containing</span>
+<span class="sd">    relevant observation info. This is from ``convert_aostrcat_to_starcat_dict()``.</span>
+
+<span class="sd">    This sets the ``id`` and ``mag`` in-place to the brightest star within 1.5 arcsec of</span>
+<span class="sd">    the commanded position.</span>
+
+<span class="sd">    This function uses AGASC 1.7 or 1.8, depending on the observation date. For dates</span>
+<span class="sd">    before 2024-Jul-21, AGASC 1.7 is used. Between 2024-Jul-28 and 2024-Aug-19, both</span>
+<span class="sd">    versions are tried (1.8 then 1.7). After 2024-Aug-19, only 1.8 is used. These are</span>
+<span class="sd">    defined in the configuration parameters ``date_start_agasc1p8_earliest`` and</span>
+<span class="sd">    ``date_start_agasc1p8_latest``.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    aca : dict</span>
+<span class="sd">        Input star catalog</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">kadi.config</span> <span class="kn">import</span> <span class="n">conf</span>
+
+    <span class="n">date</span> <span class="o">=</span> <span class="n">aca</span><span class="p">[</span><span class="s2">&quot;meta&quot;</span><span class="p">][</span><span class="s2">&quot;date&quot;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">date</span> <span class="o">&lt;</span> <span class="n">conf</span><span class="o">.</span><span class="n">date_start_agasc1p8_earliest</span><span class="p">:</span>
+        <span class="c1"># Always 1p7 before 2024-July-21 (before JUL2224 loads)</span>
+        <span class="n">versions</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;1p7&quot;</span><span class="p">]</span>
+    <span class="k">elif</span> <span class="n">date</span> <span class="o">&lt;</span> <span class="n">conf</span><span class="o">.</span><span class="n">date_start_agasc1p8_latest</span><span class="p">:</span>
+        <span class="c1"># Could be 1p8 or 1p7 within 30 days later (uncertainty in promotion date)</span>
+        <span class="n">versions</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;1p8&quot;</span><span class="p">,</span> <span class="s2">&quot;1p7&quot;</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># Always 1p8 after 30 days after JUL2224</span>
+        <span class="n">versions</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;1p8&quot;</span><span class="p">]</span>
+
+    <span class="c1"># Try allowed versions and stop on first success. If no success then issue warning.</span>
+    <span class="c1"># Be aware that _set_star_ids works in place so the try/except is not atomic so the</span>
+    <span class="c1"># ``aca`` dict can be partially updated. This is not expected to be an issue in</span>
+    <span class="c1"># practice, and a warning is issue in any case.</span>
+    <span class="n">err_star_id</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">for</span> <span class="n">version</span> <span class="ow">in</span> <span class="n">versions</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">agasc_file</span> <span class="o">=</span> <span class="n">agasc</span><span class="o">.</span><span class="n">get_agasc_filename</span><span class="p">(</span><span class="n">version</span><span class="o">=</span><span class="n">version</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">FileNotFoundError</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;AGASC </span><span class="si">{</span><span class="n">version</span><span class="si">}</span><span class="s2"> file not found&quot;</span><span class="p">)</span>
+            <span class="k">continue</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">_set_star_ids</span><span class="p">(</span><span class="n">aca</span><span class="p">,</span> <span class="n">agasc_file</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">StarIdentificationFailed</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+            <span class="n">err_star_id</span> <span class="o">=</span> <span class="n">err</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">break</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># All versions failed, issue warning</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">err_star_id</span><span class="p">))</span>
+
+
+<span class="k">def</span> <span class="nf">_set_star_ids</span><span class="p">(</span><span class="n">aca</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">agasc_file</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Work function to find the star ID for each star in the ACA.</span>
+
+<span class="sd">    This function does the real work for ``set_star_ids`` but it allows for trying</span>
+<span class="sd">    AGASC 1.8 and falling back to 1.7 in case of failure.</span>
+
+<span class="sd">    ``aca`` is a dict of list with starcat values along with a ``meta`` key containing</span>
+<span class="sd">    relevant observation info. This is from ``convert_aostrcat_to_starcat_dict()``.</span>
+
+<span class="sd">    This set the ``id`` and ``mag`` in-place to the brightest star within 1.5 arcsec of the</span>
 <span class="sd">    commanded position.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">    aca : ACATable</span>
+<span class="sd">    aca : dict</span>
 <span class="sd">        Input star catalog</span>
+<span class="sd">    agasc_file : str</span>
+<span class="sd">        AGASC file name</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">from</span> <span class="nn">chandra_aca.transform</span> <span class="kn">import</span> <span class="n">radec_to_yagzag</span>
     <span class="kn">from</span> <span class="nn">Quaternion</span> <span class="kn">import</span> <span class="n">Quat</span>
@@ -202,7 +274,12 @@
     <span class="n">obs</span> <span class="o">=</span> <span class="n">aca</span><span class="p">[</span><span class="s2">&quot;meta&quot;</span><span class="p">]</span>
     <span class="n">q_att</span> <span class="o">=</span> <span class="n">Quat</span><span class="p">(</span><span class="n">obs</span><span class="p">[</span><span class="s2">&quot;att&quot;</span><span class="p">])</span>
     <span class="n">stars</span> <span class="o">=</span> <span class="n">get_agasc_cone_fast</span><span class="p">(</span>
-        <span class="n">q_att</span><span class="o">.</span><span class="n">ra</span><span class="p">,</span> <span class="n">q_att</span><span class="o">.</span><span class="n">dec</span><span class="p">,</span> <span class="n">radius</span><span class="o">=</span><span class="mf">1.2</span><span class="p">,</span> <span class="n">date</span><span class="o">=</span><span class="n">obs</span><span class="p">[</span><span class="s2">&quot;date&quot;</span><span class="p">],</span> <span class="n">matlab_pm_bug</span><span class="o">=</span><span class="kc">True</span>
+        <span class="n">q_att</span><span class="o">.</span><span class="n">ra</span><span class="p">,</span>
+        <span class="n">q_att</span><span class="o">.</span><span class="n">dec</span><span class="p">,</span>
+        <span class="n">radius</span><span class="o">=</span><span class="mf">1.2</span><span class="p">,</span>
+        <span class="n">date</span><span class="o">=</span><span class="n">obs</span><span class="p">[</span><span class="s2">&quot;date&quot;</span><span class="p">],</span>
+        <span class="n">matlab_pm_bug</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">agasc_file</span><span class="o">=</span><span class="n">agasc_file</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">yang_stars</span><span class="p">,</span> <span class="n">zang_stars</span> <span class="o">=</span> <span class="n">radec_to_yagzag</span><span class="p">(</span>
         <span class="n">stars</span><span class="p">[</span><span class="s2">&quot;RA_PMCORR&quot;</span><span class="p">],</span> <span class="n">stars</span><span class="p">[</span><span class="s2">&quot;DEC_PMCORR&quot;</span><span class="p">],</span> <span class="n">q_att</span>
@@ -222,7 +299,7 @@
             <span class="n">aca</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">][</span><span class="n">idx_aca</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">stars</span><span class="p">[</span><span class="s2">&quot;AGASC_ID&quot;</span><span class="p">][</span><span class="n">ok</span><span class="p">][</span><span class="n">idx</span><span class="p">])</span>
             <span class="n">aca</span><span class="p">[</span><span class="s2">&quot;mag&quot;</span><span class="p">][</span><span class="n">idx_aca</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">stars</span><span class="p">[</span><span class="s2">&quot;MAG_ACA&quot;</span><span class="p">][</span><span class="n">ok</span><span class="p">][</span><span class="n">idx</span><span class="p">])</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="k">raise</span> <span class="n">StarIdentificationFailed</span><span class="p">(</span>
                 <span class="sa">f</span><span class="s2">&quot;WARNING: star idx </span><span class="si">{</span><span class="n">idx_aca</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2"> not found in obsid </span><span class="si">{</span><span class="n">obs</span><span class="p">[</span><span class="s1">&#39;obsid&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> at &quot;</span>
                 <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">obs</span><span class="p">[</span><span class="s1">&#39;date&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span>
             <span class="p">)</span>
@@ -262,7 +339,7 @@
     <span class="k">return</span> <span class="n">aca</span>
 
 
-<span class="k">def</span> <span class="nf">convert_aostrcat_to_starcat_dict</span><span class="p">(</span><span class="n">params</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">convert_aostrcat_to_starcat_dict</span><span class="p">(</span><span class="n">params</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert dict of AOSTRCAT parameters to a dict of list for each attribute.</span>
 
 <span class="sd">    The dict looks like::</span>
@@ -717,15 +794,20 @@
 
 
 
-<span class="k">def</span> <span class="nf">get_agasc_cone_fast</span><span class="p">(</span><span class="n">ra</span><span class="p">,</span> <span class="n">dec</span><span class="p">,</span> <span class="n">radius</span><span class="o">=</span><span class="mf">1.5</span><span class="p">,</span> <span class="n">date</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">matlab_pm_bug</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">get_agasc_cone_fast</span><span class="p">(</span>
+    <span class="n">ra</span><span class="p">,</span> <span class="n">dec</span><span class="p">,</span> <span class="n">radius</span><span class="o">=</span><span class="mf">1.5</span><span class="p">,</span> <span class="n">date</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">matlab_pm_bug</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">agasc_file</span><span class="o">=</span><span class="kc">None</span>
+<span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Get AGASC catalog entries within ``radius`` degrees of ``ra``, ``dec``.</span>
 
-<span class="sd">    This is a fast version of agasc.get_agasc_cone() that keeps the key columns</span>
-<span class="sd">    in memory instead of accessing the H5 file each time.</span>
+<span class="sd">    This is a thin wrapper around of agasc.get_agasc_cone() that returns a subset of</span>
+<span class="sd">    proseco_agasc columns: AGASC_ID, RA, DEC, PM_RA, PM_DEC, EPOCH, MAG_ACA, RA_PMCORR,</span>
+<span class="sd">    DEC_PMCORR. The full catalog for those columns is cached in memory for speed.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
+<span class="sd">    ra : float</span>
+<span class="sd">        Right ascension (deg)</span>
 <span class="sd">    dec : float</span>
 <span class="sd">        Declination (deg)</span>
 <span class="sd">    radius : float</span>
@@ -734,56 +816,36 @@
 <span class="sd">        Date for proper motion (default=Now)</span>
 <span class="sd">    matlab_pm_bug : bool</span>
 <span class="sd">        Apply MATLAB proper motion bug prior to the MAY2118A loads (default=False)</span>
+<span class="sd">    agasc_file : str, None</span>
+<span class="sd">        AGASC file name (default=None)</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    Table</span>
-<span class="sd">        Table of AGASC entries</span>
+<span class="sd">        Table of AGASC entries with AGASC_ID, RA, DEC, PM_RA, PM_DEC, EPOCH, MAG_ACA,</span>
+<span class="sd">        RA_PMCORR, DEC_PMCORR columns.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">global</span> <span class="n">STARS_AGASC</span>
+    <span class="kn">import</span> <span class="nn">agasc</span>
 
-    <span class="n">agasc_file</span> <span class="o">=</span> <span class="n">AGASC_FILE</span>
-    <span class="kn">import</span> <span class="nn">tables</span>
-    <span class="kn">from</span> <span class="nn">agasc.agasc</span> <span class="kn">import</span> <span class="n">add_pmcorr_columns</span><span class="p">,</span> <span class="n">get_ra_decs</span><span class="p">,</span> <span class="n">sphere_dist</span>
-
-    <span class="n">ra_decs</span> <span class="o">=</span> <span class="n">get_ra_decs</span><span class="p">(</span><span class="n">agasc_file</span><span class="p">)</span>
-
-    <span class="k">if</span> <span class="n">STARS_AGASC</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">with</span> <span class="n">tables</span><span class="o">.</span><span class="n">open_file</span><span class="p">(</span><span class="n">agasc_file</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">h5</span><span class="p">:</span>
-            <span class="n">dat</span> <span class="o">=</span> <span class="n">h5</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">data</span><span class="p">[:]</span>
-            <span class="n">cols</span> <span class="o">=</span> <span class="p">{</span>
-                <span class="s2">&quot;AGASC_ID&quot;</span><span class="p">:</span> <span class="n">dat</span><span class="p">[</span><span class="s2">&quot;AGASC_ID&quot;</span><span class="p">],</span>
-                <span class="s2">&quot;RA&quot;</span><span class="p">:</span> <span class="n">dat</span><span class="p">[</span><span class="s2">&quot;RA&quot;</span><span class="p">],</span>
-                <span class="s2">&quot;DEC&quot;</span><span class="p">:</span> <span class="n">dat</span><span class="p">[</span><span class="s2">&quot;DEC&quot;</span><span class="p">],</span>
-                <span class="s2">&quot;PM_RA&quot;</span><span class="p">:</span> <span class="n">dat</span><span class="p">[</span><span class="s2">&quot;PM_RA&quot;</span><span class="p">],</span>
-                <span class="s2">&quot;PM_DEC&quot;</span><span class="p">:</span> <span class="n">dat</span><span class="p">[</span><span class="s2">&quot;PM_DEC&quot;</span><span class="p">],</span>
-                <span class="s2">&quot;EPOCH&quot;</span><span class="p">:</span> <span class="n">dat</span><span class="p">[</span><span class="s2">&quot;EPOCH&quot;</span><span class="p">],</span>
-                <span class="s2">&quot;MAG_ACA&quot;</span><span class="p">:</span> <span class="n">dat</span><span class="p">[</span><span class="s2">&quot;MAG_ACA&quot;</span><span class="p">],</span>
-            <span class="p">}</span>
-            <span class="n">STARS_AGASC</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="n">cols</span><span class="p">)</span>
-            <span class="k">del</span> <span class="n">dat</span>  <span class="c1"># Explicitly delete to free memory (?)</span>
-
-    <span class="n">idx0</span><span class="p">,</span> <span class="n">idx1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">searchsorted</span><span class="p">(</span><span class="n">ra_decs</span><span class="o">.</span><span class="n">dec</span><span class="p">,</span> <span class="p">[</span><span class="n">dec</span> <span class="o">-</span> <span class="n">radius</span><span class="p">,</span> <span class="n">dec</span> <span class="o">+</span> <span class="n">radius</span><span class="p">])</span>
-
-    <span class="n">dists</span> <span class="o">=</span> <span class="n">sphere_dist</span><span class="p">(</span><span class="n">ra</span><span class="p">,</span> <span class="n">dec</span><span class="p">,</span> <span class="n">ra_decs</span><span class="o">.</span><span class="n">ra</span><span class="p">[</span><span class="n">idx0</span><span class="p">:</span><span class="n">idx1</span><span class="p">],</span> <span class="n">ra_decs</span><span class="o">.</span><span class="n">dec</span><span class="p">[</span><span class="n">idx0</span><span class="p">:</span><span class="n">idx1</span><span class="p">])</span>
-    <span class="n">ok</span> <span class="o">=</span> <span class="n">dists</span> <span class="o">&lt;=</span> <span class="n">radius</span>
-    <span class="n">stars</span> <span class="o">=</span> <span class="n">STARS_AGASC</span><span class="p">[</span><span class="n">idx0</span><span class="p">:</span><span class="n">idx1</span><span class="p">][</span><span class="n">ok</span><span class="p">]</span>
-
-    <span class="c1"># Account for a bug in MATLAB proper motion correction that was fixed</span>
-    <span class="c1"># starting with the MAY2118A loads (MATLAB Tools 2018115). The bug was not</span>
-    <span class="c1"># dividing the RA proper motion by cos(dec), so here we premultiply by that</span>
-    <span class="c1"># factor so that add_pmcorr_columns() will match MATLAB. This is purely for</span>
-    <span class="c1"># use in set_star_ids() to match flight catalogs created with MATLAB.</span>
-    <span class="k">if</span> <span class="n">matlab_pm_bug</span> <span class="ow">and</span> <span class="n">CxoTime</span><span class="p">(</span><span class="n">date</span><span class="p">)</span><span class="o">.</span><span class="n">date</span> <span class="o">&lt;</span> <span class="s2">&quot;2018:141:03:35:03.000&quot;</span><span class="p">:</span>
-        <span class="n">ok</span> <span class="o">=</span> <span class="n">stars</span><span class="p">[</span><span class="s2">&quot;PM_RA&quot;</span><span class="p">]</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">9999</span>
-        <span class="c1"># Note this is an int16 field so there is some rounding error, but for</span>
-        <span class="c1"># the purpose of star identification this is fine.</span>
-        <span class="n">stars</span><span class="p">[</span><span class="s2">&quot;PM_RA&quot;</span><span class="p">][</span><span class="n">ok</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span>
-            <span class="n">stars</span><span class="p">[</span><span class="s2">&quot;PM_RA&quot;</span><span class="p">][</span><span class="n">ok</span><span class="p">]</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="n">stars</span><span class="p">[</span><span class="s2">&quot;DEC&quot;</span><span class="p">][</span><span class="n">ok</span><span class="p">]))</span>
-        <span class="p">)</span>
-
-    <span class="n">add_pmcorr_columns</span><span class="p">(</span><span class="n">stars</span><span class="p">,</span> <span class="n">date</span><span class="p">)</span>
-
+    <span class="n">columns</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="s2">&quot;AGASC_ID&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;RA&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;DEC&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;PM_RA&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;PM_DEC&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;EPOCH&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;MAG_ACA&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">stars</span> <span class="o">=</span> <span class="n">agasc</span><span class="o">.</span><span class="n">get_agasc_cone</span><span class="p">(</span>
+        <span class="n">ra</span><span class="p">,</span>
+        <span class="n">dec</span><span class="p">,</span>
+        <span class="n">radius</span><span class="o">=</span><span class="n">radius</span><span class="p">,</span>
+        <span class="n">date</span><span class="o">=</span><span class="n">date</span><span class="p">,</span>
+        <span class="n">columns</span><span class="o">=</span><span class="n">columns</span><span class="p">,</span>
+        <span class="n">cache</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">matlab_pm_bug</span><span class="o">=</span><span class="n">matlab_pm_bug</span><span class="p">,</span>
+        <span class="n">agasc_file</span><span class="o">=</span><span class="n">agasc_file</span><span class="p">,</span>
+    <span class="p">)</span>
     <span class="k">return</span> <span class="n">stars</span>
 </pre></div>
 
