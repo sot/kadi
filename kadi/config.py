@@ -68,6 +68,16 @@ class Conf(ConfigNamespace):
         False, "Include In-work command events that are not yet approved."
     )
 
+    date_start_agasc1p8_earliest = ConfigItem(
+        "2024:210",  # 2024-July-28
+        "Start date (earliest) for using AGASC 1.8 catalog.",
+    )
+
+    date_start_agasc1p8_latest = ConfigItem(
+        "2024:233",  # 2024-July-28 + 23 days
+        "Start date (latest) for using AGASC 1.8 catalog.",
+    )
+
 
 # Create a configuration instance for the user
 conf = Conf()

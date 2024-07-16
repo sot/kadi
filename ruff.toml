@@ -51,6 +51,7 @@ lint.extend-ignore = [
   "G010", # warn is deprecated in favor of warning
   "PGH004", # Use specific rule codes when using `noqa`
   "PYI056", # Calling `.append()` on `__all__` may not be supported by all type checkers
+  "B024", # Abstract base class, but it has no abstract methods
 ]
 
 extend-exclude = [

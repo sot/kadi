@@ -4,6 +4,7 @@ import os
 from collections import defaultdict
 from pathlib import Path
 
+import agasc
 import astropy.units as u
 import numpy as np
 from astropy.table import Table
@@ -36,9 +37,6 @@ PAR_MAPS = [
 
 # Cache of observations by scenario
 OBSERVATIONS = {}
-
-# Cache of important columns in proseco_agasc_1p7.h5
-STARS_AGASC = None
 
 # Standard column order for ACATable
 STARCAT_NAMES = [
@@ -86,7 +84,14 @@ def get_detector_and_sim_offset(simpos):
     return detector, sim_offset
 
 
-def set_fid_ids(aca):
+def set_fid_ids(aca: dict) -> None:
+    """Find the FID ID for each FID in the ACA.
+
+    ``aca`` is a dict of list with starcat values along with a ``meta`` key containing
+    relevant observation info. This is from ``convert_aostrcat_to_starcat_dict()``.
+
+    This function sets the ``id`` and ``mag`` in-place to the closest FID.
+    """
     from proseco.fid import get_fid_positions
 
     from kadi.commands import conf
@@ -120,16 +125,83 @@ def set_fid_ids(aca):
         # because the SIM is translated so don't warn in this case.
 
 
-def set_star_ids(aca):
+class StarIdentificationFailed(Exception):
+    """Exception raised when star identification fails."""
+
+
+def set_star_ids(aca: dict) -> None:
     """Find the star ID for each star in the ACA.
 
-    This set the ID in-place to the brightest star within 1.5 arcsec of the
+    ``aca`` is a dict of list with starcat values along with a ``meta`` key containing
+    relevant observation info. This is from ``convert_aostrcat_to_starcat_dict()``.
+
+    This sets the ``id`` and ``mag`` in-place to the brightest star within 1.5 arcsec of
+    the commanded position.
+
+    This function uses AGASC 1.7 or 1.8, depending on the observation date. For dates
+    before 2024-Jul-21, AGASC 1.7 is used. Between 2024-Jul-28 and 2024-Aug-19, both
+    versions are tried (1.8 then 1.7). After 2024-Aug-19, only 1.8 is used. These are
+    defined in the configuration parameters ``date_start_agasc1p8_earliest`` and
+    ``date_start_agasc1p8_latest``.
+
+    Parameters
+    ----------
+    aca : dict
+        Input star catalog
+    """
+    from kadi.config import conf
+
+    date = aca["meta"]["date"]
+    if date < conf.date_start_agasc1p8_earliest:
+        # Always 1p7 before 2024-July-21 (before JUL2224 loads)
+        versions = ["1p7"]
+    elif date < conf.date_start_agasc1p8_latest:
+        # Could be 1p8 or 1p7 within 30 days later (uncertainty in promotion date)
+        versions = ["1p8", "1p7"]
+    else:
+        # Always 1p8 after 30 days after JUL2224
+        versions = ["1p8"]
+
+    # Try allowed versions and stop on first success. If no success then issue warning.
+    # Be aware that _set_star_ids works in place so the try/except is not atomic so the
+    # ``aca`` dict can be partially updated. This is not expected to be an issue in
+    # practice, and a warning is issue in any case.
+    err_star_id = None
+    for version in versions:
+        try:
+            agasc_file = agasc.get_agasc_filename(version=version)
+        except FileNotFoundError:
+            logger.warning(f"AGASC {version} file not found")
+            continue
+        try:
+            _set_star_ids(aca, agasc_file)
+        except StarIdentificationFailed as err:
+            err_star_id = err
+        else:
+            break
+    else:
+        # All versions failed, issue warning
+        logger.warning(str(err_star_id))
+
+
+def _set_star_ids(aca: dict, agasc_file: str) -> None:
+    """Work function to find the star ID for each star in the ACA.
+
+    This function does the real work for ``set_star_ids`` but it allows for trying
+    AGASC 1.8 and falling back to 1.7 in case of failure.
+
+    ``aca`` is a dict of list with starcat values along with a ``meta`` key containing
+    relevant observation info. This is from ``convert_aostrcat_to_starcat_dict()``.
+
+    This set the ``id`` and ``mag`` in-place to the brightest star within 1.5 arcsec of the
     commanded position.
 
     Parameters
     ----------
-    aca : ACATable
+    aca : dict
         Input star catalog
+    agasc_file : str
+        AGASC file name
     """
     from chandra_aca.transform import radec_to_yagzag
     from Quaternion import Quat
@@ -139,7 +211,12 @@ def set_star_ids(aca):
     obs = aca["meta"]
     q_att = Quat(obs["att"])
     stars = get_agasc_cone_fast(
-        q_att.ra, q_att.dec, radius=1.2, date=obs["date"], matlab_pm_bug=True
+        q_att.ra,
+        q_att.dec,
+        radius=1.2,
+        date=obs["date"],
+        matlab_pm_bug=True,
+        agasc_file=agasc_file,
     )
     yang_stars, zang_stars = radec_to_yagzag(
         stars["RA_PMCORR"], stars["DEC_PMCORR"], q_att
@@ -159,7 +236,7 @@ def set_star_ids(aca):
             aca["id"][idx_aca] = int(stars["AGASC_ID"][ok][idx])
             aca["mag"][idx_aca] = float(stars["MAG_ACA"][ok][idx])
         else:
-            logger.info(
+            raise StarIdentificationFailed(
                 f"WARNING: star idx {idx_aca + 1} not found in obsid {obs['obsid']} at "
                 f"{obs['date']}"
             )
@@ -199,7 +276,7 @@ def convert_starcat_dict_to_acatable(starcat_dict: dict):
     return aca
 
 
-def convert_aostrcat_to_starcat_dict(params):
+def convert_aostrcat_to_starcat_dict(params: dict) -> dict[str, list]:
     """Convert dict of AOSTRCAT parameters to a dict of list for each attribute.
 
     The dict looks like::
@@ -645,15 +722,20 @@ def get_observations(
     return obss
 
 
-def get_agasc_cone_fast(ra, dec, radius=1.5, date=None, matlab_pm_bug=False):
+def get_agasc_cone_fast(
+    ra, dec, radius=1.5, date=None, matlab_pm_bug=False, agasc_file=None
+):
     """
     Get AGASC catalog entries within ``radius`` degrees of ``ra``, ``dec``.
 
-    This is a fast version of agasc.get_agasc_cone() that keeps the key columns
-    in memory instead of accessing the H5 file each time.
+    This is a thin wrapper around of agasc.get_agasc_cone() that returns a subset of
+    proseco_agasc columns: AGASC_ID, RA, DEC, PM_RA, PM_DEC, EPOCH, MAG_ACA, RA_PMCORR,
+    DEC_PMCORR. The full catalog for those columns is cached in memory for speed.
 
     Parameters
     ----------
+    ra : float
+        Right ascension (deg)
     dec : float
         Declination (deg)
     radius : float
@@ -662,54 +744,34 @@ def get_agasc_cone_fast(ra, dec, radius=1.5, date=None, matlab_pm_bug=False):
         Date for proper motion (default=Now)
     matlab_pm_bug : bool
         Apply MATLAB proper motion bug prior to the MAY2118A loads (default=False)
+    agasc_file : str, None
+        AGASC file name (default=None)
 
     Returns
     -------
     Table
-        Table of AGASC entries
+        Table of AGASC entries with AGASC_ID, RA, DEC, PM_RA, PM_DEC, EPOCH, MAG_ACA,
+        RA_PMCORR, DEC_PMCORR columns.
     """
-    global STARS_AGASC
+    import agasc
 
-    agasc_file = AGASC_FILE
-    import tables
-    from agasc.agasc import add_pmcorr_columns, get_ra_decs, sphere_dist
-
-    ra_decs = get_ra_decs(agasc_file)
-
-    if STARS_AGASC is None:
-        with tables.open_file(agasc_file, "r") as h5:
-            dat = h5.root.data[:]
-            cols = {
-                "AGASC_ID": dat["AGASC_ID"],
-                "RA": dat["RA"],
-                "DEC": dat["DEC"],
-                "PM_RA": dat["PM_RA"],
-                "PM_DEC": dat["PM_DEC"],
-                "EPOCH": dat["EPOCH"],
-                "MAG_ACA": dat["MAG_ACA"],
-            }
-            STARS_AGASC = Table(cols)
-            del dat  # Explicitly delete to free memory (?)
-
-    idx0, idx1 = np.searchsorted(ra_decs.dec, [dec - radius, dec + radius])
-
-    dists = sphere_dist(ra, dec, ra_decs.ra[idx0:idx1], ra_decs.dec[idx0:idx1])
-    ok = dists <= radius
-    stars = STARS_AGASC[idx0:idx1][ok]
-
-    # Account for a bug in MATLAB proper motion correction that was fixed
-    # starting with the MAY2118A loads (MATLAB Tools 2018115). The bug was not
-    # dividing the RA proper motion by cos(dec), so here we premultiply by that
-    # factor so that add_pmcorr_columns() will match MATLAB. This is purely for
-    # use in set_star_ids() to match flight catalogs created with MATLAB.
-    if matlab_pm_bug and CxoTime(date).date < "2018:141:03:35:03.000":
-        ok = stars["PM_RA"] != -9999
-        # Note this is an int16 field so there is some rounding error, but for
-        # the purpose of star identification this is fine.
-        stars["PM_RA"][ok] = np.round(
-            stars["PM_RA"][ok] * np.cos(np.deg2rad(stars["DEC"][ok]))
-        )
-
-    add_pmcorr_columns(stars, date)
-
+    columns = (
+        "AGASC_ID",
+        "RA",
+        "DEC",
+        "PM_RA",
+        "PM_DEC",
+        "EPOCH",
+        "MAG_ACA",
+    )
+    stars = agasc.get_agasc_cone(
+        ra,
+        dec,
+        radius=radius,
+        date=date,
+        columns=columns,
+        cache=True,
+        matlab_pm_bug=matlab_pm_bug,
+        agasc_file=agasc_file,
+    )
     return stars
