@@ -332,6 +332,69 @@ def stop_date_fixture_factory(stop_date):
 # 2021:297 0300z just after recovery maneuver following 2021:296 NSM
 stop_date_2021_10_24 = stop_date_fixture_factory("2021-10-24T03:00:00")
 stop_date_2020_12_03 = stop_date_fixture_factory("2020-12-03")
+stop_date_2023_203 = stop_date_fixture_factory("2023:203")
+
+
+@pytest.mark.skipif(not HAS_INTERNET, reason="No internet connection")
+def test_nsm_safe_mode_pitch_offsets_state_constraints(stop_date_2023_203):
+    """Test NSM, Safe mode transitions with pitch offsets along with state constraints.
+
+    State constraints testing means that an NMAN maneuver with auto-NPNT transition
+    is properly interrupted by a NSM or Safe Mode. In this case the NMAN is interrupted
+    and NPNT never happens.
+    """
+    scenario = "test-nsm-safe-mode"
+    cmd_events_path = kadi.paths.CMD_EVENTS_PATH(scenario)
+    cmd_events_path.parent.mkdir(parents=True, exist_ok=True)
+    # Maneuver attitude: ska_sun.get_att_for_sun_pitch_yaw(pitch=170, yaw=0, time="2023:199")
+    text = """
+    State,Date,Event,Params,Author,Reviewer,Comment
+    Definitive,2023:199:00:00:00.000,Safe mode,120,,,
+    Definitive,2023:199:02:00:00.000,NSM,,,,
+    Definitive,2023:199:03:00:00.000,Maneuver,-0.84752928 0.52176697 0.08279618 0.05097206,,,
+    Definitive,2023:199:03:17:00.000,NSM,50,,,
+    Definitive,2023:199:03:30:00.000,Safe mode,,,,
+    Definitive,2023:199:04:30:00.000,NSM,100,,,
+    """
+    cmd_events_path.write_text(text)
+    states = kcs.get_states(
+        "2023:198:23:00:00",
+        "2023:202:00:00:00",
+        state_keys=["pitch", "pcad_mode"],
+        scenario=scenario,
+    )
+    states["pitch"].info.format = ".1f"
+    out = states["datestart", "pitch", "pcad_mode"].pformat_all()
+    exp = [
+        "      datestart       pitch pcad_mode",
+        "--------------------- ----- ---------",
+        "2023:198:23:00:00.000 144.6      NPNT",
+        "2023:199:00:00:00.000 142.1      STBY",  # Safe mode to 120
+        "2023:199:00:05:16.679 132.3      STBY",
+        "2023:199:00:10:33.359 122.6      STBY",
+        "2023:199:00:15:50.038 120.0      STBY",
+        "2023:199:02:00:00.000 116.9      NSUN",  # NSM to default 90
+        "2023:199:02:05:47.530 105.0      NSUN",
+        "2023:199:02:11:35.060  93.2      NSUN",
+        "2023:199:02:17:22.590  90.0      NSUN",
+        "2023:199:03:00:00.000  90.0      NMAN",  # Maneuver to 170
+        "2023:199:03:00:10.250  90.9      NMAN",
+        "2023:199:03:05:20.245  95.4      NMAN",
+        "2023:199:03:10:30.240 105.2      NMAN",
+        "2023:199:03:15:40.235 118.7      NMAN",
+        "2023:199:03:17:00.000 109.2      NSUN",  # NMAN interrupted by NSM to 50
+        "2023:199:03:22:05.282  99.2      NSUN",
+        "2023:199:03:27:10.564  80.6      NSUN",
+        "2023:199:03:30:00.000  91.3      STBY",  # NSM to 50 interrupted by Safe mode
+        "2023:199:03:34:18.814  90.7      STBY",  # to default 90
+        "2023:199:03:38:37.628  90.2      STBY",
+        "2023:199:03:42:56.441  90.0      STBY",
+        "2023:199:04:30:00.000  92.5      NSUN",  # NSM to 100
+        "2023:199:04:35:13.882  97.5      NSUN",
+        "2023:199:04:40:27.763 100.0      NSUN",
+    ]
+
+    assert out == exp
 
 
 @pytest.mark.skipif(not HAS_INTERNET, reason="No internet connection")

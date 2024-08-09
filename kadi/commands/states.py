@@ -6,7 +6,7 @@ This is based entirely on known history of commands.
 
 import collections
 import contextlib
-import functools
+import dataclasses
 import inspect
 import itertools
 import re
@@ -102,6 +102,30 @@ def disable_grating_move_duration():
     MechMove.apply_move_duration = apply_move_duration
 
 
+class Transition(dict):
+    """
+    Dict of transitions at a given date.
+
+    This is a dict of {state_key: state_val} where state_val is either a value
+    or a TransitionCallback object.
+    """
+
+    date = None
+    state_constraints = None
+
+    def __init__(self, *args, **kwargs):
+        if args and isinstance(args[0], str):
+            self.date = args[0]
+            args = args[1:]
+        super().__init__(*args, **kwargs)
+
+    def __repr__(self):
+        return f"{self.date} {self.state_constraints}: {super().__repr__()}"
+
+    def __eq__(self, other):
+        return self.date == other.date and super().__eq__(other)
+
+
 class NoTransitionsError(ValueError):
     """No transitions found within commands"""
 
@@ -136,22 +160,29 @@ class StateDict(dict):
         return StateDict(self)
 
 
+@dataclasses.dataclass
+class TransitionCallback:
+    """
+    Callback function for a transition.
+
+    This is used to store the callback function and any additional keyword arguments.
+    """
+
+    callback: callable
+    kwargs: dict = dataclasses.field(default_factory=dict)
+
+
 ###################################################################
 # Transition base classes
 ###################################################################
 
 
-class TransitionMeta(type):
+class BaseTransition:
     """
-    Metaclass that adds the class to the TRANSITIONS dict.
-
-    This is keyed by state_keys from the TRANSITIONS_CLASSES set, and makes the
-    complete list of STATE_KEYS.
+    Base transition class from which all actual transition classes are derived.
     """
 
-    def __new__(mcls, name, bases, members):  # noqa: N804
-        cls = super().__new__(mcls, name, bases, members)
-
+    def __init_subclass__(cls) -> None:
         # Register transition classes that have a `state_keys` (base classes do
         # not have this attribute set).
         if hasattr(cls, "state_keys"):
@@ -163,14 +194,6 @@ class TransitionMeta(type):
             TRANSITION_CLASSES.add(cls)
 
             cls._auto_update_docstring()
-
-        return cls
-
-
-class BaseTransition(metaclass=TransitionMeta):
-    """
-    Base transition class from which all actual transition classes are derived.
-    """
 
     @classmethod
     def get_state_changing_commands(cls, cmds):
@@ -290,14 +313,14 @@ class FixedTransition(BaseTransition):
     """
 
     @classmethod
-    def set_transitions(cls, transitions_dict, cmds, start, stop):
+    def set_transitions(cls, transitions_list: list[Transition], cmds, start, stop):
         """
         Set transitions for a Table of commands ``cmds``.
 
         Parameters
         ----------
-        transitions_dict
-            global dict of transitions (updated in-place)
+        transitions_list
+            list of transitions (updated in-place)
         cmds
             commands (CmdList)
         start
@@ -319,9 +342,7 @@ class FixedTransition(BaseTransition):
             attrs = [attrs]
 
         for cmd in state_cmds:
-            date = cmd["date"]
-            for val, attr in zip(vals, attrs):
-                transitions_dict[date][attr] = val
+            transitions_list.append(Transition(cmd["date"], zip(attrs, vals)))
 
 
 class ParamTransition(BaseTransition):
@@ -337,14 +358,14 @@ class ParamTransition(BaseTransition):
     """
 
     @classmethod
-    def set_transitions(cls, transitions_dict, cmds, start, stop):
+    def set_transitions(cls, transitions_list: list[Transition], cmds, start, stop):
         """
         Set transitions for a Table of commands ``cmds``.
 
         Parameters
         ----------
-        transitions_dict
-            global dict of transitions (updated in-place)
+        transitions_list
+            list of transitions (updated in-place)
         cmds
             commands (CmdList)
         start
@@ -375,8 +396,10 @@ class ParamTransition(BaseTransition):
             else:
                 params = dict(rev_pars_dict[cmd["idx"]])
 
-            for name, param_key in zip(names, param_keys):
-                transitions_dict[date][name] = params[param_key]
+            transition = Transition(
+                date, zip(names, [params[key] for key in param_keys])
+            )
+            transitions_list.append(Transition(date, transition))
 
 
 ###################################################################
@@ -502,14 +525,14 @@ class MechMove(FixedTransition):
     apply_move_duration = True
 
     @classmethod
-    def set_transitions(cls, transitions_dict, cmds, start, stop):
+    def set_transitions(cls, transitions_list: list[Transition], cmds, start, stop):
         """
         Set transitions for a Table of commands ``cmds``.
 
         Parameters
         ----------
-        transitions_dict
-            global dict of transitions (updated in-place)
+        transitions_list
+            list of transitions (updated in-place)
         cmds
             commands (CmdList)
         start
@@ -534,17 +557,25 @@ class MechMove(FixedTransition):
         for cmd in state_cmds:
             date_start = CxoTime(cmd["date"])
             date_stop = date_start + move_duration
+            transition_start = Transition(date_start.date)
+            transition_stop = Transition(date_stop.date)
+
             for val, attr in zip(vals, attrs):
                 if attr == "grating":
-                    transitions_dict[date_start.date][attr] = val
+                    transition_start[attr] = val
                 else:  # noqa: PLR5501
                     # 'letg' or 'hetg' insert/retract status, include the move
                     # interval here
                     if cls.apply_move_duration:
-                        transitions_dict[date_start.date][attr] = val + "_MOVE"
-                        transitions_dict[date_stop.date][attr] = val
+                        transition_start[attr] = val + "_MOVE"
+                        transition_stop[attr] = val
                     else:
-                        transitions_dict[date_start.date][attr] = val
+                        transition_start[attr] = val
+
+            if transition_start:
+                transitions_list.append(transition_start)
+            if transition_stop:
+                transitions_list.append(transition_stop)
 
 
 class HETG_INSR_Transition(MechMove):
@@ -796,14 +827,14 @@ class SPMEclipseEnableTransition(BaseTransition):
     default_value = False
 
     @classmethod
-    def set_transitions(cls, transitions_dict, cmds, start, stop):
+    def set_transitions(cls, transitions_list: list[Transition], cmds, start, stop):
         """
         Set transitions for a Table of commands ``cmds``.
 
         Parameters
         ----------
-        transitions_dict
-            global dict of transitions (updated in-place)
+        transitions_list
+            list of transitions (updated in-place)
         cmds
             commands (CmdList)
         start
@@ -819,15 +850,16 @@ class SPMEclipseEnableTransition(BaseTransition):
         state_cmds = cls.get_state_changing_commands(cmds)
 
         for cmd in state_cmds:
-            transitions_dict[cmd["date"]]["sun_pos_mon"] = cls.callback
+            transitions_list.append(
+                Transition(cmd["date"], sun_pos_mon=TransitionCallback(cls.callback))
+            )
 
     @classmethod
     def callback(cls, date, transitions, state, idx):
         if state["eclipse_enable_spm"]:
-            transition = {
-                "date": secs2date(date2secs(date) + 11 * 60),
-                "sun_pos_mon": "ENAB",
-            }
+            transition = Transition(
+                secs2date(date2secs(date) + 11 * 60), {"sun_pos_mon": "ENAB"}
+            )
             add_transition(transitions, idx, transition)
 
 
@@ -850,14 +882,14 @@ class EclipseEnableSPM(BaseTransition):
     BATTERY_CONNECT_MAX_DT = 135  # seconds
 
     @classmethod
-    def set_transitions(cls, transitions_dict, cmds, start, stop):
+    def set_transitions(cls, transitions_list: list[Transition], cmds, start, stop):
         """
         Set transitions for a Table of commands ``cmds``.
 
         Parameters
         ----------
-        transitions_dict
-            global dict of transitions (updated in-place)
+        transitions_list
+            list of transitions (updated in-place)
         cmds
             commands (CmdList)
         start
@@ -873,7 +905,11 @@ class EclipseEnableSPM(BaseTransition):
         state_cmds = cls.get_state_changing_commands(cmds)
 
         for cmd in state_cmds:
-            transitions_dict[cmd["date"]]["eclipse_enable_spm"] = cls.callback
+            transitions_list.append(
+                Transition(
+                    cmd["date"], eclipse_enable_spm=TransitionCallback(cls.callback)
+                )
+            )
 
     @classmethod
     def callback(cls, date, transitions, state, idx):
@@ -891,7 +927,7 @@ class EclipseEnableSPM(BaseTransition):
         enable_spm = (
             eclipse_entry_time - battery_connect_time < cls.BATTERY_CONNECT_MAX_DT
         )
-        transition = {"date": date, "eclipse_enable_spm": enable_spm}
+        transition = Transition(date, eclipse_enable_spm=enable_spm)
         add_transition(transitions, idx, transition)
 
 
@@ -904,14 +940,14 @@ class BatteryConnect(BaseTransition):
     default_value = "1999:001:00:00:00.000"
 
     @classmethod
-    def set_transitions(cls, transitions, cmds, start, stop):
+    def set_transitions(cls, transitions_list: list[Transition], cmds, start, stop):
         """
         Set transitions for a Table of commands ``cmds``.
 
         Parameters
         ----------
-        transitions_dict
-            global dict of transitions (updated in-place)
+        transitions_list
+            list of transitions (updated in-place)
         cmds
             commands (CmdList)
         start
@@ -926,7 +962,9 @@ class BatteryConnect(BaseTransition):
         state_cmds = cls.get_state_changing_commands(cmds)
 
         for cmd in state_cmds:
-            transitions[cmd["date"]]["battery_connect"] = cmd["date"]
+            transitions_list.append(
+                Transition(cmd["date"], battery_connect=cmd["date"])
+            )
 
 
 class SCS84EnableTransition(FixedTransition):
@@ -1033,14 +1071,14 @@ class EphemerisUpdateTransition(BaseTransition):
     state_keys = ["ephem_update"]
 
     @classmethod
-    def set_transitions(cls, transitions_dict, cmds, start, stop):
+    def set_transitions(cls, transitions_list: list[Transition], cmds, start, stop):
         """
         Set transitions for a Table of commands ``cmds``.
 
         Parameters
         ----------
-        transitions_dict
-            global dict of transitions (updated in-place)
+        transitions_list
+            list of transitions (updated in-place)
         cmds
             commands (CmdList)
         start
@@ -1056,7 +1094,7 @@ class EphemerisUpdateTransition(BaseTransition):
 
         for cmd in state_cmds:
             date = cmd["date"]
-            transitions_dict[date]["ephem_update"] = date[:8]
+            transitions_list.append(Transition(date, ephem_update=date[:8]))
 
 
 ###################################################################
@@ -1074,14 +1112,14 @@ class SunVectorTransition(BaseTransition):
     state_keys = PCAD_STATE_KEYS
 
     @classmethod
-    def set_transitions(cls, transitions_dict, cmds, start, stop):
+    def set_transitions(cls, transitions_list: list[Transition], cmds, start, stop):
         """
         Set transitions for a Table of commands ``cmds``.
 
         Parameters
         ----------
-        transitions_dict
-            global dict of transitions (updated in-place)
+        transitions_list
+            list of transitions (updated in-place)
         cmds
             commands (CmdList)
         start
@@ -1105,7 +1143,12 @@ class SunVectorTransition(BaseTransition):
         # Now with the dates, finally make all the transition dicts which will
         # call `update_pitch_state` during state processing.
         for date in dates:
-            transitions_dict[date]["update_sun_vector"] = cls.update_sun_vector_state
+            transitions_list.append(
+                Transition(
+                    date,
+                    update_sun_vector=TransitionCallback(cls.update_sun_vector_state),
+                )
+            )
 
     @classmethod
     def update_sun_vector_state(cls, date, transitions, state, idx):
@@ -1171,14 +1214,14 @@ class DitherParamsTransition(BaseTransition):
     ]
 
     @classmethod
-    def set_transitions(cls, transitions_dict, cmds, start, stop):
+    def set_transitions(cls, transitions_list: list[Transition], cmds, start, stop):
         """
         Set transitions for a Table of commands ``cmds``.
 
         Parameters
         ----------
-        transitions_dict
-            global dict of transitions (updated in-place)
+        transitions_list
+            list of transitions (updated in-place)
         cmds
             commands (CmdList)
         start
@@ -1201,7 +1244,7 @@ class DitherParamsTransition(BaseTransition):
                 "dither_period_pitch": 2 * np.pi / cmd["ratep"],
                 "dither_period_yaw": 2 * np.pi / cmd["ratey"],
             }
-            transitions_dict[cmd["date"]].update(dither)
+            transitions_list.append(Transition(cmd["date"], dither))
 
 
 class NMM_Transition(FixedTransition):
@@ -1247,14 +1290,14 @@ class TargQuatTransition(BaseTransition):
     state_keys = PCAD_STATE_KEYS
 
     @classmethod
-    def set_transitions(cls, transitions, cmds, start, stop):
+    def set_transitions(cls, transitions_list: list[Transition], cmds, start, stop):
         """
         Set transitions for a Table of commands ``cmds``.
 
         Parameters
         ----------
-        transitions_dict
-            global dict of transitions (updated in-place)
+        transitions_list
+            list of transitions (updated in-place)
         cmds
             commands (CmdList)
         start
@@ -1269,9 +1312,10 @@ class TargQuatTransition(BaseTransition):
         state_cmds = cls.get_state_changing_commands(cmds)
 
         for cmd in state_cmds:
-            transition = transitions[cmd["date"]]
-            for qc in ("q1", "q2", "q3", "q4"):
-                transition["targ_" + qc] = cmd[qc]
+            transition = Transition(
+                cmd["date"], {f"targ_{qc}": cmd[qc] for qc in QUAT_COMPS}
+            )
+            transitions_list.append(transition)
 
 
 class ManeuverTransition(BaseTransition):
@@ -1286,13 +1330,18 @@ class ManeuverTransition(BaseTransition):
 
     command_attributes = {"tlmsid": "AOMANUVR"}
     state_keys = PCAD_STATE_KEYS
+    pcad_mode = "NMAN"
 
     @classmethod
-    def set_transitions(cls, transitions, cmds, start, stop):
+    def set_transitions(cls, transitions_list: list[Transition], cmds, start, stop):
         state_cmds = cls.get_state_changing_commands(cmds)
 
         for cmd in state_cmds:
-            transitions[cmd["date"]]["maneuver_transition"] = cls.callback
+            transitions_list.append(
+                Transition(
+                    cmd["date"], maneuver_transition=TransitionCallback(cls.callback)
+                )
+            )
 
     @classmethod
     def callback(cls, date, transitions, state, idx):
@@ -1312,7 +1361,8 @@ class ManeuverTransition(BaseTransition):
         # If auto-transition to NPM after manvr is enabled (this is
         # normally the case) then back to NPNT at end of maneuver
         if state["auto_npnt"] == "ENAB":
-            transition = {"date": end_manvr_date, "pcad_mode": "NPNT"}
+            transition = Transition(end_manvr_date, pcad_mode="NPNT")
+            transition.state_constraints = {"pcad_mode": ["NMAN"]}
             add_transition(transitions, idx, transition)
 
     @classmethod
@@ -1366,7 +1416,8 @@ class ManeuverTransition(BaseTransition):
         for att, date_att, pitch, off_nom_roll in zip(
             atts, dates, pitches, off_nom_rolls
         ):
-            transition = {"date": date_att}
+            transition = Transition(date_att)
+            transition.state_constraints = {"pcad_mode": [state["pcad_mode"]]}
             att_q = np.array([att[x] for x in QUAT_COMPS])
             for qc, q_i in zip(QUAT_COMPS, att_q):
                 transition[qc] = q_i
@@ -1396,7 +1447,7 @@ class NormalSunTransition(ManeuverTransition):
     state_keys = PCAD_STATE_KEYS
 
     @classmethod
-    def set_transitions(cls, transitions, cmds, start, stop):
+    def set_transitions(cls, transitions_list: list[Transition], cmds, start, stop):
         state_cmds = cls.get_state_changing_commands(cmds)
 
         # Set the maneuver transition for each state-changing command. The AONSMSAF or
@@ -1404,17 +1455,19 @@ class NormalSunTransition(ManeuverTransition):
         # value of the params for the NSM or Safe Mode command events. If not provided
         # then use 90 degrees.
 
-        # The functools.partial is a little odd in that it passes the class directly.
-        # Ideally we would use functools.partial of a @classmethod but that doesn't seem
-        # to work.
         for cmd in state_cmds:
             pitch = cmd["params"].get("pitch", 90)
-            transitions[cmd["date"]]["maneuver_transition"] = functools.partial(
-                cls.callback, cls, pitch
+            transitions_list.append(
+                Transition(
+                    cmd["date"],
+                    maneuver_transition=TransitionCallback(
+                        cls.callback, {"pitch": pitch}
+                    ),
+                )
             )
 
-    @staticmethod
-    def callback(cls, pitch, date, transitions, state, idx):  # noqa: PLW0211
+    @classmethod
+    def callback(cls, date, transitions, state, idx, *, pitch):
         """
         This is a transition function callback.
 
@@ -1466,16 +1519,21 @@ class ManeuverSunPitchTransition(ManeuverTransition):
     state_keys = PCAD_STATE_KEYS
 
     @classmethod
-    def set_transitions(cls, transitions, cmds, start, stop):
+    def set_transitions(cls, transitions_list: list[Transition], cmds, start, stop):
         state_cmds = cls.get_state_changing_commands(cmds)
 
         for cmd in state_cmds:
-            transitions[cmd["date"]]["maneuver_transition"] = functools.partial(
-                cls.callback, cmd["params"]["pitch"]
+            transitions_list.append(
+                Transition(
+                    cmd["date"],
+                    maneuver_transition=TransitionCallback(
+                        cls.callback, {"pitch": cmd["params"]["pitch"]}
+                    ),
+                )
             )
 
-    @staticmethod
-    def callback(pitch, date, transitions, state, idx):
+    @classmethod
+    def callback(cls, date, transitions, state, idx, *, pitch):
         # Setup for maneuver to sun-pointed attitude from current att
         curr_att = [state[qc] for qc in QUAT_COMPS]
 
@@ -1511,16 +1569,21 @@ class ManeuverSunRaslTransition(ManeuverTransition):
     state_keys = PCAD_STATE_KEYS
 
     @classmethod
-    def set_transitions(cls, transitions, cmds, start, stop):
+    def set_transitions(cls, transitions_list: list[Transition], cmds, start, stop):
         state_cmds = cls.get_state_changing_commands(cmds)
 
         for cmd in state_cmds:
-            transitions[cmd["date"]]["maneuver_transition"] = functools.partial(
-                cls.callback, cmd["params"]["rasl"]
+            transitions_list.append(
+                Transition(
+                    cmd["date"],
+                    maneuver_transition=TransitionCallback(
+                        cls.callback, {"rasl": cmd["params"]["rasl"]}
+                    ),
+                )
             )
 
-    @staticmethod
-    def callback(rasl, date, transitions, state, idx):
+    @classmethod
+    def callback(cls, date, transitions, state, idx, *, rasl):
         # Setup for maneuver to sun-pointed attitude from current att
         curr_att = [state[qc] for qc in QUAT_COMPS]
 
@@ -1625,14 +1688,14 @@ class ACISTransition(BaseTransition):
     ]
 
     @classmethod
-    def set_transitions(cls, transitions, cmds, start, stop):
+    def set_transitions(cls, transitions_list: list[Transition], cmds, start, stop):
         """
         Set transitions for a Table of commands ``cmds``.
 
         Parameters
         ----------
-        transitions_dict
-            global dict of transitions (updated in-place)
+        transitions_list
+            list of transitions (updated in-place)
         cmds
             commands (CmdList)
         start
@@ -1648,10 +1711,11 @@ class ACISTransition(BaseTransition):
         for cmd in state_cmds:
             tlmsid = cmd["tlmsid"]
             date = cmd["date"]
+            transition = Transition(date)
 
             if tlmsid.startswith("WSPOW"):
                 pwr = decode_power(tlmsid)
-                transitions[date].update(
+                transition.update(
                     fep_count=pwr["fep_count"],
                     ccd_count=pwr["ccd_count"],
                     vid_board=pwr["vid_board"],
@@ -1660,24 +1724,26 @@ class ACISTransition(BaseTransition):
                 )
 
             elif tlmsid in ("XCZ0000005", "XTZ0000005"):
-                transitions[date].update(clocking=1, power_cmd=tlmsid)
+                transition.update(clocking=1, power_cmd=tlmsid)
 
             elif tlmsid == "WSVIDALLDN":
-                transitions[date].update(vid_board=0, ccd_count=0, power_cmd=tlmsid)
+                transition.update(vid_board=0, ccd_count=0, power_cmd=tlmsid)
 
             elif tlmsid == "AA00000000":
-                transitions[date].update(clocking=0, power_cmd=tlmsid)
+                transition.update(clocking=0, power_cmd=tlmsid)
 
             elif tlmsid == "WSFEPALLUP":
-                transitions[date].update(fep_count=6, power_cmd=tlmsid)
+                transition.update(fep_count=6, power_cmd=tlmsid)
 
             elif tlmsid[:2] in ("WT", "WC"):
-                transitions[cmd["date"]]["si_mode"] = functools.partial(
-                    ACISTransition.simode_callback, tlmsid
+                transition["si_mode"] = TransitionCallback(
+                    cls.simode_callback, {"tlmsid": tlmsid}
                 )
 
-    @staticmethod
-    def simode_callback(tlmsid, date, transitions, state, idx):
+            transitions_list.append(transition)
+
+    @classmethod
+    def simode_callback(cls, date, transitions, state, idx, *, tlmsid):
         # Other SIMODEs than the ones caught here exist in the
         # ACIS tables, and may be used in execptional circumstances
         # such as anomalies or special tests. The ones that are
@@ -1743,14 +1809,14 @@ class ACISFP_SetPointTransition(BaseTransition):
     default_value = -121.0
 
     @classmethod
-    def set_transitions(cls, transitions, cmds, start, stop):
+    def set_transitions(cls, transitions_list: list[Transition], cmds, start, stop):
         """
         Set transitions for a Table of commands ``cmds``.
 
         Parameters
         ----------
-        transitions_dict
-            global dict of transitions (updated in-place)
+        transitions_list
+            list of transitions (updated in-place)
         cmds
             commands (CmdList)
         start
@@ -1771,7 +1837,9 @@ class ACISFP_SetPointTransition(BaseTransition):
                 match = re.search(r"(\d+)$", tlmsid)
                 if not match:
                     raise ValueError(f"unable to parse command {tlmsid}")
-                transitions[date].update(acisfp_setpoint=-float(match.group(1)))
+                transitions_list.append(
+                    Transition(date, acisfp_setpoint=-float(match.group(1)))
+                )
 
 
 class FidsTransition(BaseTransition):
@@ -1832,14 +1900,14 @@ class FidsTransition(BaseTransition):
     state_keys = ["fids"]
 
     @classmethod
-    def set_transitions(cls, transitions_dict, cmds, start, stop):
+    def set_transitions(cls, transitions_list: list[Transition], cmds, start, stop):
         """
         Set transitions for a Table of commands ``cmds``.
 
         Parameters
         ----------
-        transitions_dict
-            global dict of transitions (updated in-place)
+        transitions_list
+            list of transitions (updated in-place)
         cmds
             commands (CmdList)
         start
@@ -1856,12 +1924,15 @@ class FidsTransition(BaseTransition):
         for cmd in state_cmds:
             msid = cmd["msid"]
             if msid == "AFLCRSET" or re.match(r"AFLC \d\d D \d $", msid, re.VERBOSE):
-                transitions_dict[cmd["date"]]["fids"] = functools.partial(
-                    FidsTransition.fids_callback, msid
+                transitions_list.append(
+                    Transition(
+                        cmd["date"],
+                        fids=TransitionCallback(cls.fids_callback, {"msid": msid}),
+                    )
                 )
 
-    @staticmethod
-    def fids_callback(msid, date, transitions, state, idx):
+    @classmethod
+    def fids_callback(cls, date, transitions, state, idx, *, msid):
         """Update ``state`` for the given fid light command ``msid``."""
         if msid == "AFLCRSET":
             state["fids"] = set()
@@ -1901,7 +1972,9 @@ def get_transition_classes(state_keys=None):
     return trans_classes
 
 
-def get_transitions_list(cmds, state_keys, start, stop, continuity=None):
+def get_transitions_list(
+    cmds, state_keys, start, stop, continuity=None
+) -> list[Transition]:
     """
     Get transitions for given set of ``cmds`` and ``state_keys``.
 
@@ -1922,11 +1995,8 @@ def get_transitions_list(cmds, state_keys, start, stop, continuity=None):
     -------
     list of dict (transitions), set of transition classes
     """
-    # To start, collect transitions in a dict keyed by date.  This auto-initializes
-    # a dict whenever a new date is used, allowing (e.g.) a single step of::
-    #
-    #   transitions_dict['2017:002:01:02:03.456']['obsid'] = 23456.
-    transitions_dict = collections.defaultdict(dict)
+    # To start, collect a list transitions of dated transitions.
+    transitions_list: list[Transition] = []
 
     # If an initial list of transitions is provided in the continuity dict
     # then apply those.  These would be transitions that occur after the the
@@ -1934,29 +2004,25 @@ def get_transitions_list(cmds, state_keys, start, stop, continuity=None):
     # where we need the remaining attitude and pcad_mode transitions.
     if continuity is not None and "__transitions__" in continuity:
         for transition in continuity["__transitions__"]:
-            transitions_dict[transition["date"]].update(transition)
+            transitions_list.append(transition)
 
     # Iterate through Transition classes which depend on or affect ``state_keys``
-    # and ask each one to update ``transitions_dict`` in-place to include
+    # and ask each one to update ``transitions_list`` in-place to include
     # transitions from that class.
     for transition_class in get_transition_classes(state_keys):
-        transition_class.set_transitions(transitions_dict, cmds, start, stop)
+        transition_class.set_transitions(transitions_list, cmds, start, stop)
 
     # Convert the dict of transitions (keyed by date) into an ordered list of
     # transitions sorted by date.  A *list* of transitions is needed to allow a
     # transition to dynamically generate additional (later) transitions, e.g. in
     # the case of a maneuver.
-    transitions_list = []
-    for date in sorted(transitions_dict):
-        transition = transitions_dict[date]
-        transition["date"] = date
-        transitions_list.append(transition)
+    transitions_list = sorted(transitions_list, key=lambda x: x.date)
 
     # In the rest of this module ``transitions`` is always this *list* of transitions.
     return transitions_list
 
 
-def add_transition(transitions, idx, transition):
+def add_transition(transitions: list[Transition], idx: int, transition: Transition):
     """
     Add ``transition`` to the ``transitions`` list.
 
@@ -1981,8 +2047,8 @@ def add_transition(transitions, idx, transition):
     """
     # Prevent adding command before current command since the command
     # interpreter is a one-pass process.
-    date = transition["date"]
-    if date < transitions[idx]["date"]:
+    date = transition.date
+    if date < transitions[idx].date:
         raise ValueError("cannot insert transition prior to current command")
 
     # Insert transition at first place where new transition date is strictly
@@ -1990,7 +2056,7 @@ def add_transition(transitions, idx, transition):
     # could be improved, though in practice transitions are often inserted
     # close to the original.
     for ii in range(idx + 1, len(transitions)):
-        if date < transitions[ii]["date"]:
+        if date < transitions[ii].date:
             transitions.insert(ii, transition)
             break
     else:
@@ -2132,7 +2198,16 @@ def get_states(
     continuity_transitions = []
 
     for idx, transition in enumerate(transitions):
-        date = transition["date"]
+        # If there are state constraints then check that the state satisfies the
+        # constraints.  If not then skip this transition. Canonical example is
+        # ManeuverTransition which requires that the state be in NMAN.
+        if (tsc := transition.state_constraints) and any(
+            state_key in state and state[state_key] not in allowed_values
+            for state_key, allowed_values in tsc.items()
+        ):
+            continue
+
+        date = transition.date
 
         # Some transition classes (e.g. Maneuver) might put in transitions that
         # extend past the stop time.  Add to a list for potential use in continuity.
@@ -2151,13 +2226,14 @@ def get_states(
 
         # Process the transition.
         for key, value in transition.items():
-            if callable(value):
+            if isinstance(value, TransitionCallback):
                 # Special case of a functional transition that calls a function
                 # instead of directly updating the state.  The function might itself
                 # update the state or it might generate downstream transitions.
-                value(date, transitions, state, idx)
-            elif key != "date":
+                value.callback(date, transitions, state, idx, **value.kwargs)
+            else:
                 # Normal case of just updating current state
+
                 state[key] = value
 
     # Make into an astropy Table and set up datestart/stop columns
