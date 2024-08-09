@@ -122,17 +122,6 @@ def cmd_set_bright_star_hold(date=None):
     return out
 
 
-def cmd_set_nsm(date=None):
-    nsm_cmd = dict(type="COMMAND_SW", tlmsid="AONSMSAF")
-    out = (nsm_cmd,)
-    out += cmd_set_end_vehicle()
-    out += cmd_set_scs107(date=date)
-    # Disable dither. Looking at a few NSMs this seems to be the case, but
-    # not for the 2022:232:18:36 NSM from a CTU reset. ??
-    out += cmd_set_dither("OFF", date=date)
-    return out
-
-
 def cmd_set_maneuver_sun_pitch(pitch, date=None):
     """Maneuver to ``pitch`` Sun pitch angle (absolute)."""
     cmd = dict(type="LOAD_EVENT", tlmsid="SUN_PITCH", params={"PITCH": pitch})
@@ -145,16 +134,30 @@ def cmd_set_maneuver_sun_rasl(rasl, date=None):
     return (cmd,)
 
 
-def cmd_set_safe_mode(date=None):
-    safe_mode_cmds = (
-        dict(type="COMMAND_SW", tlmsid="ACPCSFSU"),  # CPE set pcad mode to safe sun
-        dict(type="COMMAND_SW", tlmsid="CSELFMT5"),  # Format 5 (programmable) select
-    )
-    # This is a little lazy, but put the NSM commands on top of safe mode.
-    # Even though not 100% accurate this does the right thing for commands and
-    # state processing. Otherwise need to put stuff into commands_v2 and states
-    # to handle the ACPCSFSU command.
-    out = safe_mode_cmds + cmd_set_nsm(date=date)
+def _cmd_set_nsm_or_safe_mode(*args, tlmsid=None, date=None):
+    """Return a command set that sets the NSM or safe mode pitch to ``args[0]``.
+
+    Includes the end of vehicle and SCS-107 commands and dither disable commands.
+    """
+    nsm_cmd = dict(type="COMMAND_SW", tlmsid=tlmsid)
+    if args:
+        nsm_cmd["params"] = {"PITCH": args[0]}
+    out = (nsm_cmd,)
+    print(f"{args=}")
+    print(f"{out=}")
+    out += cmd_set_end_vehicle()
+    out += cmd_set_scs107(date=date)
+    out += cmd_set_dither("OFF", date=date)
+    return out
+
+
+def cmd_set_nsm(*args, date=None):
+    return _cmd_set_nsm_or_safe_mode(*args, tlmsid="AONSMSAF", date=date)
+
+
+def cmd_set_safe_mode(*args, date=None):
+    out = _cmd_set_nsm_or_safe_mode(*args, tlmsid="ACPCSFSU", date=date)
+    out += ({"type": "COMMAND_SW", "tlmsid": "CSELFMT5"},)  # Telemetry format 5
     return out
 
 
@@ -231,6 +234,7 @@ def get_cmds_from_event(date, event, params_str):
     if event_func is None:
         raise ValueError(f"unknown event {event!r}")
 
+    print(f"{params_str=}")
     if isinstance(params_str, str):
         if event in ("RTS", "Command", "Command not run"):
             # Delegate parsing to cmd_set_command
@@ -241,6 +245,7 @@ def get_cmds_from_event(date, event, params_str):
     else:
         # Empty value means no args and implies params_str = np.ma.masked
         args = ()
+    print(f"hej {args=}")
     cmds = event_func(*args, date=date)
 
     # Load event does not generate commands
