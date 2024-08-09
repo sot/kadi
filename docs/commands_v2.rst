@@ -181,6 +181,7 @@ to disk and then edit it. Be wary of "temporarily" changing an option and  then
 forgetting to revert it later.
 
     >>> import kadi
+    >>> import kadi.events.models  # Due to a strange interaction with Django
     >>> status = kadi.create_config_file()
     INFO: The configuration file has been successfully written to
     ~/.kadi/config/kadi.cfg [astropy.config.configuration]
