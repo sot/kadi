@@ -1388,15 +1388,34 @@ class NormalSunTransition(ManeuverTransition):
     """
     Same as ``ManeuverTransition`` except perform maneuver to NSM.
 
-    This is based on a pure-pitch maneuver from current attitude).  It also
-    changes ``pcad_mode`` to NSUN.
+    This uses chandra_maneuver.NSM_attitude() to get the NSM attitude, potentially at
+    an offset pitch like 160 degrees.  It also changes ``pcad_mode`` to NSUN.
     """
 
     command_attributes = {"tlmsid": "AONSMSAF"}
+    pcad_mode = "NSUN"
     state_keys = PCAD_STATE_KEYS
 
     @classmethod
-    def callback(cls, date, transitions, state, idx):
+    def set_transitions(cls, transitions, cmds, start, stop):
+        state_cmds = cls.get_state_changing_commands(cmds)
+
+        # Set the maneuver transition for each state-changing command. The AONSMSAF or
+        # ACPCSFSU commands have an optional pitch parameter corresponding to the Params
+        # value of the params for the NSM or Safe Mode command events. If not provided
+        # then use 90 degrees.
+
+        # The functools.partial is a little odd in that it passes the class directly.
+        # Ideally we would use functools.partial of a @classmethod but that doesn't seem
+        # to work.
+        for cmd in state_cmds:
+            pitch = cmd["params"].get("pitch", 90)
+            transitions[cmd["date"]]["maneuver_transition"] = functools.partial(
+                cls.callback, cls, pitch
+            )
+
+    @staticmethod
+    def callback(cls, pitch, date, transitions, state, idx):
         """
         This is a transition function callback.
 
@@ -1404,8 +1423,8 @@ class NormalSunTransition(ManeuverTransition):
         the expected sun pointed attitude.  It then calls the parent method to
         add the actual maneuver.
         """
-        # Transition to NSUN
-        state["pcad_mode"] = "NSUN"
+        # Transition to approprpriate PCAD mode
+        state["pcad_mode"] = cls.pcad_mode
 
         # Setup for maneuver to sun-pointed attitude from current att
         curr_att = [state[qc] for qc in QUAT_COMPS]
@@ -1416,12 +1435,25 @@ class NormalSunTransition(ManeuverTransition):
         if None in curr_att:
             return
 
-        targ_att = get_nsm_attitude(curr_att, date)
+        targ_att = chandra_maneuver.NSM_attitude(curr_att, date, pitch)
         for qc, targ_q in zip(QUAT_COMPS, targ_att.q):
             state["targ_" + qc] = targ_q
 
         # Do the maneuver
         cls.add_manvr_transitions(date, transitions, state, idx)
+
+
+class SafeSunTransition(NormalSunTransition):
+    """
+    Same as ``NormalSunTransition`` except perform maneuver to Safe Sun Mode.
+
+    This uses chandra_maneuver.NSM_attitude() to get the NSM attitude, potentially at
+    an offset pitch like 160 degrees.  It also changes ``pcad_mode`` to SSUN.
+    """
+
+    command_attributes = {"tlmsid": "ACPCSFSU"}
+    pcad_mode = "SSUN"
+    state_keys = PCAD_STATE_KEYS
 
 
 class ManeuverSunPitchTransition(ManeuverTransition):
