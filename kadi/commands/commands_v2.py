@@ -1007,7 +1007,9 @@ def get_cmd_events(scenario=None):
     """
     cmd_events_path = paths.CMD_EVENTS_PATH(scenario)
     logger.info(f"Reading command events {cmd_events_path}")
-    cmd_events = Table.read(str(cmd_events_path), format="csv", fill_values=[])
+    cmd_events = Table.read(
+        str(cmd_events_path), format="csv", fill_values=[], converters={"Params": str}
+    )
 
     # If KADI_COMMANDS_DEFAULT_STOP is set, filter out events after that date.
     cmd_events = filter_cmd_events_default_stop(cmd_events)
