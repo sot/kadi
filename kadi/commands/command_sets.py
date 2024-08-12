@@ -234,18 +234,13 @@ def get_cmds_from_event(date, event, params_str):
     if event_func is None:
         raise ValueError(f"unknown event {event!r}")
 
-    print(f"{params_str=}")
-    if isinstance(params_str, str):
-        if event in ("RTS", "Command", "Command not run"):
-            # Delegate parsing to cmd_set_command
-            args = [params_str]
-        else:
-            params_str = params_str.upper().split()
-            args = [convert_to_int_float_str(p) for p in params_str]
+    if event in ("RTS", "Command", "Command not run"):
+        # Delegate parsing to cmd_set_command
+        args = [params_str]
     else:
-        # Empty value means no args and implies params_str = np.ma.masked
-        args = ()
-    print(f"hej {args=}")
+        params_str = params_str.upper().split()
+        args = [convert_to_int_float_str(p) for p in params_str]
+
     cmds = event_func(*args, date=date)
 
     # Load event does not generate commands
