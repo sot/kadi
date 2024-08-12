@@ -143,8 +143,6 @@ def _cmd_set_nsm_or_safe_mode(*args, tlmsid=None, date=None):
     if args:
         nsm_cmd["params"] = {"PITCH": args[0]}
     out = (nsm_cmd,)
-    print(f"{args=}")
-    print(f"{out=}")
     out += cmd_set_end_vehicle()
     out += cmd_set_scs107(date=date)
     out += cmd_set_dither("OFF", date=date)

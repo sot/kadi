@@ -1388,7 +1388,7 @@ class NormalSunTransition(ManeuverTransition):
     """
     Same as ``ManeuverTransition`` except perform maneuver to NSM.
 
-    This uses chandra_maneuver.NSM_attitude() to get the NSM attitude, potentially at
+    This uses ska_sun.get_nsm_attitude() to get the NSM attitude, potentially at
     an offset pitch like 160 degrees.  It also changes ``pcad_mode`` to NSUN.
     """
 
@@ -1435,7 +1435,7 @@ class NormalSunTransition(ManeuverTransition):
         if None in curr_att:
             return
 
-        targ_att = chandra_maneuver.NSM_attitude(curr_att, date, pitch)
+        targ_att = ska_sun.get_nsm_attitude(curr_att, date, pitch)
         for qc, targ_q in zip(QUAT_COMPS, targ_att.q):
             state["targ_" + qc] = targ_q
 
@@ -1447,7 +1447,7 @@ class SafeSunTransition(NormalSunTransition):
     """
     Same as ``NormalSunTransition`` except perform maneuver to Safe Sun Mode.
 
-    This uses chandra_maneuver.NSM_attitude() to get the NSM attitude, potentially at
+    This uses ska_sun.get_nsm_attitude() to get the NSM attitude, potentially at
     an offset pitch like 160 degrees.  It also changes ``pcad_mode`` to SSUN.
     """
 
