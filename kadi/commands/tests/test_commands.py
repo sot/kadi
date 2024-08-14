@@ -9,6 +9,7 @@ import numpy as np
 import parse_cm.paths
 import parse_cm.tests
 import pytest
+import ska_helpers.utils
 import ska_sun
 from astropy.table import Table, vstack
 from chandra_time import secs2date
@@ -16,6 +17,7 @@ from cxotime import CxoTime
 from Quaternion import Quat
 from testr.test_helper import has_internet
 
+import kadi
 import kadi.commands.states as kcs
 from kadi import commands
 from kadi.commands import (
@@ -867,9 +869,10 @@ def test_get_starcat_only_agasc1p8():
         conf.set_temp("date_start_agasc1p8_latest", "1994:002"),
     ):
         # Force AGASC 1.7 and show that star identification fails
-        starcats = get_starcats(
-            "2002:365:16:00:00", "2002:365:19:00:00", scenario="flight"
-        )
+        with ska_helpers.utils.set_log_level(kadi.logger, "CRITICAL"):
+            starcats = get_starcats(
+                "2002:365:16:00:00", "2002:365:19:00:00", scenario="flight"
+            )
         assert np.count_nonzero(starcats[0]["id"] == -999) == 0
         assert np.count_nonzero(starcats[0]["mag"] == -999) == 0
         assert np.count_nonzero(starcats[1]["id"] == -999) == 3
