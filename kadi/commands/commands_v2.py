@@ -18,24 +18,18 @@ import astropy.units as u
 import numpy as np
 import requests
 from astropy.table import Table
-from chandra_maneuver import NSM_attitude
 from cxotime import CxoTime
 from parse_cm.paths import load_dir_from_load_name
+from ska_sun import get_nsm_attitude
 from testr.test_helper import has_internet
 
 from kadi import occweb, paths
 from kadi.commands.command_sets import get_cmds_from_event
-from kadi.commands.core import (
-    CommandTable,
-    LazyVal,
-    _find,
-    get_cmds_from_backstop,
-    get_par_idx_update_pars_dict,
-    load_idx_cmds,
-    load_name_to_cxotime,
-    load_pars_dict,
-    vstack_exact,
-)
+from kadi.commands.core import (CommandTable, LazyVal, _find,
+                                get_cmds_from_backstop,
+                                get_par_idx_update_pars_dict, load_idx_cmds,
+                                load_name_to_cxotime, load_pars_dict,
+                                vstack_exact)
 from kadi.config import conf
 
 __all__ = ["clear_caches", "get_cmds"]
@@ -649,7 +643,7 @@ def get_cmds_obs_from_manvrs(cmds, prev_att=None):
         elif tlmsid in ("AOMANUVR", "AONSMSAF"):
             if tlmsid == "AONSMSAF":
                 targ_att = tuple(
-                    NSM_attitude(prev_att or (0, 0, 0, 1), cmd["date"]).q.tolist()
+                    get_nsm_attitude(prev_att or (0, 0, 0, 1), cmd["date"]).q.tolist()
                 )
                 npnt_enab = False
             if targ_att is None:
