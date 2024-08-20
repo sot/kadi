@@ -69,7 +69,7 @@ class Conf(ConfigNamespace):
     )
 
     date_start_agasc1p8 = ConfigItem(
-        "2024:203",  # 2024-July-21
+        "2024:217:21:59:00",  # 2024-08-04, start of AUG0524B loads
         "Start date for using AGASC 1.8 catalog.",
     )
 
