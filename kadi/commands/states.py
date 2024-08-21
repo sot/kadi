@@ -19,6 +19,7 @@ from astropy.table import Column, Table
 from chandra_time import DateTime, date2secs, secs2date
 from cxotime import CxoTime
 from Quaternion import Quat, quat_to_equatorial
+from ska_sun import get_nsm_attitude
 
 from kadi import commands
 
@@ -1415,7 +1416,7 @@ class NormalSunTransition(ManeuverTransition):
         if None in curr_att:
             return
 
-        targ_att = chandra_maneuver.NSM_attitude(curr_att, date)
+        targ_att = get_nsm_attitude(curr_att, date)
         for qc, targ_q in zip(QUAT_COMPS, targ_att.q):
             state["targ_" + qc] = targ_q
 

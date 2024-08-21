@@ -18,9 +18,9 @@ import astropy.units as u
 import numpy as np
 import requests
 from astropy.table import Table
-from chandra_maneuver import NSM_attitude
 from cxotime import CxoTime
 from parse_cm.paths import load_dir_from_load_name
+from ska_sun import get_nsm_attitude
 from testr.test_helper import has_internet
 
 from kadi import occweb, paths
@@ -649,7 +649,7 @@ def get_cmds_obs_from_manvrs(cmds, prev_att=None):
         elif tlmsid in ("AOMANUVR", "AONSMSAF"):
             if tlmsid == "AONSMSAF":
                 targ_att = tuple(
-                    NSM_attitude(prev_att or (0, 0, 0, 1), cmd["date"]).q.tolist()
+                    get_nsm_attitude(prev_att or (0, 0, 0, 1), cmd["date"]).q.tolist()
                 )
                 npnt_enab = False
             if targ_att is None:
@@ -750,7 +750,7 @@ def manvr_duration(q1, q2):
     q_manvr_3 = abs(-q2[0] * q1[0] - q2[1] * q1[1] - q2[2] * q1[2] + q2[3] * -q1[3])
 
     # 4th component is cos(theta/2)
-    if q_manvr_3 > 1:
+    if q_manvr_3 > 1:  # noqa PLR1730
         q_manvr_3 = 1
     phimax = 2 * math.acos(q_manvr_3)
 
@@ -764,7 +764,7 @@ def manvr_duration(q1, q2):
             np.sqrt(MANVR_DELTA**2 + 4 * phimax / MANVR_ALPHAMAX) / 2
             - 1.5 * MANVR_DELTA
         )
-        if eps < 0:
+        if eps < 0:  # noqa PLR1730
             eps = 0
 
     tm = 4 * MANVR_DELTA + 2 * eps + tau
