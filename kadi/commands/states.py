@@ -19,7 +19,6 @@ from astropy.table import Column, Table
 from chandra_time import DateTime, date2secs, secs2date
 from cxotime import CxoTime
 from Quaternion import Quat, quat_to_equatorial
-from ska_sun import get_nsm_attitude
 
 from kadi import commands
 
@@ -1415,7 +1414,7 @@ class NormalSunTransition(ManeuverTransition):
             )
 
     @staticmethod
-    def callback(cls, pitch, date, transitions, state, idx):
+    def callback(cls, pitch, date, transitions, state, idx):  # noqa: PLW0211
         """
         This is a transition function callback.
 
@@ -1423,7 +1422,7 @@ class NormalSunTransition(ManeuverTransition):
         the expected sun pointed attitude.  It then calls the parent method to
         add the actual maneuver.
         """
-        # Transition to approprpriate PCAD mode
+        # Transition to appropriate PCAD mode
         state["pcad_mode"] = cls.pcad_mode
 
         # Setup for maneuver to sun-pointed attitude from current att

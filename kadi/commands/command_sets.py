@@ -143,6 +143,10 @@ def _cmd_set_nsm_or_safe_mode(*args, tlmsid=None, date=None):
     if args:
         nsm_cmd["params"] = {"PITCH": args[0]}
     out = (nsm_cmd,)
+
+    if tlmsid == "ACPCSFSU":
+        out += ({"type": "COMMAND_SW", "tlmsid": "CSELFMT5"},)  # Telemetry format 5
+
     out += cmd_set_end_vehicle()
     out += cmd_set_scs107(date=date)
     out += cmd_set_dither("OFF", date=date)
@@ -155,7 +159,6 @@ def cmd_set_nsm(*args, date=None):
 
 def cmd_set_safe_mode(*args, date=None):
     out = _cmd_set_nsm_or_safe_mode(*args, tlmsid="ACPCSFSU", date=date)
-    out += ({"type": "COMMAND_SW", "tlmsid": "CSELFMT5"},)  # Telemetry format 5
     return out
 
 

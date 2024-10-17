@@ -624,7 +624,6 @@ def test_command_set_safe_mode():
     exp = """\
 2000:001:00:00:00.000 | COMMAND_SW       | ACPCSFSU   | CMD_EVT  | event=Safe_mode, event_date=2000:001:00:00:00, scs=0
 2000:001:00:00:00.000 | COMMAND_SW       | CSELFMT5   | CMD_EVT  | event=Safe_mode, event_date=2000:001:00:00:00, scs=0
-2000:001:00:00:00.000 | COMMAND_SW       | AONSMSAF   | CMD_EVT  | event=Safe_mode, event_date=2000:001:00:00:00, scs=0
 2000:001:00:00:00.000 | COMMAND_SW       | CODISASX   | CMD_EVT  | event=Safe_mode, event_date=2000:001:00:00:00, msid=CODISASX, codisas1=128 , scs=0
 2000:001:00:00:00.000 | COMMAND_SW       | CODISASX   | CMD_EVT  | event=Safe_mode, event_date=2000:001:00:00:00, msid=CODISASX, codisas1=129 , scs=0
 2000:001:00:00:00.000 | COMMAND_SW       | CODISASX   | CMD_EVT  | event=Safe_mode, event_date=2000:001:00:00:00, msid=CODISASX, codisas1=130 , scs=0
@@ -1005,7 +1004,9 @@ cmd_events_all_text = """\
     Bright star hold,
     Dither,ON
     """
-cmd_events_all = Table.read(cmd_events_all_text, format="ascii.csv")
+cmd_events_all = Table.read(
+    cmd_events_all_text, format="ascii.csv", fill_values=[], converters={"Params": str}
+)
 cmd_events_all_exps = [
     [
         "2020:001:00:00:00.000 | LOAD_EVENT       | None       | CMD_EVT  | event=Observing_not_run, event_date=2020:001:00:00:00, event_type=OBSERVING_NOT_RUN, load=FEB1422A, scs=0"  # noqa
@@ -1075,8 +1076,6 @@ cmd_events_all_exps = [
         "2020:001:00:00:00.000 | COMMAND_SW       | ACPCSFSU   | CMD_EVT  |"
         " event=Safe_mode, event_date=2020:001:00:00:00, scs=0",
         "2020:001:00:00:00.000 | COMMAND_SW       | CSELFMT5   | CMD_EVT  |"
-        " event=Safe_mode, event_date=2020:001:00:00:00, scs=0",
-        "2020:001:00:00:00.000 | COMMAND_SW       | AONSMSAF   | CMD_EVT  |"
         " event=Safe_mode, event_date=2020:001:00:00:00, scs=0",
         "2020:001:00:00:00.000 | COMMAND_SW       | CODISASX   | CMD_EVT  |"
         " event=Safe_mode, event_date=2020:001:00:00:00, msid=CODISASX, codisas1=128 ,"
