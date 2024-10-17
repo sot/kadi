@@ -869,7 +869,7 @@ class CommandTable(Table):
                 # Make a single string of params like POS= 75624, SCS= 130, STEP= 9
                 fmtvals = []
                 keys = cmd["params"]
-                for key in sorted(keys):
+                for key in keys:
                     if not show_nonload_meta and key in (
                         "nonload_id",
                         "event",

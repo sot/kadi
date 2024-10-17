@@ -973,7 +973,9 @@ def update_cmd_events(scenario=None) -> Table:
     if req.status_code != 200:
         raise ValueError(f"Failed to get cmd events sheet: {req.status_code}")
 
-    cmd_events = Table.read(req.text, format="csv")
+    cmd_events = Table.read(
+        req.text, format="csv", fill_values=[], converters={"Params": str}
+    )
 
     # Filter table based on State column. In-work can be used to validate the new
     # event vs telemetry prior to make it operational.
