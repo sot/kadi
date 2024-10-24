@@ -1,47 +1,94 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+"""Test the validation of command loads.
+
+This relies on regression data files that are generated or updated by running this test
+file with the environment variable KADI_VALIDATE_WRITE_REGRESSION set::
+
+  $ env KADI_VALIDATE_WRITE_REGRESSION=1 pytest -k test_validate -s -v
+
+Regression testing uses a 5-day period covering a safe mode with plenty of things
+happening. There are a number of violations in this period and a couple of excluded
+intervals.
+"""
+
 import functools
-import gzip
-import pickle
+import os
 from pathlib import Path
 
 import numpy as np
 import pytest
 import ska_sun
+import yaml
+from cxotime import CxoTime
+from ska_helpers.utils import temp_env_var
 from testr.test_helper import has_internet
 
+import kadi.commands as kc
 from kadi.commands.utils import compress_time_series
 from kadi.commands.validate import (
     Validate,
     ValidateRoll,
 )
 
-# Regression testing for this 5-day period covering a safe mode with plenty of things
-# happening. There are a number of violations in this period and a couple of excluded
-# intervals.
 REGRESSION_STOP = "2022:297"
 REGRESSION_DAYS = 5
 
 HAS_INTERNET = has_internet()
 
 
-def write_regression_data(stop, days, no_exclude):
-    cwd = Path(__file__).parent
+@pytest.fixture(scope="module")
+def local_testing(tmp_path_factory):
+    """Several context managers to set up the environment for local testing."""
+    kc.clear_caches()
+    cmds_dir = tmp_path_factory.mktemp("cmds_dir")
+    with (
+        kc.conf.set_temp("cache_loads_in_astropy_cache", True),
+        kc.conf.set_temp("clean_loads_dir", False),
+        kc.conf.set_temp("commands_dir", str(cmds_dir)),
+    ):
+        yield
+    kc.clear_caches()
 
-    print(f"Getting validation regression data for {stop} {days} {no_exclude}")
-    data_all = get_all_validator_data(stop, days, no_exclude)
-    name = f"validators_{stop.replace(':', '')}_{days}_{no_exclude}.pkl.gz"
-    path = cwd / "data" / name
+
+@pytest.fixture()
+def regress_stop(local_testing):
+    """Set the default stop time for regression testing
+
+    This will force regenerating "recent" commands in case command events or command
+    sets have changed.
+
+    This fixture cannot be combined with the module-scoped ``local_testing`` fixture
+    because this causes problems for other tests that rely on the default stop time.
+
+    To see what is happening behind the scenes, update the code to enable kadi debug
+    logging (kadi.commands.logger.setLevel("DEBUG")) and run the tests with ``-s``.
+    """
+    with temp_env_var("KADI_COMMANDS_DEFAULT_STOP", REGRESSION_STOP):
+        yield
+
+
+def get_regression_data_path(cls, stop, days, no_exclude):
+    stop = stop.replace(":", "")
+    name = cls.state_name
+    fn = f"validator_{name}_{stop}_{days}_{no_exclude}.yaml"
+    return Path(__file__).parent / "data" / fn
+
+
+def write_regression_data(cls, stop, days, no_exclude, data):
+    print(
+        "Getting validation regression data for "
+        f"{cls.state_name} {stop} {days} {no_exclude}"
+    )
+    path = get_regression_data_path(cls, stop, days, no_exclude)
     print(f"Writing validation regression data to {path}")
-    with gzip.open(path, "wb") as fh:
-        fh.write(pickle.dumps(data_all))
+    with open(path, "w") as fh:
+        yaml.safe_dump(data, fh)
 
 
 @functools.lru_cache()
-def read_regression_data(stop, days, no_exclude):
-    cwd = Path(__file__).parent
-    name = f"validators_{stop.replace(':', '')}_{days}_{no_exclude}.pkl.gz"
-    path = cwd / "data" / name
+def read_regression_data(cls, stop, days, no_exclude):
+    path = get_regression_data_path(cls, stop, days, no_exclude)
     if not path.exists():
         raise FileNotFoundError(
             f"validation regression data {path} not found.\n"
@@ -49,19 +96,10 @@ def read_regression_data(stop, days, no_exclude):
         )
 
     print(f"Reading validation regression data from {path}")
-    with gzip.open(path, "rb") as fh:
-        data_all = pickle.loads(fh.read())
+    with open(path) as fh:
+        data = yaml.safe_load(fh)
 
-    return data_all
-
-
-def get_all_validator_data(stop, days, no_exclude):
-    data_all = {
-        cls.state_name: get_one_validator_data(cls, stop, days, no_exclude)
-        for cls in Validate.subclasses
-    }
-
-    return data_all
+    return data
 
 
 def get_one_validator_data(cls: type[Validate], stop, days, no_exclude):
@@ -71,7 +109,7 @@ def get_one_validator_data(cls: type[Validate], stop, days, no_exclude):
     versions that get plotted and used for the violations table.
 
         data = {
-            "vals": {
+            "vals_compressed": {
                 "tlm_time": <list of times>,
                 "tlm": <list of tlm values>,
                 "state_time": <list of times>,
@@ -91,47 +129,52 @@ def get_one_validator_data(cls: type[Validate], stop, days, no_exclude):
     vals_compressed = {}
     for attr, vals in validator_vals.items():
         # TODO: make this a base method
-        tm, y = compress_time_series(
+        tms, ys = compress_time_series(
             times,
             vals,
             validator.plot_attrs.max_delta_val,
             validator.plot_attrs.max_delta_time,
             max_gap=validator.plot_attrs.max_gap_time,
         )
-        vals_compressed[f"{attr}_time"] = tm
-        vals_compressed[attr] = y
+        ys = np.array(ys)
+        if ys.dtype.kind == "f":
+            ys = np.round(ys, 3)
+        vals_compressed[f"{attr}_time"] = CxoTime(tms).date.tolist()
+        vals_compressed[attr] = ys.tolist()
 
-    data = {"vals": vals_compressed, "violations": validator.violations}
+    data = {
+        "violations": {
+            "start": validator.violations["start"].tolist(),
+            "stop": validator.violations["stop"].tolist(),
+        },
+        "vals_compressed": vals_compressed,
+    }
     return data
-
-
-def test_validate_subclasses():
-    """Test that Validate.subclasses matches regression data"""
-    data_all_exp = read_regression_data(
-        REGRESSION_STOP, REGRESSION_DAYS, no_exclude=False
-    )
-    assert set(data_all_exp.keys()) == {cls.state_name for cls in Validate.subclasses}
 
 
 @pytest.mark.skipif(not HAS_INTERNET, reason="Command sheet not available")
 @pytest.mark.parametrize("cls", Validate.subclasses)
 @pytest.mark.parametrize("no_exclude", [False, True])
-def test_validate_regression(cls, no_exclude, fast_sun_position_method):
+def test_validate_regression(cls, no_exclude, fast_sun_position_method, regress_stop):
     """Test that validator data matches regression data
 
     This is likely to be fragile. In the future we may need helper function to output
     the data in a more human-readable format to allow for text diffing.
     """
-    data_all_exp = read_regression_data(REGRESSION_STOP, REGRESSION_DAYS, no_exclude)
-    # Get expected data (from regression pickle file) and actual data from validator
-    data_exp = data_all_exp[cls.state_name]
     data_obs = get_one_validator_data(cls, REGRESSION_STOP, REGRESSION_DAYS, no_exclude)
+    if os.environ.get("KADI_VALIDATE_WRITE_REGRESSION"):
+        write_regression_data(
+            cls, REGRESSION_STOP, REGRESSION_DAYS, no_exclude, data_obs
+        )
+    data_exp = read_regression_data(cls, REGRESSION_STOP, REGRESSION_DAYS, no_exclude)
+    # Get expected data (from regression pickle file) and actual data from validator
+    # data_exp = data_all_exp[cls.state_name]
 
-    assert data_obs["vals"].keys() == data_exp["vals"].keys()
+    assert data_obs["vals_compressed"].keys() == data_exp["vals_compressed"].keys()
 
-    for key, vals_obs in data_obs["vals"].items():
+    for key, vals_obs in data_obs["vals_compressed"].items():
         vals_obs = np.asarray(vals_obs)
-        vals_exp = np.asarray(data_exp["vals"][key])
+        vals_exp = np.asarray(data_exp["vals_compressed"][key])
         assert vals_obs.shape == vals_exp.shape
         assert vals_obs.dtype.kind == vals_exp.dtype.kind
         if vals_obs.dtype.kind == "f":
@@ -139,7 +182,8 @@ def test_validate_regression(cls, no_exclude, fast_sun_position_method):
         else:
             assert np.all(vals_obs == vals_exp)
 
-    assert np.all(data_obs["violations"] == data_exp["violations"])
+    for key in ("start", "stop"):
+        assert np.all(data_obs["violations"][key] == data_exp["violations"][key])
 
 
 @pytest.mark.skipif(not HAS_INTERNET, reason="Command sheet not available")
@@ -155,5 +199,6 @@ def test_off_nominal_roll_violations():
 
 
 if __name__ == "__main__":
-    write_regression_data(REGRESSION_STOP, REGRESSION_DAYS, no_exclude=False)
-    write_regression_data(REGRESSION_STOP, REGRESSION_DAYS, no_exclude=True)
+    for cls in Validate.subclasses:
+        write_regression_data(cls, REGRESSION_STOP, REGRESSION_DAYS, no_exclude=False)
+        write_regression_data(cls, REGRESSION_STOP, REGRESSION_DAYS, no_exclude=True)
