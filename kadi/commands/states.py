@@ -1444,14 +1444,14 @@ class NormalSunTransition(ManeuverTransition):
 
 class SafeSunTransition(NormalSunTransition):
     """
-    Same as ``NormalSunTransition`` except perform maneuver to Safe Sun Mode.
+    Similar to ``NormalSunTransition`` but in Safe Sun Mode with pcad_mode = STBY.
 
     This uses ska_sun.get_nsm_attitude() to get the NSM attitude, potentially at
-    an offset pitch like 160 degrees.  It also changes ``pcad_mode`` to SSUN.
+    an offset pitch like 160 degrees.  It also changes ``pcad_mode`` to STBY.
     """
 
     command_attributes = {"tlmsid": "ACPCSFSU"}
-    pcad_mode = "SSUN"
+    pcad_mode = "STBY"
     state_keys = PCAD_STATE_KEYS
 
 
