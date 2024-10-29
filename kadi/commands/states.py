@@ -1418,7 +1418,7 @@ class NormalSunTransition(ManeuverTransition):
         """
         This is a transition function callback.
 
-        It directly sets the state pcad_mode to NSUN and target quaternion to
+        It sets the state pcad_mode to ``cls.pcad_mode`` and target quaternion to
         the expected sun pointed attitude.  It then calls the parent method to
         add the actual maneuver.
         """
