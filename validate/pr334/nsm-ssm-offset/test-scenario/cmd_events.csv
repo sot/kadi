@@ -1,0 +1,6 @@
+State,Date,Event,Params,Author,Reviewer,Comment
+Definitive,2023:199:00:00:00.000,Safe mode,160,,,
+Definitive,2023:200:00:00:00.000,NSM,,,,
+Definitive,2023:200:12:00:00.000,Maneuver,0.80889172 -0.48342105 0.28726927 0.17168183,,,pitch=120 yaw=0 time=2023:200:12:00:00
+Definitive,2023:201:00:00:00.000,Safe mode,,,,
+Definitive,2023:201:12:00:00.000,NSM,140,,,
