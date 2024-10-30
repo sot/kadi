@@ -4,12 +4,12 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>kadi.commands.states &#8212; kadi 7.11.0 documentation</title>
+    <title>kadi.commands.states &#8212; kadi 7.13.0 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="../../../_static/bootstrap-astropy.css?v=f4f7060c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/plot_directive.css" />
     
-    <script src="../../../_static/documentation_options.js?v=999c8c5e"></script>
+    <script src="../../../_static/documentation_options.js?v=7a3618ec"></script>
     <script src="../../../_static/doctools.js?v=888ff710"></script>
     <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script type="text/javascript" src="../../../_static/sidebar.js"></script>
@@ -45,7 +45,7 @@
     <h3>Navigation</h3>
     <ul>
       <li>
-	<a href="../../../index.html">kadi 7.11.0 documentation</a>
+	<a href="../../../index.html">kadi 7.13.0 documentation</a>
 	 &#187;
       </li>
       <li><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
@@ -1692,26 +1692,45 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Same as ``ManeuverTransition`` except perform maneuver to NSM.</span>
 
-<span class="sd">    This is based on a pure-pitch maneuver from current attitude).  It also</span>
-<span class="sd">    changes ``pcad_mode`` to NSUN.</span>
+<span class="sd">    This uses ska_sun.get_nsm_attitude() to get the NSM attitude, potentially at</span>
+<span class="sd">    an offset pitch like 160 degrees.  It also changes ``pcad_mode`` to NSUN.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">command_attributes</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;tlmsid&quot;</span><span class="p">:</span> <span class="s2">&quot;AONSMSAF&quot;</span><span class="p">}</span>
+    <span class="n">pcad_mode</span> <span class="o">=</span> <span class="s2">&quot;NSUN&quot;</span>
     <span class="n">state_keys</span> <span class="o">=</span> <span class="n">PCAD_STATE_KEYS</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">set_transitions</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">transitions</span><span class="p">,</span> <span class="n">cmds</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">):</span>
+        <span class="n">state_cmds</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">get_state_changing_commands</span><span class="p">(</span><span class="n">cmds</span><span class="p">)</span>
+
+        <span class="c1"># Set the maneuver transition for each state-changing command. The AONSMSAF or</span>
+        <span class="c1"># ACPCSFSU commands have an optional pitch parameter corresponding to the Params</span>
+        <span class="c1"># value of the params for the NSM or Safe Mode command events. If not provided</span>
+        <span class="c1"># then use 90 degrees.</span>
+
+        <span class="c1"># The functools.partial is a little odd in that it passes the class directly.</span>
+        <span class="c1"># Ideally we would use functools.partial of a @classmethod but that doesn&#39;t seem</span>
+        <span class="c1"># to work.</span>
+        <span class="k">for</span> <span class="n">cmd</span> <span class="ow">in</span> <span class="n">state_cmds</span><span class="p">:</span>
+            <span class="n">pitch</span> <span class="o">=</span> <span class="n">cmd</span><span class="p">[</span><span class="s2">&quot;params&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;pitch&quot;</span><span class="p">,</span> <span class="mi">90</span><span class="p">)</span>
+            <span class="n">transitions</span><span class="p">[</span><span class="n">cmd</span><span class="p">[</span><span class="s2">&quot;date&quot;</span><span class="p">]][</span><span class="s2">&quot;maneuver_transition&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span>
+                <span class="bp">cls</span><span class="o">.</span><span class="n">callback</span><span class="p">,</span> <span class="bp">cls</span><span class="p">,</span> <span class="n">pitch</span>
+            <span class="p">)</span>
 
 <div class="viewcode-block" id="NormalSunTransition.callback">
 <a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.NormalSunTransition.callback">[docs]</a>
-    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">callback</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">date</span><span class="p">,</span> <span class="n">transitions</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">idx</span><span class="p">):</span>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">callback</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">pitch</span><span class="p">,</span> <span class="n">date</span><span class="p">,</span> <span class="n">transitions</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">idx</span><span class="p">):</span>  <span class="c1"># noqa: PLW0211</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        This is a transition function callback.</span>
 
-<span class="sd">        It directly sets the state pcad_mode to NSUN and target quaternion to</span>
+<span class="sd">        It sets the state pcad_mode to ``cls.pcad_mode`` and target quaternion to</span>
 <span class="sd">        the expected sun pointed attitude.  It then calls the parent method to</span>
 <span class="sd">        add the actual maneuver.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># Transition to NSUN</span>
-        <span class="n">state</span><span class="p">[</span><span class="s2">&quot;pcad_mode&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;NSUN&quot;</span>
+        <span class="c1"># Transition to appropriate PCAD mode</span>
+        <span class="n">state</span><span class="p">[</span><span class="s2">&quot;pcad_mode&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">pcad_mode</span>
 
         <span class="c1"># Setup for maneuver to sun-pointed attitude from current att</span>
         <span class="n">curr_att</span> <span class="o">=</span> <span class="p">[</span><span class="n">state</span><span class="p">[</span><span class="n">qc</span><span class="p">]</span> <span class="k">for</span> <span class="n">qc</span> <span class="ow">in</span> <span class="n">QUAT_COMPS</span><span class="p">]</span>
@@ -1722,13 +1741,29 @@
         <span class="k">if</span> <span class="kc">None</span> <span class="ow">in</span> <span class="n">curr_att</span><span class="p">:</span>
             <span class="k">return</span>
 
-        <span class="n">targ_att</span> <span class="o">=</span> <span class="n">chandra_maneuver</span><span class="o">.</span><span class="n">NSM_attitude</span><span class="p">(</span><span class="n">curr_att</span><span class="p">,</span> <span class="n">date</span><span class="p">)</span>
+        <span class="n">targ_att</span> <span class="o">=</span> <span class="n">ska_sun</span><span class="o">.</span><span class="n">get_nsm_attitude</span><span class="p">(</span><span class="n">curr_att</span><span class="p">,</span> <span class="n">date</span><span class="p">,</span> <span class="n">pitch</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">qc</span><span class="p">,</span> <span class="n">targ_q</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">QUAT_COMPS</span><span class="p">,</span> <span class="n">targ_att</span><span class="o">.</span><span class="n">q</span><span class="p">):</span>
             <span class="n">state</span><span class="p">[</span><span class="s2">&quot;targ_&quot;</span> <span class="o">+</span> <span class="n">qc</span><span class="p">]</span> <span class="o">=</span> <span class="n">targ_q</span>
 
         <span class="c1"># Do the maneuver</span>
         <span class="bp">cls</span><span class="o">.</span><span class="n">add_manvr_transitions</span><span class="p">(</span><span class="n">date</span><span class="p">,</span> <span class="n">transitions</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">idx</span><span class="p">)</span></div>
 </div>
+
+
+
+<div class="viewcode-block" id="SafeSunTransition">
+<a class="viewcode-back" href="../../../api_states.html#kadi.commands.states.SafeSunTransition">[docs]</a>
+<span class="k">class</span> <span class="nc">SafeSunTransition</span><span class="p">(</span><span class="n">NormalSunTransition</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Similar to ``NormalSunTransition`` but in Safe Sun Mode with pcad_mode = STBY.</span>
+
+<span class="sd">    This uses ska_sun.get_nsm_attitude() to get the NSM attitude, potentially at</span>
+<span class="sd">    an offset pitch like 160 degrees.  It also changes ``pcad_mode`` to STBY.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">command_attributes</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;tlmsid&quot;</span><span class="p">:</span> <span class="s2">&quot;ACPCSFSU&quot;</span><span class="p">}</span>
+    <span class="n">pcad_mode</span> <span class="o">=</span> <span class="s2">&quot;STBY&quot;</span>
+    <span class="n">state_keys</span> <span class="o">=</span> <span class="n">PCAD_STATE_KEYS</span></div>
 
 
 

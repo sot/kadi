@@ -4,12 +4,12 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>kadi.commands.commands_v2 &#8212; kadi 7.11.0 documentation</title>
+    <title>kadi.commands.commands_v2 &#8212; kadi 7.13.0 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="../../../_static/bootstrap-astropy.css?v=f4f7060c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/plot_directive.css" />
     
-    <script src="../../../_static/documentation_options.js?v=999c8c5e"></script>
+    <script src="../../../_static/documentation_options.js?v=7a3618ec"></script>
     <script src="../../../_static/doctools.js?v=888ff710"></script>
     <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script type="text/javascript" src="../../../_static/sidebar.js"></script>
@@ -45,7 +45,7 @@
     <h3>Navigation</h3>
     <ul>
       <li>
-	<a href="../../../index.html">kadi 7.11.0 documentation</a>
+	<a href="../../../index.html">kadi 7.13.0 documentation</a>
 	 &#187;
       </li>
       <li><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
@@ -81,9 +81,9 @@
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">requests</span>
 <span class="kn">from</span> <span class="nn">astropy.table</span> <span class="kn">import</span> <span class="n">Table</span>
-<span class="kn">from</span> <span class="nn">chandra_maneuver</span> <span class="kn">import</span> <span class="n">NSM_attitude</span>
 <span class="kn">from</span> <span class="nn">cxotime</span> <span class="kn">import</span> <span class="n">CxoTime</span>
 <span class="kn">from</span> <span class="nn">parse_cm.paths</span> <span class="kn">import</span> <span class="n">load_dir_from_load_name</span>
+<span class="kn">from</span> <span class="nn">ska_sun</span> <span class="kn">import</span> <span class="n">get_nsm_attitude</span>
 <span class="kn">from</span> <span class="nn">testr.test_helper</span> <span class="kn">import</span> <span class="n">has_internet</span>
 
 <span class="kn">from</span> <span class="nn">kadi</span> <span class="kn">import</span> <span class="n">occweb</span><span class="p">,</span> <span class="n">paths</span>
@@ -718,7 +718,7 @@
         <span class="k">elif</span> <span class="n">tlmsid</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;AOMANUVR&quot;</span><span class="p">,</span> <span class="s2">&quot;AONSMSAF&quot;</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">tlmsid</span> <span class="o">==</span> <span class="s2">&quot;AONSMSAF&quot;</span><span class="p">:</span>
                 <span class="n">targ_att</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span>
-                    <span class="n">NSM_attitude</span><span class="p">(</span><span class="n">prev_att</span> <span class="ow">or</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">cmd</span><span class="p">[</span><span class="s2">&quot;date&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">q</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+                    <span class="n">get_nsm_attitude</span><span class="p">(</span><span class="n">prev_att</span> <span class="ow">or</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">cmd</span><span class="p">[</span><span class="s2">&quot;date&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">q</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
                 <span class="p">)</span>
                 <span class="n">npnt_enab</span> <span class="o">=</span> <span class="kc">False</span>
             <span class="k">if</span> <span class="n">targ_att</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -819,7 +819,7 @@
     <span class="n">q_manvr_3</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="o">-</span><span class="n">q2</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">q1</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">q2</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">q1</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">q2</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">*</span> <span class="n">q1</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="n">q2</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">*</span> <span class="o">-</span><span class="n">q1</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span>
 
     <span class="c1"># 4th component is cos(theta/2)</span>
-    <span class="k">if</span> <span class="n">q_manvr_3</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">q_manvr_3</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>  <span class="c1"># noqa PLR1730</span>
         <span class="n">q_manvr_3</span> <span class="o">=</span> <span class="mi">1</span>
     <span class="n">phimax</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">acos</span><span class="p">(</span><span class="n">q_manvr_3</span><span class="p">)</span>
 
@@ -833,7 +833,7 @@
             <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">MANVR_DELTA</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="mi">4</span> <span class="o">*</span> <span class="n">phimax</span> <span class="o">/</span> <span class="n">MANVR_ALPHAMAX</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span>
             <span class="o">-</span> <span class="mf">1.5</span> <span class="o">*</span> <span class="n">MANVR_DELTA</span>
         <span class="p">)</span>
-        <span class="k">if</span> <span class="n">eps</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">eps</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>  <span class="c1"># noqa PLR1730</span>
             <span class="n">eps</span> <span class="o">=</span> <span class="mi">0</span>
 
     <span class="n">tm</span> <span class="o">=</span> <span class="mi">4</span> <span class="o">*</span> <span class="n">MANVR_DELTA</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">eps</span> <span class="o">+</span> <span class="n">tau</span>
@@ -1042,7 +1042,9 @@
     <span class="k">if</span> <span class="n">req</span><span class="o">.</span><span class="n">status_code</span> <span class="o">!=</span> <span class="mi">200</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed to get cmd events sheet: </span><span class="si">{</span><span class="n">req</span><span class="o">.</span><span class="n">status_code</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
-    <span class="n">cmd_events</span> <span class="o">=</span> <span class="n">Table</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">req</span><span class="o">.</span><span class="n">text</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;csv&quot;</span><span class="p">)</span>
+    <span class="n">cmd_events</span> <span class="o">=</span> <span class="n">Table</span><span class="o">.</span><span class="n">read</span><span class="p">(</span>
+        <span class="n">req</span><span class="o">.</span><span class="n">text</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;csv&quot;</span><span class="p">,</span> <span class="n">fill_values</span><span class="o">=</span><span class="p">[],</span> <span class="n">converters</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;Params&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">}</span>
+    <span class="p">)</span>
 
     <span class="c1"># Filter table based on State column. In-work can be used to validate the new</span>
     <span class="c1"># event vs telemetry prior to make it operational.</span>
@@ -1076,7 +1078,9 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">cmd_events_path</span> <span class="o">=</span> <span class="n">paths</span><span class="o">.</span><span class="n">CMD_EVENTS_PATH</span><span class="p">(</span><span class="n">scenario</span><span class="p">)</span>
     <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Reading command events </span><span class="si">{</span><span class="n">cmd_events_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-    <span class="n">cmd_events</span> <span class="o">=</span> <span class="n">Table</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">cmd_events_path</span><span class="p">),</span> <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;csv&quot;</span><span class="p">,</span> <span class="n">fill_values</span><span class="o">=</span><span class="p">[])</span>
+    <span class="n">cmd_events</span> <span class="o">=</span> <span class="n">Table</span><span class="o">.</span><span class="n">read</span><span class="p">(</span>
+        <span class="nb">str</span><span class="p">(</span><span class="n">cmd_events_path</span><span class="p">),</span> <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;csv&quot;</span><span class="p">,</span> <span class="n">fill_values</span><span class="o">=</span><span class="p">[],</span> <span class="n">converters</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;Params&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">}</span>
+    <span class="p">)</span>
 
     <span class="c1"># If KADI_COMMANDS_DEFAULT_STOP is set, filter out events after that date.</span>
     <span class="n">cmd_events</span> <span class="o">=</span> <span class="n">filter_cmd_events_default_stop</span><span class="p">(</span><span class="n">cmd_events</span><span class="p">)</span>

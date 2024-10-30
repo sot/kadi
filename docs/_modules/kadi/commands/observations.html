@@ -4,12 +4,12 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>kadi.commands.observations &#8212; kadi 7.11.0 documentation</title>
+    <title>kadi.commands.observations &#8212; kadi 7.13.0 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="../../../_static/bootstrap-astropy.css?v=f4f7060c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/plot_directive.css" />
     
-    <script src="../../../_static/documentation_options.js?v=999c8c5e"></script>
+    <script src="../../../_static/documentation_options.js?v=7a3618ec"></script>
     <script src="../../../_static/doctools.js?v=888ff710"></script>
     <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script type="text/javascript" src="../../../_static/sidebar.js"></script>
@@ -45,7 +45,7 @@
     <h3>Navigation</h3>
     <ul>
       <li>
-	<a href="../../../index.html">kadi 7.11.0 documentation</a>
+	<a href="../../../index.html">kadi 7.13.0 documentation</a>
 	 &#187;
       </li>
       <li><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
@@ -214,37 +214,17 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">from</span> <span class="nn">kadi.config</span> <span class="kn">import</span> <span class="n">conf</span>
 
-    <span class="n">date</span> <span class="o">=</span> <span class="n">aca</span><span class="p">[</span><span class="s2">&quot;meta&quot;</span><span class="p">][</span><span class="s2">&quot;date&quot;</span><span class="p">]</span>
-    <span class="k">if</span> <span class="n">date</span> <span class="o">&lt;</span> <span class="n">conf</span><span class="o">.</span><span class="n">date_start_agasc1p8_earliest</span><span class="p">:</span>
-        <span class="c1"># Always 1p7 before 2024-July-21 (before JUL2224 loads)</span>
-        <span class="n">versions</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;1p7&quot;</span><span class="p">]</span>
-    <span class="k">elif</span> <span class="n">date</span> <span class="o">&lt;</span> <span class="n">conf</span><span class="o">.</span><span class="n">date_start_agasc1p8_latest</span><span class="p">:</span>
-        <span class="c1"># Could be 1p8 or 1p7 within 30 days later (uncertainty in promotion date)</span>
-        <span class="n">versions</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;1p8&quot;</span><span class="p">,</span> <span class="s2">&quot;1p7&quot;</span><span class="p">]</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="c1"># Always 1p8 after 30 days after JUL2224</span>
-        <span class="n">versions</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;1p8&quot;</span><span class="p">]</span>
+    <span class="n">version</span> <span class="o">=</span> <span class="s2">&quot;1p7&quot;</span> <span class="k">if</span> <span class="n">aca</span><span class="p">[</span><span class="s2">&quot;meta&quot;</span><span class="p">][</span><span class="s2">&quot;date&quot;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">conf</span><span class="o">.</span><span class="n">date_start_agasc1p8</span> <span class="k">else</span> <span class="s2">&quot;1p8&quot;</span>
 
-    <span class="c1"># Try allowed versions and stop on first success. If no success then issue warning.</span>
+    <span class="c1"># Try the AGASC version for that date. If no success then issue warning.</span>
     <span class="c1"># Be aware that _set_star_ids works in place so the try/except is not atomic so the</span>
     <span class="c1"># ``aca`` dict can be partially updated. This is not expected to be an issue in</span>
     <span class="c1"># practice, and a warning is issue in any case.</span>
-    <span class="n">err_star_id</span> <span class="o">=</span> <span class="kc">None</span>
-    <span class="k">for</span> <span class="n">version</span> <span class="ow">in</span> <span class="n">versions</span><span class="p">:</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="n">agasc_file</span> <span class="o">=</span> <span class="n">agasc</span><span class="o">.</span><span class="n">get_agasc_filename</span><span class="p">(</span><span class="n">version</span><span class="o">=</span><span class="n">version</span><span class="p">)</span>
-        <span class="k">except</span> <span class="ne">FileNotFoundError</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;AGASC </span><span class="si">{</span><span class="n">version</span><span class="si">}</span><span class="s2"> file not found&quot;</span><span class="p">)</span>
-            <span class="k">continue</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="n">_set_star_ids</span><span class="p">(</span><span class="n">aca</span><span class="p">,</span> <span class="n">agasc_file</span><span class="p">)</span>
-        <span class="k">except</span> <span class="n">StarIdentificationFailed</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
-            <span class="n">err_star_id</span> <span class="o">=</span> <span class="n">err</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">break</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="c1"># All versions failed, issue warning</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">err_star_id</span><span class="p">))</span>
+    <span class="n">agasc_file</span> <span class="o">=</span> <span class="n">agasc</span><span class="o">.</span><span class="n">get_agasc_filename</span><span class="p">(</span><span class="n">version</span><span class="o">=</span><span class="n">version</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">_set_star_ids</span><span class="p">(</span><span class="n">aca</span><span class="p">,</span> <span class="n">agasc_file</span><span class="p">)</span>
+    <span class="k">except</span> <span class="n">StarIdentificationFailed</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">err</span><span class="p">))</span>
 
 
 <span class="k">def</span> <span class="nf">_set_star_ids</span><span class="p">(</span><span class="n">aca</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">agasc_file</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
