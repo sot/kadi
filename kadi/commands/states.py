@@ -657,6 +657,7 @@ class Hrc15vOn_SCS134_Transition(FixedTransition):
     state_keys = ["hrc_15v"]
     transition_key = "hrc_15v"
     transition_val = "ON"
+    default_value = "ON"
 
 
 class Hrc15vOff_Transition(FixedTransition):
@@ -675,6 +676,7 @@ class Hrc24vOn_Transition(FixedTransition):
     state_keys = ["hrc_24v"]
     transition_key = "hrc_24v"
     transition_val = "ON"
+    default_value = "ON"
 
 
 class Hrc24vOff_Transition(FixedTransition):
@@ -704,6 +706,7 @@ class HrcIOff_Transition(FixedTransition):
     state_keys = ["hrc_i"]
     transition_key = "hrc_i"
     transition_val = "OFF"
+    default_value = "OFF"
 
 
 class HrcSOn_Transition(FixedTransition):
@@ -724,6 +727,7 @@ class HrcSOff_Transition(FixedTransition):
     state_keys = ["hrc_s"]
     transition_key = "hrc_s"
     transition_val = "OFF"
+    default_value = "OFF"
 
 
 ###################################################################
