@@ -15,7 +15,7 @@ def fix_ylim(ax, min_ylim):
         ax.set_ylim(y0, y1)
 
 
-def tlm_event(evt, figsize=None, fig=None):
+def tlm_event(evt, figsize=None, fig=None):  # noqa: ARG001
     """
     Generic plot for a telemetry event
     """

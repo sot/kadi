@@ -82,11 +82,13 @@ def _get_start_stop_vals(tstart, tstop, msidset, msids):
     return out
 
 
-def _get_msid_changes(msids, sortmsids={}):
+def _get_msid_changes(msids, sortmsids=None):
     """
     For the list of fetch MSID objects, return a sorted structured array
     of each time any MSID value changes.
     """
+    if sortmsids is None:
+        sortmsids = {}
     changes = []
     for msid in msids:
         i_changes = np.flatnonzero(msid.vals[1:] != msid.vals[:-1])
@@ -169,7 +171,7 @@ def fuzz_states(states, t_fuzz):
                 state0["tstop"] = state1["tstop"]
                 state0["datestop"] = state1["datestop"]
                 state0["duration"] = state0["tstop"] - state0["tstart"]
-                states = table.vstack([states[: i + 1], states[i + 2 :]])  # noqa
+                states = table.vstack([states[: i + 1], states[i + 2 :]])
                 break
         else:
             done = True
@@ -2474,7 +2476,7 @@ class Orbit(BaseEvent):
 
         datestart = DateTime(start).date
         datestop = DateTime(stop).date
-        years = sorted(set(x[:4] for x in (datestart, datestop)))
+        years = sorted({x[:4] for x in (datestart, datestop)})
         file_dates = []
         for year in years:
             file_dates.extend(orbit_funcs.get_tlr_files(year))
@@ -2608,7 +2610,7 @@ class AsciiTableEvent(BaseEvent):
         filename = Path(cls.intervals_file)
         if not filename.absolute():
             filename = Path(DATA_DIR(), filename)
-        intervals = table.Table.read(str(filename), **cls.table_read_kwargs)  # noqa
+        intervals = table.Table.read(str(filename), **cls.table_read_kwargs)
 
         # Custom in-place processing of raw intervals
         cls.process_intervals(intervals)

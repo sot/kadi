@@ -435,18 +435,18 @@ def test_get_cmds_v2_recent_only(stop_date_2020_12_03):  # noqa: ARG001
     assert np.all(cmds["idx"] == -1)
     # fmt: off
     assert cmds[:5].pformat_like_backstop() == [
-        "2020:336:00:08:38.610 | COMMAND_HW       | CNOOP      | NOV3020A | hex=7E00000, msid=CNOOPLR, scs=128",  # noqa
-        "2020:336:00:08:39.635 | COMMAND_HW       | CNOOP      | NOV3020A | hex=7E00000, msid=CNOOPLR, scs=128",  # noqa
-        "2020:336:00:12:55.214 | ACISPKT          | AA00000000 | NOV3020A | cmds=3, words=3, scs=131",  # noqa
-        "2020:336:00:12:55.214 | ORBPOINT         | None       | NOV3020A | event_type=XEF1000, scs=0",  # noqa
-        "2020:336:00:12:59.214 | ACISPKT          | AA00000000 | NOV3020A | cmds=3, words=3, scs=131",  # noqa
+        "2020:336:00:08:38.610 | COMMAND_HW       | CNOOP      | NOV3020A | hex=7E00000, msid=CNOOPLR, scs=128",
+        "2020:336:00:08:39.635 | COMMAND_HW       | CNOOP      | NOV3020A | hex=7E00000, msid=CNOOPLR, scs=128",
+        "2020:336:00:12:55.214 | ACISPKT          | AA00000000 | NOV3020A | cmds=3, words=3, scs=131",
+        "2020:336:00:12:55.214 | ORBPOINT         | None       | NOV3020A | event_type=XEF1000, scs=0",
+        "2020:336:00:12:59.214 | ACISPKT          | AA00000000 | NOV3020A | cmds=3, words=3, scs=131",
     ]
     assert cmds[-5:].pformat_like_backstop() == [
-        "2020:342:03:15:02.313 | COMMAND_SW       | OFMTSNRM   | NOV3020A | hex=8010A00, msid=OFMTSNRM, scs=130",  # noqa
-        "2020:342:03:15:02.313 | COMMAND_SW       | COSCSEND   | NOV3020A | hex=C800000, msid=OBC_END_SCS, scs=130",  # noqa
-        "2020:342:06:04:34.287 | ACISPKT          | AA00000000 | NOV3020A | cmds=3, words=3, scs=133",  # noqa
-        "2020:342:06:04:34.287 | COMMAND_SW       | COSCSEND   | NOV3020A | hex=C800000, msid=OBC_END_SCS, scs=133",  # noqa
-        "2020:342:06:04:34.287 | LOAD_EVENT       | None       | NOV3020A | event_type=SCHEDULED_STOP_TIME, scs=0",  # noqa
+        "2020:342:03:15:02.313 | COMMAND_SW       | OFMTSNRM   | NOV3020A | hex=8010A00, msid=OFMTSNRM, scs=130",
+        "2020:342:03:15:02.313 | COMMAND_SW       | COSCSEND   | NOV3020A | hex=C800000, msid=OBC_END_SCS, scs=130",
+        "2020:342:06:04:34.287 | ACISPKT          | AA00000000 | NOV3020A | cmds=3, words=3, scs=133",
+        "2020:342:06:04:34.287 | COMMAND_SW       | COSCSEND   | NOV3020A | hex=C800000, msid=OBC_END_SCS, scs=133",
+        "2020:342:06:04:34.287 | LOAD_EVENT       | None       | NOV3020A | event_type=SCHEDULED_STOP_TIME, scs=0",
     ]
     # fmt: on
     # Same for no stop date
@@ -676,7 +676,7 @@ def test_command_set_bsh():
 2000:001:00:00:01.025 | SIMTRANS         | None       | CMD_EVT  | event=Bright_star_hold, event_date=2000:001:00:00:00, pos=-99616, scs=0
 2000:001:00:01:06.685 | ACISPKT          | AA00000000 | CMD_EVT  | event=Bright_star_hold, event_date=2000:001:00:00:00, scs=0
 2000:001:00:01:07.710 | ACISPKT          | AA00000000 | CMD_EVT  | event=Bright_star_hold, event_date=2000:001:00:00:00, scs=0
-2000:001:00:01:17.960 | ACISPKT          | WSPOW00000 | CMD_EVT  | event=Bright_star_hold, event_date=2000:001:00:00:00, scs=0"""  # noqa
+2000:001:00:01:17.960 | ACISPKT          | WSPOW00000 | CMD_EVT  | event=Bright_star_hold, event_date=2000:001:00:00:00, scs=0"""
 
     assert cmds.pformat_like_backstop(max_params_width=None) == exp.splitlines()
     commands.clear_caches()
@@ -699,7 +699,7 @@ def test_command_set_safe_mode():
 2000:001:00:01:06.685 | ACISPKT          | AA00000000 | CMD_EVT  | event=Safe_mode, event_date=2000:001:00:00:00, scs=0
 2000:001:00:01:07.710 | ACISPKT          | AA00000000 | CMD_EVT  | event=Safe_mode, event_date=2000:001:00:00:00, scs=0
 2000:001:00:01:17.960 | ACISPKT          | WSPOW00000 | CMD_EVT  | event=Safe_mode, event_date=2000:001:00:00:00, scs=0
-2000:001:00:01:17.960 | COMMAND_SW       | AODSDITH   | CMD_EVT  | event=Safe_mode, event_date=2000:001:00:00:00, scs=0"""  # noqa
+2000:001:00:01:17.960 | COMMAND_SW       | AODSDITH   | CMD_EVT  | event=Safe_mode, event_date=2000:001:00:00:00, scs=0"""
     assert cmds.pformat_like_backstop(max_params_width=None) == exp.splitlines()
     commands.clear_caches()
 
@@ -1072,16 +1072,16 @@ cmd_events_all = Table.read(
 )
 cmd_events_all_exps = [
     [
-        "2020:001:00:00:00.000 | LOAD_EVENT       | None       | CMD_EVT  | event=Observing_not_run, event_date=2020:001:00:00:00, event_type=OBSERVING_NOT_RUN, load=FEB1422A, scs=0"  # noqa
+        "2020:001:00:00:00.000 | LOAD_EVENT       | None       | CMD_EVT  | event=Observing_not_run, event_date=2020:001:00:00:00, event_type=OBSERVING_NOT_RUN, load=FEB1422A, scs=0"
     ],
     [
-        "2020:001:00:00:00.000 | LOAD_EVENT       | None       | CMD_EVT  | event=Load_not_run, event_date=2020:001:00:00:00, event_type=LOAD_NOT_RUN, load=OCT2521A, scs=0"  # noqa
+        "2020:001:00:00:00.000 | LOAD_EVENT       | None       | CMD_EVT  | event=Load_not_run, event_date=2020:001:00:00:00, event_type=LOAD_NOT_RUN, load=OCT2521A, scs=0"
     ],
     [
-        "2020:001:00:00:00.000 | ACISPKT          | AA00000000 | CMD_EVT  | event=Command, event_date=2020:001:00:00:00, cmds=3, words=3, scs=0"  # noqa
+        "2020:001:00:00:00.000 | ACISPKT          | AA00000000 | CMD_EVT  | event=Command, event_date=2020:001:00:00:00, cmds=3, words=3, scs=0"
     ],
     [
-        "2020:001:00:00:00.000 | NOT_RUN          | 4OHETGIN   | CMD_EVT  | event=Command_not_run, event_date=2020:001:00:00:00, hex=8050300, msid=4OHETGIN, __type__=COMMAND_SW, scs=0"  # noqa
+        "2020:001:00:00:00.000 | NOT_RUN          | 4OHETGIN   | CMD_EVT  | event=Command_not_run, event_date=2020:001:00:00:00, hex=8050300, msid=4OHETGIN, __type__=COMMAND_SW, scs=0"
     ],
     [
         "2020:001:00:00:00.000 | COMMAND_SW       | OORMPEN    | CMD_EVT  | event=RTS,"
@@ -1122,7 +1122,7 @@ cmd_events_all_exps = [
         " event_date=2020:001:00:00:00, scs=135",
     ],
     [
-        "2020:001:00:00:00.000 | MP_OBSID         | COAOSQID   | CMD_EVT  | event=Obsid, event_date=2020:001:00:00:00, id=65527, scs=0"  # noqa
+        "2020:001:00:00:00.000 | MP_OBSID         | COAOSQID   | CMD_EVT  | event=Obsid, event_date=2020:001:00:00:00, id=65527, scs=0"
     ],
     [
         "2020:001:00:00:00.000 | COMMAND_SW       | AONMMODE   | CMD_EVT  |"
@@ -1248,9 +1248,9 @@ cmd_events_all_exps = [
         "2020:001:00:00:00.000 | COMMAND_SW       | OORMPDS    | CMD_EVT  |"
         " event=Bright_star_hold, event_date=2020:001:00:00:00, scs=0",
         "2020:001:00:00:01.025 | COMMAND_HW       | AFIDP      | CMD_EVT  |"
-        " event=Bright_star_hold, event_date=2020:001:00:00:00, msid=AFLCRSET, scs=0",  # noqa
+        " event=Bright_star_hold, event_date=2020:001:00:00:00, msid=AFLCRSET, scs=0",
         "2020:001:00:00:01.025 | SIMTRANS         | None       | CMD_EVT  |"
-        " event=Bright_star_hold, event_date=2020:001:00:00:00, pos=-99616, scs=0",  # noqa
+        " event=Bright_star_hold, event_date=2020:001:00:00:00, pos=-99616, scs=0",
         "2020:001:00:01:06.685 | ACISPKT          | AA00000000 | CMD_EVT  |"
         " event=Bright_star_hold, event_date=2020:001:00:00:00, scs=0",
         "2020:001:00:01:07.710 | ACISPKT          | AA00000000 | CMD_EVT  |"
@@ -1259,7 +1259,7 @@ cmd_events_all_exps = [
         " event=Bright_star_hold, event_date=2020:001:00:00:00, scs=0",
     ],
     [
-        "2020:001:00:00:00.000 | COMMAND_SW       | AOENDITH   | CMD_EVT  | event=Dither, event_date=2020:001:00:00:00, scs=0"  # noqa
+        "2020:001:00:00:00.000 | COMMAND_SW       | AOENDITH   | CMD_EVT  | event=Dither, event_date=2020:001:00:00:00, scs=0"
     ],
 ]
 
@@ -1384,7 +1384,7 @@ def test_scenario_with_rts(monkeypatch, fast_sun_position_method):
 2021:298:01:57:00.000 | ACISPKT          | AA00000000 | OCT2521B | cmds=3, words=3, scs=131
 2021:298:01:57:03.000 | ACISPKT          | AA00000000 | OCT2521B | cmds=3, words=3, scs=131
 2021:298:01:57:33.000 | COMMAND_SW       | CODISASX   | OCT2521B | msid=CODISASX, codisas1=135 , scs=131
-2021:298:01:57:34.000 | COMMAND_SW       | COCLRSX    | OCT2521B | msid=COCLRSX, coclrs1=135 , scs=131"""  # noqa: E501
+2021:298:01:57:34.000 | COMMAND_SW       | COCLRSX    | OCT2521B | msid=COCLRSX, coclrs1=135 , scs=131"""
 
     out = "\n".join(cmds.pformat_like_backstop(max_params_width=60))
     assert out == exp
@@ -1641,7 +1641,7 @@ def test_command_not_run(case):
 2023:351:13:30:33.849 | 4 0 | COMMAND_SW | TLMSID= COACTSX, HEX= 8402600, MSID= COACTSX, COACTS1=38 , COACTS2=0 , SCS= 128, STEP= 691
 2023:351:13:30:55.373 | 5 0 | COMMAND_HW | TLMSID= 4MC5AEN, HEX= 4800012, MSID= 4MC5AEN, SCS= 131, STEP= 892
 2023:351:19:38:41.550 | 6 0 | SIMTRANS   | POS= 92904, SCS= 131, STEP= 1191
-    """  # noqa
+    """
     cmds = commands.read_backstop(backstop_text.strip().splitlines())
     cmds["source"] = "DEC1123A"
     cmds_exp = cmds.copy()

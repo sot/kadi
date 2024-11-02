@@ -2477,9 +2477,13 @@ def get_continuity(
                 # that were beyond the stop time and did not get processed.
                 continuity_transitions.extend(states.meta["continuity_transitions"])
 
-            colnames = set(states.colnames) - set(
-                ["datestart", "datestop", "tstart", "tstop", "trans_keys"]
-            )
+            colnames = set(states.colnames) - {
+                "datestart",
+                "datestop",
+                "tstart",
+                "tstop",
+                "trans_keys",
+            }
             for colname in colnames:
                 if states[colname][-1] is not None:
                     # Reduce states to only the desired state_key

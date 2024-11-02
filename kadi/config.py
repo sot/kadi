@@ -5,7 +5,7 @@ Configuration for kadi.
 
 See https://docs.astropy.org/en/stable/config/index.html#customizing-config-location-in-affiliated-packages
 and https://github.com/astropy/astropy/issues/12960.
-"""  # noqa
+"""
 
 from astropy import config
 from astropy.config import ConfigNamespace

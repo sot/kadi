@@ -1,6 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-"""\
-Access and manipulate events related to the Chandra X-ray Observatory
+"""Access and manipulate events related to the Chandra X-ray Observatory
 
 Available events are:
 

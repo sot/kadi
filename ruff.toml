@@ -1,64 +1,43 @@
-# Copied originally from pandas
-target-version = "py310"
-
-# fix = true
-lint.unfixable = []
-
-lint.select = [
-  "I", # isort
-  "F", # pyflakes
-  "E", "W", # pycodestyle
-  "YTT", # flake8-2020
-  "B", # flake8-bugbear
-  "Q", # flake8-quotes
-  "T10", # flake8-debugger
-  "INT", # flake8-gettext
-  "PLC", "PLE", "PLR", "PLW", # pylint
-  "PIE", # misc lints
-  "PYI", # flake8-pyi
-  "TID", # tidy imports
-  "ISC", # implicit string concatenation
-  "TCH", # type-checking imports
-  "C4", # comprehensions
-  "PGH" # pygrep-hooks
-]
-
-lint.ignore = [
-  "ISC001", # Disable this for compatibility with ruff format
-  "B028", # No explicit `stacklevel` keyword argument found
-  "B905", # `zip()` without an explicit `strict=` parameter
-  "E402", # module level import not at top of file
-  "E731", # do not assign a lambda expression, use a def
-  "PLC1901", # compare-to-empty-string
-  "PLR0911", # Too many returns
-  "PLR0912", # Too many branches
-  "PLR0913", # Too many arguments to function call
-  "PLR2004", # Magic number
-  "PYI021", # Docstrings should not be included in stubs
-  "PLR0915", # Too many statements
-  "PLW0603", # Global statements are discouraged
-  "PLW2901", # Redefined loop name
-]
+extend = "ruff-base.toml"
 
 # TODO : fix these and stop ignoring
 lint.extend-ignore = [
-  "B006", # Do not use mutable data structures for argument defaults
-  "C401", # Unnecessary generator (rewrite as a `set` comprehension)
-  "C402", # Unnecessary generator (rewrite as a dict comprehension)
-  "C405", # Unnecessary `list` literal (rewrite as a `set` literal)
+  "B905", # `zip()` without an explicit `strict=` parameter
+  "PLR0915", # Too many statements
+  "PLR0912", # Too many branches
+  "PLW2901", # Redefined loop name
   "C408", # Unnecessary `dict` call (rewrite as a literal)
-  "C416", # Unnecessary `dict` comprehension (rewrite using `dict()`)
-  "G010", # warn is deprecated in favor of warning
-  "PGH004", # Use specific rule codes when using `noqa`
-  "PYI056", # Calling `.append()` on `__all__` may not be supported by all type checkers
-  "B024", # Abstract base class, but it has no abstract methods
 ]
 
 extend-exclude = [
   "docs",
   "utils",
-  "validate",
+
+  # Older notebooks in git repo
   "kadi_demo.ipynb",
+  "validate/compare-commands-acis-cti.ipynb",
+  "validate/compare-commands-v1-v2.ipynb",
+  "validate/play-obs-stop-issue.ipynb",
+  "validate/pr304-func-test.ipynb",
+  "validate/pr305-func-test.ipynb",
+  "validate/validate-cmd-interrupt-refactor.ipynb",
+  "validate/validate-cmds-v7.0.ipynb",
+  "validate/validate-get-starcats.ipynb",
+  "validate/gratings/plot_grating.py",
+  "validate/performance_states.py",
+  "validate/pr319/run_updates.py",
+  "validate/gratings/compare_grating_moves.py",
+
+  # Notebooks in @taldcroft's git directory but not versioned
+  "notebooks/commands-archive-v2.0-play.ipynb",
+  "notebooks/commands-v2-test.ipynb",
+  "notebooks/compare-agasc-kadi-starcats.ipynb",
+  "notebooks/hrc-states-play.ipynb",
+  "notebooks/play-spm-eclipse-trouble.ipynb",
+  "notebooks/play-spm-fix.ipynb",
+  "notebooks/profile-command-states.ipynb",
+  "notebooks/sun-position-errors.ipynb",
+  "notebooks/validate-states-play.ipynb",
 ]
 
 [lint.pycodestyle]
@@ -70,3 +49,5 @@ max-line-length = 100 # E501 reports lines that exceed the length of 100.
 "**/tests/**" = ["D", "E501"]
 "states.py" = ["N801", "ARG003"]
 "**/*.ipynb" = ["B018"]
+"manual_test_cmds.py" = ["S101"]  # assert OK
+"kadi/events/*.py" = ["D205"]  # Docstring starts with a single line
