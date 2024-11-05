@@ -1499,7 +1499,9 @@ def test_continuity_with_transitions_SPM():  # noqa: N802
     cont = states.get_continuity(start, state_keys=["sun_pos_mon"])
     assert cont == {
         "__dates__": {"sun_pos_mon": "2017:087:07:44:55.838"},
-        "__transitions__": [{"date": "2017:087:08:21:35.838", "sun_pos_mon": "ENAB"}],
+        "__transitions__": [
+            states.Transition("2017:087:08:21:35.838", {"sun_pos_mon": "ENAB"})
+        ],
         "sun_pos_mon": "DISA",
     }
 
