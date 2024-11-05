@@ -626,6 +626,7 @@ class ValidatePcadMode(ValidateStateCode):
     state_name = "pcad_mode"
     msids = ["aopcadmd"]
     plot_attrs = PlotAttrs(title="PCAD mode", ylabel="PCAD mode")
+    min_violation_duration = 180  # seconds
 
     def add_exclude_intervals(self):
         super().add_exclude_intervals()
