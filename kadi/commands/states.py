@@ -366,7 +366,7 @@ class FixedTransition(BaseTransition):
             attrs = [attrs]
 
         for cmd in state_cmds:
-            transitions_list.append(Transition(cmd["date"], zip(attrs, vals)))
+            transitions_list.append(Transition(cmd["date"], zip(attrs, vals)))  # noqa: PERF401
 
 
 class ParamTransition(BaseTransition):
@@ -878,7 +878,7 @@ class SPMEclipseEnableTransition(BaseTransition):
         state_cmds = cls.get_state_changing_commands(cmds)
 
         for cmd in state_cmds:
-            transitions_list.append(
+            transitions_list.append(  # noqa: PERF401
                 Transition(cmd["date"], sun_pos_mon=TransitionCallback(cls.callback))
             )
 
@@ -933,7 +933,7 @@ class EclipseEnableSPM(BaseTransition):
         state_cmds = cls.get_state_changing_commands(cmds)
 
         for cmd in state_cmds:
-            transitions_list.append(
+            transitions_list.append(  # noqa: PERF401
                 Transition(
                     cmd["date"], eclipse_enable_spm=TransitionCallback(cls.callback)
                 )
@@ -990,7 +990,7 @@ class BatteryConnect(BaseTransition):
         state_cmds = cls.get_state_changing_commands(cmds)
 
         for cmd in state_cmds:
-            transitions_list.append(
+            transitions_list.append(  # noqa: PERF401
                 Transition(cmd["date"], battery_connect=cmd["date"])
             )
 
@@ -1171,7 +1171,7 @@ class SunVectorTransition(BaseTransition):
         # Now with the dates, finally make all the transition dicts which will
         # call `update_pitch_state` during state processing.
         for date in dates:
-            transitions_list.append(
+            transitions_list.append(  # noqa: PERF401
                 Transition(
                     date,
                     update_sun_vector=TransitionCallback(cls.update_sun_vector_state),
@@ -1365,7 +1365,7 @@ class ManeuverTransition(BaseTransition):
         state_cmds = cls.get_state_changing_commands(cmds)
 
         for cmd in state_cmds:
-            transitions_list.append(
+            transitions_list.append(  # noqa: PERF401
                 Transition(
                     cmd["date"], maneuver_transition=TransitionCallback(cls.callback)
                 )
@@ -1561,7 +1561,7 @@ class ManeuverSunPitchTransition(ManeuverTransition):
         state_cmds = cls.get_state_changing_commands(cmds)
 
         for cmd in state_cmds:
-            transitions_list.append(
+            transitions_list.append(  # noqa: PERF401
                 Transition(
                     cmd["date"],
                     maneuver_transition=TransitionCallback(
@@ -1611,7 +1611,7 @@ class ManeuverSunRaslTransition(ManeuverTransition):
         state_cmds = cls.get_state_changing_commands(cmds)
 
         for cmd in state_cmds:
-            transitions_list.append(
+            transitions_list.append(  # noqa: PERF401
                 Transition(
                     cmd["date"],
                     maneuver_transition=TransitionCallback(
