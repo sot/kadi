@@ -1,7 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
-Provide an interface for getting pages from the OCCweb.  For good measure leave
-this off of github.
+Provide an interface for getting pages from the OCCweb.
 """
 
 import hashlib
@@ -170,6 +169,7 @@ def get_ifot(
 
 def ftp_put_to_lucky(ftp_dirname, local_files, user=None, logger=None):
     """Put the ``local_files`` onto lucky in /``user``/``ftp_dirname``.
+
     First put it at the top level, then when complete move it into a subdir
     eng_archive.  This lets the OCC side just watch for fully-uploaded files in
     that directory.
@@ -209,10 +209,12 @@ def ftp_put_to_lucky(ftp_dirname, local_files, user=None, logger=None):
 
 def ftp_get_from_lucky(ftp_dirname, local_files, user=None, logger=None):
     """
-    Get files from lucky.  This looks in remote ``ftp_dirname`` for files that
-    have basenames matching those of ``local_files``.  The remote files
-    are copied to the corresponding local_files names.  This is the converse
-    of ftp_put_to_lucky and thus requires unique basenames for all files.
+    Get files from lucky.
+
+    This looks in remote ``ftp_dirname`` for files that have basenames matching those of
+    ``local_files``.  The remote files are copied to the corresponding local_files
+    names.  This is the converse of ftp_put_to_lucky and thus requires unique basenames
+    for all files.
     """
     import ska_file
     import ska_ftp
@@ -362,7 +364,9 @@ def get_occweb_dir(path, timeout=30, cache=False, user=None, password=None):
         astropy Table
         Table of directory entries
     """
-    html = get_occweb_page(path, timeout=timeout, cache=cache)
+    html = get_occweb_page(
+        path, timeout=timeout, cache=cache, user=user, password=password
+    )
     out = Table.read(html, format="ascii.html", guess=False)
     del out["col0"]
     del out["Description"]

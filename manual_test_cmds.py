@@ -15,7 +15,8 @@ from kadi import update_cmds
 
 
 def test_ingest():
-    """
+    """Test ingest one day at a time.
+
     Test that doing the ingest a day at a time (which is the normal operational
     scenario) gives the same result as a one-time bulk ingest.  The latter is
     "easier" because there are no intermediate deletes and re-inserts.

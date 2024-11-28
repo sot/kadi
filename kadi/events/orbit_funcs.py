@@ -325,14 +325,14 @@ def process_orbit_points(orbit_points):
     # Add a new orbit point for the ascending node EXIT which is the end of each orbit.
     # This simplifies bookkeeping later.
     for op in orbit_points[orbit_points["name"] == "EASCNCR"]:
-        new_ops.append(
+        new_ops.append(  # noqa: PERF401
             (op["date"], "XASCNCR", op["orbit_num"] - 1, op["descr"] + " EXIT")
         )
 
     # Add corresponding XASCNCR for any new EASCNCR points
     for op in new_ops:
         if op[1] == "EASCNCR":
-            new_ops.append((op[0], "XASCNCR", op[2] - 1, op[3] + " EXIT"))
+            new_ops.append((op[0], "XASCNCR", op[2] - 1, op[3] + " EXIT"))  # noqa: PERF401
 
     logger.info("Adding {} new orbit points".format(len(new_ops)))
     new_ops = np.array(new_ops, dtype=ORBIT_POINTS_DTYPE)

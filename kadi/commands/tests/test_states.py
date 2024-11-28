@@ -615,7 +615,7 @@ def test_get_continuity_keys():
     """Test that output has only the desired state keys. Also test that one can
     provide a string instead of list of state keys"""
     continuity = states.get_continuity("2017:014:12:00:00", "clocking")
-    assert set(continuity) == set(["clocking", "__dates__"])
+    assert set(continuity) == {"clocking", "__dates__"}
 
 
 def test_get_continuity_fail():
@@ -681,10 +681,10 @@ def test_reduce_states_merge_identical(all_keys):
     assert np.all(dr["val1"] == [1, 0, 1, 1])
     assert np.all(dr["val2"] == [1, 1, 1, 0])
     assert str(dr["trans_keys"][0]) == "val1,val2"
-    assert dr["trans_keys"][0] == set(["val1", "val2"])
-    assert dr["trans_keys"][1] == set(["val1"])
-    assert dr["trans_keys"][2] == set(["val1"])
-    assert dr["trans_keys"][3] == set(["val2"])
+    assert dr["trans_keys"][0] == {"val1", "val2"}
+    assert dr["trans_keys"][1] == {"val1"}
+    assert dr["trans_keys"][2] == {"val1"}
+    assert dr["trans_keys"][3] == {"val2"}
 
 
 def cmd_states_fetch_states(*args, **kwargs):
@@ -734,9 +734,13 @@ def test_reduce_states_cmd_states(fast_sun_position_method):
         "2018:235:12:00:00", "2018:245:12:00:00", allow_identical=True
     )
 
-    state_keys = set(STATE0) - set(
-        ["datestart", "datestop", "trans_keys", "tstart", "tstop"]
-    )
+    state_keys = set(STATE0) - {
+        "datestart",
+        "datestop",
+        "trans_keys",
+        "tstart",
+        "tstop",
+    }
 
     # Default setting is reduce states with merge_identical=False, which is the same
     # as cmd_states.
@@ -745,7 +749,7 @@ def test_reduce_states_cmd_states(fast_sun_position_method):
 
     assert len(ksr) == len(cs)
 
-    assert_all_close_states(cs, ksr, set(state_keys) - set(["trans_keys", "si_mode"]))
+    assert_all_close_states(cs, ksr, set(state_keys) - {"trans_keys", "si_mode"})
 
     assert np.all(ksr["datestart"][1:] == cs["datestart"][1:])
     assert np.all(ksr["datestop"][:-1] == cs["datestop"][:-1])
@@ -1052,7 +1056,7 @@ def test_backstop_sun_pos_mon_lunar():
     2017:087:08:10:35.838 ORBPOINT    scs=0 step=0 timeline_id=426102503 event_type=LSPEXIT
 
     We expect SPM enable at the LSPEXIT time + 11 minutes = 2017:087:08:21:35.838
-    """  # noqa
+    """
     history = """
       datestart              datestop       sun_pos_mon
 2017:087:03:04:02.242 2017:087:07:21:40.189        DISA
@@ -1683,17 +1687,17 @@ def test_grating_motion_states():
     del sts["tstop"]
     # fmt: off
     exp = [
-        "      datestart              datestop          letg      hetg   grating  trans_keys ",  # noqa
-        "--------------------- --------------------- --------- --------- ------- ------------",  # noqa
-        "2021:227:12:00:00.000 2021:227:23:06:03.276      RETR      RETR    NONE             ",  # noqa
-        "2021:227:23:06:03.276 2021:227:23:08:40.276      RETR INSR_MOVE    HETG grating,hetg",  # noqa
-        "2021:227:23:08:40.276 2021:228:08:15:00.722      RETR      INSR    HETG         hetg",  # noqa
-        "2021:228:08:15:00.722 2021:228:08:17:33.722      RETR RETR_MOVE    NONE grating,hetg",  # noqa
-        "2021:228:08:17:33.722 2021:229:17:41:45.525      RETR      RETR    NONE         hetg",  # noqa
-        "2021:229:17:41:45.525 2021:229:17:45:08.525 INSR_MOVE      RETR    LETG grating,letg",  # noqa
-        "2021:229:17:45:08.525 2021:230:00:37:56.002      INSR      RETR    LETG         letg",  # noqa
-        "2021:230:00:37:56.002 2021:230:00:41:19.002 RETR_MOVE      RETR    NONE grating,letg",  # noqa
-        "2021:230:00:41:19.002 2021:230:12:00:00.000      RETR      RETR    NONE         letg",  # noqa
+        "      datestart              datestop          letg      hetg   grating  trans_keys ",
+        "--------------------- --------------------- --------- --------- ------- ------------",
+        "2021:227:12:00:00.000 2021:227:23:06:03.276      RETR      RETR    NONE             ",
+        "2021:227:23:06:03.276 2021:227:23:08:40.276      RETR INSR_MOVE    HETG grating,hetg",
+        "2021:227:23:08:40.276 2021:228:08:15:00.722      RETR      INSR    HETG         hetg",
+        "2021:228:08:15:00.722 2021:228:08:17:33.722      RETR RETR_MOVE    NONE grating,hetg",
+        "2021:228:08:17:33.722 2021:229:17:41:45.525      RETR      RETR    NONE         hetg",
+        "2021:229:17:41:45.525 2021:229:17:45:08.525 INSR_MOVE      RETR    LETG grating,letg",
+        "2021:229:17:45:08.525 2021:230:00:37:56.002      INSR      RETR    LETG         letg",
+        "2021:230:00:37:56.002 2021:230:00:41:19.002 RETR_MOVE      RETR    NONE grating,letg",
+        "2021:230:00:41:19.002 2021:230:12:00:00.000      RETR      RETR    NONE         letg",
     ]
     # fmt: on
     assert sts.pformat_all() == exp
@@ -1745,7 +1749,7 @@ def test_hrc_states_with_scs_commanding():
 2023:039:23:12:15.958 |  3286720 0 | COMMAND_SW       | HEX= 8408600, MSID= COACTSX, COACTS1=134 , COACTS2=0 , SCS= 132, STEP= 705, TLMSID= COACTSX
 2023:040:04:55:45.483 |  3367148 0 | COMMAND_HW       | HEX= 6420000, MSID= 215PCAOF, SCS= 132, STEP= 1027, TLMSID= 215PCAOF
 2023:042:04:02:57.978 |  4029128 0 | COMMAND_SW       | HEX= 8408600, MSID= COACTSX, COACTS1=134 , COACTS2=0 , SCS= 133, STEP= 314, TLMSID= COACTSX
-2023:042:08:35:28.888 |  4092937 0 | COMMAND_HW       | HEX= 6420000, MSID= 215PCAOF, SCS= 133, STEP= 460, TLMSID= 215PCAOF"""  # noqa
+2023:042:08:35:28.888 |  4092937 0 | COMMAND_HW       | HEX= 6420000, MSID= 215PCAOF, SCS= 133, STEP= 460, TLMSID= 215PCAOF"""
     cmds = commands.read_backstop(backstop.splitlines())
     sts = states.get_states(
         cmds=cmds,

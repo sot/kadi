@@ -459,14 +459,17 @@ STARCAT_KEYS, STARCAT_TYPES = get_starcat_keys_types()
 
 
 def encode_starcat_params(params_dict):
-    assert set(params_dict.keys()) == set(STARCAT_KEYS)
+    if set(params_dict.keys()) != set(STARCAT_KEYS):
+        raise ValueError(
+            f"Star catalog keys must be {STARCAT_KEYS}, got {set(params_dict.keys())}"
+        )
     args = tuple(params_dict[key] for key in STARCAT_KEYS)
     return struct.pack(STARCAT_TYPES, *args)
 
 
 def decode_starcat_params(params_bytes):
     vals = struct.unpack(STARCAT_TYPES, params_bytes)
-    return {key: val for key, val in zip(STARCAT_KEYS, vals)}
+    return dict(zip(STARCAT_KEYS, vals))
 
 
 class CommandRow(Row):
@@ -510,7 +513,7 @@ class CommandRow(Row):
         return [self[key] for key in self.keys()]  # noqa: SIM118
 
     def items(self):
-        return [(key, value) for key, value in zip(self.keys(), self.values())]
+        return list(zip(self.keys(), self.values()))
 
     def __repr__(self):
         out = f"<Cmd {str(self)}>"
@@ -1059,7 +1062,7 @@ def get_par_idx_update_pars_dict(pars_dict, cmd, params=None, rev_pars_dict=None
     # Define a consistently ordered tuple that has all command parameter information
     if params is None:
         params = cmd["params"]
-    keys = set(params.keys()) - set(("SCS", "STEP", "TLMSID"))
+    keys = set(params.keys()) - {"SCS", "STEP", "TLMSID"}
 
     if cmd["tlmsid"] == "AOSTRCAT":
         pars_tup = encode_starcat_params(params) if params else ()

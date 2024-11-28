@@ -399,4 +399,4 @@ for model_name, model_class in event_models.items():
     query_instance = event_query_class(cls=model_class)
     query_instance.__doc__ = model_class.__doc__
     globals()[query_name] = query_instance
-    __all__.append(query_name)
+    __all__.append(query_name)  # noqa: PYI056

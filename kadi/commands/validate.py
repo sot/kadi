@@ -95,7 +95,7 @@ class PlotAttrs:
     max_gap_time: float = 300
 
 
-class Validate(ABC):
+class Validate(ABC):  # noqa: B024
     """Validate kadi command states against telemetry base class.
 
     Class attributes are as follows:
@@ -209,8 +209,9 @@ class Validate(ABC):
         return _exclude_intervals
 
     def add_exclude_intervals(self):
-        """Base method to exclude intervals, starting with intervals defined in the
-        Chandra Command Events Google Sheet.
+        """Base method to exclude intervals
+
+        Starts with intervals defined in the Chandra Command Events Google Sheet.
 
         This method gets called at the end of self.tlm.
 
@@ -278,8 +279,8 @@ class Validate(ABC):
         self.exclude_intervals.sort("start")
 
     def exclude_ofp_intervals_except(self, states_expected: List[str]):
-        """Exclude intervals where OFP (on-board flight program) is not in the expected
-        state.
+        """
+        Exclude intervals where OFP (on-board flight program) is not in expected state.
 
         This includes a padding of 30 minutes after SAFE mode and 5 minutes for non-NRML
         states other than SAFE like STUP, SYON, SYSF etc.
@@ -555,8 +556,7 @@ class ValidatePitchRollBase(ValidateSingleMsid):
         return bad
 
     def add_exclude_intervals(self):
-        """Exclude any intervals where online flight processing is not normal or safe
-        mode"""
+        """Exclude intervals where online flight processing is not normal or safe mode"""
         super().add_exclude_intervals()
         self.exclude_ofp_intervals_except(states_expected=["NRML", "SAFE"])
 
@@ -734,7 +734,7 @@ def get_overlap_mask(times: np.ndarray, intervals: Table):
 
 
 @functools.lru_cache(maxsize=1)
-def get_command_sheet_exclude_intervals(state_key: str = None) -> Table:
+def get_command_sheet_exclude_intervals() -> Table:
     url = EXCLUDE_INTERVALS_SHEET_URL.format(
         doc_id=kadi.commands.conf.cmd_events_flight_id,
         gid=kadi.commands.conf.cmd_events_exclude_intervals_gid,

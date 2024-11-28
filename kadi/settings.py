@@ -16,7 +16,7 @@ from os.path import dirname, join, realpath
 BASE_DIR = dirname(dirname(realpath(__file__)))
 
 # Data paths for kadi project
-from kadi.paths import DATA_DIR, EVENTS_DB_PATH  # noqa
+from kadi.paths import DATA_DIR, EVENTS_DB_PATH
 
 # Make sure there is an events database
 if not os.path.exists(EVENTS_DB_PATH()):

@@ -11,7 +11,7 @@ import pyyaks.logger
 from chandra_time import DateTime
 from ska_helpers.run_info import log_run_info
 
-from kadi import __version__  # noqa
+from kadi import __version__  # noqa: F401
 
 logger = None  # for pyflakes
 
@@ -56,8 +56,9 @@ def get_opt(args=None):
 
 def try4times(func, *arg, **kwarg):
     """
-    Work around problems with sqlite3 database getting locked out from writing,
-    presumably due to read activity.  Not completely understood.
+    Work around problems with sqlite3 database getting locked out from writing
+
+    This is presumably due to read activity.  Not completely understood.
 
     This function will try to run func(*arg, **kwarg) a total of 4 times with an
     increasing sequence of wait times between tries.  It catches only a database
@@ -234,7 +235,7 @@ def get_events_and_event_models(EventModel, cls_name, events_in_dates):
 
 
 def main():
-    global logger
+    global logger  # noqa: PLW0603  # TODO - remove this global, use ska_helpers logger
 
     opt = get_opt()
 

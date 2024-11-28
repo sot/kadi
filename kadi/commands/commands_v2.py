@@ -750,7 +750,7 @@ def manvr_duration(q1, q2):
     q_manvr_3 = abs(-q2[0] * q1[0] - q2[1] * q1[1] - q2[2] * q1[2] + q2[3] * -q1[3])
 
     # 4th component is cos(theta/2)
-    if q_manvr_3 > 1:  # noqa PLR1730
+    if q_manvr_3 > 1:  # noqa: PLR1730
         q_manvr_3 = 1
     phimax = 2 * math.acos(q_manvr_3)
 
@@ -764,7 +764,7 @@ def manvr_duration(q1, q2):
             np.sqrt(MANVR_DELTA**2 + 4 * phimax / MANVR_ALPHAMAX) / 2
             - 1.5 * MANVR_DELTA
         )
-        if eps < 0:  # noqa PLR1730
+        if eps < 0:  # noqa: PLR1730
             eps = 0
 
     tm = 4 * MANVR_DELTA + 2 * eps + tau

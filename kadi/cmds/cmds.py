@@ -70,13 +70,14 @@ rev_pars_dict = LazyVal(lambda: {v: k for k, v in pars_dict.items()})
 
 def filter(start=None, stop=None, **kwargs):
     """
-    Get commands with ``start`` <= date < ``stop``.  Additional ``key=val`` pairs
-    can be supplied to further filter the results.  Both ``key`` and ``val``
-    are case insensitive.  In addition to the any of the command parameters
-    such as TLMSID, MSID, SCS, STEP, or POS, the ``key`` can be:
+    Get commands with ``start`` <= date < ``stop``.
 
-    date : Exact date of command e.g. '2013:003:22:11:45.530'
-    type : Command type e.g. COMMAND_SW, COMMAND_HW, ACISPKT, SIMTRANS
+    Additional ``key=val`` pairs can be supplied to further filter the results.  Both
+    ``key`` and ``val`` are case insensitive.  In addition to the any of the command
+    parameters such as TLMSID, MSID, SCS, STEP, or POS, the ``key`` can be:
+
+    - date : Exact date of command e.g. '2013:003:22:11:45.530'
+    - type : Command type e.g. COMMAND_SW, COMMAND_HW, ACISPKT, SIMTRANS
 
     Examples::
 
@@ -107,13 +108,14 @@ def filter(start=None, stop=None, **kwargs):
 
 def _find(start=None, stop=None, **kwargs):
     """
-    Get commands ``start`` <= date < ``stop``.  Additional ``key=val`` pairs
-    can be supplied to further filter the results.  Both ``key`` and ``val``
-    are case insensitive.  In addition to the any of the command parameters
-    such as TLMSID, MSID, SCS, STEP, or POS, the ``key`` can be:
+    Get commands ``start`` <= date < ``stop``.
 
-    date : Exact date of command e.g. '2013:003:22:11:45.530'
-    type : Command type e.g. COMMAND_SW, COMMAND_HW, ACISPKT, SIMTRANS
+    Additional ``key=val`` pairs can be supplied to further filter the results.  Both
+    ``key`` and ``val`` are case insensitive.  In addition to the any of the command
+    parameters such as TLMSID, MSID, SCS, STEP, or POS, the ``key`` can be:
+
+    - date : Exact date of command e.g. '2013:003:22:11:45.530'
+    - type : Command type e.g. COMMAND_SW, COMMAND_HW, ACISPKT, SIMTRANS
 
     Examples::
 
@@ -215,12 +217,9 @@ class CmdList(object):
             if item in cmds.colnames:
                 return cmds[item]
 
-            out = []
-            for idx in cmds["idx"]:
-                # Find the parameters dict for this command from the reverse
-                # lookup table which maps index to the params tuple.
-                out.append(dict(rev_pars_dict[idx]).get(item))
-            out = np.array(out)
+            # Find the parameters dict for this command from the reverse lookup table
+            # which maps index to the params tuple.
+            out = np.array([dict(rev_pars_dict[idx]).get(item) for idx in cmds["idx"]])
 
         elif isinstance(item, int):
             out = Cmd(cmds[item])
