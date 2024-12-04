@@ -16,7 +16,7 @@ from kadi import __version__  # noqa: F401
 logger = None  # for pyflakes
 
 
-def get_opt(args=None):
+def get_opt_parser():
     parser = argparse.ArgumentParser(description="Update the events database")
     parser.add_argument(
         "--stop", default=DateTime().date, help="Processing stop date (default=NOW)"
@@ -50,8 +50,11 @@ def get_opt(args=None):
         "--data-root", default=".", help="Root data directory (default='.')"
     )
 
-    args = parser.parse_args(args)
-    return args
+    parser.add_argument(
+        "--maude", action="store_true", help="Use MAUDE data source for telemetry"
+    )
+
+    return parser
 
 
 def try4times(func, *arg, **kwarg):
@@ -234,10 +237,10 @@ def get_events_and_event_models(EventModel, cls_name, events_in_dates):
     return event_models, events
 
 
-def main():
+def main(args=None):
     global logger  # noqa: PLW0603  # TODO - remove this global, use ska_helpers logger
 
-    opt = get_opt()
+    opt = get_opt_parser().parse_args(args)
 
     logger = pyyaks.logger.get_logger(
         name="kadi_update_events", level=opt.log_level, format="%(asctime)s %(message)s"
