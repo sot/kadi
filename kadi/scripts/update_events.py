@@ -9,6 +9,7 @@ import time
 import numpy as np
 import pyyaks.logger
 from chandra_time import DateTime
+from cheta import fetch
 from ska_helpers.run_info import log_run_info
 
 from kadi import __version__  # noqa: F401
@@ -290,13 +291,16 @@ def main(args=None):
     # Update priority (higher priority value means earlier in processing)
     EventModels = sorted(EventModels, key=lambda x: x.update_priority, reverse=True)
 
+    cheta_data_source = "maude allow_subset=False" if opt.maude else "cxc"
+
     for EventModel in EventModels:
         try:
             if opt.delete_from_start and opt.start is not None:
                 delete_from_date(EventModel, opt.start)
 
             for date_stop in date_stops:
-                update(EventModel, date_stop)
+                with fetch.data_source(cheta_data_source):
+                    update(EventModel, date_stop)
         except Exception:
             # Something went wrong, but press on with processing other EventModels
             import traceback
