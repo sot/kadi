@@ -7,6 +7,7 @@ from pathlib import Path
 import cheta.fetch_eng as fetch
 import numpy as np
 import pyyaks.logger
+import ska_tdb
 from astropy import table
 from chandra_time import DateTime
 from cheta import utils
@@ -633,6 +634,29 @@ class TlmEvent(Event):
         except AttributeError:
             plot_func = plot.tlm_event
         plot_func(self, figsize, fig)
+
+    @classmethod
+    def get_sample_period_max(cls) -> float:
+        """
+        Get max telemetry sample period for the primary MSID in this event.
+
+        This is used to allow switching between CXC and MAUDE telemetry as the input.
+        CXC telemetry uses the time of first VCDU in the sample period, while MAUDE
+        telemetry uses the time of the minor frame where the telemetry is sampled.
+
+        This method returns the max sample period (32.8 sec / min sample rate) over the
+        available telmeetry formats.
+
+        Returns
+        -------
+        sample_period_max : float
+            Maximum sample period (secs)
+        """
+        # Start of event always corresponds to a transition in event_msids[0].
+        tdb_msid = ska_tdb.msids[cls.event_msids[0]]
+        sample_rate_min = np.min(tdb_msid.Tsmpl["SAMPLE_RATE"])  # samples / 128 mnf
+        sample_period_max = 128 / sample_rate_min * 0.25625  # sec
+        return sample_period_max
 
     @classmethod
     def get_extras(cls, event, event_msidset):
