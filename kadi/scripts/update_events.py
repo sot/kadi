@@ -115,7 +115,22 @@ def delete_from_date(EventModel, start, set_update_date=True):
     try4times(events.delete)
 
 
-def update(EventModel, date_stop):
+def update_event_model(EventModel, date_stop: str) -> None:
+    """Update the event model in the database with events up through date_stop.
+
+    For telemetry events, date_stop is the upper limit on possible events, but most
+    commonly it is limited by available telemetry.
+
+    For non-telemetry events, date_stop is a bit fuzzier since some (like DSNComm) can
+    go into the future.
+
+    Parameters
+    ----------
+    EventModel : class
+        Event model class to update (e.g. models.DsnComm)
+    date_stop : str
+        Stop date for event update
+    """
     import django.db
     from django.core.exceptions import ObjectDoesNotExist
 
@@ -124,7 +139,10 @@ def update(EventModel, date_stop):
     date_stop = DateTime(date_stop)
     cls_name = EventModel.__name__
 
+    # The Update model is used to keep track of last date_stop when the events were
+    # successfully updated.
     try:
+        # Last update for this event model
         update = models.Update.objects.get(name=cls_name)
     except ObjectDoesNotExist:
         logger.info("No previous update for {} found".format(cls_name))
@@ -132,6 +150,7 @@ def update(EventModel, date_stop):
         update = models.Update(name=cls_name, date=date_stop.date)
         date_start = date_stop - EventModel.lookback
     else:
+        # Duration between last update and current date_stop (usually now)
         duration = date_stop - DateTime(update.date)
         date_start = DateTime(update.date) - EventModel.lookback
         update.date = date_stop.date
@@ -139,15 +158,14 @@ def update(EventModel, date_stop):
         # Some events like LoadSegment or DsnComm might change in the database after
         # having been ingested.  Use lookback_delete (less than lookback) to
         # always remove events in that range and re-ingest.
-        if duration >= 0.5 and hasattr(EventModel, "lookback_delete"):
+        if duration > 0 and hasattr(EventModel, "lookback_delete"):
             delete_date = DateTime(update.date) - EventModel.lookback_delete
             delete_from_date(EventModel, delete_date, set_update_date=False)
 
-    if duration < 0.5:
+    if duration <= 0:
         logger.info(
-            "Skipping {} events because update duration={:.1f} is < 0.5 day".format(
-                cls_name, duration
-            )
+            f"Skipping {cls_name} events because update "
+            f"duration={duration:.1f} days is negative"
         )
         return
 
@@ -164,8 +182,21 @@ def update(EventModel, date_stop):
         )
     )
 
-    # Get events for this model from telemetry.  This is returned as a list
-    # of dicts with key/val pairs corresponding to model fields.
+    if issubclass(EventModel, models.TlmEvent):
+        # For getting telemetry to define the states, use 4 hours before the last event
+        # time as the start time. This will get that last event and so avoid fetching
+        # unnecessary telemetry.
+        try:
+            last_event = EventModel.objects.last()
+        except ObjectDoesNotExist:
+            pass
+        else:
+            if date_start.date < last_event.start < date_stop.date:
+                logger.info(f"Using last event time {last_event.start} as start")
+                date_start = DateTime(last_event.tstart - 4 * 3600)
+
+    # Get events for this model from appropriate resources (telemetry, iFOT, web).  This
+    # is returned as a list of dicts with key/val pairs corresponding to model fields.
     events_in_dates = EventModel.get_events(date_start, date_stop)
 
     # Determine which of the events is not already in the database and
@@ -331,7 +362,7 @@ def main(args=None):
 
             for date_stop in date_stops:
                 with fetch.data_source(cheta_data_source):
-                    update(EventModel, date_stop)
+                    update_event_model(EventModel, date_stop)
         except Exception:
             # Something went wrong, but press on with processing other EventModels
             import traceback
