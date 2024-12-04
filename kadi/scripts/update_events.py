@@ -218,23 +218,54 @@ def save_event_to_database(cls_name, event, event_model, models):
 
 
 def get_events_and_event_models(EventModel, cls_name, events_in_dates):
+    from kadi.events import models
+
     # Determine which of the events is not already in the database and
     # put them in a list for saving.
     events = []
     event_models = []
+
+    # Sampling period (sec) for the primary MSID for a telemetry event.
+    sample_period_max = (
+        EventModel.get_sample_period_max() + 0.5  # Add 0.5 sec margin for good measure
+        if issubclass(EventModel, models.TlmEvent)
+        else None
+    )
     for event in events_in_dates:
         event_model = EventModel.from_dict(event, logger)
+
+        # Check if event is already in database by the primary key. This works for
+        # all non-telemetry events, and for telemetry events where the current data
+        # source (CXC, MAUDE) matches the data source in the database.
         try:
             EventModel.objects.get(pk=event_model.pk)
         except EventModel.DoesNotExist:
-            events.append(event)
-            event_models.append(event_model)
+            in_database = False
         else:
+            in_database = True
+
+        # Because of time stamp differences between MAUDE and CXC, we need to use a
+        # time-based check for matches. See the TlmEvent.get_sample_period_max() method
+        # for more details. The objects.filter() method gives True/False if there are
+        # matches in boolean context.
+        if not in_database and sample_period_max is not None:
+            matches = EventModel.objects.filter(
+                tstart__gt=(event_model.tstart - sample_period_max),
+                tstart__lt=(event_model.tstart + sample_period_max),
+            )
+            if matches:
+                in_database = True
+
+        if in_database:
             logger.verbose(
                 "Skipping {} at {}: already in database".format(
                     cls_name, event["start"]
                 )
             )
+        else:
+            events.append(event)
+            event_models.append(event_model)
+
     return event_models, events
 
 
