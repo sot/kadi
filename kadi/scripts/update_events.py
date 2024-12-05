@@ -5,14 +5,20 @@ import argparse
 import os
 import re
 import time
+from typing import TYPE_CHECKING, Type
 
 import numpy as np
 import pyyaks.logger
+import ska_tdb
 from chandra_time import DateTime
 from cheta import fetch
 from ska_helpers.run_info import log_run_info
 
 from kadi import __version__  # noqa: F401
+
+if TYPE_CHECKING:
+    from kadi.events.models import BaseEvent
+
 
 logger = None  # for pyflakes
 
@@ -201,7 +207,7 @@ def update_event_model(EventModel, date_stop: str) -> None:
 
     # Determine which of the events is not already in the database and
     # put them in a list for saving.
-    event_models, events = get_events_and_event_models(
+    event_models, events = filter_events_to_add_to_database(
         EventModel, cls_name, events_in_dates
     )
 
@@ -248,7 +254,34 @@ def save_event_to_database(cls_name, event, event_model, models):
             try4times(foreign_model.save)
 
 
-def get_events_and_event_models(EventModel, cls_name, events_in_dates):
+def filter_events_to_add_to_database(
+    EventModel: Type["BaseEvent"],
+    cls_name: str,
+    events_in_dates: list[dict],
+):
+    """Filter events to add to the database.
+
+    This takes a list of events (dicts) and returns those that are not already in the
+    database.  This is done by checking the primary key of the event model or else
+    (for telemetry events) by checking if the start time of the new event is close to
+    that of an existing event.
+
+    Parameters
+    ----------
+    EventModel : class
+        Event model class to update (e.g. models.DsnComm)
+    cls_name : str
+        Event model class name
+    events_in_dates : list of dict
+        List of event dictionaries
+
+    Returns
+    -------
+    event_models : list of EventModel
+        List of event model instances to save
+    events : list of dict
+        List of event dictionaries (filtered from original)
+    """
     from kadi.events import models
 
     # Determine which of the events is not already in the database and
@@ -256,9 +289,11 @@ def get_events_and_event_models(EventModel, cls_name, events_in_dates):
     events = []
     event_models = []
 
-    # Sampling period (sec) for the primary MSID for a telemetry event.
+    # Sampling period (sec) for the primary MSID for a telemetry event. Add 0.5 sec
+    # margin for good measure. This is used below for fuzzy matching of new and existing
+    # events.
     sample_period_max = (
-        EventModel.get_sample_period_max() + 0.5  # Add 0.5 sec margin for good measure
+        get_sample_period_max(EventModel.event_msids[0]) + 0.5
         if issubclass(EventModel, models.TlmEvent)
         else None
     )
@@ -298,6 +333,34 @@ def get_events_and_event_models(EventModel, cls_name, events_in_dates):
             event_models.append(event_model)
 
     return event_models, events
+
+
+def get_sample_period_max(msid: str) -> float:
+    """
+    Get max telemetry sample period for ``msid``.
+
+    This is used to allow switching between CXC and MAUDE telemetry as the input.
+    CXC telemetry uses the time of first VCDU in the sample period, while MAUDE
+    telemetry uses the time of the minor frame where the telemetry is sampled.
+
+    This method returns the max sample period (32.8 sec / min sample rate) over the
+    available telmeetry formats.
+
+    Parameters
+    ----------
+    msid : str
+        MSID name
+
+    Returns
+    -------
+    sample_period_max : float
+        Maximum sample period (secs)
+    """
+    # Start of event always corresponds to a transition in event_msids[0].
+    tdb_msid = ska_tdb.msids[msid]
+    sample_rate_min = np.min(tdb_msid.Tsmpl["SAMPLE_RATE"])  # samples / 128 mnf
+    sample_period_max = 128 / sample_rate_min * 0.25625  # sec
+    return sample_period_max
 
 
 def main(args=None):
