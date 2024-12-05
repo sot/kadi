@@ -197,7 +197,7 @@ def get_orbit_points(tlrfiles):
         try:
             fh = open(tlrfile, "r", encoding="ascii", errors="ignore")
         except IOError as err:
-            logger.warn(err)
+            logger.warning(err)
             continue
         for line in fh:
             if len(line) < 30 or line[:2] != " 2":

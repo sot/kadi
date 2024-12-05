@@ -224,9 +224,9 @@ def update_event_model(EventModel, date_stop: str) -> None:
             except django.db.utils.IntegrityError:
                 import traceback
 
-                logger.warn(f"WARNING: IntegrityError skipping {event_model}")
-                logger.warn(f"Event dict:\n{event}")
-                logger.warn(f"Traceback:\n{traceback.format_exc()}")
+                logger.warning(f"WARNING: IntegrityError skipping {event_model}")
+                logger.warning(f"Event dict:\n{event}")
+                logger.warning(f"Traceback:\n{traceback.format_exc()}")
                 continue
 
         # If processing got here with no exceptions then save the event update
