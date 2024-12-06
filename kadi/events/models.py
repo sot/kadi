@@ -422,7 +422,7 @@ class BaseModel(models.Model):
             tstart = DateTime(model_dict[cls._get_obsid_start_attr]).secs
             obsrq = fetch.Msid("cobsrqid", tstart, tstart + 200)
             if len(obsrq.vals) == 0:
-                logger.warn(
+                logger.warning(
                     "WARNING: unable to get COBSRQID near "
                     f"{model_dict[cls._get_obsid_start_attr]}, "
                     "using obsid=-999"
@@ -615,6 +615,7 @@ class TlmEvent(Event):
     event_msids = None  # must be overridden by derived class
     event_val = None
     event_filter_bad = True  # Normally remove bad quality data immediately
+    aux_msids = None  # Additional MSIDs to fetch for event
 
     class Meta:
         abstract = True
@@ -689,7 +690,7 @@ class TlmEvent(Event):
             )
         except (IndexError, ValueError):
             if event_time_fuzz is None:
-                logger.warn(
+                logger.warning(
                     "Warning: No telemetry available for {}".format(cls.__name__)
                 )
             return [], event_msidset
@@ -705,7 +706,7 @@ class TlmEvent(Event):
                 while tstop - event_time_fuzz < states[-1]["tstop"]:
                     # Event tstop is within event_time_fuzz of the stop of states so
                     # bail out and don't return any states.
-                    logger.warn(
+                    logger.warning(
                         "Warning: dropping state because of "
                         "insufficent event time pad:\n{}\n".format(states[-1:])
                     )
@@ -1331,6 +1332,8 @@ class Manvr(TlmEvent):
     _get_obsid_start_attr = "stop"  # Attribute to use for getting event obsid
     event_msids = ["aofattmd", "aopcadmd", "aoacaseq", "aopsacpr"]
     event_val = "MNVR"
+    # Aux MSIDs to fetch for maneuver events (required for one-shot)
+    aux_msids = ["aotarqt1", "aotarqt2", "aotarqt3", "aoatter1", "aoatter2", "aoatter3"]
 
     fetch_event_msids = [
         "one_shot",
@@ -1700,11 +1703,7 @@ class Manvr(TlmEvent):
         """
         events = []
         # Auxiliary information
-        aux_msidset = fetch.Msidset(
-            ["aotarqt1", "aotarqt2", "aotarqt3", "aoatter1", "aoatter2", "aoatter3"],
-            start,
-            stop,
-        )
+        aux_msidset = fetch.Msidset(cls.aux_msids, start, stop)
 
         # Need at least 2 samples to get states. Having no samples typically
         # happens when building the event tables and telemetry queries are just
@@ -2390,7 +2389,7 @@ class DsnComm(IFotEvent):
             out["cc"] = pass_plan.cc
             out["pass_plan"] = pass_plan
         if len(pass_plans) > 1:
-            logger.warn(
+            logger.warning(
                 "Multiple pass plans found at {}: {}".format(event["start"], pass_plans)
             )
 
