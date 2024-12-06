@@ -7,6 +7,7 @@ import re
 import time
 from typing import TYPE_CHECKING, Type
 
+import maude
 import numpy as np
 import pyyaks.logger
 import ska_tdb
@@ -17,7 +18,7 @@ from ska_helpers.run_info import log_run_info
 from kadi import __version__  # noqa: F401
 
 if TYPE_CHECKING:
-    from kadi.events.models import BaseEvent
+    from kadi.events.models import BaseEvent, TlmEvent
 
 
 logger = None  # for pyflakes
@@ -60,6 +61,18 @@ def get_opt_parser():
     parser.add_argument(
         "--maude", action="store_true", help="Use MAUDE data source for telemetry"
     )
+
+    parser.add_argument(
+        "--maude-force-update",
+        action="store_true",
+        help=(
+            "When --maude is specified, force running update even if telemetry has not "
+            "updated. This is mostly for testing. For CXC telemetry, the update is always "
+            "run regardless of telemetry status, so this argument is ignored."
+        ),
+    )
+
+    parser.add_argument("--version", action="version", version=__version__)
 
     return parser
 
@@ -121,7 +134,7 @@ def delete_from_date(EventModel, start, set_update_date=True):
     try4times(events.delete)
 
 
-def update_event_model(EventModel, date_stop: str) -> None:
+def update_event_model(EventModel, date_stop: str, maude: bool) -> None:
     """Update the event model in the database with events up through date_stop.
 
     For telemetry events, date_stop is the upper limit on possible events, but most
@@ -136,6 +149,8 @@ def update_event_model(EventModel, date_stop: str) -> None:
         Event model class to update (e.g. models.DsnComm)
     date_stop : str
         Stop date for event update
+    maude : bool
+        Use MAUDE data source for telemetry
     """
     import django.db
     from django.core.exceptions import ObjectDoesNotExist
@@ -188,18 +203,13 @@ def update_event_model(EventModel, date_stop: str) -> None:
         )
     )
 
-    if issubclass(EventModel, models.TlmEvent):
-        # For getting telemetry to define the states, use 4 hours before the last event
-        # time as the start time. This will get that last event and so avoid fetching
-        # unnecessary telemetry.
-        try:
-            last_event = EventModel.objects.last()
-        except ObjectDoesNotExist:
-            pass
-        else:
-            if date_start.date < last_event.start < date_stop.date:
-                logger.info(f"Using last event time {last_event.start} as start")
-                date_start = DateTime(last_event.tstart - 4 * 3600)
+    # Special handling of date_start and date_stop for MAUDE telemetry and Telemetry
+    # events. For CXC telemetry use the legacy behavior of fetching all telemetry
+    # through lookback, since it is fast and reliable.
+    if maude and issubclass(EventModel, models.TlmEvent):
+        date_stop, date_start = get_date_start_stop_for_maude(
+            EventModel, date_stop, date_start
+        )
 
     # Get events for this model from appropriate resources (telemetry, iFOT, web).  This
     # is returned as a list of dicts with key/val pairs corresponding to model fields.
@@ -232,6 +242,68 @@ def update_event_model(EventModel, date_stop: str) -> None:
         # If processing got here with no exceptions then save the event update
         # information to database
         update.save()
+
+
+def get_date_start_stop_for_maude(
+    EventModel: Type["TlmEvent"],
+    date_start: DateTime,
+    date_stop: DateTime,
+) -> tuple[DateTime, DateTime]:
+    """Get updated date_start and date_stop for MAUDE telemetry events.
+
+    Fetching data from the MAUDE server is relatively slow, so we need to take care to
+    not fetch more data than necessary. This function adjusts the start and stop dates
+    for telemetry events accordingly. In addition, there can be a mix of definitive
+    backorbit data and realtime data with a gap between them. We need to avoid that gap
+    and the realtime data.
+
+    Parameters
+    ----------
+    EventModel : class
+        Telemetry Event model class to update (e.g. models.DsnComm)
+    date_start : DateTime
+        Start date for event update
+    date_stop : DateTime
+        Stop date for event update
+
+    Returns
+    -------
+    date_start : DateTime
+        Updated start date
+    date_stop : DateTime
+        Updated stop date
+    """
+    from django.core.exceptions import ObjectDoesNotExist
+
+    name = EventModel.__name__
+
+    # For getting telemetry to define the states, use 4 hours before the last event time
+    # as the start date (as long as that is within the original date_start to
+    # date_stop). This will get that last event and so avoid fetching unnecessary
+    # telemetry.
+    try:
+        last_event = EventModel.objects.last()
+    except ObjectDoesNotExist:
+        pass
+    else:
+        if date_start.date < last_event.start < date_stop.date:
+            date_start = DateTime(last_event.tstart - 4 * 3600)
+            logger.info(
+                f"Using {date_start.date} as start for {name} (4 hours before last event)"
+            )
+
+    # Get the last available backorbit telemetry date for MSIDs required for this
+    # event model. If this is before stop_date then set stop_date accordingingly.
+    # This handles the situation for MAUDE that the server may provide realtime data
+    # during (or just after) a comm with a gap since the backorbit data from the
+    # last comm. This would cause problems. Note that the COBSRQID obsid is
+    # hardwired into every TlmEvent model.
+    msids = ["cobsrqid"] + EventModel.event_msids + (EventModel.aux_msids or [])
+    date_last_telemetry = maude.get_last_backorbit_date(msids)
+    if date_last_telemetry < date_stop.date:
+        date_stop = DateTime(date_last_telemetry)
+        logger.info(f"Using last backorbit date {date_stop.date} as stop for {name}")
+    return date_start, date_stop
 
 
 def save_event_to_database(cls_name, event, event_model, models):

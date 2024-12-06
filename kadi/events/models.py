@@ -615,6 +615,7 @@ class TlmEvent(Event):
     event_msids = None  # must be overridden by derived class
     event_val = None
     event_filter_bad = True  # Normally remove bad quality data immediately
+    aux_msids = None  # Additional MSIDs to fetch for event
 
     class Meta:
         abstract = True
@@ -1331,6 +1332,8 @@ class Manvr(TlmEvent):
     _get_obsid_start_attr = "stop"  # Attribute to use for getting event obsid
     event_msids = ["aofattmd", "aopcadmd", "aoacaseq", "aopsacpr"]
     event_val = "MNVR"
+    # Aux MSIDs to fetch for maneuver events (required for one-shot)
+    aux_msids = ["aotarqt1", "aotarqt2", "aotarqt3", "aoatter1", "aoatter2", "aoatter3"]
 
     fetch_event_msids = [
         "one_shot",
@@ -1700,11 +1703,7 @@ class Manvr(TlmEvent):
         """
         events = []
         # Auxiliary information
-        aux_msidset = fetch.Msidset(
-            ["aotarqt1", "aotarqt2", "aotarqt3", "aoatter1", "aoatter2", "aoatter3"],
-            start,
-            stop,
-        )
+        aux_msidset = fetch.Msidset(cls.aux_msids, start, stop)
 
         # Need at least 2 samples to get states. Having no samples typically
         # happens when building the event tables and telemetry queries are just
