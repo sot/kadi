@@ -4,12 +4,12 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>kadi.commands.validate &#8212; kadi 7.13.0 documentation</title>
+    <title>kadi.commands.validate &#8212; kadi 7.14.0 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="../../../_static/bootstrap-astropy.css?v=f4f7060c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/plot_directive.css" />
     
-    <script src="../../../_static/documentation_options.js?v=7a3618ec"></script>
+    <script src="../../../_static/documentation_options.js?v=f46de922"></script>
     <script src="../../../_static/doctools.js?v=888ff710"></script>
     <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script type="text/javascript" src="../../../_static/sidebar.js"></script>
@@ -45,7 +45,7 @@
     <h3>Navigation</h3>
     <ul>
       <li>
-	<a href="../../../index.html">kadi 7.13.0 documentation</a>
+	<a href="../../../index.html">kadi 7.14.0 documentation</a>
 	 &#187;
       </li>
       <li><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
@@ -163,7 +163,7 @@
 
 <div class="viewcode-block" id="Validate">
 <a class="viewcode-back" href="../../../api_validation.html#kadi.commands.validate.Validate">[docs]</a>
-<span class="k">class</span> <span class="nc">Validate</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
+<span class="k">class</span> <span class="nc">Validate</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>  <span class="c1"># noqa: B024</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Validate kadi command states against telemetry base class.</span>
 
 <span class="sd">    Class attributes are as follows:</span>
@@ -279,8 +279,9 @@
 <div class="viewcode-block" id="Validate.add_exclude_intervals">
 <a class="viewcode-back" href="../../../api_validation.html#kadi.commands.validate.Validate.add_exclude_intervals">[docs]</a>
     <span class="k">def</span> <span class="nf">add_exclude_intervals</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Base method to exclude intervals, starting with intervals defined in the</span>
-<span class="sd">        Chandra Command Events Google Sheet.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Base method to exclude intervals</span>
+
+<span class="sd">        Starts with intervals defined in the Chandra Command Events Google Sheet.</span>
 
 <span class="sd">        This method gets called at the end of self.tlm.</span>
 
@@ -354,8 +355,8 @@
 <div class="viewcode-block" id="Validate.exclude_ofp_intervals_except">
 <a class="viewcode-back" href="../../../api_validation.html#kadi.commands.validate.Validate.exclude_ofp_intervals_except">[docs]</a>
     <span class="k">def</span> <span class="nf">exclude_ofp_intervals_except</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">states_expected</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Exclude intervals where OFP (on-board flight program) is not in the expected</span>
-<span class="sd">        state.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Exclude intervals where OFP (on-board flight program) is not in expected state.</span>
 
 <span class="sd">        This includes a padding of 30 minutes after SAFE mode and 5 minutes for non-NRML</span>
 <span class="sd">        states other than SAFE like STUP, SYON, SYSF etc.</span>
@@ -648,8 +649,7 @@
         <span class="k">return</span> <span class="n">bad</span>
 
     <span class="k">def</span> <span class="nf">add_exclude_intervals</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Exclude any intervals where online flight processing is not normal or safe</span>
-<span class="sd">        mode&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Exclude intervals where online flight processing is not normal or safe mode&quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">add_exclude_intervals</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">exclude_ofp_intervals_except</span><span class="p">(</span><span class="n">states_expected</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;NRML&quot;</span><span class="p">,</span> <span class="s2">&quot;SAFE&quot;</span><span class="p">])</span>
 
@@ -733,6 +733,7 @@
     <span class="n">state_name</span> <span class="o">=</span> <span class="s2">&quot;pcad_mode&quot;</span>
     <span class="n">msids</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;aopcadmd&quot;</span><span class="p">]</span>
     <span class="n">plot_attrs</span> <span class="o">=</span> <span class="n">PlotAttrs</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s2">&quot;PCAD mode&quot;</span><span class="p">,</span> <span class="n">ylabel</span><span class="o">=</span><span class="s2">&quot;PCAD mode&quot;</span><span class="p">)</span>
+    <span class="n">min_violation_duration</span> <span class="o">=</span> <span class="mi">180</span>  <span class="c1"># seconds</span>
 
 <div class="viewcode-block" id="ValidatePcadMode.add_exclude_intervals">
 <a class="viewcode-back" href="../../../api_validation.html#kadi.commands.validate.ValidatePcadMode.add_exclude_intervals">[docs]</a>
@@ -856,7 +857,7 @@
 
 
 <span class="nd">@functools</span><span class="o">.</span><span class="n">lru_cache</span><span class="p">(</span><span class="n">maxsize</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-<span class="k">def</span> <span class="nf">get_command_sheet_exclude_intervals</span><span class="p">(</span><span class="n">state_key</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Table</span><span class="p">:</span>
+<span class="k">def</span> <span class="nf">get_command_sheet_exclude_intervals</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Table</span><span class="p">:</span>
     <span class="n">url</span> <span class="o">=</span> <span class="n">EXCLUDE_INTERVALS_SHEET_URL</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
         <span class="n">doc_id</span><span class="o">=</span><span class="n">kadi</span><span class="o">.</span><span class="n">commands</span><span class="o">.</span><span class="n">conf</span><span class="o">.</span><span class="n">cmd_events_flight_id</span><span class="p">,</span>
         <span class="n">gid</span><span class="o">=</span><span class="n">kadi</span><span class="o">.</span><span class="n">commands</span><span class="o">.</span><span class="n">conf</span><span class="o">.</span><span class="n">cmd_events_exclude_intervals_gid</span><span class="p">,</span>

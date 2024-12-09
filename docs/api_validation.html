@@ -5,12 +5,12 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Validation API &#8212; kadi 7.13.0 documentation</title>
+    <title>Validation API &#8212; kadi 7.14.0 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="_static/bootstrap-astropy.css?v=f4f7060c" />
     <link rel="stylesheet" type="text/css" href="_static/plot_directive.css" />
     
-    <script src="_static/documentation_options.js?v=7a3618ec"></script>
+    <script src="_static/documentation_options.js?v=f46de922"></script>
     <script src="_static/doctools.js?v=888ff710"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script type="text/javascript" src="_static/sidebar.js"></script>
@@ -59,7 +59,7 @@
 	 |
       </li>
       <li>
-	<a href="index.html">kadi 7.13.0 documentation</a>
+	<a href="index.html">kadi 7.14.0 documentation</a>
 	 &#187;
       </li>
       <li><a href="api.html" accesskey="U">API documentation</a> &#187;</li>
@@ -158,8 +158,8 @@ in the table accordingly.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="kadi.commands.validate.Validate.add_exclude_intervals">
 <span class="sig-name descname"><span class="pre">add_exclude_intervals</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/commands/validate.html#Validate.add_exclude_intervals"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.commands.validate.Validate.add_exclude_intervals" title="Link to this definition">¶</a></dt>
-<dd><p>Base method to exclude intervals, starting with intervals defined in the
-Chandra Command Events Google Sheet.</p>
+<dd><p>Base method to exclude intervals</p>
+<p>Starts with intervals defined in the Chandra Command Events Google Sheet.</p>
 <p>This method gets called at the end of self.tlm.</p>
 <p>Subclasses can override this method to add additional intervals to exclude,
 making sure to call super().add_exclude_intervals() first.</p>
@@ -177,8 +177,7 @@ state-specific intervals like not validating pitch when in NMM.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="kadi.commands.validate.Validate.exclude_ofp_intervals_except">
 <span class="sig-name descname"><span class="pre">exclude_ofp_intervals_except</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">states_expected</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/commands/validate.html#Validate.exclude_ofp_intervals_except"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.commands.validate.Validate.exclude_ofp_intervals_except" title="Link to this definition">¶</a></dt>
-<dd><p>Exclude intervals where OFP (on-board flight program) is not in the expected
-state.</p>
+<dd><p>Exclude intervals where OFP (on-board flight program) is not in expected state.</p>
 <p>This includes a padding of 30 minutes after SAFE mode and 5 minutes for non-NRML
 states other than SAFE like STUP, SYON, SYSF etc.</p>
 </dd></dl>
@@ -270,8 +269,8 @@ pointing which comes from 3 quaternion components).</p>
 <dd><dl class="py method">
 <dt class="sig sig-object py" id="kadi.commands.validate.ValidateDither.add_exclude_intervals">
 <span class="sig-name descname"><span class="pre">add_exclude_intervals</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/commands/validate.html#ValidateDither.add_exclude_intervals"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.commands.validate.ValidateDither.add_exclude_intervals" title="Link to this definition">¶</a></dt>
-<dd><p>Base method to exclude intervals, starting with intervals defined in the
-Chandra Command Events Google Sheet.</p>
+<dd><p>Base method to exclude intervals</p>
+<p>Starts with intervals defined in the Chandra Command Events Google Sheet.</p>
 <p>This method gets called at the end of self.tlm.</p>
 <p>Subclasses can override this method to add additional intervals to exclude,
 making sure to call super().add_exclude_intervals() first.</p>
@@ -300,8 +299,8 @@ making sure to call super().add_exclude_intervals() first.</p>
 <dd><dl class="py method">
 <dt class="sig sig-object py" id="kadi.commands.validate.ValidatePcadMode.add_exclude_intervals">
 <span class="sig-name descname"><span class="pre">add_exclude_intervals</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/kadi/commands/validate.html#ValidatePcadMode.add_exclude_intervals"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kadi.commands.validate.ValidatePcadMode.add_exclude_intervals" title="Link to this definition">¶</a></dt>
-<dd><p>Base method to exclude intervals, starting with intervals defined in the
-Chandra Command Events Google Sheet.</p>
+<dd><p>Base method to exclude intervals</p>
+<p>Starts with intervals defined in the Chandra Command Events Google Sheet.</p>
 <p>This method gets called at the end of self.tlm.</p>
 <p>Subclasses can override this method to add additional intervals to exclude,
 making sure to call super().add_exclude_intervals() first.</p>
