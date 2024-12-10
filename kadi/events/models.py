@@ -661,7 +661,11 @@ class TlmEvent(Event):
         boolean ndarray
         """
         event_msid = event_msidset[cls.event_msids[0]]
-        bools = event_msid.vals == cls.event_val
+        bools = (
+            np.isin(event_msid.vals, cls.event_val)
+            if isinstance(cls.event_val, list)
+            else event_msid.vals == cls.event_val
+        )
         return event_msid.times, bools
 
     @classmethod
@@ -867,7 +871,7 @@ class TscMove(TlmEvent):
     """
 
     event_msids = ["3tscmove", "3tscpos", "3mrmmxmv"]
-    event_val = "T"
+    event_val = ["T", "MOVE"]
 
     start_3tscpos = models.IntegerField(help_text="Start TSC position (steps)")
     stop_3tscpos = models.IntegerField(help_text="Stop TSC position (steps)")

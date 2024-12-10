@@ -18,7 +18,7 @@ from ska_helpers.run_info import log_run_info
 from kadi import __version__  # noqa: F401
 
 if TYPE_CHECKING:
-    from kadi.events.models import BaseEvent, TlmEvent
+    import kadi.events.models as kem
 
 
 logger = None  # for pyflakes
@@ -52,7 +52,7 @@ def get_opt_parser():
         "--model",
         action="append",
         dest="models",
-        help="Model class name to process [match regex] (default = all)",
+        help="Model class name (e.g. DsnComm) to process [match regex] (default = all)",
     )
     parser.add_argument(
         "--data-root", default=".", help="Root data directory (default='.')"
@@ -60,16 +60,6 @@ def get_opt_parser():
 
     parser.add_argument(
         "--maude", action="store_true", help="Use MAUDE data source for telemetry"
-    )
-
-    parser.add_argument(
-        "--maude-force-update",
-        action="store_true",
-        help=(
-            "When --maude is specified, force running update even if telemetry has not "
-            "updated. This is mostly for testing. For CXC telemetry, the update is always "
-            "run regardless of telemetry status, so this argument is ignored."
-        ),
     )
 
     parser.add_argument("--version", action="version", version=__version__)
@@ -207,8 +197,8 @@ def update_event_model(EventModel, date_stop: str, maude: bool) -> None:
     # events. For CXC telemetry use the legacy behavior of fetching all telemetry
     # through lookback, since it is fast and reliable.
     if maude and issubclass(EventModel, models.TlmEvent):
-        date_stop, date_start = get_date_start_stop_for_maude(
-            EventModel, date_stop, date_start
+        date_start, date_stop = get_date_start_stop_for_maude(
+            EventModel, date_start, date_stop
         )
 
     # Get events for this model from appropriate resources (telemetry, iFOT, web).  This
@@ -245,7 +235,7 @@ def update_event_model(EventModel, date_stop: str, maude: bool) -> None:
 
 
 def get_date_start_stop_for_maude(
-    EventModel: Type["TlmEvent"],
+    EventModel: Type["kem.TlmEvent"],
     date_start: DateTime,
     date_stop: DateTime,
 ) -> tuple[DateTime, DateTime]:
@@ -327,7 +317,7 @@ def save_event_to_database(cls_name, event, event_model, models):
 
 
 def filter_events_to_add_to_database(
-    EventModel: Type["BaseEvent"],
+    EventModel: Type["kem.BaseEvent"],
     cls_name: str,
     events_in_dates: list[dict],
 ):
@@ -435,10 +425,91 @@ def get_sample_period_max(msid: str) -> float:
     return sample_period_max
 
 
+def get_all_telemetry_event_msids() -> set[str]:
+    """
+    Get all telemetry event MSIDs.
+
+    Returns
+    -------
+    event_msids : list of str
+        List of telemetry event MSIDs
+    """
+    from kadi.events import models
+
+    event_msids = set()
+    for event_model_cls in models.get_event_models().values():
+        if issubclass(event_model_cls, models.TlmEvent):
+            event_msids.update(event_model_cls.event_msids)
+            event_msids.update(event_model_cls.aux_msids or [])
+
+    return event_msids
+
+
+def check_maude_server_has_new_telemetry(stop) -> bool:
+    """
+    Check if the MAUDE server has new telemetry since the last run of update_events.
+
+    This also saves the last telemetry date in the `Update` model of the database using
+    the `maude_latest_backorbit` name.
+
+    Parameters
+    ----------
+    stop : CxoTimeLike
+        Stop date for event update processing.
+
+    Returns
+    -------
+    has_new_telemetry : bool
+        True if new telemetry is available, else False.
+    """
+    from django.core.exceptions import ObjectDoesNotExist
+
+    from kadi.events import models
+
+    stop_date = DateTime(stop).date
+    update_name = "maude_latest_backorbit"
+    msids = get_all_telemetry_event_msids()
+    date_last_telemetry = maude.get_last_backorbit_date(msids)
+
+    # Normally opt.stop is NOW and telemetry cannot be in the future. But if the user
+    # provided an earlier stop date, clip the telemetry date to that stop date. This is
+    # for testing.
+    if date_last_telemetry > stop_date:
+        date_last_telemetry = stop_date
+        logger.info(f"Clipping MAUDE telemetry date to {stop_date=}")
+
+    try:
+        update_model = models.Update.objects.get(name=update_name)
+    except ObjectDoesNotExist:
+        has_new = True
+        update_model = models.Update(name=update_name, date=date_last_telemetry)
+        message = (
+            f"Adding initial entry for MAUDE telemetry date: {date_last_telemetry=}"
+        )
+    else:
+        has_new = date_last_telemetry > update_model.date
+        status = "New" if has_new else "No new"
+        message = (
+            f"{status} telemetry in MAUDE: "
+            f"{update_model.date=} -> {date_last_telemetry=}"
+        )
+
+    logger.info(message)
+    if has_new:
+        update_model.date = date_last_telemetry
+        logger.info(f"Updating Update.{update_name} date to {date_last_telemetry}")
+        try4times(update_model.save)
+
+    return has_new
+
+
 def main(args=None):
     global logger  # noqa: PLW0603  # TODO - remove this global, use ska_helpers logger
 
     opt = get_opt_parser().parse_args(args)
+
+    if opt.delete_from_start and opt.start is None:
+        raise ValueError("Must specify --start when using --delete-from-start")
 
     logger = pyyaks.logger.get_logger(
         name="kadi_update_events", level=opt.log_level, format="%(asctime)s %(message)s"
@@ -455,9 +526,23 @@ def main(args=None):
 
     from kadi.events import models
 
+    if (
+        opt.maude
+        and not opt.models
+        and not opt.start
+        and not check_maude_server_has_new_telemetry(opt.stop)
+    ):
+        # Normal processing run (i.e. not testing or regenerating the database) with
+        # MAUDE data source. In this case check if there is any new telemetry in MAUDE
+        # since the last run. Since the MAUDE server updates reliably with each comm
+        # pass, we can skip all event updates (including non-telem events) if MAUDE has
+        # not updated. This means events3.db3 is not changed at all.
+        logger.info("No new telemetry in MAUDE, skipping event updates")
+        return
+
     # Allow for a cmd line option --start.  If supplied then loop the
     # effective value of opt.stop from start to the cmd line
-    # --stop in steps of --max-lookback-time
+    # --stop in steps of --loop-days
     if opt.start is None:
         date_stops = [opt.stop]
     else:
@@ -469,20 +554,20 @@ def main(args=None):
 
     # Get the event classes in models module
     EventModels = [
-        Model
-        for name, Model in vars(models).items()
-        if (
-            isinstance(Model, type)  # is a class
-            and issubclass(Model, models.BaseEvent)  # is a BaseEvent subclass
-            and "Meta" not in Model.__dict__  # is not a base class
-            and hasattr(Model, "get_events")  # can get events
-        )
+        event_model
+        for event_model in models.get_event_models().values()
+        if hasattr(event_model, "get_events")
     ]
 
     # Filter on ---model command line arg(s)
     if opt.models:
         EventModels = [
-            x for x in EventModels if any(re.match(y, x.__name__) for y in opt.models)
+            event_model_cls
+            for event_model_cls in EventModels
+            if any(
+                re.match(model_name, event_model_cls.__name__)
+                for model_name in opt.models
+            )
         ]
 
     # Update priority (higher priority value means earlier in processing)
@@ -492,12 +577,12 @@ def main(args=None):
 
     for EventModel in EventModels:
         try:
-            if opt.delete_from_start and opt.start is not None:
+            if opt.delete_from_start:
                 delete_from_date(EventModel, opt.start)
 
             for date_stop in date_stops:
                 with fetch.data_source(cheta_data_source):
-                    update_event_model(EventModel, date_stop)
+                    update_event_model(EventModel, date_stop, opt.maude)
         except Exception:
             # Something went wrong, but press on with processing other EventModels
             import traceback
