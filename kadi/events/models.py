@@ -1569,12 +1569,12 @@ class Manvr(TlmEvent):
             "aopcadmd": ("NPNT", "NMAN"),
             "aoacaseq": ("GUID", "KALM", "AQXN"),
             "aofattmd": ("MNVR", "STDY"),
-            "aopsacpr": ("INIT", "INAC", "ACT "),
-            "aounload": ("MON ", "GRND"),
+            "aopsacpr": ("INIT", "INAC", "ACT"),
+            "aounload": ("MON", "GRND"),
         }
         anomalous = False
         for change in changes[changes["dt"] >= ZERO_DT]:
-            if change["val"] not in nom_vals[change["msid"]]:
+            if change["val"].strip() not in nom_vals[change["msid"]]:
                 anomalous = True
                 break
 
