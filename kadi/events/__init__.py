@@ -43,6 +43,8 @@ More help available at:
 import importlib
 import os
 
+import ska_helpers.logging
+
 # In addition, set DJANGO_ALLOW_ASYNC_UNSAFE, to avoid exception seen running in
 # Jupyter notebook: SynchronousOnlyOperation: You cannot call this from an async
 # context. See: https://stackoverflow.com/questions/59119396

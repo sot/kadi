@@ -1,4 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+import logging
 import operator
 import sys
 from itertools import count
@@ -6,7 +7,6 @@ from pathlib import Path
 
 import cheta.fetch_eng as fetch
 import numpy as np
-import pyyaks.logger
 from astropy import table
 from chandra_time import DateTime
 from cheta import utils
@@ -22,9 +22,7 @@ ZERO_DT = -1e-4
 MAX_GAP = 328.1  # Max gap (seconds) in telemetry for state intervals
 R2A = 206264.8  # Convert from radians to arcsec
 
-logger = pyyaks.logger.get_logger(
-    name="events", level=pyyaks.logger.INFO, format="%(asctime)s %(message)s"
-)
+logger = logging.getLogger(__name__)
 
 
 def msidset_interpolate(msidset, dt, time0):
