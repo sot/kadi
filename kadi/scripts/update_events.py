@@ -2,6 +2,7 @@
 """Update the events database"""
 
 import argparse
+import logging
 import os
 import re
 import time
@@ -9,7 +10,6 @@ from typing import TYPE_CHECKING, Type
 
 import maude
 import numpy as np
-import pyyaks.logger
 import ska_tdb
 from chandra_time import DateTime
 from cheta import fetch
@@ -20,8 +20,8 @@ from kadi import __version__  # noqa: F401
 if TYPE_CHECKING:
     import kadi.events.models as kem
 
-
-logger = None  # for pyflakes
+# Use the common kadi.events logger instead of __name__ because this is in kadi.scripts.
+logger = logging.getLogger("kadi.events")
 
 
 def get_opt_parser():
@@ -46,7 +46,10 @@ def get_opt_parser():
         help="Number of days in interval for looping (default=100)",
     )
     parser.add_argument(
-        "--log-level", type=int, default=pyyaks.logger.INFO, help="Logging level"
+        "--log-level",
+        default="INFO",
+        help="Logging level (default=INFO)",
+        choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
     )
     parser.add_argument(
         "--model",
@@ -312,7 +315,7 @@ def save_event_to_database(cls_name, event, event_model, models):
             # Convert to a plain dict if row is structured array
             foreign_model = ForeignModel.from_dict(row, logger)
             setattr(foreign_model, event_model.model_name, event_model)
-            logger.verbose("Adding {}".format(foreign_model))
+            logger.debug("Adding {}".format(foreign_model))
             try4times(foreign_model.save)
 
 
@@ -385,7 +388,7 @@ def filter_events_to_add_to_database(
                 in_database = True
 
         if in_database:
-            logger.verbose(
+            logger.debug(
                 "Skipping {} at {}: already in database".format(
                     cls_name, event["start"]
                 )
@@ -504,16 +507,12 @@ def check_maude_server_has_new_telemetry(stop) -> bool:
 
 
 def main(args=None):
-    global logger  # noqa: PLW0603  # TODO - remove this global, use ska_helpers logger
-
     opt = get_opt_parser().parse_args(args)
 
     if opt.delete_from_start and opt.start is None:
         raise ValueError("Must specify --start when using --delete-from-start")
 
-    logger = pyyaks.logger.get_logger(
-        name="kadi_update_events", level=opt.log_level, format="%(asctime)s %(message)s"
-    )
+    logger.setLevel(opt.log_level)
     log_run_info(logger.info, opt)
 
     # Set the global root data directory.  This gets used in the django
