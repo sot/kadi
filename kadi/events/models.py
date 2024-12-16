@@ -659,10 +659,16 @@ class TlmEvent(Event):
         boolean ndarray
         """
         event_msid = event_msidset[cls.event_msids[0]]
+        vals = event_msid.vals
+        if vals.dtype.kind == "U":
+            # Strip leading/trailing whitespace from string values. This is needed
+            # because the CXC includes trailing whitespace in the telemetry values while
+            # MAUDE (more sensibly) does not.
+            vals = np.char.strip(vals)
         bools = (
-            np.isin(event_msid.vals, cls.event_val)
+            np.isin(vals, cls.event_val)
             if isinstance(cls.event_val, list)
-            else event_msid.vals == cls.event_val
+            else vals == cls.event_val
         )
         return event_msid.times, bools
 
@@ -926,7 +932,7 @@ class DarkCalReplica(TlmEvent):
     """
 
     event_msids = ["ciumacac"]
-    event_val = "ON "
+    event_val = "ON"
     event_min_dur = 300
 
 
@@ -954,7 +960,7 @@ class DarkCal(TlmEvent):
     """
 
     event_msids = ["ciumacac"]
-    event_val = "ON "
+    event_val = "ON"
     event_time_fuzz = 86400  # One full day of fuzz / pad
     event_min_dur = 8000
 
@@ -1035,7 +1041,7 @@ class FaMove(TlmEvent):
     """
 
     event_msids = ["3famove", "3fapos"]
-    event_val = "T"
+    event_val = ["T", "MOVE"]
 
     start_3fapos = models.IntegerField(help_text="Start FA position (steps)")
     stop_3fapos = models.IntegerField(help_text="Stop FA position (steps)")
@@ -1180,6 +1186,7 @@ class Dump(TlmEvent):
 
     event_msids = ["aounload"]
     event_val = "GRND"
+    event_min_dur = 4.0
 
     type = models.CharField(max_length=4, help_text="Momentum unload type (GRND AUTO)")
 
@@ -1225,7 +1232,7 @@ class Eclipse(TlmEvent):
     """
 
     event_msids = ["aoeclips"]
-    event_val = "ECL "
+    event_val = "ECL"
     fetch_event_msids = ["aoeclips", "eb1k5", "eb2k5", "eb3k5"]
 
 
