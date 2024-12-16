@@ -60,11 +60,18 @@ def get_opt_parser():
     parser.add_argument(
         "--data-root", default=".", help="Root data directory (default='.')"
     )
-
     parser.add_argument(
         "--maude", action="store_true", help="Use MAUDE data source for telemetry"
     )
-
+    parser.add_argument(
+        "--maude-tlm-lookback",
+        default=7,
+        type=int,
+        help=(
+            "MAUDE telemetry lookback (days) (default=7). This overrides the base "
+            "TlmEvent.lookback=21. Use a longer value for a very extended Safe Mode."
+        ),
+    )
     parser.add_argument("--version", action="version", version=__version__)
 
     return parser
@@ -179,7 +186,7 @@ def update_event_model(EventModel, date_stop: str, maude: bool) -> None:
     if duration <= 0:
         logger.info(
             f"Skipping {cls_name} events because update "
-            f"duration={duration:.1f} days is negative"
+            f"duration={duration:.1f} days <= 0"
         )
         return
 
@@ -575,6 +582,16 @@ def main(args=None):
     cheta_data_source = "maude allow_subset=False" if opt.maude else "cxc"
 
     for EventModel in EventModels:
+        # Since MAUDE is slow but reliably available, we can use a shorter lookback for
+        # telemetry events (default of 7 days instead of 21). The issue relates to the
+        # max duration of an event since the lookback needs to span the event. The most
+        # credible case here is a very long safe mode.
+        if opt.maude and issubclass(EventModel, models.TlmEvent):
+            logger.info(
+                f"Setting {EventModel.__name__} lookback to {opt.maude_tlm_lookback} days"
+            )
+            EventModel.lookback = opt.maude_tlm_lookback
+
         try:
             if opt.delete_from_start:
                 delete_from_date(EventModel, opt.start)
@@ -586,7 +603,7 @@ def main(args=None):
             # Something went wrong, but press on with processing other EventModels
             import traceback
 
-            logger.error(f"ERROR in processing {EventModel}")
+            logger.error(f"ERROR in processing {EventModel.__name__}")
             logger.error(f"Traceback:\n{traceback.format_exc()}")
 
 
