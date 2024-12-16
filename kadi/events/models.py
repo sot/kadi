@@ -1,4 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+import logging
 import operator
 import sys
 from itertools import count
@@ -6,7 +7,6 @@ from pathlib import Path
 
 import cheta.fetch_eng as fetch
 import numpy as np
-import pyyaks.logger
 from astropy import table
 from chandra_time import DateTime
 from cheta import utils
@@ -22,9 +22,7 @@ ZERO_DT = -1e-4
 MAX_GAP = 328.1  # Max gap (seconds) in telemetry for state intervals
 R2A = 206264.8  # Convert from radians to arcsec
 
-logger = pyyaks.logger.get_logger(
-    name="events", level=pyyaks.logger.INFO, format="%(asctime)s %(message)s"
-)
+logger = logging.getLogger(__name__)
 
 
 def msidset_interpolate(msidset, dt, time0):
@@ -422,7 +420,7 @@ class BaseModel(models.Model):
             tstart = DateTime(model_dict[cls._get_obsid_start_attr]).secs
             obsrq = fetch.Msid("cobsrqid", tstart, tstart + 200)
             if len(obsrq.vals) == 0:
-                logger.warn(
+                logger.warning(
                     "WARNING: unable to get COBSRQID near "
                     f"{model_dict[cls._get_obsid_start_attr]}, "
                     "using obsid=-999"
@@ -615,6 +613,7 @@ class TlmEvent(Event):
     event_msids = None  # must be overridden by derived class
     event_val = None
     event_filter_bad = True  # Normally remove bad quality data immediately
+    aux_msids = None  # Additional MSIDs to fetch for event
 
     class Meta:
         abstract = True
@@ -660,7 +659,17 @@ class TlmEvent(Event):
         boolean ndarray
         """
         event_msid = event_msidset[cls.event_msids[0]]
-        bools = event_msid.vals == cls.event_val
+        vals = event_msid.vals
+        if vals.dtype.kind == "U":
+            # Strip leading/trailing whitespace from string values. This is needed
+            # because the CXC includes trailing whitespace in the telemetry values while
+            # MAUDE (more sensibly) does not.
+            vals = np.char.strip(vals)
+        bools = (
+            np.isin(vals, cls.event_val)
+            if isinstance(cls.event_val, list)
+            else vals == cls.event_val
+        )
         return event_msid.times, bools
 
     @classmethod
@@ -689,7 +698,7 @@ class TlmEvent(Event):
             )
         except (IndexError, ValueError):
             if event_time_fuzz is None:
-                logger.warn(
+                logger.warning(
                     "Warning: No telemetry available for {}".format(cls.__name__)
                 )
             return [], event_msidset
@@ -705,7 +714,7 @@ class TlmEvent(Event):
                 while tstop - event_time_fuzz < states[-1]["tstop"]:
                     # Event tstop is within event_time_fuzz of the stop of states so
                     # bail out and don't return any states.
-                    logger.warn(
+                    logger.warning(
                         "Warning: dropping state because of "
                         "insufficent event time pad:\n{}\n".format(states[-1:])
                     )
@@ -866,7 +875,7 @@ class TscMove(TlmEvent):
     """
 
     event_msids = ["3tscmove", "3tscpos", "3mrmmxmv"]
-    event_val = "T"
+    event_val = ["T", "MOVE"]
 
     start_3tscpos = models.IntegerField(help_text="Start TSC position (steps)")
     stop_3tscpos = models.IntegerField(help_text="Stop TSC position (steps)")
@@ -923,7 +932,7 @@ class DarkCalReplica(TlmEvent):
     """
 
     event_msids = ["ciumacac"]
-    event_val = "ON "
+    event_val = "ON"
     event_min_dur = 300
 
 
@@ -951,7 +960,7 @@ class DarkCal(TlmEvent):
     """
 
     event_msids = ["ciumacac"]
-    event_val = "ON "
+    event_val = "ON"
     event_time_fuzz = 86400  # One full day of fuzz / pad
     event_min_dur = 8000
 
@@ -1032,7 +1041,7 @@ class FaMove(TlmEvent):
     """
 
     event_msids = ["3famove", "3fapos"]
-    event_val = "T"
+    event_val = ["T", "MOVE"]
 
     start_3fapos = models.IntegerField(help_text="Start FA position (steps)")
     stop_3fapos = models.IntegerField(help_text="Stop FA position (steps)")
@@ -1177,6 +1186,7 @@ class Dump(TlmEvent):
 
     event_msids = ["aounload"]
     event_val = "GRND"
+    event_min_dur = 4.0
 
     type = models.CharField(max_length=4, help_text="Momentum unload type (GRND AUTO)")
 
@@ -1222,7 +1232,7 @@ class Eclipse(TlmEvent):
     """
 
     event_msids = ["aoeclips"]
-    event_val = "ECL "
+    event_val = "ECL"
     fetch_event_msids = ["aoeclips", "eb1k5", "eb2k5", "eb3k5"]
 
 
@@ -1331,6 +1341,8 @@ class Manvr(TlmEvent):
     _get_obsid_start_attr = "stop"  # Attribute to use for getting event obsid
     event_msids = ["aofattmd", "aopcadmd", "aoacaseq", "aopsacpr"]
     event_val = "MNVR"
+    # Aux MSIDs to fetch for maneuver events (required for one-shot)
+    aux_msids = ["aotarqt1", "aotarqt2", "aotarqt3", "aoatter1", "aoatter2", "aoatter3"]
 
     fetch_event_msids = [
         "one_shot",
@@ -1562,12 +1574,12 @@ class Manvr(TlmEvent):
             "aopcadmd": ("NPNT", "NMAN"),
             "aoacaseq": ("GUID", "KALM", "AQXN"),
             "aofattmd": ("MNVR", "STDY"),
-            "aopsacpr": ("INIT", "INAC", "ACT "),
-            "aounload": ("MON ", "GRND"),
+            "aopsacpr": ("INIT", "INAC", "ACT"),
+            "aounload": ("MON", "GRND"),
         }
         anomalous = False
         for change in changes[changes["dt"] >= ZERO_DT]:
-            if change["val"] not in nom_vals[change["msid"]]:
+            if change["val"].strip() not in nom_vals[change["msid"]]:
                 anomalous = True
                 break
 
@@ -1700,11 +1712,7 @@ class Manvr(TlmEvent):
         """
         events = []
         # Auxiliary information
-        aux_msidset = fetch.Msidset(
-            ["aotarqt1", "aotarqt2", "aotarqt3", "aoatter1", "aoatter2", "aoatter3"],
-            start,
-            stop,
-        )
+        aux_msidset = fetch.Msidset(cls.aux_msids, start, stop)
 
         # Need at least 2 samples to get states. Having no samples typically
         # happens when building the event tables and telemetry queries are just
@@ -2390,7 +2398,7 @@ class DsnComm(IFotEvent):
             out["cc"] = pass_plan.cc
             out["pass_plan"] = pass_plan
         if len(pass_plans) > 1:
-            logger.warn(
+            logger.warning(
                 "Multiple pass plans found at {}: {}".format(event["start"], pass_plans)
             )
 
