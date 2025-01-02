@@ -100,6 +100,11 @@ def cmd_set_scs107(date=None):
         dict(type="ACISPKT", tlmsid="AA00000000", dur=1.025),
         dict(type="ACISPKT", tlmsid="AA00000000", dur=10.25),
         dict(type="ACISPKT", tlmsid=pow_cmd),
+        dict(type="COMMAND_HW", tlmsid="215PCAOF"),
+        dict(type="COMMAND_HW", tlmsid="224PCAOF"),
+        dict(type="COMMAND_HW", tlmsid="2IMHVOF"),
+        dict(type="COMMAND_HW", tlmsid="2SPHVOF"),
+        dict(type="COMMAND_HW", tlmsid="2S2HVOF"),
     )
     return cmds
 
