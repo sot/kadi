@@ -97,7 +97,8 @@ def cmd_set_scs107(date=None):
         dict(type="ACISPKT", tlmsid="AA00000000", dur=10.25),
         dict(type="ACISPKT", tlmsid=pow_cmd),
     )
-    # Potentially exclude HRC SCS-107 commanding for some regression testing. This is
+    # Note that the following block to include HRC turn-off commands is wrapped in a
+    # config variable to make this conditional in support of regression testing. This is
     # needed for tests of command generation vs. commands in the archive which did not
     # include this HRC SCS-107 commanding (prior to #344).
     if not kadi.commands.conf.disable_hrc_scs107_commanding:
