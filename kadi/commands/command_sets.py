@@ -7,6 +7,7 @@ from parse_cm.backstop import parse_backstop_params
 from Quaternion import Quat
 from ska_helpers.utils import convert_to_int_float_str
 
+import kadi.commands
 from kadi.commands.core import CommandTable
 
 RTS_PATH = Path("FOT/configuration/products/rts")
@@ -90,22 +91,27 @@ def cmd_set_scs107(date=None):
     cmds = cmd_set_end_observing()
     cmds += (
         dict(type="COMMAND_SW", dur=1.025, tlmsid="OORMPDS"),
-        dict(
-            type="COMMAND_HW",
-            # dur=1.025,
-            tlmsid="AFIDP",
-            msid="AFLCRSET",
-        ),
+        dict(type="COMMAND_HW", tlmsid="AFIDP", msid="AFLCRSET"),
         dict(type="SIMTRANS", params=dict(POS=-99616), dur=65.66),
         dict(type="ACISPKT", tlmsid="AA00000000", dur=1.025),
         dict(type="ACISPKT", tlmsid="AA00000000", dur=10.25),
         dict(type="ACISPKT", tlmsid=pow_cmd),
-        dict(type="COMMAND_HW", tlmsid="215PCAOF"),
-        dict(type="COMMAND_HW", tlmsid="224PCAOF"),
-        dict(type="COMMAND_HW", tlmsid="2IMHVOF"),
-        dict(type="COMMAND_HW", tlmsid="2SPHVOF"),
-        dict(type="COMMAND_HW", tlmsid="2S2HVOF"),
     )
+    # Potentially exclude HRC SCS-107 commanding for some regression testing. This is
+    # needed for tests of command generation vs. commands in the archive which did not
+    # include this HRC SCS-107 commanding (prior to #344).
+    if not kadi.commands.conf.disable_hrc_scs107_commanding:
+        cmds += (
+            dict(type="COMMAND_HW", tlmsid="215PCAOF", dur=1.205),
+            dict(type="COMMAND_HW", tlmsid="224PCAOF", dur=1.025),
+            dict(type="COMMAND_HW", tlmsid="2IMHVOF", dur=1.025),
+            dict(type="COMMAND_HW", tlmsid="2SPHVOF", dur=1.025),
+            dict(type="COMMAND_HW", tlmsid="2S2STHV", dur=1.025),
+            dict(type="COMMAND_HW", tlmsid="2S1STHV", dur=1.025),
+            dict(type="COMMAND_HW", tlmsid="2S2HVOF", dur=1.025),
+            dict(type="COMMAND_HW", tlmsid="2S1HVOF", dur=1.025),
+        )
+
     return cmds
 
 
