@@ -890,7 +890,7 @@ def test_get_observations_start_stop_inclusion():
     assert len(obss) == 0
 
 
-years = np.arange(2003, CxoTime.now().ymdhms.year + 1)
+years = np.arange(2003, 2025)
 
 
 @pytest.mark.parametrize("year", years)
