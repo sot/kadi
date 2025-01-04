@@ -468,7 +468,7 @@ def test_fids_state():
         "2023:001:23:10:52.478 2023:001:23:10:52.734    {2, 4}       fids",
         "2023:001:23:10:52.734 2023:002:00:00:00.000 {2, 4, 5}       fids",
     ]
-    out = kstates["datestart", "datestop", "fids", "trans_keys"].pformat_all()
+    out = kstates["datestart", "datestop", "fids", "trans_keys"].pformat()
     assert out == exp
 
 
@@ -1700,7 +1700,7 @@ def test_grating_motion_states():
         "2021:230:00:41:19.002 2021:230:12:00:00.000      RETR      RETR    NONE         letg",
     ]
     # fmt: on
-    assert sts.pformat_all() == exp
+    assert sts.pformat() == exp
 
 
 def test_hrc_states():
@@ -1732,7 +1732,7 @@ def test_hrc_states():
         "2022:263:21:36:06.000 2022:280:00:00:00.000     OFF     OFF   OFF   OFF    hrc_15v"
     ]
     # fmt: on
-    assert sts.pformat_all() == exp
+    assert sts.pformat() == exp
 
 
 def test_hrc_states_with_scs_commanding():
@@ -1771,7 +1771,7 @@ def test_hrc_states_with_scs_commanding():
         "2023:042:04:02:57.978 2023:042:08:35:28.888      ON    hrc_15v",
         "2023:042:08:35:28.888 2023:042:08:35:28.888     OFF    hrc_15v",
     ]
-    assert sts.pformat_all() == exp
+    assert sts.pformat() == exp
 
 
 def test_early_start_exception():
@@ -1833,7 +1833,7 @@ def test_sun_pos_mon_within_eclipse():
         )
 
         names = ["datestart"] + spm_state_keys
-        assert sts[names][-2:].pformat_all() == exp
+        assert sts[names][-2:].pformat() == exp
 
 
 def test_sun_pos_mon_within_eclipse_no_spm_enab(monkeypatch):
@@ -1862,7 +1862,7 @@ def test_sun_pos_mon_within_eclipse_no_spm_enab(monkeypatch):
         "2005:014:16:38:10.000        DISA 2005:014:15:31:36.410              False",
     ]
     names = ["datestart"] + states.SPM_STATE_KEYS
-    assert sts[names].pformat_all() == exp
+    assert sts[names].pformat() == exp
 
 
 def test_get_continuity_acis_cmd_requires_obsid():
