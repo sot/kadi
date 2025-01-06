@@ -364,7 +364,7 @@ def test_nsm_safe_mode_pitch_offsets_state_constraints(stop_date_2023_203):
         scenario=scenario,
     )
     states["pitch"].info.format = ".1f"
-    out = states["datestart", "pitch", "pcad_mode"].pformat_all()
+    out = states["datestart", "pitch", "pcad_mode"].pformat()
     exp = [
         "      datestart       pitch pcad_mode",
         "--------------------- ----- ---------",
@@ -638,7 +638,7 @@ Definitive,2024:024:09:44:06,NSM,,,,
 
     out = states["datestart", "pitch", "pcad_mode"]
     out["pitch"].format = ".1f"
-    assert out.pformat_all() == exp
+    assert out.pformat() == exp
 
     states = kcs.get_states(
         "2024:024:09:00:00",
@@ -1512,7 +1512,7 @@ def test_hrc_not_run_scenario(stop_date_2023200):  # noqa: ARG001
         state_keys=keys,
         merge_identical=True,
     )
-    states_out = states[["datestart"] + keys].pformat_all()
+    states_out = states[["datestart"] + keys].pformat()
     assert states_out == states_exp
 
     # First make the cmd_events.csv file for the scenario where F_HRC_SAFING is run at
@@ -1555,7 +1555,7 @@ Definitive,2023:184:20:00:00.000,HRC not run,JUL0323A,Tom,Jean,F_HRC_SAFING 2023
         "2023:194:23:13:52.666   OFF   OFF     OFF     OFF",
     ]
 
-    states_out = states[["datestart"] + keys].pformat_all()
+    states_out = states[["datestart"] + keys].pformat()
     assert states_out == states_exp
 
     commands.clear_caches()
@@ -1741,4 +1741,4 @@ def test_read_backstop_with_observations():
         assert obs == obs_flight
 
     for starcat, starcat_flight in zip(starcats, starcats_cmds_flight):
-        assert starcat.pformat_all() == starcat_flight.pformat_all()
+        assert starcat.pformat() == starcat_flight.pformat()

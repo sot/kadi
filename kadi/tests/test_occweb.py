@@ -111,8 +111,8 @@ def test_get_occweb_dir(str_or_Path, cache):
         "       MAR1900E/ 2004-03-18 13:44    -",
         "       MAR2600C/ 2002-04-30 13:38    -",
     ]
-    assert files_path.pformat_all() == exp
-    assert files_url.pformat_all() == exp
+    assert files_path.pformat() == exp
+    assert files_url.pformat() == exp
 
 
 @pytest.mark.skipif(not HAS_OCCWEB, reason="No access to OCCweb")
@@ -137,7 +137,7 @@ def test_get_occweb_noodle(lowercase, backslash):
         "       MAR1900E/ 2004-03-18 13:44    -",
         "       MAR2600C/ 2002-04-30 13:38    -",
     ]
-    assert files_path.pformat_all() == exp
+    assert files_path.pformat() == exp
 
 
 @pytest.mark.skipif(not HAS_OCCWEB, reason="No access to OCCweb")
