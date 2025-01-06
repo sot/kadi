@@ -38,11 +38,13 @@ def write_events(start, stop, dirname):
     dirname : str
         The directory where the event files will be saved.
     """
+    import kadi
     import kadi.paths
     from kadi import events
     from kadi.events.query import EventQuery
 
-    (outdir := Path(dirname) / "events").mkdir(exist_ok=True)
+    print(f"Using kadi from {kadi.__file__} version {kadi.__version__}")
+    (outdir := Path(dirname) / "events").mkdir(exist_ok=True, parents=True)
     print(f"Writing events ECSV files to {outdir}")
     print(f"Events path is {kadi.paths.EVENTS_DB_PATH()}")
 
@@ -60,7 +62,7 @@ def write_events(start, stop, dirname):
                 evts[col.name][:] = evts[col.name].round(6)
 
         path = outdir / f"{name}.ecsv"
-        print(f"Writing {path}")
+        print(f"{len(evts):3d} rows: {path}")
         evts.write(path, overwrite=True)
 
 
