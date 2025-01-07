@@ -27,7 +27,7 @@ def get_arg_parser():
 
 def write_events(start, stop, dirname):
     """
-    Write event data to ECSV files for a specified time range.
+    Write event data for all models to ECSV and .dat files for a specified time range.
 
     Parameters
     ----------
@@ -55,15 +55,34 @@ def write_events(start, stop, dirname):
     }
     for name, query_func in query_funcs.items():
         evts = query_func.filter(start=start, stop=stop).table
+        write_event_evts(outdir, name, evts)
 
-        # Round every float column to 6 decimal places
-        for col in evts.itercols():
-            if col.dtype.kind == "f":
-                evts[col.name][:] = evts[col.name].round(6)
 
-        path = outdir / f"{name}.ecsv"
-        print(f"{len(evts):3d} rows: {path}")
-        evts.write(path, overwrite=True)
+def write_event_evts(outdir, name, evts):
+    """Write event data for a model to ECSV and human-readable dat files."""
+    # Round every float column to 3 decimal places in human-readable .dat output
+    for col in evts.itercols():
+        if col.dtype.kind == "f":
+            evts[col.name].format = ".3f"
+
+    for fmt in "ecsv", "fixed_width_two_line":
+        if fmt == "fixed_width_two_line" and len(evts) == 0:
+            # Skip writing empty fixed_width_two_line files (breaks in astropy)
+            continue
+        ext = "ecsv" if fmt == "ecsv" else "dat"
+        path = outdir / f"{name}.{ext}"
+
+        if fmt == "ecsv":
+            print(f"{len(evts):3d} rows: {path}")
+
+            # Remove tstart and tstop columns from fixed_width_two_line output
+        colnames = evts.colnames.copy()
+        if fmt != "ecsv":
+            for colname in ["tstart", "tstop"]:
+                if colname in colnames:
+                    colnames.remove(colname)
+
+        evts[colnames].write(path, overwrite=True, format=f"ascii.{fmt}")
 
 
 def main(args=None):
