@@ -317,7 +317,7 @@ def save_event_to_database(cls_name, event, event_model, models):
     for foreign_cls_name, rows in event.get("foreign", {}).items():
         ForeignModel = getattr(models, foreign_cls_name)
         if isinstance(rows, np.ndarray):
-            rows = [{key: row[key].tolist() for key in row.dtype.names} for row in rows]
+            rows = [{key: row[key].tolist() for key in row.dtype.names} for row in rows]  # noqa: PLW2901
         for row in rows:
             # Convert to a plain dict if row is structured array
             foreign_model = ForeignModel.from_dict(row, logger)

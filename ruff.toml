@@ -5,7 +5,6 @@ lint.extend-ignore = [
   "B905", # `zip()` without an explicit `strict=` parameter
   "PLR0915", # Too many statements
   "PLR0912", # Too many branches
-  "PLW2901", # Redefined loop name
   "C408", # Unnecessary `dict` call (rewrite as a literal)
 ]
 
