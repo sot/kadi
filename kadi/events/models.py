@@ -983,18 +983,17 @@ class Scs107(TlmEvent):
     """
     SCS107 run
 
-    **Event definition**: interval with the following combination of state values::
+    **Event definition**: reaction wheel bias disabled between 500 to 1000 sec::
 
-      3TSCMOVE = MOVE
       AORWBIAS = DISA
-      CORADMEN = DISA
 
-    These MSIDs are first sampled onto a common time sequence of 32.8 sec samples
-    so the start / stop times are accurate only to that resolution.
+    This is commanded by SCS-107 with a roughly constant time delay from RW Bias
+    disable to the subsequent re-enable. Over the mission the delay has varied from
+    around 900 seconds (early) to ~550 secs (circa 2025), as SCS-107 has been modified.
+    See `notebooks/scs107-via-RW-bias-disable.ipynb` for the supporting analysis.
 
-    Early in the mission there were two SIM TSC translations during an SCS107 run.
-    By the above rules this would generate two SCS107 events, but instead any two
-    SCS107 events within 600 seconds are combined into a single event.
+    For this event, intervals of RW Bias being disabled for 500 to 1000 seconds are
+    selected as a proxy for SCS-107 runs.
 
     **Fields**
 
@@ -1013,23 +1012,15 @@ class Scs107(TlmEvent):
 
     notes = models.TextField(help_text="Supplemental notes")
 
-    event_msids = ["3tscmove", "aorwbias", "coradmen"]
-    event_time_fuzz = 600  # Earlier in the mission SCS107 resulted in two SIM moves
-    event_filter_bad = False
+    event_msids = ["aorwbias"]
+    event_val = "DISA"
 
     @classmethod
-    def get_state_times_bools(cls, msidset):
-        # Interpolate all MSIDs to a common time.  Sync to the start of 3tscmove which is
-        # sampled at 32.8 seconds
-        msidset_interpolate(msidset, 32.8, msidset["3tscmove"].times[0])
-
-        scs107 = (
-            (msidset["3tscmove"].vals == "T")
-            & (msidset["aorwbias"].vals == "DISA")
-            & (msidset["coradmen"].vals == "DISA")
-        )
-
-        return msidset.times, scs107
+    def get_events(cls, start, stop=None):
+        events = super().get_events(start, stop)
+        # See docstring for why we select only 500 to 1000 second intervals
+        events = [event for event in events if 500 < event["dur"] < 1000]
+        return events
 
 
 class FaMove(TlmEvent):
