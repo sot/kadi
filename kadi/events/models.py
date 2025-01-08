@@ -416,7 +416,7 @@ class BaseModel(models.Model):
 
         # Get the obsid at the appropriate time for the event (typically "start"
         # but "stop" in the case of Manvr).
-        if isinstance(model, TlmEvent) and model is not Obsid:
+        if isinstance(model, TlmEvent) and cls is not Obsid:
             tstart = DateTime(model_dict[cls._get_obsid_start_attr]).secs
             obsrq = fetch.Msid("cobsrqid", tstart, tstart + 200)
             if len(obsrq.vals) == 0:
