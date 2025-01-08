@@ -407,32 +407,24 @@ class BaseModel(models.Model):
         ordering = ["start"]
 
     @classmethod
-    def from_dict(cls, model_dict, logger=None):
+    def from_dict(cls, model_dict, logger=None) -> "BaseModel":
         """
         Set model from a dict `model_dict` which might have extra stuff not in
         Model.  If `logger` is supplied then log output at debug level.
+
+        Parameters
+        ----------
+        model_dict : dict
+            Dictionary of model attributes
+        logger : logging.Logger, optional
+            Logger object to log debug output
+
+        Returns
+        -------
+        model : BaseModel
+            Model instance
         """
         model = cls()
-
-        # Get the obsid at the appropriate time for the event (typically "start"
-        # but "stop" in the case of Manvr).
-        if isinstance(model, TlmEvent) and cls is not Obsid:
-            tstart = DateTime(model_dict[cls._get_obsid_start_attr]).secs
-            obsrq = fetch.Msid("cobsrqid", tstart, tstart + 200)
-            if len(obsrq.vals) == 0:
-                logger.warning(
-                    "WARNING: unable to get COBSRQID near "
-                    f"{model_dict[cls._get_obsid_start_attr]}, "
-                    "using obsid=-999"
-                )
-                model_dict["obsid"] = -999
-            else:
-                # MAUDE telemetry can include corrupted values near IU reset,
-                # so set obsid to 0 in that case. Obsid=0 will be the next valid value.
-                if (obsid := obsrq.vals[0]) > 65535:
-                    logger.info(f"Setting obsid=0 to replace corrupted obsid={obsid}")
-                    obsid = 0
-                model_dict["obsid"] = obsid
 
         for key, val in model_dict.items():
             if hasattr(model, key):
@@ -441,6 +433,7 @@ class BaseModel(models.Model):
                         "Setting {} model with {}={}".format(model.model_name, key, val)
                     )
                 setattr(model, key, val)
+
         return model
 
     @classmethod
@@ -735,6 +728,46 @@ class TlmEvent(Event):
                 states = fuzz_states(states, event_time_fuzz)
 
         return states, event_msidset
+
+    @classmethod
+    def from_dict(cls, model_dict, logger=None) -> "BaseModel":
+        """
+        Set model from a dict `model_dict` which might have extra stuff not in
+        Model.  If `logger` is supplied then log output at debug level.
+
+        Parameters
+        ----------
+        model_dict : dict
+            Dictionary of model attributes
+        logger : logging.Logger, optional
+            Logger object to log debug output
+
+        Returns
+        -------
+        model : BaseModel
+            Model instance
+        """
+        # Get the obsid at the appropriate time for the event (typically "start"
+        # but "stop" in the case of Manvr). But don't do this for Obsid.
+        if cls is not Obsid:
+            tstart = DateTime(model_dict[cls._get_obsid_start_attr]).secs
+            obsrq = fetch.Msid("cobsrqid", tstart, tstart + 200)
+            if len(obsrq.vals) == 0:
+                logger.warning(
+                    "WARNING: unable to get COBSRQID near "
+                    f"{model_dict[cls._get_obsid_start_attr]}, "
+                    "using obsid=-999"
+                )
+                model_dict["obsid"] = -999
+            else:
+                # MAUDE telemetry can include corrupted values near IU reset,
+                # so set obsid to 0 in that case. Obsid=0 will be the next valid value.
+                if (obsid := obsrq.vals[0]) > 65535:
+                    logger.info(f"Setting obsid=0 to replace corrupted obsid={obsid}")
+                    obsid = 0
+                model_dict["obsid"] = obsid
+
+        return super().from_dict(model_dict, logger)
 
     @classmethod
     def get_events(cls, start, stop=None):
