@@ -1906,8 +1906,7 @@ class SafeSun(TlmEvent):
     notes = models.TextField()
     event_msids = ["conlofp", "ctufmtsl", "c1sqax"]
     event_filter_bad = False
-    event_time_fuzz = 86400  # One full day of fuzz / pad
-    event_min_dur = 36000
+    event_min_dur = 3600
 
     fetch_event_pad = 86400 / 2
     fetch_event_msids = ["conlofp", "ctufmtsl", "c1sqax", "aopcadmd", "61psts02"]
@@ -1973,7 +1972,6 @@ class NormalSun(TlmEvent):
 
     event_msids = ["aopcadmd"]
     event_val = "NSUN"
-    event_time_fuzz = 86400  # One full day of fuzz
 
 
 class MajorEvent(BaseEvent):
