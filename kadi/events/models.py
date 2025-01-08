@@ -427,7 +427,12 @@ class BaseModel(models.Model):
                 )
                 model_dict["obsid"] = -999
             else:
-                model_dict["obsid"] = obsrq.vals[0]
+                # MAUDE telemetry can include corrupted values near IU reset,
+                # so set obsid to 0 in that case. Obsid=0 will be the next valid value.
+                if (obsid := obsrq.vals[0]) > 65535:
+                    logger.info(f"Setting obsid=0 to replace corrupted obsid={obsid}")
+                    obsid = 0
+                model_dict["obsid"] = obsid
 
         for key, val in model_dict.items():
             if hasattr(model, key):
@@ -820,7 +825,16 @@ class Obsid(TlmEvent):
         events = []
         # Get the event telemetry MSID objects
         event_msidset = fetch.Msidset(cls.event_msids, start, stop)
-        obsid = event_msidset["cobsrqid"]
+        obsid: fetch.Msid = event_msidset["cobsrqid"]
+
+        # Bad telemetry following an IU reset and/or Safe Mode
+        bad = (obsid.vals < 0) | (obsid.vals > 65535)
+        if np.count_nonzero(bad) > 0:
+            logger.info(
+                f"Setting bad COBSRQID values {obsid.vals[bad]} at "
+                f"{DateTime(obsid.times[bad]).date} to 0"
+            )
+        obsid.vals[bad] = 0
 
         if len(obsid) < 2:
             # Not enough telemetry for state_intervals, return no events
