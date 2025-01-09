@@ -2532,8 +2532,8 @@ def get_continuity(
 def interpolate_states(states, times):
     """Interpolate ``states`` table at given times.
 
-    Any ``times`` that are outside the range of the states table are clipped to the
-    first or last state.
+    For any ``times`` that are before or after the range of the states table, the
+    output state will be the first or last state, respectively..
 
     Parameters
     ----------
