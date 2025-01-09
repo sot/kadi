@@ -1897,3 +1897,12 @@ def test_get_continuity_spm_eclipse():
             "eclipse_enable_spm": "2017:087:07:49:55.838",
         },
     }
+
+
+def test_interpolate_states_extrapolate():
+    """Test that the states are correctly interpolated and extrapolated."""
+    # fmt: off
+    sts =  states.get_states("2024:001:00:01:00", "2024:001:00:05:00", state_keys=["obsid"])
+    times = ["2024:001:00:00:00", "2024:001:00:02:30", "2024:001:00:05:00", "2024:001:00:06:00"]
+    sts_interp = states.interpolate_states(sts, times)
+    assert np.all(sts_interp["obsid"] == [43839] * 4)

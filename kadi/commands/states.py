@@ -2532,6 +2532,9 @@ def get_continuity(
 def interpolate_states(states, times):
     """Interpolate ``states`` table at given times.
 
+    Any ``times`` that are outside the range of the states table are clipped to the
+    first or last state.
+
     Parameters
     ----------
     states
@@ -2554,7 +2557,7 @@ def interpolate_states(states, times):
         tstops = date2secs(states["datestop"])
 
     indexes = np.searchsorted(tstops, times)
-    out = states[indexes]
+    out = states[indexes.clip(0, len(states) - 1)]
     out.add_column(Column(secs2date(times), name="date"), index=0)
 
     return out
