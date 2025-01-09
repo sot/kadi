@@ -1272,6 +1272,9 @@ class Eclipse(TlmEvent):
     event_msids = ["aoeclips"]
     event_val = "ECL"
     fetch_event_msids = ["aoeclips", "eb1k5", "eb2k5", "eb3k5"]
+    # There are many short periods of ECL that are not real eclipses, typically
+    # following a real eclipse, most commonly < 10 s. Require a minimum duration.
+    event_min_dur = 100
 
 
 class Manvr(TlmEvent):
