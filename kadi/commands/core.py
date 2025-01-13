@@ -892,7 +892,7 @@ class CommandTable(Table):
                         fmt = "{}={}"
                     fmtvals.append(fmt.format(key, val))
 
-                fmtvals.append(f'scs={cmd["scs"]}')
+                fmtvals.append(f"scs={cmd['scs']}")
 
                 params_str = ", ".join(fmtvals)
             else:

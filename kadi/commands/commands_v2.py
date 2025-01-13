@@ -361,7 +361,7 @@ def update_archive_and_get_cmds_recent(
 
     # Update loads table and download/archive backstop files from OCCweb
     loads = update_loads(scenario, cmd_events=cmd_events, lookback=lookback, stop=stop)
-    logger.info(f'Including loads {", ".join(loads["name"])}')
+    logger.info(f"Including loads {', '.join(loads['name'])}")
 
     for load in loads:
         load_name = load["name"]
@@ -437,7 +437,7 @@ def update_archive_and_get_cmds_recent(
         logger.info(f"Processing {cmds_source} with {len(cmds)} commands")
         end_scs = collections.defaultdict(list)
         if date_end := cmds.meta.get("rltt"):
-            source = f'RLTT in {cmds["source"][0]}'
+            source = f"RLTT in {cmds['source'][0]}"
             end_scs[date_end, source].extend([128, 129, 130, 131, 132, 133])
 
         # Explicit END SCS commands. Most commonly these come from command events
@@ -447,7 +447,7 @@ def update_archive_and_get_cmds_recent(
         if np.any(ok):
             for cmd in cmds[ok]:
                 if (scs := cmd["params"]["codisas1"]) >= 128:
-                    source = f'DISABLE SCS in {cmd["source"]} at {cmd["date"]}'
+                    source = f"DISABLE SCS in {cmd['source']} at {cmd['date']}"
                     end_scs[cmd["date"], source].append(scs)
 
         for (date_end, source), scss in end_scs.items():
@@ -465,7 +465,7 @@ def update_archive_and_get_cmds_recent(
                         n_bad = np.count_nonzero(bad)
                         logger.info(
                             f"Removing {n_bad} cmds in SCS slots {scss} from "
-                            f'{prev_cmds["source"][0]} due to {source}'
+                            f"{prev_cmds['source'][0]} due to {source}"
                         )
                     cmds_list[jj] = prev_cmds[~bad]
 
@@ -654,7 +654,7 @@ def get_cmds_obs_from_manvrs(cmds, prev_att=None):
                 npnt_enab = False
             if targ_att is None:
                 # No target attitude is unexpected since we got to a MANVR cmd.
-                logger.warning(f'WARNING: no target attitude for {cmd["date"]}')
+                logger.warning(f"WARNING: no target attitude for {cmd['date']}")
                 log_context_obs(cmds, cmd)
                 continue
             if prev_att is None:
@@ -662,7 +662,7 @@ def get_cmds_obs_from_manvrs(cmds, prev_att=None):
                 # beginning of loads, and normally we just push on to the next
                 # OBS. But if we already have OBS command this is a problem.
                 if cmds_obs:
-                    logger.warning(f'WARNING: No previous attitude for {cmd["date"]}')
+                    logger.warning(f"WARNING: No previous attitude for {cmd['date']}")
                     log_context_obs(cmds, cmd)
                 prev_att = targ_att
                 continue
