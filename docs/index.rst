@@ -28,4 +28,4 @@ manipulation of events and commands related to the Chandra X-ray Observatory:
 
    events/index
    commands_states
-   api
+   api/index
