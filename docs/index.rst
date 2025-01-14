@@ -27,5 +27,5 @@ manipulation of events and commands related to the Chandra X-ray Observatory:
    :hidden:
 
    events/index
-   commands_states
+   commands_states/index
    api/index

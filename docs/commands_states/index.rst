@@ -926,4 +926,4 @@ details, please see:
 .. toctree::
    :maxdepth: 2
 
-   commands_v2.rst
+   commands_details.rst
