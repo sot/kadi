@@ -7,21 +7,22 @@
 Commands and states
 ===================
 
-**Commands**
+The Commands archive provides a table of most commands that have run, or are
+currently approved to be run, on the spacecraft since 2002.  This archive accounts for
+load stoppages, replans, and certain non-load commands like ACIS CTI runs or Normal Sun
+Mode transitions.
 
-The Commands archive is a table of every load command that has been run, or is currently
-approved to be run, on the spacecraft since 2002.  This archive accounts for load stoppages,
-replans, and certain non-load commands like ACIS CTI runs or Normal Sun Mode transitions.
+The flight commands archive relies on the `Chandra Command Events`_ sheet and
+OCCweb FOT mission planning approved load products to maintain the commands archive.
 
-The flight `Commands archive v2`_  relies on the `Chandra Command Events`_ sheet and
-OCCweb FOT mission planning approved load products to maintain the commands database.
 This archive provides an up-to-date view of commands and states even during anomalies.
-The `Chandra Command Events`_ sheet is kept current during anomalies by FOT MP and helps
-facilitate team-wide communication of non-load spacecraft commanding.
+The `Chandra Command Events`_ sheet is kept current during anomalies by FOT MP and
+facilitates team-wide communication of non-load spacecraft commanding.
 
 **States and continuity**
 
-Coupled with the commands archive is functionality determine `Chandra states and continuity`_:
+Coupled with the commands archive is functionality to determine `Chandra states and
+continuity`_:
 
 - **State** values of certain parameters of interest (obsid, SIM-Z position, commanded
   attitude, ACIS power configuration, etc) over an **interval of time** during which all
@@ -39,22 +40,18 @@ installed code.  Note that a key design feature is that is it straightforward fo
 to implement their own states, often with just a few lines of code.  See the `User-defined states`_
 section for details.
 
-Commands archive v2
--------------------
+.. note::
 
-For more details of the commands v2 archive, including important information
-about network access, the timeliness of commands, configuration and process
-details, please see:
-
-.. toctree::
-   :maxdepth: 2
-
-   commands_v2.rst
+   A common point of confusion is the difference between :ref:`kadi events
+   <chandra_events>` and `Chandra Command Events`_, due to the unfortunate overloading
+   of "events".  The former are events such as a maneuver that are derived from
+   telemetry or web resources. The latter are events such as an SCS-107 run that impact
+   the history of commands that were run on the spacecraft.
 
 Initial setup
-^^^^^^^^^^^^^
+-------------
 
-In order to use commands archive v2 to always get the most up-to-date commands,
+In order to use commands archive to always get the most up-to-date commands,
 you need to set up automated access to OCCweb so the code can fetch recent
 command loads. This is done by creating a file at the top level of your home
 directory called ``.netrc`` which includes the following contents::
@@ -71,7 +68,7 @@ then there needs to be a blank line between entries.
    ``chmod og-rwx ~/.netrc``.
 
 Getting commands
-^^^^^^^^^^^^^^^^
+----------------
 
 The basic way to select commands is with the |get_cmds| method.  For example you can find
 load commands from early in 2013 with::
@@ -180,7 +177,7 @@ command table.  Note that command rows without that parameter will have a ``None
 .. _getting-observations:
 
 Getting observations
-^^^^^^^^^^^^^^^^^^^^
+---------------------
 
 The commands archive includes special ``LOAD_EVENT`` commands (like the RLTT) that
 contain information about observations in the loads. An "observation" is defined
@@ -242,7 +239,7 @@ this into an astropy ``Table``::
     26247  75624 2022:001:05:21:28.604 2021:365:18:39:30.234 ... 2021:365:19:06:05.650  0.553670113 .. 0.0635036584      170517 DEC3021A
 
 Under the hood
-""""""""""""""
+^^^^^^^^^^^^^^^
 
 The observation information is stored as ``LOAD_EVENT`` commands that can be viewed
 directly::
@@ -269,14 +266,14 @@ directly::
     'prev_att': (-0.0743435142, -0.559183412, -0.804323901, 0.186681591),
     'starcat_idx': 170518}
 
-As with :func:`~kadi.commands.commands.get_cmds` in the v2 archive, you can provide a
+As with :func:`~kadi.commands.commands.get_cmds` in the archive, you can provide a
 ``scenario`` keyword to :func:`~kadi.commands.observations.get_observations` to
 select a custom or ``'flight'`` scenario.
 
 .. _getting-star-catalogs:
 
 Getting star catalogs
-^^^^^^^^^^^^^^^^^^^^^
+----------------------
 
 The ACA star catalogs associated with observations can be retrieved using the
 :func:`~kadi.commands.observations.get_starcats()` function. For example::
@@ -307,13 +304,13 @@ The ACA star catalogs associated with observations can be retrieved using the
    are stubbed with empty tables.
 
 Getting dicts instead of ACA tables
-"""""""""""""""""""""""""""""""""""
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Another performance option which can be useful in some cases is to set the
 ``as_dict`` keyword to ``True``. This will return a list of dictionaries instead
 of converting each catalog into an ``ACATable`` object.
 
 Getting a Table of catalog entries
-""""""""""""""""""""""""""""""""""
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 For some use cases you want a single table of all star catalog entries matching
 the specified criteria. This can be done with the
 :func:`~kadi.commands.observations.get_starcats_as_table` function. This is
@@ -322,7 +319,7 @@ roughly the equivalent of doing a Table ``vstack`` of the individual
 ``starcat_date`` are added to provide this information for each entry.
 
 Caching
-"""""""
+^^^^^^^
 
 In order to significantly speed up the retrieval of historical star catalogs for
 typical ACA operations analysis, the results of each call to ``get_starcats()``
@@ -917,3 +914,16 @@ challenge is typically defining the ``set_transitions()`` method and potentially
 transition callback functions.  There are a number of examples of this in the kadi code
 and this should serve as your starting point.  The Ska team will be happy to assist
 you if this is not enough.
+
+
+Commands archive details
+------------------------
+
+For more details of the commands archive, including important information
+about network access, the timeliness of commands, configuration and process
+details, please see:
+
+.. toctree::
+   :maxdepth: 2
+
+   commands_v2.rst

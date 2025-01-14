@@ -108,19 +108,30 @@ pygments_style = 'sphinx'
 # If true, keep warnings as "system message" paragraphs in the built documents.
 #keep_warnings = False
 
+autodoc_typehints = 'none'
 
 # -- Options for HTML output ---------------------------------------------------
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-html_theme = 'bootstrap-ska'
+html_baseurl = "https://sot.github.org/kadi/"
+
+html_theme = 'pydata_sphinx_theme'
+
 html_theme_options = {
-    'logotext1': 'Ska!' ,
-    'logotext2': 'Kadi',
-    'logotext3': '',
-    'homepage_url': 'https://sot.github.io/',
-    'homepage_text': 'ska',
-    'homepage_text_2': 'tools'
+    "icon_links": [
+        {
+            "name": "GitHub",
+            "url": "https://github.com/sot/kadi",
+            "icon": "fab fa-github-square",
+        },
+    ],
+    "navbar_end": ["theme-switcher", "navbar-icon-links"],
+    "secondary_sidebar_items": ["page-toc"],
+}
+
+html_sidebars = {
+  "**": []
 }
 
 # Theme options are theme-specific and customize the look and feel of a theme
@@ -141,7 +152,7 @@ html_theme_options = {
 # The name of an image file (relative to this directory) to place at the top
 # of the sidebar.
 #html_logo = None
-html_logo = 'ska.png'
+html_logo = 'kadi-logo.png'
 
 # The name of an image file (within the static path) to use as favicon of the
 # docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32

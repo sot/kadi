@@ -22,6 +22,8 @@
 .. |Scs107| replace:: :class:`~kadi.events.models.Scs107`
 .. |TscMove| replace:: :class:`~kadi.events.models.TscMove`
 
+.. _chandra_events:
+
 Chandra events
 ==============
 
@@ -831,3 +833,12 @@ and did not have an intermediate attitude, you could do::
 
 To go really crazy and allow for even more complex queries, like those requiring ``OR``
 logic, you can use `Django Q objects <https://docs.djangoproject.com/en/3.1/topics/db/queries/#complex-lookups-with-q-objects>`_.
+
+
+Maneuver templates
+""""""""""""""""""
+.. toctree::
+    :maxdepth: 1
+
+    maneuver_templates
+    event_descriptions
