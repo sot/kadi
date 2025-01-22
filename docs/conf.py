@@ -13,14 +13,16 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import sys
-import os
 import warnings
 import importlib
+from pathlib import Path
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
-sys.path.insert(0, os.path.abspath('..'))
+# -- Path setup --------------------------------------------------------------
+rootpath = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(rootpath))
 
 # -- General configuration -----------------------------------------------------
 
@@ -37,15 +39,8 @@ extensions = ['sphinx.ext.autodoc',
               'sphinx.ext.intersphinx',
               'sphinx.ext.imgmath',
               'sphinx.ext.viewcode',
+              'matplotlib.sphinxext.plot_directive',
               'numpydoc']
-
-try:
-    import matplotlib.sphinxext.plot_directive
-    extensions += [matplotlib.sphinxext.plot_directive.__name__]
-except ImportError:
-    warnings.warn(
-        "matplotlib's plot_directive could not be imported. " +
-        "Inline plots will not be included in the output")
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -60,8 +55,8 @@ templates_path = ['_templates']
 # master_doc = 'index'
 
 # General information about the project.
-project = u'kadi'
-copyright = u'2013, Tom Aldcroft'
+project = 'kadi'
+copyright = '2025, Tom Aldcroft'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
