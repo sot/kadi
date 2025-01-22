@@ -1,7 +1,7 @@
-.. |get_cmds| replace:: :func:`~kadi.commands.commands.get_cmds`
+.. |get_cmds| replace:: :func:`~kadi.commands.commands_v2.get_cmds`
 .. |get_continuity| replace:: :func:`~kadi.commands.states.get_continuity`
 .. |get_states| replace:: :func:`~kadi.commands.states.get_states`
-.. |CommandTable| replace:: :class:`~kadi.commands.commands.CommandTable`
+.. |CommandTable| replace:: :class:`~kadi.commands.core.CommandTable`
 .. _Chandra Command Events: https://docs.google.com/spreadsheets/d/19d6XqBhWoFjC-z1lS1nM6wLE_zjr4GYB1lOvrEGCbKQ
 
 Commands and states
@@ -28,7 +28,7 @@ continuity`_:
   attitude, ACIS power configuration, etc) over an **interval of time** during which all
   parameters have been unaffected by commanding and are unchanged.  This provides a
   compact way to represent the impact of commanding on the spacecraft state over time and
-  is used in `xija thermal model <http://cxc.cfa.harvard.edu/mta/ASPECT/tool_doc/xija/>`_
+  is used in `xija thermal model <https://sot.github.io/xija/>`_
   predictions.
 
 - **Continuity** values of certain parameters of interest at a **particular time**.
@@ -266,7 +266,7 @@ directly::
     'prev_att': (-0.0743435142, -0.559183412, -0.804323901, 0.186681591),
     'starcat_idx': 170518}
 
-As with :func:`~kadi.commands.commands.get_cmds` in the archive, you can provide a
+As with |get_cmds| in the archive, you can provide a
 ``scenario`` keyword to :func:`~kadi.commands.observations.get_observations` to
 select a custom or ``'flight'`` scenario.
 
@@ -538,7 +538,7 @@ to consider up to four different elements:
 - Load commands
 
 In this case the calling code is responsible for logic to assemble a single commands table
-for the ``cmds`` argument as a :class:`~kadi.commands.commands.CommandTable` object.
+for the ``cmds`` argument as a :class:`~kadi.commands.core.CommandTable` object.
 
 .. note:: The plan is to provide convenience methods and documentation to make this
    process more straightforward.  E.g.::

@@ -299,14 +299,6 @@ Starting from the top, you can list the available event types with the following
           tsc_moves                   SIM TSC translation         TscMove
   =================  ====================================  ==============
 
-  More help available at:
-
-  - Getting started
-      http://cxc.cfa.harvard.edu/mta/ASPECT/tool_doc/kadi/#getting-started
-
-  - Details (event definitions, filtering, intervals)
-      http://cxc.cfa.harvard.edu/mta/ASPECT/tool_doc/kadi/#details
-
 Next you may want to learn about the specific fields that are available
 for an event type.  Use the same ``?`` strategy here::
 

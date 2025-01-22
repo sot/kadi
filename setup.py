@@ -41,7 +41,7 @@ setup(
     description="Kadi command and events archive",
     author="Tom Aldcroft",
     author_email="taldcroft@cfa.harvard.edu",
-    url="http://cxc.harvard.edu/mta/ASPECT/tool_doc/kadi/",
+    url="https://sot.github.io/kadi/",
     packages=[
         "kadi",
         "kadi.events",
