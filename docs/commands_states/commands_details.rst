@@ -1,12 +1,12 @@
 .. _Chandra Command Events: https://docs.google.com/spreadsheets/d/19d6XqBhWoFjC-z1lS1nM6wLE_zjr4GYB1lOvrEGCbKQ
 
-Commands archive v2 details
+Commands archive details
 ===========================
 
 Concept overview
 ----------------
 
-The key concept underlying version 2 is that it uses web resources to always
+The key concept underlying the commands archive is that it uses web resources to always
 provide the most current set of executed and planned load and non-load commands.
 This is true even in rapidly changing circumstances such as anomaly recovery or
 a fast TOO. The code provides correct results without need for the user to worry
@@ -33,7 +33,7 @@ Scenarios
 A scenario is an specific version of events that you like to evaluate. The
 default scenario is the `Chandra Command Events`_ sheet.
 
-Providing for alternate scenarios is a key feature of the commands archive v2.
+Providing for alternate scenarios is a key feature of the commands archive.
 An example is checking for thermal propagation for assuming an ACIS CTI using
 either 3-chips or 4-chips, or no CTI at all. Such scenarios are considered
 "custom" scenarios and can be created and easily manipulated by the user.

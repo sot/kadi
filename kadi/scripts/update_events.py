@@ -60,7 +60,7 @@ def try4times(func, *arg, **kwarg):
 
     This is presumably due to read activity.  Not completely understood.
 
-    This function will try to run func(*arg, **kwarg) a total of 4 times with an
+    This function will try to run ``func(*arg, **kwarg)`` a total of 4 times with an
     increasing sequence of wait times between tries.  It catches only a database
     locked error.
     """

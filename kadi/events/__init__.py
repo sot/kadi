@@ -30,14 +30,6 @@ dark_cal_replicas  ACA dark current calibration replica  DarkCalReplica
           scs107s                            SCS107 run          Scs107
         tsc_moves                   SIM TSC translation         TscMove
 =================  ====================================  ==============
-
-More help available at:
-
-- Getting started
-    http://cxc.cfa.harvard.edu/mta/ASPECT/tool_doc/kadi/#getting-started
-
-- Details (event definitions, filtering, intervals)
-    http://cxc.cfa.harvard.edu/mta/ASPECT/tool_doc/kadi/#details
 """
 
 import importlib

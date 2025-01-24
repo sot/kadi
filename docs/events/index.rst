@@ -22,6 +22,8 @@
 .. |Scs107| replace:: :class:`~kadi.events.models.Scs107`
 .. |TscMove| replace:: :class:`~kadi.events.models.TscMove`
 
+.. _chandra_events:
+
 Chandra events
 ==============
 
@@ -296,14 +298,6 @@ Starting from the top, you can list the available event types with the following
             scs107s                            SCS107 run          Scs107
           tsc_moves                   SIM TSC translation         TscMove
   =================  ====================================  ==============
-
-  More help available at:
-
-  - Getting started
-      http://cxc.cfa.harvard.edu/mta/ASPECT/tool_doc/kadi/#getting-started
-
-  - Details (event definitions, filtering, intervals)
-      http://cxc.cfa.harvard.edu/mta/ASPECT/tool_doc/kadi/#details
 
 Next you may want to learn about the specific fields that are available
 for an event type.  Use the same ``?`` strategy here::
@@ -831,3 +825,12 @@ and did not have an intermediate attitude, you could do::
 
 To go really crazy and allow for even more complex queries, like those requiring ``OR``
 logic, you can use `Django Q objects <https://docs.djangoproject.com/en/3.1/topics/db/queries/#complex-lookups-with-q-objects>`_.
+
+
+Maneuver templates
+""""""""""""""""""
+.. toctree::
+    :maxdepth: 1
+
+    maneuver_templates
+    event_descriptions

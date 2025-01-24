@@ -5,8 +5,7 @@ Creates a TEXT field with a default value of "{}".  See test_json.py for
 more information.
 
 Taken from:
-https://github.com/django-extensions/django-extensions/
-        blob/master/django_extensions/db/fields/json.py
+https://github.com/django-extensions/django-extensions/blob/master/django_extensions/db/fields/json.py
 
  from django.db import models
  from django_extensions.db.fields import json
