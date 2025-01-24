@@ -4,8 +4,9 @@
 # https://www.sphinx-doc.org/en/master/usage/configuration.html
 
 import importlib
+import os
 import sys
-from pathlib import Path
+
 
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
@@ -15,8 +16,7 @@ copyright = '2025, Smithsonian Astrophysical Observatory'
 author = 'Tom Aldcroft'
 
 # -- Path setup --------------------------------------------------------------
-rootpath = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(rootpath))
+sys.path.insert(0, os.path.abspath(".."))
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
@@ -29,7 +29,8 @@ extensions = ['sphinx.ext.autodoc',
               'sphinx.ext.viewcode',
               'sphinx_copybutton',
               'matplotlib.sphinxext.plot_directive',
-              'numpydoc'
+              'numpydoc',
+              'autoapi.extension',
              ]
 
 templates_path = ['_templates']
@@ -94,3 +95,9 @@ numpydoc_show_class_members = False
 intersphinx_mapping = {
     'numpy': ('http://docs.scipy.org/doc/numpy/', None),
     }
+
+autoapi_dirs = [f"../{project}"]
+autoapi_root = "api"
+autoapi_template_dir = "_templates"
+autoapi_own_page_level = "function"
+autoapi_ignore = ["*/test_*.py", "*/conftest.py"]
