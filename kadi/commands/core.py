@@ -2,6 +2,7 @@
 import calendar
 import functools
 import logging
+import os
 import pickle
 import struct
 import warnings
@@ -1107,3 +1108,25 @@ def ska_load_dir(load_name: str) -> Path:
     from parse_cm.paths import load_dir_from_load_name
 
     return load_dir_from_load_name(load_name)
+
+
+def get_default_stop() -> str | None:
+    """Get the default stop date for kadi commands.
+
+    This returns the value of the CXOTIME_NOW environment variable if set,
+    otherwise the value of the KADI_COMMANDS_DEFAULT_STOP environment variable,
+    otherwise None.
+    """
+
+    stop = os.environ.get(
+        "CXOTIME_NOW", kadi_stop := os.environ.get("KADI_COMMANDS_DEFAULT_STOP")
+    )
+
+    if kadi_stop:
+        warnings.warn(
+            "Setting KADI_COMMANDS_DEFAULT_STOP env var is deprecated, use CXOTIME_NOW",
+            UserWarning,
+            stacklevel=2,
+        )
+
+    return stop

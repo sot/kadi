@@ -320,7 +320,7 @@ def stop_date_fixture_factory(stop_date):
     @pytest.fixture()
     def stop_date_fixture(monkeypatch):
         commands.clear_caches()
-        monkeypatch.setenv("KADI_COMMANDS_DEFAULT_STOP", stop_date)
+        monkeypatch.setenv("CXOTIME_NOW", stop_date)
         cmds_dir = Path(conf.commands_dir) / CxoTime(stop_date).iso[:9]
         with commands.conf.set_temp("commands_dir", str(cmds_dir)):
             yield
@@ -1281,7 +1281,7 @@ def test_scenario_with_rts(monkeypatch, fast_sun_position_method):
     # example in the documentation.
     from kadi import paths
 
-    monkeypatch.setenv("KADI_COMMANDS_DEFAULT_STOP", "2021:299")
+    monkeypatch.setenv("CXOTIME_NOW", "2021:299")
 
     # Ensure local cmd_events.csv is up to date by requesting "recent" commands
     # relative to the default stop.

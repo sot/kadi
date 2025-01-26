@@ -98,7 +98,7 @@ of the 2021:296 NSM recovery::
     >>> events_cti.write(path_cti, overwrite=True)
 
     >>> import os
-    >>> os.environ['KADI_COMMANDS_DEFAULT_STOP'] = '2021:299'
+    >>> os.environ['CXOTIME_NOW'] = '2021:299'
 
     >>> cmds = get_cmds('2021:296:10:35:00', '2021:298:01:58:00', scenario='nsm-cti')
     >>> cmds[cmds['event'] == 'RTS'].pprint_like_backstop()
@@ -190,15 +190,16 @@ forgetting to revert it later.
 Environment variables
 ---------------------
 
-``KADI``
-  Override the default location of kadi flight data files ``cmds2.h5`` and
-  ``cmds2.pkl``.
-
-``KADI_COMMANDS_DEFAULT_STOP``
+``CXOTIME_NOW``
   For testing and demonstration purposes, this environment variable can be set
   to a date which is used as the default stop time for commands. In effect this
   makes the code believe that this is the current time and that there are no
-  command loads available after this time.
+  command loads available after this time. The legacy ``KADI_COMMANDS_DEFAULT_STOP``
+  environment variable is equivalent but it is deprecated.
+
+``KADI``
+  Override the default location of kadi flight data files ``cmds2.h5`` and
+  ``cmds2.pkl``.
 
 ``KADI_SCENARIO``
   Set the default scenario. This can be used to set the scenario in an
