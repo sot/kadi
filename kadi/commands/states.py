@@ -17,6 +17,7 @@ import chandra_maneuver
 import numpy as np
 import ska_sun
 from astropy.table import Column, Table
+from astropy.table import Row as TableRow
 from chandra_time import DateTime, date2secs, secs2date
 from cxotime import CxoTime
 from Quaternion import Quat
@@ -57,7 +58,7 @@ QUAT_COMPS = ["q1", "q2", "q3", "q4"]
 PCAD_STATE_KEYS = (
     QUAT_COMPS
     + ["targ_" + qc for qc in QUAT_COMPS]
-    + ["auto_npnt", "pcad_mode", "pitch", "off_nom_roll"]
+    + ["auto_npnt", "pcad_mode", "sun_ra", "sun_dec"]
 )
 
 # State keys for SPM-related transitions.
@@ -235,17 +236,37 @@ class DerivedTransition:
 
 
 class RaDecRollTransition(DerivedTransition):
-    state_keys_input = ["q1", "q2", "q3", "q4"]
+    state_keys_input = QUAT_COMPS
     state_keys_output = ["ra", "dec", "roll"]
 
     @classmethod
     def calc(cls, states):
-        q1 = [state["q1"] for state in states]
-        q2 = [state["q2"] for state in states]
-        q3 = [state["q3"] for state in states]
-        q4 = [state["q4"] for state in states]
-        q = Quat(q=np.array([q1, q2, q3, q4]).transpose())
-        return {"ra": q.ra, "dec": q.dec, "roll": q.roll}
+        q_atts = get_quat_from_state(states)
+        return {"ra": q_atts.ra, "dec": q_atts.dec, "roll": q_atts.roll}
+
+
+class SunAnglesTransition(DerivedTransition):
+    state_keys_input = QUAT_COMPS + ["sun_ra", "sun_dec"]
+    state_keys_output = ["pitch", "rasl", "off_nom_roll"]
+
+    @classmethod
+    def calc(cls, states: Table) -> dict[str, float]:
+        q_atts = get_quat_from_state(states)
+        times_mid = (states["tstart"] + states["tstop"]) / 2
+
+        out = Table(
+            np.empty((len(states), 3), dtype=float),
+            names=["pitch", "rasl", "off_nom_roll"],
+        )
+        for row, q_att, time_mid in zip(out, q_atts, times_mid):
+            sun_ra, sun_dec = ska_sun.position(time_mid)
+            row["pitch"], row["rasl"] = ska_sun.get_sun_pitch_yaw(
+                ra=q_att.ra, dec=q_att.dec, sun_ra=sun_ra, sun_dec=sun_dec
+            )
+            row["off_nom_roll"] = ska_sun.off_nominal_roll(
+                q_att, sun_ra=sun_ra, sun_dec=sun_dec
+            )
+        return {key: out[key] for key in out.colnames}
 
 
 class BaseTransition:
@@ -1228,10 +1249,7 @@ class SunVectorTransition(BaseTransition):
     @classmethod
     def update_sun_vector_state(cls, date, transitions, state, idx):
         """
-        Transition callback method for ``pitch`` / ``off_nom_roll`` states.
-
-        This will potentially update the ``pitch`` and ``off_nom_roll`` states if
-        pcad_mode is NPNT.
+        Transition callback method for ``sun_ra``, ``sun_dec`` states.
 
         Parameters
         ----------
@@ -1245,17 +1263,7 @@ class SunVectorTransition(BaseTransition):
             current index into transitions
         """
         if state["pcad_mode"] == "NPNT":
-            if any(state[key] is None for key in ("q1", "q2", "q3", "q4")):
-                return
-
-            att = Quat([state["q1"], state["q2"], state["q3"], state["q4"]])
-            ra, dec, roll = att.ra, att.dec, att.roll
-            time = date2secs(date)
-            sun_ra, sun_dec = ska_sun.position(time)
-            state["pitch"] = ska_sun.pitch(ra, dec, sun_ra=sun_ra, sun_dec=sun_dec)
-            state["off_nom_roll"] = ska_sun.off_nominal_roll(
-                [ra, dec, roll], time, sun_ra=sun_ra, sun_dec=sun_dec
-            )
+            state["sun_ra"], state["sun_dec"] = ska_sun.position(date)
 
 
 class DitherEnableTransition(FixedTransition):
@@ -1478,16 +1486,6 @@ class ManeuverTransition(BaseTransition):
             curr_att, targ_att, tstart=DateTime(date).secs
         )
 
-        # Compute pitch and off-nominal roll at the midpoint of each interval, except
-        # also include the exact last attitude.
-        pitches = np.hstack([(atts[:-1].pitch + atts[1:].pitch) / 2, atts[-1].pitch])
-        off_nom_rolls = np.hstack(
-            [
-                (atts[:-1].off_nom_roll + atts[1:].off_nom_roll) / 2,
-                atts[-1].off_nom_roll,
-            ]
-        )
-
         # Add transitions for each bit of the maneuver.  Note that this sets the
         # attitude (q1..q4) at the *beginning* of each state, while setting
         # pitch and off_nominal_roll at the *midpoint* of each state.  This is
@@ -1495,9 +1493,7 @@ class ManeuverTransition(BaseTransition):
         # something to change since it would probably be better to have the
         # midpoint attitude.
         dates = secs2date(atts.time)
-        for att, date_att, pitch, off_nom_roll in zip(
-            atts, dates, pitches, off_nom_rolls
-        ):
+        for att, date_att in zip(atts, dates):
             # Check pcad_mode at time of each maneuver transition is same as at start.
             # This cuts off maneuver for a mode change like NSM or Safe mode. Note that
             # `state_` is the future state and `state` is the current state.
@@ -1507,8 +1503,6 @@ class ManeuverTransition(BaseTransition):
             att_q = np.array([att[x] for x in QUAT_COMPS])
             for qc, q_i in zip(QUAT_COMPS, att_q):
                 transition[qc] = q_i
-            transition["pitch"] = pitch
-            transition["off_nom_roll"] = off_nom_roll
 
             add_transition(transitions, idx, transition)
 
@@ -2037,6 +2031,23 @@ class FidsTransition(BaseTransition):
 ###################################################################
 
 
+def get_quat_from_state(state: dict | Table | TableRow) -> Quat:
+    """
+    Get the quaternion from the state.
+
+    Parameters
+    ----------
+    state
+        state dictionary or Table or Table Row with q1..q4 keys
+
+    Returns
+    -------
+    Quat
+    """
+    q = np.array([state[comp] for comp in QUAT_COMPS]).transpose()
+    return Quat(q=q)
+
+
 def get_transition_classes(state_keys=None):
     """
     Get BaseTransition subclasses in module for ``state_keys``.
@@ -2347,15 +2358,32 @@ def get_states(
     out.add_column(Column(date2secs(out["datestop"]), name="tstop"), 3)
     out["tstart"].info.format = ".3f"
     out["tstop"].info.format = ".3f"
+    out["trans_keys"] = [st.trans_keys for st in states]
 
     derived_transition_classes = {
         cls for key in orig_state_keys if (cls := DERIVED_TRANSITIONS.get(key))
     }
-    for cls in derived_transition_classes:
-        for key, vals in cls.calc(states).items():
-            out[key] = vals
 
-    out["trans_keys"] = [st.trans_keys for st in states]
+    if reduce:
+        derived_input_keys = set()
+        derived_output_keys = set()
+        for cls in derived_transition_classes:
+            derived_input_keys |= set(cls.state_keys_input)
+            derived_output_keys |= set(cls.state_keys_output)
+        reduce_keys = list(
+            (set(orig_state_keys) - derived_output_keys) | derived_input_keys
+        )
+        out = reduce_states(out, reduce_keys, merge_identical=False)
+
+    for cls in derived_transition_classes:
+        for key, vals in cls.calc(out).items():
+            out[key] = vals
+            for trans_keys, (val1, val2) in zip(
+                itertools.islice(out["trans_keys"], 1, None),
+                itertools.pairwise(vals),
+            ):
+                if val1 != val2:
+                    trans_keys.add(key)
 
     if reduce:
         out = reduce_states(out, orig_state_keys, merge_identical)
