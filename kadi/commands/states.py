@@ -37,15 +37,12 @@ from kadi import commands
 #  kadi.commands.states.LETG_RETR_Transition]
 TRANSITIONS: dict[str, list[type]] = collections.defaultdict(list)
 
-# Dict of state_key: DerivedTransition class.  These are transitions that are strictly
-# derived from other BaseTransition states.
-DERIVED_TRANSITIONS: dict[str, type] = {}
-
 # Set of all BaseTransition subclasses
 TRANSITION_CLASSES: set[type] = set()
 
-# Set of all DerivedTransition subclasses. TODO: This is not used anywhere.
-DERIVED_TRANSITION_CLASSES: set[type] = set()
+# Dict of {state_key: CompState} classes. This maps state keys to the computed state
+# class that provides the state key.
+COMP_STATES: dict[str, type] = {}
 
 # Ordered list of all available state keys
 STATE_KEYS = []
@@ -208,49 +205,40 @@ class TransitionCallback:
 ###################################################################
 
 
-class DerivedTransition:
+class CompState:
     """
-    Base class for derived transitions.
+    Base class for computed states.
 
-    These are transitions that are derived strictly from other states and do not
-    directly inject any Transitions.
-
-    TODO: Make this a dataclass?
+    These are states that are computed strictly from other states and do not
+    inject any Transitions.
     """
-
-    # Required class attributes
-    state_keys_input: list[str] | None = None
-    state_keys_output: list[str] | None = None
 
     def __init_subclass__(cls) -> None:
-        # Register transition classes that have a `state_keys` (base classes do
-        # not have this attribute set).
+        """Register the output state keys and the class"""
         for state_key in cls.state_keys_output:
             if state_key not in STATE_KEYS:
                 STATE_KEYS.append(state_key)
-            DERIVED_TRANSITIONS[state_key] = cls
-
-        DERIVED_TRANSITION_CLASSES.add(cls)
+            COMP_STATES[state_key] = cls
 
         # cls._auto_update_docstring()
 
 
-class RaDecRollTransition(DerivedTransition):
+class RaDecRollState(CompState):
     state_keys_input = QUAT_COMPS
     state_keys_output = ["ra", "dec", "roll"]
 
     @classmethod
-    def calc(cls, states):
+    def calc(cls, states: Table) -> dict[str, np.array]:
         q_atts = get_quat_from_state(states)
         return {"ra": q_atts.ra, "dec": q_atts.dec, "roll": q_atts.roll}
 
 
-class SunAnglesTransition(DerivedTransition):
+class SunAnglesState(CompState):
     state_keys_input = QUAT_COMPS + ["sun_ra", "sun_dec"]
     state_keys_output = ["pitch", "rasl", "off_nom_roll"]
 
     @classmethod
-    def calc(cls, states: Table) -> dict[str, float]:
+    def calc(cls, states: Table) -> dict[str, np.array]:
         q_atts = get_quat_from_state(states)
         times_mid = (states["tstart"] + states["tstop"]) / 2
 
@@ -271,7 +259,7 @@ class SunAnglesTransition(DerivedTransition):
 
 class BaseTransition:
     """
-    Base transition class from which all actual transition classes are derived.
+    Base transition class from which all actual transition classes are subclassed.
     """
 
     def __init_subclass__(cls) -> None:
@@ -292,7 +280,7 @@ class BaseTransition:
         """
         Get commands that match the required attributes for state changing commands.
 
-        This depends on two class attributes that are defined in derived classes:
+        This depends on two class attributes that are defined in subclasses:
 
         ``command_attributes`` (required)
           dict of {cmd_attr: match_value, ..}, where ``cmd_attr`` is either ``type``
@@ -2246,8 +2234,8 @@ def get_states(
             if state_key in cls.state_keys:
                 state_keys.extend(cls.state_keys)
 
-        # If state_key is derived and requires other state_keys.
-        if cls := DERIVED_TRANSITIONS.get(state_key):
+        # If state_key is computed and requires other state_keys.
+        if cls := COMP_STATES.get(state_key):
             state_keys.extend(cls.state_keys_input)
 
     state_keys = _unique(state_keys)
@@ -2364,22 +2352,20 @@ def get_states(
     out["tstop"].info.format = ".3f"
     out["trans_keys"] = [st.trans_keys for st in states]
 
-    derived_transition_classes = {
-        cls for key in orig_state_keys if (cls := DERIVED_TRANSITIONS.get(key))
+    comp_transition_classes = {
+        cls for key in orig_state_keys if (cls := COMP_STATES.get(key))
     }
 
     if reduce:
-        derived_input_keys = set()
-        derived_output_keys = set()
-        for cls in derived_transition_classes:
-            derived_input_keys |= set(cls.state_keys_input)
-            derived_output_keys |= set(cls.state_keys_output)
-        reduce_keys = list(
-            (set(orig_state_keys) - derived_output_keys) | derived_input_keys
-        )
+        comp_input_keys = set()
+        comp_output_keys = set()
+        for cls in comp_transition_classes:
+            comp_input_keys |= set(cls.state_keys_input)
+            comp_output_keys |= set(cls.state_keys_output)
+        reduce_keys = list((set(orig_state_keys) - comp_output_keys) | comp_input_keys)
         out = reduce_states(out, reduce_keys, merge_identical=False)
 
-    for cls in derived_transition_classes:
+    for cls in comp_transition_classes:
         for key, vals in cls.calc(out).items():
             out[key] = vals
             for trans_keys, (val1, val2) in zip(
