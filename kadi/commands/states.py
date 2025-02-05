@@ -16,8 +16,8 @@ import astropy.units as u
 import chandra_maneuver
 import numpy as np
 import ska_sun
-from astropy.table import Column, Table
 from astropy.table import Row as TableRow
+from astropy.table import Table
 from chandra_time import DateTime, date2secs, secs2date
 from cxotime import CxoTime
 from Quaternion import Quat
@@ -2350,17 +2350,16 @@ def get_states(
 
     # Make into an astropy Table and set up datestart/stop columns
     out = Table(rows=states, names=state_keys)
-    out.add_column(Column(datestarts, name="datestart"), 0)
-    # Add datestop which is just the previous datestart.
+    out.add_column(datestarts, name="datestart", index=0)
+    # Add datestop which is just the previous datestart or end of query for last state.
     datestop = out["datestart"].copy()
     datestop[:-1] = out["datestart"][1:]
-    # Final datestop far in the future
     datestop[-1] = stop
-    out.add_column(Column(datestop, name="datestop"), 1)
+    out.add_column(datestop, name="datestop", index=1)
 
     # Add corresponding tstart, tstop
-    out.add_column(Column(date2secs(out["datestart"]), name="tstart"), 2)
-    out.add_column(Column(date2secs(out["datestop"]), name="tstop"), 3)
+    out.add_column(date2secs(out["datestart"]), name="tstart", index=2)
+    out.add_column(date2secs(out["datestop"]), name="tstop", index=3)
     out["tstart"].info.format = ".3f"
     out["tstop"].info.format = ".3f"
     out["trans_keys"] = [st.trans_keys for st in states]
@@ -2658,8 +2657,6 @@ def interpolate_states(states, times):
     -------
     ``states`` view at ``times``
     """
-    from astropy.table import Column
-
     if not isinstance(times, np.ndarray) or times.dtype.kind != "f":
         times = DateTime(times).secs
 
@@ -2670,7 +2667,7 @@ def interpolate_states(states, times):
 
     indexes = np.searchsorted(tstops, times)
     out = states[indexes.clip(0, len(states) - 1)]
-    out.add_column(Column(secs2date(times), name="date"), index=0)
+    out.add_column(secs2date(times), name="date", index=0)
 
     return out
 
