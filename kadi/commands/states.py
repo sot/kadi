@@ -205,7 +205,58 @@ class TransitionCallback:
 ###################################################################
 
 
-class CompState:
+class AutoDocMixin:
+    @classmethod
+    def _auto_update_docstring(cls):
+        """
+        Put some useful information at the top of docstring.
+        """
+        docs = []
+        docs.append("*State keys*: " + ", ".join(cls.state_keys))
+
+        if hasattr(cls, "command_attributes"):
+            cmd_attrs = []
+            for key, val in cls.command_attributes.items():
+                cmd_attrs.append("{}={}".format(key, val))
+
+            if hasattr(cls, "command_params"):
+                keys_list = list(cls.command_params.keys())
+                vals_list = [
+                    val if isinstance(val, list) else [val]
+                    for val in cls.command_params.values()
+                ]
+                for key, vals in zip(keys_list, vals_list):
+                    valstr = " or ".join(str(val) for val in vals)
+                    cmd_attrs.append("{}={}".format(key, valstr))
+
+            docs.append("")
+            docs.append("*Commands*: " + ", ".join(cmd_attrs))
+
+        others = []
+        for attr, val in cls.__dict__.items():
+            if (
+                attr.startswith("_")
+                or inspect.ismethod(val)
+                or attr in ("state_keys", "command_attributes", "command_params")
+            ):
+                continue
+            others.append("{}={}".format(attr, val))
+        if others:
+            docs.append("")
+            docs.append("*Others*: " + ", ".join(others))
+
+        # Common 4-space indent
+        docs = ["    " + doc for doc in docs]
+
+        if cls.__doc__:
+            # Get rid of initial new line and any trailing whitespace/newlines
+            docs.insert(0, cls.__doc__.lstrip("\n").rstrip())
+            docs.insert(1, "    ")
+
+        cls.__doc__ = "\n".join(docs)
+
+
+class CompState(AutoDocMixin):
     """
     Base class for computed states.
 
@@ -215,17 +266,17 @@ class CompState:
 
     def __init_subclass__(cls) -> None:
         """Register the output state keys and the class"""
-        for state_key in cls.state_keys_output:
+        for state_key in cls.state_keys:
             if state_key not in STATE_KEYS:
                 STATE_KEYS.append(state_key)
             COMP_STATES[state_key] = cls
 
-        # cls._auto_update_docstring()
+        cls._auto_update_docstring()
 
 
 class RaDecRollState(CompState):
     state_keys_input = QUAT_COMPS
-    state_keys_output = ["ra", "dec", "roll"]
+    state_keys = ["ra", "dec", "roll"]
 
     @classmethod
     def calc(cls, states: Table) -> dict[str, np.array]:
@@ -235,7 +286,7 @@ class RaDecRollState(CompState):
 
 class SunAnglesState(CompState):
     state_keys_input = QUAT_COMPS + ["sun_ra", "sun_dec"]
-    state_keys_output = ["pitch", "rasl", "off_nom_roll"]
+    state_keys = ["pitch", "rasl", "off_nom_roll"]
 
     @classmethod
     def calc(cls, states: Table) -> dict[str, np.array]:
@@ -257,7 +308,7 @@ class SunAnglesState(CompState):
         return {key: out[key] for key in out.colnames}
 
 
-class BaseTransition:
+class BaseTransition(AutoDocMixin):
     """
     Base transition class from which all actual transition classes are subclassed.
     """
@@ -328,55 +379,6 @@ class BaseTransition:
             out_cmds = out_cmds[ok]
 
         return out_cmds
-
-    @classmethod
-    def _auto_update_docstring(cls):
-        """
-        Put some useful information at the top of docstring.
-        """
-        docs = []
-        docs.append("*State keys*: " + ", ".join(cls.state_keys))
-
-        if hasattr(cls, "command_attributes"):
-            cmd_attrs = []
-            for key, val in cls.command_attributes.items():
-                cmd_attrs.append("{}={}".format(key, val))
-
-            if hasattr(cls, "command_params"):
-                keys_list = list(cls.command_params.keys())
-                vals_list = [
-                    val if isinstance(val, list) else [val]
-                    for val in cls.command_params.values()
-                ]
-                for key, vals in zip(keys_list, vals_list):
-                    valstr = " or ".join(str(val) for val in vals)
-                    cmd_attrs.append("{}={}".format(key, valstr))
-
-            docs.append("")
-            docs.append("*Commands*: " + ", ".join(cmd_attrs))
-
-        others = []
-        for attr, val in cls.__dict__.items():
-            if (
-                attr.startswith("_")
-                or inspect.ismethod(val)
-                or attr in ("state_keys", "command_attributes", "command_params")
-            ):
-                continue
-            others.append("{}={}".format(attr, val))
-        if others:
-            docs.append("")
-            docs.append("*Others*: " + ", ".join(others))
-
-        # Common 4-space indent
-        docs = ["    " + doc for doc in docs]
-
-        if cls.__doc__:
-            # Get rid of initial new line and any trailing whitespace/newlines
-            docs.insert(0, cls.__doc__.lstrip("\n").rstrip())
-            docs.insert(1, "    ")
-
-        cls.__doc__ = "\n".join(docs)
 
 
 class FixedTransition(BaseTransition):
@@ -2361,7 +2363,7 @@ def get_states(
         comp_output_keys = set()
         for cls in comp_transition_classes:
             comp_input_keys |= set(cls.state_keys_input)
-            comp_output_keys |= set(cls.state_keys_output)
+            comp_output_keys |= set(cls.state_keys)
         reduce_keys = list((set(orig_state_keys) - comp_output_keys) | comp_input_keys)
         out = reduce_states(out, reduce_keys, merge_identical=False)
 
