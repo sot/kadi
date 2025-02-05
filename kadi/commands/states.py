@@ -1481,28 +1481,33 @@ class ManeuverTransition(BaseTransition):
         # Get current spacecraft attitude
         curr_att = [state[qc] for qc in QUAT_COMPS]
 
-        # Get attitudes for the maneuver at about 5-minute intervals.
+        # Get attitudes for maneuver at about 2.5-minute intervals. Even-indexed (2N)
+        # attitudes are for the transition times (state start) and the odd-indexed
+        # (2N+1) attitudes are used for the attitude values. This means that the
+        # attitude states reflect the attitude at the midpoint of the maneuver states.
         atts = chandra_maneuver.attitudes(
-            curr_att, targ_att, tstart=DateTime(date).secs
+            curr_att,
+            targ_att,
+            tstart=date2secs(date),
+            step=150,
         )
+        # Make sure there are an even number of attitudes so that we always have a final
+        # 2N+1 index. Repeat the final attitude if necessary.
+        if (n_att := len(atts)) % 2 == 1:
+            atts = np.concatenate([atts, atts[n_att - 1 :]])
 
         # Add transitions for each bit of the maneuver.  Note that this sets the
-        # attitude (q1..q4) at the *beginning* of each state, while setting
-        # pitch and off_nominal_roll at the *midpoint* of each state.  This is
-        # for legacy compatibility with chandra_cmd_states but might be
-        # something to change since it would probably be better to have the
-        # midpoint attitude.
-        dates = secs2date(atts.time)
-        for att, date_att in zip(atts, dates):
+        # attitude (q1..q4) at the *midpoint* of each state.
+        for time, att_mid in zip(atts["time"][::2], atts[1::2], strict=True):
             # Check pcad_mode at time of each maneuver transition is same as at start.
             # This cuts off maneuver for a mode change like NSM or Safe mode. Note that
             # `state_` is the future state and `state` is the current state.
+            date_att = secs2date(time)
             transition = Transition(
                 date_att, lambda state_: state_["pcad_mode"] == state["pcad_mode"]
             )
-            att_q = np.array([att[x] for x in QUAT_COMPS])
-            for qc, q_i in zip(QUAT_COMPS, att_q):
-                transition[qc] = q_i
+            for qc in QUAT_COMPS:
+                transition[qc] = att_mid[qc]
 
             add_transition(transitions, idx, transition)
 
