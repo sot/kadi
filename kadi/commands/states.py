@@ -55,7 +55,7 @@ QUAT_COMPS = ["q1", "q2", "q3", "q4"]
 PCAD_STATE_KEYS = (
     QUAT_COMPS
     + ["targ_" + qc for qc in QUAT_COMPS]
-    + ["auto_npnt", "pcad_mode", "sun_ra", "sun_dec"]
+    + ["auto_npnt", "pcad_mode", "sun_vector_update"]
 )
 
 # State keys for SPM-related transitions.
@@ -275,6 +275,8 @@ class CompState(AutoDocMixin):
 
 
 class RaDecRollState(CompState):
+    """Compute RA, Dec, and Roll state from quaternion components."""
+
     state_keys_input = QUAT_COMPS
     state_keys = ["ra", "dec", "roll"]
 
@@ -285,8 +287,10 @@ class RaDecRollState(CompState):
 
 
 class SunAnglesState(CompState):
-    state_keys_input = QUAT_COMPS + ["sun_ra", "sun_dec"]
-    state_keys = ["pitch", "rasl", "off_nom_roll"]
+    """Compute useful state angles related to Sun position and attitude."""
+
+    state_keys_input = QUAT_COMPS + ["sun_vector_update"]
+    state_keys = ["pitch", "rasl", "off_nom_roll", "sun_ra", "sun_dec"]
 
     @classmethod
     def calc(cls, states: Table) -> dict[str, np.array]:
@@ -294,8 +298,8 @@ class SunAnglesState(CompState):
         times_mid = (states["tstart"] + states["tstop"]) / 2
 
         out = Table(
-            np.empty((len(states), 3), dtype=float),
-            names=["pitch", "rasl", "off_nom_roll"],
+            np.empty((len(states), 5), dtype=float),
+            names=["pitch", "rasl", "off_nom_roll", "sun_ra", "sun_dec"],
         )
         for row, q_att, time_mid in zip(out, q_atts, times_mid):
             sun_ra, sun_dec = ska_sun.position(time_mid)
@@ -305,6 +309,9 @@ class SunAnglesState(CompState):
             row["off_nom_roll"] = ska_sun.off_nominal_roll(
                 q_att, sun_ra=sun_ra, sun_dec=sun_dec
             )
+            row["sun_ra"] = sun_ra
+            row["sun_dec"] = sun_dec
+
         return {key: out[key] for key in out.colnames}
 
 
@@ -1253,7 +1260,7 @@ class SunVectorTransition(BaseTransition):
             current index into transitions
         """
         if state["pcad_mode"] == "NPNT":
-            state["sun_ra"], state["sun_dec"] = ska_sun.position(date)
+            state["sun_vector_update"] = 0
 
 
 class DitherEnableTransition(FixedTransition):
