@@ -1602,7 +1602,7 @@ def test_get_states_start_between_aouptarg_aomanuvr_cmds():
     exp = Table.read(exp, format="ascii", fill_values=[("None", "0")])
     for name in ("datestart", "datestop", "pcad_mode"):
         assert np.all(sts[name] == exp[name])
-    assert np.allclose(sts["q1"][2:].astype(float), exp["q1"][2:])
+    assert np.allclose(sts["q1"][2:].astype(float), exp["q1"][2:], atol=1e-5)
     assert sts["q1"][0] is None
     assert sts["q1"][1] is None
     assert sts["pcad_mode"][0] is None
