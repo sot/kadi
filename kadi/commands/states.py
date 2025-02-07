@@ -1723,6 +1723,8 @@ class ACISTransition(BaseTransition):
         "si_mode",
         "ccd_count",
         "obsid",
+        "feps",
+        "ccds",
     ]
 
     @classmethod
@@ -1756,6 +1758,8 @@ class ACISTransition(BaseTransition):
                 transition.update(
                     fep_count=pwr["fep_count"],
                     ccd_count=pwr["ccd_count"],
+                    feps=pwr["feps"],
+                    ccds=pwr["ccds"],
                     vid_board=pwr["vid_board"],
                     clocking=pwr["clocking"],
                     power_cmd=tlmsid,
@@ -1765,13 +1769,13 @@ class ACISTransition(BaseTransition):
                 transition.update(clocking=1, power_cmd=tlmsid)
 
             elif tlmsid == "WSVIDALLDN":
-                transition.update(vid_board=0, ccd_count=0, power_cmd=tlmsid)
+                transition.update(vid_board=0, ccd_count=0, ccds="", power_cmd=tlmsid)
 
             elif tlmsid == "AA00000000":
                 transition.update(clocking=0, power_cmd=tlmsid)
 
             elif tlmsid == "WSFEPALLUP":
-                transition.update(fep_count=6, power_cmd=tlmsid)
+                transition.update(fep_count=6, feps="0 1 2 3 4 5 ", power_cmd=tlmsid)
 
             elif tlmsid[:2] in ("WT", "WC"):
                 transition["si_mode"] = TransitionCallback(
