@@ -2223,22 +2223,8 @@ def get_states(
     elif isinstance(state_keys, str):
         state_keys = [state_keys]
 
-    # Go through each transition class which impacts desired state keys and accumulate
-    # all the state keys that the classes touch.  For instance if user requests
-    # state_keys=['q1'] then we actually need to process all the PCAD_states state keys
-    # and then at the end reduce down to the requested keys.
-    orig_state_keys = state_keys
-    state_keys = []
-    for state_key in orig_state_keys:
-        for cls in TRANSITION_CLASSES:
-            if state_key in cls.state_keys:
-                state_keys.extend(cls.state_keys)
-
-        # If state_key is computed and requires other state_keys.
-        if cls := COMP_STATES.get(state_key):
-            state_keys.extend(cls.state_keys_input)
-
-    state_keys = _unique(state_keys)
+    # Get the full set of state keys that are associated with the requested state keys.
+    state_keys_all = get_associated_state_keys(state_keys)
 
     # Get commands, either from `cmds` arg or from `start` / `stop`
     if cmds is None:
@@ -2256,7 +2242,7 @@ def get_states(
     # Get initial state at start of commands
     if continuity is None:
         try:
-            continuity = get_continuity(start, state_keys, scenario=scenario)
+            continuity = get_continuity(start, state_keys_all, scenario=scenario)
         except ValueError as exc:
             if "did not find transitions" in str(exc):
                 raise ValueError(
@@ -2270,17 +2256,17 @@ def get_states(
     # Get transitions, which is a list of dict (state key
     # and new state value at that date).  This goes through each active
     # transition class and accumulates transitions.
-    transitions = get_transitions_list(cmds, state_keys, start, stop, continuity)
+    transitions = get_transitions_list(cmds, state_keys_all, start, stop, continuity)
 
     # List of dict to hold state values.  Datestarts is the corresponding list of
     # start dates for each state.
-    states = [StateDict({key: None for key in state_keys})]
+    states = [StateDict({key: None for key in state_keys_all})]
     datestarts = [start]
 
     # Apply initial ``continuity`` values.  Clear the trans_keys set after setting
     # first state.
     for key, val in continuity.items():
-        if key in state_keys:
+        if key in state_keys_all:
             states[0][key] = val
     states[0].trans_keys.clear()
 
@@ -2333,7 +2319,7 @@ def get_states(
                 state[key] = value
 
     # Make into an astropy Table and set up datestart/stop columns
-    out = Table(rows=states, names=state_keys)
+    out = Table(rows=states, names=state_keys_all)
     out.add_column(datestarts, name="datestart", index=0)
     # Add datestop which is just the previous datestart or end of query for last state.
     datestop = out["datestart"].copy()
@@ -2349,7 +2335,7 @@ def get_states(
     out["trans_keys"] = [st.trans_keys for st in states]
 
     comp_transition_classes = {
-        cls for key in orig_state_keys if (cls := COMP_STATES.get(key))
+        cls for key in state_keys if (cls := COMP_STATES.get(key))
     }
 
     if reduce:
@@ -2358,7 +2344,7 @@ def get_states(
         for cls in comp_transition_classes:
             comp_input_keys |= set(cls.state_keys_input)
             comp_output_keys |= set(cls.state_keys)
-        reduce_keys = list((set(orig_state_keys) - comp_output_keys) | comp_input_keys)
+        reduce_keys = list((set(state_keys) - comp_output_keys) | comp_input_keys)
         out = reduce_states(out, reduce_keys, merge_identical=False)
 
     for cls in comp_transition_classes:
@@ -2372,12 +2358,46 @@ def get_states(
                     trans_keys.add(key)
 
     if reduce:
-        out = reduce_states(out, orig_state_keys, merge_identical)
+        out = reduce_states(out, state_keys, merge_identical)
 
     # See long comment where continuity_transitions is defined
     out.meta["continuity_transitions"] = continuity_transitions
 
     return out
+
+
+def get_associated_state_keys(state_keys):
+    """
+    Return the full set of state keys that are associated with the requested keys.
+
+    Go through each transition class which impacts desired state keys and accumulate
+    all the state keys that the classes touch.  For instance if user requests
+    state_keys=['q1'] then we actually need to process all the PCAD_states state keys
+    and then at the end reduce down to the requested keys.
+    """
+    state_keys_assoc = []
+    for state_key in state_keys:
+        # Get list of transition classes that impact this state key and accumlate the
+        # state keys that these classes impact.
+        if clss := TRANSITIONS.get(state_key):
+            for cls in clss:
+                state_keys_assoc.extend(cls.state_keys)
+
+        # Get computed state class that is impacted by this state key. This is unique,
+        # unlike transition classes.
+        if cls := COMP_STATES.get(state_key):
+            state_keys_assoc.extend(cls.state_keys_input)
+
+            # For each computed class dependent state key, get the state keys from
+            # transition classes that impact it.
+            for key in cls.state_keys_input:
+                if clss := TRANSITIONS.get(key):
+                    for cls in clss:
+                        state_keys_assoc.extend(cls.state_keys)
+
+    # Remove duplicates while preserving order and return
+    state_keys_assoc = _unique(state_keys_assoc)
+    return state_keys_assoc
 
 
 def reduce_states(states, state_keys, merge_identical=False, all_keys=False) -> Table:
