@@ -223,19 +223,16 @@ def get_cmds(
 
     Parameters
     ----------
-    start : CxoTime-like
-        Start time for cmds
-    stop : CxoTime-like
-        Stop time for cmds
-    scenario : str, None
-        Scenario name
+    start : CxoTime-like, optional
+        Start time for cmds. Default is 1999:001.
+    stop : CxoTime-like, optional
+        Stop time for cmds. Default is current time + 1 year.
+    scenario : str, optional
+        Name of commands archive scenario to use instead of default.
     inclusive_stop : bool
         Include commands at exactly ``stop`` if True.
-    loads_stop : CxoTime-like, None
-        Stop time for loads table (default is all available loads, but useful
-        for development/testing work)
     **kwargs : dict
-        key=val keyword argument pairs for filtering
+        key=val keyword argument pairs for filtering.
 
     Returns
     -------

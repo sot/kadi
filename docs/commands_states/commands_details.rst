@@ -191,11 +191,9 @@ Environment variables
 ---------------------
 
 ``CXOTIME_NOW``
-  For testing and demonstration purposes, this environment variable can be set
-  to a date which is used as the default stop time for commands. In effect this
-  makes the code believe that this is the current time and that there are no
-  command loads available after this time. The legacy ``KADI_COMMANDS_DEFAULT_STOP``
-  environment variable is equivalent but it is deprecated.
+  For testing and demonstration purposes, this environment variable can be set to make
+  the code believe that ``CXOTIME_NOW`` is the current time. See the
+  `Mocking the current time`_ section for more details.
 
 ``KADI``
   Override the default location of kadi flight data files ``cmds2.h5`` and
@@ -205,6 +203,33 @@ Environment variables
   Set the default scenario. This can be used to set the scenario in an
   application that is not aware of kadi scenarios, effectively a back door to
   override the flight commands.
+
+Mocking the current time
+------------------------
+Setting the ``CXOTIME_NOW`` environment variable allows you to pretend that the current
+time is a different time. Any calls to ``CxoTime`` or ``DateTime`` that normally return
+the current time will now return a time object corresponding to ``CXOTIME_NOW``.
+
+Many Ska functions have a ``stop`` argument that defaults to the current time, so setting
+``CXOTIME_NOW`` will change the behavior of these functions.
+
+For kadi commands functions, the situation is a bit more complex. Because kadi commands
+are *predictive*, the default ``stop`` used by :func:`~kadi.commands.get_cmds` is the
+current time plus one year. If ``CXOTIME_NOW`` is set, the "current time" will be the
+value of ``CXOTIME_NOW`` and the default ``stop`` will be one year after that.
+
+Setting ``CXOTIME_NOW`` also impacts the behavior of commands ingest and generation:
+
+- Only Chandra Command Events that are before this time will be included.
+- Only weekly approved loads with a load date before this time will be included. The
+  load date of a weekly load set is midnight on date of the load name, so JAN2025A
+  has a load date of 2025:020:00:00:00.
+- Kadi commands dynamically regenerates recent commands (normally within 30 days of
+  the current time) from the weekly approved loads and the Chandra Command Events.
+  This is done to ensure that the commands are up-to-date with the current state of
+  the spacecraft. If ``CXOTIME_NOW`` is set, the commands will be regenerated from
+  the weekly approved loads and Chandra Command Events that are 30 days before this
+  time.
 
 Data files and resources
 ------------------------
