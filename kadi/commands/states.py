@@ -2139,22 +2139,22 @@ def get_states(
 
     Parameters
     ----------
-    start
-        start of states (optional, DateTime compatible)
-    stop
-        stop of states (optional, DateTime compatible)
-    state_keys
-        state keys of interest (optional, list or str or None)
-    cmds
-        input commands (optional, CmdList, CommandTable)
-    continuity
-        initial state (optional, dict)
-    reduce
-        call reduce_states() on output
-    merge_identical
-        merge identical states (see reduce_states() docs)
-    scenario
-        commands archive scenario to use
+    start : CxoTime-like, optional
+        Start of states (default is 1999:001).
+    stop : CxoTime-like, optional
+        Stop of states (default is current time + 1 year).
+    state_keys : list of str, optional
+        State keys of interest.
+    cmds : CmdList, CommandTable, optional
+        Input commands.
+    continuity : dict, optional
+        Initial state.
+    reduce : bool, optional
+        Call reduce_states() on output (default=True).
+    merge_identical : bool, optional
+        Merge identical states (see reduce_states() docs, default=False).
+    scenario : str, optional
+        Name of commands archive scenario to use instead of default.
 
     Returns
     -------

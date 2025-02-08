@@ -64,7 +64,7 @@ def regress_stop(local_testing):
     To see what is happening behind the scenes, update the code to enable kadi debug
     logging (kadi.commands.logger.setLevel("DEBUG")) and run the tests with ``-s``.
     """
-    with temp_env_var("KADI_COMMANDS_DEFAULT_STOP", REGRESSION_STOP):
+    with temp_env_var("CXOTIME_NOW", REGRESSION_STOP):
         yield
 
 

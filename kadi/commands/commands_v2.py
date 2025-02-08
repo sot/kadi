@@ -30,6 +30,7 @@ from kadi.commands.core import (
     LazyVal,
     _find,
     get_cmds_from_backstop,
+    get_default_stop,
     get_par_idx_update_pars_dict,
     load_idx_cmds,
     load_name_to_cxotime,
@@ -222,19 +223,16 @@ def get_cmds(
 
     Parameters
     ----------
-    start : CxoTime-like
-        Start time for cmds
-    stop : CxoTime-like
-        Stop time for cmds
-    scenario : str, None
-        Scenario name
+    start : CxoTime-like, optional
+        Start time for cmds. Default is 1999:001.
+    stop : CxoTime-like, optional
+        Stop time for cmds. Default is current time + 1 year.
+    scenario : str, optional
+        Name of commands archive scenario to use instead of default.
     inclusive_stop : bool
         Include commands at exactly ``stop`` if True.
-    loads_stop : CxoTime-like, None
-        Stop time for loads table (default is all available loads, but useful
-        for development/testing work)
     **kwargs : dict
-        key=val keyword argument pairs for filtering
+        key=val keyword argument pairs for filtering.
 
     Returns
     -------
@@ -248,7 +246,7 @@ def get_cmds(
     stop = (CxoTime.now() + 1 * u.year) if stop is None else CxoTime(stop)
 
     # Default stop is either now (typically) or set by env var
-    default_stop = CxoTime(os.environ.get("KADI_COMMANDS_DEFAULT_STOP"))
+    default_stop = CxoTime(get_default_stop())
 
     # For flight scenario or no internet or if the query stop time is guaranteed
     # to not require recent commands then just use the archive.
@@ -1014,7 +1012,7 @@ def update_cmd_events(scenario=None) -> Table:
     ok = np.isin(cmd_events["State"], allowed_states)
     cmd_events = cmd_events[ok]
 
-    # If KADI_COMMANDS_DEFAULT_STOP is set, filter out events after that date.
+    # If CXOTIME_NOW is set, filter out events after that date.
     cmd_events = filter_cmd_events_default_stop(cmd_events)
 
     logger.info(f"Writing {len(cmd_events)} cmd_events to {cmd_events_path}")
@@ -1042,14 +1040,14 @@ def get_cmd_events(scenario=None):
         str(cmd_events_path), format="csv", fill_values=[], converters={"Params": str}
     )
 
-    # If KADI_COMMANDS_DEFAULT_STOP is set, filter out events after that date.
+    # If CXOTIME_NOW is set, filter out events after that date.
     cmd_events = filter_cmd_events_default_stop(cmd_events)
 
     return cmd_events
 
 
 def filter_cmd_events_default_stop(cmd_events):
-    if (stop := os.environ.get("KADI_COMMANDS_DEFAULT_STOP")) is not None:
+    if (stop := get_default_stop()) is not None:
         stop = CxoTime(stop)
         # Filter table based on stop date. Need to use CxoTime on each event separately
         # because the date format could be inconsistent.
@@ -1066,7 +1064,7 @@ def update_loads(scenario=None, *, cmd_events=None, lookback=None, stop=None) ->
     """Update local copy of approved command loads though ``lookback`` days."""
     # For testing allow override of default `stop` value
     if stop is None:
-        stop = os.environ.get("KADI_COMMANDS_DEFAULT_STOP")
+        stop = get_default_stop()
 
     if lookback is None:
         lookback = conf.default_lookback
@@ -1287,7 +1285,7 @@ def update_cmds_archive(
     """
     # For testing allow override of default `stop` value
     if stop is None:
-        stop = os.environ.get("KADI_COMMANDS_DEFAULT_STOP")
+        stop = get_default_stop()
 
     # Local context manager for log_level and data_root
     kadi_logger = logging.getLogger("kadi")
