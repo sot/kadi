@@ -1,33 +1,34 @@
-.. |get_cmds| replace:: :func:`~kadi.commands.commands.get_cmds`
+.. |get_cmds| replace:: :func:`~kadi.commands.commands_v2.get_cmds`
 .. |get_continuity| replace:: :func:`~kadi.commands.states.get_continuity`
 .. |get_states| replace:: :func:`~kadi.commands.states.get_states`
-.. |CommandTable| replace:: :class:`~kadi.commands.commands.CommandTable`
+.. |CommandTable| replace:: :class:`~kadi.commands.core.CommandTable`
 .. _Chandra Command Events: https://docs.google.com/spreadsheets/d/19d6XqBhWoFjC-z1lS1nM6wLE_zjr4GYB1lOvrEGCbKQ
 
 Commands and states
 ===================
 
-**Commands**
+The Commands archive provides a table of most commands that have run, or are
+currently approved to be run, on the spacecraft since 2002.  This archive accounts for
+load stoppages, replans, and certain non-load commands like ACIS CTI runs or Normal Sun
+Mode transitions.
 
-The Commands archive is a table of every load command that has been run, or is currently
-approved to be run, on the spacecraft since 2002.  This archive accounts for load stoppages,
-replans, and certain non-load commands like ACIS CTI runs or Normal Sun Mode transitions.
+The flight commands archive relies on the `Chandra Command Events`_ sheet and
+OCCweb FOT mission planning approved load products to maintain the commands archive.
 
-The flight `Commands archive v2`_  relies on the `Chandra Command Events`_ sheet and
-OCCweb FOT mission planning approved load products to maintain the commands database.
 This archive provides an up-to-date view of commands and states even during anomalies.
-The `Chandra Command Events`_ sheet is kept current during anomalies by FOT MP and helps
-facilitate team-wide communication of non-load spacecraft commanding.
+The `Chandra Command Events`_ sheet is kept current during anomalies by FOT MP and
+facilitates team-wide communication of non-load spacecraft commanding.
 
 **States and continuity**
 
-Coupled with the commands archive is functionality determine `Chandra states and continuity`_:
+Coupled with the commands archive is functionality to determine `Chandra states and
+continuity`_:
 
 - **State** values of certain parameters of interest (obsid, SIM-Z position, commanded
   attitude, ACIS power configuration, etc) over an **interval of time** during which all
   parameters have been unaffected by commanding and are unchanged.  This provides a
   compact way to represent the impact of commanding on the spacecraft state over time and
-  is used in `xija thermal model <http://cxc.cfa.harvard.edu/mta/ASPECT/tool_doc/xija/>`_
+  is used in `xija thermal model <https://sot.github.io/xija/>`_
   predictions.
 
 - **Continuity** values of certain parameters of interest at a **particular time**.
@@ -39,22 +40,18 @@ installed code.  Note that a key design feature is that is it straightforward fo
 to implement their own states, often with just a few lines of code.  See the `User-defined states`_
 section for details.
 
-Commands archive v2
--------------------
+.. note::
 
-For more details of the commands v2 archive, including important information
-about network access, the timeliness of commands, configuration and process
-details, please see:
-
-.. toctree::
-   :maxdepth: 2
-
-   commands_v2.rst
+   A common point of confusion is the difference between :ref:`kadi events
+   <chandra_events>` and `Chandra Command Events`_, due to the unfortunate overloading
+   of "events".  The former are events such as a maneuver that are derived from
+   telemetry or web resources. The latter are events such as an SCS-107 run that impact
+   the history of commands that were run on the spacecraft.
 
 Initial setup
-^^^^^^^^^^^^^
+-------------
 
-In order to use commands archive v2 to always get the most up-to-date commands,
+In order to use commands archive to always get the most up-to-date commands,
 you need to set up automated access to OCCweb so the code can fetch recent
 command loads. This is done by creating a file at the top level of your home
 directory called ``.netrc`` which includes the following contents::
@@ -71,12 +68,13 @@ then there needs to be a blank line between entries.
    ``chmod og-rwx ~/.netrc``.
 
 Getting commands
-^^^^^^^^^^^^^^^^
+----------------
 
 The basic way to select commands is with the |get_cmds| method.  For example you can find
 load commands from early in 2013 with::
 
-    >>> cmds = commands.get_cmds('2013:001:00:00:00', '2013:001:00:56:10')
+    >>> from kadi.commands import get_cmds
+    >>> cmds = get_cmds('2013:001:00:00:00', '2013:001:00:56:10')
     >>> print(cmds)
             date            type      tlmsid   scs step      time      source    vcdu  params
     --------------------- ---------- ---------- --- ---- ------------- -------- ------- ------
@@ -94,7 +92,7 @@ In the |get_cmds| method, commands are selected with ``start <= date < stop``, w
 of these are evaluated as a date string with millisec precision.  In order to get commands
 at exactly a certain date you need to select with the ``date`` argument::
 
-    >>> print(commands.get_cmds(date='2013:001:00:56:07.181'))
+    >>> print(get_cmds(date='2013:001:00:56:07.181'))
             date            type      tlmsid   scs step      time      source    vcdu  params
     --------------------- ---------- ---------- --- ---- ------------- -------- ------- ------
     2013:001:00:56:07.181 COMMAND_SW   AONMMODE 129 1530 473389034.365 DEC2412B 5584878    N/A
@@ -180,7 +178,7 @@ command table.  Note that command rows without that parameter will have a ``None
 .. _getting-observations:
 
 Getting observations
-^^^^^^^^^^^^^^^^^^^^
+---------------------
 
 The commands archive includes special ``LOAD_EVENT`` commands (like the RLTT) that
 contain information about observations in the loads. An "observation" is defined
@@ -242,7 +240,7 @@ this into an astropy ``Table``::
     26247  75624 2022:001:05:21:28.604 2021:365:18:39:30.234 ... 2021:365:19:06:05.650  0.553670113 .. 0.0635036584      170517 DEC3021A
 
 Under the hood
-""""""""""""""
+^^^^^^^^^^^^^^^
 
 The observation information is stored as ``LOAD_EVENT`` commands that can be viewed
 directly::
@@ -269,14 +267,14 @@ directly::
     'prev_att': (-0.0743435142, -0.559183412, -0.804323901, 0.186681591),
     'starcat_idx': 170518}
 
-As with :func:`~kadi.commands.commands.get_cmds` in the v2 archive, you can provide a
+As with |get_cmds| in the archive, you can provide a
 ``scenario`` keyword to :func:`~kadi.commands.observations.get_observations` to
 select a custom or ``'flight'`` scenario.
 
 .. _getting-star-catalogs:
 
 Getting star catalogs
-^^^^^^^^^^^^^^^^^^^^^
+----------------------
 
 The ACA star catalogs associated with observations can be retrieved using the
 :func:`~kadi.commands.observations.get_starcats()` function. For example::
@@ -307,13 +305,13 @@ The ACA star catalogs associated with observations can be retrieved using the
    are stubbed with empty tables.
 
 Getting dicts instead of ACA tables
-"""""""""""""""""""""""""""""""""""
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Another performance option which can be useful in some cases is to set the
 ``as_dict`` keyword to ``True``. This will return a list of dictionaries instead
 of converting each catalog into an ``ACATable`` object.
 
 Getting a Table of catalog entries
-""""""""""""""""""""""""""""""""""
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 For some use cases you want a single table of all star catalog entries matching
 the specified criteria. This can be done with the
 :func:`~kadi.commands.observations.get_starcats_as_table` function. This is
@@ -322,7 +320,7 @@ roughly the equivalent of doing a Table ``vstack`` of the individual
 ``starcat_date`` are added to provide this information for each entry.
 
 Caching
-"""""""
+^^^^^^^
 
 In order to significantly speed up the retrieval of historical star catalogs for
 typical ACA operations analysis, the results of each call to ``get_starcats()``
@@ -368,8 +366,9 @@ To get the commanded states over a date range you can do the following, which in
 does a call to |get_cmds| in order to get commands over the ``start`` / ``stop`` date
 range::
 
-  >>> states.get_states('2017:001:21:00:00', '2017:002:11:29:00',
-  ...                   state_keys=['obsid', 'simpos', 'clocking'])
+  >>> from kadi.commands.states import get_states
+  >>> get_states('2017:001:21:00:00', '2017:002:11:29:00',
+  ...            state_keys=['obsid', 'simpos', 'clocking'])
   <Table length=9>
         datestart              datestop       obsid simpos clocking    trans_keys
           str21                 str21         int64 int64   int64        object
@@ -401,7 +400,7 @@ by default, |get_states| breaks the state if the value was *commanded*, regardle
 whether the value actually changed.  So let's dig in to the commands at exactly the state
 transition time of the 3rd row::
 
-  >>> print(commands.get_cmds(date='2017:001:21:05:06.467'))
+  >>> print(get_cmds(date='2017:001:21:05:06.467'))
            date           type     tlmsid   scs step timeline_id params
   --------------------- -------- ---------- --- ---- ----------- ------
   2017:001:21:05:06.467 MP_OBSID   COAOSQID 131  400   426102266    N/A
@@ -412,9 +411,9 @@ was already ``0`` (from the previous stop science 3 minutes earlier).  If you ar
 getting states for thermal model computation then you don't care about these identical
 states.  In this case specify ``merge_identical=True`` in the function call::
 
-  >>> sts = states.get_states('2017:001:21:00:00', '2017:002:11:29:00',
-  ...                         state_keys=['obsid', 'simpos', 'clocking'],
-  ...                         merge_identical=True)
+  >>> sts = get_states('2017:001:21:00:00', '2017:002:11:29:00',
+  ...                  state_keys=['obsid', 'simpos', 'clocking'],
+  ...                  merge_identical=True)
   >>> sts
   <Table length=6>
         datestart              datestop       obsid simpos clocking    trans_keys
@@ -511,13 +510,14 @@ States from commands
 Instead of relying on |get_states| to get the commands and continuity, you can do things
 manually.  For example::
 
+  >>> from kadi.commands.states import get_continuity
   >>> start, stop = ('2017:001:21:00:00', '2017:002:11:29:00')
   >>> state_keys=['obsid', 'simpos', 'clocking']
-  >>> cmds = commands.get_cmds(start, stop)
-  >>> continuity = states.get_continuity(start, state_keys)
-  >>> states.get_states(cmds=cmds, continuity=continuity,
-  ...                   state_keys=state_keys,
-  ...                   merge_identical=True)
+  >>> cmds = get_cmds(start, stop)
+  >>> continuity = get_continuity(start, state_keys)
+  >>> get_states(cmds=cmds, continuity=continuity,
+  ...            state_keys=state_keys,
+  ...            merge_identical=True)
   <Table length=5>
         datestart              datestop       obsid simpos clocking    trans_keys
           str21                 str21         int64 int64   int64        object
@@ -541,7 +541,7 @@ to consider up to four different elements:
 - Load commands
 
 In this case the calling code is responsible for logic to assemble a single commands table
-for the ``cmds`` argument as a :class:`~kadi.commands.commands.CommandTable` object.
+for the ``cmds`` argument as a :class:`~kadi.commands.core.CommandTable` object.
 
 .. note:: The plan is to provide convenience methods and documentation to make this
    process more straightforward.  E.g.::
@@ -555,7 +555,7 @@ for the ``cmds`` argument as a :class:`~kadi.commands.commands.CommandTable` obj
      last_tlm_date = fetch.get_time_range('1dpamzt', format='date')[1]
 
      # Get approved commands from available telemetry through start of new loads
-     cmds = commands.get_cmds(last_tlm_date, load_start)
+     cmds = get_cmds(last_tlm_date, load_start)
 
      # Get pseudo-node values by running thermal model between
      # last_tlm_date - 3 days to last_tlm_date, using estimate or
@@ -569,47 +569,18 @@ for the ``cmds`` argument as a :class:`~kadi.commands.commands.CommandTable` obj
      non_load_cmds = ...
      cmds.add_commands(non_load_cmds)
 
-     sts = states.get_states(cmds=cmds, state_keys=[...])
+     sts = get_states(cmds=cmds, state_keys=[...])
 
 Continuity
 ^^^^^^^^^^
 
 To get the continuity state for a desired set of state keys at a certain time, use
-|get_continuity|.  Before doing this, recall that in IPython one can always get
-help on a function, class, or method with ``<something>?`` or ``help(<something>)``.
-So here is how to get help on the |get_continuity|::
-
-  >>> states.get_continuity?
-  Signature: states.get_continuity(date=None, state_keys=None, lookbacks=(7, 30, 180, 1000))
-  Docstring:
-  Get the state and transition dates at ``date`` for ``state_keys``.
-
-  This function finds the state at a particular date by fetching commands
-  prior to that date and determine the states.  It returns dictionary
-  ``continuity`` provides the state values. Included in this dict is a special
-  key ``__dates__`` which provides the corresponding date at which the
-  state-changing command occurred.
-
-  Since some state keys like ``pitch`` change often (many times per day) while
-  others like ``letg`` may not change for weeks, this function does dynamic
-  lookbacks from ``date`` to find transitions for each key.  By default it
-  will try looking back 7 days, then 30 days, then 180 days, and finally 1000
-  days.  This lookback sequence can be controlled with the ``lookbacks``
-  argument.
-
-  If ``state_keys`` is ``None`` then the default keys ``states.DEFAULT_STATE_KEYS``
-  is used.  This corresponds to the "classic" Chandra commanded states (obsid,
-  ACIS, PCAD, and mechanisms).
-
-  :param date: date (DateTime compatible, default=NOW)
-  :param state_keys: list of state keys or str (one state key) or None
-  :param lookbacks: list of lookback times in days (default=[7, 30, 180, 1000])
-
-  :returns: dict of state values
+|get_continuity|.
 
 So let's get the state of ``obsid`` and ``si_mode`` at ``2017:300:00:00:00``::
 
-  >>> continuity = states.get_continuity('2017:300:00:00:00', ['obsid', 'si_mode'])
+  >>> from kadi.commands.states import get_continuity
+  >>> continuity = get_continuity('2017:300:00:00:00', ['obsid', 'si_mode'])
   >>> continuity
   {'__dates__': {'obsid': '2017:299:21:50:34.193',
                  'si_mode': '2017:299:22:02:41.439'},
@@ -621,7 +592,7 @@ desired state keys.  It also has a ``__dates__`` item which has the
 corresponding date when state key changed value because of a command.
 To prove this, let's look at the commands exactly at the state transition time::
 
-  >>> cmds = commands.get_cmds(date=continuity['__dates__']['obsid'])
+  >>> cmds = get_cmds(date=continuity['__dates__']['obsid'])
   >>> cmds.fetch_params()
   >>> print(cmds)
            date           type    tlmsid  scs step timeline_id      params
@@ -829,7 +800,7 @@ and in particular :class:`~kadi.commands.states.FixedTransition` and
 For example, if we were interested in the state of the IU mode select, we look at examples
 of the relevant command, which in this case is ``CIMODESL``.
 
-  >>> cmds = commands.get_cmds('2017:360', '2018:001', tlmsid='CIMODESL')
+  >>> cmds = get_cmds('2017:360', '2018:001', tlmsid='CIMODESL')
   >>> cmds[0]
   <Cmd 2017:360:14:05:00.000 COMMAND_HW tlmsid=CIMODESL scs=128 step=2 timeline_id=426102971 hex=7C063C0 msid=CIU1024T>
 
@@ -883,11 +854,11 @@ Notes:
 So now with our new ``IUModeSelectTransition`` class defined, we can use it!
 ::
 
-  >>> states.get_continuity('2018:001', state_keys='iu_mode_select')
+  >>> get_continuity('2018:001', state_keys='iu_mode_select')
   {'__dates__': {'iu_mode_select': '2018:001:02:30:00.000'},
    'iu_mode_select': 'CIU1024T'}
 
-  >>> states.get_states('2018:001', '2018:004', state_keys='iu_mode_select')
+  >>> get_states('2018:001', '2018:004', state_keys='iu_mode_select')
   <Table length=19>
         datestart              datestop       iu_mode_select   trans_keys
           str21                 str21              str8          object
@@ -917,3 +888,15 @@ challenge is typically defining the ``set_transitions()`` method and potentially
 transition callback functions.  There are a number of examples of this in the kadi code
 and this should serve as your starting point.  The Ska team will be happy to assist
 you if this is not enough.
+
+Commands archive details
+------------------------
+
+For more details of the commands archive, including important information
+about network access, the timeliness of commands, configuration and process
+details, please see:
+
+.. toctree::
+   :maxdepth: 2
+
+   commands_details.rst

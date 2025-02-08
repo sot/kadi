@@ -9,7 +9,7 @@ from kadi.commands.commands_v2 import update_cmds_archive
 
 def get_opt(args=None):
     """
-    Get options for command line interface to update_
+    Get options for command line interface to update.
     """
     parser = argparse.ArgumentParser(description="Update HDF5 cmds v2 table")
     parser.add_argument("--lookback", type=int, help="Lookback (default=30 days)")

@@ -185,7 +185,7 @@ def read_backstop(
 
     Returns
     -------
-    :class:`~kadi.commands.commands.CommandTable` of commands
+    :class:`~kadi.commands.core.CommandTable` of commands
     """
 
     # Get load name from backstop directory path
@@ -297,7 +297,7 @@ def get_cmds_from_backstop(backstop, remove_starcat=False):
 
     Returns
     -------
-    :class:`~kadi.commands.commands.CommandTable` of commands
+    :class:`~kadi.commands.core.CommandTable` of commands
     """
     if isinstance(backstop, Path):
         backstop = str(backstop)
