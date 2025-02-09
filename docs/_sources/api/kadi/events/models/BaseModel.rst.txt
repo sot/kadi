@@ -1,0 +1,153 @@
+kadi.events.models.BaseModel
+============================
+
+.. toctree::
+   :hidden:
+
+   /api/kadi/events/models/BaseModel.QuerySet
+   /api/kadi/events/models/BaseModel.Meta
+
+.. py:class:: kadi.events.models.BaseModel(*args, **kwargs)
+
+   Bases: :py:obj:`django.db.models.Model`
+
+
+   
+   Base class for for all models.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:attribute:: _get_obsid_start_attr
+      :value: 'date'
+
+
+
+   .. py:attribute:: update_priority
+      :value: 0
+
+
+
+   .. py:attribute:: objects
+
+
+   .. py:method:: from_dict(model_dict, logger=None)
+      :classmethod:
+
+
+      
+      Set model from a dict `model_dict` which might have extra stuff not in
+      Model.  If `logger` is supplied then log output at debug level.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: get_model_fields()
+      :classmethod:
+
+
+      
+      Return a list of model fields (works from class or instance).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:property:: model_name
+
+
+   .. py:method:: get_date_intervals(start, stop, pad=None, **filter_kwargs)
+      :classmethod:
+
+
+
+   .. py:method:: get_obsid()
+
+      
+      Return the obsid associated with the event.
+
+      Typically this is the obsid at the start of the event, but for maneuvers it is the
+      obsid at the end of the maneuver.
+
+
+
+
+      :Returns:
+
+          obsid
+              ..
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: __bytes__()
+
+
+   .. py:method:: __str__()
+
+Classes
+-------
+
+.. autoapisummary::
+
+   kadi.events.models.BaseModel.QuerySet
+   kadi.events.models.BaseModel.Meta
+
+

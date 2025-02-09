@@ -1,0 +1,4 @@
+kadi.scripts.update_events.get_events_and_event_models
+======================================================
+
+.. py:function:: kadi.scripts.update_events.get_events_and_event_models(EventModel, cls_name, events_in_dates)

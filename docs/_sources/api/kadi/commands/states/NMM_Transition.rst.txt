@@ -1,0 +1,44 @@
+kadi.commands.states.NMM_Transition
+===================================
+
+.. py:class:: kadi.commands.states.NMM_Transition
+
+   Bases: :py:obj:`FixedTransition`
+
+
+   
+   Transition to Normal Maneuver Mode
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:attribute:: command_attributes
+
+
+   .. py:attribute:: state_keys
+
+
+   .. py:attribute:: transition_key
+      :value: 'pcad_mode'
+
+
+
+   .. py:attribute:: transition_val
+      :value: 'NMAN'
+
+

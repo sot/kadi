@@ -1,0 +1,30 @@
+kadi.events.models.get_event_models
+===================================
+
+.. py:function:: kadi.events.models.get_event_models(baseclass=None)
+
+   
+   Get all Event models that represent actual events (and are not base
+   or meta classes).
+
+
+
+
+
+   :Returns:
+
+       dict of {model_name:ModelClass, ...}
+           ..
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!

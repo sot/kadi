@@ -1,0 +1,4 @@
+kadi.scripts.update_events.delete_from_date
+===========================================
+
+.. py:function:: kadi.scripts.update_events.delete_from_date(EventModel, start, set_update_date=True)

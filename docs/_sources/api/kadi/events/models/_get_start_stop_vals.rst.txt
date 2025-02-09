@@ -1,0 +1,27 @@
+kadi.events.models._get_start_stop_vals
+=======================================
+
+.. py:function:: kadi.events.models._get_start_stop_vals(tstart, tstop, msidset, msids)
+
+   
+   Get the values of related telemetry MSIDs ``msids`` to the event as ``start_<MSID>``
+   and ``stop_<MSID>``.  The value is taken from telemetry within `msidset` at ``tstart``
+   and ``tstop``.  Returns a dict of <MSID>: <VAL> pairs.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!

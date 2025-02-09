@@ -1,0 +1,27 @@
+kadi.commands.utils.add_figure_regions
+======================================
+
+.. py:function:: kadi.commands.utils.add_figure_regions(fig, figure_start, figure_stop, region_starts, region_stops, color = 'black', opacity = 0.2, line_width = 3)
+
+   
+   Add regions to a figure with a date-based x-axis
+
+   ``figure_start`` and ``figure_stop`` are the start and stop times for the figure.
+   ``region_starts`` and ``region_stops`` are lists of start/stop times for regions.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!

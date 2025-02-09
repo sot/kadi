@@ -1,0 +1,73 @@
+kadi.events.models.Dwell
+========================
+
+.. py:class:: kadi.events.models.Dwell(*args, **kwargs)
+
+   Bases: :py:obj:`Event`
+
+
+   
+   Dwell in Kalman mode
+
+   **Event definition**: contiguous interval of AOACASEQ = KALM between::
+
+     Start: AOACASEQ ==> KALM  (transition from any state to KALM)
+     Stop:  AOACASEQ ==> not KALM (transition to any state other than KALM)
+                   **or**
+            AOPCADMD ==> NMAN
+
+   Short Kalman dwells that are less than 400 seconds long are *ignored* and
+   are not recorded in the database.  These are typically associated with monitor
+   window commanding or multiple acquisition attempts).
+
+   **Fields**
+
+   ============ ============ ========================================
+      Field         Type                   Description
+   ============ ============ ========================================
+         start     Char(21)           Start time (YYYY:DDD:HH:MM:SS)
+          stop     Char(21)            Stop time (YYYY:DDD:HH:MM:SS)
+        tstart        Float                    Start time (CXC secs)
+         tstop        Float                     Stop time (CXC secs)
+           dur        Float                          Duration (secs)
+    rel_tstart        Float   Start time relative to manvr end (sec)
+         manvr   ForeignKey        Maneuver that contains this dwell
+            ra        Float                    Right ascension (deg)
+           dec        Float                        Declination (deg)
+          roll        Float                         Roll angle (deg)
+   ============ ============ ========================================
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:attribute:: rel_tstart
+
+
+   .. py:attribute:: manvr
+
+
+   .. py:attribute:: ra
+
+
+   .. py:attribute:: dec
+
+
+   .. py:attribute:: roll
+
+
+   .. py:method:: __unicode__()
+

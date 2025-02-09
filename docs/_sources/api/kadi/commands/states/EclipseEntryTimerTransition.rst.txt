@@ -1,0 +1,46 @@
+kadi.commands.states.EclipseEntryTimerTransition
+================================================
+
+.. py:class:: kadi.commands.states.EclipseEntryTimerTransition
+
+   Bases: :py:obj:`ParamTransition`
+
+
+   
+   Eclipse entry timer update
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:attribute:: command_attributes
+
+
+   .. py:attribute:: state_keys
+      :value: ['eclipse_timer']
+
+
+
+   .. py:attribute:: transition_key
+      :value: 'eclipse_timer'
+
+
+
+   .. py:attribute:: cmd_param_key
+      :value: 'timecnt'
+
+

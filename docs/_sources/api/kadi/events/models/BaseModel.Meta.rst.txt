@@ -1,0 +1,14 @@
+kadi.events.models.BaseModel.Meta
+=================================
+
+.. py:class:: kadi.events.models.BaseModel.Meta
+
+   .. py:attribute:: abstract
+      :value: True
+
+
+
+   .. py:attribute:: ordering
+      :value: ['start']
+
+

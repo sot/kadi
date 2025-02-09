@@ -1,0 +1,10 @@
+kadi.events.json_field.JSONEncoder
+==================================
+
+.. py:class:: kadi.events.json_field.JSONEncoder
+
+   Bases: :py:obj:`django.utils.simplejson.JSONEncoder`
+
+
+   .. py:method:: default(obj)
+

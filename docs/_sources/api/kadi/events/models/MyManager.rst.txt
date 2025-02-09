@@ -1,0 +1,34 @@
+kadi.events.models.MyManager
+============================
+
+.. py:class:: kadi.events.models.MyManager
+
+   Bases: :py:obj:`django.db.models.Manager`
+
+
+   
+   Custom query manager that allows for overriding the default __repr__.
+   The purpose is to make a more user friendly output for event queries.
+
+   http://stackoverflow.com/questions/2163151/custom-queryset-and-manager-without-breaking-dry
+   https://docs.djangoproject.com/en/3.1/topics/db/managers/#custom-managers
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:method:: get_query_set()
+

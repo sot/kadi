@@ -1,0 +1,4 @@
+kadi.paths.IDX_CMDS_PATH
+========================
+
+.. py:function:: kadi.paths.IDX_CMDS_PATH(version=None)

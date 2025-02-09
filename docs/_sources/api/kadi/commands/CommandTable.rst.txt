@@ -1,0 +1,479 @@
+kadi.commands.CommandTable
+==========================
+
+.. py:class:: kadi.commands.CommandTable(data=None, masked=False, names=None, dtype=None, meta=None, copy=True, rows=None, copy_indices=True, units=None, descriptions=None, **kwargs)
+
+   Bases: :py:obj:`astropy.table.Table`
+
+
+   
+   Astropy Table subclass that is specialized to handle commands.
+
+   This uses a ``params`` column that is expected to be ``None`` or a dict of
+   params.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:attribute:: rev_pars_dict
+
+
+   .. py:attribute:: COL_TYPES
+
+
+   .. py:method:: _convert_data_to_col(*args, **kwargs)
+
+      
+      Convert any allowed sequence data ``col`` to a column object that can be used
+      directly in the self.columns dict.  This could be a Column, MaskedColumn,
+      or mixin column.
+
+      The final column name is determined by::
+
+          name or data.info.name or def_name
+
+      If ``data`` has no ``info`` then ``name = name or def_name``.
+
+      The behavior of ``copy`` for Column objects is:
+      - copy=True: new class instance with a copy of data and deep copy of meta
+      - copy=False: new class instance with same data and a key-only copy of meta
+
+      For mixin columns:
+      - copy=True: new class instance with copy of data and deep copy of meta
+      - copy=False: original instance (no copy at all)
+
+      :Parameters:
+
+          **data** : object (column-like sequence)
+              Input column data
+
+          **copy** : bool
+              Make a copy
+
+          **default_name** : str
+              Default name
+
+          **dtype** : np.dtype or None
+              Data dtype
+
+          **name** : str or None
+              Column name
+
+
+
+      :Returns:
+
+          **col** : Column, MaskedColumn, mixin-column type
+              Object that can be used as a column in self
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: __getitem__(item)
+
+
+   .. py:method:: __str__()
+
+
+   .. py:method:: __repr__(colnames=None)
+
+
+   .. py:method:: __bytes__()
+
+
+   .. py:method:: find_date(date, side='left')
+
+      
+      Find row in table corresponding to ``date``.
+
+      This is a thin wrapper around np.searchsorted that converts ``date`` to
+      a byte string before calling searchsorted. This is necessary because
+      the ``date`` column is a byte string and the astropy unicode machinery
+      ends up getting called a lot in a way that impacts performance badly.
+
+      :Parameters:
+
+          **date** : str, sequence of str
+              Date(s) to search for.
+
+          **side** : {'left', 'right'}, optional
+              If 'left', the index of the first suitable location found is given.
+              If 'right', return the last such index.  If there is no suitable
+              index, return either 0 or N (where N is the length of `a`).
+
+
+
+      :Returns:
+
+          int
+              Index of row(s) corresponding to ``date``.
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: fetch_params()
+
+      
+      Fetch all ``params`` for every row and force resolution of actual values.
+
+      This is handy for printing a command table and seeing all the parameters
+      at once.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: get_rltt()
+
+      
+      Return the first RLTT (Running Load Termination Time) command in table.
+
+      This is a command of type LOAD_EVENT with
+      event_type=RUNNING_LOAD_TERMINATION_TIME.
+
+
+
+
+      :Returns:
+
+          str or None
+              RLTT as a date string (e.g. '2012:001:23:59:59.999') or None if
+              there is no RLTT in the table.
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: get_scheduled_stop_time()
+
+      
+      Return the last scheduled stop time in table.
+
+      This is a command of type LOAD_EVENT with event_type=SCHEDULED_STOP_TIME.
+
+
+
+
+      :Returns:
+
+          str or None
+              Scheduled stop time as a date string (e.g. '2012:001:23:59:59.999')
+              or None if there is no scheduled stop time in the table.
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: add_cmds(cmds, rltt = None)
+
+      
+      Add CommandTable ``cmds`` to self and return the new CommandTable.
+
+      The commands table is maintained in order (date, step, scs).
+
+      :Parameters:
+
+          **cmds** : CommandTable
+              Commands to add.
+
+          **rltt** : str, optional
+              Clip existing commands to the RLTT (in "date" format) of the new commands.
+
+
+
+      :Returns:
+
+          CommandTable
+              ..
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: sort_in_backstop_order()
+
+      
+      Sort table in order (date, step, scs)
+
+      This matches the order in backstop.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: as_list_of_dict(ska_parsecm=False)
+
+      
+      Convert CommandTable to a list of dict.
+
+      The command ``params`` are embedded as a dict for each command.
+
+      If ``ska_parsecm`` is True then the output is made more compatible with
+      the legacy output from ``ska_parsecm.read_backstop()``, namely:
+
+      - Add ``cmd`` key which is set to the ``type`` key
+      - Make ``params`` keys uppercase.
+
+      :Parameters:
+
+          **ska_parsecm** : bool
+              Make output more ska_parsecm compatible
+
+
+
+      :Returns:
+
+          list of dict
+              ..
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: pformat_like_backstop(show_source=True, show_nonload_meta=True, sort_orbit_events=False, max_params_width=80)
+
+      
+      Format the table in a human-readable format that is similar to backstop.
+
+
+      :Parameters:
+
+          **show_source** : bool, optional
+              Show the source (load name) of each command (default=True)
+
+          **show_nonload_meta** : bool, optional
+              Show event and event_date for non-load commands (default=True)
+
+          **sort_orbit_events** : bool, optional
+              Sort orbit events at same date by event_type (default=False, mostly
+              for testing)
+
+          **max_params_width** : int, optional
+              Maximum width of parameter values string (default=80)
+
+
+
+      :Returns:
+
+          list
+              List of lines.
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: pprint_like_backstop(*, logger_func=None, logger_text='', **kwargs)
+
+      
+      Format the table in a human-readable format that is similar to backstop.
+
+
+      :Parameters:
+
+          **logger_func** : function, optional
+              Function to call with the formatted lines (default is print)
+
+          **show_source** : bool, optional
+              Show the source (load name) of each command (default=True)
+
+          **show_nonload_meta** : bool, optional
+              Show event and event_date for non-load commands (default=True)
+
+          **sort_orbit_events** : bool, optional
+              Sort orbit events at same date by event_type (default=False, mostly
+              for testing)
+
+          **max_params_width** : int, optional
+              Maximum width of parameter values string (default=80)
+
+
+
+      :Returns:
+
+          list
+              List of formatted lines.
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: deduplicate_orbit_cmds()
+
+      
+      Remove duplicate orbit commands (ORBPOINT type) in place.
+
+      In the event of a load stops and a replan, there can be multiple cmds
+      that describe the same orbit event.  Since the detailed timing might
+      change between schedule runs, cmds are considered the same if the date
+      is within 3 minutes. This code chooses the cmd from the latest loads in
+      this case.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: remove_not_run_cmds()
+
+      
+      Remove commands with type=NOT_RUN from the table.
+
+      This looks for type=NOT_RUN commands and then removes those and any
+      commands with the same date and same TLMSID. These are excluded via
+      the "Command not run" event in the Command Events sheet, e.g. the
+      LETG retract command in the loads after the LETG insert anomaly.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+

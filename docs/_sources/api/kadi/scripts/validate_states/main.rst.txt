@@ -1,0 +1,4 @@
+kadi.scripts.validate_states.main
+=================================
+
+.. py:function:: kadi.scripts.validate_states.main(args=None)

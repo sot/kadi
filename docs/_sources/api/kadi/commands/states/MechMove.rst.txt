@@ -1,0 +1,90 @@
+kadi.commands.states.MechMove
+=============================
+
+.. py:class:: kadi.commands.states.MechMove
+
+   Bases: :py:obj:`FixedTransition`
+
+
+   
+   Transitions for mech moves that have non-zero duration.
+
+   This adds two transitions per matched command:
+   - First one at cmd time with the transition value with ``_MOVE`` appended
+   - Second one at cmd time + move_duration with the straight transition value
+
+   This inherits from FixedTransition for the case of an attribute that gets
+   set to a fixed value when the command occurs, e.g. pcad_mode='NMAN' for
+   AONMMODE.
+
+   Class attributes:
+
+   :param transition_key: single transition key or list of transition keys
+   :param transition_val: single transition value or list of values
+   :param move_duration: duration of the move (astropy time Quantity)
+   :param apply_move_duration: if True, apply the move duration to states
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:attribute:: apply_move_duration
+      :value: True
+
+
+
+   .. py:method:: set_transitions(transitions_list, cmds, start, stop)
+      :classmethod:
+
+
+      
+      Set transitions for a Table of commands ``cmds``.
+
+
+      :Parameters:
+
+          **transitions_list**
+              list of transitions (updated in-place)
+
+          **cmds**
+              commands (CmdList)
+
+          **start**
+              start time for states
+
+          **stop**
+              stop time for states
+
+
+
+      :Returns:
+
+          None
+              ..
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+

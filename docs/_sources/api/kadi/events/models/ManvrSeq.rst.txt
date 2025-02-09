@@ -1,0 +1,89 @@
+kadi.events.models.ManvrSeq
+===========================
+
+.. toctree::
+   :hidden:
+
+   /api/kadi/events/models/ManvrSeq.Meta
+
+.. py:class:: kadi.events.models.ManvrSeq(*args, **kwargs)
+
+   Bases: :py:obj:`BaseModel`
+
+
+   
+   Maneuver sequence event
+
+   Each entry in this table corresponds to a state transition for an MSID
+   that is relevant to the sequence of events comprising a maneuver event.
+
+   **Fields**
+
+   =========== ============ ===========
+      Field        Type     Description
+   =========== ============ ===========
+        manvr   ForeignKey
+         msid      Char(8)
+     prev_val      Char(4)
+          val      Char(4)
+         date     Char(21)
+           dt        Float
+         time        Float
+    prev_date     Char(21)
+    prev_time        Float
+   =========== ============ ===========
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:attribute:: manvr
+
+
+   .. py:attribute:: msid
+
+
+   .. py:attribute:: prev_val
+
+
+   .. py:attribute:: val
+
+
+   .. py:attribute:: date
+
+
+   .. py:attribute:: dt
+
+
+   .. py:attribute:: time
+
+
+   .. py:attribute:: prev_date
+
+
+   .. py:attribute:: prev_time
+
+
+   .. py:method:: __unicode__()
+
+Classes
+-------
+
+.. autoapisummary::
+
+   kadi.events.models.ManvrSeq.Meta
+
+

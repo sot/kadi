@@ -1,0 +1,4 @@
+kadi.commands.validate.get_command_sheet_exclude_intervals
+==========================================================
+
+.. py:function:: kadi.commands.validate.get_command_sheet_exclude_intervals()

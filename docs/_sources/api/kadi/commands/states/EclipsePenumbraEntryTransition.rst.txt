@@ -1,0 +1,49 @@
+kadi.commands.states.EclipsePenumbraEntryTransition
+===================================================
+
+.. py:class:: kadi.commands.states.EclipsePenumbraEntryTransition
+
+   Bases: :py:obj:`FixedTransition`
+
+
+   
+   Eclipse penumbra entry
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:attribute:: command_attributes
+
+
+   .. py:attribute:: command_params
+
+
+   .. py:attribute:: state_keys
+      :value: ['eclipse']
+
+
+
+   .. py:attribute:: transition_key
+      :value: 'eclipse'
+
+
+
+   .. py:attribute:: transition_val
+      :value: 'PENUMBRA'
+
+

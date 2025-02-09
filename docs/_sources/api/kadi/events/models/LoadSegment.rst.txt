@@ -1,0 +1,86 @@
+kadi.events.models.LoadSegment
+==============================
+
+.. py:class:: kadi.events.models.LoadSegment(*args, **kwargs)
+
+   Bases: :py:obj:`IFotEvent`
+
+
+   
+   Load segment
+
+   **Event definition**: Load segment from iFOT database
+
+   **Fields**
+
+   =========== ========== =======================
+      Field       Type          Description
+   =========== ========== =======================
+      ifot_id    Integer         iFOT identifier
+        start   Char(21)       Start time (date)
+         stop   Char(21)        Stop time (date)
+       tstart      Float   Start time (CXC secs)
+        tstop      Float    Stop time (CXC secs)
+          dur      Float         Duration (secs)
+         name   Char(12)       Load segment name
+          scs    Integer                SCS slot
+    load_name   Char(10)               Load name
+      comment       Text                 Comment
+   =========== ========== =======================
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:attribute:: name
+
+
+   .. py:attribute:: scs
+
+
+   .. py:attribute:: load_name
+
+
+   .. py:attribute:: comment
+
+
+   .. py:attribute:: ifot_type_desc
+      :value: 'LOADSEG'
+
+
+
+   .. py:attribute:: ifot_props
+      :value: ['NAME', 'SCS', 'LOAD_NAME', 'COMMENT']
+
+
+
+   .. py:attribute:: lookback
+      :value: 40
+
+
+
+   .. py:attribute:: lookback_delete
+      :value: 20
+
+
+
+   .. py:attribute:: lookforward
+      :value: 28
+
+
+
+   .. py:method:: __unicode__()
+

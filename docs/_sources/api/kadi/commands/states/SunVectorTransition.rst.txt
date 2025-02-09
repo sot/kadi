@@ -1,0 +1,118 @@
+kadi.commands.states.SunVectorTransition
+========================================
+
+.. py:class:: kadi.commands.states.SunVectorTransition
+
+   Bases: :py:obj:`BaseTransition`
+
+
+   
+   Add transitions between start/stop every 10 ksec.
+
+   This is to sample the pitch and off_nominal roll during NPNT.  These are
+   function transitions which check to see that ``pcad_mode == 'NPNT'`` before
+   changing the pitch / off_nominal_roll.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:attribute:: state_keys
+
+
+   .. py:method:: set_transitions(transitions_list, cmds, start, stop)
+      :classmethod:
+
+
+      
+      Set transitions for a Table of commands ``cmds``.
+
+
+      :Parameters:
+
+          **transitions_list**
+              list of transitions (updated in-place)
+
+          **cmds**
+              commands (CmdList)
+
+          **start**
+              start time for states
+
+          **stop**
+              stop time for states
+
+
+
+      :Returns:
+
+          None
+              ..
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: update_sun_vector_state(date, transitions, state, idx)
+      :classmethod:
+
+
+      
+      Transition callback method for ``pitch`` / ``off_nom_roll`` states.
+
+      This will potentially update the ``pitch`` and ``off_nom_roll`` states if
+      pcad_mode is NPNT.
+
+      :Parameters:
+
+          **date**
+              date (str)
+
+          **transitions**
+              global list of transitions
+
+          **state**
+              current state (dict)
+
+          **idx**
+              current index into transitions
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+

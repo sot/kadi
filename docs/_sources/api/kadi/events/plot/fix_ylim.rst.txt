@@ -1,0 +1,4 @@
+kadi.events.plot.fix_ylim
+=========================
+
+.. py:function:: kadi.events.plot.fix_ylim(ax, min_ylim)

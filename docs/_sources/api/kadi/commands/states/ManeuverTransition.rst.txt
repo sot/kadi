@@ -1,0 +1,103 @@
+kadi.commands.states.ManeuverTransition
+=======================================
+
+.. py:class:: kadi.commands.states.ManeuverTransition
+
+   Bases: :py:obj:`BaseTransition`
+
+
+   
+   Execute maneuver.
+
+   This is a relatively complex transition that computes the intermediate
+   quaternion values for the maneuver and inserts downstream transitions to
+   perform attitude quaternion updated accordingly.  At the end of the maneuver
+   it schedules a NPM transition if ``auto_npnt`` is enabled.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:attribute:: command_attributes
+
+
+   .. py:attribute:: state_keys
+
+
+   .. py:attribute:: pcad_mode
+      :value: 'NMAN'
+
+
+
+   .. py:method:: set_transitions(transitions_list, cmds, start, stop)
+      :classmethod:
+
+
+
+   .. py:method:: callback(date, transitions, state, idx)
+      :classmethod:
+
+
+      
+      Transition function callback to generate downstream transitions.
+
+      These perform the actual maneuver and (usually) transition to NPM at the
+      end of maneuver.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: add_manvr_transitions(date, transitions, state, idx)
+      :classmethod:
+
+
+      
+      This does the main work of adding transitions for a maneuver.
+
+      It is called by the ManeuverTransition and NormalSunTransition classes.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+

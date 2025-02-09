@@ -1,0 +1,46 @@
+kadi.commands.states.Hrc15vOff_Transition
+=========================================
+
+.. py:class:: kadi.commands.states.Hrc15vOff_Transition
+
+   Bases: :py:obj:`FixedTransition`
+
+
+   
+   HRC 15V OFF
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:attribute:: command_attributes
+
+
+   .. py:attribute:: state_keys
+      :value: ['hrc_15v']
+
+
+
+   .. py:attribute:: transition_key
+      :value: 'hrc_15v'
+
+
+
+   .. py:attribute:: transition_val
+      :value: 'OFF'
+
+

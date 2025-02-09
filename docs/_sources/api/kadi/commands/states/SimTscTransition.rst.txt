@@ -1,0 +1,46 @@
+kadi.commands.states.SimTscTransition
+=====================================
+
+.. py:class:: kadi.commands.states.SimTscTransition
+
+   Bases: :py:obj:`ParamTransition`
+
+
+   
+   SIM translating science compartment translation
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:attribute:: command_attributes
+
+
+   .. py:attribute:: state_keys
+      :value: ['simpos']
+
+
+
+   .. py:attribute:: transition_key
+      :value: 'simpos'
+
+
+
+   .. py:attribute:: cmd_param_key
+      :value: 'pos'
+
+

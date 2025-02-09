@@ -1,0 +1,33 @@
+kadi.config
+===========
+
+.. py:module:: kadi.config
+
+.. autoapi-nested-parse::
+
+   Configuration for kadi.
+
+   See https://docs.astropy.org/en/stable/config/index.html#customizing-config-location-in-affiliated-packages
+   and https://github.com/astropy/astropy/issues/12960.
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+Classes
+-------
+
+.. toctree::
+   :hidden:
+
+   /api/kadi/config/ConfigItem
+   /api/kadi/config/Conf
+
+.. autoapisummary::
+
+   kadi.config.ConfigItem
+   kadi.config.Conf
+
+
+

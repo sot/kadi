@@ -1,0 +1,4 @@
+kadi.events.json_field.dumps
+============================
+
+.. py:function:: kadi.events.json_field.dumps(value)

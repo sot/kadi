@@ -1,0 +1,46 @@
+kadi.commands.states.Hrc24vOff_Transition
+=========================================
+
+.. py:class:: kadi.commands.states.Hrc24vOff_Transition
+
+   Bases: :py:obj:`FixedTransition`
+
+
+   
+   HRC 24V OFF
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:attribute:: command_attributes
+
+
+   .. py:attribute:: state_keys
+      :value: ['hrc_24v']
+
+
+
+   .. py:attribute:: transition_key
+      :value: 'hrc_24v'
+
+
+
+   .. py:attribute:: transition_val
+      :value: 'OFF'
+
+

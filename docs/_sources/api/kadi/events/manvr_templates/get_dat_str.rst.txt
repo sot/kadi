@@ -1,0 +1,4 @@
+kadi.events.manvr_templates.get_dat_str
+=======================================
+
+.. py:function:: kadi.events.manvr_templates.get_dat_str()

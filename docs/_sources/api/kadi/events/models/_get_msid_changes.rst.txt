@@ -1,0 +1,26 @@
+kadi.events.models._get_msid_changes
+====================================
+
+.. py:function:: kadi.events.models._get_msid_changes(msids, sortmsids=None)
+
+   
+   For the list of fetch MSID objects, return a sorted structured array
+   of each time any MSID value changes.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!

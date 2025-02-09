@@ -1,0 +1,127 @@
+kadi.events.models.MajorEvent
+=============================
+
+.. toctree::
+   :hidden:
+
+   /api/kadi/events/models/MajorEvent.Meta
+
+.. py:class:: kadi.events.models.MajorEvent(*args, **kwargs)
+
+   Bases: :py:obj:`BaseEvent`
+
+
+   
+   Major event
+
+   **Event definition**: events from the two lists maintained by the FOT and
+     the FDB (systems engineering).
+
+   Two lists of major event related to Chandra are available on OCCweb:
+
+   - http://occweb.cfa.harvard.edu/occweb/web/fot_web/eng/reports/Chandra_major_events.htm
+   - http://occweb.cfa.harvard.edu/occweb/web/fdb_web/Major_Events.html
+
+   These two event lists are scraped from OCCweb and merged into a single list with a
+   common structure.  Unlike most kadi event types, the MajorEvent class does not
+   represent an interval of time (``start`` and ``stop``) but only has ``start``
+   (YYYY:DOY) and ``date`` (YYYY-Mon-DD) attributes to indicate the time.
+
+   **Fields**
+
+   ======== ========== =============================================
+    Field      Type                     Description
+   ======== ========== =============================================
+       key   Char(24)                     Unique key for this event
+     start    Char(8)      Event time to the nearest day (YYYY:DOY)
+      date   Char(11)   Event time to the nearest day (YYYY-Mon-DD)
+    tstart      Float       Event time to the nearest day (CXC sec)
+     descr       Text                             Event description
+      note       Text          Note (comments or CAP # or FSW PR #)
+    source    Char(3)                     Event source (FDB or FOT)
+   ======== ========== =============================================
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:attribute:: key
+
+
+   .. py:attribute:: start
+
+
+   .. py:attribute:: date
+
+
+   .. py:attribute:: tstart
+
+
+   .. py:attribute:: descr
+
+
+   .. py:attribute:: note
+
+
+   .. py:attribute:: source
+
+
+   .. py:attribute:: lookback
+      :value: 740
+
+
+
+   .. py:attribute:: lookback_delete
+      :value: 730
+
+
+
+   .. py:method:: __unicode__()
+
+
+   .. py:method:: get_events(start, stop=None)
+      :classmethod:
+
+
+      
+      Get Major Events from FDB and FOT tables on the OCCweb
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+Classes
+-------
+
+.. autoapisummary::
+
+   kadi.events.models.MajorEvent.Meta
+
+

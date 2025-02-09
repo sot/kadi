@@ -1,0 +1,4 @@
+kadi.commands.command_sets.cmd_set_hrc_not_run
+==============================================
+
+.. py:function:: kadi.commands.command_sets.cmd_set_hrc_not_run(load_name, date=None)

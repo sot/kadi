@@ -1,0 +1,9 @@
+kadi.events.models.ManvrSeq.Meta
+================================
+
+.. py:class:: kadi.events.models.ManvrSeq.Meta
+
+   .. py:attribute:: ordering
+      :value: ['manvr', 'date']
+
+

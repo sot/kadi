@@ -1,0 +1,4 @@
+kadi.paths.EVENTS_DB_PATH
+=========================
+
+.. py:function:: kadi.paths.EVENTS_DB_PATH()

@@ -1,0 +1,25 @@
+kadi.events.scrape.cleantext
+============================
+
+.. py:function:: kadi.events.scrape.cleantext(text)
+
+   
+   Clean up some HTML or unicode special characters and replace with ASCII equivalents.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!

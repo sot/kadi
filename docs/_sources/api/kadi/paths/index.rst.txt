@@ -1,0 +1,45 @@
+kadi.paths
+==========
+
+.. py:module:: kadi.paths
+
+
+
+Functions
+---------
+
+.. toctree::
+   :hidden:
+
+   /api/kadi/paths/_version_str
+   /api/kadi/paths/SKA_DATA
+   /api/kadi/paths/DATA_DIR
+   /api/kadi/paths/EVENTS_DB_PATH
+   /api/kadi/paths/IDX_CMDS_PATH
+   /api/kadi/paths/PARS_DICT_PATH
+   /api/kadi/paths/CMDS_DIR
+   /api/kadi/paths/LOADS_ARCHIVE_DIR
+   /api/kadi/paths/LOADS_BACKSTOP_PATH
+   /api/kadi/paths/SCENARIO_DIR
+   /api/kadi/paths/LOADS_TABLE_PATH
+   /api/kadi/paths/CMD_EVENTS_PATH
+   /api/kadi/paths/STARCATS_CACHE_PATH
+
+.. autoapisummary::
+
+   kadi.paths._version_str
+   kadi.paths.SKA_DATA
+   kadi.paths.DATA_DIR
+   kadi.paths.EVENTS_DB_PATH
+   kadi.paths.IDX_CMDS_PATH
+   kadi.paths.PARS_DICT_PATH
+   kadi.paths.CMDS_DIR
+   kadi.paths.LOADS_ARCHIVE_DIR
+   kadi.paths.LOADS_BACKSTOP_PATH
+   kadi.paths.SCENARIO_DIR
+   kadi.paths.LOADS_TABLE_PATH
+   kadi.paths.CMD_EVENTS_PATH
+   kadi.paths.STARCATS_CACHE_PATH
+
+
+

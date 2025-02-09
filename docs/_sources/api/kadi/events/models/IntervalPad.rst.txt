@@ -1,0 +1,36 @@
+kadi.events.models.IntervalPad
+==============================
+
+.. py:class:: kadi.events.models.IntervalPad
+
+   Bases: :py:obj:`object`
+
+
+   
+   Data descriptor that sets and gets an interval pad.  This pad has
+   two values that are applied to the start and stop times for an interval,
+   respectively.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:method:: __get__(instance, owner)
+
+
+   .. py:method:: __set__(instance, val)
+

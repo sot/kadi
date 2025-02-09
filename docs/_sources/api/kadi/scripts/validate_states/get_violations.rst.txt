@@ -1,0 +1,33 @@
+kadi.scripts.validate_states.get_violations
+===========================================
+
+.. py:function:: kadi.scripts.validate_states.get_violations(validators)
+
+   
+   Return list of violations from list of validators.
+
+
+   :Parameters:
+
+       **validators** : list
+           List of validators
+
+
+
+   :Returns:
+
+       list
+           List of violations dicts, keys are "name", "start", "stop"
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!

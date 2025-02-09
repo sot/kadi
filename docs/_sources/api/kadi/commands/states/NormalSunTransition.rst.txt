@@ -1,0 +1,75 @@
+kadi.commands.states.NormalSunTransition
+========================================
+
+.. py:class:: kadi.commands.states.NormalSunTransition
+
+   Bases: :py:obj:`ManeuverTransition`
+
+
+   
+   Same as ``ManeuverTransition`` except perform maneuver to NSM.
+
+   This uses ska_sun.get_nsm_attitude() to get the NSM attitude, potentially at
+   an offset pitch like 160 degrees.  It also changes ``pcad_mode`` to NSUN.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:attribute:: command_attributes
+
+
+   .. py:attribute:: pcad_mode
+      :value: 'NSUN'
+
+
+
+   .. py:attribute:: state_keys
+
+
+   .. py:method:: set_transitions(transitions_list, cmds, start, stop)
+      :classmethod:
+
+
+
+   .. py:method:: callback(date, transitions, state, idx, *, pitch)
+      :classmethod:
+
+
+      
+      This is a transition function callback.
+
+      It sets the state pcad_mode to ``cls.pcad_mode`` and target quaternion to
+      the expected sun pointed attitude.  It then calls the parent method to
+      add the actual maneuver.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+

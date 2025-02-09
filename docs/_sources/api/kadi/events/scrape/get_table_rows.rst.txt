@@ -1,0 +1,25 @@
+kadi.events.scrape.get_table_rows
+=================================
+
+.. py:function:: kadi.events.scrape.get_table_rows(table)
+
+   
+   Use BeautifulSoup to extract table entries as a list of lists.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!

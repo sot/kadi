@@ -1,0 +1,42 @@
+kadi
+====
+
+.. py:module:: kadi
+
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 1
+
+   /api/kadi/cmds/index
+   /api/kadi/commands/index
+   /api/kadi/config/index
+   /api/kadi/events/index
+   /api/kadi/occweb/index
+   /api/kadi/paths/index
+   /api/kadi/scripts/index
+   /api/kadi/settings/index
+   /api/kadi/tests/index
+
+
+
+Functions
+---------
+
+.. toctree::
+   :hidden:
+
+   /api/kadi/_get_kadi_logger
+   /api/kadi/test
+   /api/kadi/create_config_file
+
+.. autoapisummary::
+
+   kadi._get_kadi_logger
+   kadi.test
+   kadi.create_config_file
+
+
+

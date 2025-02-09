@@ -1,0 +1,27 @@
+kadi.events.scrape
+==================
+
+.. py:module:: kadi.events.scrape
+
+
+
+Functions
+---------
+
+.. toctree::
+   :hidden:
+
+   /api/kadi/events/scrape/cleantext
+   /api/kadi/events/scrape/get_table_rows
+   /api/kadi/events/scrape/get_fdb_major_events
+   /api/kadi/events/scrape/get_fot_major_events
+
+.. autoapisummary::
+
+   kadi.events.scrape.cleantext
+   kadi.events.scrape.get_table_rows
+   kadi.events.scrape.get_fdb_major_events
+   kadi.events.scrape.get_fot_major_events
+
+
+

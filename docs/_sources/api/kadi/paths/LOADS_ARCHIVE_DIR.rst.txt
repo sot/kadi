@@ -1,0 +1,4 @@
+kadi.paths.LOADS_ARCHIVE_DIR
+============================
+
+.. py:function:: kadi.paths.LOADS_ARCHIVE_DIR()

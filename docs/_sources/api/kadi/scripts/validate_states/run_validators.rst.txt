@@ -1,0 +1,42 @@
+kadi.scripts.validate_states.run_validators
+===========================================
+
+.. py:function:: kadi.scripts.validate_states.run_validators(stop, days, states, no_exclude = False)
+
+   
+   Run applicable validators and return list of validators.
+
+
+   :Parameters:
+
+       **stop**
+           stop time for validation interval (CxoTime-like, default=now)
+
+       **days**
+           length of validation interval (days)
+
+       **states**
+           list of states to validate (default=all)
+
+       **no_exclude**
+           if True then do not exclude intervals (default=False)
+
+
+
+   :Returns:
+
+       list
+           List of validators
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!

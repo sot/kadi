@@ -1,0 +1,25 @@
+kadi.events.plot
+================
+
+.. py:module:: kadi.events.plot
+
+
+
+Functions
+---------
+
+.. toctree::
+   :hidden:
+
+   /api/kadi/events/plot/fix_ylim
+   /api/kadi/events/plot/tlm_event
+   /api/kadi/events/plot/manvr
+
+.. autoapisummary::
+
+   kadi.events.plot.fix_ylim
+   kadi.events.plot.tlm_event
+   kadi.events.plot.manvr
+
+
+

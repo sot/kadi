@@ -1,0 +1,46 @@
+kadi.commands.states.DitherEnableTransition
+===========================================
+
+.. py:class:: kadi.commands.states.DitherEnableTransition
+
+   Bases: :py:obj:`FixedTransition`
+
+
+   
+   Dither enable
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:attribute:: command_attributes
+
+
+   .. py:attribute:: state_keys
+      :value: ['dither']
+
+
+
+   .. py:attribute:: transition_key
+      :value: 'dither'
+
+
+
+   .. py:attribute:: transition_val
+      :value: 'ENAB'
+
+

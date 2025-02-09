@@ -1,0 +1,25 @@
+kadi.events.plot.manvr
+======================
+
+.. py:function:: kadi.events.plot.manvr(evt, figsize=(8, 10), fig=None)
+
+   
+   Plot a Manvr event
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!

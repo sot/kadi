@@ -1,0 +1,52 @@
+kadi.events.json_field.JSONList
+===============================
+
+.. py:class:: kadi.events.json_field.JSONList
+
+   Bases: :py:obj:`list`
+
+
+   
+   As above
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:method:: __repr__()
+
+      
+      Return repr(self).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+

@@ -1,0 +1,37 @@
+kadi.events.models.Update
+=========================
+
+.. py:class:: kadi.events.models.Update(*args, **kwargs)
+
+   Bases: :py:obj:`django.db.models.Model`
+
+
+   
+   Last telemetry which was searched for an update.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:attribute:: name
+
+
+   .. py:attribute:: date
+
+
+   .. py:method:: __unicode__()
+

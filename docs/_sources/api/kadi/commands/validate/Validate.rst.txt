@@ -1,0 +1,479 @@
+kadi.commands.validate.Validate
+===============================
+
+.. py:class:: kadi.commands.validate.Validate(stop=None, days = 14, no_exclude = False)
+
+   Bases: :py:obj:`abc.ABC`
+
+
+   
+   Validate kadi command states against telemetry base class.
+
+   Class attributes are as follows:
+
+   state_name : str
+       Name of state to validate.
+   stop : CxoTime
+       Stop time.
+   days : float
+       Number of days to validate.
+   state_keys_extra : list, optional
+       Extra state keys needed for validation.
+   plot_attrs : PlotAttrs
+       Attributes for plot.
+   msids : list
+       MSIDs to fetch for telemetry.
+   max_delta_val : float
+       Maximum value delta to signal a violation.
+   max_gap : float
+       Maximum gap in telemetry before breaking an interval (sec).
+   min_violation_duration : float
+       Minimum duration of a violation (sec).
+
+   :Parameters:
+
+       **stop**
+           stop time for validation
+
+       **days**
+           number of days for validation
+
+       **no_exclude**
+           if True then do not exclude any data (for testing)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:attribute:: subclasses
+      :value: []
+
+
+
+   .. py:attribute:: state_name
+      :type:  str
+      :value: None
+
+
+
+   .. py:attribute:: stop
+      :type:  cxotime.CxoTime
+      :value: None
+
+
+
+   .. py:attribute:: days
+      :type:  float
+      :value: None
+
+
+
+   .. py:attribute:: state_keys_extra
+      :type:  Optional[list]
+      :value: None
+
+
+
+   .. py:attribute:: plot_attrs
+      :type:  PlotAttrs
+      :value: None
+
+
+
+   .. py:attribute:: msids
+      :type:  list
+      :value: None
+
+
+
+   .. py:attribute:: max_delta_val
+      :value: 0
+
+
+
+   .. py:attribute:: max_gap
+      :value: 300
+
+
+
+   .. py:attribute:: min_violation_duration
+      :value: 32.81
+
+
+
+   .. py:attribute:: start
+      :type:  cxotime.CxoTime
+
+
+   .. py:attribute:: no_exclude
+      :value: False
+
+
+
+   .. py:method:: __init_subclass__(**kwargs)
+      :classmethod:
+
+
+
+   .. py:method:: tlm()
+
+
+   .. py:property:: times
+
+
+   .. py:property:: msid
+
+      
+      Validate classes have first MSID as primary telemetry. Override as needed.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: states()
+
+
+   .. py:method:: exclude_intervals()
+
+      
+      Intervals that are excluded from state validation.
+
+      This includes manually excluded times from the Command Events sheet
+      (e.g. within a few minutes of an IU-reset), or auto-generated
+      state-specific intervals like not validating pitch when in NMM.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: add_exclude_intervals()
+
+      
+      Base method to exclude intervals
+
+      Starts with intervals defined in the Chandra Command Events Google Sheet.
+
+      This method gets called at the end of self.tlm.
+
+      Subclasses can override this method to add additional intervals to exclude,
+      making sure to call super().add_exclude_intervals() first.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: add_exclude_interval(start, stop, comment, pad_start = None, pad_stop = None, source = 'Auto-generated')
+
+      
+      Add an interval to the exclude_intervals table
+
+      The ``start`` / ``stop`` times are padded by ``pad_start`` and
+      ``pad_stop`` (which are a Quantity objects with time units).
+
+      ``manual`` is a boolean that is used to indicate whether the interval was
+      manually specified in the command sheet. Non-manual intervals are annotated
+      in the table accordingly.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: exclude_ofp_intervals_except(states_expected)
+
+      
+      Exclude intervals where OFP (on-board flight program) is not in expected state.
+
+      This includes a padding of 30 minutes after SAFE mode and 5 minutes for non-NRML
+      states other than SAFE like STUP, SYON, SYSF etc.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: exclude_srdc_intervals()
+
+      
+      Check for SRDC's and exclude them from validation.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:property:: tlm_vals
+      :abstractmethod:
+
+
+      
+      Get the reference telemetry value for this Validation subclass
+
+      That means the quantity derived from telemetry that gets compared to
+      the states that come from kadi commands. This might be a single MSID
+      (e.g. for pitch) or it might be something more complicated (e.g. for
+      pointing which comes from 3 quaternion components).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: states_at_times()
+
+      
+      Get the states that correspond to the telemetry times
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: state_vals()
+
+
+   .. py:method:: violations()
+
+
+   .. py:method:: get_violations_mask()
+
+      
+      Get the violations mask for this validation class
+
+      This is the default implementation for most validation classes which just checks
+      that the telemetry value is within ``max_delta_val`` of the state value.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: get_violations()
+
+      
+      Get the violations mask for this validation class
+
+      This is the main method for each validation class. It returns a Table
+      with the columns ``start`` and ``stop`` which are date strings.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: get_plot_figure()
+
+
+   .. py:method:: get_plot_html(show=False)
+
+
+   .. py:method:: get_context()
+
+      
+      Get the standard context for a jinja2 template.
+
+
+
+
+
+      :Returns:
+
+          dict
+              ..
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: get_html(context = None, template_text = None)
+
+      
+      Get HTML for validator including section header, violations, and plot
+
+
+      :Parameters:
+
+          **context**
+              optional dict of context for jinja2 template
+
+          **template_text**
+              optional Jinja2 template text
+
+
+
+      :Returns:
+
+          str
+              HTML string
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+

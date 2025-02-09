@@ -1,0 +1,4 @@
+kadi.paths.CMDS_DIR
+===================
+
+.. py:function:: kadi.paths.CMDS_DIR(scenario=None)

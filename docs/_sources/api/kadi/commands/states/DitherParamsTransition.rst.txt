@@ -1,0 +1,79 @@
+kadi.commands.states.DitherParamsTransition
+===========================================
+
+.. py:class:: kadi.commands.states.DitherParamsTransition
+
+   Bases: :py:obj:`BaseTransition`
+
+
+   
+   Dither parameters
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:attribute:: command_attributes
+
+
+   .. py:attribute:: state_keys
+      :value: ['dither_phase_pitch', 'dither_phase_yaw', 'dither_ampl_pitch', 'dither_ampl_yaw',...
+
+
+
+   .. py:method:: set_transitions(transitions_list, cmds, start, stop)
+      :classmethod:
+
+
+      
+      Set transitions for a Table of commands ``cmds``.
+
+
+      :Parameters:
+
+          **transitions_list**
+              list of transitions (updated in-place)
+
+          **cmds**
+              commands (CmdList)
+
+          **start**
+              start time for states
+
+          **stop**
+              stop time for states
+
+
+
+      :Returns:
+
+          None
+              ..
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+

@@ -1,0 +1,49 @@
+kadi.commands.states.HETG_INSR_Transition
+=========================================
+
+.. py:class:: kadi.commands.states.HETG_INSR_Transition
+
+   Bases: :py:obj:`MechMove`
+
+
+   
+   HETG insertion
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:attribute:: command_attributes
+
+
+   .. py:attribute:: state_keys
+      :value: ['letg', 'hetg', 'grating']
+
+
+
+   .. py:attribute:: transition_key
+      :value: ['hetg', 'grating']
+
+
+
+   .. py:attribute:: transition_val
+      :value: ['INSR', 'HETG']
+
+
+
+   .. py:attribute:: move_duration
+

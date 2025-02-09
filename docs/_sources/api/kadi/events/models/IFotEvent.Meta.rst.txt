@@ -1,0 +1,14 @@
+kadi.events.models.IFotEvent.Meta
+=================================
+
+.. py:class:: kadi.events.models.IFotEvent.Meta
+
+   .. py:attribute:: abstract
+      :value: True
+
+
+
+   .. py:attribute:: ordering
+      :value: ['start']
+
+

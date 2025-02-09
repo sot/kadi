@@ -1,0 +1,45 @@
+kadi.events.models.Pad
+======================
+
+.. py:class:: kadi.events.models.Pad(start=None, stop=None)
+
+   Bases: :py:obj:`object`
+
+
+   
+   Time padding at the start and stop of an interval.
+
+   Positive values always make the interval *bigger* in each direction, so
+   a pad of 300 seconds makes the interval a total of 10 minutes longer (5 minutes
+   on each side).  A pad of -300 seconds makes the interval start 5 minutes
+   later and end 5 minutes earlier.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:attribute:: start
+      :value: 0.0
+
+
+
+   .. py:attribute:: stop
+      :value: 0.0
+
+
+
+   .. py:method:: __repr__()
+

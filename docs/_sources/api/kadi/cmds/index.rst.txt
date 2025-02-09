@@ -1,0 +1,30 @@
+kadi.cmds
+=========
+
+.. py:module:: kadi.cmds
+
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 1
+
+   /api/kadi/cmds/cmds/index
+
+
+
+Functions
+---------
+
+.. toctree::
+   :hidden:
+
+   /api/kadi/cmds/filter
+
+.. autoapisummary::
+
+   kadi.cmds.filter
+
+
+

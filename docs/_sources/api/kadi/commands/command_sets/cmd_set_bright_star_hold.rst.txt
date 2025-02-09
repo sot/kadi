@@ -1,0 +1,4 @@
+kadi.commands.command_sets.cmd_set_bright_star_hold
+===================================================
+
+.. py:function:: kadi.commands.command_sets.cmd_set_bright_star_hold(date=None)

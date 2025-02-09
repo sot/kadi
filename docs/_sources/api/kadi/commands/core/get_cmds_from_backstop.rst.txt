@@ -1,0 +1,38 @@
+kadi.commands.core.get_cmds_from_backstop
+=========================================
+
+.. py:function:: kadi.commands.core.get_cmds_from_backstop(backstop, remove_starcat=False)
+
+   
+   Initialize a ``CommandTable`` from ``backstop``.
+
+   ``backstop`` can either be a string file name or a backstop table from
+   ``parse_cm.read_backstop``.
+
+   :Parameters:
+
+       **backstop**
+           str or Table
+
+       **remove_starcat**
+           remove star catalog command parameters (default=False)
+
+
+
+   :Returns:
+
+       :class:`~kadi.commands.core.CommandTable` of commands
+           ..
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!

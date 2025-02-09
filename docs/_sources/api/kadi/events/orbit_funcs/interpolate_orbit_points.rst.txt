@@ -1,0 +1,25 @@
+kadi.events.orbit_funcs.interpolate_orbit_points
+================================================
+
+.. py:function:: kadi.events.orbit_funcs.interpolate_orbit_points(orbit_points, name)
+
+   
+   Linearly interpolate across any gaps for ``name`` orbit_points.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!

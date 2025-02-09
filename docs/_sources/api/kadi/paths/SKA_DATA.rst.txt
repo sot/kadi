@@ -1,0 +1,4 @@
+kadi.paths.SKA_DATA
+===================
+
+.. py:function:: kadi.paths.SKA_DATA()

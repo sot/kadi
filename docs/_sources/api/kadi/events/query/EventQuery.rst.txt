@@ -1,0 +1,226 @@
+kadi.events.query.EventQuery
+============================
+
+.. py:class:: kadi.events.query.EventQuery(cls=None, left=None, right=None, op=None, pad=None, **filter_kwargs)
+
+   Bases: :py:obj:`object`
+
+
+   
+   High-level interface for handling event queries.
+
+   This includes a few key methods:
+
+   - filter() : filter events matching criteria and return Django query set
+   - intervals(): return time intervals between event start/stop times
+
+   An EventQuery object can be pre-filtered via any of the expressions
+   described in the ``filter()`` doc string.  In this way the corresponding
+   ``intervals()`` and fetch ``remove_intervals`` / ``select_intervals``
+   outputs can be likewise filtered.
+
+   A key feature is that EventQuery objects can be combined with boolean
+   and, or, and not logic to generate composite EventQuery objects.  From
+   there the intervals() output can be used to select or remove the intervals
+   from cheta fetch datasets.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:attribute:: interval_pad
+
+
+   .. py:attribute:: cls
+      :value: None
+
+
+
+   .. py:attribute:: left
+      :value: None
+
+
+
+   .. py:attribute:: right
+      :value: None
+
+
+
+   .. py:attribute:: op
+      :value: None
+
+
+
+   .. py:attribute:: filter_kwargs
+
+
+   .. py:method:: __repr__()
+
+
+   .. py:method:: __call__(pad=None, **filter_kwargs)
+
+      
+      Generate new EventQuery event for the same model class but with different pad.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:property:: name
+
+
+   .. py:method:: __and__(other)
+
+
+   .. py:method:: __or__(other)
+
+
+   .. py:method:: __invert__()
+
+
+   .. py:method:: intervals(start, stop)
+
+
+   .. py:property:: table
+
+
+   .. py:method:: filter(start=None, stop=None, obsid=None, subset=None, **kwargs)
+
+      
+      Find events between ``start`` and ``stop``, or with the given ``obsid``, which
+      match the filter attributes in subsequent keyword arguments.  The matching events
+      are returned as a Django query set [1].
+
+      If ``start`` or ``stop`` are not supplied they default to the beginning / end of
+      available data.  The optional ``subset`` arg must be a Python slice() object and
+      allows slicing of the filtered output.
+
+      This function allows for the powerful field lookups from the underlying
+      Django model implementation.  A field lookup is similar to an SQL ``WHERE``
+      clause with the form ``<field_name>__<filter_type>=<value>`` (with a double
+      underscore between).  For instance ``n_dwell__lte=1`` would be the same as
+      ``SELECT ... WHERE n_dwell <= 1``.  Common filter types are:
+
+      - ``exact`` (exact match), ``contains`` (contains string)
+      - ``startswith``, ``endswith`` (starts or ends with string)
+      - ``gt``, ``gte``, ``lt``, ``lte`` (comparisons)
+      - ``isnull`` (field value is missing, e.g. manvrs.aca_proc_act_start)
+
+      For the common case of testing equality (``exact``) there is a shortcut where
+      the ``__exact`` can be skipped, so for instance ``n_dwell=1`` selects
+      maneuver events with one dwell.  The full list of field lookups is at [2].
+
+      Examples::
+
+        >>> from kadi import events
+        >>> events.manvrs.filter('2011:001', '2012:001', n_dwell=1, angle__gte=140)
+        >>> events.manvrs.filter('2011:001', '2012:001', subset=slice(None, 5))  # first 5
+        >>> events.manvrs.filter(obsid=14305)
+
+      [1]: https://docs.djangoproject.com/en/3.1/topics/db/queries/
+      [2]: https://docs.djangoproject.com/en/3.1/ref/models/querysets/#field-lookups
+
+      :Parameters:
+
+          **start**
+              start time (DateTime compatible format)
+
+          **stop**
+              stop time (DateTime compatible format)
+
+          **obsid**
+              obsid for event
+
+          **subset**
+              subset of matching events that are output
+
+
+
+      :Returns:
+
+          Django query set with matching events
+              ..
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: all()
+
+      
+      Return all events as a Django query set object.
+
+      Example::
+
+        >>> from kadi import events
+        >>> print events.safe_suns.all()
+        <SafeSun: start=1999:229:20:17:50.616 dur=105091>
+        <SafeSun: start=1999:269:20:22:50.616 dur=43165>
+        <SafeSun: start=2000:048:08:08:54.216 dur=68798>
+        <SafeSun: start=2011:187:12:28:53.816 dur=288624>
+        <SafeSun: start=2012:150:03:33:09.816 dur=118720>
+
+        >>> print events.safe_suns.all().table
+                start                  stop            tstart      tstop      dur    notes
+        --------------------- --------------------- ----------- ----------- -------- -----
+        1999:229:20:17:50.616 1999:231:01:29:21.816  51308334.8  51413426.0 105091.2
+        1999:269:20:22:50.616 1999:270:08:22:15.416  54764634.8  54807799.6  43164.8
+        2000:048:08:08:54.216 2000:049:03:15:32.216  67162198.4  67230996.4  68798.0
+        2011:187:12:28:53.816 2011:190:20:39:17.416 426342600.0 426631223.6 288623.6
+        2012:150:03:33:09.816 2012:151:12:31:49.416 454649656.0 454768375.6 118719.6
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+

@@ -1,0 +1,26 @@
+kadi.events.manvr_templates.get_manvr_templates
+===============================================
+
+.. py:function:: kadi.events.manvr_templates.get_manvr_templates()
+
+   
+   Return a list of (name, template) pairs, where each template is a
+   list of strings like <msid>_<val0>_<val>.  This is ordered by frequency.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!

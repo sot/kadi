@@ -1,0 +1,46 @@
+kadi.commands.states.SubFormatSSR_Transition
+============================================
+
+.. py:class:: kadi.commands.states.SubFormatSSR_Transition
+
+   Bases: :py:obj:`FixedTransition`
+
+
+   
+   Transition to telemetry SSR subformat
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:attribute:: command_attributes
+
+
+   .. py:attribute:: state_keys
+      :value: ['subformat']
+
+
+
+   .. py:attribute:: transition_key
+      :value: 'subformat'
+
+
+
+   .. py:attribute:: transition_val
+      :value: 'SSR'
+
+

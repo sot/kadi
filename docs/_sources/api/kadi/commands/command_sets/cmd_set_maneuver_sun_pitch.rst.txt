@@ -1,0 +1,25 @@
+kadi.commands.command_sets.cmd_set_maneuver_sun_pitch
+=====================================================
+
+.. py:function:: kadi.commands.command_sets.cmd_set_maneuver_sun_pitch(pitch, date=None)
+
+   
+   Maneuver to ``pitch`` Sun pitch angle (absolute).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!

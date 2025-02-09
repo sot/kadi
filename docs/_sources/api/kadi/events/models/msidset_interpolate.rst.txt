@@ -1,0 +1,27 @@
+kadi.events.models.msidset_interpolate
+======================================
+
+.. py:function:: kadi.events.models.msidset_interpolate(msidset, dt, time0)
+
+   
+   Interpolate the ``msidset`` in-place to a common time basis, starting at ``time0``
+   and stepping by ``dt``.  This assumes an unfiltered MSIDset, and returns
+   a filtered MSIDset.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!

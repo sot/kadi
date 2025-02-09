@@ -1,0 +1,17 @@
+kadi.scripts
+============
+
+.. py:module:: kadi.scripts
+
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 1
+
+   /api/kadi/scripts/update_cmds_v2/index
+   /api/kadi/scripts/update_events/index
+   /api/kadi/scripts/validate_states/index
+
+

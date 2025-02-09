@@ -1,0 +1,109 @@
+kadi.events.models.TscMove
+==========================
+
+.. py:class:: kadi.events.models.TscMove(*args, **kwargs)
+
+   Bases: :py:obj:`TlmEvent`
+
+
+   
+   SIM TSC translation
+
+   **Event definition**: interval where ``3TSCMOVE = MOVE``
+
+   In addition to reporting the start and stop TSC position, these positions are also
+   converted to the corresponding science instrument detector name, one of ``ACIS-I``,
+   ``ACIS-S``, ``HRC-I``, or ``HRC-S``.  The maximum PWM value ``3MRMMXMV`` (sampled at
+   the stop time + 66 seconds) is also included.
+
+   **Fields**
+
+   =============== ========== ============================================
+        Field         Type                    Description
+   =============== ========== ============================================
+            start   Char(21)               Start time (YYYY:DDD:HH:MM:SS)
+             stop   Char(21)                Stop time (YYYY:DDD:HH:MM:SS)
+           tstart      Float                        Start time (CXC secs)
+            tstop      Float                         Stop time (CXC secs)
+              dur      Float                              Duration (secs)
+            obsid    Integer                    Observation ID (COBSRQID)
+    start_3tscpos    Integer                   Start TSC position (steps)
+     stop_3tscpos    Integer                    Stop TSC position (steps)
+        start_det    Char(6)   Start detector (ACIS-I ACIS-S HRC-I HRC-S)
+         stop_det    Char(6)    Stop detector (ACIS-I ACIS-S HRC-I HRC-S)
+          max_pwm    Integer                   Max PWM during translation
+   =============== ========== ============================================
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:attribute:: event_msids
+      :value: ['3tscmove', '3tscpos', '3mrmmxmv']
+
+
+
+   .. py:attribute:: event_val
+      :value: 'T'
+
+
+
+   .. py:attribute:: start_3tscpos
+
+
+   .. py:attribute:: stop_3tscpos
+
+
+   .. py:attribute:: start_det
+
+
+   .. py:attribute:: stop_det
+
+
+   .. py:attribute:: max_pwm
+
+
+   .. py:attribute:: interval_pad
+
+
+   .. py:method:: get_extras(event, event_msidset)
+      :classmethod:
+
+
+      
+      Define start/stop_3tscpos and start/stop_det.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: __unicode__()
+

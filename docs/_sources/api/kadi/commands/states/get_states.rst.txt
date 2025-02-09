@@ -1,0 +1,76 @@
+kadi.commands.states.get_states
+===============================
+
+.. py:function:: kadi.commands.states.get_states(start=None, stop=None, state_keys=None, cmds=None, continuity=None, reduce=True, merge_identical=False, scenario=None)
+
+   
+   Get table of states for intervals when ``state_keys`` params are unchanged.
+
+   If ``state_keys`` is ``None`` then the default keys
+   ``states.DEFAULT_STATE_KEYS`` is used.  This corresponds to the "classic"
+   Chandra commanded states (obsid, ACIS, PCAD, and mechanisms).  One can also
+   provide a single state key as a a string, e.g. ``state_keys='obsid'``.
+
+   If the ``cmds`` argument is not provided then the ``start`` and ``stop`` are
+   used to fetch the commands internally. If the ``stop`` date is not provided
+   then all known commands (including future commands from approved loads) will
+   be included.
+
+   The output table will contain columns for ``state_keys`` along with
+   ``datestart`` and ``datestop`` columns.  By default the ``reduce_states``
+   function is called (with the supplied value of ``merge_identical``) in order
+   to reduce down to the specified ``state_keys``.
+
+   If ``reduce`` is ``False`` then ``reduce_states`` is not called and output
+   table may include additional columns for related states.  For instance in
+   order to compute the attitude quaternion state ``q1`` it is necessary to
+   collect a number of other states such as ``pcad_mode`` and target
+   quaternions ``targ_q1`` through ``targ_q4``.  One can call the
+   ``reduce_states()`` function separately to reduce to only the desired state
+   keys.
+
+   :Parameters:
+
+       **start** : CxoTime-like, optional
+           Start of states (default is 1999:001).
+
+       **stop** : CxoTime-like, optional
+           Stop of states (default is current time + 1 year).
+
+       **state_keys** : list of str, optional
+           State keys of interest.
+
+       **cmds** : CmdList, CommandTable, optional
+           Input commands.
+
+       **continuity** : dict, optional
+           Initial state.
+
+       **reduce** : bool, optional
+           Call reduce_states() on output (default=True).
+
+       **merge_identical** : bool, optional
+           Merge identical states (see reduce_states() docs, default=False).
+
+       **scenario** : str, optional
+           Name of commands archive scenario to use instead of default.
+
+
+
+   :Returns:
+
+       astropy Table of states
+           ..
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!

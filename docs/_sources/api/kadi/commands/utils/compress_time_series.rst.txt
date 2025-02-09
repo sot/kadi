@@ -1,0 +1,4 @@
+kadi.commands.utils.compress_time_series
+========================================
+
+.. py:function:: kadi.commands.utils.compress_time_series(times, vals, max_delta_val = 0, max_delta_time = None, max_gap = None)

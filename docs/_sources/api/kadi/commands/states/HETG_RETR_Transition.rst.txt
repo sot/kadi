@@ -1,0 +1,49 @@
+kadi.commands.states.HETG_RETR_Transition
+=========================================
+
+.. py:class:: kadi.commands.states.HETG_RETR_Transition
+
+   Bases: :py:obj:`MechMove`
+
+
+   
+   HETG retraction
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:attribute:: command_attributes
+
+
+   .. py:attribute:: state_keys
+      :value: ['letg', 'hetg', 'grating']
+
+
+
+   .. py:attribute:: transition_key
+      :value: ['hetg', 'grating']
+
+
+
+   .. py:attribute:: transition_val
+      :value: ['RETR', 'NONE']
+
+
+
+   .. py:attribute:: move_duration
+

@@ -1,0 +1,49 @@
+kadi.commands.states.EclipseUmbraEntryTransition
+================================================
+
+.. py:class:: kadi.commands.states.EclipseUmbraEntryTransition
+
+   Bases: :py:obj:`FixedTransition`
+
+
+   
+   Eclipse umbra entry
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:attribute:: command_attributes
+
+
+   .. py:attribute:: command_params
+
+
+   .. py:attribute:: state_keys
+      :value: ['eclipse']
+
+
+
+   .. py:attribute:: transition_key
+      :value: 'eclipse'
+
+
+
+   .. py:attribute:: transition_val
+      :value: 'UMBRA'
+
+

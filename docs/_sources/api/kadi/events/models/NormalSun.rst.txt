@@ -1,0 +1,60 @@
+kadi.events.models.NormalSun
+============================
+
+.. py:class:: kadi.events.models.NormalSun(*args, **kwargs)
+
+   Bases: :py:obj:`TlmEvent`
+
+
+   
+   Normal sun mode event
+
+   **Event definition**: interval when PCAD mode ``AOPCADMD = NSUN``
+
+   During a safing event and recovery this MSID can toggle to different values,
+   so NormalSun events within 4 hours of each other are merged.
+
+   **Fields**
+
+   ======== ========== ================================
+    Field      Type              Description
+   ======== ========== ================================
+     start   Char(21)   Start time (YYYY:DDD:HH:MM:SS)
+      stop   Char(21)    Stop time (YYYY:DDD:HH:MM:SS)
+    tstart      Float            Start time (CXC secs)
+     tstop      Float             Stop time (CXC secs)
+       dur      Float                  Duration (secs)
+     obsid    Integer        Observation ID (COBSRQID)
+   ======== ========== ================================
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:attribute:: event_msids
+      :value: ['aopcadmd']
+
+
+
+   .. py:attribute:: event_val
+      :value: 'NSUN'
+
+
+
+   .. py:attribute:: event_time_fuzz
+      :value: 86400
+
+

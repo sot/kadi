@@ -1,0 +1,6 @@
+kadi.commands.tests
+===================
+
+.. py:module:: kadi.commands.tests
+
+

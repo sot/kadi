@@ -1,0 +1,4 @@
+kadi.commands.utils.get_time_series_chunks
+==========================================
+
+.. py:function:: kadi.commands.utils.get_time_series_chunks(times, vals, max_delta_val = 0, max_delta_time = None)

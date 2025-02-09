@@ -1,0 +1,28 @@
+kadi.commands.states.NoTransitionsError
+=======================================
+
+.. py:exception:: kadi.commands.states.NoTransitionsError
+
+   Bases: :py:obj:`ValueError`
+
+
+   
+   No transitions found within commands
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!

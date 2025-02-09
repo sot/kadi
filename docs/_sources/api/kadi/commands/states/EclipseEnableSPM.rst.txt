@@ -1,0 +1,126 @@
+kadi.commands.states.EclipseEnableSPM
+=====================================
+
+.. py:class:: kadi.commands.states.EclipseEnableSPM
+
+   Bases: :py:obj:`BaseTransition`
+
+
+   
+   Flag to indicate whether SPM will be enabled 11 minutes after eclipse exit.
+
+   This is evaluated at the time of eclipse entry and checks that the most recent
+   battery connect command (via the ``battery_connect`` state) was within 135 seconds
+   of eclipse entry.
+
+   See email thread "Criteria for SPM auto-enable following eclipse" around 2024-Feb-17
+   for more details on the 135 second threshold.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:attribute:: command_attributes
+
+
+   .. py:attribute:: command_params
+
+
+   .. py:attribute:: state_keys
+      :value: ['sun_pos_mon', 'battery_connect', 'eclipse_enable_spm']
+
+
+
+   .. py:attribute:: default_value
+      :value: False
+
+
+
+   .. py:attribute:: BATTERY_CONNECT_MAX_DT
+      :value: 135
+
+
+
+   .. py:method:: set_transitions(transitions_list, cmds, start, stop)
+      :classmethod:
+
+
+      
+      Set transitions for a Table of commands ``cmds``.
+
+
+      :Parameters:
+
+          **transitions_list**
+              list of transitions (updated in-place)
+
+          **cmds**
+              commands (CmdList)
+
+          **start**
+              start time for states
+
+          **stop**
+              stop time for states
+
+
+
+      :Returns:
+
+          None
+              ..
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: callback(date, transitions, state, idx)
+      :classmethod:
+
+
+      
+      Set flag if SPM will be enabled 11 minutes after eclipse exit.
+
+      ``battery_connect`` is the time of the battery connect EOESTECN command,
+      which must occur prior to this command which is eclipse entry.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+

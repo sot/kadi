@@ -1,0 +1,60 @@
+kadi.events.json_field
+======================
+
+.. py:module:: kadi.events.json_field
+
+.. autoapi-nested-parse::
+
+   JSONField automatically serializes most Python terms to JSON data.
+   Creates a TEXT field with a default value of "{}".  See test_json.py for
+   more information.
+
+   Taken from:
+   https://github.com/django-extensions/django-extensions/blob/master/django_extensions/db/fields/json.py
+
+    from django.db import models
+    from django_extensions.db.fields import json
+
+    class LOL(models.Model):
+        extra = json.JSONField()
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+Classes
+-------
+
+.. toctree::
+   :hidden:
+
+   /api/kadi/events/json_field/JSONEncoder
+   /api/kadi/events/json_field/JSONDict
+   /api/kadi/events/json_field/JSONList
+   /api/kadi/events/json_field/JSONField
+
+.. autoapisummary::
+
+   kadi.events.json_field.JSONEncoder
+   kadi.events.json_field.JSONDict
+   kadi.events.json_field.JSONList
+   kadi.events.json_field.JSONField
+
+
+Functions
+---------
+
+.. toctree::
+   :hidden:
+
+   /api/kadi/events/json_field/dumps
+   /api/kadi/events/json_field/loads
+
+.. autoapisummary::
+
+   kadi.events.json_field.dumps
+   kadi.events.json_field.loads
+
+
+

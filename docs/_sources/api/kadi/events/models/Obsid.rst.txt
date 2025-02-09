@@ -1,0 +1,82 @@
+kadi.events.models.Obsid
+========================
+
+.. py:class:: kadi.events.models.Obsid(*args, **kwargs)
+
+   Bases: :py:obj:`TlmEvent`
+
+
+   
+   Observation identifier
+
+   **Event definition**: interval where ``COBSRQID`` is unchanged.
+
+   **Fields**
+
+   ======== ========== ================================
+    Field      Type              Description
+   ======== ========== ================================
+     start   Char(21)   Start time (YYYY:DDD:HH:MM:SS)
+      stop   Char(21)    Stop time (YYYY:DDD:HH:MM:SS)
+    tstart      Float            Start time (CXC secs)
+     tstop      Float             Stop time (CXC secs)
+       dur      Float                  Duration (secs)
+     obsid    Integer        Observation ID (COBSRQID)
+   ======== ========== ================================
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:attribute:: event_msids
+      :value: ['cobsrqid']
+
+
+
+   .. py:attribute:: update_priority
+      :value: 1000
+
+
+
+   .. py:method:: get_events(start, stop=None)
+      :classmethod:
+
+
+      
+      Get obsid events from telemetry.  A event is defined by a
+      contiguous interval of the telemetered obsid.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: __unicode__()
+

@@ -1,0 +1,46 @@
+kadi.commands.states.SimFocusTransition
+=======================================
+
+.. py:class:: kadi.commands.states.SimFocusTransition
+
+   Bases: :py:obj:`ParamTransition`
+
+
+   
+   SIM focus assembly translation
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:attribute:: command_attributes
+
+
+   .. py:attribute:: state_keys
+      :value: ['simfa_pos']
+
+
+
+   .. py:attribute:: transition_key
+      :value: 'simfa_pos'
+
+
+
+   .. py:attribute:: cmd_param_key
+      :value: 'pos'
+
+

@@ -1,0 +1,23 @@
+kadi.commands.commands_v2
+=========================
+
+.. py:module:: kadi.commands.commands_v2
+
+
+
+Functions
+---------
+
+.. toctree::
+   :hidden:
+
+   /api/kadi/commands/commands_v2/clear_caches
+   /api/kadi/commands/commands_v2/get_cmds
+
+.. autoapisummary::
+
+   kadi.commands.commands_v2.clear_caches
+   kadi.commands.commands_v2.get_cmds
+
+
+

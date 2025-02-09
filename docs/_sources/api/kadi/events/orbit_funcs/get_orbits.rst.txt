@@ -1,0 +1,37 @@
+kadi.events.orbit_funcs.get_orbits
+==================================
+
+.. py:function:: kadi.events.orbit_funcs.get_orbits(orbit_points)
+
+   
+   Collate the orbit points into full orbits, with dates corresponding to start (ORBIT
+   ASCENDING NODE CROSSING), stop, apogee, perigee, radzone start and radzone stop.
+   Radzone is defined as the time covering perigee when radmon is disabled by command.
+   This corresponds to the planned values and may differ from actual in the case of
+   events that run SCS107 and prematurely disable RADMON.
+
+   Returns a numpy structured array::
+
+     ORBITS_DTYPE = [('orbit_num', 'i4'),
+                     ('start', 'U21'), ('stop', 'U21'),
+                     ('tstart', 'f8'), ('tstop', 'f8'), ('dur', 'f4'),
+                     ('perigee', 'U21'), ('t_perigee', 'f8'), ('apogee', 'U21'),
+                     ('start_radzone', 'U21'), ('stop_radzone', 'U21'),
+                     ('dt_start_radzone', 'f4'), ('dt_stop_radzone', 'f4')]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!

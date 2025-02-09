@@ -1,0 +1,59 @@
+kadi.occweb.get_occweb_page
+===========================
+
+.. py:function:: kadi.occweb.get_occweb_page(path, timeout=30, cache=False, binary=False, user=None, password=None)
+
+   
+   Get contents of ``path`` on OCCweb.
+
+   This returns the contents of the OCCweb page at ``path`` where it assumed
+   that ``path`` is either a URL (which starts with 'https://occweb') or a
+   relative path::
+
+     https://occweb.cfa.harvard.edu/occweb/<path>
+
+   In addition ``path`` can be a file or directory path starting with one of
+   the following Noodle directory paths. These get translated to an equivalent
+   location on OCCweb::
+
+     \\noodle\FOT
+     \\noodle\GRETA\mission\Backstop
+     \\noodle\vweb
+
+   If ``user`` and ``password`` are not provided then it is required that
+   credentials are stored in the file ``~/.netrc``. See the ``ska_ftp`` package
+   for details.
+
+   If the page is not found then a ``requests.exceptions.HTTPError`` is raised.
+
+   :param path: str, Path
+       Relative path on OCCweb or an OCCweb URL
+   :param timeout: int
+       Timeout in seconds for the request
+   :param cache: bool
+       If True, cache the result and check cache for subsequent calls
+   :param binary: bool
+       If True, return the binary contents of the page
+   :param user: str, optional
+       Username for OCCweb authentication
+   :param password: str, optional
+       Password for OCCweb authentication
+   :returns: str, bytes
+       File contents (str if ``binary`` is False, bytes if ``binary`` is True)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!

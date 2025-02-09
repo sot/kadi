@@ -1,0 +1,61 @@
+kadi.config.Conf
+================
+
+.. py:class:: kadi.config.Conf
+
+   Bases: :py:obj:`astropy.config.ConfigNamespace`
+
+
+   
+   Configuration parameters for kadi.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:attribute:: default_lookback
+
+
+   .. py:attribute:: cache_loads_in_astropy_cache
+
+
+   .. py:attribute:: cache_starcats
+
+
+   .. py:attribute:: clean_loads_dir
+
+
+   .. py:attribute:: commands_dir
+
+
+   .. py:attribute:: cmd_events_flight_id
+
+
+   .. py:attribute:: cmd_events_exclude_intervals_gid
+
+
+   .. py:attribute:: star_id_match_halfwidth
+
+
+   .. py:attribute:: fid_id_match_halfwidth
+
+
+   .. py:attribute:: include_in_work_command_events
+
+
+   .. py:attribute:: date_start_agasc1p8
+

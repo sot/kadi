@@ -1,0 +1,4 @@
+kadi.commands.command_sets.cmd_set_aciscti
+==========================================
+
+.. py:function:: kadi.commands.command_sets.cmd_set_aciscti(date=None)

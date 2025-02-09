@@ -1,0 +1,9 @@
+kadi.events.models.MajorEvent.Meta
+==================================
+
+.. py:class:: kadi.events.models.MajorEvent.Meta
+
+   .. py:attribute:: ordering
+      :value: ['key']
+
+

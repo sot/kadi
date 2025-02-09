@@ -1,0 +1,41 @@
+kadi.commands.states.SafeSunTransition
+======================================
+
+.. py:class:: kadi.commands.states.SafeSunTransition
+
+   Bases: :py:obj:`NormalSunTransition`
+
+
+   
+   Similar to ``NormalSunTransition`` but in Safe Sun Mode with pcad_mode = STBY.
+
+   This uses ska_sun.get_nsm_attitude() to get the NSM attitude, potentially at
+   an offset pitch like 160 degrees.  It also changes ``pcad_mode`` to STBY.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:attribute:: command_attributes
+
+
+   .. py:attribute:: pcad_mode
+      :value: 'STBY'
+
+
+
+   .. py:attribute:: state_keys
+

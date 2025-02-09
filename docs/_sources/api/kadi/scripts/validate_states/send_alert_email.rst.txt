@@ -1,0 +1,32 @@
+kadi.scripts.validate_states.send_alert_email
+=============================================
+
+.. py:function:: kadi.scripts.validate_states.send_alert_email(text, opt)
+
+   
+   Send an email alert for validation violations.
+
+
+   :Parameters:
+
+       **text** : str
+           Text for email
+
+       **opt** : argparse.Namespace
+           Command-line options
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!

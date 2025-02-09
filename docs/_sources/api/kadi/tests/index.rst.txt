@@ -1,0 +1,6 @@
+kadi.tests
+==========
+
+.. py:module:: kadi.tests
+
+

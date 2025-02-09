@@ -1,0 +1,4 @@
+kadi.paths.LOADS_TABLE_PATH
+===========================
+
+.. py:function:: kadi.paths.LOADS_TABLE_PATH(scenario=None)

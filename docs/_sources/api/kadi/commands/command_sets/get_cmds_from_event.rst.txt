@@ -1,0 +1,29 @@
+kadi.commands.command_sets.get_cmds_from_event
+==============================================
+
+.. py:function:: kadi.commands.command_sets.get_cmds_from_event(date, event, params_str)
+
+   
+   Return a predefined cmd_set ``name`` corresponding to the given event.
+
+   :param date: str, command event date
+   :param event: str, command event name (e.g. 'Obsid', 'SCS-107', 'Maneuver')
+   :param params_str: str, command event parameters string
+   :returns: ``CommandTable`` with commands
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!

@@ -1,0 +1,33 @@
+kadi.commands.command_sets.cmd_set_obsid
+========================================
+
+.. py:function:: kadi.commands.command_sets.cmd_set_obsid(obs_id, date=None)
+
+   
+   Return a command set that updates the commanded ObsID.
+
+
+   :Parameters:
+
+       **obsid**
+           obsid
+
+
+
+   :Returns:
+
+       list of command defs suitable for generate_cmds()
+           ..
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!

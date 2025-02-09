@@ -1,0 +1,27 @@
+kadi.commands.command_sets.cmd_set_command
+==========================================
+
+.. py:function:: kadi.commands.command_sets.cmd_set_command(*args, date=None)
+
+   
+   Parse Command or Command not run params string and return a command dict.
+
+   The format follows Backstop ``"<cmd_type> | PARAM1=VAL1, PARAM2=VAL2, .."``.
+   This code follows the key steps in parse_cm.backstop.read_backstop_as_list().
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!

@@ -1,0 +1,4 @@
+kadi.commands.command_sets.cmd_set_nsm
+======================================
+
+.. py:function:: kadi.commands.command_sets.cmd_set_nsm(*args, date=None)

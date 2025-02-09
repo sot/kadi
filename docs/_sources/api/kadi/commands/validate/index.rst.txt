@@ -1,0 +1,64 @@
+kadi.commands.validate
+======================
+
+.. py:module:: kadi.commands.validate
+
+.. autoapi-nested-parse::
+
+   Validate kadi command states against telemetry.
+
+   This is a set of classes that validate the kadi command states against
+   Chandra telemetry.  The classes are designed to be run either standalone
+   or from the command-line application ``kadi_validate_states`` (defined in
+   ``kadi.scripts.validate_states``).
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+Classes
+-------
+
+.. toctree::
+   :hidden:
+
+   /api/kadi/commands/validate/PlotAttrs
+   /api/kadi/commands/validate/Validate
+   /api/kadi/commands/validate/ValidatePitch
+   /api/kadi/commands/validate/ValidateRoll
+   /api/kadi/commands/validate/ValidateDither
+   /api/kadi/commands/validate/ValidatePcadMode
+   /api/kadi/commands/validate/ValidateSimpos
+   /api/kadi/commands/validate/ValidateObsid
+   /api/kadi/commands/validate/ValidateLETG
+   /api/kadi/commands/validate/ValidateHETG
+
+.. autoapisummary::
+
+   kadi.commands.validate.PlotAttrs
+   kadi.commands.validate.Validate
+   kadi.commands.validate.ValidatePitch
+   kadi.commands.validate.ValidateRoll
+   kadi.commands.validate.ValidateDither
+   kadi.commands.validate.ValidatePcadMode
+   kadi.commands.validate.ValidateSimpos
+   kadi.commands.validate.ValidateObsid
+   kadi.commands.validate.ValidateLETG
+   kadi.commands.validate.ValidateHETG
+
+
+Functions
+---------
+
+.. toctree::
+   :hidden:
+
+   /api/kadi/commands/validate/get_command_sheet_exclude_intervals
+
+.. autoapisummary::
+
+   kadi.commands.validate.get_command_sheet_exclude_intervals
+
+
+

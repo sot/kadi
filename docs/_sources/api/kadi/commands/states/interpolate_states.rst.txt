@@ -1,0 +1,38 @@
+kadi.commands.states.interpolate_states
+=======================================
+
+.. py:function:: kadi.commands.states.interpolate_states(states, times)
+
+   
+   Interpolate ``states`` table at given times.
+
+   For any ``times`` that are before or after the range of the states table, the
+   output state will be the first or last state, respectively..
+
+   :Parameters:
+
+       **states**
+           states (astropy states Table)
+
+       **times**
+           times (np.array or any DateTime compatible input)
+
+
+
+   :Returns:
+
+       ``states`` view at ``times``
+           ..
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!

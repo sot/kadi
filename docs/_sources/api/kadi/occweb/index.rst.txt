@@ -1,0 +1,42 @@
+kadi.occweb
+===========
+
+.. py:module:: kadi.occweb
+
+.. autoapi-nested-parse::
+
+   Provide an interface for getting pages from the OCCweb.
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+Functions
+---------
+
+.. toctree::
+   :hidden:
+
+   /api/kadi/occweb/get_auth
+   /api/kadi/occweb/get_url
+   /api/kadi/occweb/get_ifot
+   /api/kadi/occweb/ftp_put_to_lucky
+   /api/kadi/occweb/ftp_get_from_lucky
+   /api/kadi/occweb/get_auth_http_headers
+   /api/kadi/occweb/get_occweb_page
+   /api/kadi/occweb/get_occweb_dir
+
+.. autoapisummary::
+
+   kadi.occweb.get_auth
+   kadi.occweb.get_url
+   kadi.occweb.get_ifot
+   kadi.occweb.ftp_put_to_lucky
+   kadi.occweb.ftp_get_from_lucky
+   kadi.occweb.get_auth_http_headers
+   kadi.occweb.get_occweb_page
+   kadi.occweb.get_occweb_dir
+
+
+

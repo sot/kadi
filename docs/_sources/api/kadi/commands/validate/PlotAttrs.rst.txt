@@ -1,0 +1,76 @@
+kadi.commands.validate.PlotAttrs
+================================
+
+.. py:class:: kadi.commands.validate.PlotAttrs
+
+   
+   Plot attributes for a Validate subclass.
+
+
+   :Parameters:
+
+       **title** : str
+           Plot title.
+
+       **ylabel** : str
+           Y-axis label.
+
+       **range** : list, optional
+           Y-axis range.
+
+       **max_delta_time** : float, optional
+           Maximum time delta before a new data point is plotted.
+
+       **max_delta_val** : float, default 0
+           Maximum value delta before a new data point is plotted.
+
+       **max_gap_time** : float, default 300
+           Maximum gap in time before a plot gap is inserted.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:attribute:: title
+      :type:  str
+
+
+   .. py:attribute:: ylabel
+      :type:  str
+
+
+   .. py:attribute:: range
+      :type:  Optional[list]
+      :value: None
+
+
+
+   .. py:attribute:: max_delta_time
+      :type:  Optional[float]
+      :value: None
+
+
+
+   .. py:attribute:: max_delta_val
+      :type:  float
+      :value: 0
+
+
+
+   .. py:attribute:: max_gap_time
+      :type:  float
+      :value: 300
+
+

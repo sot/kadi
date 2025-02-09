@@ -1,0 +1,58 @@
+kadi.commands.states.get_continuity
+===================================
+
+.. py:function:: kadi.commands.states.get_continuity(date=None, state_keys=None, lookbacks=(7, 30, 180, 1000), scenario=None)
+
+   
+   Get the state and transition dates at ``date`` for ``state_keys``.
+
+   This function finds the state at a particular date by fetching commands
+   prior to that date and determine the states.  It returns dictionary
+   ``continuity`` provides the state values. Included in this dict is a special
+   key ``__dates__`` which provides the corresponding date at which the
+   state-changing command occurred.
+
+   Since some state keys like ``pitch`` change often (many times per day) while
+   others like ``letg`` may not change for weeks, this function does dynamic
+   lookbacks from ``date`` to find transitions for each key.  By default it
+   will try looking back 7 days, then 30 days, then 180 days, and finally 1000
+   days.  This lookback sequence can be controlled with the ``lookbacks``
+   argument.
+
+   If ``state_keys`` is ``None`` then the default keys ``states.DEFAULT_STATE_KEYS``
+   is used.  This corresponds to the "classic" Chandra commanded states (obsid,
+   ACIS, PCAD, and mechanisms).
+
+   :Parameters:
+
+       **date**
+           date (DateTime compatible, default=NOW)
+
+       **state_keys**
+           list of state keys or str (one state key) or None
+
+       **lookbacks**
+           list of lookback times in days (default=[7, 30, 180, 1000])
+
+       **scenario**
+           commands archive scenario (default=None)
+
+
+
+   :Returns:
+
+       dict of state values
+           ..
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!

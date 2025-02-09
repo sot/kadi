@@ -1,0 +1,4 @@
+kadi.commands.command_sets.cmd_set_dither
+=========================================
+
+.. py:function:: kadi.commands.command_sets.cmd_set_dither(state, date=None)

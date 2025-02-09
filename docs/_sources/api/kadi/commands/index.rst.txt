@@ -1,0 +1,64 @@
+kadi.commands
+=============
+
+.. py:module:: kadi.commands
+
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 1
+
+   /api/kadi/commands/command_sets/index
+   /api/kadi/commands/commands_v2/index
+   /api/kadi/commands/core/index
+   /api/kadi/commands/observations/index
+   /api/kadi/commands/states/index
+   /api/kadi/commands/tests/index
+   /api/kadi/commands/utils/index
+   /api/kadi/commands/validate/index
+
+
+
+Classes
+-------
+
+.. toctree::
+   :hidden:
+
+   /api/kadi/commands/CommandTable
+
+.. autoapisummary::
+
+   kadi.commands.CommandTable
+
+
+Functions
+---------
+
+.. toctree::
+   :hidden:
+
+   /api/kadi/commands/clear_caches
+   /api/kadi/commands/get_cmds
+   /api/kadi/commands/read_backstop
+   /api/kadi/commands/get_cmds_from_backstop
+   /api/kadi/commands/add_observations_to_cmds
+   /api/kadi/commands/get_starcats
+   /api/kadi/commands/get_observations
+   /api/kadi/commands/get_starcats_as_table
+
+.. autoapisummary::
+
+   kadi.commands.clear_caches
+   kadi.commands.get_cmds
+   kadi.commands.read_backstop
+   kadi.commands.get_cmds_from_backstop
+   kadi.commands.add_observations_to_cmds
+   kadi.commands.get_starcats
+   kadi.commands.get_observations
+   kadi.commands.get_starcats_as_table
+
+
+

@@ -1,0 +1,54 @@
+kadi.cmds.cmds.filter
+=====================
+
+.. py:function:: kadi.cmds.cmds.filter(start=None, stop=None, **kwargs)
+
+   
+   Get commands with ``start`` <= date < ``stop``.
+
+   Additional ``key=val`` pairs can be supplied to further filter the results.  Both
+   ``key`` and ``val`` are case insensitive.  In addition to the any of the command
+   parameters such as TLMSID, MSID, SCS, STEP, or POS, the ``key`` can be:
+
+   - date : Exact date of command e.g. '2013:003:22:11:45.530'
+   - type : Command type e.g. COMMAND_SW, COMMAND_HW, ACISPKT, SIMTRANS
+
+   Examples::
+
+     >>> from kadi import cmds
+     >>> cs = cmds.filter('2012:001', '2012:030')
+     >>> cs = cmds.filter('2012:001', '2012:030', type='simtrans')
+     >>> cs = cmds.filter(type='acispkt', tlmsid='wsvidalldn')
+     >>> cs = cmds.filter(msid='aflcrset')
+     >>> print(cs.table)
+
+   :Parameters:
+
+       **start** : DateTime format (optional)
+           Start time, defaults to beginning of available commands (2002:001)
+
+       **stop** : DateTime format (optional)
+           Stop time, defaults to end of available commands
+
+       **\*\*kwargs** : any key=val keyword argument pairs
+           ..
+
+
+
+   :Returns:
+
+       **cmds** : CmdList object (list of commands)
+           ..
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!

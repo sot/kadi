@@ -1,0 +1,253 @@
+kadi.events.models.TlmEvent
+===========================
+
+.. toctree::
+   :hidden:
+
+   /api/kadi/events/models/TlmEvent.Meta
+
+.. py:class:: kadi.events.models.TlmEvent(*args, **kwargs)
+
+   Bases: :py:obj:`Event`
+
+
+   
+   Base class for any event that gets updated in update_events.main().  Note
+   that BaseModel is the base class for models like ManvrSeq that get
+   generated as part of another event class.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:attribute:: obsid
+
+
+   .. py:attribute:: event_msids
+      :value: None
+
+
+
+   .. py:attribute:: event_val
+      :value: None
+
+
+
+   .. py:attribute:: event_filter_bad
+      :value: True
+
+
+
+   .. py:method:: plot(figsize=None, fig=None)
+
+      
+      Wrapper interface to plotting routines in plot module.  This is factored out
+      of this module (models) to reduce loading of other modules (matplotlib) req'd
+      for plotting.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: get_extras(event, event_msidset)
+      :classmethod:
+
+
+      
+      Get extra stuff for the event based on telemetry available in event_msidset.
+      This is a hook within get_events() that should be overridden in individual
+      classes.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: get_state_times_bools(event_msidset)
+      :classmethod:
+
+
+      
+      Get the boolean True/False array indicating when ``event_msid`` is in the
+      desired state for this event type.  The default is when
+      ``event_msid == cls.event_val``, but subclasses may override this method.
+
+
+      :Parameters:
+
+          **event_msid**
+              fetch.MSID object
+
+
+
+      :Returns:
+
+          boolean ndarray
+              ..
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: get_msids_states(start, stop)
+      :classmethod:
+
+
+      
+      Get event and related MSIDs and compute the states corresponding
+      to the event.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: get_events(start, stop=None)
+      :classmethod:
+
+
+      
+      Get events from telemetry defined by a simple rule that the value of
+      `event_msids[0]` == `event_val`.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:property:: msidset
+
+      
+      fetch.MSIDset of self.fetch_event_msids.  By default filter_bad is True.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: fetch_event(pad=None, extra_msids=None, filter_bad=True)
+
+      
+      Fetch an MSIDset of self.fetch_msids.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+Classes
+-------
+
+.. autoapisummary::
+
+   kadi.events.models.TlmEvent.Meta
+
+

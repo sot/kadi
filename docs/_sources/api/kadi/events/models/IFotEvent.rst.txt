@@ -1,0 +1,101 @@
+kadi.events.models.IFotEvent
+============================
+
+.. toctree::
+   :hidden:
+
+   /api/kadi/events/models/IFotEvent.Meta
+
+.. py:class:: kadi.events.models.IFotEvent(*args, **kwargs)
+
+   Bases: :py:obj:`BaseEvent`
+
+
+   
+   Base class for events from the iFOT database
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:attribute:: ifot_id
+
+
+   .. py:attribute:: start
+
+
+   .. py:attribute:: stop
+
+
+   .. py:attribute:: tstart
+
+
+   .. py:attribute:: tstop
+
+
+   .. py:attribute:: dur
+
+
+   .. py:attribute:: ifot_columns
+      :value: ['id', 'tstart', 'tstop']
+
+
+
+   .. py:attribute:: ifot_props
+      :value: []
+
+
+
+   .. py:attribute:: ifot_types
+
+
+   .. py:method:: get_events(start, stop=None)
+      :classmethod:
+
+
+      
+      Get events from iFOT web interface
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: __unicode__()
+
+Classes
+-------
+
+.. autoapisummary::
+
+   kadi.events.models.IFotEvent.Meta
+
+

@@ -1,0 +1,75 @@
+kadi.events.models.CAP
+======================
+
+.. py:class:: kadi.events.models.CAP(*args, **kwargs)
+
+   Bases: :py:obj:`IFotEvent`
+
+
+   
+   CAP from iFOT database
+
+   **Event definition**: CAP from iFOT database
+
+   **Fields**
+
+   ========= =========== =======================
+     Field       Type          Description
+   ========= =========== =======================
+    ifot_id     Integer         iFOT identifier
+      start    Char(21)       Start time (date)
+       stop    Char(21)        Stop time (date)
+     tstart       Float   Start time (CXC secs)
+      tstop       Float    Stop time (CXC secs)
+        dur       Float         Duration (secs)
+        num    Char(15)              CAP number
+      title        Text               CAP title
+      descr        Text         CAP description
+      notes        Text               CAP notes
+       link   Char(250)                CAP link
+   ========= =========== =======================
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:attribute:: num
+
+
+   .. py:attribute:: title
+
+
+   .. py:attribute:: descr
+
+
+   .. py:attribute:: notes
+
+
+   .. py:attribute:: link
+
+
+   .. py:attribute:: ifot_type_desc
+      :value: 'CAP'
+
+
+
+   .. py:attribute:: ifot_props
+      :value: ['NUM', 'START', 'STOP', 'TITLE', 'LINK', 'DESC']
+
+
+
+   .. py:method:: __unicode__()
+

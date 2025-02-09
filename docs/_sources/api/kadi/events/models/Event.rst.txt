@@ -1,0 +1,61 @@
+kadi.events.models.Event
+========================
+
+.. toctree::
+   :hidden:
+
+   /api/kadi/events/models/Event.Meta
+
+.. py:class:: kadi.events.models.Event(*args, **kwargs)
+
+   Bases: :py:obj:`BaseEvent`
+
+
+   
+   Base class for any event that gets updated in update_events.main().  Note
+   that BaseModel is the base class for models like ManvrSeq that get
+   generated as part of another event class.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:attribute:: start
+
+
+   .. py:attribute:: stop
+
+
+   .. py:attribute:: tstart
+
+
+   .. py:attribute:: tstop
+
+
+   .. py:attribute:: dur
+
+
+   .. py:method:: __unicode__()
+
+Classes
+-------
+
+.. autoapisummary::
+
+   kadi.events.models.Event.Meta
+
+

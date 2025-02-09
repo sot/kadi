@@ -1,0 +1,4 @@
+kadi.paths.STARCATS_CACHE_PATH
+==============================
+
+.. py:function:: kadi.paths.STARCATS_CACHE_PATH()

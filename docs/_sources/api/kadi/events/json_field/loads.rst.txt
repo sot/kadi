@@ -1,0 +1,4 @@
+kadi.events.json_field.loads
+============================
+
+.. py:function:: kadi.events.json_field.loads(txt)

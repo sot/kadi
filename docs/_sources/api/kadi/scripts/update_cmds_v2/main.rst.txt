@@ -1,0 +1,25 @@
+kadi.scripts.update_cmds_v2.main
+================================
+
+.. py:function:: kadi.scripts.update_cmds_v2.main(args=None)
+
+   
+   Main function for update_cmds_v2
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!

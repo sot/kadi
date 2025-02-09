@@ -1,0 +1,121 @@
+kadi.events.models.Dump
+=======================
+
+.. py:class:: kadi.events.models.Dump(*args, **kwargs)
+
+   Bases: :py:obj:`TlmEvent`
+
+
+   
+   Momentum unload either ground commanded or autonomous
+
+   **Event definition**: interval where ``AOUNLOAD = GRND`` or ``AOUNLOAD = AUTO``
+
+   **Fields**
+
+   ======== ========== ==================================
+    Field      Type               Description
+   ======== ========== ==================================
+     start   Char(21)     Start time (YYYY:DDD:HH:MM:SS)
+      stop   Char(21)      Stop time (YYYY:DDD:HH:MM:SS)
+    tstart      Float              Start time (CXC secs)
+     tstop      Float               Stop time (CXC secs)
+       dur      Float                    Duration (secs)
+     obsid    Integer          Observation ID (COBSRQID)
+      type    Char(4)   Momentum unload type (GRND AUTO)
+   ======== ========== ==================================
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:attribute:: event_msids
+      :value: ['aounload']
+
+
+
+   .. py:attribute:: event_val
+      :value: 'GRND'
+
+
+
+   .. py:attribute:: type
+
+
+   .. py:method:: get_state_times_bools(event_msidset)
+      :classmethod:
+
+
+      
+      Get the boolean True/False array indicating when ``event_msid`` is in the
+      desired state for this event type.  The default is when
+      ``event_msid == cls.event_val``, but subclasses may override this method.
+
+
+      :Parameters:
+
+          **event_msid**
+              fetch.MSID object
+
+
+
+      :Returns:
+
+          boolean ndarray
+              ..
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: get_extras(event, event_msidset)
+      :classmethod:
+
+
+      
+      Define unload type
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: __str__()
+

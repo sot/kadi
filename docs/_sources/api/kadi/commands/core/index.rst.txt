@@ -1,0 +1,38 @@
+kadi.commands.core
+==================
+
+.. py:module:: kadi.commands.core
+
+
+
+Classes
+-------
+
+.. toctree::
+   :hidden:
+
+   /api/kadi/commands/core/CommandTable
+
+.. autoapisummary::
+
+   kadi.commands.core.CommandTable
+
+
+Functions
+---------
+
+.. toctree::
+   :hidden:
+
+   /api/kadi/commands/core/read_backstop
+   /api/kadi/commands/core/add_observations_to_cmds
+   /api/kadi/commands/core/get_cmds_from_backstop
+
+.. autoapisummary::
+
+   kadi.commands.core.read_backstop
+   kadi.commands.core.add_observations_to_cmds
+   kadi.commands.core.get_cmds_from_backstop
+
+
+

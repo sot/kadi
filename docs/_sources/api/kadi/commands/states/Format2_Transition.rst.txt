@@ -1,0 +1,46 @@
+kadi.commands.states.Format2_Transition
+=======================================
+
+.. py:class:: kadi.commands.states.Format2_Transition
+
+   Bases: :py:obj:`FixedTransition`
+
+
+   
+   Transition to telemetry format 2
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:attribute:: command_attributes
+
+
+   .. py:attribute:: state_keys
+      :value: ['format']
+
+
+
+   .. py:attribute:: transition_key
+      :value: 'format'
+
+
+
+   .. py:attribute:: transition_val
+      :value: 'FMT2'
+
+

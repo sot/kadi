@@ -1,0 +1,44 @@
+kadi.commands.states.add_transition
+===================================
+
+.. py:function:: kadi.commands.states.add_transition(transitions, idx, transition)
+
+   
+   Add ``transition`` to the ``transitions`` list.
+
+   This is done at the first appropriate place after the ``idx`` entry.
+
+   This is typically used by dynamic transitions that are actually calling a
+   function to generate downstream transitions.  The ManeuverTransition class
+   is the canonical example.
+
+   :Parameters:
+
+       **transitions**
+           global list of transition dicts
+
+       **idx**
+           current index into transitions in state processing
+
+       **transition**
+           transition to add (dict)
+
+
+
+   :Returns:
+
+       None
+           ..
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!

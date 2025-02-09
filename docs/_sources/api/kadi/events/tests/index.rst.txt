@@ -1,0 +1,31 @@
+kadi.events.tests
+=================
+
+.. py:module:: kadi.events.tests
+
+.. autoapi-nested-parse::
+
+   This file demonstrates writing tests using the unittest module. These will pass
+   when you run "manage.py test".
+
+   Replace this with more appropriate tests for your application.
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+Classes
+-------
+
+.. toctree::
+   :hidden:
+
+   /api/kadi/events/tests/SimpleTest
+
+.. autoapisummary::
+
+   kadi.events.tests.SimpleTest
+
+
+

@@ -1,0 +1,4 @@
+kadi.paths.SCENARIO_DIR
+=======================
+
+.. py:function:: kadi.paths.SCENARIO_DIR(scenario=None)

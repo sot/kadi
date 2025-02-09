@@ -1,0 +1,53 @@
+kadi.events.json_field.JSONDict
+===============================
+
+.. py:class:: kadi.events.json_field.JSONDict
+
+   Bases: :py:obj:`dict`
+
+
+   
+   Hack so repr() called by dumpdata will output JSON instead of
+   Python formatted data.  This way fixtures will work!
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:method:: __repr__()
+
+      
+      Return repr(self).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+

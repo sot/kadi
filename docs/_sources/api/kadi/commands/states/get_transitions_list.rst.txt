@@ -1,0 +1,41 @@
+kadi.commands.states.get_transitions_list
+=========================================
+
+.. py:function:: kadi.commands.states.get_transitions_list(cmds, state_keys, start, stop, continuity=None)
+
+   
+   Get transitions for given set of ``cmds`` and ``state_keys``.
+
+   A ``transition`` here defines a state transition.  It is a dict with a
+   ``date`` key (date of transition) and key/value pairs corresponding to the
+   state keys that change.
+
+   If ``state_keys`` is None then all known state keys are included.
+
+   :Parameters:
+
+       **cmds**
+           CmdList with spacecraft commands
+
+       **state_keys**
+           desired state keys (None, str, or list)
+
+
+
+   :Returns:
+
+       list of dict (transitions), set of transition classes
+           ..
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!

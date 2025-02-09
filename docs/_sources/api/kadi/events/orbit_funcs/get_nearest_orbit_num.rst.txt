@@ -1,0 +1,26 @@
+kadi.events.orbit_funcs.get_nearest_orbit_num
+=============================================
+
+.. py:function:: kadi.events.orbit_funcs.get_nearest_orbit_num(orbit_nums, idx, d_idx)
+
+   
+   Get the orbit number nearest to ``orbit_nums[idx]`` in direction ``d_idx``,
+   skipping values of -1 (from radmon commanding).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!

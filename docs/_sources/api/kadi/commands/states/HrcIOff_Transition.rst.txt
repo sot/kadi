@@ -1,0 +1,51 @@
+kadi.commands.states.HrcIOff_Transition
+=======================================
+
+.. py:class:: kadi.commands.states.HrcIOff_Transition
+
+   Bases: :py:obj:`FixedTransition`
+
+
+   
+   HRC-I OFF
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:attribute:: command_attributes
+
+
+   .. py:attribute:: state_keys
+      :value: ['hrc_i']
+
+
+
+   .. py:attribute:: transition_key
+      :value: 'hrc_i'
+
+
+
+   .. py:attribute:: transition_val
+      :value: 'OFF'
+
+
+
+   .. py:attribute:: default_value
+      :value: 'OFF'
+
+

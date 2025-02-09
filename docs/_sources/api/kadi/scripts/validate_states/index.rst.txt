@@ -1,0 +1,33 @@
+kadi.scripts.validate_states
+============================
+
+.. py:module:: kadi.scripts.validate_states
+
+
+
+Functions
+---------
+
+.. toctree::
+   :hidden:
+
+   /api/kadi/scripts/validate_states/get_opt
+   /api/kadi/scripts/validate_states/run_validators
+   /api/kadi/scripts/validate_states/get_violations
+   /api/kadi/scripts/validate_states/get_index_page_html
+   /api/kadi/scripts/validate_states/get_violations_text
+   /api/kadi/scripts/validate_states/send_alert_email
+   /api/kadi/scripts/validate_states/main
+
+.. autoapisummary::
+
+   kadi.scripts.validate_states.get_opt
+   kadi.scripts.validate_states.run_validators
+   kadi.scripts.validate_states.get_violations
+   kadi.scripts.validate_states.get_index_page_html
+   kadi.scripts.validate_states.get_violations_text
+   kadi.scripts.validate_states.send_alert_email
+   kadi.scripts.validate_states.main
+
+
+

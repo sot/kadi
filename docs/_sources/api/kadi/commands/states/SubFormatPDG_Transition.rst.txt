@@ -1,0 +1,46 @@
+kadi.commands.states.SubFormatPDG_Transition
+============================================
+
+.. py:class:: kadi.commands.states.SubFormatPDG_Transition
+
+   Bases: :py:obj:`FixedTransition`
+
+
+   
+   Transition to telemetry PDG subformat
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:attribute:: command_attributes
+
+
+   .. py:attribute:: state_keys
+      :value: ['subformat']
+
+
+
+   .. py:attribute:: transition_key
+      :value: 'subformat'
+
+
+
+   .. py:attribute:: transition_val
+      :value: 'PDG'
+
+

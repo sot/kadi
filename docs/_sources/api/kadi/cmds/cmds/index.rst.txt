@@ -1,0 +1,21 @@
+kadi.cmds.cmds
+==============
+
+.. py:module:: kadi.cmds.cmds
+
+
+
+Functions
+---------
+
+.. toctree::
+   :hidden:
+
+   /api/kadi/cmds/cmds/filter
+
+.. autoapisummary::
+
+   kadi.cmds.cmds.filter
+
+
+

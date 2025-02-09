@@ -1,0 +1,84 @@
+kadi.commands.states.BatteryConnect
+===================================
+
+.. py:class:: kadi.commands.states.BatteryConnect
+
+   Bases: :py:obj:`BaseTransition`
+
+
+   
+   Most recent battery connect time (type=COMMAND_SW and tlmsid=EOESTECN)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:attribute:: command_attributes
+
+
+   .. py:attribute:: state_keys
+      :value: ['sun_pos_mon', 'battery_connect', 'eclipse_enable_spm']
+
+
+
+   .. py:attribute:: default_value
+      :value: '1999:001:00:00:00.000'
+
+
+
+   .. py:method:: set_transitions(transitions_list, cmds, start, stop)
+      :classmethod:
+
+
+      
+      Set transitions for a Table of commands ``cmds``.
+
+
+      :Parameters:
+
+          **transitions_list**
+              list of transitions (updated in-place)
+
+          **cmds**
+              commands (CmdList)
+
+          **start**
+              start time for states
+
+          **stop**
+              stop time for states
+
+
+
+      :Returns:
+
+          None
+              ..
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+

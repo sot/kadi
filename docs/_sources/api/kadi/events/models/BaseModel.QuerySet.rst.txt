@@ -1,0 +1,132 @@
+kadi.events.models.BaseModel.QuerySet
+=====================================
+
+.. py:class:: kadi.events.models.BaseModel.QuerySet(model=None, query=None, using=None, hints=None)
+
+   Bases: :py:obj:`django.db.models.query.QuerySet`
+
+
+   
+   More user-friendly output from event queries.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:method:: __repr__()
+
+
+   .. py:property:: table
+
+
+   .. py:method:: select_overlapping(query_event, allow_partial=True)
+
+      
+      Select events which overlap with the specified ``query_event``.
+
+      By default partial overlap between the self events and the ``query_event``
+      intervals is sufficient.  However, if ``allow_partial=False``, then
+      complete overlap is required.  As an example this would be selecting
+      maneuvers that are *entirely* within the radiation zone.
+
+      Examples::
+
+        >>> from kadi import events
+        >>> manvrs = events.manvrs.filter('2001:001:00:00:00', '2001:003:00:00:00')
+        >>> non_rad_manvrs = manvrs.select_overlapping(~events.rad_zones)
+        >>> rad_manvrs = manvrs.select_overlapping(events.rad_zones)
+        >>> fully_radzone_manvrs = manvrs.select_overlapping(events.rad_zones,
+        ...                                                  allow_partial=False)
+
+      :param query_event: QueryEvent object (e.g. events.tsc_moves or a composite
+                          boolean expression)
+      :param allow_partial: return events where there is at least partial overlap
+                      (default=True)
+
+      :returns: list of overlapping events
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: _get_full_overlaps(overlap_starts, overlap_stops, datestarts, datestops)
+      :staticmethod:
+
+
+      
+      Find which of the new overlap_intervals are the same as an original interval,
+      indicating that there is a full overlap.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: _get_partial_overlaps(overlap_starts, overlap_stops, datestarts, datestops)
+      :staticmethod:
+
+
+      
+      Find which of the new overlap_intervals are the same as an original interval,
+      indicating that there is a full overlap.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+

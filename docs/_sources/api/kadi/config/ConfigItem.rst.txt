@@ -1,0 +1,97 @@
+kadi.config.ConfigItem
+======================
+
+.. py:class:: kadi.config.ConfigItem(defaultvalue='', description=None, cfgtype=None, module=None, aliases=None)
+
+   Bases: :py:obj:`astropy.config.ConfigItem`
+
+
+   
+   A setting and associated value stored in a configuration file.
+
+   These objects should be created as members of
+   `ConfigNamespace` subclasses, for example::
+
+       class _Conf(config.ConfigNamespace):
+           unicode_output = config.ConfigItem(
+               False,
+               'Use Unicode characters when outputting values, and writing widgets '
+               'to the console.')
+       conf = _Conf()
+
+   :Parameters:
+
+       **defaultvalue** : object, optional
+           The default value for this item. If this is a list of strings, this
+           item will be interpreted as an 'options' value - this item must be one
+           of those values, and the first in the list will be taken as the default
+           value.
+
+       **description** : str or None, optional
+           A description of this item (will be shown as a comment in the
+           configuration file)
+
+       **cfgtype** : str or None, optional
+           A type specifier like those used as the *values* of a particular key
+           in a ``configspec`` file of ``configobj``. If None, the type will be
+           inferred from the default value.
+
+       **module** : str or None, optional
+           The full module name that this item is associated with. The first
+           element (e.g. 'astropy' if this is 'astropy.config.configuration')
+           will be used to determine the name of the configuration file, while
+           the remaining items determine the section. If None, the package will be
+           inferred from the package within which this object's initializer is
+           called.
+
+       **aliases** : str, or list of str, optional
+           The deprecated location(s) of this configuration item.  If the
+           config item is not found at the new location, it will be
+           searched for at all of the old locations.
+
+
+
+
+
+
+
+   :Raises:
+
+       RuntimeError
+           If ``module`` is `None`, but the module this item is created from
+           cannot be determined.
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:attribute:: rootname
+      :value: 'kadi'
+
+
+      
+      Rootname sets the base path for all config files.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+

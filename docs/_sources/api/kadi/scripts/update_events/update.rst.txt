@@ -1,0 +1,4 @@
+kadi.scripts.update_events.update
+=================================
+
+.. py:function:: kadi.scripts.update_events.update(EventModel, date_stop)

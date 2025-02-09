@@ -1,0 +1,49 @@
+kadi.commands.states.SCS98DisableTransition
+===========================================
+
+.. py:class:: kadi.commands.states.SCS98DisableTransition
+
+   Bases: :py:obj:`FixedTransition`
+
+
+   
+   SCS-98 disable
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:attribute:: command_attributes
+
+
+   .. py:attribute:: command_params
+
+
+   .. py:attribute:: state_keys
+      :value: ['scs98']
+
+
+
+   .. py:attribute:: transition_key
+      :value: 'scs98'
+
+
+
+   .. py:attribute:: transition_val
+      :value: 'DISA'
+
+

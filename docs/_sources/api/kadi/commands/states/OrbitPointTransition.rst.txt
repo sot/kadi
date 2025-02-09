@@ -1,0 +1,46 @@
+kadi.commands.states.OrbitPointTransition
+=========================================
+
+.. py:class:: kadi.commands.states.OrbitPointTransition
+
+   Bases: :py:obj:`ParamTransition`
+
+
+   
+   Orbit point state based on backstop ephemeris entries
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:attribute:: command_attributes
+
+
+   .. py:attribute:: state_keys
+      :value: ['orbit_point']
+
+
+
+   .. py:attribute:: transition_key
+      :value: 'orbit_point'
+
+
+
+   .. py:attribute:: cmd_param_key
+      :value: 'event_type'
+
+

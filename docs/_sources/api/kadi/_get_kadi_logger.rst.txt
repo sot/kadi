@@ -1,0 +1,26 @@
+kadi._get_kadi_logger
+=====================
+
+.. py:function:: kadi._get_kadi_logger()
+
+   
+   Define top-level logger for the kadi package.
+
+   Defaults to WARNING level.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!

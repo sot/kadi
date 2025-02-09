@@ -1,0 +1,399 @@
+kadi.events.models.Manvr
+========================
+
+.. toctree::
+   :hidden:
+
+   /api/kadi/events/models/Manvr.Meta
+
+.. py:class:: kadi.events.models.Manvr(*args, **kwargs)
+
+   Bases: :py:obj:`TlmEvent`
+
+
+   
+   Maneuver
+
+   **Event definition**: interval where ``AOFATTMD = MNVR`` (spacecraft actually maneuvering)
+
+   The maneuver event includes a number of attributes that give a detailed
+   characterization of the timing and nature of the maneuver and corresponding
+   star acquisitions and normal point model dwells.
+
+   The ``start`` and ``stop`` time attributes for a maneuver event correspond exactly to
+   the start and stop of the actual maneuver.  However, the full maneuver event
+   contains information covering a larger time span from the end of the previous maneuver
+   to the start of the next maneuver::
+
+     Previous maneuver
+                            <---- Start of included information
+       Previous MANV end
+       Previous NPNT start
+
+       ==> Maneuver <==
+
+       Star acquisition
+       Transition to KALM
+       Kalman dwell
+         Optional: more dwells, star acq sequences, NMAN/NPNT
+
+       Transition to NMAN
+       Transition to MANV
+                            <---- End of included information
+     Next maneuver
+
+   **Fields**
+
+   ==================== ========== ============================================================
+          Field            Type                            Description
+   ==================== ========== ============================================================
+                 start   Char(21)                               Start time (YYYY:DDD:HH:MM:SS)
+                  stop   Char(21)                                Stop time (YYYY:DDD:HH:MM:SS)
+                tstart      Float                                        Start time (CXC secs)
+                 tstop      Float                                         Stop time (CXC secs)
+                   dur      Float                                              Duration (secs)
+                 obsid    Integer                                    Observation ID (COBSRQID)
+       prev_manvr_stop   Char(21)             Stop time of previous AOFATTMD=MNVR before manvr
+       prev_npnt_start   Char(21)            Start time of previous AOPCADMD=NPNT before manvr
+            nman_start   Char(21)                        Start time of AOPCADMD=NMAN for manvr
+           manvr_start   Char(21)                        Start time of AOFATTMD=MNVR for manvr
+            manvr_stop   Char(21)                         Stop time of AOFATTMD=MNVR for manvr
+            npnt_start   Char(21)                      Start time of AOPCADMD=NPNT after manvr
+             acq_start   Char(21)                      Start time of AOACASEQ=AQXN after manvr
+           guide_start   Char(21)                      Start time of AOACASEQ=GUID after manvr
+          kalman_start   Char(21)                      Start time of AOACASEQ=KALM after manvr
+    aca_proc_act_start   Char(21)                       Start time of AOPSACPR=ACT after manvr
+             npnt_stop   Char(21)                       Stop time of AOPCADMD=NPNT after manvr
+       next_nman_start   Char(21)                 Start time of next AOPCADMD=NMAN after manvr
+      next_manvr_start   Char(21)                 Start time of next AOFATTMD=MNVR after manvr
+               n_dwell    Integer    Number of kalman dwells after manvr and before next manvr
+                 n_acq    Integer   Number of AQXN intervals after manvr and before next manvr
+               n_guide    Integer   Number of GUID intervals after manvr and before next manvr
+              n_kalman    Integer   Number of KALM intervals after manvr and before next manvr
+             anomalous    Boolean                             Key MSID shows off-nominal value
+              template   Char(16)                                    Matched maneuver template
+              start_ra      Float                           Start right ascension before manvr
+             start_dec      Float                               Start declination before manvr
+            start_roll      Float                                Start roll angle before manvr
+               stop_ra      Float                             Stop right ascension after manvr
+              stop_dec      Float                                 Stop declination after manvr
+             stop_roll      Float                                  Stop roll angle after manvr
+                 angle      Float                                         Maneuver angle (deg)
+              one_shot      Float                            One shot attitude update (arcsec)
+         one_shot_roll      Float                       One shot attitude update roll (arcsec)
+        one_shot_pitch      Float                      One shot attitude update pitch (arcsec)
+          one_shot_yaw      Float                        One shot attitude update yaw (arcsec)
+   ==================== ========== ============================================================
+
+   ``n_acq``, ``n_guide``, and ``n_kalman``: these provide a count of the number of times
+       after the maneuver ends that ``AOACASEQ`` changes value from anything to ``AQXN``,
+       ``GUID``, and ``KALM`` respectively.
+
+   ``anomalous``: this is ``True`` if the following MSIDs have values that are
+       not in the list of nominal state values:
+
+       ==========  ===========================
+          MSID          Nominal state values
+       ==========  ===========================
+        AOPCADMD       NPNT NMAN
+        AOACASEQ       GUID KALM AQXN
+        AOFATTMD       MNVR STDY
+        AOPSACPR       INIT INAC ACT
+        AOUNLOAD       MON  GRND
+       ==========  ===========================
+
+   ``template``: this indicates which of the pre-defined maneuver sequence templates were
+       matched by this maneuver.  For details see :ref:`maneuver_templates`.
+
+   ``one_shot``: one shot attitude update following maneuver.  This is -99.0 for maneuvers
+       with no corresponding transition to NPM.
+
+   ``one_shot_roll``, ``one_shot_pitch``, and ``one_shot_yaw`` are the values of AOATTER1, 2, and 3
+       from samples after the guide transition.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:attribute:: _get_obsid_start_attr
+      :value: 'stop'
+
+
+
+   .. py:attribute:: event_msids
+      :value: ['aofattmd', 'aopcadmd', 'aoacaseq', 'aopsacpr']
+
+
+
+   .. py:attribute:: event_val
+      :value: 'MNVR'
+
+
+
+   .. py:attribute:: fetch_event_msids
+      :value: ['one_shot', 'aofattmd', 'aopcadmd', 'aoacaseq', 'aopsacpr', 'aounload', 'aoattqt1', 'aoattqt2',...
+
+
+
+   .. py:attribute:: fetch_event_pad
+      :value: 600
+
+
+
+   .. py:attribute:: interval_pad
+
+
+   .. py:attribute:: prev_manvr_stop
+
+
+   .. py:attribute:: prev_npnt_start
+
+
+   .. py:attribute:: nman_start
+
+
+   .. py:attribute:: manvr_start
+
+
+   .. py:attribute:: manvr_stop
+
+
+   .. py:attribute:: npnt_start
+
+
+   .. py:attribute:: acq_start
+
+
+   .. py:attribute:: guide_start
+
+
+   .. py:attribute:: kalman_start
+
+
+   .. py:attribute:: aca_proc_act_start
+
+
+   .. py:attribute:: npnt_stop
+
+
+   .. py:attribute:: next_nman_start
+
+
+   .. py:attribute:: next_manvr_start
+
+
+   .. py:attribute:: n_dwell
+
+
+   .. py:attribute:: n_acq
+
+
+   .. py:attribute:: n_guide
+
+
+   .. py:attribute:: n_kalman
+
+
+   .. py:attribute:: anomalous
+
+
+   .. py:attribute:: template
+
+
+   .. py:attribute:: start_ra
+
+
+   .. py:attribute:: start_dec
+
+
+   .. py:attribute:: start_roll
+
+
+   .. py:attribute:: stop_ra
+
+
+   .. py:attribute:: stop_dec
+
+
+   .. py:attribute:: stop_roll
+
+
+   .. py:attribute:: angle
+
+
+   .. py:attribute:: one_shot
+
+
+   .. py:attribute:: one_shot_roll
+
+
+   .. py:attribute:: one_shot_pitch
+
+
+   .. py:attribute:: one_shot_yaw
+
+
+   .. py:method:: __unicode__()
+
+
+   .. py:method:: get_dwells(event, changes)
+      :classmethod:
+
+
+      
+      Get the Kalman dwells associated with a maneuver event.
+
+      A Kalman dwell is the contiguous interval of AOACASEQ = KALM between::
+
+        Start: AOACASEQ ==> KALM  (transition from any state to KALM)
+        Stop:  AOACASEQ ==> not KALM (transition to any state other than KALM)
+                      **or**
+               AOPCADMD ==> NMAN
+
+      Short Kalman dwells that are less than 400 seconds long are *ignored* and
+      are not recorded in the database.  These are typically associated with monitor
+      window commanding or multiple acquisition attempts).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: get_manvr_attrs(changes)
+      :classmethod:
+
+
+      
+      Get attributes of the maneuver event and possible dwells based on
+      the MSID `changes`.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: get_target_attitudes(event, msidset)
+      :classmethod:
+
+
+      
+      Define start/stop_aotarqt<1..4> and start/stop_ra,dec,roll
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: get_one_shot(guide_start, aux_msidset)
+      :classmethod:
+
+
+      
+      Define one_shot attribute (one-shot attitude update following maneuver)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: get_events(start, stop=None)
+      :classmethod:
+
+
+      
+      Get maneuver events from telemetry.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+Classes
+-------
+
+.. autoapisummary::
+
+   kadi.events.models.Manvr.Meta
+
+

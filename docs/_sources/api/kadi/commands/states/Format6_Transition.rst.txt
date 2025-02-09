@@ -1,0 +1,46 @@
+kadi.commands.states.Format6_Transition
+=======================================
+
+.. py:class:: kadi.commands.states.Format6_Transition
+
+   Bases: :py:obj:`FixedTransition`
+
+
+   
+   Transition to telemetry format 6
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:attribute:: command_attributes
+
+
+   .. py:attribute:: state_keys
+      :value: ['format']
+
+
+
+   .. py:attribute:: transition_key
+      :value: 'format'
+
+
+
+   .. py:attribute:: transition_val
+      :value: 'FMT6'
+
+

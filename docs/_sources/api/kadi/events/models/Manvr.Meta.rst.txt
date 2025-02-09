@@ -1,0 +1,9 @@
+kadi.events.models.Manvr.Meta
+=============================
+
+.. py:class:: kadi.events.models.Manvr.Meta
+
+   .. py:attribute:: ordering
+      :value: ['start']
+
+

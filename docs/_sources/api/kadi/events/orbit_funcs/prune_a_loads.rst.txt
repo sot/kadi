@@ -1,0 +1,26 @@
+kadi.events.orbit_funcs.prune_a_loads
+=====================================
+
+.. py:function:: kadi.events.orbit_funcs.prune_a_loads(tlrfiles)
+
+   
+   When there are B or later products, take out the A loads.  This is where
+   most mistakes are removed.  (CURRENTLY THIS FUNCTION IS NOT USED).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!

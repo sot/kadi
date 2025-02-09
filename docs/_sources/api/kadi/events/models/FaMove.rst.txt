@@ -1,0 +1,89 @@
+kadi.events.models.FaMove
+=========================
+
+.. py:class:: kadi.events.models.FaMove(*args, **kwargs)
+
+   Bases: :py:obj:`TlmEvent`
+
+
+   
+   SIM FA translation
+
+   **Event definition**: interval where ``3FAMOVE = MOVE``
+
+   **Fields**
+
+   ============== ========== ================================
+       Field         Type              Description
+   ============== ========== ================================
+           start   Char(21)   Start time (YYYY:DDD:HH:MM:SS)
+            stop   Char(21)    Stop time (YYYY:DDD:HH:MM:SS)
+          tstart      Float            Start time (CXC secs)
+           tstop      Float             Stop time (CXC secs)
+             dur      Float                  Duration (secs)
+           obsid    Integer        Observation ID (COBSRQID)
+    start_3fapos    Integer        Start FA position (steps)
+     stop_3fapos    Integer         Stop FA position (steps)
+   ============== ========== ================================
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:attribute:: event_msids
+      :value: ['3famove', '3fapos']
+
+
+
+   .. py:attribute:: event_val
+      :value: 'T'
+
+
+
+   .. py:attribute:: start_3fapos
+
+
+   .. py:attribute:: stop_3fapos
+
+
+   .. py:method:: get_extras(event, event_msidset)
+      :classmethod:
+
+
+      
+      Define start/stop_3fapos.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: __unicode__()
+

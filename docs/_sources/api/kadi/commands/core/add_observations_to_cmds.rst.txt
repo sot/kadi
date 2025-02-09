@@ -1,0 +1,43 @@
+kadi.commands.core.add_observations_to_cmds
+===========================================
+
+.. py:function:: kadi.commands.core.add_observations_to_cmds(cmds, load_name = None)
+
+   
+   Add OBS commands to ``cmds`` and return new ``CommandTable``.
+
+   This function adds ``tlmsid=OBS`` commands into a copy of ``cmds`` and returns the
+   new ``CommandTable``. This allows the returned ``CommandTable`` to be used in calls
+   to ``get_observations`` and ``get_starcats``.
+
+   If ``load_name`` is provided then this is used for the "source" column in the
+   returned table. Otherwise the "source" column in ``cmds`` is used (if it exists) or
+   it is set to "None".
+
+   :Parameters:
+
+       **cmds** : CommandTable
+           Commands table to add observations.
+
+       **load_name** : str, optional
+           Load name to use for "source" column if provided.
+
+
+
+   :Returns:
+
+       CommandTable
+           New commands table with observations added.
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!

@@ -1,0 +1,34 @@
+kadi.commands.states.TransitionCallback
+=======================================
+
+.. py:class:: kadi.commands.states.TransitionCallback
+
+   
+   Callback function for a transition.
+
+   This is used to store the callback function and any additional keyword arguments.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:attribute:: callback
+      :type:  callable
+
+
+   .. py:attribute:: kwargs
+      :type:  dict
+

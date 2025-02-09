@@ -1,0 +1,46 @@
+kadi.commands.states.EphemerisTransition
+========================================
+
+.. py:class:: kadi.commands.states.EphemerisTransition
+
+   Bases: :py:obj:`ParamTransition`
+
+
+   
+   On-board ephemeris update values
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:attribute:: command_attributes
+
+
+   .. py:attribute:: state_keys
+      :value: ['aoephem1', 'aoephem2', 'aoratio', 'aoargper', 'aoeccent', 'ao1minus', 'ao1plus', 'aomotion',...
+
+
+
+   .. py:attribute:: transition_key
+      :value: ['aoephem1', 'aoephem2', 'aoratio', 'aoargper', 'aoeccent', 'ao1minus', 'ao1plus', 'aomotion',...
+
+
+
+   .. py:attribute:: cmd_param_key
+      :value: ['aoephem1', 'aoephem2', 'aoratio', 'aoargper', 'aoeccent', 'ao1minus', 'ao1plus', 'aomotion',...
+
+

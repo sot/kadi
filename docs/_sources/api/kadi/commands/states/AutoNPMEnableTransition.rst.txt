@@ -1,0 +1,44 @@
+kadi.commands.states.AutoNPMEnableTransition
+============================================
+
+.. py:class:: kadi.commands.states.AutoNPMEnableTransition
+
+   Bases: :py:obj:`FixedTransition`
+
+
+   
+   Enable automatic transition to Normal Point Mode
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:attribute:: command_attributes
+
+
+   .. py:attribute:: state_keys
+
+
+   .. py:attribute:: transition_key
+      :value: 'auto_npnt'
+
+
+
+   .. py:attribute:: transition_val
+      :value: 'ENAB'
+
+

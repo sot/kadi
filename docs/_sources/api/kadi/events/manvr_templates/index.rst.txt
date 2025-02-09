@@ -1,0 +1,33 @@
+kadi.events.manvr_templates
+===========================
+
+.. py:module:: kadi.events.manvr_templates
+
+.. autoapi-nested-parse::
+
+   Define templates of previously seen maneuver sequences.  These cover
+   sequences seen at least twice as of ~Mar 2012.  See:
+
+   http://occweb.cfa.harvard.edu/twiki/Aspect/RarePcadSequences
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+Functions
+---------
+
+.. toctree::
+   :hidden:
+
+   /api/kadi/events/manvr_templates/get_manvr_templates
+   /api/kadi/events/manvr_templates/get_dat_str
+
+.. autoapisummary::
+
+   kadi.events.manvr_templates.get_manvr_templates
+   kadi.events.manvr_templates.get_dat_str
+
+
+

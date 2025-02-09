@@ -1,0 +1,106 @@
+kadi.commands.observations.get_starcats
+=======================================
+
+.. py:function:: kadi.commands.observations.get_starcats(start=None, stop=None, *, obsid=None, scenario=None, cmds=None, as_dict=False, starcat_date=None, show_progress=False)
+
+   
+   Get a list of star catalogs corresponding to input parameters.
+
+   The ``start``, ``stop`` and ``obsid`` parameters serve as matching filters
+   on the list of star catalogs that is returned.
+
+   By default the result is a list of ``ACATable`` objects similar to the
+   output of ``proseco.get_aca_catalog``.
+
+   If ``as_dict`` is ``True`` then the the result is a list of dictionaries
+   with the same keys as the table columns plus a special "meta" key. The
+   "meta" value is a dict with relevant metadata including the obsid, att,
+   date, duration, sim_offset, and detctor. This method is substantially faster
+   than the default.
+
+   There are numerous instances of multiple observations with the same obsid,
+   so this function always returns a list of star catalogs even when ``obsid``
+   is specified. In most cases you can just use the first element.
+
+   The ``mag`` column corresponds to the AGASC magnitude *without* the AGASC
+   supplement.
+
+   Star ID's are determined by finding the brightest AGASC star within a search
+   box centered at the catalog location. The search box is 1.5 arcsec halfwidth
+   in size, but it can be changed by setting the ``star_id_match_halfwidth``
+   configuration parameter. Fid ID's are determined similarly by computing fid
+   locations given the commanded SIM-Z position. The default box size is 40
+   arcsec halfwidth, but it can be changed by setting the
+   ``fid_id_match_halfwidth`` configuration parameter.
+
+   The first time each particular star catalog is fetched, the star and fid
+   ID's are computed which is relatively slow. The resulting star catalog is
+   (by default) cached in the ``~/.kadi/starcats.db`` file. Subsequent calls
+   are significantly faster.
+
+   Example::
+
+       >>> from kadi.commands import get_starcats
+       >>> cat = get_starcats(obsid=8008)[0]
+       >>> cat
+       [<ACATable length=11>
+       slot  idx     id    type  sz    mag    maxmag   yang     zang    dim   res
+       int64 int64  int64   str3 str3 float64 float64 float64  float64  int64 int64
+       ----- ----- -------- ---- ---- ------- ------- -------- -------- ----- -----
+           0     1        1  FID  8x8    7.00    8.00   937.71  -829.17     1     1
+           1     2        5  FID  8x8    7.00    8.00 -1810.42  1068.87     1     1
+           2     3        6  FID  8x8    7.00    8.00   403.68  1712.93     1     1
+           3     4 31075128  BOT  6x6    9.35   10.86  -318.22  1202.41    20     1
+           4     5 31076560  BOT  6x6    9.70   11.20  -932.79  -354.55    20     1
+           5     6 31463496  BOT  6x6    9.46   10.97  2026.85  1399.61    20     1
+           6     7 31983336  BOT  6x6    8.64   10.14   890.71 -1600.39    20     1
+           7     8 32374896  BOT  6x6    9.17   10.66  2023.08 -2021.72    13     1
+           0     9 31075368  ACQ  6x6    9.13   10.64    54.04   754.79    20     1
+           1    10 31982136  ACQ  6x6   10.19   11.70   562.06  -186.39    20     1
+           2    11 32375384  ACQ  6x6    9.79   11.30  1612.28  -428.24    20     1]
+
+   :Parameters:
+
+       **start** : CxoTime-like, None
+           Start time (default=beginning of commands)
+
+       **stop** : CxoTime-like, None
+           Stop time (default=end of commands)
+
+       **obsid** : int, None
+           ObsID
+
+       **scenario** : str, None
+           Scenario
+
+       **cmds** : CommandTable, None
+           Use this command table instead of querying the archive.
+
+       **as_dict** : bool, False
+           Return a list of dict instead of a list of ACATable objects.
+
+       **starcat_date** : CxoTime-like, None
+           Date of the observation's star catalog
+
+       **show_progress** : bool
+           Show progress bar for long queries (default=False)
+
+
+
+   :Returns:
+
+       list
+           List of star catalogs (ACATable or dict) for matching observations.
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!

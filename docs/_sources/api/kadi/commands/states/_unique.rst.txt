@@ -1,0 +1,25 @@
+kadi.commands.states._unique
+============================
+
+.. py:function:: kadi.commands.states._unique(seq)
+
+   
+   Return unique elements of ``seq`` in order
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!

@@ -1,0 +1,4 @@
+kadi.paths.DATA_DIR
+===================
+
+.. py:function:: kadi.paths.DATA_DIR()

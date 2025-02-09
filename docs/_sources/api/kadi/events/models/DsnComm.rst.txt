@@ -1,0 +1,144 @@
+kadi.events.models.DsnComm
+==========================
+
+.. py:class:: kadi.events.models.DsnComm(*args, **kwargs)
+
+   Bases: :py:obj:`IFotEvent`
+
+
+   
+   DSN comm period
+
+   **Event definition**: DSN comm pass beginning of support to end of support (not
+     beginning / end of track).
+
+   **Fields**
+
+   =========== ========== ========================
+      Field       Type          Description
+   =========== ========== ========================
+      ifot_id    Integer          iFOT identifier
+        start   Char(21)        Start time (date)
+         stop   Char(21)         Stop time (date)
+       tstart      Float    Start time (CXC secs)
+        tstop      Float     Stop time (CXC secs)
+          dur      Float          Duration (secs)
+          bot    Char(4)       Beginning of track
+          eot    Char(4)             End of track
+     activity   Char(30)     Activity description
+       config   Char(10)            Configuration
+    data_rate    Char(9)                Data rate
+         site   Char(12)                 DSN site
+          soe    Char(4)   DSN Sequence Of Events
+      station    Char(6)              DSN station
+           oc   Char(30)                  OC crew
+           cc   Char(30)                  CC crew
+    pass_plan   OneToOne                Pass plan
+   =========== ========== ========================
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:attribute:: bot
+
+
+   .. py:attribute:: eot
+
+
+   .. py:attribute:: activity
+
+
+   .. py:attribute:: config
+
+
+   .. py:attribute:: data_rate
+
+
+   .. py:attribute:: site
+
+
+   .. py:attribute:: soe
+
+
+   .. py:attribute:: station
+
+
+   .. py:attribute:: oc
+
+
+   .. py:attribute:: cc
+
+
+   .. py:attribute:: pass_plan
+
+
+   .. py:attribute:: ifot_type_desc
+      :value: 'DSN_COMM'
+
+
+
+   .. py:attribute:: ifot_props
+      :value: ['bot', 'eot', 'activity', 'config', 'data_rate', 'site', 'soe', 'station']
+
+
+
+   .. py:attribute:: ifot_types
+
+
+   .. py:attribute:: lookback
+      :value: 21
+
+
+
+   .. py:attribute:: lookback_delete
+      :value: 7
+
+
+
+   .. py:attribute:: lookforward
+      :value: 28
+
+
+
+   .. py:method:: get_extras(event, event_msidset)
+      :classmethod:
+
+
+      
+      Define OC, CC and pass_plan if available
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: __unicode__()
+

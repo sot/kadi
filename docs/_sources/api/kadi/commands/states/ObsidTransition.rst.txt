@@ -1,0 +1,46 @@
+kadi.commands.states.ObsidTransition
+====================================
+
+.. py:class:: kadi.commands.states.ObsidTransition
+
+   Bases: :py:obj:`ParamTransition`
+
+
+   
+   Obsid update
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:attribute:: command_attributes
+
+
+   .. py:attribute:: state_keys
+      :value: ['obsid']
+
+
+
+   .. py:attribute:: transition_key
+      :value: 'obsid'
+
+
+
+   .. py:attribute:: cmd_param_key
+      :value: 'id'
+
+

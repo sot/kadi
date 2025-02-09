@@ -1,0 +1,27 @@
+kadi.events.scrape.get_fdb_major_events
+=======================================
+
+.. py:function:: kadi.events.scrape.get_fdb_major_events()
+
+   
+   Get the FDB major events.
+
+   Some events in the early mission have multiple CAPs, which causes run-together CAP
+   numbers.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!

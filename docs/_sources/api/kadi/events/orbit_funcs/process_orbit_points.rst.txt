@@ -1,0 +1,33 @@
+kadi.events.orbit_funcs.process_orbit_points
+============================================
+
+.. py:function:: kadi.events.orbit_funcs.process_orbit_points(orbit_points)
+
+   
+   Take the raw orbit points (list of tuples) and do some processing:
+
+   - Remove duplicate events within 30 seconds of each other
+   - Fill in orbit number for RADMON enable / disable points
+   - Convert to a number structured array
+
+   Returns a numpy array with processed orbit points::
+
+     ORBIT_POINTS_DTYPE = [('date', 'U21'), ('name', 'U8'),
+                           ('orbit_num', 'i4'), ('descr', 'U50')]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!

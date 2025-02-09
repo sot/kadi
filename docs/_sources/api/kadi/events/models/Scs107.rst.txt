@@ -1,0 +1,108 @@
+kadi.events.models.Scs107
+=========================
+
+.. py:class:: kadi.events.models.Scs107(*args, **kwargs)
+
+   Bases: :py:obj:`TlmEvent`
+
+
+   
+   SCS107 run
+
+   **Event definition**: interval with the following combination of state values::
+
+     3TSCMOVE = MOVE
+     AORWBIAS = DISA
+     CORADMEN = DISA
+
+   These MSIDs are first sampled onto a common time sequence of 32.8 sec samples
+   so the start / stop times are accurate only to that resolution.
+
+   Early in the mission there were two SIM TSC translations during an SCS107 run.
+   By the above rules this would generate two SCS107 events, but instead any two
+   SCS107 events within 600 seconds are combined into a single event.
+
+   **Fields**
+
+   ======== ========== ================================
+    Field      Type              Description
+   ======== ========== ================================
+     start   Char(21)   Start time (YYYY:DDD:HH:MM:SS)
+      stop   Char(21)    Stop time (YYYY:DDD:HH:MM:SS)
+    tstart      Float            Start time (CXC secs)
+     tstop      Float             Stop time (CXC secs)
+       dur      Float                  Duration (secs)
+     obsid    Integer        Observation ID (COBSRQID)
+     notes       Text               Supplemental notes
+   ======== ========== ================================
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:attribute:: notes
+
+
+   .. py:attribute:: event_msids
+      :value: ['3tscmove', 'aorwbias', 'coradmen']
+
+
+
+   .. py:attribute:: event_time_fuzz
+      :value: 600
+
+
+
+   .. py:attribute:: event_filter_bad
+      :value: False
+
+
+
+   .. py:method:: get_state_times_bools(msidset)
+      :classmethod:
+
+
+      
+      Get the boolean True/False array indicating when ``event_msid`` is in the
+      desired state for this event type.  The default is when
+      ``event_msid == cls.event_val``, but subclasses may override this method.
+
+
+      :Parameters:
+
+          **event_msid**
+              fetch.MSID object
+
+
+
+      :Returns:
+
+          boolean ndarray
+              ..
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+

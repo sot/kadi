@@ -1,0 +1,34 @@
+kadi.events.query
+=================
+
+.. py:module:: kadi.events.query
+
+
+
+Classes
+-------
+
+.. toctree::
+   :hidden:
+
+   /api/kadi/events/query/EventQuery
+
+.. autoapisummary::
+
+   kadi.events.query.EventQuery
+
+
+Functions
+---------
+
+.. toctree::
+   :hidden:
+
+   /api/kadi/events/query/get_dates_vals
+
+.. autoapisummary::
+
+   kadi.events.query.get_dates_vals
+
+
+

@@ -1,0 +1,97 @@
+kadi.events.models.AsciiTableEvent
+==================================
+
+.. toctree::
+   :hidden:
+
+   /api/kadi/events/models/AsciiTableEvent.Meta
+
+.. py:class:: kadi.events.models.AsciiTableEvent(*args, **kwargs)
+
+   Bases: :py:obj:`BaseEvent`
+
+
+   
+   Base class for events defined by a simple quasi-static text table file.
+   Subclasses need to define the file name (lives in DATA_DIR()/<filename>)
+   and the start and stop column names.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:method:: get_extras(event, interval)
+      :classmethod:
+
+
+      
+      Get extra stuff for the event based on fields in the interval.  This is a hook
+      within get_events() that should be overridden in individual classes.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: get_events(start, stop=None)
+      :classmethod:
+
+
+      
+      Get events from telemetry defined by a simple rule that the value of
+      `event_msids[0]` == `event_val`.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+Classes
+-------
+
+.. autoapisummary::
+
+   kadi.events.models.AsciiTableEvent.Meta
+
+

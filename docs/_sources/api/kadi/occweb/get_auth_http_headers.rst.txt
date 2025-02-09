@@ -1,0 +1,25 @@
+kadi.occweb.get_auth_http_headers
+=================================
+
+.. py:function:: kadi.occweb.get_auth_http_headers(username, password)
+
+   
+   Get HTTP header for basic authentication
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!

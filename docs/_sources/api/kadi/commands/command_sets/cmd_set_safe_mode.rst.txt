@@ -1,0 +1,4 @@
+kadi.commands.command_sets.cmd_set_safe_mode
+============================================
+
+.. py:function:: kadi.commands.command_sets.cmd_set_safe_mode(*args, date=None)

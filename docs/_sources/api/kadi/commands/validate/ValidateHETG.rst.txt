@@ -1,0 +1,36 @@
+kadi.commands.validate.ValidateHETG
+===================================
+
+.. py:class:: kadi.commands.validate.ValidateHETG(stop=None, days = 14, no_exclude = False)
+
+   Bases: :py:obj:`ValidateGrating`
+
+
+   
+   Base class for validation of state with state codes like PCAD_MODE
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:attribute:: state_name
+      :value: 'hetg'
+
+
+
+   .. py:attribute:: plot_attrs
+

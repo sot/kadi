@@ -1,0 +1,1440 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Chandra events &#8212; kadi 7.15.0 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/plot_directive.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=4ae1632d" />
+  
+  <!-- So that users can add custom icons -->
+  <script src="../_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
+
+    <script src="../_static/documentation_options.js?v=85b8a37b"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=30646c52"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'events/index';</script>
+    <link rel="canonical" href="https://sot.github.io/kadi/events/index.html" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Maneuver sequence templates" href="maneuver_templates.html" />
+    <link rel="prev" title="Kadi archive" href="../index.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="7.15.0" />
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item"><a href="../index.html" style="text-decoration: none;">
+    <span style="color: rgb(186, 70, 21); font-size: x-large;">kadi</span>
+</a>
+&nbsp;
+<span style="font-size: x-large;">7.15.0</span></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="#">
+    Chandra events
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../commands_states/index.html">
+    Commands and states
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../api/index.html">
+    API Reference
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/sot/kadi" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fab fa-github-square fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar hide-on-wide">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="#">
+    Chandra events
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../commands_states/index.html">
+    Commands and states
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../api/index.html">
+    API Reference
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/sot/kadi" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fab fa-github-square fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Chandra events</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="chandra-events">
+<span id="id1"></span><h1>Chandra events<a class="headerlink" href="#chandra-events" title="Link to this heading">#</a></h1>
+<section id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading">#</a></h2>
+<p>The kadi Chandra events database stores a variety of events that are useful in
+performing analysis or establishing situational awareness (i.e. what was happening
+around March 2017?).  Examples include:</p>
+<ul class="simple">
+<li><p>Events in telemetry such as maneuvers, NPM dwells, obsids, mech movements, momentum
+dumps, orbit events, etc.</p></li>
+<li><p>CAPs, DSN passes, dark cals, SCS107, safe modes, bright star hold, etc</p></li>
+<li><p>Chandra major events since launch</p></li>
+</ul>
+<p>As shown in the <a class="reference internal" href="#event-definitions">Event definitions</a> section, there are a number of different types of
+Chandra events that are available within the Kadi archive.  Each type of event is
+essentially a database table with a number of data fields, some of them common to all
+event types and some of them unique.</p>
+<section id="interval-events">
+<h3>Interval events<a class="headerlink" href="#interval-events" title="Link to this heading">#</a></h3>
+<p>Most of the event types represent an <strong>interval of time</strong> with some defining characteristic,
+for instance maneuvers (<a class="reference internal" href="../api/kadi/events/models/Manvr.html#kadi.events.models.Manvr" title="kadi.events.models.Manvr"><code class="xref py py-class docutils literal notranslate"><span class="pre">Manvr</span></code></a>), radiation zones (<a class="reference internal" href="../api/kadi/events/models/RadZone.html#kadi.events.models.RadZone" title="kadi.events.models.RadZone"><code class="xref py py-class docutils literal notranslate"><span class="pre">RadZone</span></code></a>) or SIM TSC translations
+(<a class="reference internal" href="../api/kadi/events/models/TscMove.html#kadi.events.models.TscMove" title="kadi.events.models.TscMove"><code class="xref py py-class docutils literal notranslate"><span class="pre">TscMove</span></code></a>).  The documentation for each event type contains the event defintion, for
+example the <a class="reference internal" href="../api/kadi/events/models/Eclipse.html#kadi.events.models.Eclipse" title="kadi.events.models.Eclipse"><code class="xref py py-class docutils literal notranslate"><span class="pre">Eclipse</span></code></a> event is the interval where <code class="docutils literal notranslate"><span class="pre">AOECLIPS</span> <span class="pre">=</span> <span class="pre">'ECL'</span></code>.</p>
+<p>These “interval” event types all share the following fields:</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Field name</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">start</span></code></p></td>
+<td><p>Start date (YYYY:DOY:HH:MM:SS.sss)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">stop</span></code></p></td>
+<td><p>Stop date (YYYY:DOY:HH:MM:SS.sss)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">tstart</span></code></p></td>
+<td><p>Start time (CXC seconds)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">tstop</span></code></p></td>
+<td><p>Stop time (CXC seconds)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">dur</span></code></p></td>
+<td><p>Duration (seconds)</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Many of the event types have additional fields that are specific to that type.  For
+example the <a class="reference internal" href="../api/kadi/events/models/FaMove.html#kadi.events.models.FaMove" title="kadi.events.models.FaMove"><code class="xref py py-class docutils literal notranslate"><span class="pre">FaMove</span></code></a> event also provides the values of the FA step position
+<code class="docutils literal notranslate"><span class="pre">3FAPOS</span></code> before and after the SIM focus assembly translation, and the <a class="reference internal" href="../api/kadi/events/models/DsnComm.html#kadi.events.models.DsnComm" title="kadi.events.models.DsnComm"><code class="xref py py-class docutils literal notranslate"><span class="pre">DsnComm</span></code></a> event
+provides a host of information about each comm pass:</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Field</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>ifot_id</p></td>
+<td><p>Integer</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p>start</p></td>
+<td><p>Char(21)</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p>stop</p></td>
+<td><p>Char(21)</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p>tstart</p></td>
+<td><p>Float</p></td>
+<td><p>Start time (CXC secs)</p></td>
+</tr>
+<tr class="row-even"><td><p>tstop</p></td>
+<td><p>Float</p></td>
+<td><p>Stop time (CXC secs)</p></td>
+</tr>
+<tr class="row-odd"><td><p>dur</p></td>
+<td><p>Float</p></td>
+<td><p>Duration (secs)</p></td>
+</tr>
+<tr class="row-even"><td><p>bot</p></td>
+<td><p>Char(4)</p></td>
+<td><p>Beginning of track</p></td>
+</tr>
+<tr class="row-odd"><td><p>eot</p></td>
+<td><p>Char(4)</p></td>
+<td><p>End of track</p></td>
+</tr>
+<tr class="row-even"><td><p>activity</p></td>
+<td><p>Char(30)</p></td>
+<td><p>Activity description</p></td>
+</tr>
+<tr class="row-odd"><td><p>config</p></td>
+<td><p>Char(10)</p></td>
+<td><p>Configuration</p></td>
+</tr>
+<tr class="row-even"><td><p>data_rate</p></td>
+<td><p>Char(9)</p></td>
+<td><p>Data rate</p></td>
+</tr>
+<tr class="row-odd"><td><p>site</p></td>
+<td><p>Char(12)</p></td>
+<td><p>DSN site</p></td>
+</tr>
+<tr class="row-even"><td><p>soe</p></td>
+<td><p>Char(4)</p></td>
+<td><p>DSN Sequence Of Events</p></td>
+</tr>
+<tr class="row-odd"><td><p>station</p></td>
+<td><p>Char(6)</p></td>
+<td><p>DSN station</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="non-interval-events">
+<h3>Non-interval events<a class="headerlink" href="#non-interval-events" title="Link to this heading">#</a></h3>
+<p>The event types <a class="reference internal" href="../api/kadi/events/models/MajorEvent.html#kadi.events.models.MajorEvent" title="kadi.events.models.MajorEvent"><code class="xref py py-class docutils literal notranslate"><span class="pre">MajorEvent</span></code></a>, <a class="reference internal" href="../api/kadi/events/models/ManvrSeq.html#kadi.events.models.ManvrSeq" title="kadi.events.models.ManvrSeq"><code class="xref py py-class docutils literal notranslate"><span class="pre">ManvrSeq</span></code></a>, and <a class="reference internal" href="../api/kadi/events/models/OrbitPoint.html#kadi.events.models.OrbitPoint" title="kadi.events.models.OrbitPoint"><code class="xref py py-class docutils literal notranslate"><span class="pre">OrbitPoint</span></code></a> are a bit different in that
+they refer to <strong>moment in time</strong> rather than an interval.  For these types the only field
+they all have in common is <code class="docutils literal notranslate"><span class="pre">date</span></code>.  For example the <a class="reference internal" href="../api/kadi/events/models/MajorEvent.html#kadi.events.models.MajorEvent" title="kadi.events.models.MajorEvent"><code class="xref py py-class docutils literal notranslate"><span class="pre">MajorEvent</span></code></a> type has the following fields:</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Field</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>key</p></td>
+<td><p>Char(24)</p></td>
+<td><p>Unique key for this event</p></td>
+</tr>
+<tr class="row-odd"><td><p>start</p></td>
+<td><p>Char(8)</p></td>
+<td><p>Event time to the nearest day (YYYY:DOY)</p></td>
+</tr>
+<tr class="row-even"><td><p>date</p></td>
+<td><p>Char(11)</p></td>
+<td><p>Event time to the nearest day (YYYY-Mon-DD)</p></td>
+</tr>
+<tr class="row-odd"><td><p>tstart</p></td>
+<td><p>Float</p></td>
+<td><p>Event time to the nearest day (CXC sec)</p></td>
+</tr>
+<tr class="row-even"><td><p>descr</p></td>
+<td><p>Text</p></td>
+<td><p>Event description</p></td>
+</tr>
+<tr class="row-odd"><td><p>note</p></td>
+<td><p>Text</p></td>
+<td><p>Note (comments or CAP # or FSW PR #)</p></td>
+</tr>
+<tr class="row-even"><td><p>source</p></td>
+<td><p>Char(3)</p></td>
+<td><p>Event source (FDB or FOT)</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Even though many Chandra Major Events (such as a safe mode) are really intervals in time,
+the source databases do not encapsulate that information so the derived Kadi database is
+likewise ignorant of the actual interval.  For the specific case of safe mode events the
+appropriate event type is actually <a class="reference internal" href="../api/kadi/events/models/SafeSun.html#kadi.events.models.SafeSun" title="kadi.events.models.SafeSun"><code class="xref py py-class docutils literal notranslate"><span class="pre">SafeSun</span></code></a>, which <em>does</em> have a meaningful start and
+stop time.</p>
+</section>
+</section>
+<section id="getting-started">
+<h2>Getting started<a class="headerlink" href="#getting-started" title="Link to this heading">#</a></h2>
+<p>To start using the Kadi archive you first need to fire up IPython in the Ska environment.
+From a shell terminal window do:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">%</span> <span class="n">ska3</span>
+<span class="o">%</span> <span class="n">ipython</span> <span class="o">--</span><span class="n">matplotlib</span>
+</pre></div>
+</div>
+<p>Now enter the following statement.  This imports the interface
+modules for the event and commands databases:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">kadi</span> <span class="kn">import</span> <span class="n">events</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">%</span></code> is the standard indication for entering a command on the <code class="docutils literal notranslate"><span class="pre">csh</span></code> terminal
+window prompt.  The <code class="docutils literal notranslate"><span class="pre">&gt;&gt;&gt;</span></code> is the standard indication of entering a command at the
+Python or IPython interactive prompt.  You do not actually type these characters
+(although it is actually allowed to copy the <code class="docutils literal notranslate"><span class="pre">&gt;&gt;&gt;</span></code> in IPython).</p>
+</div>
+</section>
+<section id="get-events-as-a-table">
+<h2>Get events as a table<a class="headerlink" href="#get-events-as-a-table" title="Link to this heading">#</a></h2>
+<p>The most basic operation is to get some events from the Kadi archive.  So let’s find all
+the SIM TSC moves since 2012:001:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">tsc_moves</span> <span class="o">=</span> <span class="n">events</span><span class="o">.</span><span class="n">tsc_moves</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">start</span><span class="o">=</span><span class="s1">&#39;2012:001&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">table</span>
+</pre></div>
+</div>
+<p>Let’s break this statement down to understand what is happening.  Remember that in Python
+everything is an object and you can access object attributes or methods by chaining them
+together with the <code class="docutils literal notranslate"><span class="pre">.</span></code> (period).</p>
+<p>The first bit is <code class="docutils literal notranslate"><span class="pre">events.tsc_moves</span></code>, which accesses
+the object that allows querying the database of TSC move events.  You can easily see
+all the available event types for query by doing:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">events</span><span class="o">.&lt;</span><span class="n">TAB</span><span class="o">&gt;</span>  <span class="c1"># type &quot;events.&quot; and then press &lt;TAB&gt;</span>
+<span class="go">events.caps             events.EventQuery       events.manvr_templates  events.rad_zones</span>
+<span class="go">events.dsn_comms        events.fa_moves         events.models           events.safe_suns</span>
+<span class="go">events.dumps            events.get_dates_vals   events.obsids           events.scs107s</span>
+<span class="go">events.dwells           events.major_events     events.orbits           events.tsc_moves</span>
+<span class="go">events.eclipses         events.manvrs           events.query</span>
+</pre></div>
+</div>
+<p>From <code class="docutils literal notranslate"><span class="pre">events.tsc_moves</span></code> we chain the <code class="docutils literal notranslate"><span class="pre">filter(start='2012:001')</span></code> method to select events that
+occurred after <code class="docutils literal notranslate"><span class="pre">2012:001</span></code>.  The <code class="docutils literal notranslate"><span class="pre">filter()</span></code> method is very powerful and can perform
+complex filters based on all the available attributes of an event.  In this case to select
+an inclusive time range you would supply both the start and stop date in that order,
+e.g. <code class="docutils literal notranslate"><span class="pre">filter(start='2012:001',</span> <span class="pre">stop='2013:001')</span></code>.</p>
+<p>The last bit of the chain is the <cite>.table</cite> attribute, which says to convert the
+<code class="docutils literal notranslate"><span class="pre">filter(start='2012:001')</span></code> output from a QuerySet object (which is discussed later) into a an
+astropy <a class="reference external" href="http://docs.astropy.org/en/stable/table/index.html">Table</a> that can be printed,
+plotted, and used in computations.  Now let’s look at what came out by printing the Table.
+Before you do this make your terminal window plenty wide, there are a bunch of fields and
+you want to see them all:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span> <span class="n">tsc_moves</span>
+<span class="go">        start                  stop             tstart        tstop          dur      start_3tscpos stop_3tscpos start_det stop_det max_pwm</span>
+<span class="go">--------------------- --------------------- ------------- ------------- ------------- ------------- ------------ --------- -------- -------</span>
+<span class="go">2012:001:18:21:31.715 2012:001:18:22:04.515 441829357.899 441829390.699 32.8000017405         75624        92903    ACIS-S   ACIS-I      10</span>
+<span class="go">2012:002:02:50:28.517 2012:002:02:54:50.917 441859894.701 441860157.101 262.400013864         92903       -99616    ACIS-I    HRC-S      10</span>
+<span class="go">2012:002:12:20:06.119 2012:002:12:24:28.519 441894072.303 441894334.703 262.400013864        -99616        75623     HRC-S   ACIS-S       4</span>
+<span class="go">2012:003:16:17:49.324 2012:003:16:18:22.124 441994735.508 441994768.308 32.8000017405         75623        92903    ACIS-S   ACIS-I       9</span>
+<span class="go">2012:003:22:19:42.925 2012:003:22:20:15.725 442016449.109 442016481.909 32.8000017405         92903        75624    ACIS-I   ACIS-S      10</span>
+<span class="go">                  ...                   ...           ...           ...           ...           ...          ...       ...      ...     ...</span>
+<span class="go">2013:169:06:34:32.856 2013:169:06:35:05.656  487924540.04  487924572.84 32.8000018597         92903        75624    ACIS-I   ACIS-S      10</span>
+<span class="go">2013:169:12:56:07.258 2013:169:12:56:40.058 487947434.442 487947467.242 32.8000018001         75624        92903    ACIS-S   ACIS-I       5</span>
+<span class="go">2013:170:06:44:51.261 2013:170:06:49:46.461 488011558.445 488011853.645 295.200016022         89824       -99616    ACIS-I    HRC-S       9</span>
+<span class="go">2013:170:18:38:48.063 2013:170:18:43:43.263 488054395.247 488054690.447 295.200016022        -99616        92903     HRC-S   ACIS-I       4</span>
+</pre></div>
+</div>
+<p>This shows the fields in the TSC moves event type.  Many of the moves have been snipped in
+order to make the printout it fit onto one screen.  Now plot the maximum pulse width
+modulation for each SIM translation as a function of time:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">Ska.Matplotlib</span> <span class="kn">import</span> <span class="n">plot_cxctime</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">plot_cxctime</span><span class="p">(</span><span class="n">tsc_moves</span><span class="p">[</span><span class="s1">&#39;tstart&#39;</span><span class="p">],</span> <span class="n">tsc_moves</span><span class="p">[</span><span class="s1">&#39;max_pwm&#39;</span><span class="p">],</span> <span class="s1">&#39;.&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">plt</span><span class="o">.</span><span class="n">grid</span><span class="p">()</span>
+</pre></div>
+</div>
+<img alt="../_images/tsc_moves.png" src="../_images/tsc_moves.png" />
+<section id="events-and-obsids">
+<h3>Events and obsids<a class="headerlink" href="#events-and-obsids" title="Link to this heading">#</a></h3>
+<p>With <code class="docutils literal notranslate"><span class="pre">kadi</span></code> it’s easy to find the obsid for a particular event using the
+<a class="reference internal" href="../api/kadi/events/models/BaseModel.html#kadi.events.models.BaseModel.get_obsid" title="kadi.events.models.BaseModel.get_obsid"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_obsid()</span></code></a> method of an event object that is
+returned from a filter query.  The following example asks for all maneuvers within the
+range 2013:001:12:00:00 to 2013:002:12:00:00.  It then prints the obsid for the first
+matching maneuver, then prints the obsid for all matching maneuvers.  Note that in this
+case you do <em>not</em> use the final <code class="docutils literal notranslate"><span class="pre">.table</span></code> attribute as shown in the previous examples.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">manvrs</span> <span class="o">=</span> <span class="n">events</span><span class="o">.</span><span class="n">manvrs</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="s1">&#39;2013:001:12:00:00&#39;</span><span class="p">,</span> <span class="s1">&#39;2013:002:12:00:00&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">manvrs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">get_obsid</span><span class="p">())</span>
+<span class="go">15046</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">manvr</span> <span class="ow">in</span> <span class="n">manvrs</span><span class="p">:</span>
+<span class="gp">... </span>   <span class="nb">print</span><span class="p">(</span><span class="n">manvr</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="s1">&#39;Obsid :&#39;</span><span class="p">,</span> <span class="n">manvr</span><span class="o">.</span><span class="n">get_obsid</span><span class="p">())</span>
+<span class="go">2013:001:16:38:45.535 Obsid : 15046</span>
+<span class="go">2013:001:21:16:45.361 Obsid : 15213</span>
+</pre></div>
+</div>
+<p>The converse of finding events that match an obsid is possible as well.  In this
+case there may be zero, one or many matching events.  In the following example
+we start by looking for all manuever events between 2013:100 and 2013:200 that have
+exactly two Kalman dwells:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">manvrs</span> <span class="o">=</span> <span class="n">events</span><span class="o">.</span><span class="n">manvrs</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="s1">&#39;2013:100&#39;</span><span class="p">,</span> <span class="s1">&#39;2013:200&#39;</span><span class="p">,</span> <span class="n">n_dwell__exact</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">manvrs</span><span class="p">)</span>
+<span class="go">&lt;Manvr: start=2013:104:21:38:11.867 dur=1442 n_dwell=2 template=two_acq&gt;</span>
+<span class="go">&lt;Manvr: start=2013:142:12:43:01.918 dur=1763 n_dwell=2 template=three_acq&gt;</span>
+<span class="go">&lt;Manvr: start=2013:144:19:19:07.204 dur=1553 n_dwell=2 template=three_acq&gt;</span>
+</pre></div>
+</div>
+<p>Now we get the obsid for the first matching maneuver and search for Kalman dwells with
+that obsid:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">manvrs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">get_obsid</span><span class="p">())</span>
+<span class="go">15304</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">events</span><span class="o">.</span><span class="n">dwells</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">obsid</span><span class="o">=</span><span class="mi">15304</span><span class="p">))</span>
+<span class="go">&lt;Dwell: start=2013:104:22:04:05.255 dur=5795&gt;</span>
+<span class="go">&lt;Dwell: start=2013:104:23:41:44.155 dur=4290&gt;</span>
+</pre></div>
+</div>
+<p>As expected this matches what comes from asking directly for the dwells associated
+with the maneuver via the <code class="docutils literal notranslate"><span class="pre">dwell_set</span></code> attribute:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">manvrs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">dwell_set</span><span class="o">.</span><span class="n">all</span><span class="p">())</span>
+<span class="go">&lt;Dwell: start=2013:104:22:04:05.255 dur=5795&gt;</span>
+<span class="go">&lt;Dwell: start=2013:104:23:41:44.155 dur=4290&gt;</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>For most event types the event obsid (as returned by
+<a class="reference internal" href="../api/kadi/events/models/BaseModel.html#kadi.events.models.BaseModel.get_obsid" title="kadi.events.models.BaseModel.get_obsid"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_obsid()</span></code></a>) is defined as the obsid at the start
+of the event.  The exception is maneuver events, for which it makes most sense to use
+the obsid at the <em>end</em> of the maneuver since that is the obsid for the corresponding
+Kalman dwell(s), star catalog and OR / ER.</p>
+</div>
+</section>
+</section>
+<section id="getting-help">
+<h2>Getting help<a class="headerlink" href="#getting-help" title="Link to this heading">#</a></h2>
+<p>There are a lot of event types in <cite>kadi</cite> and it’s not easy to remember everything.
+Here we will make use of the IPython <code class="docutils literal notranslate"><span class="pre">?</span></code> function to get help on objects.
+Starting from the top, you can list the available event types with the following:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>&gt;&gt;&gt; from kadi import events
+&gt;&gt;&gt; events?
+Type:       module
+String Form:&lt;module &#39;kadi.events&#39; from &#39;kadi/events/__init__.py&#39;&gt;
+File:       /data/baffin/tom/git/kadi/kadi/events/__init__.py
+Docstring:
+Access and manipulate events related to the Chandra X-ray Observatory
+
+Available events are:
+
+=================  ====================================  ==============
+    Query name                 Description                Event class
+=================  ====================================  ==============
+             caps                CAP from iFOT database             CAP
+        dark_cals    ACA dark current calibration event         DarkCal
+dark_cal_replicas  ACA dark current calibration replica  DarkCalReplica
+        dsn_comms                       DSN comm period         DsnComm
+            dumps        Ground commanded momentum dump            Dump
+           dwells                  Dwell in Kalman mode           Dwell
+         eclipses                               Eclipse         Eclipse
+         fa_moves                    SIM FA translation          FaMove
+    grating_moves       Grating movement (HETG or LETG)     GratingMove
+    load_segments       Load segment from iFOT database     LoadSegment
+         ltt_bads                     LTT bad intervals          LttBad
+     major_events                           Major event      MajorEvent
+           manvrs                              Maneuver           Manvr
+       manvr_seqs               Maneuver sequence event        ManvrSeq
+      normal_suns                 Normal sun mode event       NormalSun
+           obsids                Observation identifier           Obsid
+           orbits                                 Orbit           Orbit
+     orbit_points                           Orbit point      OrbitPoint
+       pass_plans                             Pass plan        PassPlan
+        rad_zones                        Radiation zone         RadZone
+        safe_suns                        Safe sun event         SafeSun
+          scs107s                            SCS107 run          Scs107
+        tsc_moves                   SIM TSC translation         TscMove
+=================  ====================================  ==============
+</pre></div>
+</div>
+<p>Next you may want to learn about the specific fields that are available
+for an event type.  Use the same <code class="docutils literal notranslate"><span class="pre">?</span></code> strategy here:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>&gt;&gt;&gt; events.orbits?
+Type:       EventQuery
+String Form:&lt;kadi.events.query.EventQuery object at 0x358f5d0&gt;
+File:       /data/baffin/tom/git/kadi/kadi/events/query.py
+Docstring:
+Orbit
+
+**Event definition**: single Chandra orbit starting from ascending node crossing
+
+Full orbit, with dates corresponding to start (ORBIT ASCENDING NODE CROSSING), stop,
+apogee, perigee, radzone start and radzone stop.  Radzone is defined as the time
+covering perigee when radmon is disabled by command.  This corresponds to the planned
+values and may differ from actual in the case of events that run SCS107 and
+prematurely disable RADMON.
+
+**Fields**
+
+================== ========== ==================================================
+      Field           Type                       Description
+================== ========== ==================================================
+            start   Char(21)         Start time (orbit ascending node crossing)
+             stop   Char(21)     Stop time (next orbit ascending node crossing)
+           tstart      Float         Start time (orbit ascending node crossing)
+            tstop      Float     Stop time (next orbit ascending node crossing)
+              dur      Float                               Orbit duration (sec)
+        orbit_num    Integer                                       Orbit number
+          perigee   Char(21)                                       Perigee time
+           apogee   Char(21)                                        Apogee time
+        t_perigee      Float                             Perigee time (CXC sec)
+    start_radzone   Char(21)                             Start time of rad zone
+     stop_radzone   Char(21)                              Stop time of rad zone
+ dt_start_radzone      Float   Start time of rad zone relative to perigee (sec)
+  dt_stop_radzone      Float    Stop time of rad zone relative to perigee (sec)
+================== ========== ==================================================
+
+Class Docstring:
+High-level interface for handling event queries.
+
+This includes a few key methods:
+
+- filter() : filter events matching criteria and return Django query set
+- intervals(): return time intervals between event start/stop times
+
+A key feature is that EventQuery objects can be combined with boolean
+and, or, and not logic to generate composite EventQuery objects.  From
+there the intervals() output can be used to select or remove the intervals
+from Ska.engarchive fetch datasets.
+</pre></div>
+</div>
+<p>Finally, the EventQuery <code class="docutils literal notranslate"><span class="pre">filter</span></code> method has detailed help available to remind
+you of syntax here:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>&gt;&gt;&gt; events.manvrs.filter?
+Type:       instancemethod
+String Form:&lt;bound method EventQuery.filter of &lt;kadi.events.query.EventQuery object at 0x309e8d0&gt;&gt;
+File:       /data/baffin/tom/git/kadi/kadi/events/query.py
+Definition: events.manvrs.filter(self, start=None, stop=None, obsid=None, subset=None, **kwargs)
+Docstring:
+Find events between ``start`` and ``stop``, or with the given ``obsid``, which
+match the filter attributes in subsequent keyword argumentse.  The matching events
+are returned as a Django query set [1].
+
+If ``start`` or ``stop`` are not supplied they default to the beginning / end of
+available data.  The optional ``subset`` arg must be a Python slice() object and
+allows slicing of the filtered output.
+
+This function allows for the powerful field lookups from the underlying
+Django model implementation.  A field lookup is similar to an SQL ``WHERE``
+clause with the form ``&lt;field_name&gt;__&lt;filter_type&gt;=&lt;value&gt;`` (with a double
+underscore between.  For instance ``n_dwell__lte=1`` would be the same as
+``SELECT ... WHERE n_dwell &lt;= 1``.  Common filter types are:
+
+- ``exact`` (exact match), ``contains`` (contains string)
+- ``startswith``, ``endswith`` (starts or ends with string)
+- ``gt``, ``gte``, ``lt``, ``lte`` (comparisons)
+- ``isnull`` (field value is missing, e.g. manvrs.aca_proc_act_start)
+
+For the common case of testing equality (``exact``) there is a shortcut where
+the ``__exact`` can be skipped, so for instance ``n_dwell=1`` selects
+maneuver events with one dwell.  The full list of field lookups is at [2].
+
+Examples::
+
+  &gt;&gt;&gt; from kadi import events
+  &gt;&gt;&gt; events.manvrs.filter(&#39;2011:001&#39;, &#39;2012:001&#39;, n_dwell=1, angle__gte=140)
+  &gt;&gt;&gt; events.manvrs.filter(&#39;2011:001&#39;, &#39;2012:001&#39;, subset=slice(None, 5))  # first 5
+  &gt;&gt;&gt; events.manvrs.filter(obsid=14305)
+
+[1]: https://docs.djangoproject.com/en/3.1/topics/db/queries/
+[2]: https://docs.djangoproject.com/en/3.1/ref/models/querysets/#field-lookups
+
+:param start: start time (DateTime compatible format)
+:param stop: stop time (DateTime compatible format)
+:param obsid: obsid for event
+:param subset: subset of matching events that are output
+
+:returns: Django query set with matching events
+</pre></div>
+</div>
+</section>
+<section id="use-events-to-filter-telemetry">
+<h2>Use events to filter telemetry<a class="headerlink" href="#use-events-to-filter-telemetry" title="Link to this heading">#</a></h2>
+<p>Another common operation is using event intervals to filter telemetry data.  A simple
+example is looking at EPHIN E1300 rates only outside of rad zone.  A more complicated
+example is plotting OBC rate data only during “quiet” periods, which means during normal
+point mode with Kalman lock, at least 300 seconds away from any maneuvers, SIM motions,
+grating motions, and momentum dumps.  With Kadi doing this sort of filtering is easy.</p>
+<p>Here we show just the simple example above.  First we plot the E1300 rates over a 30 day
+span, including rad zones:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">Ska.engarchive</span> <span class="kn">import</span> <span class="n">fetch</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">e1300</span> <span class="o">=</span> <span class="n">fetch</span><span class="o">.</span><span class="n">Msid</span><span class="p">(</span><span class="s2">&quot;SCE1300&quot;</span><span class="p">,</span> <span class="s1">&#39;2012:020&#39;</span><span class="p">,</span> <span class="s1">&#39;2012:050&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">e1300_log</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">e1300</span><span class="o">.</span><span class="n">vals</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="mi">10</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">plot_cxctime</span><span class="p">(</span><span class="n">e1300</span><span class="o">.</span><span class="n">times</span><span class="p">,</span> <span class="n">e1300_log</span><span class="p">,</span> <span class="s1">&#39;-b&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;log10(E1300)&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">plt</span><span class="o">.</span><span class="n">grid</span><span class="p">()</span>
+</pre></div>
+</div>
+<img alt="../_images/e1300_rates1.png" src="../_images/e1300_rates1.png" />
+<p>Now we remove the intervals corresponding to the radiation zone and overplot the filtered
+data in red:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">e1300</span><span class="o">.</span><span class="n">remove_intervals</span><span class="p">(</span><span class="n">events</span><span class="o">.</span><span class="n">rad_zones</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">e1300_log</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">e1300</span><span class="o">.</span><span class="n">vals</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="mi">10</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">plot_cxctime</span><span class="p">(</span><span class="n">e1300</span><span class="o">.</span><span class="n">times</span><span class="p">,</span> <span class="n">e1300_log</span><span class="p">,</span> <span class="s1">&#39;-r&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<img alt="../_images/e1300_rates2.png" src="../_images/e1300_rates2.png" />
+<p>The converse operation of <em>selecting</em> intervals is also available:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">e1300</span><span class="o">.</span><span class="n">select_intervals</span><span class="p">(</span><span class="n">events</span><span class="o">.</span><span class="n">rad_zones</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Sometimes it is useful to select intervals in an MSID while retaining the
+original full dataset.  You can do this with the <code class="docutils literal notranslate"><span class="pre">copy=True</span></code> option, which
+returns a brand new MSID object and leaves the original untouched:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">e1300</span> <span class="o">=</span> <span class="n">fetch</span><span class="o">.</span><span class="n">Msid</span><span class="p">(</span><span class="s2">&quot;SCE1300&quot;</span><span class="p">,</span> <span class="s1">&#39;2012:020&#39;</span><span class="p">,</span> <span class="s1">&#39;2012:050&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">e1300_rad_zones</span> <span class="o">=</span> <span class="n">e1300</span><span class="o">.</span><span class="n">select_intervals</span><span class="p">(</span><span class="n">events</span><span class="o">.</span><span class="n">rad_zones</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="more-on-intervals-and-padding">
+<h2>More on intervals and padding<a class="headerlink" href="#more-on-intervals-and-padding" title="Link to this heading">#</a></h2>
+<p>The event intervals themselves within a particular time range can be accessed as a list of
+<code class="docutils literal notranslate"><span class="pre">(start,</span> <span class="pre">stop)</span></code> with the <code class="docutils literal notranslate"><span class="pre">intervals()</span></code> method:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">events</span><span class="o">.</span><span class="n">rad_zones</span><span class="o">.</span><span class="n">intervals</span><span class="p">(</span><span class="s1">&#39;2012:020&#39;</span><span class="p">,</span> <span class="s1">&#39;2012:030&#39;</span><span class="p">)</span>
+<span class="go">[(&#39;2012:020:14:56:33.713&#39;, &#39;2012:020:23:42:31.713&#39;),</span>
+<span class="go"> (&#39;2012:023:06:15:15.541&#39;, &#39;2012:023:16:15:33.248&#39;),</span>
+<span class="go"> (&#39;2012:025:21:22:22.506&#39;, &#39;2012:026:08:10:20.506&#39;),</span>
+<span class="go"> (&#39;2012:028:13:22:04.533&#39;, &#39;2012:028:22:20:02.533&#39;)]</span>
+</pre></div>
+</div>
+<p>Frequently you want to pad the intervals by a bit in each direction.  For instance if you
+want stable spacecraft attitudes you would want to filter out events that disturb the
+attitude, namely SIM motions, grating motions, and momentum dumps.  But the events cover
+just the exact interval of a motion or dump, and you’d like to chop out times for 5 or 10
+minutes afterward.  In addition, it’s usually a good idea to cut out a bit before just to
+be safe.</p>
+<p>To pad the grating events out by 5 minutes in each direction, create a new EventQuery
+object like this:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">grating_moves</span> <span class="o">=</span> <span class="n">events</span><span class="o">.</span><span class="n">grating_moves</span><span class="p">(</span><span class="n">pad</span><span class="o">=</span><span class="mi">300</span><span class="p">)</span>  <span class="c1"># pad time in seconds</span>
+</pre></div>
+</div>
+<p>Positive values always make the interval <em>bigger</em> in each direction, so
+a pad of <code class="docutils literal notranslate"><span class="pre">300</span></code> seconds makes the interval a total of 10 minutes longer (5 minutes
+on each side).  A pad of <code class="docutils literal notranslate"><span class="pre">-300</span></code> seconds makes the interval start 5 minutes
+later and end 5 minutes earlier.</p>
+<p>You can be more precise and specify the padding at the event start and stop by
+providing two values, the start and stop pad time.  Again, the convention is that
+positive padding is always making the interval longer in each direction.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">grating_moves</span> <span class="o">=</span> <span class="n">events</span><span class="o">.</span><span class="n">grating_moves</span><span class="p">(</span><span class="n">pad</span><span class="o">=</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="mi">300</span><span class="p">))</span>  <span class="c1"># pad time in seconds</span>
+</pre></div>
+</div>
+<p>To finish the example, we would define similar padded events for the SIM moves and dumps:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">tsc_moves</span> <span class="o">=</span> <span class="n">events</span><span class="o">.</span><span class="n">tsc_moves</span><span class="p">(</span><span class="n">pad</span><span class="o">=</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="mi">300</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dumps</span> <span class="o">=</span> <span class="n">events</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">pad</span><span class="o">=</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="mi">300</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>You can examine or set the padding using the <code class="docutils literal notranslate"><span class="pre">interval_pad</span></code> attribute:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">dumps</span><span class="o">.</span><span class="n">interval_pad</span>
+<span class="go">&lt;Pad start=100.0 stop=300.0 seconds&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dumps</span><span class="o">.</span><span class="n">interval_pad</span> <span class="o">=</span> <span class="mi">500</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dumps</span><span class="o">.</span><span class="n">interval_pad</span>
+<span class="go">&lt;Pad start=500.0 stop=500.0 seconds&gt;</span>
+</pre></div>
+</div>
+<p>You can also set the interval pad for an event type directly.  <em>This method is
+discouraged</em>, but shown below for reference since this used to be the accepted method:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">events</span><span class="o">.</span><span class="n">grating_moves</span><span class="o">.</span><span class="n">interval_pad</span> <span class="o">=</span> <span class="o">-</span><span class="mi">100</span>
+</pre></div>
+</div>
+<section id="boolean-combinations">
+<h3>Boolean combinations<a class="headerlink" href="#boolean-combinations" title="Link to this heading">#</a></h3>
+<p>The real power of intervals is that they can be combined with boolean expressions and can
+be padded on either end to make it easy to create complex time filters.  Using the results
+in the previous section, we can create a composite event which is when there is a grating
+move <em>OR</em> a momentum dump <em>OR</em> a SIM (TSC) move:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">disturbances</span> <span class="o">=</span> <span class="n">grating_moves</span> <span class="o">|</span> <span class="n">dumps</span> <span class="o">|</span> <span class="n">tsc_moves</span>
+</pre></div>
+</div>
+<p>The following example selects all Kalman mode dwells, but removes times that could be
+affected by a SIM TSC move or a momentum dump.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">dwells</span> <span class="o">=</span> <span class="n">events</span><span class="o">.</span><span class="n">dwells</span><span class="p">(</span><span class="n">pad</span><span class="o">=-</span><span class="mi">100</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">good_times</span> <span class="o">=</span> <span class="n">dwells</span> <span class="o">&amp;</span> <span class="o">~</span><span class="n">disturbances</span>  <span class="c1"># Dwells and NOT disturbances</span>
+</pre></div>
+</div>
+<p>You can examine the composite <code class="docutils literal notranslate"><span class="pre">good_times</span></code> event query and see how it is constructed of
+boolean combinations of the underlying base event query objects:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">good_times</span>
+<span class="go">(&lt;EventQuery: Dwell pad=-100.0&gt; AND NOT ((&lt;EventQuery: GratingMove pad=(100.0, 300.0)&gt;</span>
+<span class="go">OR &lt;EventQuery: Dump pad=(100.0, 300.0)&gt;) OR &lt;EventQuery: TscMove pad=(100.0, 300.0)&gt;))</span>
+</pre></div>
+</div>
+<p>Finally you can you this composite event query to define times for selecting telemetry
+of interest:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">dat</span> <span class="o">=</span> <span class="n">fetch</span><span class="o">.</span><span class="n">Msid</span><span class="p">(</span><span class="s1">&#39;aoattqt1&#39;</span><span class="p">,</span> <span class="s1">&#39;2012:001&#39;</span><span class="p">,</span> <span class="s1">&#39;2012:002&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dat</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dat_good</span> <span class="o">=</span> <span class="n">dat</span><span class="o">.</span><span class="n">select_intervals</span><span class="p">(</span><span class="n">good_times</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dat_good</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="s1">&#39;.r&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">plt</span><span class="o">.</span><span class="n">grid</span><span class="p">()</span>
+</pre></div>
+</div>
+<img alt="../_images/complex_event_filter.png" src="../_images/complex_event_filter.png" />
+</section>
+<section id="filtering-the-interval-events">
+<h3>Filtering the interval events<a class="headerlink" href="#filtering-the-interval-events" title="Link to this heading">#</a></h3>
+<p>The examples shown above share the feature that the selected intervals were defined
+using <em>all</em> of the events for a particular type.  However, it is also possible to
+select only a subset of the available events based on other filter criteria.  For
+example, if you wanted to examine telemetry during HETG insertions.  This would be
+a snap with the following, which defines a new event query which is the subset
+of HETG insertion grating moves:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">hetg_insert</span> <span class="o">=</span> <span class="n">events</span><span class="o">.</span><span class="n">grating_moves</span><span class="p">(</span><span class="n">pad</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">grating</span><span class="o">=</span><span class="s1">&#39;HETG&#39;</span><span class="p">,</span> <span class="n">direction</span><span class="o">=</span><span class="s1">&#39;INSR&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This new event query object can be used just like the original <code class="docutils literal notranslate"><span class="pre">events.grating_moves</span></code>
+except that now it only has HETG insertion events.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">events</span><span class="o">.</span><span class="n">grating_moves</span>
+<span class="go">&lt;EventQuery: GratingMove pad=0.0&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hetg_insert</span>
+<span class="go">&lt;EventQuery: GratingMove pad=0.0 direction=&#39;INSR&#39; grating=&#39;HETG&#39;&gt;</span>
+</pre></div>
+</div>
+<p>To overplot the grating angle as a function of time since the grating move start you might
+do:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">intervals</span> <span class="o">=</span> <span class="n">hetg_insert</span><span class="o">.</span><span class="n">intervals</span><span class="p">(</span><span class="s1">&#39;2010:001&#39;</span><span class="p">,</span> <span class="s1">&#39;2010:030&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">intervals</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span> <span class="n">intervals</span>  <span class="c1"># This is a list of (start, stop) pairs</span>
+<span class="go">[(&#39;2010:002:15:25:39.725&#39;, &#39;2010:002:15:28:15.013&#39;),</span>
+<span class="go"> (&#39;2010:004:09:41:29.708&#39;, &#39;2010:004:09:44:04.996&#39;),</span>
+<span class="go">             ...</span>
+<span class="go"> (&#39;2010:018:13:36:14.745&#39;, &#39;2010:018:13:38:50.033&#39;),</span>
+<span class="go"> (&#39;2010:021:04:47:00.207&#39;, &#39;2010:021:04:49:35.494&#39;)]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">start</span><span class="p">,</span> <span class="n">stop</span> <span class="ow">in</span> <span class="n">intervals</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="n">dat</span> <span class="o">=</span> <span class="n">fetch</span><span class="o">.</span><span class="n">Msid</span><span class="p">(</span><span class="s1">&#39;4hposaro&#39;</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">plot</span><span class="p">(</span><span class="n">dat</span><span class="o">.</span><span class="n">times</span> <span class="o">-</span> <span class="n">dat</span><span class="o">.</span><span class="n">times</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">dat</span><span class="o">.</span><span class="n">vals</span><span class="p">)</span>
+</pre></div>
+</div>
+<section id="ltt-bad-times">
+<h4>LTT bad times<a class="headerlink" href="#ltt-bad-times" title="Link to this heading">#</a></h4>
+<p>Another example of practical interest is using the LTT bad times event to remove bad times
+for long-term trending plots by MSID.  Before explaining more about what is going on, here is
+an example of filtering out LTT bad times (for the impatient):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">dat</span> <span class="o">=</span> <span class="n">fetch</span><span class="o">.</span><span class="n">Msid</span><span class="p">(</span><span class="s1">&#39;AIRU2BT&#39;</span><span class="p">,</span> <span class="s1">&#39;2011:001&#39;</span><span class="p">,</span> <span class="s1">&#39;2013:001&#39;</span><span class="p">,</span> <span class="n">stat</span><span class="o">=</span><span class="s1">&#39;daily&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dat_good</span> <span class="o">=</span> <span class="n">dat</span><span class="o">.</span><span class="n">remove_intervals</span><span class="p">(</span><span class="n">events</span><span class="o">.</span><span class="n">ltt_bads</span><span class="p">(</span><span class="n">msid</span><span class="o">=</span><span class="s1">&#39;AIRU2BT&#39;</span><span class="p">),</span> <span class="n">copy</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dat</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;All&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dat_good</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="s1">&#39;Good&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">plt</span><span class="o">.</span><span class="n">ylim</span><span class="p">(</span><span class="mi">96</span><span class="p">,</span> <span class="mi">103</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">plt</span><span class="o">.</span><span class="n">grid</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">fontsize</span><span class="o">=</span><span class="s1">&#39;small&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">&#39;AIRU2BT&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<img alt="../_images/ltt_bads_airu2bt.png" src="../_images/ltt_bads_airu2bt.png" />
+<p>Now let’s look more closely at the LTT bad times events, which are derived from a
+FOT-supplied file that has the dates when particular trending items (the <code class="docutils literal notranslate"><span class="pre">msid</span></code> column)
+are bad for some reason:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span> <span class="n">events</span><span class="o">.</span><span class="n">ltt_bads</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="s1">&#39;2000:001&#39;</span><span class="p">,</span> <span class="s1">&#39;2001:001&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">table</span>
+<span class="go">        start                  stop            tstart       tstop       dur         msid      flag</span>
+<span class="go">--------------------- --------------------- ------------ ------------ ------- --------------- ----</span>
+<span class="go">2000:001:00:00:00.000 2000:002:00:00:00.000 63072064.184 63158464.184 86400.0 PITCH_STAB_PERF    J</span>
+<span class="go">2000:001:00:00:00.000 2000:002:00:00:00.000 63072064.184 63158464.184 86400.0   YAW_STAB_PERF    J</span>
+<span class="go">2000:004:00:00:00.000 2000:005:00:00:00.000 63331264.184 63417664.184 86400.0      GCM_TSCACC    1</span>
+<span class="go">                  ...                   ...          ...          ...     ...             ...  ...</span>
+<span class="go">2000:358:00:00:00.000 2000:359:00:00:00.000 93916864.184 94003264.184 86400.0         3SDM15V    1</span>
+<span class="go">2000:358:00:00:00.000 2000:359:00:00:00.000 93916864.184 94003264.184 86400.0          3SDP5V    1</span>
+<span class="go">2000:366:00:00:00.000 2001:001:00:00:00.000 94608064.184 94694464.184 86400.0         3SDM15V    1</span>
+</pre></div>
+</div>
+<p>Some of the <code class="docutils literal notranslate"><span class="pre">msid</span></code> values correspond to like-named MSIDs in the engineering archive, but
+many (including all those shown here) do not.  You can find the non-matches with:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">msid</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">events</span><span class="o">.</span><span class="n">ltt_bads</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="s1">&#39;1999:001&#39;</span><span class="p">))</span>
+<span class="go">                 if not (x.msid in fetch.content or &#39;DP_&#39; + x.msid in fetch.content)))</span>
+<span class="go">[u&#39;*&#39;, u&#39;3SDAGV&#39;, u&#39;3SDFATSV&#39;, u&#39;3SDM15V&#39;, u&#39;3SDP15V&#39;, u&#39;3SDP5V&#39;, u&#39;3SDTSTSV&#39;, u&#39;5EHSE300&#39;, u&#39;ABIASZ&#39;,</span>
+<span class="go">...</span>
+<span class="go">u&#39;ROLL_BIAS_DIFF&#39;, u&#39;SAMYTEMDEL&#39;, u&#39;SAPYTEMDEL&#39;, u&#39;TFCAG&#39;, u&#39;TFCDG&#39;, u&#39;VECANGLE_DIFF&#39;,</span>
+<span class="go">u&#39;YAW_BIAS_DIFF&#39;, u&#39;YAW_CTRL&#39;, u&#39;YAW_STAB&#39;, u&#39;YAW_STAB_PERF&#39;]</span>
+</pre></div>
+</div>
+<p>There is a special <code class="docutils literal notranslate"><span class="pre">msid</span></code> value of <code class="docutils literal notranslate"><span class="pre">'*'</span></code> which corresponds to times that are bad for ALL
+MSIDs.  The bad intervals with <code class="docutils literal notranslate"><span class="pre">msid</span> <span class="pre">==</span> <span class="pre">'*'</span></code> are always included in query results:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">events</span><span class="o">.</span><span class="n">ltt_bads</span><span class="p">(</span><span class="n">msid</span><span class="o">=</span><span class="s1">&#39;AACCCDPT&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+<span class="go">&lt;LttBad: start=1999:270:00:00:00.000 msid=* flag=*&gt;</span>
+<span class="go">&lt;LttBad: start=1999:291:00:00:00.000 msid=* flag=*&gt;</span>
+<span class="go">&lt;LttBad: start=1999:295:00:00:00.000 msid=* flag=*&gt;</span>
+<span class="go">...</span>
+<span class="go">&lt;LttBad: start=2011:190:00:00:00.000 msid=* flag=*&gt;</span>
+<span class="go">&lt;LttBad: start=2011:191:00:00:00.000 msid=AACCCDPT flag=A&gt;</span>
+<span class="go">&lt;LttBad: start=2011:192:00:00:00.000 msid=AACCCDPT flag=A&gt;</span>
+<span class="go">...</span>
+<span class="go">&lt;LttBad: start=2011:302:00:00:00.000 msid=AACCCDPT flag=A&gt;</span>
+<span class="go">&lt;LttBad: start=2012:150:00:00:00.000 msid=* flag=*&gt;</span>
+<span class="go">&lt;LttBad: start=2012:151:00:00:00.000 msid=* flag=*&gt;</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="selecting-overlapping-events">
+<h3>Selecting overlapping events<a class="headerlink" href="#selecting-overlapping-events" title="Link to this heading">#</a></h3>
+<p>Frequently you are interested in getting events based on overlap with other events.  Examples include:</p>
+<ul class="simple">
+<li><p>Select maneuver events either inside or outside the radiation zone.</p></li>
+<li><p>Select SIM moves that occur during a maneuver.</p></li>
+<li><p>Select maneuvers that have a SIM or Grating move.</p></li>
+</ul>
+<p>This is possible using the <a class="reference internal" href="../api/kadi/events/models/BaseModel.QuerySet.html#kadi.events.models.BaseModel.QuerySet.select_overlapping" title="kadi.events.models.BaseModel.QuerySet.select_overlapping"><code class="xref py py-func docutils literal notranslate"><span class="pre">select_overlapping()</span></code></a>
+method of a <cite>QuerySet</cite> object.  A <cite>QuerySet</cite> is the object that gets returned when you use
+the <a class="reference internal" href="../api/kadi/events/query/EventQuery.html#kadi.events.query.EventQuery.filter" title="kadi.events.query.EventQuery.filter"><code class="xref py py-func docutils literal notranslate"><span class="pre">filter()</span></code></a> or <a class="reference internal" href="../api/kadi/events/query/EventQuery.html#kadi.events.query.EventQuery.all" title="kadi.events.query.EventQuery.all"><code class="xref py py-func docutils literal notranslate"><span class="pre">all()</span></code></a>
+methods.</p>
+<p>This is all easiest to see by example.  Start by getting a subset of maneuvers that
+occurred between 2001:001:00:00:00 and 2001:003:00:00:00:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">manvrs</span> <span class="o">=</span> <span class="n">events</span><span class="o">.</span><span class="n">manvrs</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="s1">&#39;2001:001:00:00:00&#39;</span><span class="p">,</span> <span class="s1">&#39;2001:003:00:00:00&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">manvrs</span>
+<span class="go">&lt;Manvr: start=2001:001:07:48:35.843 dur=2073 n_dwell=2 template=nman_dwell&gt;</span>
+<span class="go">&lt;Manvr: start=2001:002:05:20:14.046 dur=1184 n_dwell=1 template=normal&gt;</span>
+<span class="go">&lt;Manvr: start=2001:002:08:53:23.997 dur=241 n_dwell=1 template=normal&gt;</span>
+<span class="go">&lt;Manvr: start=2001:002:14:55:24.773 dur=240 n_dwell=1 template=normal&gt;</span>
+<span class="go">&lt;Manvr: start=2001:002:20:50:34.523 dur=1185 n_dwell=1 template=normal&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">type</span><span class="p">(</span><span class="n">manvrs</span><span class="p">)</span>
+<span class="go">&lt;class &#39;kadi.events.models.QuerySet&#39;&gt;</span>
+</pre></div>
+</div>
+<p>Now let’s find which of those had at least some portion inside the rad zone:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">manvrs</span><span class="o">.</span><span class="n">select_overlapping</span><span class="p">(</span><span class="n">events</span><span class="o">.</span><span class="n">rad_zones</span><span class="p">)</span>
+<span class="go">[&lt;Manvr: start=2001:002:05:20:14.046 dur=1184 n_dwell=1 template=normal&gt;,</span>
+<span class="go"> &lt;Manvr: start=2001:002:08:53:23.997 dur=241 n_dwell=1 template=normal&gt;,</span>
+<span class="go"> &lt;Manvr: start=2001:002:14:55:24.773 dur=240 n_dwell=1 template=normal&gt;]</span>
+</pre></div>
+</div>
+<p>This makes sense if you look at the rad zone times near then:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">events</span><span class="o">.</span><span class="n">rad_zones</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="s1">&#39;2001:001:00:00:00&#39;</span><span class="p">,</span> <span class="s1">&#39;2001:003:00:00:00&#39;</span><span class="p">)</span>
+<span class="go">&lt;RadZone: 194 2001:002:05:15:03 2001:002:20:50:23 dur=56.1 ksec&gt;</span>
+</pre></div>
+</div>
+<p>We can turn it around and ask which maneuvers had some part outside of the rad zone,
+remembering the boolean expression logic that is possible.  In fact any composite
+<code class="docutils literal notranslate"><span class="pre">QueryEvent</span></code> expression can be used as the argument:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">manvrs</span><span class="o">.</span><span class="n">select_overlapping</span><span class="p">(</span><span class="o">~</span><span class="n">events</span><span class="o">.</span><span class="n">rad_zones</span><span class="p">)</span>
+<span class="go">[&lt;Manvr: start=2001:001:07:48:35.843 dur=2073 n_dwell=2 template=nman_dwell&gt;,</span>
+<span class="go"> &lt;Manvr: start=2001:002:20:50:34.523 dur=1185 n_dwell=1 template=normal&gt;]</span>
+</pre></div>
+</div>
+<p>One subtlety here is that the original <cite>manvrs</cite> object is a <code class="docutils literal notranslate"><span class="pre">QuerySet</span></code> while the result
+of <code class="docutils literal notranslate"><span class="pre">select_overlapping</span></code> is a <strong>list</strong> of event objects.  A <code class="docutils literal notranslate"><span class="pre">QuerySet</span></code> is more powerful
+because you could apply further filtering and so on, while the list is just a regular
+Python list.  In practice this is not a real limitation.</p>
+<p>Now on to the example of finding SIM moves that occur during a maneuver:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">tsc_moves</span> <span class="o">=</span> <span class="n">events</span><span class="o">.</span><span class="n">tsc_moves</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="s1">&#39;2010:191&#39;</span><span class="p">,</span> <span class="s1">&#39;2010:192&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tsc_moves</span>
+<span class="go">&lt;TscMove: start=2010:191:18:34:00.978 dur=262 start_3tscpos=75623 stop_3tscpos=-99616&gt;</span>
+<span class="go">&lt;TscMove: start=2010:192:01:42:36.179 dur=230 start_3tscpos=-99616 stop_3tscpos=75623&gt;</span>
+<span class="go">&lt;TscMove: start=2010:192:03:27:33.779 dur=33 start_3tscpos=75623 stop_3tscpos=92903&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tsc_moves</span><span class="o">.</span><span class="n">select_overlapping</span><span class="p">(</span><span class="n">events</span><span class="o">.</span><span class="n">manvrs</span><span class="p">)</span>
+<span class="go">[&lt;TscMove: start=2010:191:18:34:00.978 dur=262 start_3tscpos=75623 stop_3tscpos=-99616&gt;,</span>
+<span class="go"> &lt;TscMove: start=2010:192:01:42:36.179 dur=230 start_3tscpos=-99616 stop_3tscpos=75623&gt;,</span>
+<span class="go"> &lt;TscMove: start=2010:192:03:27:33.779 dur=33 start_3tscpos=75623 stop_3tscpos=92903&gt;]</span>
+</pre></div>
+</div>
+<p>All of these moves overlapped with a maneuver, but what if we want the moves that occurred
+<strong>entirely within</strong> a maneuver.  To do this set the <code class="docutils literal notranslate"><span class="pre">allow_partial=False</span></code> to insist on
+complete overlaps:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">tsc_moves</span><span class="o">.</span><span class="n">select_overlapping</span><span class="p">(</span><span class="n">events</span><span class="o">.</span><span class="n">manvrs</span><span class="p">,</span> <span class="n">allow_partial</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="go">[&lt;TscMove: start=2010:192:01:42:36.179 dur=230 start_3tscpos=-99616 stop_3tscpos=75623&gt;,</span>
+<span class="go"> &lt;TscMove: start=2010:192:03:27:33.779 dur=33 start_3tscpos=75623 stop_3tscpos=92903&gt;]</span>
+</pre></div>
+</div>
+<p>This makes sense if you look at the maneuvers in that time interval.  The first of the
+three SIM moves started before the maneuver at <code class="docutils literal notranslate"><span class="pre">191:18:36:37</span></code> but lasted about two minutes
+into the maneuver.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">events</span><span class="o">.</span><span class="n">manvrs</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="s1">&#39;2010:191&#39;</span><span class="p">,</span> <span class="s1">&#39;2010:192&#39;</span><span class="p">)</span>
+<span class="go">&lt;Manvr: start=2010:191:12:39:40.939 dur=240 n_dwell=1 template=normal&gt;</span>
+<span class="go">&lt;Manvr: start=2010:191:18:36:37.290 dur=241 n_dwell=1 template=normal&gt;</span>
+<span class="go">&lt;Manvr: start=2010:192:01:41:47.492 dur=1020 n_dwell=1 template=normal&gt;</span>
+<span class="go">&lt;Manvr: start=2010:192:03:26:36.892 dur=2869 n_dwell=1 template=normal&gt;</span>
+</pre></div>
+</div>
+<p>To find every SIM-Z move in 2011 that didn’t overlap at all with a maneuver you would do:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">tsc_moves</span> <span class="o">=</span> <span class="n">events</span><span class="o">.</span><span class="n">tsc_moves</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="s1">&#39;2011:001&#39;</span><span class="p">,</span> <span class="s1">&#39;2012:001&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tsc_moves</span><span class="o">.</span><span class="n">select_overlapping</span><span class="p">(</span><span class="o">~</span><span class="n">events</span><span class="o">.</span><span class="n">manvrs</span><span class="p">,</span> <span class="n">allow_partial</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="go">[&lt;TscMove: start=2011:158:15:24:01.657 dur=262 start_3tscpos=92903 stop_3tscpos=-99616&gt;,</span>
+<span class="go"> &lt;TscMove: start=2011:216:07:03:21.245 dur=230 start_3tscpos=75623 stop_3tscpos=-99616&gt;,</span>
+<span class="go"> &lt;TscMove: start=2011:297:18:28:57.614 dur=262 start_3tscpos=92903 stop_3tscpos=-99616&gt;,</span>
+<span class="go"> &lt;TscMove: start=2011:299:05:05:28.208 dur=230 start_3tscpos=75623 stop_3tscpos=-99616&gt;]</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="details">
+<h2>Details<a class="headerlink" href="#details" title="Link to this heading">#</a></h2>
+<p>The advanced usage section is incomplete, however examples of advanced
+usage are demonstrated in thie <a class="reference external" href="http://nbviewer.ipython.org/url/cxc.harvard.edu/mta/ASPECT/ipynb/kadi_demo.ipynb">Kadi demo IPython notebook</a>.
+Please refer to this notebook and download and run it.</p>
+<section id="event-definitions">
+<h3>Event definitions<a class="headerlink" href="#event-definitions" title="Link to this heading">#</a></h3>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Event class</p></th>
+<th class="head"><p>Description</p></th>
+<th class="head"><p>Query name</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><a class="reference internal" href="../api/kadi/events/models/CAP.html#kadi.events.models.CAP" title="kadi.events.models.CAP"><code class="xref py py-class docutils literal notranslate"><span class="pre">CAP</span></code></a></p></td>
+<td><p><a class="reference internal" href="event_descriptions.html#event-cap"><span class="std std-ref">CAP from iFOT database</span></a></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">caps</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../api/kadi/events/models/DarkCal.html#kadi.events.models.DarkCal" title="kadi.events.models.DarkCal"><code class="xref py py-class docutils literal notranslate"><span class="pre">DarkCal</span></code></a></p></td>
+<td><p><a class="reference internal" href="event_descriptions.html#event-dark-cal"><span class="std std-ref">ACA dark current calibration event</span></a></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">dark_cals</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../api/kadi/events/models/DarkCalReplica.html#kadi.events.models.DarkCalReplica" title="kadi.events.models.DarkCalReplica"><code class="xref py py-class docutils literal notranslate"><span class="pre">DarkCalReplica</span></code></a></p></td>
+<td><p><a class="reference internal" href="event_descriptions.html#event-dark-cal-replica"><span class="std std-ref">ACA dark current calibration replica</span></a></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">dark_cal_replicas</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../api/kadi/events/models/DsnComm.html#kadi.events.models.DsnComm" title="kadi.events.models.DsnComm"><code class="xref py py-class docutils literal notranslate"><span class="pre">DsnComm</span></code></a></p></td>
+<td><p><a class="reference internal" href="event_descriptions.html#event-dsn-comm"><span class="std std-ref">DSN comm period</span></a></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">dsn_comms</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../api/kadi/events/models/Dump.html#kadi.events.models.Dump" title="kadi.events.models.Dump"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dump</span></code></a></p></td>
+<td><p><a class="reference internal" href="event_descriptions.html#event-dump"><span class="std std-ref">Momentum unload either ground commanded or autonomous</span></a></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">dumps</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../api/kadi/events/models/Dwell.html#kadi.events.models.Dwell" title="kadi.events.models.Dwell"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dwell</span></code></a></p></td>
+<td><p><a class="reference internal" href="event_descriptions.html#event-dwell"><span class="std std-ref">Dwell in Kalman mode</span></a></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">dwells</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../api/kadi/events/models/Eclipse.html#kadi.events.models.Eclipse" title="kadi.events.models.Eclipse"><code class="xref py py-class docutils literal notranslate"><span class="pre">Eclipse</span></code></a></p></td>
+<td><p><a class="reference internal" href="event_descriptions.html#event-eclipse"><span class="std std-ref">Eclipse</span></a></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">eclipses</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../api/kadi/events/models/FaMove.html#kadi.events.models.FaMove" title="kadi.events.models.FaMove"><code class="xref py py-class docutils literal notranslate"><span class="pre">FaMove</span></code></a></p></td>
+<td><p><a class="reference internal" href="event_descriptions.html#event-fa-move"><span class="std std-ref">SIM FA translation</span></a></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">fa_moves</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../api/kadi/events/models/GratingMove.html#kadi.events.models.GratingMove" title="kadi.events.models.GratingMove"><code class="xref py py-class docutils literal notranslate"><span class="pre">GratingMove</span></code></a></p></td>
+<td><p><a class="reference internal" href="event_descriptions.html#event-grating-move"><span class="std std-ref">Grating movement (HETG or LETG)</span></a></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">grating_moves</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../api/kadi/events/models/LoadSegment.html#kadi.events.models.LoadSegment" title="kadi.events.models.LoadSegment"><code class="xref py py-class docutils literal notranslate"><span class="pre">LoadSegment</span></code></a></p></td>
+<td><p><a class="reference internal" href="event_descriptions.html#event-load-segment"><span class="std std-ref">Load segment</span></a></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">load_segments</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../api/kadi/events/models/LttBad.html#kadi.events.models.LttBad" title="kadi.events.models.LttBad"><code class="xref py py-class docutils literal notranslate"><span class="pre">LttBad</span></code></a></p></td>
+<td><p><a class="reference internal" href="event_descriptions.html#event-ltt-bad"><span class="std std-ref">LTT bad intervals</span></a></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ltt_bads</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../api/kadi/events/models/MajorEvent.html#kadi.events.models.MajorEvent" title="kadi.events.models.MajorEvent"><code class="xref py py-class docutils literal notranslate"><span class="pre">MajorEvent</span></code></a></p></td>
+<td><p><a class="reference internal" href="event_descriptions.html#event-major-event"><span class="std std-ref">Major event</span></a></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">major_events</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../api/kadi/events/models/Manvr.html#kadi.events.models.Manvr" title="kadi.events.models.Manvr"><code class="xref py py-class docutils literal notranslate"><span class="pre">Manvr</span></code></a></p></td>
+<td><p><a class="reference internal" href="event_descriptions.html#event-manvr"><span class="std std-ref">Maneuver</span></a></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">manvrs</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../api/kadi/events/models/ManvrSeq.html#kadi.events.models.ManvrSeq" title="kadi.events.models.ManvrSeq"><code class="xref py py-class docutils literal notranslate"><span class="pre">ManvrSeq</span></code></a></p></td>
+<td><p><a class="reference internal" href="event_descriptions.html#event-manvr-seq"><span class="std std-ref">Maneuver sequence event</span></a></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">manvr_seqs</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../api/kadi/events/models/NormalSun.html#kadi.events.models.NormalSun" title="kadi.events.models.NormalSun"><code class="xref py py-class docutils literal notranslate"><span class="pre">NormalSun</span></code></a></p></td>
+<td><p><a class="reference internal" href="event_descriptions.html#event-normal-sun"><span class="std std-ref">Normal sun mode event</span></a></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">normal_suns</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../api/kadi/events/models/Obsid.html#kadi.events.models.Obsid" title="kadi.events.models.Obsid"><code class="xref py py-class docutils literal notranslate"><span class="pre">Obsid</span></code></a></p></td>
+<td><p><a class="reference internal" href="event_descriptions.html#event-obsid"><span class="std std-ref">Observation identifier</span></a></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">obsids</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../api/kadi/events/models/Orbit.html#kadi.events.models.Orbit" title="kadi.events.models.Orbit"><code class="xref py py-class docutils literal notranslate"><span class="pre">Orbit</span></code></a></p></td>
+<td><p><a class="reference internal" href="event_descriptions.html#event-orbit"><span class="std std-ref">Orbit</span></a></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">orbits</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../api/kadi/events/models/OrbitPoint.html#kadi.events.models.OrbitPoint" title="kadi.events.models.OrbitPoint"><code class="xref py py-class docutils literal notranslate"><span class="pre">OrbitPoint</span></code></a></p></td>
+<td><p><a class="reference internal" href="event_descriptions.html#event-orbit-point"><span class="std std-ref">Orbit point</span></a></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">orbit_points</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../api/kadi/events/models/PassPlan.html#kadi.events.models.PassPlan" title="kadi.events.models.PassPlan"><code class="xref py py-class docutils literal notranslate"><span class="pre">PassPlan</span></code></a></p></td>
+<td><p><a class="reference internal" href="event_descriptions.html#event-pass-plan"><span class="std std-ref">Pass plan</span></a></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">pass_plans</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../api/kadi/events/models/RadZone.html#kadi.events.models.RadZone" title="kadi.events.models.RadZone"><code class="xref py py-class docutils literal notranslate"><span class="pre">RadZone</span></code></a></p></td>
+<td><p><a class="reference internal" href="event_descriptions.html#event-rad-zone"><span class="std std-ref">Radiation zone</span></a></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">rad_zones</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../api/kadi/events/models/SafeSun.html#kadi.events.models.SafeSun" title="kadi.events.models.SafeSun"><code class="xref py py-class docutils literal notranslate"><span class="pre">SafeSun</span></code></a></p></td>
+<td><p><a class="reference internal" href="event_descriptions.html#event-safe-sun"><span class="std std-ref">Safe sun event</span></a></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">safe_suns</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../api/kadi/events/models/Scs107.html#kadi.events.models.Scs107" title="kadi.events.models.Scs107"><code class="xref py py-class docutils literal notranslate"><span class="pre">Scs107</span></code></a></p></td>
+<td><p><a class="reference internal" href="event_descriptions.html#event-scs107"><span class="std std-ref">SCS107 run</span></a></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">scs107s</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../api/kadi/events/models/TscMove.html#kadi.events.models.TscMove" title="kadi.events.models.TscMove"><code class="xref py py-class docutils literal notranslate"><span class="pre">TscMove</span></code></a></p></td>
+<td><p><a class="reference internal" href="event_descriptions.html#event-tsc-move"><span class="std std-ref">SIM TSC translation</span></a></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">tsc_moves</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="event-filtering">
+<h3>Event filtering<a class="headerlink" href="#event-filtering" title="Link to this heading">#</a></h3>
+<p>The <a class="reference internal" href="../api/kadi/events/query/EventQuery.html#kadi.events.query.EventQuery" title="kadi.events.query.EventQuery"><code class="xref py py-class docutils literal notranslate"><span class="pre">EventQuery</span></code></a> <a class="reference internal" href="../api/kadi/events/query/EventQuery.html#kadi.events.query.EventQuery.filter" title="kadi.events.query.EventQuery.filter"><code class="xref py py-func docutils literal notranslate"><span class="pre">filter()</span></code></a>
+method allows you to find events between <code class="docutils literal notranslate"><span class="pre">start</span></code> and <code class="docutils literal notranslate"><span class="pre">stop</span></code>, or with the given
+<code class="docutils literal notranslate"><span class="pre">obsid</span></code>, which match the filter attributes in subsequent keyword arguments.  The
+matching events are returned as a Django query set [1].</p>
+<p>If <code class="docutils literal notranslate"><span class="pre">start</span></code> or <code class="docutils literal notranslate"><span class="pre">stop</span></code> are not supplied they default to the beginning / end of
+available data.  The optional <code class="docutils literal notranslate"><span class="pre">subset</span></code> arg must be a Python slice() object and
+allows slicing of the filtered output.</p>
+<p>This method allows for the use of <a class="reference external" href="https://docs.djangoproject.com/en/3.1/ref/models/querysets/#field-lookups">Django field lookups</a> from the
+underlying Django model implementation.  A field lookup is similar to an SQL <code class="docutils literal notranslate"><span class="pre">WHERE</span></code>
+clause with the form <code class="docutils literal notranslate"><span class="pre">&lt;field_name&gt;__&lt;filter_type&gt;=&lt;value&gt;</span></code> (with a double underscore
+between).  For instance <code class="docutils literal notranslate"><span class="pre">n_dwell__lte=1</span></code> would be the same as <code class="docutils literal notranslate"><span class="pre">SELECT</span> <span class="pre">...</span> <span class="pre">WHERE</span> <span class="pre">n_dwell</span>
+<span class="pre">&lt;=</span> <span class="pre">1</span></code>.  Common filter types are:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">exact</span></code> (exact match), <code class="docutils literal notranslate"><span class="pre">contains</span></code> (contains string)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">startswith</span></code>, <code class="docutils literal notranslate"><span class="pre">endswith</span></code> (starts or ends with string)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">gt</span></code>, <code class="docutils literal notranslate"><span class="pre">gte</span></code>, <code class="docutils literal notranslate"><span class="pre">lt</span></code>, <code class="docutils literal notranslate"><span class="pre">lte</span></code> (comparisons)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">isnull</span></code> (field value is missing, e.g. manvrs.aca_proc_act_start)</p></li>
+</ul>
+<p>For the common case of testing equality (<code class="docutils literal notranslate"><span class="pre">exact</span></code>) there is a shortcut where
+the <code class="docutils literal notranslate"><span class="pre">__exact</span></code> can be skipped, so for instance <code class="docutils literal notranslate"><span class="pre">n_dwell=1</span></code> selects
+maneuver events with one dwell.  For a full list of field lookups see the general
+Django documentation on <a class="reference external" href="https://docs.djangoproject.com/en/3.1/topics/db/queries/">Making queries</a></p>
+<p>Examples:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">kadi</span> <span class="kn">import</span> <span class="n">events</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">events</span><span class="o">.</span><span class="n">manvrs</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="s1">&#39;2011:001&#39;</span><span class="p">,</span> <span class="s1">&#39;2012:001&#39;</span><span class="p">,</span> <span class="n">n_dwell</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">angle__gte</span><span class="o">=</span><span class="mi">140</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">events</span><span class="o">.</span><span class="n">manvrs</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="s1">&#39;2011:001&#39;</span><span class="p">,</span> <span class="s1">&#39;2012:001&#39;</span><span class="p">)[:</span><span class="mi">5</span><span class="p">]</span>  <span class="c1"># first 5</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">events</span><span class="o">.</span><span class="n">manvrs</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">obsid</span><span class="o">=</span><span class="mi">14305</span><span class="p">)</span>  <span class="c1"># Manveuver(s) where obsid=14305 at start</span>
+</pre></div>
+</div>
+<p>To get all of the events use the <a class="reference internal" href="../api/kadi/events/query/EventQuery.html#kadi.events.query.EventQuery.all" title="kadi.events.query.EventQuery.all"><code class="xref py py-func docutils literal notranslate"><span class="pre">all()</span></code></a> method:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">events</span><span class="o">.</span><span class="n">normal_suns</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+<span class="go">&lt;NormalSun: start=2000:027:13:33:38.872 dur=1020&gt;</span>
+<span class="go">&lt;NormalSun: start=2000:049:03:23:08.544 dur=126872&gt;</span>
+<span class="go">   ...</span>
+<span class="go">&lt;NormalSun: start=2011:299:05:09:02.945 dur=81773&gt;</span>
+<span class="go">&lt;NormalSun: start=2012:151:12:33:36.285 dur=48711&gt;</span>
+</pre></div>
+</div>
+<section id="advanced-filtering">
+<h4>Advanced filtering<a class="headerlink" href="#advanced-filtering" title="Link to this heading">#</a></h4>
+<p>The result of a <a class="reference internal" href="../api/kadi/events/query/EventQuery.html#kadi.events.query.EventQuery.filter" title="kadi.events.query.EventQuery.filter"><code class="xref py py-func docutils literal notranslate"><span class="pre">filter()</span></code></a> query is a Django
+<code class="docutils literal notranslate"><span class="pre">QuerySet</span></code> object.  From this starting point you can chain additional queries
+or take advantage of any of the <code class="docutils literal notranslate"><span class="pre">QuerySet</span></code> functionality described in
+<a class="reference external" href="https://docs.djangoproject.com/en/3.1/topics/db/queries/">Making queries</a>.</p>
+<p>For example if you wanted to find all maneuvers in 2011-Jan that were not “normal”
+and did not have an intermediate attitude, you could do:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">manvrs_2011</span> <span class="o">=</span> <span class="n">events</span><span class="o">.</span><span class="n">manvrs</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="s1">&#39;2011-01-01T00:00:00&#39;</span><span class="p">,</span> <span class="s1">&#39;2012-01-01T00:00:00&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">manvrs_2011</span><span class="o">.</span><span class="n">exclude</span><span class="p">(</span><span class="n">template</span><span class="o">=</span><span class="s1">&#39;normal&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">exclude</span><span class="p">(</span><span class="n">template</span><span class="o">=</span><span class="s1">&#39;interm_att&#39;</span><span class="p">)</span>
+<span class="go">&lt;Manvr: start=2011:111:11:09:03.933 dur=1011 n_dwell=1 template=two_acq&gt;</span>
+<span class="go">&lt;Manvr: start=2011:112:06:22:42.186 dur=1116 n_dwell=1 template=two_acq&gt;</span>
+<span class="go">   ...</span>
+<span class="go">&lt;Manvr: start=2011:296:21:46:41.147 dur=1934 n_dwell=2 template=three_acq&gt;</span>
+<span class="go">&lt;Manvr: start=2011:298:22:07:37.432 dur=492 n_dwell=3 template=unknown&gt;</span>
+</pre></div>
+</div>
+<p>To go really crazy and allow for even more complex queries, like those requiring <code class="docutils literal notranslate"><span class="pre">OR</span></code>
+logic, you can use <a class="reference external" href="https://docs.djangoproject.com/en/3.1/topics/db/queries/#complex-lookups-with-q-objects">Django Q objects</a>.</p>
+</section>
+</section>
+<section id="maneuver-templates">
+<h3>Maneuver templates<a class="headerlink" href="#maneuver-templates" title="Link to this heading">#</a></h3>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="maneuver_templates.html">Maneuver sequence templates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="event_descriptions.html">Event Descriptions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="event_descriptions.html#cap-from-ifot-database">CAP from iFOT database</a></li>
+<li class="toctree-l1"><a class="reference internal" href="event_descriptions.html#aca-dark-current-calibration-event">ACA dark current calibration event</a></li>
+<li class="toctree-l1"><a class="reference internal" href="event_descriptions.html#aca-dark-current-calibration-replica">ACA dark current calibration replica</a></li>
+<li class="toctree-l1"><a class="reference internal" href="event_descriptions.html#dsn-comm-period">DSN comm period</a></li>
+<li class="toctree-l1"><a class="reference internal" href="event_descriptions.html#momentum-unload-either-ground-commanded-or-autonomous">Momentum unload either ground commanded or autonomous</a></li>
+<li class="toctree-l1"><a class="reference internal" href="event_descriptions.html#dwell-in-kalman-mode">Dwell in Kalman mode</a></li>
+<li class="toctree-l1"><a class="reference internal" href="event_descriptions.html#eclipse">Eclipse</a></li>
+<li class="toctree-l1"><a class="reference internal" href="event_descriptions.html#sim-fa-translation">SIM FA translation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="event_descriptions.html#grating-movement-hetg-or-letg">Grating movement (HETG or LETG)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="event_descriptions.html#load-segment">Load segment</a></li>
+<li class="toctree-l1"><a class="reference internal" href="event_descriptions.html#ltt-bad-intervals">LTT bad intervals</a></li>
+<li class="toctree-l1"><a class="reference internal" href="event_descriptions.html#major-event">Major event</a></li>
+<li class="toctree-l1"><a class="reference internal" href="event_descriptions.html#maneuver">Maneuver</a></li>
+<li class="toctree-l1"><a class="reference internal" href="event_descriptions.html#maneuver-sequence-event">Maneuver sequence event</a></li>
+<li class="toctree-l1"><a class="reference internal" href="event_descriptions.html#normal-sun-mode-event">Normal sun mode event</a></li>
+<li class="toctree-l1"><a class="reference internal" href="event_descriptions.html#observation-identifier">Observation identifier</a></li>
+<li class="toctree-l1"><a class="reference internal" href="event_descriptions.html#orbit">Orbit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="event_descriptions.html#orbit-point">Orbit point</a></li>
+<li class="toctree-l1"><a class="reference internal" href="event_descriptions.html#pass-plan">Pass plan</a></li>
+<li class="toctree-l1"><a class="reference internal" href="event_descriptions.html#radiation-zone">Radiation zone</a></li>
+<li class="toctree-l1"><a class="reference internal" href="event_descriptions.html#safe-sun-event">Safe sun event</a></li>
+<li class="toctree-l1"><a class="reference internal" href="event_descriptions.html#scs107-run">SCS107 run</a></li>
+<li class="toctree-l1"><a class="reference internal" href="event_descriptions.html#sim-tsc-translation">SIM TSC translation</a></li>
+</ul>
+</div>
+</section>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="../index.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Kadi archive</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="maneuver_templates.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Maneuver sequence templates</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#overview">Overview</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#interval-events">Interval events</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#non-interval-events">Non-interval events</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#getting-started">Getting started</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#get-events-as-a-table">Get events as a table</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#events-and-obsids">Events and obsids</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#getting-help">Getting help</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#use-events-to-filter-telemetry">Use events to filter telemetry</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#more-on-intervals-and-padding">More on intervals and padding</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#boolean-combinations">Boolean combinations</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#filtering-the-interval-events">Filtering the interval events</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#ltt-bad-times">LTT bad times</a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#selecting-overlapping-events">Selecting overlapping events</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#details">Details</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#event-definitions">Event definitions</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#event-filtering">Event filtering</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#advanced-filtering">Advanced filtering</a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#maneuver-templates">Maneuver templates</a></li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2025, Smithsonian Astrophysical Observatory.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.1.3.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.16.1.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

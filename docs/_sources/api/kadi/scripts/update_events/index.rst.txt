@@ -1,0 +1,40 @@
+kadi.scripts.update_events
+==========================
+
+.. py:module:: kadi.scripts.update_events
+
+.. autoapi-nested-parse::
+
+   Update the events database
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+Functions
+---------
+
+.. toctree::
+   :hidden:
+
+   /api/kadi/scripts/update_events/get_opt
+   /api/kadi/scripts/update_events/try4times
+   /api/kadi/scripts/update_events/delete_from_date
+   /api/kadi/scripts/update_events/update
+   /api/kadi/scripts/update_events/save_event_to_database
+   /api/kadi/scripts/update_events/get_events_and_event_models
+   /api/kadi/scripts/update_events/main
+
+.. autoapisummary::
+
+   kadi.scripts.update_events.get_opt
+   kadi.scripts.update_events.try4times
+   kadi.scripts.update_events.delete_from_date
+   kadi.scripts.update_events.update
+   kadi.scripts.update_events.save_event_to_database
+   kadi.scripts.update_events.get_events_and_event_models
+   kadi.scripts.update_events.main
+
+
+

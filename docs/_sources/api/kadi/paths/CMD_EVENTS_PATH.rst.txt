@@ -1,0 +1,4 @@
+kadi.paths.CMD_EVENTS_PATH
+==========================
+
+.. py:function:: kadi.paths.CMD_EVENTS_PATH(scenario=None)

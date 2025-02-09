@@ -1,0 +1,25 @@
+kadi.test
+=========
+
+.. py:function:: kadi.test(*args, **kwargs)
+
+   
+   Run py.test unit tests.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!

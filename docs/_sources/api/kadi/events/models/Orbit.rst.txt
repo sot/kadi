@@ -1,0 +1,128 @@
+kadi.events.models.Orbit
+========================
+
+.. py:class:: kadi.events.models.Orbit(*args, **kwargs)
+
+   Bases: :py:obj:`BaseEvent`
+
+
+   
+   Orbit
+
+   **Event definition**: single Chandra orbit starting from ascending node crossing
+
+   Full orbit, with dates corresponding to start (ORBIT ASCENDING NODE CROSSING), stop,
+   apogee, perigee, radzone start and radzone stop.  Radzone is defined as the time
+   covering perigee when radmon is disabled by command.  This corresponds to the planned
+   values and may differ from actual in the case of events that run SCS107 and
+   prematurely disable RADMON.
+
+   **Fields**
+
+   ================== ========== ==================================================
+         Field           Type                       Description
+   ================== ========== ==================================================
+               start   Char(21)         Start time (orbit ascending node crossing)
+                stop   Char(21)     Stop time (next orbit ascending node crossing)
+              tstart      Float         Start time (orbit ascending node crossing)
+               tstop      Float     Stop time (next orbit ascending node crossing)
+                 dur      Float                               Orbit duration (sec)
+           orbit_num    Integer                                       Orbit number
+             perigee   Char(21)                                       Perigee time
+              apogee   Char(21)                                        Apogee time
+           t_perigee      Float                             Perigee time (CXC sec)
+       start_radzone   Char(21)                             Start time of rad zone
+        stop_radzone   Char(21)                              Stop time of rad zone
+    dt_start_radzone      Float   Start time of rad zone relative to perigee (sec)
+     dt_stop_radzone      Float    Stop time of rad zone relative to perigee (sec)
+   ================== ========== ==================================================
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:attribute:: start
+
+
+   .. py:attribute:: stop
+
+
+   .. py:attribute:: tstart
+
+
+   .. py:attribute:: tstop
+
+
+   .. py:attribute:: dur
+
+
+   .. py:attribute:: orbit_num
+
+
+   .. py:attribute:: perigee
+
+
+   .. py:attribute:: apogee
+
+
+   .. py:attribute:: t_perigee
+
+
+   .. py:attribute:: start_radzone
+
+
+   .. py:attribute:: stop_radzone
+
+
+   .. py:attribute:: dt_start_radzone
+
+
+   .. py:attribute:: dt_stop_radzone
+
+
+   .. py:attribute:: lookforward
+      :value: 28
+
+
+
+   .. py:method:: get_events(start, stop=None)
+      :classmethod:
+
+
+      
+      Get Orbit Events from timeline reports.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: __unicode__()
+

@@ -1,0 +1,26 @@
+kadi.events.query.get_dates_vals
+================================
+
+.. py:function:: kadi.events.query.get_dates_vals(intervals, start, stop)
+
+   
+   Convert a list of date 2-tuple intervals into a contiguous "curve" of
+   dates, vals values.  The dates and vals could be plotted.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!

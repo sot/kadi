@@ -1,0 +1,54 @@
+kadi.commands.states.SCS84EnableTransition
+==========================================
+
+.. py:class:: kadi.commands.states.SCS84EnableTransition
+
+   Bases: :py:obj:`FixedTransition`
+
+
+   
+   SCS-84 enable
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:attribute:: command_attributes
+
+
+   .. py:attribute:: command_params
+
+
+   .. py:attribute:: state_keys
+      :value: ['scs84']
+
+
+
+   .. py:attribute:: transition_key
+      :value: 'scs84'
+
+
+
+   .. py:attribute:: transition_val
+      :value: 'ENAB'
+
+
+
+   .. py:attribute:: default_value
+      :value: 'DISA'
+
+

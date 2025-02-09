@@ -1,0 +1,4 @@
+kadi.commands.command_sets.cmd_set_end_scs
+==========================================
+
+.. py:function:: kadi.commands.command_sets.cmd_set_end_scs(*args, date=None)

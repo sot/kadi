@@ -1,0 +1,216 @@
+kadi.commands.states
+====================
+
+.. py:module:: kadi.commands.states
+
+.. autoapi-nested-parse::
+
+   Provide functions for dynamically determining Chandra commanded states.
+
+   This is based entirely on known history of commands.
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+Exceptions
+----------
+
+.. toctree::
+   :hidden:
+
+   /api/kadi/commands/states/NoTransitionsError
+
+.. autoapisummary::
+
+   kadi.commands.states.NoTransitionsError
+
+
+Classes
+-------
+
+.. toctree::
+   :hidden:
+
+   /api/kadi/commands/states/Transition
+   /api/kadi/commands/states/TransKeysSet
+   /api/kadi/commands/states/StateDict
+   /api/kadi/commands/states/TransitionCallback
+   /api/kadi/commands/states/BaseTransition
+   /api/kadi/commands/states/FixedTransition
+   /api/kadi/commands/states/ParamTransition
+   /api/kadi/commands/states/Format1_Transition
+   /api/kadi/commands/states/Format2_Transition
+   /api/kadi/commands/states/Format3_Transition
+   /api/kadi/commands/states/Format4_Transition
+   /api/kadi/commands/states/Format5_Transition
+   /api/kadi/commands/states/Format6_Transition
+   /api/kadi/commands/states/SubFormatEPS_Transition
+   /api/kadi/commands/states/SubFormatNRM_Transition
+   /api/kadi/commands/states/SubFormatPDG_Transition
+   /api/kadi/commands/states/SubFormatSSR_Transition
+   /api/kadi/commands/states/MechMove
+   /api/kadi/commands/states/HETG_INSR_Transition
+   /api/kadi/commands/states/HETG_RETR_Transition
+   /api/kadi/commands/states/LETG_INSR_Transition
+   /api/kadi/commands/states/LETG_RETR_Transition
+   /api/kadi/commands/states/SimTscTransition
+   /api/kadi/commands/states/SimFocusTransition
+   /api/kadi/commands/states/Hrc15vOn_Transition
+   /api/kadi/commands/states/Hrc15vOn_SCS134_Transition
+   /api/kadi/commands/states/Hrc15vOff_Transition
+   /api/kadi/commands/states/Hrc24vOn_Transition
+   /api/kadi/commands/states/Hrc24vOff_Transition
+   /api/kadi/commands/states/HrcIOn_Transition
+   /api/kadi/commands/states/HrcIOff_Transition
+   /api/kadi/commands/states/HrcSOn_Transition
+   /api/kadi/commands/states/HrcSOff_Transition
+   /api/kadi/commands/states/ObsidTransition
+   /api/kadi/commands/states/EclipseEntryTimerTransition
+   /api/kadi/commands/states/EclipsePenumbraEntryTransition
+   /api/kadi/commands/states/EclipsePenumbraExitTransition
+   /api/kadi/commands/states/EclipseUmbraEntryTransition
+   /api/kadi/commands/states/EclipseUmbraExitTransition
+   /api/kadi/commands/states/SPMEnableTransition
+   /api/kadi/commands/states/SPMDisableTransition
+   /api/kadi/commands/states/SPMEclipseEnableTransition
+   /api/kadi/commands/states/EclipseEnableSPM
+   /api/kadi/commands/states/BatteryConnect
+   /api/kadi/commands/states/SCS84EnableTransition
+   /api/kadi/commands/states/SCS84DisableTransition
+   /api/kadi/commands/states/SCS98EnableTransition
+   /api/kadi/commands/states/SCS98DisableTransition
+   /api/kadi/commands/states/RadmonEnableTransition
+   /api/kadi/commands/states/RadmonDisableTransition
+   /api/kadi/commands/states/OrbitPointTransition
+   /api/kadi/commands/states/EphemerisTransition
+   /api/kadi/commands/states/EphemerisUpdateTransition
+   /api/kadi/commands/states/SunVectorTransition
+   /api/kadi/commands/states/DitherEnableTransition
+   /api/kadi/commands/states/DitherDisableTransition
+   /api/kadi/commands/states/DitherParamsTransition
+   /api/kadi/commands/states/NMM_Transition
+   /api/kadi/commands/states/NPM_Transition
+   /api/kadi/commands/states/AutoNPMEnableTransition
+   /api/kadi/commands/states/AutoNPMDisableTransition
+   /api/kadi/commands/states/TargQuatTransition
+   /api/kadi/commands/states/ManeuverTransition
+   /api/kadi/commands/states/NormalSunTransition
+   /api/kadi/commands/states/SafeSunTransition
+   /api/kadi/commands/states/ManeuverSunPitchTransition
+   /api/kadi/commands/states/ManeuverSunRaslTransition
+   /api/kadi/commands/states/ACISTransition
+   /api/kadi/commands/states/ACISFP_SetPointTransition
+   /api/kadi/commands/states/FidsTransition
+
+.. autoapisummary::
+
+   kadi.commands.states.Transition
+   kadi.commands.states.TransKeysSet
+   kadi.commands.states.StateDict
+   kadi.commands.states.TransitionCallback
+   kadi.commands.states.BaseTransition
+   kadi.commands.states.FixedTransition
+   kadi.commands.states.ParamTransition
+   kadi.commands.states.Format1_Transition
+   kadi.commands.states.Format2_Transition
+   kadi.commands.states.Format3_Transition
+   kadi.commands.states.Format4_Transition
+   kadi.commands.states.Format5_Transition
+   kadi.commands.states.Format6_Transition
+   kadi.commands.states.SubFormatEPS_Transition
+   kadi.commands.states.SubFormatNRM_Transition
+   kadi.commands.states.SubFormatPDG_Transition
+   kadi.commands.states.SubFormatSSR_Transition
+   kadi.commands.states.MechMove
+   kadi.commands.states.HETG_INSR_Transition
+   kadi.commands.states.HETG_RETR_Transition
+   kadi.commands.states.LETG_INSR_Transition
+   kadi.commands.states.LETG_RETR_Transition
+   kadi.commands.states.SimTscTransition
+   kadi.commands.states.SimFocusTransition
+   kadi.commands.states.Hrc15vOn_Transition
+   kadi.commands.states.Hrc15vOn_SCS134_Transition
+   kadi.commands.states.Hrc15vOff_Transition
+   kadi.commands.states.Hrc24vOn_Transition
+   kadi.commands.states.Hrc24vOff_Transition
+   kadi.commands.states.HrcIOn_Transition
+   kadi.commands.states.HrcIOff_Transition
+   kadi.commands.states.HrcSOn_Transition
+   kadi.commands.states.HrcSOff_Transition
+   kadi.commands.states.ObsidTransition
+   kadi.commands.states.EclipseEntryTimerTransition
+   kadi.commands.states.EclipsePenumbraEntryTransition
+   kadi.commands.states.EclipsePenumbraExitTransition
+   kadi.commands.states.EclipseUmbraEntryTransition
+   kadi.commands.states.EclipseUmbraExitTransition
+   kadi.commands.states.SPMEnableTransition
+   kadi.commands.states.SPMDisableTransition
+   kadi.commands.states.SPMEclipseEnableTransition
+   kadi.commands.states.EclipseEnableSPM
+   kadi.commands.states.BatteryConnect
+   kadi.commands.states.SCS84EnableTransition
+   kadi.commands.states.SCS84DisableTransition
+   kadi.commands.states.SCS98EnableTransition
+   kadi.commands.states.SCS98DisableTransition
+   kadi.commands.states.RadmonEnableTransition
+   kadi.commands.states.RadmonDisableTransition
+   kadi.commands.states.OrbitPointTransition
+   kadi.commands.states.EphemerisTransition
+   kadi.commands.states.EphemerisUpdateTransition
+   kadi.commands.states.SunVectorTransition
+   kadi.commands.states.DitherEnableTransition
+   kadi.commands.states.DitherDisableTransition
+   kadi.commands.states.DitherParamsTransition
+   kadi.commands.states.NMM_Transition
+   kadi.commands.states.NPM_Transition
+   kadi.commands.states.AutoNPMEnableTransition
+   kadi.commands.states.AutoNPMDisableTransition
+   kadi.commands.states.TargQuatTransition
+   kadi.commands.states.ManeuverTransition
+   kadi.commands.states.NormalSunTransition
+   kadi.commands.states.SafeSunTransition
+   kadi.commands.states.ManeuverSunPitchTransition
+   kadi.commands.states.ManeuverSunRaslTransition
+   kadi.commands.states.ACISTransition
+   kadi.commands.states.ACISFP_SetPointTransition
+   kadi.commands.states.FidsTransition
+
+
+Functions
+---------
+
+.. toctree::
+   :hidden:
+
+   /api/kadi/commands/states/disable_grating_move_duration
+   /api/kadi/commands/states/decode_power
+   /api/kadi/commands/states/get_transition_classes
+   /api/kadi/commands/states/get_transitions_list
+   /api/kadi/commands/states/add_transition
+   /api/kadi/commands/states/get_states
+   /api/kadi/commands/states/reduce_states
+   /api/kadi/commands/states/get_continuity
+   /api/kadi/commands/states/interpolate_states
+   /api/kadi/commands/states/_unique
+   /api/kadi/commands/states/print_state_keys_transition_classes_docs
+   /api/kadi/commands/states/get_chandra_states
+
+.. autoapisummary::
+
+   kadi.commands.states.disable_grating_move_duration
+   kadi.commands.states.decode_power
+   kadi.commands.states.get_transition_classes
+   kadi.commands.states.get_transitions_list
+   kadi.commands.states.add_transition
+   kadi.commands.states.get_states
+   kadi.commands.states.reduce_states
+   kadi.commands.states.get_continuity
+   kadi.commands.states.interpolate_states
+   kadi.commands.states._unique
+   kadi.commands.states.print_state_keys_transition_classes_docs
+   kadi.commands.states.get_chandra_states
+
+
+

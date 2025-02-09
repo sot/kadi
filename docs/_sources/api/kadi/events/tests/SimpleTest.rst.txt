@@ -1,0 +1,60 @@
+kadi.events.tests.SimpleTest
+============================
+
+.. py:class:: kadi.events.tests.SimpleTest(methodName='runTest')
+
+   Bases: :py:obj:`django.test.TestCase`
+
+
+   
+   Similar to TransactionTestCase, but use `transaction.atomic()` to achieve
+   test isolation.
+
+   In most situations, TestCase should be preferred to TransactionTestCase as
+   it allows faster execution. However, there are some situations where using
+   TransactionTestCase might be necessary (e.g. testing some transactional
+   behavior).
+
+   On database backends with no transaction support, TestCase behaves as
+   TransactionTestCase.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:method:: test_basic_addition()
+
+      
+      Tests that 1 + 1 always equals 2.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+

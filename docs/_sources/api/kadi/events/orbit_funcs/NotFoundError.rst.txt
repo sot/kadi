@@ -1,0 +1,28 @@
+kadi.events.orbit_funcs.NotFoundError
+=====================================
+
+.. py:exception:: kadi.events.orbit_funcs.NotFoundError
+
+   Bases: :py:obj:`Exception`
+
+
+   
+   Common base class for all non-exit exceptions.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!

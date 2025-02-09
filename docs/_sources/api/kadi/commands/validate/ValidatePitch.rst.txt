@@ -1,0 +1,79 @@
+kadi.commands.validate.ValidatePitch
+====================================
+
+.. py:class:: kadi.commands.validate.ValidatePitch(stop=None, days = 14, no_exclude = False)
+
+   Bases: :py:obj:`ValidatePitchRollBase`
+
+
+   
+   Validate kadi command states against telemetry base class.
+
+   Class attributes are as follows:
+
+   state_name : str
+       Name of state to validate.
+   stop : CxoTime
+       Stop time.
+   days : float
+       Number of days to validate.
+   state_keys_extra : list, optional
+       Extra state keys needed for validation.
+   plot_attrs : PlotAttrs
+       Attributes for plot.
+   msids : list
+       MSIDs to fetch for telemetry.
+   max_delta_val : float
+       Maximum value delta to signal a violation.
+   max_gap : float
+       Maximum gap in telemetry before breaking an interval (sec).
+   min_violation_duration : float
+       Minimum duration of a violation (sec).
+
+   :Parameters:
+
+       **stop**
+           stop time for validation
+
+       **days**
+           number of days for validation
+
+       **no_exclude**
+           if True then do not exclude any data (for testing)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:attribute:: state_name
+      :value: 'pitch'
+
+
+
+   .. py:attribute:: msids
+      :value: ['pitch_comp']
+
+
+
+   .. py:attribute:: state_keys_extra
+      :value: ['pcad_mode']
+
+
+
+   .. py:attribute:: plot_attrs
+
+
+   .. py:attribute:: max_delta_vals
+

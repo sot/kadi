@@ -1,0 +1,25 @@
+kadi.commands.states.disable_grating_move_duration
+==================================================
+
+.. py:function:: kadi.commands.states.disable_grating_move_duration()
+
+   
+   Temporarily disable the grating move duration
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!

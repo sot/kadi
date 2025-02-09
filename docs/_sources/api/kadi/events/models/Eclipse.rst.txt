@@ -1,0 +1,57 @@
+kadi.events.models.Eclipse
+==========================
+
+.. py:class:: kadi.events.models.Eclipse(*args, **kwargs)
+
+   Bases: :py:obj:`TlmEvent`
+
+
+   
+   Eclipse
+
+   **Event definition**: interval where ``AOECLIPS = ECL``
+
+   **Fields**
+
+   ======== ========== ================================
+    Field      Type              Description
+   ======== ========== ================================
+     start   Char(21)   Start time (YYYY:DDD:HH:MM:SS)
+      stop   Char(21)    Stop time (YYYY:DDD:HH:MM:SS)
+    tstart      Float            Start time (CXC secs)
+     tstop      Float             Stop time (CXC secs)
+       dur      Float                  Duration (secs)
+     obsid    Integer        Observation ID (COBSRQID)
+   ======== ========== ================================
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:attribute:: event_msids
+      :value: ['aoeclips']
+
+
+
+   .. py:attribute:: event_val
+      :value: 'ECL '
+
+
+
+   .. py:attribute:: fetch_event_msids
+      :value: ['aoeclips', 'eb1k5', 'eb2k5', 'eb3k5']
+
+

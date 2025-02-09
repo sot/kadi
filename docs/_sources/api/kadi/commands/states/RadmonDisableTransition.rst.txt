@@ -1,0 +1,46 @@
+kadi.commands.states.RadmonDisableTransition
+============================================
+
+.. py:class:: kadi.commands.states.RadmonDisableTransition
+
+   Bases: :py:obj:`FixedTransition`
+
+
+   
+   RADMON disable
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:attribute:: command_attributes
+
+
+   .. py:attribute:: state_keys
+      :value: ['radmon']
+
+
+
+   .. py:attribute:: transition_key
+      :value: 'radmon'
+
+
+
+   .. py:attribute:: transition_val
+      :value: 'DISA'
+
+

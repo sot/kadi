@@ -1,0 +1,76 @@
+kadi.commands.states.TransKeysSet
+=================================
+
+.. py:class:: kadi.commands.states.TransKeysSet
+
+   Bases: :py:obj:`set`
+
+
+   
+   Like set() but with more compact str output for table printing
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:method:: __str__()
+
+      
+      Return str(self).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: __and__(other)
+
+      
+      Return self&value.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+

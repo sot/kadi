@@ -1,0 +1,153 @@
+kadi.commands.states.FidsTransition
+===================================
+
+.. py:class:: kadi.commands.states.FidsTransition
+
+   Bases: :py:obj:`BaseTransition`
+
+
+   
+   Fid light transitions.
+
+   This sets the "fids" to a Python set of FID IDs that are currently on.
+
+   The relevant fid light commands are shown below. Basically it comes down to AFLCxxDy
+   (fid id xx and driver y) commands, AFLCRSET and AFLCAAOF/AFLCAAON/AFLCABOF/AFLCABON
+   commands. The latter four are never used (we don't turn the fid light controllers on
+   or off in loads). This table is from the CDB in
+   ``$SKA/data/Ska.tdb/cdb/p010/cdb_command.csv``.
+   ::
+
+       cmd_mnemonic                 technical_name
+       ------------ ---------------------------------------------
+           AFLC01D1   drive flca fid light 1 (acis-1) on driver 1
+           AFLC01D2   drive flca fid light 1 (acis-1) on driver 2
+           AFLC01D3   drive flca fid light 1 (acis-1) on driver 3
+           AFLC01D4   drive flca fid light 1 (acis-1) on driver 4
+           AFLC02D1   drive flca fid light 2 (acis-2) on driver 1
+           AFLC02D2   drive flca fid light 2 (acis-2) on driver 2
+           AFLC02D3   drive flca fid light 2 (acis-2) on driver 3
+           AFLC02D4   drive flca fid light 2 (acis-2) on driver 4
+           AFLC03D1   drive flca fid light 3 (acis-3) on driver 1
+           AFLC03D2   drive flca fid light 3 (acis-3) on driver 2
+           AFLC03D3   drive flca fid light 3 (acis-3) on driver 3
+           AFLC03D4   drive flca fid light 3 (acis-3) on driver 4
+           AFLC04D1   drive flca fid light 4 (acis-4) on driver 1
+           AFLC04D2   drive flca fid light 4 (acis-4) on driver 2
+           AFLC04D3   drive flca fid light 4 (acis-4) on driver 3
+           AFLC04D4   drive flca fid light 4 (acis-4) on driver 4
+           AFLC05D1   drive flca fid light 5 (acis-5) on driver 1
+           AFLC05D2   drive flca fid light 5 (acis-5) on driver 2
+           AFLC05D3   drive flca fid light 5 (acis-5) on driver 3
+           AFLC05D4   drive flca fid light 5 (acis-5) on driver 4
+           AFLC06D1   drive flca fid light 6 (acis-6) on driver 1
+           AFLC06D2   drive flca fid light 6 (acis-6) on driver 2
+           AFLC06D3   drive flca fid light 6 (acis-6) on driver 3
+           AFLC06D4   drive flca fid light 6 (acis-6) on driver 4
+           AFLC07D1  drive flca fid light 7 (hrc-i-1) on driver 1
+           AFLC08D2  drive flca fid light 8 (hrc-i-2) on driver 2
+           AFLC09D3  drive flca fid light 9 (hrc-i-3) on driver 3
+           AFLC10D4 drive flca fid light 10 (hrc-i-4) on driver 4
+           AFLC11D1 drive flca fid light 11 (hrc-s-1) on driver 1
+           AFLC12D2 drive flca fid light 12 (hrc-s-3) on driver 2
+           AFLC13D3 drive flca fid light 13 (hrc-s-2) on driver 3
+           AFLC14D4 drive flca fid light 14 (hrc-s-4) on driver 4
+           AFLCAAOF                                  flca - a off
+           AFLCAAON                                   flca - a on
+           AFLCABOF                                  flca - b off
+           AFLCABON                                   flca - b on
+           AFLCRSET                      flca configuration reset
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:attribute:: command_attributes
+
+
+   .. py:attribute:: state_keys
+      :value: ['fids']
+
+
+
+   .. py:method:: set_transitions(transitions_list, cmds, start, stop)
+      :classmethod:
+
+
+      
+      Set transitions for a Table of commands ``cmds``.
+
+
+      :Parameters:
+
+          **transitions_list**
+              list of transitions (updated in-place)
+
+          **cmds**
+              commands (CmdList)
+
+          **start**
+              start time for states
+
+          **stop**
+              stop time for states
+
+
+
+      :Returns:
+
+          None
+              ..
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: fids_callback(date, transitions, state, idx, *, msid)
+      :classmethod:
+
+
+      
+      Update ``state`` for the given fid light command ``msid``.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+

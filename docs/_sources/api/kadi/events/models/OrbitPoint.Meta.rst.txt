@@ -1,0 +1,9 @@
+kadi.events.models.OrbitPoint.Meta
+==================================
+
+.. py:class:: kadi.events.models.OrbitPoint.Meta
+
+   .. py:attribute:: ordering
+      :value: ['date']
+
+

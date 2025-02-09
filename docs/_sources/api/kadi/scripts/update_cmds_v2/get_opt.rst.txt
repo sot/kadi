@@ -1,0 +1,25 @@
+kadi.scripts.update_cmds_v2.get_opt
+===================================
+
+.. py:function:: kadi.scripts.update_cmds_v2.get_opt(args=None)
+
+   
+   Get options for command line interface to update.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!

@@ -1,0 +1,71 @@
+kadi.commands.validate.ValidateDither
+=====================================
+
+.. py:class:: kadi.commands.validate.ValidateDither(stop=None, days = 14, no_exclude = False)
+
+   Bases: :py:obj:`ValidateStateCode`
+
+
+   
+   Base class for validation of state with state codes like PCAD_MODE
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:attribute:: state_name
+      :value: 'dither'
+
+
+
+   .. py:attribute:: msids
+      :value: ['aodithen']
+
+
+
+   .. py:attribute:: plot_attrs
+
+
+   .. py:method:: add_exclude_intervals()
+
+      
+      Base method to exclude intervals
+
+      Starts with intervals defined in the Chandra Command Events Google Sheet.
+
+      This method gets called at the end of self.tlm.
+
+      Subclasses can override this method to add additional intervals to exclude,
+      making sure to call super().add_exclude_intervals() first.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+

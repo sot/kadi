@@ -1,0 +1,25 @@
+kadi.events.orbit_funcs.prune_dirs
+==================================
+
+.. py:function:: kadi.events.orbit_funcs.prune_dirs(dirs, regex)
+
+   
+   Prune directories (in-place) that do not match ``regex``.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!

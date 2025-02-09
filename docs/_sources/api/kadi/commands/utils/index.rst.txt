@@ -1,0 +1,44 @@
+kadi.commands.utils
+===================
+
+.. py:module:: kadi.commands.utils
+
+
+
+Classes
+-------
+
+.. toctree::
+   :hidden:
+
+   /api/kadi/commands/utils/TimeSeriesPoint
+   /api/kadi/commands/utils/TimeSeriesChunk
+
+.. autoapisummary::
+
+   kadi.commands.utils.TimeSeriesPoint
+   kadi.commands.utils.TimeSeriesChunk
+
+
+Functions
+---------
+
+.. toctree::
+   :hidden:
+
+   /api/kadi/commands/utils/add_figure_regions
+   /api/kadi/commands/utils/convert_state_code_to_raw_val
+   /api/kadi/commands/utils/get_time_series_chunks
+   /api/kadi/commands/utils/compress_time_series
+   /api/kadi/commands/utils/fill_gaps_with_nan
+
+.. autoapisummary::
+
+   kadi.commands.utils.add_figure_regions
+   kadi.commands.utils.convert_state_code_to_raw_val
+   kadi.commands.utils.get_time_series_chunks
+   kadi.commands.utils.compress_time_series
+   kadi.commands.utils.fill_gaps_with_nan
+
+
+

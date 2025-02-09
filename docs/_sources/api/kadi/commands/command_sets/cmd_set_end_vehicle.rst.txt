@@ -1,0 +1,4 @@
+kadi.commands.command_sets.cmd_set_end_vehicle
+==============================================
+
+.. py:function:: kadi.commands.command_sets.cmd_set_end_vehicle(date=None)

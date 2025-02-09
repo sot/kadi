@@ -1,0 +1,46 @@
+kadi.commands.states.DitherDisableTransition
+============================================
+
+.. py:class:: kadi.commands.states.DitherDisableTransition
+
+   Bases: :py:obj:`FixedTransition`
+
+
+   
+   Dither disable
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:attribute:: command_attributes
+
+
+   .. py:attribute:: state_keys
+      :value: ['dither']
+
+
+
+   .. py:attribute:: transition_key
+      :value: 'dither'
+
+
+
+   .. py:attribute:: transition_val
+      :value: 'DISA'
+
+

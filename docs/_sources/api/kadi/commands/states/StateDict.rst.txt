@@ -1,0 +1,80 @@
+kadi.commands.states.StateDict
+==============================
+
+.. py:class:: kadi.commands.states.StateDict(*args, **kwargs)
+
+   Bases: :py:obj:`dict`
+
+
+   
+   Dict for state key/val pairs.
+
+   When a key value is set the key is stored in the trans_keys attribute.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:attribute:: trans_keys
+
+
+   .. py:method:: __setitem__(key, val)
+
+      
+      Set self[key] to value.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: copy()
+
+      
+      Copy without trans_keys
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+

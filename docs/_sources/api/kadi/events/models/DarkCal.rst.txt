@@ -1,0 +1,65 @@
+kadi.events.models.DarkCal
+==========================
+
+.. py:class:: kadi.events.models.DarkCal(*args, **kwargs)
+
+   Bases: :py:obj:`TlmEvent`
+
+
+   
+   ACA dark current calibration event
+
+   **Event definition**: interval where ``CIUMACAC = ON``
+
+   CIUMACAC is the IU MODE ACA CALIBRATION INDICATOR.  Individual intervals
+   within one day are joined together to a single calibration event.
+
+   **Fields**
+
+   ======== ========== ================================
+    Field      Type              Description
+   ======== ========== ================================
+     start   Char(21)   Start time (YYYY:DDD:HH:MM:SS)
+      stop   Char(21)    Stop time (YYYY:DDD:HH:MM:SS)
+    tstart      Float            Start time (CXC secs)
+     tstop      Float             Stop time (CXC secs)
+       dur      Float                  Duration (secs)
+     obsid    Integer        Observation ID (COBSRQID)
+   ======== ========== ================================
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:attribute:: event_msids
+      :value: ['ciumacac']
+
+
+
+   .. py:attribute:: event_val
+      :value: 'ON '
+
+
+
+   .. py:attribute:: event_time_fuzz
+      :value: 86400
+
+
+
+   .. py:attribute:: event_min_dur
+      :value: 8000
+
+

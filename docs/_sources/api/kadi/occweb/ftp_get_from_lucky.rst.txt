@@ -1,0 +1,29 @@
+kadi.occweb.ftp_get_from_lucky
+==============================
+
+.. py:function:: kadi.occweb.ftp_get_from_lucky(ftp_dirname, local_files, user=None, logger=None)
+
+   
+   Get files from lucky.
+
+   This looks in remote ``ftp_dirname`` for files that have basenames matching those of
+   ``local_files``.  The remote files are copied to the corresponding local_files
+   names.  This is the converse of ftp_put_to_lucky and thus requires unique basenames
+   for all files.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!

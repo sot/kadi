@@ -1,0 +1,27 @@
+kadi.events.orbit_funcs.get_tlr_files
+=====================================
+
+.. py:function:: kadi.events.orbit_funcs.get_tlr_files(mpdir='')
+
+   
+   Get all timeline report files within the specified SOT MP directory
+   ``mpdir`` relative to the root of /data/mpcrit1/mplogs.
+
+   Returns a list of dicts [{name, date},..]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!

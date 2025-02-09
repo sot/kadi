@@ -1,0 +1,4 @@
+kadi.occweb.get_auth
+====================
+
+.. py:function:: kadi.occweb.get_auth(username=None, password=None)

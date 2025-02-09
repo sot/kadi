@@ -1,0 +1,28 @@
+kadi.events.scrape.get_fot_major_events
+=======================================
+
+.. py:function:: kadi.events.scrape.get_fot_major_events()
+
+   
+   Get the FOT major events.
+
+   There is a known issue with words/phrases enclosed in <span class=SpellE></span>
+   which ends up causing words run together.  E.g. Lunar eclipse 2000:302 that
+   "Required Solar arrayoffpointing".
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!

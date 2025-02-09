@@ -1,0 +1,54 @@
+kadi.occweb.get_occweb_dir
+==========================
+
+.. py:function:: kadi.occweb.get_occweb_dir(path, timeout=30, cache=False, user=None, password=None)
+
+   
+   Get directory listing for ``path`` on OCCweb.
+
+   This returns the directory for ``path`` on OCCweb, where it assumed that
+   ``path`` is a relative path::
+
+     https://occweb.cfa.harvard.edu/occweb/<path>
+
+   If ``user`` and ``password`` are not provided then it is required that
+   credentials are stored in the file ``~/.netrc``. See the ``ska_ftp`` package
+   for details.
+
+   :Parameters:
+
+       **path** : str, Path
+           Relative path on OCCweb
+
+       **timeout** : int
+           Timeout in seconds for the request
+
+       **cache** : bool
+           If True, cache the result and check cache for subsequent calls
+
+       **user** : str, optional
+           Username for OCCweb authentication
+
+       **password** : str, optional
+           Password for OCCweb authentication
+
+
+
+   :Returns:
+
+       out
+           astropy Table
+           Table of directory entries
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!

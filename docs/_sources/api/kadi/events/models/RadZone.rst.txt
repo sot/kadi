@@ -1,0 +1,54 @@
+kadi.events.models.RadZone
+==========================
+
+.. py:class:: kadi.events.models.RadZone(*args, **kwargs)
+
+   Bases: :py:obj:`Event`
+
+
+   
+   Radiation zone
+
+   **Fields**
+
+   =========== ============ ================================
+      Field        Type               Description
+   =========== ============ ================================
+        start     Char(21)   Start time (YYYY:DDD:HH:MM:SS)
+         stop     Char(21)    Stop time (YYYY:DDD:HH:MM:SS)
+       tstart        Float            Start time (CXC secs)
+        tstop        Float             Stop time (CXC secs)
+          dur        Float                  Duration (secs)
+        orbit   ForeignKey
+    orbit_num      Integer
+      perigee     Char(21)
+   =========== ============ ================================
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:attribute:: orbit
+
+
+   .. py:attribute:: orbit_num
+
+
+   .. py:attribute:: perigee
+
+
+   .. py:method:: __unicode__()
+

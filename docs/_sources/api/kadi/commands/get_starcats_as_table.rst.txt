@@ -1,0 +1,74 @@
+kadi.commands.get_starcats_as_table
+===================================
+
+.. py:function:: kadi.commands.get_starcats_as_table(start=None, stop=None, *, obsid=None, unique=False, scenario=None, cmds=None, starcat_date=None)
+
+   
+   Get a single table of star catalog entries corresponding to input parameters.
+
+   This function calls ``get_starcats`` with the same parameters and then
+   concatenates the results into a single table for convenience. In addition
+   to the usual star catalog columns, the ``obsid`` and ``starcat_date`` are
+   included.
+
+   The ``unique`` parameter can be set to ``True`` to only return unique star
+   catalog entries. There are numerous instances of a single commanded star
+   catalogs that is associated with two ObsIDs, for instance ACIS undercover
+   observations. To get only the first one, set ``unique=True``.
+
+   In the following example we get every unique commanded guide star in 2020
+   and then join that with the corresponding observation information::
+
+     >>> from kadi.commands import get_starcats_as_table, get_observations
+     >>> from astropy import table
+     >>> start='2020:001'
+     >>> stop='2021:001'
+     >>> aces = get_starcats_as_table(start, stop, unique=True)
+     >>> ok = np.isin(aces['type'], ['GUI', 'BOT'])
+     >>> guides = aces[ok]
+     >>> obss = table.Table(get_observations(start, stop))
+     >>> obss = obss[~obss['starcat_date'].mask]  # keep only obs with starcat
+     >>> guides = table.join(guides, obss, keys=['starcat_date', 'obsid'])
+
+   :Parameters:
+
+       **start** : CxoTime-like, None
+           Start time (default=beginning of commands)
+
+       **stop** : CxoTime-like, None
+           Stop time (default=end of commands)
+
+       **obsid** : int, None
+           ObsID
+
+       **unique** : bool
+           If True return remove duplicate entries
+
+       **scenario** : str, None
+           Scenario
+
+       **cmds** : CommandTable, None
+           Use this command table instead of querying the archive.
+
+       **starcat_date** : CxoTime-like, None
+           Date of the observation's star catalog
+
+
+
+   :Returns:
+
+       Table
+           Star catalog entries for matching observations.
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!

@@ -1,0 +1,132 @@
+kadi.events.models.BaseEvent
+============================
+
+.. toctree::
+   :hidden:
+
+   /api/kadi/events/models/BaseEvent.Meta
+
+.. py:class:: kadi.events.models.BaseEvent(*args, **kwargs)
+
+   Bases: :py:obj:`BaseModel`
+
+
+   
+   Base class for any event that gets updated in update_events.main().  Note
+   that BaseModel is the base class for models like ManvrSeq that get
+   generated as part of another event class.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:attribute:: _get_obsid_start_attr
+      :value: 'start'
+
+
+
+   .. py:attribute:: lookback
+      :value: 21
+
+
+
+   .. py:attribute:: interval_pad
+
+
+   .. py:method:: get_commands()
+
+      
+      Get load commands within start/stop interval for this event.
+      Apply padding defined by interval_pad attribute.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: __unicode__()
+
+
+   .. py:method:: get_next(queryset=None)
+
+      
+      Get the next object by primary key order
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: get_previous(queryset=None)
+
+      
+      Get the previous object by primary key order
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+Classes
+-------
+
+.. autoapisummary::
+
+   kadi.events.models.BaseEvent.Meta
+
+

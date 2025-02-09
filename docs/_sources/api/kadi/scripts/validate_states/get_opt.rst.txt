@@ -1,0 +1,4 @@
+kadi.scripts.validate_states.get_opt
+====================================
+
+.. py:function:: kadi.scripts.validate_states.get_opt()

@@ -1,0 +1,119 @@
+kadi.events.models.SafeSun
+==========================
+
+.. py:class:: kadi.events.models.SafeSun(*args, **kwargs)
+
+   Bases: :py:obj:`TlmEvent`
+
+
+   
+   Safe sun event
+
+   **Event definition**: interval from safe mode entry to recovery to OBC control.
+
+   Specifically, it is considered part of the safe mode condition if any of the
+   following are True::
+
+      CONLOFP != 'NRML'  # OFP state
+      CTUFMTSL = 'FMT5'  # CTU telemetry format
+      C1SQAX != 'ENAB'   # Sequencer A enable/disable
+
+   **Fields**
+
+   ======== ========== ================================
+    Field      Type              Description
+   ======== ========== ================================
+     start   Char(21)   Start time (YYYY:DDD:HH:MM:SS)
+      stop   Char(21)    Stop time (YYYY:DDD:HH:MM:SS)
+    tstart      Float            Start time (CXC secs)
+     tstop      Float             Stop time (CXC secs)
+       dur      Float                  Duration (secs)
+     obsid    Integer        Observation ID (COBSRQID)
+     notes       Text
+   ======== ========== ================================
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:attribute:: notes
+
+
+   .. py:attribute:: event_msids
+      :value: ['conlofp', 'ctufmtsl', 'c1sqax']
+
+
+
+   .. py:attribute:: event_filter_bad
+      :value: False
+
+
+
+   .. py:attribute:: event_time_fuzz
+      :value: 86400
+
+
+
+   .. py:attribute:: event_min_dur
+      :value: 36000
+
+
+
+   .. py:attribute:: fetch_event_pad
+      :value: 43200.0
+
+
+
+   .. py:attribute:: fetch_event_msids
+      :value: ['conlofp', 'ctufmtsl', 'c1sqax', 'aopcadmd', '61psts02']
+
+
+
+   .. py:method:: get_state_times_bools(msidset)
+      :classmethod:
+
+
+      
+      Get the boolean True/False array indicating when ``event_msid`` is in the
+      desired state for this event type.  The default is when
+      ``event_msid == cls.event_val``, but subclasses may override this method.
+
+
+      :Parameters:
+
+          **event_msid**
+              fetch.MSID object
+
+
+
+      :Returns:
+
+          boolean ndarray
+              ..
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+

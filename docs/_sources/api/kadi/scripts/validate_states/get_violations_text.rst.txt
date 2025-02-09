@@ -1,0 +1,33 @@
+kadi.scripts.validate_states.get_violations_text
+================================================
+
+.. py:function:: kadi.scripts.validate_states.get_violations_text(violations)
+
+   
+   Get text for email or logger alert of validation violations.
+
+
+   :Parameters:
+
+       **violations** : list[dict]
+           List of violations dicts (see get_violations())
+
+
+
+   :Returns:
+
+       str
+           Text for alert
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!

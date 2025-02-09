@@ -1,0 +1,4 @@
+kadi.commands.utils.convert_state_code_to_raw_val
+=================================================
+
+.. py:function:: kadi.commands.utils.convert_state_code_to_raw_val(state_vals, state_codes)

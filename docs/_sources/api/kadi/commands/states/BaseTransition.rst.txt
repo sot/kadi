@@ -1,0 +1,100 @@
+kadi.commands.states.BaseTransition
+===================================
+
+.. py:class:: kadi.commands.states.BaseTransition
+
+   
+   Base transition class from which all actual transition classes are derived.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:method:: __init_subclass__()
+      :classmethod:
+
+
+
+   .. py:method:: get_state_changing_commands(cmds)
+      :classmethod:
+
+
+      
+      Get commands that match the required attributes for state changing commands.
+
+      This depends on two class attributes that are defined in derived classes:
+
+      ``command_attributes`` (required)
+        dict of {cmd_attr: match_value, ..}, where ``cmd_attr`` is either ``type``
+        or ``tlmsid``, and ``match_value`` is the required value.
+
+      ``command_params`` (optional)
+        dict of {cmd_attr: match_value, ..}, where ``cmd_attr`` is one of the
+        available command parameters, and ``match_value`` is either the required value
+        or a list of required values (where at least one must match).
+
+      :Parameters:
+
+          **cmds** : CommandTable
+              Input commands
+
+
+
+      :Returns:
+
+          CommandTable
+              Subset of ``cmds`` relevant for this Transition class
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: _auto_update_docstring()
+      :classmethod:
+
+
+      
+      Put some useful information at the top of docstring.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+

@@ -1,0 +1,35 @@
+kadi.events.models.fuzz_states
+==============================
+
+.. py:function:: kadi.events.models.fuzz_states(states, t_fuzz)
+
+   
+   For a set of `states` (from fetch.MSID.state_intervals()) or intervals (from
+   fetch.MSID.logical_intervals), merge any that are within `t_fuzz` seconds of each
+   other.  Logical intervals are just the subset of states with 'val' equal to a
+   particular value.
+
+
+   :Parameters:
+
+       **states**
+           table of states or intervals
+
+       **t_fuzz** : fuzz time in seconds
+           :returns fuzzed_states: table
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!

@@ -1,0 +1,25 @@
+kadi.commands.observations
+==========================
+
+.. py:module:: kadi.commands.observations
+
+
+
+Functions
+---------
+
+.. toctree::
+   :hidden:
+
+   /api/kadi/commands/observations/get_starcats_as_table
+   /api/kadi/commands/observations/get_starcats
+   /api/kadi/commands/observations/get_observations
+
+.. autoapisummary::
+
+   kadi.commands.observations.get_starcats_as_table
+   kadi.commands.observations.get_starcats
+   kadi.commands.observations.get_observations
+
+
+

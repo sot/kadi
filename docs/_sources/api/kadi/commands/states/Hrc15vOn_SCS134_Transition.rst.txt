@@ -1,0 +1,51 @@
+kadi.commands.states.Hrc15vOn_SCS134_Transition
+===============================================
+
+.. py:class:: kadi.commands.states.Hrc15vOn_SCS134_Transition
+
+   Bases: :py:obj:`FixedTransition`
+
+
+   
+   HRC 15V ON from SCS-134
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:attribute:: command_attributes
+
+
+   .. py:attribute:: state_keys
+      :value: ['hrc_15v']
+
+
+
+   .. py:attribute:: transition_key
+      :value: 'hrc_15v'
+
+
+
+   .. py:attribute:: transition_val
+      :value: 'ON'
+
+
+
+   .. py:attribute:: default_value
+      :value: 'ON'
+
+

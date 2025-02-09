@@ -1,0 +1,33 @@
+kadi.commands.command_sets.cmd_set_maneuver
+===========================================
+
+.. py:function:: kadi.commands.command_sets.cmd_set_maneuver(*args, date=None)
+
+   
+   Return a command set that initiates a maneuver to the given attitude ``att``.
+
+
+   :Parameters:
+
+       **att**
+           attitude compatible with Quat() initializer
+
+
+
+   :Returns:
+
+       list of command defs suitable for generate_cmds()
+           ..
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!

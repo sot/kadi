@@ -1,0 +1,84 @@
+kadi.commands.states.ACISTransition
+===================================
+
+.. py:class:: kadi.commands.states.ACISTransition
+
+   Bases: :py:obj:`BaseTransition`
+
+
+   
+   Implement transitions for ACIS states.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:attribute:: command_attributes
+
+
+   .. py:attribute:: state_keys
+      :value: ['clocking', 'power_cmd', 'vid_board', 'fep_count', 'si_mode', 'ccd_count', 'obsid']
+
+
+
+   .. py:method:: set_transitions(transitions_list, cmds, start, stop)
+      :classmethod:
+
+
+      
+      Set transitions for a Table of commands ``cmds``.
+
+
+      :Parameters:
+
+          **transitions_list**
+              list of transitions (updated in-place)
+
+          **cmds**
+              commands (CmdList)
+
+          **start**
+              start time for states
+
+          **stop**
+              stop time for states
+
+
+
+      :Returns:
+
+          None
+              ..
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: simode_callback(date, transitions, state, idx, *, tlmsid)
+      :classmethod:
+
+

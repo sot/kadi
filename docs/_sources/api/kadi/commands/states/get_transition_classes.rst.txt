@@ -1,0 +1,25 @@
+kadi.commands.states.get_transition_classes
+===========================================
+
+.. py:function:: kadi.commands.states.get_transition_classes(state_keys=None)
+
+   
+   Get BaseTransition subclasses in module for ``state_keys``.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!

@@ -1,0 +1,54 @@
+kadi.commands.states.reduce_states
+==================================
+
+.. py:function:: kadi.commands.states.reduce_states(states, state_keys, merge_identical=False, all_keys=False)
+
+   
+   Reduce input ``states`` so only transitions in ``state_keys`` are in output.
+
+   By default this also reduces the states table to only include columns for
+   those ``state_keys``, but if the ``all_keys`` argument is ``True`` then all
+   columns are included in the output.
+
+   By default, the output table will reflect every state transition generated
+   by commands even if this does not change the state value.  This allows
+   uniquely identifying the time of such commanding related to a state value.
+   A common example of transition commanding that does not change state is the
+   pair of ACIS stop science commands, where the second is redundant.
+
+   However, if ``merge_identical`` is True then adacent states with identical
+   values will be merged.
+
+   :Parameters:
+
+       **states**
+           table of states
+
+       **state_keys**
+           notice transitions in this list of state keys
+
+       **merge_identical**
+           merge adjacent identical states
+
+       **all_keys**
+           if True, then all state keys are included in the output
+
+
+
+   :Returns:
+
+       Table of reduced states
+           ..
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!

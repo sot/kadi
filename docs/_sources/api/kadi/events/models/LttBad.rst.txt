@@ -1,0 +1,117 @@
+kadi.events.models.LttBad
+=========================
+
+.. py:class:: kadi.events.models.LttBad(*args, **kwargs)
+
+   Bases: :py:obj:`AsciiTableEvent`
+
+
+   
+   LTT bad intervals
+
+   **Fields**
+
+   ======== ========== ================================
+    Field      Type              Description
+   ======== ========== ================================
+       key   Char(38)        Unique key for this event
+     start   Char(21)   Start time (YYYY:DDD:HH:MM:SS)
+      stop   Char(21)    Stop time (YYYY:DDD:HH:MM:SS)
+    tstart      Float            Start time (CXC secs)
+     tstop      Float             Stop time (CXC secs)
+       dur      Float                  Duration (secs)
+      msid   Char(20)                             MSID
+      flag    Char(2)                             Flag
+   ======== ========== ================================
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:attribute:: key
+
+
+   .. py:attribute:: start
+
+
+   .. py:attribute:: stop
+
+
+   .. py:attribute:: tstart
+
+
+   .. py:attribute:: tstop
+
+
+   .. py:attribute:: dur
+
+
+   .. py:attribute:: msid
+
+
+   .. py:attribute:: flag
+
+
+   .. py:attribute:: intervals_file
+
+
+   .. py:attribute:: table_read_kwargs
+
+
+   .. py:attribute:: start_column
+      :value: 'start'
+
+
+
+   .. py:attribute:: stop_column
+      :value: 'stop'
+
+
+
+   .. py:method:: process_intervals(intervals)
+      :classmethod:
+
+
+
+   .. py:method:: get_extras(event, interval)
+      :classmethod:
+
+
+      
+      Get extra stuff for the event based on fields in the interval.  This is a hook
+      within get_events() that should be overridden in individual classes.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: __unicode__()
+

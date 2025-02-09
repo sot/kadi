@@ -1,0 +1,25 @@
+kadi.events.plot.tlm_event
+==========================
+
+.. py:function:: kadi.events.plot.tlm_event(evt, figsize=None, fig=None)
+
+   
+   Generic plot for a telemetry event
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!

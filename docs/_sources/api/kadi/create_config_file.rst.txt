@@ -1,0 +1,29 @@
+kadi.create_config_file
+=======================
+
+.. py:function:: kadi.create_config_file(overwrite=False)
+
+   
+   Create the configuration file for the kadi package.
+
+
+   :Parameters:
+
+       **overwrite** : bool
+           Force updating the file if it already exists.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!

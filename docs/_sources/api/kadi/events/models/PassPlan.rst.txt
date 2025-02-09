@@ -1,0 +1,141 @@
+kadi.events.models.PassPlan
+===========================
+
+.. py:class:: kadi.events.models.PassPlan(*args, **kwargs)
+
+   Bases: :py:obj:`IFotEvent`
+
+
+   
+   Pass plan
+
+   **Event definition**: Pass plan from iFOT
+
+   **Fields**
+
+   ==================== ========== =======================
+          Field            Type          Description
+   ==================== ========== =======================
+               ifot_id    Integer         iFOT identifier
+                 start   Char(21)       Start time (date)
+                  stop   Char(21)        Stop time (date)
+                tstart      Float   Start time (CXC secs)
+                 tstop      Float    Stop time (CXC secs)
+                   dur      Float         Duration (secs)
+                    oc   Char(30)                 OC crew
+                    cc   Char(30)                 CC crew
+                   got   Char(30)                GOT crew
+               station    Char(6)             DSN station
+          est_datetime   Char(20)              Date local
+    sched_support_time   Char(13)            Support time
+              activity   Char(20)                Activity
+                   bot    Char(4)      Beginning of track
+                   eot    Char(4)            End of track
+             data_rate   Char(10)               Data rate
+                config    Char(8)           Configuration
+                   lga    Char(1)                     LGA
+                 power    Char(6)                   Power
+               rxa_rsl   Char(10)                Rx-A RSL
+               rxb_rsl   Char(10)                Rx-B RSL
+               err_log   Char(10)               Error log
+             cmd_count   Char(15)           Command count
+   ==================== ========== =======================
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:attribute:: oc
+
+
+   .. py:attribute:: cc
+
+
+   .. py:attribute:: got
+
+
+   .. py:attribute:: station
+
+
+   .. py:attribute:: est_datetime
+
+
+   .. py:attribute:: sched_support_time
+
+
+   .. py:attribute:: activity
+
+
+   .. py:attribute:: bot
+
+
+   .. py:attribute:: eot
+
+
+   .. py:attribute:: data_rate
+
+
+   .. py:attribute:: config
+
+
+   .. py:attribute:: lga
+
+
+   .. py:attribute:: power
+
+
+   .. py:attribute:: rxa_rsl
+
+
+   .. py:attribute:: rxb_rsl
+
+
+   .. py:attribute:: err_log
+
+
+   .. py:attribute:: cmd_count
+
+
+   .. py:attribute:: ifot_type_desc
+      :value: 'PASSPLAN'
+
+
+
+   .. py:attribute:: ifot_props
+
+
+   .. py:attribute:: lookback
+      :value: 21
+
+
+
+   .. py:attribute:: lookback_delete
+      :value: 7
+
+
+
+   .. py:attribute:: lookforward
+      :value: 28
+
+
+
+   .. py:attribute:: update_priority
+      :value: 500
+
+
+
+   .. py:method:: __unicode__()
+

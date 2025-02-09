@@ -1,0 +1,101 @@
+kadi.commands.states.Transition
+===============================
+
+.. py:class:: kadi.commands.states.Transition(*args, **kwargs)
+
+   Bases: :py:obj:`dict`
+
+
+   
+   Dict of transitions at a given date.
+
+   This is a dict of {state_key: state_val} where state_val is either a value
+   or a TransitionCallback object.
+
+   When creating a TransitionCallback object, you can optionally supply two additional
+   positional arguments: the date (str) and the constraint (function).
+
+   The constraint function must take a single argument, the state dict, and return
+   True if the transition is allowed and False otherwise. For example::
+
+     def constraint(state):
+           return state["pcad_mode"] == "NMAN"
+
+     transition = Transition("2010:001:00:00:00", constraint=constraint)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:attribute:: date
+      :type:  str | None
+      :value: None
+
+
+
+   .. py:attribute:: constraint
+      :type:  Callable | None
+      :value: None
+
+
+
+   .. py:method:: __repr__()
+
+      
+      Return repr(self).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: __eq__(other)
+
+      
+      Return self==value.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+

@@ -1,0 +1,51 @@
+kadi.occweb.get_ifot
+====================
+
+.. py:function:: kadi.occweb.get_ifot(event_type, start=None, stop=None, props=None, columns=None, timeout=TIMEOUT, types=None)
+
+   
+   Get the iFOT event table for a given event type.
+
+
+   :Parameters:
+
+       **event_type** : str
+           Event type (e.g. "ECLIPSE", "LOADSEG", "CAP")
+
+       **start** : str, CxoTimeLike
+           Start time for query
+
+       **stop** : str, CxoTimeLike
+           Stop time for query
+
+       **props** : list of str
+           List of iFOT properties to return
+
+       **columns** : list of str
+           List of columns to return
+
+       **timeout** : float
+           Timeout for the request
+
+       **types** : dict
+           Dictionary of column types
+
+
+
+   :Returns:
+
+       **dat** : astropy.table.Table
+           Table of iFOT events
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!

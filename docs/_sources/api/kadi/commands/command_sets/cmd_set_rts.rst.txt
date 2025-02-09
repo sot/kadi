@@ -1,0 +1,4 @@
+kadi.commands.command_sets.cmd_set_rts
+======================================
+
+.. py:function:: kadi.commands.command_sets.cmd_set_rts(*args, date=None)

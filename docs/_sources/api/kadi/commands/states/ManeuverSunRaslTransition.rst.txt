@@ -1,0 +1,68 @@
+kadi.commands.states.ManeuverSunRaslTransition
+==============================================
+
+.. py:class:: kadi.commands.states.ManeuverSunRaslTransition
+
+   Bases: :py:obj:`ManeuverTransition`
+
+
+   
+   Like ``ManeuverTransition`` except roll about the sun line.
+
+   This does not change the PCAD mode.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:attribute:: command_attributes
+
+
+   .. py:attribute:: state_keys
+
+
+   .. py:method:: set_transitions(transitions_list, cmds, start, stop)
+      :classmethod:
+
+
+
+   .. py:method:: callback(date, transitions, state, idx, *, rasl)
+      :classmethod:
+
+
+      
+      Transition function callback to generate downstream transitions.
+
+      These perform the actual maneuver and (usually) transition to NPM at the
+      end of maneuver.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+

@@ -1,0 +1,49 @@
+kadi.commands.states.SPMDisableTransition
+=========================================
+
+.. py:class:: kadi.commands.states.SPMDisableTransition
+
+   Bases: :py:obj:`FixedTransition`
+
+
+   
+   Sun position monitor disable
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:attribute:: command_attributes
+
+
+   .. py:attribute:: command_params
+
+
+   .. py:attribute:: state_keys
+      :value: ['sun_pos_mon', 'battery_connect', 'eclipse_enable_spm']
+
+
+
+   .. py:attribute:: transition_key
+      :value: 'sun_pos_mon'
+
+
+
+   .. py:attribute:: transition_val
+      :value: 'DISA'
+
+

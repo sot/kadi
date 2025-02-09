@@ -1,0 +1,4 @@
+kadi.commands.command_sets.cmd_set_command_not_run
+==================================================
+
+.. py:function:: kadi.commands.command_sets.cmd_set_command_not_run(*args, date=None)

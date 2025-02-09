@@ -1,0 +1,31 @@
+kadi.commands.utils.TimeSeriesChunk
+===================================
+
+.. py:class:: kadi.commands.utils.TimeSeriesChunk
+
+   .. py:attribute:: first
+      :type:  TimeSeriesPoint
+      :value: None
+
+
+
+   .. py:attribute:: min
+      :type:  TimeSeriesPoint
+      :value: None
+
+
+
+   .. py:attribute:: max
+      :type:  TimeSeriesPoint
+      :value: None
+
+
+
+   .. py:attribute:: last
+      :type:  TimeSeriesPoint
+      :value: None
+
+
+
+   .. py:method:: __repr__()
+

@@ -1,0 +1,149 @@
+kadi.events.models.GratingMove
+==============================
+
+.. py:class:: kadi.events.models.GratingMove(*args, **kwargs)
+
+   Bases: :py:obj:`TlmEvent`
+
+
+   
+   Grating movement (HETG or LETG)
+
+   **Event definition**: interval with 4MP28AV > 2.0 V  (MCE A + 28 VOLT MONITOR)
+
+   This event detects grating motion via the MCE-A 28 volt monitor.  Due to
+   changes in the on-board software over the years, this appears to be the
+   most reliable method.
+
+   Short movements of less than 4 seconds are classified with grating=BUMP.
+   In a handful of cases in 2000, there are intervals with 4MP28AV > 2.0
+   where no grating motion is seen.  These have grating=UNKN (unknown).
+
+   **Fields**
+
+   ================ ========== =========================================
+        Field          Type                   Description
+   ================ ========== =========================================
+             start   Char(21)            Start time (YYYY:DDD:HH:MM:SS)
+              stop   Char(21)             Stop time (YYYY:DDD:HH:MM:SS)
+            tstart      Float                     Start time (CXC secs)
+             tstop      Float                      Stop time (CXC secs)
+               dur      Float                           Duration (secs)
+             obsid    Integer                 Observation ID (COBSRQID)
+    start_4lposaro      Float             Start LETG position (degrees)
+     stop_4lposaro      Float              Stop LETG position (degrees)
+    start_4hposaro      Float             Start HETG position (degrees)
+     stop_4hposaro      Float              Stop HETG position (degrees)
+           grating    Char(4)   Grating in motion (UNKN LETG HETG BUMP)
+         direction    Char(4)        Grating direction (UNKN INSR RETR)
+   ================ ========== =========================================
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:attribute:: start_4lposaro
+
+
+   .. py:attribute:: stop_4lposaro
+
+
+   .. py:attribute:: start_4hposaro
+
+
+   .. py:attribute:: stop_4hposaro
+
+
+   .. py:attribute:: grating
+
+
+   .. py:attribute:: direction
+
+
+   .. py:attribute:: event_msids
+      :value: ['4mp28av', '4lposaro', '4hposaro']
+
+
+
+   .. py:attribute:: event_time_fuzz
+      :value: 10
+
+
+
+   .. py:method:: get_state_times_bools(event_msidset)
+      :classmethod:
+
+
+      
+      Get the boolean True/False array indicating when ``event_msid`` is in the
+      desired state for this event type.  The default is when
+      ``event_msid == cls.event_val``, but subclasses may override this method.
+
+
+      :Parameters:
+
+          **event_msid**
+              fetch.MSID object
+
+
+
+      :Returns:
+
+          boolean ndarray
+              ..
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: get_extras(event, event_msidset)
+      :classmethod:
+
+
+      
+      Define start/stop grating positions for HETG and LETG
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: __unicode__()
+

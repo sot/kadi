@@ -1,0 +1,4 @@
+kadi.paths.PARS_DICT_PATH
+=========================
+
+.. py:function:: kadi.paths.PARS_DICT_PATH(version=None)

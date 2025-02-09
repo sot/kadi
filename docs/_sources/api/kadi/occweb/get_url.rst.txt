@@ -1,0 +1,30 @@
+kadi.occweb.get_url
+===================
+
+.. py:function:: kadi.occweb.get_url(page, timeout=TIMEOUT)
+
+   
+   Get the HTML for a web `page` on OCCweb.
+
+   DEPRECATED for new code, use get_occweb_page() instead.
+
+   This caches the result if the CACHE_DIR is available.  The cachefile is used
+   if it is less than a day old.  This is mostly for testing, in production the
+   cron job runs once a day.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!

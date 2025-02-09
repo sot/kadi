@@ -1,0 +1,61 @@
+kadi.commands.command_sets
+==========================
+
+.. py:module:: kadi.commands.command_sets
+
+
+
+Functions
+---------
+
+.. toctree::
+   :hidden:
+
+   /api/kadi/commands/command_sets/cmd_set_rts
+   /api/kadi/commands/command_sets/cmd_set_obsid
+   /api/kadi/commands/command_sets/cmd_set_maneuver
+   /api/kadi/commands/command_sets/cmd_set_aciscti
+   /api/kadi/commands/command_sets/cmd_set_end_vehicle
+   /api/kadi/commands/command_sets/cmd_set_end_observing
+   /api/kadi/commands/command_sets/cmd_set_scs107
+   /api/kadi/commands/command_sets/cmd_set_dither
+   /api/kadi/commands/command_sets/cmd_set_bright_star_hold
+   /api/kadi/commands/command_sets/cmd_set_maneuver_sun_pitch
+   /api/kadi/commands/command_sets/cmd_set_maneuver_sun_rasl
+   /api/kadi/commands/command_sets/_cmd_set_nsm_or_safe_mode
+   /api/kadi/commands/command_sets/cmd_set_nsm
+   /api/kadi/commands/command_sets/cmd_set_safe_mode
+   /api/kadi/commands/command_sets/cmd_set_load_not_run
+   /api/kadi/commands/command_sets/cmd_set_observing_not_run
+   /api/kadi/commands/command_sets/cmd_set_hrc_not_run
+   /api/kadi/commands/command_sets/cmd_set_command
+   /api/kadi/commands/command_sets/cmd_set_end_scs
+   /api/kadi/commands/command_sets/cmd_set_command_not_run
+   /api/kadi/commands/command_sets/get_cmds_from_event
+
+.. autoapisummary::
+
+   kadi.commands.command_sets.cmd_set_rts
+   kadi.commands.command_sets.cmd_set_obsid
+   kadi.commands.command_sets.cmd_set_maneuver
+   kadi.commands.command_sets.cmd_set_aciscti
+   kadi.commands.command_sets.cmd_set_end_vehicle
+   kadi.commands.command_sets.cmd_set_end_observing
+   kadi.commands.command_sets.cmd_set_scs107
+   kadi.commands.command_sets.cmd_set_dither
+   kadi.commands.command_sets.cmd_set_bright_star_hold
+   kadi.commands.command_sets.cmd_set_maneuver_sun_pitch
+   kadi.commands.command_sets.cmd_set_maneuver_sun_rasl
+   kadi.commands.command_sets._cmd_set_nsm_or_safe_mode
+   kadi.commands.command_sets.cmd_set_nsm
+   kadi.commands.command_sets.cmd_set_safe_mode
+   kadi.commands.command_sets.cmd_set_load_not_run
+   kadi.commands.command_sets.cmd_set_observing_not_run
+   kadi.commands.command_sets.cmd_set_hrc_not_run
+   kadi.commands.command_sets.cmd_set_command
+   kadi.commands.command_sets.cmd_set_end_scs
+   kadi.commands.command_sets.cmd_set_command_not_run
+   kadi.commands.command_sets.get_cmds_from_event
+
+
+

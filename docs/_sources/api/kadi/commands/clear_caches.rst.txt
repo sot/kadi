@@ -1,0 +1,27 @@
+kadi.commands.clear_caches
+==========================
+
+.. py:function:: kadi.commands.clear_caches()
+
+   
+   Clear all commands caches.
+
+   This is useful for testing and in case upstream products like the Command
+   Events sheet have changed during a session.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!

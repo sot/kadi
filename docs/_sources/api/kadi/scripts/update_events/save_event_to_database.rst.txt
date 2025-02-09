@@ -1,0 +1,4 @@
+kadi.scripts.update_events.save_event_to_database
+=================================================
+
+.. py:function:: kadi.scripts.update_events.save_event_to_database(cls_name, event, event_model, models)

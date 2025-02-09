@@ -1,0 +1,77 @@
+kadi.commands.states.ParamTransition
+====================================
+
+.. py:class:: kadi.commands.states.ParamTransition
+
+   Bases: :py:obj:`BaseTransition`
+
+
+   
+   Transitions for case of attribute that gets set to value defined by cmd param.
+
+   E.g. ``obsid`` = ``ID`` parameter of ``COBRQID`` command.
+
+   Class attributes:
+
+   :param transition_key: single transition key or list of transition keys
+   :param cmd_param_key: command parameter name (str or list of str)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:method:: set_transitions(transitions_list, cmds, start, stop)
+      :classmethod:
+
+
+      
+      Set transitions for a Table of commands ``cmds``.
+
+
+      :Parameters:
+
+          **transitions_list**
+              list of transitions (updated in-place)
+
+          **cmds**
+              commands (CmdList)
+
+          **start**
+              start time for states
+
+          **stop**
+              stop time for states
+
+
+
+      :Returns:
+
+          None
+              ..
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+

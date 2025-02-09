@@ -1,0 +1,25 @@
+kadi.paths._version_str
+=======================
+
+.. py:function:: kadi.paths._version_str(version)
+
+   
+   Legacy version string
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!

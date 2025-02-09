@@ -1,0 +1,25 @@
+kadi.events.models._get_si
+==========================
+
+.. py:function:: kadi.events.models._get_si(simpos)
+
+   
+   Get SI corresponding to the given SIM position.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!

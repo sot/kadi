@@ -1,0 +1,73 @@
+kadi.commands.commands_v2.get_cmds
+==================================
+
+.. py:function:: kadi.commands.commands_v2.get_cmds(start=None, stop=None, *, inclusive_stop=False, scenario=None, **kwargs)
+
+   
+   Get Chandra commands that ran on-board or are approved to run.
+
+
+   :Parameters:
+
+       **start** : CxoTime-like, optional
+           Start time for cmds. Default is 1999:001.
+
+       **stop** : CxoTime-like, optional
+           Stop time for cmds. Default is current time + 1 year.
+
+       **scenario** : str, optional
+           Name of commands archive scenario to use instead of default.
+
+       **inclusive_stop** : bool
+           Include commands at exactly ``stop`` if True.
+
+       **\*\*kwargs** : dict
+           key=val keyword argument pairs for filtering.
+
+
+
+   :Returns:
+
+       CommandTable
+           ..
+
+
+
+
+
+
+
+
+
+
+   .. rubric:: Examples
+
+   Get first few commands in 2013:
+
+   >>> from kadi.commands import get_cmds
+   >>> cmds = get_cmds('2013:001:00:00:00', '2013:001:00:56:10')
+   >>> print(cmds)
+           date            type      tlmsid   scs step      time      source    vcdu  params
+   --------------------- ---------- ---------- --- ---- ------------- -------- ------- ------
+   2013:001:00:37:37.653   ORBPOINT       None   0    0 473387924.837 DEC2412B 5533112    N/A
+   2013:001:00:53:07.181 COMMAND_SW   AOACRSTD 129 1524 473388854.365 DEC2412B 5584176    N/A
+   2013:001:00:54:07.181 COMMAND_SW   AOFUNCDS 129 1526 473388914.365 DEC2412B 5584410    N/A
+   2013:001:00:55:07.181 COMMAND_SW   AOFUNCDS 129 1528 473388974.365 DEC2412B 5584644    N/A
+   2013:001:00:56:07.181 COMMAND_SW   AONMMODE 129 1530 473389034.365 DEC2412B 5584878    N/A
+   2013:001:00:56:07.181    ACISPKT AA00000000 132 1620 473389034.365 DEC2412B 5584878    N/A
+   2013:001:00:56:07.181   SIMTRANS       None 132 1623 473389034.365 DEC2412B 5584878    N/A
+   2013:001:00:56:07.438 COMMAND_SW   AONM2NPE 129 1532 473389034.622 DEC2412B 5584879    N/A
+
+   Get all the SIM translation commands in the JAN2025A loads and print the first five
+   like backstop:
+
+   >>> cmds = get_cmds(source="JAN2025A", type="SIMTRANS")
+   >>> cmds[:5].pprint_like_backstop)
+   2025:020:08:27:26.428 | SIMTRANS         | None       | JAN2025A | pos=92904, scs=131
+   2025:020:12:12:04.292 | SIMTRANS         | None       | JAN2025A | pos=75624, scs=131
+   2025:020:15:56:41.704 | SIMTRANS         | None       | JAN2025A | pos=92904, scs=131
+   2025:020:20:56:21.582 | SIMTRANS         | None       | JAN2025A | pos=75624, scs=131
+   2025:021:01:29:20.281 | SIMTRANS         | None       | JAN2025A | pos=-99616, scs=131
+
+   ..
+       !! processed by numpydoc !!

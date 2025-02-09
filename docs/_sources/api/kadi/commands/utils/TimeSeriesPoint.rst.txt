@@ -1,0 +1,18 @@
+kadi.commands.utils.TimeSeriesPoint
+===================================
+
+.. py:class:: kadi.commands.utils.TimeSeriesPoint
+
+   .. py:attribute:: time
+      :type:  float
+
+
+   .. py:attribute:: val
+      :type:  float
+
+
+   .. py:property:: date
+
+
+   .. py:method:: __repr__()
+

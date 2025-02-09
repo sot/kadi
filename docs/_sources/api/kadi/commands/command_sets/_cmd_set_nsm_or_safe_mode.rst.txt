@@ -1,0 +1,26 @@
+kadi.commands.command_sets._cmd_set_nsm_or_safe_mode
+====================================================
+
+.. py:function:: kadi.commands.command_sets._cmd_set_nsm_or_safe_mode(*args, tlmsid=None, date=None)
+
+   
+   Return a command set that sets the NSM or safe mode pitch to ``args[0]``.
+
+   Includes the end of vehicle and SCS-107 commands and dither disable commands.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!

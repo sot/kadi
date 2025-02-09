@@ -1,0 +1,26 @@
+kadi.commands.states.get_chandra_states
+=======================================
+
+.. py:function:: kadi.commands.states.get_chandra_states(main_args=None)
+
+   
+   Command line interface to output commanded states over a date range.
+
+   The output is in tabular form to stdout or a file.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!

@@ -1,0 +1,25 @@
+kadi.events.orbit_funcs.filter_known_bad
+========================================
+
+.. py:function:: kadi.events.orbit_funcs.filter_known_bad(orbit_points)
+
+   
+   Filter some commands that are known to be incorrect.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!

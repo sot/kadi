@@ -1,0 +1,70 @@
+kadi.events.models.OrbitPoint
+=============================
+
+.. toctree::
+   :hidden:
+
+   /api/kadi/events/models/OrbitPoint.Meta
+
+.. py:class:: kadi.events.models.OrbitPoint(*args, **kwargs)
+
+   Bases: :py:obj:`BaseModel`
+
+
+   
+   Orbit point
+
+   **Fields**
+
+   =========== ============ ===========
+      Field        Type     Description
+   =========== ============ ===========
+        orbit   ForeignKey
+         date     Char(21)
+         name      Char(9)
+    orbit_num      Integer
+        descr     Char(50)
+   =========== ============ ===========
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:attribute:: orbit
+
+
+   .. py:attribute:: date
+
+
+   .. py:attribute:: name
+
+
+   .. py:attribute:: orbit_num
+
+
+   .. py:attribute:: descr
+
+
+   .. py:method:: __unicode__()
+
+Classes
+-------
+
+.. autoapisummary::
+
+   kadi.events.models.OrbitPoint.Meta
+
+
