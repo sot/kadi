@@ -32,6 +32,7 @@ entry_points = {
         "kadi_update_cmds_v2 = kadi.scripts.update_cmds_v2:main",
         "kadi_update_events = kadi.scripts.update_events:main",
         "kadi_validate_states = kadi.scripts.validate_states:main",
+        "create_dpa_power_model = kadi.scripts.create_dpa_power_model:main",
     ]
 }
 
