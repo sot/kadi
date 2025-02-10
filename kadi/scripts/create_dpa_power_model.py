@@ -15,6 +15,10 @@ from kadi.commands.states import get_states, interpolate_states
 
 logger = logging.getLogger("kadi")
 
+exclude_intervals = [
+    ("2022:016:00:05:23", "2022:018:18:43:48"),
+]
+
 
 def get_args():
     parser = argparse.ArgumentParser(
@@ -80,6 +84,10 @@ def main():
     t_split = start + (stop - start) * args.train_test_split
     idx_train = df["time"] < t_split.secs
     idx_test = df["time"] >= t_split.secs
+    for interval in exclude_intervals:
+        int_start = CxoTime(interval[0]).secs
+        int_stop = CxoTime(interval[1]).secs
+        idx_train &= ~((df["time"] >= int_start) & (df["time"] <= int_stop))
     X_train = X[idx_train]
     X_test = X[idx_test]
     y_train = y[idx_train]
