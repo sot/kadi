@@ -113,7 +113,7 @@ def main():
     )
 
     # Train the model
-    model.fit(X_train, y_train)
+    model.fit(X_train, y_train.ravel())
 
     # Evaluate the model
     y_pred = model.predict(X_test)
