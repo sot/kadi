@@ -37,6 +37,12 @@ def get_args():
         default=0.7,
         help="Fraction of data to use for training.",
     )
+    parser.add_argument(
+        "--log-level",
+        type=str,
+        default="INFO",
+        help="Logging level (DEBUG | INFO | WARNING, default=INFO)",
+    )
     return parser.parse_args()
 
 
@@ -63,6 +69,8 @@ def main():
     int_states = interpolate_states(states, msids["dpa_power"].times)
     int_states["dpa_power"] = msids["dpa_power"].vals
     int_states["time"] = msids["dpa_power"].times
+
+    logger.setLevel(args.log_level)
 
     # create on-off states for FEPs
     feps = defaultdict(list)
