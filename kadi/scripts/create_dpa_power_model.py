@@ -72,6 +72,7 @@ def main():
     for fk in fep_keys:
         int_states[fk] = feps[fk]
 
+    # Convert to pandas DataFrame, so we can use sklearn
     df = int_states.to_pandas()
 
     # Separate into features and target
