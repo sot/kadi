@@ -681,13 +681,12 @@ def test_command_set_bsh():
 2000:001:00:01:07.710 | ACISPKT          | AA00000000 | CMD_EVT  | event=Bright_star_hold, event_date=2000:001:00:00:00, scs=0
 2000:001:00:01:17.960 | ACISPKT          | WSPOW00000 | CMD_EVT  | event=Bright_star_hold, event_date=2000:001:00:00:00, scs=0
 2000:001:00:01:17.960 | COMMAND_HW       | 215PCAOF   | CMD_EVT  | event=Bright_star_hold, event_date=2000:001:00:00:00, scs=0
-2000:001:00:01:19.165 | COMMAND_HW       | 224PCAOF   | CMD_EVT  | event=Bright_star_hold, event_date=2000:001:00:00:00, scs=0
-2000:001:00:01:20.190 | COMMAND_HW       | 2IMHVOF    | CMD_EVT  | event=Bright_star_hold, event_date=2000:001:00:00:00, scs=0
-2000:001:00:01:21.215 | COMMAND_HW       | 2SPHVOF    | CMD_EVT  | event=Bright_star_hold, event_date=2000:001:00:00:00, scs=0
-2000:001:00:01:22.240 | COMMAND_HW       | 2S2STHV    | CMD_EVT  | event=Bright_star_hold, event_date=2000:001:00:00:00, scs=0
-2000:001:00:01:23.265 | COMMAND_HW       | 2S1STHV    | CMD_EVT  | event=Bright_star_hold, event_date=2000:001:00:00:00, scs=0
-2000:001:00:01:24.290 | COMMAND_HW       | 2S2HVOF    | CMD_EVT  | event=Bright_star_hold, event_date=2000:001:00:00:00, scs=0
-2000:001:00:01:25.315 | COMMAND_HW       | 2S1HVOF    | CMD_EVT  | event=Bright_star_hold, event_date=2000:001:00:00:00, scs=0"""
+2000:001:00:01:19.165 | COMMAND_HW       | 2IMHVOF    | CMD_EVT  | event=Bright_star_hold, event_date=2000:001:00:00:00, scs=0
+2000:001:00:01:20.190 | COMMAND_HW       | 2SPHVOF    | CMD_EVT  | event=Bright_star_hold, event_date=2000:001:00:00:00, scs=0
+2000:001:00:01:21.215 | COMMAND_HW       | 2S2STHV    | CMD_EVT  | event=Bright_star_hold, event_date=2000:001:00:00:00, scs=0
+2000:001:00:01:22.240 | COMMAND_HW       | 2S1STHV    | CMD_EVT  | event=Bright_star_hold, event_date=2000:001:00:00:00, scs=0
+2000:001:00:01:23.265 | COMMAND_HW       | 2S2HVOF    | CMD_EVT  | event=Bright_star_hold, event_date=2000:001:00:00:00, scs=0
+2000:001:00:01:24.290 | COMMAND_HW       | 2S1HVOF    | CMD_EVT  | event=Bright_star_hold, event_date=2000:001:00:00:00, scs=0"""
 
     assert cmds.pformat_like_backstop(max_params_width=None) == exp.splitlines()
     commands.clear_caches()
@@ -711,14 +710,13 @@ def test_command_set_safe_mode():
 2000:001:00:01:07.710 | ACISPKT          | AA00000000 | CMD_EVT  | event=Safe_mode, event_date=2000:001:00:00:00, scs=0
 2000:001:00:01:17.960 | ACISPKT          | WSPOW00000 | CMD_EVT  | event=Safe_mode, event_date=2000:001:00:00:00, scs=0
 2000:001:00:01:17.960 | COMMAND_HW       | 215PCAOF   | CMD_EVT  | event=Safe_mode, event_date=2000:001:00:00:00, scs=0
-2000:001:00:01:19.165 | COMMAND_HW       | 224PCAOF   | CMD_EVT  | event=Safe_mode, event_date=2000:001:00:00:00, scs=0
-2000:001:00:01:20.190 | COMMAND_HW       | 2IMHVOF    | CMD_EVT  | event=Safe_mode, event_date=2000:001:00:00:00, scs=0
-2000:001:00:01:21.215 | COMMAND_HW       | 2SPHVOF    | CMD_EVT  | event=Safe_mode, event_date=2000:001:00:00:00, scs=0
-2000:001:00:01:22.240 | COMMAND_HW       | 2S2STHV    | CMD_EVT  | event=Safe_mode, event_date=2000:001:00:00:00, scs=0
-2000:001:00:01:23.265 | COMMAND_HW       | 2S1STHV    | CMD_EVT  | event=Safe_mode, event_date=2000:001:00:00:00, scs=0
-2000:001:00:01:24.290 | COMMAND_HW       | 2S2HVOF    | CMD_EVT  | event=Safe_mode, event_date=2000:001:00:00:00, scs=0
-2000:001:00:01:25.315 | COMMAND_HW       | 2S1HVOF    | CMD_EVT  | event=Safe_mode, event_date=2000:001:00:00:00, scs=0
-2000:001:00:01:26.340 | COMMAND_SW       | AODSDITH   | CMD_EVT  | event=Safe_mode, event_date=2000:001:00:00:00, scs=0"""
+2000:001:00:01:19.165 | COMMAND_HW       | 2IMHVOF    | CMD_EVT  | event=Safe_mode, event_date=2000:001:00:00:00, scs=0
+2000:001:00:01:20.190 | COMMAND_HW       | 2SPHVOF    | CMD_EVT  | event=Safe_mode, event_date=2000:001:00:00:00, scs=0
+2000:001:00:01:21.215 | COMMAND_HW       | 2S2STHV    | CMD_EVT  | event=Safe_mode, event_date=2000:001:00:00:00, scs=0
+2000:001:00:01:22.240 | COMMAND_HW       | 2S1STHV    | CMD_EVT  | event=Safe_mode, event_date=2000:001:00:00:00, scs=0
+2000:001:00:01:23.265 | COMMAND_HW       | 2S2HVOF    | CMD_EVT  | event=Safe_mode, event_date=2000:001:00:00:00, scs=0
+2000:001:00:01:24.290 | COMMAND_HW       | 2S1HVOF    | CMD_EVT  | event=Safe_mode, event_date=2000:001:00:00:00, scs=0
+2000:001:00:01:25.315 | COMMAND_SW       | AODSDITH   | CMD_EVT  | event=Safe_mode, event_date=2000:001:00:00:00, scs=0"""
     assert cmds.pformat_like_backstop(max_params_width=None) == exp.splitlines()
     commands.clear_caches()
 
@@ -1359,14 +1357,13 @@ def test_scenario_with_rts(monkeypatch, fast_sun_position_method):
 2021:296:10:43:04.710 | ACISPKT          | AA00000000 | CMD_EVT  | event=NSM, event_date=2021:296:10:41:57, scs=0
 2021:296:10:43:14.960 | ACISPKT          | WSPOW0002A | CMD_EVT  | event=NSM, event_date=2021:296:10:41:57, scs=0
 2021:296:10:43:14.960 | COMMAND_HW       | 215PCAOF   | CMD_EVT  | event=NSM, event_date=2021:296:10:41:57, scs=0
-2021:296:10:43:16.165 | COMMAND_HW       | 224PCAOF   | CMD_EVT  | event=NSM, event_date=2021:296:10:41:57, scs=0
-2021:296:10:43:17.190 | COMMAND_HW       | 2IMHVOF    | CMD_EVT  | event=NSM, event_date=2021:296:10:41:57, scs=0
-2021:296:10:43:18.215 | COMMAND_HW       | 2SPHVOF    | CMD_EVT  | event=NSM, event_date=2021:296:10:41:57, scs=0
-2021:296:10:43:19.240 | COMMAND_HW       | 2S2STHV    | CMD_EVT  | event=NSM, event_date=2021:296:10:41:57, scs=0
-2021:296:10:43:20.265 | COMMAND_HW       | 2S1STHV    | CMD_EVT  | event=NSM, event_date=2021:296:10:41:57, scs=0
-2021:296:10:43:21.290 | COMMAND_HW       | 2S2HVOF    | CMD_EVT  | event=NSM, event_date=2021:296:10:41:57, scs=0
-2021:296:10:43:22.315 | COMMAND_HW       | 2S1HVOF    | CMD_EVT  | event=NSM, event_date=2021:296:10:41:57, scs=0
-2021:296:10:43:23.340 | COMMAND_SW       | AODSDITH   | CMD_EVT  | event=NSM, event_date=2021:296:10:41:57, scs=0
+2021:296:10:43:16.165 | COMMAND_HW       | 2IMHVOF    | CMD_EVT  | event=NSM, event_date=2021:296:10:41:57, scs=0
+2021:296:10:43:17.190 | COMMAND_HW       | 2SPHVOF    | CMD_EVT  | event=NSM, event_date=2021:296:10:41:57, scs=0
+2021:296:10:43:18.215 | COMMAND_HW       | 2S2STHV    | CMD_EVT  | event=NSM, event_date=2021:296:10:41:57, scs=0
+2021:296:10:43:19.240 | COMMAND_HW       | 2S1STHV    | CMD_EVT  | event=NSM, event_date=2021:296:10:41:57, scs=0
+2021:296:10:43:20.265 | COMMAND_HW       | 2S2HVOF    | CMD_EVT  | event=NSM, event_date=2021:296:10:41:57, scs=0
+2021:296:10:43:21.290 | COMMAND_HW       | 2S1HVOF    | CMD_EVT  | event=NSM, event_date=2021:296:10:41:57, scs=0
+2021:296:10:43:22.315 | COMMAND_SW       | AODSDITH   | CMD_EVT  | event=NSM, event_date=2021:296:10:41:57, scs=0
 2021:296:11:08:12.966 | LOAD_EVENT       | OBS        | CMD_EVT  | manvr_start=2021:296:10:41:57.000, prev_att=(0.594590732, 0.
 2021:297:01:41:01.000 | COMMAND_SW       | AONMMODE   | CMD_EVT  | event=Maneuver, event_date=2021:297:01:41:01, msid=AONMMODE,
 2021:297:01:41:01.256 | COMMAND_SW       | AONM2NPE   | CMD_EVT  | event=Maneuver, event_date=2021:297:01:41:01, msid=AONM2NPE,

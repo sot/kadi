@@ -104,7 +104,6 @@ def cmd_set_scs107(date=None):
     if not kadi.commands.conf.disable_hrc_scs107_commanding:
         cmds += (
             dict(type="COMMAND_HW", tlmsid="215PCAOF", dur=1.205),
-            dict(type="COMMAND_HW", tlmsid="224PCAOF", dur=1.025),
             dict(type="COMMAND_HW", tlmsid="2IMHVOF", dur=1.025),
             dict(type="COMMAND_HW", tlmsid="2SPHVOF", dur=1.025),
             dict(type="COMMAND_HW", tlmsid="2S2STHV", dur=1.025),
