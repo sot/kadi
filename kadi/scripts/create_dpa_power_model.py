@@ -127,4 +127,4 @@ def main():
     y_pred = model.predict(X_test)
     mse = mean_squared_error(y_test, y_pred)
     logger.info("Mean Squared Error: %2f", mse)
-    dump(model, "dpa_power_model.joblib")
+    dump((model, scaler_X, scaler_y), "dpa_power_model.joblib")
