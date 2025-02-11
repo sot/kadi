@@ -12,6 +12,7 @@ or from the command-line application ``kadi_validate_states`` (defined in
 import functools
 import logging
 from abc import ABC
+from collections import defaultdict
 from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Optional
@@ -716,6 +717,58 @@ class ValidateSunPosMon(ValidateStateCode):
         state_vals[state_vals == "ENAB"] = "ACT"
         state_vals_raw = convert_state_code_to_raw_val(state_vals, self.state_codes)
         return state_vals_raw
+
+
+class ValidateACISStatePower(ValidateSingleMsid):
+    state_name = "dpa_power"
+    msids = ["dpa_power"]
+    state_keys_extra = ["ccd_count", "clocking", "feps", "fep_count", "simpos"]
+    plot_attrs = PlotAttrs(title="DPA Power", ylabel="DPA Power (W)")
+    min_violation_duration = 600.0  # seconds
+    max_delta_val = 1.0  # W
+
+    def __init__(self, stop=None, days: float = 14, no_exclude: bool = False):
+        from joblib import load
+
+        super().__init__(stop=stop, days=days, no_exclude=no_exclude)
+        self.model, self.scaler_X, self.scaler_y = load("dpa_power_model.joblib")
+
+    @functools.cached_property
+    def states(self):
+        _states = get_states(
+            start=self.tlm["time"][0],
+            stop=self.tlm["time"][-1],
+            state_keys=self.state_keys_extra,
+        )
+        return _states
+
+    @functools.cached_property
+    def state_vals(self):
+        istates = interpolate_states(self.states, self.times)
+        feps = defaultdict(list)
+        # create on-off states for FEPs
+        for row in istates:
+            for i in range(6):
+                feps[f"FEP{i}"].append(float(str(i) in row["feps"]))
+        fep_keys = [f"FEP{i}" for i in range(6)]
+        for fk in fep_keys:
+            istates[fk] = feps[fk]
+        df = istates.to_pandas()
+        keep_cols = self.state_keys_extra + fep_keys
+        keep_cols.remove("feps")
+        XX = df.drop([col for col in istates.colnames if col not in keep_cols], axis=1)
+        XX = self.scaler_X.fit_transform(XX.values)
+        yy = self.model.predict(XX)
+        # Inverse transform the predictions and actual values
+        _state_vals = self.scaler_y.inverse_transform(yy.reshape(-1, 1)).flatten()
+        return _state_vals
+
+    def add_exclude_intervals(self):
+        super().add_exclude_intervals()
+        # The following corresponds to an ACIS watchdog reboot
+        self.add_exclude_interval(
+            "2022:016:00:05:23", "2022:018:18:43:48", "ACIS Watchdog Reboot"
+        )
 
 
 def get_overlap_mask(times: np.ndarray, intervals: Table):
