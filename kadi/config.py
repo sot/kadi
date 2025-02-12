@@ -73,6 +73,12 @@ class Conf(ConfigNamespace):
         "Start date for using AGASC 1.8 catalog.",
     )
 
+    disable_hrc_scs107_commanding = ConfigItem(
+        False,
+        "Disable HRC SCS-107 commanding from #344, strictly for regression testing "
+        "of command generation prior to that patch.",
+    )
+
 
 # Create a configuration instance for the user
 conf = Conf()

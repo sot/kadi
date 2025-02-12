@@ -236,7 +236,9 @@ def test_get_cmds_from_backstop_and_add_cmds():
 
 @pytest.mark.skipif("not HAS_MPDIR")
 @pytest.mark.skipif(not HAS_INTERNET, reason="No internet connection")
-def test_commands_create_archive_regress(tmpdir, fast_sun_position_method):
+def test_commands_create_archive_regress(
+    tmpdir, fast_sun_position_method, disable_hrc_scs107_commanding
+):
     """Create cmds archive from scratch and test that it matches flight
 
     This tests over an eventful month that includes IU reset/NSM, SCS-107
@@ -462,7 +464,7 @@ def test_get_cmds_v2_recent_only(stop_date_2020_12_03):  # noqa: ARG001
 
 
 @pytest.mark.skipif(not HAS_INTERNET, reason="No internet connection")
-def test_get_cmds_nsm_2021(stop_date_2021_10_24):  # noqa: ARG001
+def test_get_cmds_nsm_2021(stop_date_2021_10_24, disable_hrc_scs107_commanding):
     """NSM at ~2021:296:10:41. This tests non-load commands from cmd_events."""
     cmds = commands.get_cmds("2021:296:10:35:00")  # , '2021:298:01:58:00')
     cmds = cmds[cmds["tlmsid"] != "OBS"]
@@ -538,6 +540,7 @@ def test_get_cmds_nsm_2021(stop_date_2021_10_24):  # noqa: ARG001
         "2021:297:14:01:00.000 | LOAD_EVENT       | None       | OCT1821A | "
         "event_type=SCHEDULED_STOP_TIME, scs=0",
     ]
+
     assert cmds.pformat_like_backstop(max_params_width=200) == exp
     commands.clear_caches()
 
@@ -676,7 +679,14 @@ def test_command_set_bsh():
 2000:001:00:00:01.025 | SIMTRANS         | None       | CMD_EVT  | event=Bright_star_hold, event_date=2000:001:00:00:00, pos=-99616, scs=0
 2000:001:00:01:06.685 | ACISPKT          | AA00000000 | CMD_EVT  | event=Bright_star_hold, event_date=2000:001:00:00:00, scs=0
 2000:001:00:01:07.710 | ACISPKT          | AA00000000 | CMD_EVT  | event=Bright_star_hold, event_date=2000:001:00:00:00, scs=0
-2000:001:00:01:17.960 | ACISPKT          | WSPOW00000 | CMD_EVT  | event=Bright_star_hold, event_date=2000:001:00:00:00, scs=0"""
+2000:001:00:01:17.960 | ACISPKT          | WSPOW00000 | CMD_EVT  | event=Bright_star_hold, event_date=2000:001:00:00:00, scs=0
+2000:001:00:01:17.960 | COMMAND_HW       | 215PCAOF   | CMD_EVT  | event=Bright_star_hold, event_date=2000:001:00:00:00, scs=0
+2000:001:00:01:19.165 | COMMAND_HW       | 2IMHVOF    | CMD_EVT  | event=Bright_star_hold, event_date=2000:001:00:00:00, scs=0
+2000:001:00:01:20.190 | COMMAND_HW       | 2SPHVOF    | CMD_EVT  | event=Bright_star_hold, event_date=2000:001:00:00:00, scs=0
+2000:001:00:01:21.215 | COMMAND_HW       | 2S2STHV    | CMD_EVT  | event=Bright_star_hold, event_date=2000:001:00:00:00, scs=0
+2000:001:00:01:22.240 | COMMAND_HW       | 2S1STHV    | CMD_EVT  | event=Bright_star_hold, event_date=2000:001:00:00:00, scs=0
+2000:001:00:01:23.265 | COMMAND_HW       | 2S2HVOF    | CMD_EVT  | event=Bright_star_hold, event_date=2000:001:00:00:00, scs=0
+2000:001:00:01:24.290 | COMMAND_HW       | 2S1HVOF    | CMD_EVT  | event=Bright_star_hold, event_date=2000:001:00:00:00, scs=0"""
 
     assert cmds.pformat_like_backstop(max_params_width=None) == exp.splitlines()
     commands.clear_caches()
@@ -699,13 +709,22 @@ def test_command_set_safe_mode():
 2000:001:00:01:06.685 | ACISPKT          | AA00000000 | CMD_EVT  | event=Safe_mode, event_date=2000:001:00:00:00, scs=0
 2000:001:00:01:07.710 | ACISPKT          | AA00000000 | CMD_EVT  | event=Safe_mode, event_date=2000:001:00:00:00, scs=0
 2000:001:00:01:17.960 | ACISPKT          | WSPOW00000 | CMD_EVT  | event=Safe_mode, event_date=2000:001:00:00:00, scs=0
-2000:001:00:01:17.960 | COMMAND_SW       | AODSDITH   | CMD_EVT  | event=Safe_mode, event_date=2000:001:00:00:00, scs=0"""
+2000:001:00:01:17.960 | COMMAND_HW       | 215PCAOF   | CMD_EVT  | event=Safe_mode, event_date=2000:001:00:00:00, scs=0
+2000:001:00:01:19.165 | COMMAND_HW       | 2IMHVOF    | CMD_EVT  | event=Safe_mode, event_date=2000:001:00:00:00, scs=0
+2000:001:00:01:20.190 | COMMAND_HW       | 2SPHVOF    | CMD_EVT  | event=Safe_mode, event_date=2000:001:00:00:00, scs=0
+2000:001:00:01:21.215 | COMMAND_HW       | 2S2STHV    | CMD_EVT  | event=Safe_mode, event_date=2000:001:00:00:00, scs=0
+2000:001:00:01:22.240 | COMMAND_HW       | 2S1STHV    | CMD_EVT  | event=Safe_mode, event_date=2000:001:00:00:00, scs=0
+2000:001:00:01:23.265 | COMMAND_HW       | 2S2HVOF    | CMD_EVT  | event=Safe_mode, event_date=2000:001:00:00:00, scs=0
+2000:001:00:01:24.290 | COMMAND_HW       | 2S1HVOF    | CMD_EVT  | event=Safe_mode, event_date=2000:001:00:00:00, scs=0
+2000:001:00:01:25.315 | COMMAND_SW       | AODSDITH   | CMD_EVT  | event=Safe_mode, event_date=2000:001:00:00:00, scs=0"""
     assert cmds.pformat_like_backstop(max_params_width=None) == exp.splitlines()
     commands.clear_caches()
 
 
 @pytest.mark.skipif(not HAS_INTERNET, reason="No internet connection")
-def test_bright_star_hold_event(cmds_dir, stop_date_2020_12_03):  # noqa: ARG001
+def test_bright_star_hold_event(
+    cmds_dir, stop_date_2020_12_03, disable_hrc_scs107_commanding
+):
     """Make a scenario with a bright star hold event.
 
     Confirm that this inserts expected commands and interrupts all load commands.
@@ -1265,7 +1284,7 @@ cmd_events_all_exps = [
 
 
 @pytest.mark.parametrize("idx", range(len(cmd_events_all_exps)))
-def test_get_cmds_from_event_all(idx):
+def test_get_cmds_from_event_all(idx, disable_hrc_scs107_commanding):
     """Test getting commands from every event type in the Command Events sheet"""
     cevt = cmd_events_all[idx]
     exp = cmd_events_all_exps[idx]
@@ -1337,7 +1356,14 @@ def test_scenario_with_rts(monkeypatch, fast_sun_position_method):
 2021:296:10:43:03.685 | ACISPKT          | AA00000000 | CMD_EVT  | event=NSM, event_date=2021:296:10:41:57, scs=0
 2021:296:10:43:04.710 | ACISPKT          | AA00000000 | CMD_EVT  | event=NSM, event_date=2021:296:10:41:57, scs=0
 2021:296:10:43:14.960 | ACISPKT          | WSPOW0002A | CMD_EVT  | event=NSM, event_date=2021:296:10:41:57, scs=0
-2021:296:10:43:14.960 | COMMAND_SW       | AODSDITH   | CMD_EVT  | event=NSM, event_date=2021:296:10:41:57, scs=0
+2021:296:10:43:14.960 | COMMAND_HW       | 215PCAOF   | CMD_EVT  | event=NSM, event_date=2021:296:10:41:57, scs=0
+2021:296:10:43:16.165 | COMMAND_HW       | 2IMHVOF    | CMD_EVT  | event=NSM, event_date=2021:296:10:41:57, scs=0
+2021:296:10:43:17.190 | COMMAND_HW       | 2SPHVOF    | CMD_EVT  | event=NSM, event_date=2021:296:10:41:57, scs=0
+2021:296:10:43:18.215 | COMMAND_HW       | 2S2STHV    | CMD_EVT  | event=NSM, event_date=2021:296:10:41:57, scs=0
+2021:296:10:43:19.240 | COMMAND_HW       | 2S1STHV    | CMD_EVT  | event=NSM, event_date=2021:296:10:41:57, scs=0
+2021:296:10:43:20.265 | COMMAND_HW       | 2S2HVOF    | CMD_EVT  | event=NSM, event_date=2021:296:10:41:57, scs=0
+2021:296:10:43:21.290 | COMMAND_HW       | 2S1HVOF    | CMD_EVT  | event=NSM, event_date=2021:296:10:41:57, scs=0
+2021:296:10:43:22.315 | COMMAND_SW       | AODSDITH   | CMD_EVT  | event=NSM, event_date=2021:296:10:41:57, scs=0
 2021:296:11:08:12.966 | LOAD_EVENT       | OBS        | CMD_EVT  | manvr_start=2021:296:10:41:57.000, prev_att=(0.594590732, 0.
 2021:297:01:41:01.000 | COMMAND_SW       | AONMMODE   | CMD_EVT  | event=Maneuver, event_date=2021:297:01:41:01, msid=AONMMODE,
 2021:297:01:41:01.256 | COMMAND_SW       | AONM2NPE   | CMD_EVT  | event=Maneuver, event_date=2021:297:01:41:01, msid=AONM2NPE,
