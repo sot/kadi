@@ -387,7 +387,7 @@ def update_archive_and_get_cmds_recent(
         }
 
     # Update loads table and download/archive backstop files from OCCweb
-    loads = update_loads(scenario, cmd_events=cmd_events, lookback=lookback, stop=stop)
+    loads = update_loads(scenario, lookback=lookback, stop=stop)
     logger.info(f"Including loads {', '.join(loads['name'])}")
 
     for load in loads:
@@ -970,7 +970,22 @@ def is_google_id(scenario):
 
 
 def update_cmd_events(scenario=None) -> Table:
-    """Update local cmd_events.csv from Google Sheets for ``scenario``.
+    """Update local cmd_events.csv from Google Sheets and read events for ``scenario``.
+
+    For local scenarios, the cmd_events.csv file is read directly from the CSV file in
+    ``paths.CMD_EVENTS_PATH(scenario)``. For the "flight" or None scenario, the
+    cmd_events are read from the Google Sheet and then written to that local file.
+
+    No event filtering is done prior to writing events from a sheet to scenario file.
+
+    After reading the events, the events are filtered based on the "State" column. By
+    default, only events with a "State" of "Predictive" or "Definitive" are included. If
+    the configuration parameter ``conf.include_in_work_command_events`` is True, then
+    events with a "State" of "In-work" are also included.
+
+    Then the events are filtered based on the ``CXOTIME_NOW`` environment variable. If
+    this environment variable is set, then events with a date after the value of
+    ``CXOTIME_NOW`` are filtered out.
 
     Parameters
     ----------
@@ -980,43 +995,45 @@ def update_cmd_events(scenario=None) -> Table:
     Returns
     -------
     Table
-        Command events table
+        Filtered command events table for scenario
     """
     # Named scenarios with a name that isn't "flight" and does not look like a
     # google sheet ID are local files.
     use_local = scenario not in (None, "flight") and not is_google_id(scenario)
     if use_local or not HAS_INTERNET:
-        return get_cmd_events(scenario)
+        cmd_events = get_cmd_events(scenario)
+    else:
+        doc_id = scenario if is_google_id(scenario) else conf.cmd_events_flight_id
+        url = CMD_EVENTS_SHEET_URL.format(doc_id=doc_id)
+        logger.info(f"Getting cmd_events from {url}")
+        req = requests.get(url, timeout=30)
+        if req.status_code != 200:
+            raise ValueError(f"Failed to get cmd events sheet: {req.status_code}")
 
-    # Ensure the scenario directory exists
-    paths.SCENARIO_DIR(scenario).mkdir(parents=True, exist_ok=True)
+        cmd_events = Table.read(
+            req.text, format="csv", fill_values=[], converters={"Params": str}
+        )
+        ok = [cmd_event["Date"].strip() != "" for cmd_event in cmd_events]
+        cmd_events = cmd_events[ok]
 
-    cmd_events_path = paths.CMD_EVENTS_PATH(scenario)
-
-    doc_id = scenario if is_google_id(scenario) else conf.cmd_events_flight_id
-    url = CMD_EVENTS_SHEET_URL.format(doc_id=doc_id)
-    logger.info(f"Getting cmd_events from {url}")
-    req = requests.get(url, timeout=30)
-    if req.status_code != 200:
-        raise ValueError(f"Failed to get cmd events sheet: {req.status_code}")
-
-    cmd_events = Table.read(
-        req.text, format="csv", fill_values=[], converters={"Params": str}
-    )
+        # Ensure the scenario directory exists and write file
+        paths.SCENARIO_DIR(scenario).mkdir(parents=True, exist_ok=True)
+        cmd_events_path = paths.CMD_EVENTS_PATH(scenario)
+        logger.info(f"Writing {len(cmd_events)} cmd_events to {cmd_events_path}")
+        cmd_events.write(cmd_events_path, format="csv", overwrite=True)
 
     # Filter table based on State column. In-work can be used to validate the new
     # event vs telemetry prior to make it operational.
-    allowed_states = ["Predictive", "Definitive"]
-    if conf.include_in_work_command_events:
-        allowed_states.append("In-work")
-    ok = np.isin(cmd_events["State"], allowed_states)
-    cmd_events = cmd_events[ok]
+    if "State" in cmd_events.colnames:
+        allowed_states = ["Predictive", "Definitive"]
+        if conf.include_in_work_command_events:
+            allowed_states.append("In-work")
+        ok = np.isin(cmd_events["State"], allowed_states)
+        cmd_events = cmd_events[ok]
 
     # If CXOTIME_NOW is set, filter out events after that date.
     cmd_events = filter_cmd_events_default_stop(cmd_events)
 
-    logger.info(f"Writing {len(cmd_events)} cmd_events to {cmd_events_path}")
-    cmd_events.write(cmd_events_path, format="csv", overwrite=True)
     return cmd_events
 
 
@@ -1060,7 +1077,7 @@ def filter_cmd_events_default_stop(cmd_events):
     return cmd_events
 
 
-def update_loads(scenario=None, *, cmd_events=None, lookback=None, stop=None) -> Table:
+def update_loads(scenario=None, *, lookback=None, stop=None) -> Table:
     """Update local copy of approved command loads though ``lookback`` days."""
     # For testing allow override of default `stop` value
     if stop is None:
@@ -1071,9 +1088,6 @@ def update_loads(scenario=None, *, cmd_events=None, lookback=None, stop=None) ->
 
     # Ensure the scenario directory exists
     paths.SCENARIO_DIR(scenario).mkdir(parents=True, exist_ok=True)
-
-    if cmd_events is None:
-        cmd_events = get_cmd_events(scenario)
 
     # TODO for performance when we have decent testing:
     # Read in the existing loads table and grab the RLTT and scheduled stop
