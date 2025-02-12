@@ -6,9 +6,10 @@ import astropy.units as u
 from cheta import fetch_sci as fetch
 from cxotime import CxoTime
 from joblib import dump
-from sklearn.metrics import mean_squared_error
+from sklearn.metrics import mean_absolute_error, mean_squared_error
+from sklearn.model_selection import train_test_split
 from sklearn.neural_network import MLPRegressor
-from sklearn.preprocessing import MinMaxScaler, StandardScaler
+from sklearn.preprocessing import MinMaxScaler
 
 from kadi import __version__  # noqa: F401
 from kadi.commands.states import get_states, interpolate_states
@@ -52,10 +53,18 @@ def main():
     stop = CxoTime(args.stop)
     start = stop - args.days * u.day
 
+    logger.debug("Obtaining data from %s to %s", start.yday, stop.yday)
+
     # States to obtain for the model
-    power_keys = ["ccd_count", "clocking", "fep_count", "simpos"]
-    state_keys = power_keys + ["feps", "ccds", "power_cmd"]
-    fep_keys = [f"FEP{i}" for i in range(6)]
+    state_keys = [
+        "ccd_count",
+        "clocking",
+        "simpos",
+        "feps",
+        "ccds",
+        "fep_count",
+        "power_cmd",
+    ]
 
     # Get commanded states
     states = get_states(
@@ -73,51 +82,44 @@ def main():
     logger.setLevel(args.log_level)
 
     # create on-off states for FEPs
-    feps = defaultdict(list)
+    ccds = [f"I{i}" for i in range(4)] + [f"S{i}" for i in range(6)]
+    ccdsfeps = defaultdict(list)
     for row in int_states:
         for i in range(6):
-            feps[f"FEP{i}"].append(float(str(i) in row["feps"]))
-    for fk in fep_keys:
-        int_states[fk] = feps[fk]
+            ccdsfeps[f"FEP{i}"].append(float(str(i) in row["feps"]))
+        for ccd in ccds:
+            ccdsfeps[ccd].append(float(str(ccd) in row["ccds"]))
+    for key in ccdsfeps:
+        int_states[key] = ccdsfeps[key]
 
     # Convert to pandas DataFrame, so we can use sklearn
     df = int_states.to_pandas()
 
+    model_keys = list(ccdsfeps.keys())
+
     # Separate into features and target
-    X = df.drop(
-        [col for col in int_states.colnames if col not in power_keys + fep_keys], axis=1
-    )
+    X = df.drop([col for col in int_states.colnames if col not in model_keys], axis=1)
     y = df["dpa_power"]
 
-    # Split into training and testing sets based on time
-    t_split = start + (stop - start) * args.train_test_split
-    idx_train = df["time"] < t_split.secs
-    idx_test = df["time"] >= t_split.secs
-    for interval in exclude_intervals:
-        int_start = CxoTime(interval[0]).secs
-        int_stop = CxoTime(interval[1]).secs
-        idx_train &= ~((df["time"] >= int_start) & (df["time"] <= int_stop))
-    X_train = X[idx_train]
-    X_test = X[idx_test]
-    y_train = y[idx_train]
-    y_test = y[idx_test]
+    # Split into training and testing sets
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.2, random_state=42
+    )
 
     # Scale the data
     scaler_X = MinMaxScaler()
     X_train = scaler_X.fit_transform(X_train)
     X_test = scaler_X.transform(X_test)
 
-    scaler_y = StandardScaler()
+    scaler_y = MinMaxScaler()
     y_train = scaler_y.fit_transform(y_train.values.reshape(-1, 1))
     y_test = scaler_y.transform(y_test.values.reshape(-1, 1))
 
     # Make the model
     model = MLPRegressor(
         hidden_layer_sizes=(64, 32),  # Two layers with 64 and 32 neurons
-        activation="relu",
         solver="adam",
         max_iter=500,
-        random_state=42,
     )
 
     # Train the model
@@ -126,5 +128,7 @@ def main():
     # Evaluate the model
     y_pred = model.predict(X_test)
     mse = mean_squared_error(y_test, y_pred)
+    mae = mean_absolute_error(y_test, y_pred)
     logger.info("Mean Squared Error: %2f", mse)
+    logger.info("Mean Absolute Error: %2f", mae)
     dump((model, scaler_X, scaler_y), "dpa_power_model.joblib")

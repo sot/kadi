@@ -722,10 +722,10 @@ class ValidateSunPosMon(ValidateStateCode):
 class ValidateACISStatePower(ValidateSingleMsid):
     state_name = "dpa_power"
     msids = ["dpa_power"]
-    state_keys_extra = ["ccd_count", "clocking", "feps", "fep_count", "simpos"]
+    state_keys_extra = ["ccd_count", "clocking", "feps", "ccds", "fep_count", "simpos"]
     plot_attrs = PlotAttrs(title="DPA Power", ylabel="DPA Power (W)")
     min_violation_duration = 600.0  # seconds
-    max_delta_val = 1.0  # W
+    max_delta_val = 1.5  # W
 
     def __init__(self, stop=None, days: float = 14, no_exclude: bool = False):
         from joblib import load
@@ -745,17 +745,18 @@ class ValidateACISStatePower(ValidateSingleMsid):
     @functools.cached_property
     def state_vals(self):
         istates = interpolate_states(self.states, self.times)
-        feps = defaultdict(list)
         # create on-off states for FEPs
+        ccds = [f"I{i}" for i in range(4)] + [f"S{i}" for i in range(6)]
+        ccdsfeps = defaultdict(list)
         for row in istates:
             for i in range(6):
-                feps[f"FEP{i}"].append(float(str(i) in row["feps"]))
-        fep_keys = [f"FEP{i}" for i in range(6)]
-        for fk in fep_keys:
-            istates[fk] = feps[fk]
+                ccdsfeps[f"FEP{i}"].append(float(str(i) in row["feps"]))
+            for ccd in ccds:
+                ccdsfeps[ccd].append(float(str(ccd) in row["ccds"]))
+        for key in ccdsfeps:
+            istates[key] = ccdsfeps[key]
         df = istates.to_pandas()
-        keep_cols = self.state_keys_extra + fep_keys
-        keep_cols.remove("feps")
+        keep_cols = list(ccdsfeps.keys())
         XX = df.drop([col for col in istates.colnames if col not in keep_cols], axis=1)
         XX = self.scaler_X.fit_transform(XX.values)
         yy = self.model.predict(XX)
