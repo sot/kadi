@@ -1313,7 +1313,7 @@ def test_scenario_with_rts(monkeypatch, fast_sun_position_method):
     # Make a new custom scenario from the flight version
     events_flight = Table.read(path_flight)
     cti_event = {
-        "State": "definitive",
+        "State": "Definitive",
         "Date": "2021:297:13:00:00",
         "Event": "RTS",
         "Params": "RTSLOAD,1_CTI06,NUM_HOURS=12:00:00,SCS_NUM=135",
