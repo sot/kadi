@@ -193,7 +193,7 @@ def get_cmds(
     *,
     inclusive_stop=False,
     scenario=None,
-    event_filter=None,
+    event_filter: Callable | list[Callable] | None = None,
     **kwargs,
 ) -> CommandTable:
     """Get Chandra commands that ran on-board or are approved to run.
@@ -237,6 +237,10 @@ def get_cmds(
         Name of commands archive scenario to use instead of default.
     inclusive_stop : bool
         Include commands at exactly ``stop`` if True.
+    event_filter : callable, list of callable, None
+        Callable function or list of callable functions that takes an Event Table as
+        input and returns a boolean mask with same length as Table. This is used to
+        select rows from the Table. If None, no filtering is done.
     **kwargs : dict
         key=val keyword argument pairs for filtering.
 
