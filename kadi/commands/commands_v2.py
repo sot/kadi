@@ -12,7 +12,7 @@ import re
 import weakref
 from collections import defaultdict
 from pathlib import Path
-from typing import List
+from typing import Callable, List
 
 import astropy.units as u
 import numpy as np
@@ -188,7 +188,13 @@ def get_matching_block_idx_simple(cmds_recent, cmds_arch, min_match):
 
 
 def get_cmds(
-    start=None, stop=None, *, inclusive_stop=False, scenario=None, **kwargs
+    start=None,
+    stop=None,
+    *,
+    inclusive_stop=False,
+    scenario=None,
+    event_filter=None,
+    **kwargs,
 ) -> CommandTable:
     """Get Chandra commands that ran on-board or are approved to run.
 
@@ -260,7 +266,11 @@ def get_cmds(
     else:
         if scenario not in CMDS_RECENT:
             cmds_recent = update_archive_and_get_cmds_recent(
-                scenario, cache=True, pars_dict=PARS_DICT, rev_pars_dict=REV_PARS_DICT
+                scenario,
+                cache=True,
+                pars_dict=PARS_DICT,
+                rev_pars_dict=REV_PARS_DICT,
+                event_filter=event_filter,
             )
         else:
             cmds_recent = CMDS_RECENT[scenario]
@@ -343,11 +353,12 @@ def update_archive_and_get_cmds_recent(
     cache=True,
     pars_dict=None,
     rev_pars_dict=None,
+    event_filter: Callable | None = None,
 ):
     """Update local loads table and downloaded loads and return all recent cmds.
 
-    This is the main entry point for getting recent commands and for updating
-    the archive HDF5 file.
+    This is the main entry point for getting recent commands and for updating the
+    archive HDF5 file.
 
     This also caches the recent commands in the global CMDS_RECENT dict.
 
@@ -360,20 +371,26 @@ def update_archive_and_get_cmds_recent(
     lookback : int, Quantity, None
         Lookback time from ``stop`` for recent loads. If None, use
         conf.default_lookback.
-    stop : CxoTime-like, None
-        Stop time for loads table (default is now + 21 days)
     cache : bool
         Cache the result in CMDS_RECENT dict.
-
+    pars_dict : dict, None
+        Dictionary of parameters from the command table.
+    rev_pars_dict : dict, None
+        Inverse mapping of ``pars_dict``.
+    event_filter : Callable, None
+        Callable function that takes an Event Table as input and returns a boolean mask
+        with same length as Table. This is used to select rows from the Table. If None,
+        no filtering is done.
     Returns
     -------
     CommandTable
     """
     # List of CommandTable objects from loads and cmd_events
     cmds_list: List[CommandTable] = []
+    default_stop = get_default_stop()
 
     # Update local cmds_events.csv from Google Sheets
-    cmd_events = update_cmd_events(scenario)
+    cmd_events = update_cmd_events(scenario, event_filter, default_stop)
 
     # Get load names that were not run at all or where observing was not run.
     # E.g. an SCS-107 near end of loads where next week vehicle loads only were
@@ -969,7 +986,11 @@ def is_google_id(scenario):
     return scenario is not None and len(scenario) > 35
 
 
-def update_cmd_events(scenario=None) -> Table:
+def update_cmd_events(
+    scenario=None,
+    event_filter: Callable | None = None,
+    default_stop: CxoTime | None = None,
+) -> Table:
     """Update local cmd_events.csv from Google Sheets and read events for ``scenario``.
 
     For local scenarios, the cmd_events.csv file is read directly from the CSV file in
@@ -990,40 +1011,30 @@ def update_cmd_events(scenario=None) -> Table:
     Parameters
     ----------
     scenario : str, None
-        Scenario name
+        Scenario name.
+    event_filter : Callable, None
+        Callable function that takes an Event Table as input and returns a boolean mask
+        with same length as Table. This is used to select rows from the Table. If None,
+        no filtering is done.
+    default_stop : CxoTime, None
+        Default stop time for filtering events. Normally None, which implies no
+        filtering, but this can be set via the CXOTIME_NOW environment variable.
 
     Returns
     -------
     Table
-        Filtered command events table for scenario
+        Filtered command events table for scenario.
     """
     # Named scenarios with a name that isn't "flight" and does not look like a
     # google sheet ID are local files.
     use_local = scenario not in (None, "flight") and not is_google_id(scenario)
     if use_local or not HAS_INTERNET:
-        cmd_events = get_cmd_events(scenario)
+        cmd_events = get_cmd_events_from_local(scenario)
     else:
-        doc_id = scenario if is_google_id(scenario) else conf.cmd_events_flight_id
-        url = CMD_EVENTS_SHEET_URL.format(doc_id=doc_id)
-        logger.info(f"Getting cmd_events from {url}")
-        req = requests.get(url, timeout=30)
-        if req.status_code != 200:
-            raise ValueError(f"Failed to get cmd events sheet: {req.status_code}")
+        cmd_events = get_cmd_events_from_sheet(scenario)
 
-        cmd_events = Table.read(
-            req.text, format="csv", fill_values=[], converters={"Params": str}
-        )
-        ok = [cmd_event["Date"].strip() != "" for cmd_event in cmd_events]
-        cmd_events = cmd_events[ok]
-
-        # Ensure the scenario directory exists and write file
-        paths.SCENARIO_DIR(scenario).mkdir(parents=True, exist_ok=True)
-        cmd_events_path = paths.CMD_EVENTS_PATH(scenario)
-        logger.info(f"Writing {len(cmd_events)} cmd_events to {cmd_events_path}")
-        cmd_events.write(cmd_events_path, format="csv", overwrite=True)
-
-    # Filter table based on State column. In-work can be used to validate the new
-    # event vs telemetry prior to make it operational.
+    # Filter table based on State column (if available). In-work can be used to validate
+    # the new event vs telemetry prior to make it operational.
     if "State" in cmd_events.colnames:
         allowed_states = ["Predictive", "Definitive"]
         if conf.include_in_work_command_events:
@@ -1032,12 +1043,62 @@ def update_cmd_events(scenario=None) -> Table:
         cmd_events = cmd_events[ok]
 
     # If CXOTIME_NOW is set, filter out events after that date.
-    cmd_events = filter_cmd_events_default_stop(cmd_events)
+    if default_stop is not None:
+        cmd_events = filter_cmd_events_default_stop(cmd_events, default_stop)
+
+    if event_filter is not None:
+        ok = event_filter(cmd_events)
+        cmd_events = cmd_events[ok]
 
     return cmd_events
 
 
-def get_cmd_events(scenario=None):
+def get_cmd_events_from_sheet(scenario):
+    """
+    Fetch command events from Google Sheet for ``scenario`` and write to a CSV file.
+
+    Parameters
+    ----------
+    scenario : str, None
+        Scenario identifier, which can be a Google Sheet ID or another identifier.
+
+    Returns
+    -------
+    Table
+        Command events Table.
+
+    Raises
+    ------
+    ValueError
+        If the request to fetch the Google Sheet fails.
+    """
+    # Check if the scenario is a Google Sheet ID or uses a default configuration ID.
+    doc_id = scenario if is_google_id(scenario) else conf.cmd_events_flight_id
+
+    # Fetch the command events from the Google Sheet URL.
+    url = CMD_EVENTS_SHEET_URL.format(doc_id=doc_id)
+    logger.info(f"Getting cmd_events from {url}")
+    req = requests.get(url, timeout=30)
+    if req.status_code != 200:
+        raise ValueError(f"Failed to get cmd events sheet: {req.status_code}")
+
+    cmd_events = Table.read(
+        req.text, format="csv", fill_values=[], converters={"Params": str}
+    )
+    # Remove blank rows from Google sheet export
+    ok = [cmd_event["Date"].strip() != "" for cmd_event in cmd_events]
+    cmd_events = cmd_events[ok]
+
+    # Ensure the scenario directory exists and write file
+    paths.SCENARIO_DIR(scenario).mkdir(parents=True, exist_ok=True)
+    cmd_events_path = paths.CMD_EVENTS_PATH(scenario)
+    logger.info(f"Writing {len(cmd_events)} cmd_events to {cmd_events_path}")
+    cmd_events.write(cmd_events_path, format="csv", overwrite=True)
+
+    return cmd_events
+
+
+def get_cmd_events_from_local(scenario=None):
     """Get local cmd_events.csv for ``scenario``.
 
     Parameters
@@ -1047,8 +1108,7 @@ def get_cmd_events(scenario=None):
 
     Returns
     -------
-    out
-        Table
+    Table
         Command events table
     """
     cmd_events_path = paths.CMD_EVENTS_PATH(scenario)
@@ -1056,24 +1116,24 @@ def get_cmd_events(scenario=None):
     cmd_events = Table.read(
         str(cmd_events_path), format="csv", fill_values=[], converters={"Params": str}
     )
-
-    # If CXOTIME_NOW is set, filter out events after that date.
-    cmd_events = filter_cmd_events_default_stop(cmd_events)
+    # State column not required in local scenario events file, but upstream processing
+    # expects it.
+    if "State" not in cmd_events.colnames:
+        cmd_events["State"] = "Definitive"
 
     return cmd_events
 
 
-def filter_cmd_events_default_stop(cmd_events):
-    if (stop := get_default_stop()) is not None:
-        stop = CxoTime(stop)
-        # Filter table based on stop date. Need to use CxoTime on each event separately
-        # because the date format could be inconsistent.
-        ok = [CxoTime(cmd_event["Date"]).date <= stop.date for cmd_event in cmd_events]
-        logger.debug(
-            f"Filtering cmd_events to stop date {stop.date} "
-            f"({np.count_nonzero(ok)} vs {len(cmd_events)})"
-        )
-        cmd_events = cmd_events[ok]
+def filter_cmd_events_default_stop(cmd_events, stop):
+    stop = CxoTime(stop)
+    # Filter table based on stop date. Need to use CxoTime on each event separately
+    # because the date format could be inconsistent.
+    ok = [CxoTime(cmd_event["Date"]).date <= stop.date for cmd_event in cmd_events]
+    logger.debug(
+        f"Filtering cmd_events to stop date {stop.date} "
+        f"({np.count_nonzero(ok)} vs {len(cmd_events)})"
+    )
+    cmd_events = cmd_events[ok]
     return cmd_events
 
 

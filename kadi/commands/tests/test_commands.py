@@ -553,6 +553,7 @@ def test_cmds_scenario(stop_date_2020_12_03):  # noqa: ARG001
     cmds_dir = Path(commands.conf.commands_dir) / scenario
     cmds_dir.mkdir(exist_ok=True, parents=True)
     # Note variation in format of date, since this comes from humans.
+    # This also does not have a State column, which tests code to put that in.
     cmd_evts_text = """\
 Date,Event,Params,Author,Comment
 2020-12-01T00:08:30,Command,ACISPKT | TLMSID=WSPOW00000",Tom Aldcroft,
