@@ -353,7 +353,7 @@ def update_archive_and_get_cmds_recent(
     cache=True,
     pars_dict=None,
     rev_pars_dict=None,
-    event_filter: Callable | None = None,
+    event_filter: Callable | list[Callable] | None = None,
 ):
     """Update local loads table and downloaded loads and return all recent cmds.
 
@@ -377,10 +377,10 @@ def update_archive_and_get_cmds_recent(
         Dictionary of parameters from the command table.
     rev_pars_dict : dict, None
         Inverse mapping of ``pars_dict``.
-    event_filter : Callable, None
-        Callable function that takes an Event Table as input and returns a boolean mask
-        with same length as Table. This is used to select rows from the Table. If None,
-        no filtering is done.
+    event_filter : callable, list of callable, None
+        Callable function or list of callable functions that takes an Event Table as
+        input and returns a boolean mask with same length as Table. This is used to
+        select rows from the Table. If None, no filtering is done.
     Returns
     -------
     CommandTable
@@ -988,7 +988,7 @@ def is_google_id(scenario):
 
 def update_cmd_events(
     scenario=None,
-    event_filter: Callable | None = None,
+    event_filter: Callable | list[Callable] | None = None,
     default_stop: CxoTime | None = None,
 ) -> Table:
     """Update local cmd_events.csv from Google Sheets and read events for ``scenario``.
@@ -1012,10 +1012,10 @@ def update_cmd_events(
     ----------
     scenario : str, None
         Scenario name.
-    event_filter : Callable, None
-        Callable function that takes an Event Table as input and returns a boolean mask
-        with same length as Table. This is used to select rows from the Table. If None,
-        no filtering is done.
+    event_filter : Callable, list of callable, None
+        Callable function or list of callable functions that takes an Event Table as
+        input and returns a boolean mask with same length as Table. This is used to
+        select rows from the Table. If None, no filtering is done.
     default_stop : CxoTime, None
         Default stop time for filtering events. Normally None, which implies no
         filtering, but this can be set via the CXOTIME_NOW environment variable.
@@ -1025,6 +1025,13 @@ def update_cmd_events(
     Table
         Filtered command events table for scenario.
     """
+    if event_filter is None:
+        event_filters = []
+    elif callable(event_filter):
+        event_filters = [event_filter]
+    else:
+        event_filters = list(event_filter)
+
     # Named scenarios with a name that isn't "flight" and does not look like a
     # google sheet ID are local files.
     use_local = scenario not in (None, "flight") and not is_google_id(scenario)
@@ -1033,27 +1040,47 @@ def update_cmd_events(
     else:
         cmd_events = get_cmd_events_from_sheet(scenario)
 
-    # Filter table based on State column (if available). In-work can be used to validate
-    # the new event vs telemetry prior to make it operational.
+    # Filter table based on State column (if available)
     if "State" in cmd_events.colnames:
-        allowed_states = ["Predictive", "Definitive"]
-        if conf.include_in_work_command_events:
-            allowed_states.append("In-work")
-        ok = np.isin(cmd_events["State"], allowed_states)
-        cmd_events = cmd_events[ok]
+        event_filters.append(filter_cmd_events_state)
 
     # If CXOTIME_NOW is set, filter out events after that date.
     if default_stop is not None:
-        cmd_events = filter_cmd_events_default_stop(cmd_events, default_stop)
+        event_filters.append(filter_cmd_events_date_stop(default_stop))
 
-    if event_filter is not None:
-        ok = event_filter(cmd_events)
+    if event_filters:
+        ok = np.ones(len(cmd_events), dtype=bool)
+        for event_filter_func in event_filters:
+            ok &= event_filter_func(cmd_events)
         cmd_events = cmd_events[ok]
 
     return cmd_events
 
 
-def get_cmd_events_from_sheet(scenario):
+def filter_cmd_events_state(cmd_events: Table) -> np.ndarray[bool]:
+    """
+    Filters command events based on State.
+
+    Parameters
+    ----------
+    cmd_events : Table
+        Command events, where each event has a "State" attribute.
+
+    Returns
+    -------
+    numpy.ndarray
+        A boolean array indicating which command events have allowed states.
+    """
+    allowed_states = ["Predictive", "Definitive"]
+    # In-work can be used to validate the new event vs telemetry prior to make it
+    # operational.
+    if conf.include_in_work_command_events:
+        allowed_states.append("In-work")
+    ok = np.isin(cmd_events["State"], allowed_states)
+    return ok
+
+
+def get_cmd_events_from_sheet(scenario: str | None) -> Table:
     """
     Fetch command events from Google Sheet for ``scenario`` and write to a CSV file.
 
@@ -1116,25 +1143,22 @@ def get_cmd_events_from_local(scenario=None):
     cmd_events = Table.read(
         str(cmd_events_path), format="csv", fill_values=[], converters={"Params": str}
     )
-    # State column not required in local scenario events file, but upstream processing
-    # expects it.
-    if "State" not in cmd_events.colnames:
-        cmd_events["State"] = "Definitive"
-
     return cmd_events
 
 
-def filter_cmd_events_default_stop(cmd_events, stop):
-    stop = CxoTime(stop)
-    # Filter table based on stop date. Need to use CxoTime on each event separately
-    # because the date format could be inconsistent.
-    ok = [CxoTime(cmd_event["Date"]).date <= stop.date for cmd_event in cmd_events]
-    logger.debug(
-        f"Filtering cmd_events to stop date {stop.date} "
-        f"({np.count_nonzero(ok)} vs {len(cmd_events)})"
-    )
-    cmd_events = cmd_events[ok]
-    return cmd_events
+def filter_cmd_events_date_stop(date_stop):
+    def func(cmd_events):
+        stop = CxoTime(date_stop)
+        # Filter table based on stop date. Need to use CxoTime on each event separately
+        # because the date format could be inconsistent.
+        ok = [CxoTime(cmd_event["Date"]).date <= stop.date for cmd_event in cmd_events]
+        logger.debug(
+            f"Filtering cmd_events to stop date {stop.date} "
+            f"({np.count_nonzero(ok)} vs {len(cmd_events)})"
+        )
+        return ok
+
+    return func
 
 
 def update_loads(scenario=None, *, lookback=None, stop=None) -> Table:
