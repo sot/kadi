@@ -317,6 +317,7 @@ def get_starcats_as_table(
     scenario=None,
     cmds=None,
     starcat_date=None,
+    event_filter=None,
 ):
     """Get a single table of star catalog entries corresponding to input parameters.
 
@@ -360,6 +361,10 @@ def get_starcats_as_table(
         Use this command table instead of querying the archive.
     starcat_date : CxoTime-like, None
         Date of the observation's star catalog
+    event_filter : callable, list of callable, None
+        Callable function or list of callable functions that takes an Event Table as
+        input and returns a boolean mask with same length as Table. If None, no
+        filtering is done.
 
     Returns
     -------
@@ -374,6 +379,7 @@ def get_starcats_as_table(
         cmds=cmds,
         starcat_date=starcat_date,
         as_dict=True,
+        event_filter=event_filter,
     )
     out = defaultdict(list)
     for starcat in starcats:
@@ -404,6 +410,7 @@ def get_starcats(
     as_dict=False,
     starcat_date=None,
     show_progress=False,
+    event_filter=None,
 ):
     """Get a list of star catalogs corresponding to input parameters.
 
@@ -478,6 +485,10 @@ def get_starcats(
         Date of the observation's star catalog
     show_progress : bool
         Show progress bar for long queries (default=False)
+    event_filter : callable, list of callable, None
+        Callable function or list of callable functions that takes an Event Table as
+        input and returns a boolean mask with same length as Table. If None, no
+        filtering is done.
 
     Returns
     -------
@@ -501,6 +512,7 @@ def get_starcats(
         scenario=scenario,
         cmds=cmds,
         starcat_date=starcat_date,
+        event_filter=event_filter,
     )
     starcats = []
     rev_pars_dict = REV_PARS_DICT if cmds is None else cmds.rev_pars_dict()
@@ -571,7 +583,14 @@ def get_starcats(
 
 
 def get_observations(
-    start=None, stop=None, *, obsid=None, scenario=None, cmds=None, starcat_date=None
+    start=None,
+    stop=None,
+    *,
+    obsid=None,
+    scenario=None,
+    cmds=None,
+    starcat_date=None,
+    event_filter=None,
 ):
     """Get observations corresponding to input parameters.
 
@@ -604,8 +623,9 @@ def get_observations(
 
         >>> obs_all = get_observations()  # All observations in commands archive
 
-        # Might be convenient to handle this as a Table >>> from astropy.table
-        import Table >>> obs_all = Table(obs_all)
+        # Might be convenient to handle this as a Table
+        >>> from astropy.table import Table
+        >>> obs_all = Table(obs_all)
 
         >>> from kadi.commands import get_observations
         >>> get_observations(starcat_date='2022:001:17:00:58.521')
@@ -635,6 +655,10 @@ def get_observations(
         Use this command table instead of querying the archive
     starcat_date : CxoTime-like, None
         Date of the observation's star catalog
+    event_filter : callable, list of callable, None
+        Callable function or list of callable functions that takes an Event Table as
+        input and returns a boolean mask with same length as Table. If None, no
+        filtering is done.
 
     Returns
     -------
@@ -651,7 +675,7 @@ def get_observations(
 
     if cmds is None:
         if scenario not in OBSERVATIONS:
-            cmds = get_cmds(scenario=scenario)
+            cmds = get_cmds(scenario=scenario, event_filter=event_filter)
             cmds_obs = cmds[cmds["tlmsid"] == "OBS"]
             obsids = []
             for cmd in cmds_obs:
