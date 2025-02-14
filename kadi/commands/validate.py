@@ -722,7 +722,7 @@ class ValidateSunPosMon(ValidateStateCode):
 class ValidateACISStatePower(ValidateSingleMsid):
     state_name = "dpa_power"
     msids = ["dpa_power"]
-    state_keys_extra = ["ccd_count", "clocking", "feps", "ccds", "fep_count", "simpos"]
+    state_keys_extra = ["ccd_count", "clocking", "feps", "ccds", "fep_count", "si_mode"]
     plot_attrs = PlotAttrs(title="DPA Power", ylabel="DPA Power (W)")
     min_violation_duration = 600.0  # seconds
     max_delta_val = 2.0  # W
@@ -744,24 +744,37 @@ class ValidateACISStatePower(ValidateSingleMsid):
 
     @functools.cached_property
     def state_vals(self):
-        istates = interpolate_states(self.states, self.times)
-        # create on-off states for FEPs
+        int_states = interpolate_states(self.states, self.times)
+
+        # create on-off states for FEPs and CCDs
         ccds = [f"I{i}" for i in range(4)] + [f"S{i}" for i in range(6)]
         ccdsfeps = defaultdict(list)
-        for row in istates:
+        for row in int_states:
             for i in range(6):
-                ccdsfeps[f"FEP{i}"].append(float(str(i) in row["feps"]))
-            for ccd in ccds:
-                ccdsfeps[ccd].append(float(str(ccd) in row["ccds"]))
+                ccdsfeps[f"FEP{i}"].append(str(i) in row["feps"])
+            for key in ccds:
+                ccdsfeps[key].append(key in row["ccds"])
         for key in ccdsfeps:
-            istates[key] = ccdsfeps[key]
-        df = istates.to_pandas()
-        keep_cols = list(ccdsfeps.keys())
-        XX = df.drop([col for col in istates.colnames if col not in keep_cols], axis=1)
+            int_states[key] = np.array(ccdsfeps[key], dtype="float64")
+
+        # check for continuous clocking mode
+        int_states["cc"] = np.char.startswith(int_states["si_mode"], "CC").astype(
+            "float64"
+        )
+        int_states["cc"] *= ~int_states["clocking"].astype("bool")
+
+        # Convert to pandas DataFrame, so we can use sklearn
+        df = int_states.to_pandas()
+        keep_cols = ["cc"] + list(ccdsfeps.keys())
+        XX = df.drop(
+            [col for col in int_states.colnames if col not in keep_cols], axis=1
+        )
         XX = self.scaler_X.fit_transform(XX.values)
         yy = self.model.predict(XX)
+
         # Inverse transform the predictions and actual values
         _state_vals = self.scaler_y.inverse_transform(yy.reshape(-1, 1)).flatten()
+
         return _state_vals
 
     def add_exclude_intervals(self):
