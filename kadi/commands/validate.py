@@ -11,6 +11,7 @@ or from the command-line application ``kadi_validate_states`` (defined in
 
 import functools
 import logging
+import os
 from abc import ABC
 from collections import defaultdict
 from dataclasses import dataclass
@@ -730,8 +731,9 @@ class ValidateACISStatePower(ValidateSingleMsid):
     def __init__(self, stop=None, days: float = 14, no_exclude: bool = False):
         from joblib import load
 
+        model_path = Path(os.environ["SKA"]) / "data/kadi/dpa_power_model.joblib"
         super().__init__(stop=stop, days=days, no_exclude=no_exclude)
-        self.model, self.scaler_X, self.scaler_y = load("dpa_power_model.joblib")
+        self.model, self.scaler_X, self.scaler_y = load(model_path)
 
     @functools.cached_property
     def states(self):
