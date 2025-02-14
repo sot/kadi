@@ -3,6 +3,7 @@ import logging
 from collections import defaultdict
 
 import astropy.units as u
+import numpy as np
 from cheta import fetch_sci as fetch
 from cxotime import CxoTime
 from joblib import dump
@@ -59,11 +60,10 @@ def main():
     state_keys = [
         "ccd_count",
         "clocking",
-        "simpos",
         "feps",
         "ccds",
         "fep_count",
-        "power_cmd",
+        "si_mode",
     ]
 
     # Get commanded states
@@ -81,21 +81,25 @@ def main():
 
     logger.setLevel(args.log_level)
 
-    # create on-off states for FEPs
+    # create on-off states for FEPs and CCDs
     ccds = [f"I{i}" for i in range(4)] + [f"S{i}" for i in range(6)]
     ccdsfeps = defaultdict(list)
     for row in int_states:
         for i in range(6):
-            ccdsfeps[f"FEP{i}"].append(float(str(i) in row["feps"]))
-        for ccd in ccds:
-            ccdsfeps[ccd].append(float(str(ccd) in row["ccds"]))
+            ccdsfeps[f"FEP{i}"].append(str(i) in row["feps"])
+        for key in ccds:
+            ccdsfeps[key].append(key in row["ccds"])
     for key in ccdsfeps:
-        int_states[key] = ccdsfeps[key]
+        int_states[key] = np.array(ccdsfeps[key], dtype="float64")
+
+    # check for continuous clocking mode
+    int_states["cc"] = np.char.startswith(int_states["si_mode"], "CC").astype("float64")
+    int_states["cc"] *= ~int_states["clocking"].astype("bool")
 
     # Convert to pandas DataFrame, so we can use sklearn
     df = int_states.to_pandas()
 
-    model_keys = list(ccdsfeps.keys())
+    model_keys = ["cc"] + list(ccdsfeps.keys())
 
     # Separate into features and target
     X = df.drop([col for col in int_states.colnames if col not in model_keys], axis=1)
