@@ -18,7 +18,9 @@ from kadi.commands.states import get_states, interpolate_states
 logger = logging.getLogger("kadi")
 
 exclude_intervals = [
-    ("2022:016:00:05:23", "2022:018:18:43:48"),
+    ("2020:023:17:57:00", "2020:023:23:07:30"),  # ACIS FSW v56 Update
+    ("2022:016:00:05:23", "2022:018:18:43:48"),  # ACIS Watchdog Reboot
+    ("2023:263:00:37:00", "2023:263:07:40:00"),  # ACIS FSW v60 Update
 ]
 
 
@@ -54,8 +56,6 @@ def main():
     stop = CxoTime(args.stop)
     start = stop - args.days * u.day
 
-    logger.debug("Obtaining data from %s to %s", start.yday, stop.yday)
-
     # States to obtain for the model
     state_keys = [
         "ccd_count",
@@ -80,6 +80,8 @@ def main():
     int_states["time"] = msids["dpa_power"].times
 
     logger.setLevel(args.log_level)
+
+    logger.info("Using data from %s to %s", start.yday, stop.yday)
 
     # create on-off states for FEPs and CCDs
     ccds = [f"I{i}" for i in range(4)] + [f"S{i}" for i in range(6)]
