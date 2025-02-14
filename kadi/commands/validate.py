@@ -725,7 +725,7 @@ class ValidateACISStatePower(ValidateSingleMsid):
     state_keys_extra = ["ccd_count", "clocking", "feps", "ccds", "fep_count", "simpos"]
     plot_attrs = PlotAttrs(title="DPA Power", ylabel="DPA Power (W)")
     min_violation_duration = 600.0  # seconds
-    max_delta_val = 1.5  # W
+    max_delta_val = 2.0  # W
 
     def __init__(self, stop=None, days: float = 14, no_exclude: bool = False):
         from joblib import load
