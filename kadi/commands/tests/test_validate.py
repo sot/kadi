@@ -155,7 +155,13 @@ def get_one_validator_data(cls: type[Validate], stop, days, no_exclude):
 @pytest.mark.skipif(not HAS_INTERNET, reason="Command sheet not available")
 @pytest.mark.parametrize("cls", Validate.subclasses)
 @pytest.mark.parametrize("no_exclude", [False, True])
-def test_validate_regression(cls, no_exclude, fast_sun_position_method, regress_stop):
+def test_validate_regression(
+    cls,
+    no_exclude,
+    fast_sun_position_method,
+    regress_stop,
+    disable_hrc_scs107_commanding,
+):
     """Test that validator data matches regression data
 
     This is likely to be fragile. In the future we may need helper function to output
