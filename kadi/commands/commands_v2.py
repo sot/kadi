@@ -93,11 +93,10 @@ def clear_caches():
     OBSERVATIONS.clear()
 
 
-def _merge_cmds_archive_recent(start, scenario):
+def _merge_cmds_archive_recent(start, cache_key, cmds_recent):
     """Merge cmds archive from ``start`` onward with recent cmds for ``scenario``
 
     This assumes:
-    - CMDS_RECENT cache has been set with that scenario.
     - Recent commands overlap the cmds archive
 
     Parameters
@@ -112,11 +111,10 @@ def _merge_cmds_archive_recent(start, scenario):
     CommandTable
         Commands from cmds archive and all recent commands
     """
-    cmds_recent = CMDS_RECENT[scenario]
 
     logger.info(f"Merging cmds_recent with archive commands from {start}")
 
-    if scenario not in MATCHING_BLOCKS:
+    if cache_key not in MATCHING_BLOCKS:
         # Get index for start of cmds_recent within the cmds archive
         i0_arch_recent = IDX_CMDS.find_date(cmds_recent["date"][0])
 
@@ -130,9 +128,9 @@ def _merge_cmds_archive_recent(start, scenario):
             IDX_CMDS[i0_arch_recent:], cmds_recent
         )
         arch_block_end = i0_arch_recent + arch_recent_offset
-        MATCHING_BLOCKS[scenario] = arch_block_end, recent_block_end, i0_arch_recent
+        MATCHING_BLOCKS[cache_key] = arch_block_end, recent_block_end, i0_arch_recent
     else:
-        arch_block_end, recent_block_end, i0_arch_recent = MATCHING_BLOCKS[scenario]
+        arch_block_end, recent_block_end, i0_arch_recent = MATCHING_BLOCKS[cache_key]
 
     # Get archive commands from the requested start time (or start of the overlap
     # with recent commands) to the end of the matching block in recent commands.
@@ -258,6 +256,10 @@ def get_cmds(
     # Default stop is either now (typically) or set by env var
     default_stop = CxoTime(get_default_stop())
 
+    # Cache key used for CMDS_RECENT and MATCHING_BLOCKS.
+    # TODO: make more complete.
+    cache_key = scenario
+
     # For flight scenario or no internet or if the query stop time is guaranteed
     # to not require recent commands then just use the archive.
     before_recent_cmds = stop < default_stop - conf.default_lookback * u.day
@@ -268,7 +270,7 @@ def get_cmds(
             f" {scenario=} {before_recent_cmds=} {HAS_INTERNET=}"
         )
     else:
-        if scenario not in CMDS_RECENT:
+        if cache_key not in CMDS_RECENT:
             cmds_recent = update_archive_and_get_cmds_recent(
                 scenario,
                 cache=True,
@@ -277,7 +279,7 @@ def get_cmds(
                 event_filter=event_filter,
             )
         else:
-            cmds_recent = CMDS_RECENT[scenario]
+            cmds_recent = CMDS_RECENT[cache_key]
 
         # Get `cmds` as correct mix of recent and archive commands that contains
         # the requested date range.
@@ -293,7 +295,7 @@ def get_cmds(
             # archive commands. The margin is set at 3 days to ensure that OBS
             # command continuity is maintained (there is at least one maneuver).
             # See also the DESIGN commentary after the function.
-            cmds = _merge_cmds_archive_recent(start, scenario)
+            cmds = _merge_cmds_archive_recent(start, cache_key, cmds_recent)
             logger.info(
                 "Getting commands from archive + recent: start < recent loads start +"
                 f" 3 days for {scenario=}"
@@ -372,9 +374,11 @@ def update_archive_and_get_cmds_recent(
     ----------
     scenario : str, None
         Scenario name
-    lookback : int, Quantity, None
-        Lookback time from ``stop`` for recent loads. If None, use
+    lookback : int, None
+        Lookback time from ``stop`` for recent loads in days. If None, use
         conf.default_lookback.
+    stop : CxoTime-like, None
+        Stop time for recent loads. If None, use default_stop.
     cache : bool
         Cache the result in CMDS_RECENT dict.
     pars_dict : dict, None
@@ -385,6 +389,7 @@ def update_archive_and_get_cmds_recent(
         Callable function or list of callable functions that takes an Event Table as
         input and returns a boolean mask with same length as Table. This is used to
         select rows from the Table. If None, no filtering is done.
+
     Returns
     -------
     CommandTable
