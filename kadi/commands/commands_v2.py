@@ -30,7 +30,7 @@ from kadi.commands.core import (
     LazyVal,
     _find,
     get_cmds_from_backstop,
-    get_default_stop,
+    get_cxotime_now,
     get_par_idx_update_pars_dict,
     load_idx_cmds,
     load_name_to_cxotime,
@@ -252,17 +252,20 @@ def get_cmds(
     scenario = os.environ.get("KADI_SCENARIO", scenario)
     start = CxoTime("1999:001" if start is None else start)
     stop = (CxoTime.now() + 1 * u.year) if stop is None else CxoTime(stop)
+    lookback = conf.default_lookback
 
-    # Default stop is either now (typically) or set by env var
-    default_stop = CxoTime(get_default_stop())
+    # Get current "now" time, which might be mocked via CXOTIME_NOW.
+    # get_cxotime_now() returns None if the env var is not set.
+    cxotime_now = get_cxotime_now()
+    now = CxoTime(cxotime_now)
 
-    # Cache key used for CMDS_RECENT and MATCHING_BLOCKS.
-    # TODO: make more complete.
-    cache_key = scenario
+    # Cache key used for CMDS_RECENT and MATCHING_BLOCKS. These are all the relevant
+    # kwargs in update_archive_and_get_cmds_recent().
+    cache_key = scenario, cxotime_now, lookback, event_filter
 
     # For flight scenario or no internet or if the query stop time is guaranteed
     # to not require recent commands then just use the archive.
-    before_recent_cmds = stop < default_stop - conf.default_lookback * u.day
+    before_recent_cmds = stop < now - lookback * u.day
     if scenario == "flight" or not HAS_INTERNET or before_recent_cmds:
         cmds = IDX_CMDS
         logger.info(
@@ -271,8 +274,10 @@ def get_cmds(
         )
     else:
         if cache_key not in CMDS_RECENT:
-            cmds_recent = update_archive_and_get_cmds_recent(
+            cmds_recent = update_cmd_events_and_loads_and_get_cmds_recent(
                 scenario,
+                lookback=lookback,
+                stop_loads=cxotime_now,
                 cache=True,
                 pars_dict=PARS_DICT,
                 rev_pars_dict=REV_PARS_DICT,
@@ -351,11 +356,11 @@ def get_cmds(
 # APR0122 commands will also not be in the archive.
 
 
-def update_archive_and_get_cmds_recent(
+def update_cmd_events_and_loads_and_get_cmds_recent(
     scenario=None,
     *,
     lookback=None,
-    stop=None,
+    stop_loads=None,
     cache=True,
     pars_dict=None,
     rev_pars_dict=None,
@@ -377,8 +382,8 @@ def update_archive_and_get_cmds_recent(
     lookback : int, None
         Lookback time from ``stop`` for recent loads in days. If None, use
         conf.default_lookback.
-    stop : CxoTime-like, None
-        Stop time for recent loads. If None, use default_stop.
+    stop_loads : CxoTime-like[str], None
+        Stop time for recent loads. If None, use get_cxotime_now().
     cache : bool
         Cache the result in CMDS_RECENT dict.
     pars_dict : dict, None
@@ -396,10 +401,9 @@ def update_archive_and_get_cmds_recent(
     """
     # List of CommandTable objects from loads and cmd_events
     cmds_list: List[CommandTable] = []
-    default_stop = get_default_stop()
 
     # Update local cmds_events.csv from Google Sheets
-    cmd_events = update_cmd_events(scenario, event_filter, default_stop)
+    cmd_events = update_cmd_events(scenario, event_filter)
 
     # Get load names that were not run at all or where observing was not run.
     # E.g. an SCS-107 near end of loads where next week vehicle loads only were
@@ -413,7 +417,7 @@ def update_archive_and_get_cmds_recent(
         }
 
     # Update loads table and download/archive backstop files from OCCweb
-    loads = update_loads(scenario, lookback=lookback, stop=stop)
+    loads = update_loads(scenario, lookback=lookback, stop_loads=stop_loads)
     logger.info(f"Including loads {', '.join(loads['name'])}")
 
     for load in loads:
@@ -454,11 +458,11 @@ def update_archive_and_get_cmds_recent(
 
     # Filter events outside the time interval, assuming command event cannot
     # last more than 2 weeks.
-    start = CxoTime(min(loads["cmd_start"]))
-    stop = CxoTime(max(loads["cmd_stop"]))
+    start_cmds = CxoTime(min(loads["cmd_start"]))
+    stop_cmds = CxoTime(max(loads["cmd_stop"]))
     # Allow for variations in input format of date
     dates = np.array([CxoTime(date).date for date in cmd_events["Date"]], dtype=str)
-    bad = (dates < (start - 14 * u.day).date) | (dates > stop.date)
+    bad = (dates < (start_cmds - 14 * u.day).date) | (dates > stop_cmds.date)
     cmd_events = cmd_events[~bad]
     cmd_events_ids = [evt["Event"] + " at " + evt["Date"] for evt in cmd_events]
     if len(cmd_events) > 0:
@@ -530,7 +534,7 @@ def update_archive_and_get_cmds_recent(
     cmds_recent.deduplicate_orbit_cmds()
     cmds_recent.remove_not_run_cmds()
     cmds_recent = add_obs_cmds(cmds_recent, pars_dict, rev_pars_dict)
-    cmds_recent.meta["loads_start"] = start.date
+    cmds_recent.meta["loads_start"] = start_cmds.date
 
     if cache:
         # Cache recent commands so future requests for the same scenario are fast
@@ -998,7 +1002,6 @@ def is_google_id(scenario):
 def update_cmd_events(
     scenario=None,
     event_filter: Callable | list[Callable] | None = None,
-    default_stop: CxoTime | None = None,
 ) -> Table:
     """Update local cmd_events.csv from Google Sheets and read events for ``scenario``.
 
@@ -1025,9 +1028,6 @@ def update_cmd_events(
         Callable function or list of callable functions that takes an Event Table as
         input and returns a boolean mask with same length as Table. This is used to
         select rows from the Table. If None, no filtering is done.
-    default_stop : CxoTime, None
-        Default stop time for filtering events. Normally None, which implies no
-        filtering, but this can be set via the CXOTIME_NOW environment variable.
 
     Returns
     -------
@@ -1054,8 +1054,8 @@ def update_cmd_events(
         event_filters.append(filter_cmd_events_state)
 
     # If CXOTIME_NOW is set, filter out events after that date.
-    if default_stop is not None:
-        event_filters.append(filter_cmd_events_date_stop(default_stop))
+    if cxotime_now := get_cxotime_now():
+        event_filters.append(filter_cmd_events_date_stop(cxotime_now))
 
     if event_filters:
         ok = np.ones(len(cmd_events), dtype=bool)
@@ -1170,11 +1170,17 @@ def filter_cmd_events_date_stop(date_stop):
     return func
 
 
-def update_loads(scenario=None, *, lookback=None, stop=None) -> Table:
+def update_loads(scenario=None, *, lookback=None, stop_loads=None) -> Table:
     """Update local copy of approved command loads though ``lookback`` days."""
-    # For testing allow override of default `stop` value
-    if stop is None:
-        stop = get_default_stop()
+    dt = 21 * u.day
+    cxotime_now = get_cxotime_now()
+    # This is either the true current time or else the mock time from CXOTIME_NOW.
+    stop = CxoTime(stop_loads or cxotime_now)
+    start = stop - lookback * u.day
+    # Find loads out to 21 days into the future by default (in the case where
+    # stop is the current time).
+    if stop_loads is None and cxotime_now is None:
+        stop += dt
 
     if lookback is None:
         lookback = conf.default_lookback
@@ -1197,12 +1203,6 @@ def update_loads(scenario=None, *, lookback=None, stop=None) -> Table:
     # Probably too complicated, but this bit of code generates a list of dates
     # that are guaranteed to sample all the months in the lookback period with
     # two weeks of margin on the tail end.
-    dt = 21 * u.day
-    start = CxoTime(stop) - lookback * u.day
-    if stop is None:
-        stop = CxoTime.now() + dt
-    else:
-        stop = CxoTime(stop)
     n_sample = int(np.ceil((stop - start) / dt))
     dates = start + np.arange(n_sample + 1) * (stop - start) / n_sample
     dirs_tried = set()
@@ -1378,7 +1378,8 @@ def update_cmds_archive(
         Number of days to look back to get recent load commands from OCCweb.
         Default is ``conf.default_lookback`` (currently 30).
     stop : CxoTime-like, None
-        Stop date to update the archive to. Default is NOW + 21 days.
+        Stop date to update the archive to. Default is that future loads and command
+        events are included.
     log_level : int
         Logging level. Default is ``logging.INFO``.
     scenario : str, None
@@ -1392,7 +1393,7 @@ def update_cmds_archive(
     """
     # For testing allow override of default `stop` value
     if stop is None:
-        stop = get_default_stop()
+        stop = get_cxotime_now()
 
     # Local context manager for log_level and data_root
     kadi_logger = logging.getLogger("kadi")
@@ -1405,7 +1406,7 @@ def update_cmds_archive(
             kadi_logger.setLevel(log_level_orig)
 
 
-def _update_cmds_archive(lookback, stop, match_prev_cmds, scenario, data_root):
+def _update_cmds_archive(lookback, stop_loads, match_prev_cmds, scenario, data_root):
     """Do the real work of updating the cmds archive"""
     idx_cmds_path = Path(data_root) / "cmds2.h5"
     pars_dict_path = Path(data_root) / "cmds2.pkl"
@@ -1423,9 +1424,9 @@ def _update_cmds_archive(lookback, stop, match_prev_cmds, scenario, data_root):
         pars_dict = {}
         match_prev_cmds = False  # No matching of previous commands
 
-    cmds_recent = update_archive_and_get_cmds_recent(
+    cmds_recent = update_cmd_events_and_loads_and_get_cmds_recent(
         scenario=scenario,
-        stop=stop,
+        stop_loads=stop_loads,
         lookback=lookback,
         cache=False,
         pars_dict=pars_dict,

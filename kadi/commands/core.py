@@ -1110,15 +1110,15 @@ def ska_load_dir(load_name: str) -> Path:
     return load_dir_from_load_name(load_name)
 
 
-def get_default_stop() -> str | None:
-    """Get the default stop date for kadi commands.
+def get_cxotime_now() -> str | None:
+    """Get the value of CXOTIME_NOW env var (or legacy proxy) for kadi commands.
 
     This returns the value of the CXOTIME_NOW environment variable if set,
     otherwise the value of the KADI_COMMANDS_DEFAULT_STOP environment variable,
     otherwise None.
     """
 
-    stop = os.environ.get(
+    cxotime_now = os.environ.get(
         "CXOTIME_NOW", kadi_stop := os.environ.get("KADI_COMMANDS_DEFAULT_STOP")
     )
 
@@ -1129,4 +1129,4 @@ def get_default_stop() -> str | None:
             stacklevel=2,
         )
 
-    return stop
+    return cxotime_now
