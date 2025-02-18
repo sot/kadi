@@ -257,15 +257,15 @@ def get_cmds(
     # Get current "now" time, which might be mocked via CXOTIME_NOW.
     # get_cxotime_now() returns None if the env var is not set.
     cxotime_now = get_cxotime_now()
-    now = CxoTime(cxotime_now)
 
     # Cache key used for CMDS_RECENT and MATCHING_BLOCKS. These are all the relevant
     # kwargs in update_archive_and_get_cmds_recent().
     cache_key = scenario, cxotime_now, lookback, event_filter
+    logger.info(f"Cache key: {cache_key}")
 
     # For flight scenario or no internet or if the query stop time is guaranteed
     # to not require recent commands then just use the archive.
-    before_recent_cmds = stop < now - lookback * u.day
+    before_recent_cmds = stop < CxoTime(cxotime_now) - lookback * u.day
     if scenario == "flight" or not HAS_INTERNET or before_recent_cmds:
         cmds = IDX_CMDS
         logger.info(
@@ -274,16 +274,21 @@ def get_cmds(
         )
     else:
         if cache_key not in CMDS_RECENT:
+            logger.info(
+                "Recent commands not in cache: updating local cmd_events, loads "
+                "and getting recent commands"
+            )
             cmds_recent = update_cmd_events_and_loads_and_get_cmds_recent(
                 scenario,
                 lookback=lookback,
                 stop_loads=cxotime_now,
-                cache=True,
                 pars_dict=PARS_DICT,
                 rev_pars_dict=REV_PARS_DICT,
                 event_filter=event_filter,
             )
+            CMDS_RECENT[cache_key] = cmds_recent
         else:
+            logger.info("Getting recent commands from cache")
             cmds_recent = CMDS_RECENT[cache_key]
 
         # Get `cmds` as correct mix of recent and archive commands that contains
@@ -361,7 +366,6 @@ def update_cmd_events_and_loads_and_get_cmds_recent(
     *,
     lookback=None,
     stop_loads=None,
-    cache=True,
     pars_dict=None,
     rev_pars_dict=None,
     event_filter: Callable | list[Callable] | None = None,
@@ -535,10 +539,6 @@ def update_cmd_events_and_loads_and_get_cmds_recent(
     cmds_recent.remove_not_run_cmds()
     cmds_recent = add_obs_cmds(cmds_recent, pars_dict, rev_pars_dict)
     cmds_recent.meta["loads_start"] = start_cmds.date
-
-    if cache:
-        # Cache recent commands so future requests for the same scenario are fast
-        CMDS_RECENT[scenario] = cmds_recent
 
     return cmds_recent
 
@@ -1428,7 +1428,6 @@ def _update_cmds_archive(lookback, stop_loads, match_prev_cmds, scenario, data_r
         scenario=scenario,
         stop_loads=stop_loads,
         lookback=lookback,
-        cache=False,
         pars_dict=pars_dict,
     )
 

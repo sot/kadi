@@ -665,7 +665,9 @@ def get_observations(
     list of dict
         Observation parameters for matching observations.
     """
+    from kadi.commands import conf
     from kadi.commands.commands_v2 import get_cmds
+    from kadi.commands.core import get_cxotime_now
 
     if starcat_date is not None:
         start = starcat_date if start is None else start
@@ -674,7 +676,8 @@ def get_observations(
     stop = (CxoTime.now() + 1 * u.year) if stop is None else CxoTime(stop)
 
     if cmds is None:
-        if scenario not in OBSERVATIONS:
+        cache_key = scenario, get_cxotime_now(), conf.default_lookback, event_filter
+        if cache_key not in OBSERVATIONS:
             cmds = get_cmds(scenario=scenario, event_filter=event_filter)
             cmds_obs = cmds[cmds["tlmsid"] == "OBS"]
             obsids = []
@@ -686,9 +689,9 @@ def get_observations(
                 obsids.append(_obsid)
 
             cmds_obs["obsid"] = obsids
-            OBSERVATIONS[scenario] = cmds_obs
+            OBSERVATIONS[cache_key] = cmds_obs
         else:
-            cmds_obs = OBSERVATIONS[scenario]
+            cmds_obs = OBSERVATIONS[cache_key]
     else:
         cmds_obs = cmds[cmds["tlmsid"] == "OBS"]
 
