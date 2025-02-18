@@ -28,6 +28,7 @@ __all__ = [
     "filter_cmd_events_by_event",
     "SCS107_EVENTS",
     "filter_scs107_events",
+    "set_time_now",
 ]
 
 
@@ -1194,3 +1195,31 @@ def filter_cmd_events_state(cmd_events: Table) -> np.ndarray[bool]:
         allowed_states.append("In-work")
     ok = np.isin(cmd_events["State"], allowed_states)
     return ok
+
+
+def set_time_now(date):
+    """Context manager to temporarily set CXOTIME_NOW to ``date``.
+
+    This temporarily sets the CXOTIME_NOW environment variable to ``date`` within the
+    context block. This is a very thin wrapper around ska_helpers.utils.temp_env_var.
+    This effectively makes ``date`` serve as the current time and is useful for testing.
+
+    In this example we get the observation history as if the 2025:012:14:37:04 SCS-107
+    run never happened::
+
+      import kadi.commands as kc
+      start = "2025:012"
+      stop = "2025:018"
+      with kc.set_time_now(stop):
+          obss_as_planned = kc.get_observations(
+              start, stop, event_filter=kc.filter_scs107_events
+          )
+
+    Parameters
+    ----------
+    date : CxoTimeLike
+        Date in CxoTime-compatible format.
+    """
+    from ska_helpers.utils import temp_env_var
+
+    return temp_env_var("CXOTIME_NOW", date)
