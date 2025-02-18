@@ -29,6 +29,8 @@ from kadi.commands.core import (
     CommandTable,
     LazyVal,
     _find,
+    filter_cmd_events_date_stop,
+    filter_cmd_events_state,
     get_cmds_from_backstop,
     get_cxotime_now,
     get_par_idx_update_pars_dict,
@@ -1066,29 +1068,6 @@ def update_cmd_events(
     return cmd_events
 
 
-def filter_cmd_events_state(cmd_events: Table) -> np.ndarray[bool]:
-    """
-    Filters command events based on State.
-
-    Parameters
-    ----------
-    cmd_events : Table
-        Command events, where each event has a "State" attribute.
-
-    Returns
-    -------
-    numpy.ndarray
-        A boolean array indicating which command events have allowed states.
-    """
-    allowed_states = ["Predictive", "Definitive"]
-    # In-work can be used to validate the new event vs telemetry prior to make it
-    # operational.
-    if conf.include_in_work_command_events:
-        allowed_states.append("In-work")
-    ok = np.isin(cmd_events["State"], allowed_states)
-    return ok
-
-
 def get_cmd_events_from_sheet(scenario: str | None) -> Table:
     """
     Fetch command events from Google Sheet for ``scenario`` and write to a CSV file.
@@ -1153,21 +1132,6 @@ def get_cmd_events_from_local(scenario=None):
         str(cmd_events_path), format="csv", fill_values=[], converters={"Params": str}
     )
     return cmd_events
-
-
-def filter_cmd_events_date_stop(date_stop):
-    def func(cmd_events):
-        stop = CxoTime(date_stop)
-        # Filter table based on stop date. Need to use CxoTime on each event separately
-        # because the date format could be inconsistent.
-        ok = [CxoTime(cmd_event["Date"]).date <= stop.date for cmd_event in cmd_events]
-        logger.debug(
-            f"Filtering cmd_events to stop date {stop.date} "
-            f"({np.count_nonzero(ok)} vs {len(cmd_events)})"
-        )
-        return ok
-
-    return func
 
 
 def update_loads(scenario=None, *, lookback=None, stop_loads=None) -> Table:

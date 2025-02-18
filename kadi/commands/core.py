@@ -8,6 +8,7 @@ import struct
 import warnings
 import weakref
 from pathlib import Path
+from typing import Callable
 
 import numpy as np
 import parse_cm.paths
@@ -16,6 +17,7 @@ from astropy.table import Column, Row, Table, TableAttribute, vstack
 from cxotime import CxoTime
 from ska_helpers import retry
 
+from kadi.config import conf
 from kadi.paths import IDX_CMDS_PATH, PARS_DICT_PATH
 
 __all__ = [
@@ -23,7 +25,14 @@ __all__ = [
     "get_cmds_from_backstop",
     "CommandTable",
     "add_observations_to_cmds",
+    "filter_cmd_events_by_event",
+    "SCS107_EVENTS",
+    "filter_scs107_events",
 ]
+
+
+# Events to filter for getting as-planned commands after SCS-107
+SCS107_EVENTS = ["SCS-107", "Observing not run", "Obsid", "RTS"]
 
 logger = logging.getLogger(__name__)
 
@@ -1130,3 +1139,58 @@ def get_cxotime_now() -> str | None:
         )
 
     return cxotime_now
+
+
+def filter_cmd_events_date_stop(date_stop):
+    def func(cmd_events):
+        stop = CxoTime(date_stop)
+        # Filter table based on stop date. Need to use CxoTime on each event separately
+        # because the date format could be inconsistent.
+        ok = [CxoTime(cmd_event["Date"]).date <= stop.date for cmd_event in cmd_events]
+        logger.debug(
+            f"Filtering cmd_events to stop date {stop.date} "
+            f"({np.count_nonzero(ok)} vs {len(cmd_events)})"
+        )
+        return ok
+
+    return func
+
+
+def filter_cmd_events_by_event(event_events: list[str]) -> Callable:
+    def func(cmd_events: Table) -> np.ndarray[bool]:
+        ok = ~np.isin(cmd_events["Event"], event_events)
+        logger.info(
+            f"Filtering cmd_events['Event'] that match {event_events} "
+            f"({np.count_nonzero(ok)} vs {len(cmd_events)})"
+        )
+        return ok
+
+    return func
+
+
+filter_scs107_events = filter_cmd_events_by_event(SCS107_EVENTS)
+filter_scs107_events.__doc__ = "Filter SCS-107 related events from command history."
+filter_scs107_events.__name__ = "filter_scs107_events"
+
+
+def filter_cmd_events_state(cmd_events: Table) -> np.ndarray[bool]:
+    """
+    Filters command events based on State.
+
+    Parameters
+    ----------
+    cmd_events : Table
+        Command events, where each event has a "State" attribute.
+
+    Returns
+    -------
+    numpy.ndarray
+        A boolean array indicating which command events have allowed states.
+    """
+    allowed_states = ["Predictive", "Definitive"]
+    # In-work can be used to validate the new event vs telemetry prior to make it
+    # operational.
+    if conf.include_in_work_command_events:
+        allowed_states.append("In-work")
+    ok = np.isin(cmd_events["State"], allowed_states)
+    return ok
