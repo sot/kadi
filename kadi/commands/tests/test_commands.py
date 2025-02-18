@@ -42,15 +42,6 @@ except FileNotFoundError:
     HAS_AGASC_1P8 = False
 
 
-@pytest.fixture(scope="module", autouse=True)
-def cmds_dir(tmp_path_factory):
-    with commands.conf.set_temp("cache_loads_in_astropy_cache", True):
-        with commands.conf.set_temp("clean_loads_dir", False):
-            cmds_dir = tmp_path_factory.mktemp("cmds_dir")
-            with commands.conf.set_temp("commands_dir", str(cmds_dir)):
-                yield
-
-
 def test_find():
     idx_cmds = commands_v2.IDX_CMDS
     pars_dict = commands_v2.PARS_DICT
