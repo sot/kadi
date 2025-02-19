@@ -21,3 +21,10 @@ def cmds_dir(tmp_path_factory):
             cmds_dir = tmp_path_factory.mktemp("cmds_dir")
             with kc.conf.set_temp("commands_dir", str(cmds_dir)):
                 yield
+
+
+@pytest.fixture()
+def clear_caches():
+    kc.clear_caches()
+    yield
+    kc.clear_caches()
