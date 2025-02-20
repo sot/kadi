@@ -1143,6 +1143,20 @@ def get_cxotime_now() -> str | None:
 
 
 def filter_cmd_events_date_stop(date_stop):
+    """
+    Returns a function that removes command events with ``Date > date_stop``.
+
+    Parameters
+    ----------
+    date_stop : CxoTimeLike
+        Date string in CxoTime-compatible format.
+
+    Returns
+    -------
+    Callable
+        Function that takes a Table of command events and returns a boolean numpy array.
+    """
+
     def func(cmd_events):
         stop = CxoTime(date_stop)
         # Filter table based on stop date. Need to use CxoTime on each event separately
@@ -1157,11 +1171,37 @@ def filter_cmd_events_date_stop(date_stop):
     return func
 
 
-def filter_cmd_events_by_event(event_events: list[str]) -> Callable:
+@functools.lru_cache()
+def filter_cmd_events_by_event(*args: tuple[str]) -> Callable:
+    """
+    Returns a function that filters command events based on a list of event names.
+
+    Example::
+
+      >>> import kadi.commands as kc
+      >>> filter = kc.filter_cmd_events_by_event("SCS-107", "RTS", "Obsid", "Observing not run")
+      >>> with kc.set_time_now("2025:015"):
+      ...     cmds = kc.get_cmds("2025:001", "2025:015", event_filter=filter)
+
+    See also: :func:`~kadi.commands.core.filter_scs107_events`.
+
+    Parameters
+    ----------
+    *args : str
+        Event names (e.g., "SCS-107" or "RTS") to filter out from the command events.
+
+    Returns
+    -------
+    Callable
+        Function that takes a Table of command events and returns a boolean numpy array.
+
+
+    """
+
     def func(cmd_events: Table) -> np.ndarray[bool]:
-        ok = ~np.isin(cmd_events["Event"], event_events)
+        ok = ~np.isin(cmd_events["Event"], args)
         logger.info(
-            f"Filtering cmd_events['Event'] that match {event_events} "
+            f"Filtering cmd_events['Event'] that match {args} "
             f"({np.count_nonzero(ok)} vs {len(cmd_events)})"
         )
         return ok
@@ -1169,9 +1209,33 @@ def filter_cmd_events_by_event(event_events: list[str]) -> Callable:
     return func
 
 
-filter_scs107_events = filter_cmd_events_by_event(SCS107_EVENTS)
-filter_scs107_events.__doc__ = "Filter SCS-107 related events from command history."
-filter_scs107_events.__name__ = "filter_scs107_events"
+def filter_scs107_events(cmd_events: Table) -> np.ndarray[bool]:
+    """Filter SCS-107 related events from command history.
+
+    This filters out the following command event types:
+    - "SCS-107"
+    - "Observing not run"
+    - "Obsid"
+    - "RTS"
+
+    Example::
+
+      >>> import kadi.commands as kc
+      >>> with kc.set_time_now("2025:015"):
+      ...     cmds = kc.get_cmds("2025:001", "2025:015", event_filter=kc.filter_scs107_events)
+
+    Parameters
+    ----------
+    cmd_events : Table
+        Command events, where each event has an "Event" attribute.
+
+    Returns
+    -------
+    numpy.ndarray
+        A boolean array indicating which command events are not SCS-107 related.
+    """
+    filter_func = filter_cmd_events_by_event(*SCS107_EVENTS)
+    return filter_func(cmd_events)
 
 
 def filter_cmd_events_state(cmd_events: Table) -> np.ndarray[bool]:
