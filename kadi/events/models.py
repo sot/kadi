@@ -1,4 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+import logging
 import operator
 import sys
 from itertools import count
@@ -6,7 +7,6 @@ from pathlib import Path
 
 import cheta.fetch_eng as fetch
 import numpy as np
-import pyyaks.logger
 from astropy import table
 from chandra_time import DateTime
 from cheta import utils
@@ -22,9 +22,7 @@ ZERO_DT = -1e-4
 MAX_GAP = 328.1  # Max gap (seconds) in telemetry for state intervals
 R2A = 206264.8  # Convert from radians to arcsec
 
-logger = pyyaks.logger.get_logger(
-    name="events", level=pyyaks.logger.INFO, format="%(asctime)s %(message)s"
-)
+logger = logging.getLogger(__name__)
 
 
 def msidset_interpolate(msidset, dt, time0):
@@ -409,27 +407,24 @@ class BaseModel(models.Model):
         ordering = ["start"]
 
     @classmethod
-    def from_dict(cls, model_dict, logger=None):
+    def from_dict(cls, model_dict, logger=None) -> "BaseModel":
         """
         Set model from a dict `model_dict` which might have extra stuff not in
         Model.  If `logger` is supplied then log output at debug level.
+
+        Parameters
+        ----------
+        model_dict : dict
+            Dictionary of model attributes
+        logger : logging.Logger, optional
+            Logger object to log debug output
+
+        Returns
+        -------
+        model : BaseModel
+            Model instance
         """
         model = cls()
-
-        # Get the obsid at the appropriate time for the event (typically "start"
-        # but "stop" in the case of Manvr).
-        if isinstance(model, TlmEvent) and model is not Obsid:
-            tstart = DateTime(model_dict[cls._get_obsid_start_attr]).secs
-            obsrq = fetch.Msid("cobsrqid", tstart, tstart + 200)
-            if len(obsrq.vals) == 0:
-                logger.warn(
-                    "WARNING: unable to get COBSRQID near "
-                    f"{model_dict[cls._get_obsid_start_attr]}, "
-                    "using obsid=-999"
-                )
-                model_dict["obsid"] = -999
-            else:
-                model_dict["obsid"] = obsrq.vals[0]
 
         for key, val in model_dict.items():
             if hasattr(model, key):
@@ -438,6 +433,7 @@ class BaseModel(models.Model):
                         "Setting {} model with {}={}".format(model.model_name, key, val)
                     )
                 setattr(model, key, val)
+
         return model
 
     @classmethod
@@ -615,6 +611,7 @@ class TlmEvent(Event):
     event_msids = None  # must be overridden by derived class
     event_val = None
     event_filter_bad = True  # Normally remove bad quality data immediately
+    aux_msids = None  # Additional MSIDs to fetch for event
 
     class Meta:
         abstract = True
@@ -660,7 +657,17 @@ class TlmEvent(Event):
         boolean ndarray
         """
         event_msid = event_msidset[cls.event_msids[0]]
-        bools = event_msid.vals == cls.event_val
+        vals = event_msid.vals
+        if vals.dtype.kind == "U":
+            # Strip leading/trailing whitespace from string values. This is needed
+            # because the CXC includes trailing whitespace in the telemetry values while
+            # MAUDE (more sensibly) does not.
+            vals = np.char.strip(vals)
+        bools = (
+            np.isin(vals, cls.event_val)
+            if isinstance(cls.event_val, list)
+            else vals == cls.event_val
+        )
         return event_msid.times, bools
 
     @classmethod
@@ -689,7 +696,7 @@ class TlmEvent(Event):
             )
         except (IndexError, ValueError):
             if event_time_fuzz is None:
-                logger.warn(
+                logger.warning(
                     "Warning: No telemetry available for {}".format(cls.__name__)
                 )
             return [], event_msidset
@@ -705,7 +712,7 @@ class TlmEvent(Event):
                 while tstop - event_time_fuzz < states[-1]["tstop"]:
                     # Event tstop is within event_time_fuzz of the stop of states so
                     # bail out and don't return any states.
-                    logger.warn(
+                    logger.warning(
                         "Warning: dropping state because of "
                         "insufficent event time pad:\n{}\n".format(states[-1:])
                     )
@@ -721,6 +728,46 @@ class TlmEvent(Event):
                 states = fuzz_states(states, event_time_fuzz)
 
         return states, event_msidset
+
+    @classmethod
+    def from_dict(cls, model_dict, logger=None) -> "BaseModel":
+        """
+        Set model from a dict `model_dict` which might have extra stuff not in
+        Model.  If `logger` is supplied then log output at debug level.
+
+        Parameters
+        ----------
+        model_dict : dict
+            Dictionary of model attributes
+        logger : logging.Logger, optional
+            Logger object to log debug output
+
+        Returns
+        -------
+        model : BaseModel
+            Model instance
+        """
+        # Get the obsid at the appropriate time for the event (typically "start"
+        # but "stop" in the case of Manvr). But don't do this for Obsid.
+        if cls is not Obsid:
+            tstart = DateTime(model_dict[cls._get_obsid_start_attr]).secs
+            obsrq = fetch.Msid("cobsrqid", tstart, tstart + 200)
+            if len(obsrq.vals) == 0:
+                logger.warning(
+                    "WARNING: unable to get COBSRQID near "
+                    f"{model_dict[cls._get_obsid_start_attr]}, "
+                    "using obsid=-999"
+                )
+                model_dict["obsid"] = -999
+            else:
+                # MAUDE telemetry can include corrupted values near IU reset,
+                # so set obsid to 0 in that case. Obsid=0 will be the next valid value.
+                if (obsid := obsrq.vals[0]) > 65535:
+                    logger.info(f"Setting obsid=0 to replace corrupted obsid={obsid}")
+                    obsid = 0
+                model_dict["obsid"] = obsid
+
+        return super().from_dict(model_dict, logger)
 
     @classmethod
     def get_events(cls, start, stop=None):
@@ -811,7 +858,16 @@ class Obsid(TlmEvent):
         events = []
         # Get the event telemetry MSID objects
         event_msidset = fetch.Msidset(cls.event_msids, start, stop)
-        obsid = event_msidset["cobsrqid"]
+        obsid: fetch.Msid = event_msidset["cobsrqid"]
+
+        # Bad telemetry following an IU reset and/or Safe Mode
+        bad = (obsid.vals < 0) | (obsid.vals > 65535)
+        if np.count_nonzero(bad) > 0:
+            logger.info(
+                f"Setting bad COBSRQID values {obsid.vals[bad]} at "
+                f"{DateTime(obsid.times[bad]).date} to 0"
+            )
+        obsid.vals[bad] = 0
 
         if len(obsid) < 2:
             # Not enough telemetry for state_intervals, return no events
@@ -866,7 +922,7 @@ class TscMove(TlmEvent):
     """
 
     event_msids = ["3tscmove", "3tscpos", "3mrmmxmv"]
-    event_val = "T"
+    event_val = ["T", "MOVE"]
 
     start_3tscpos = models.IntegerField(help_text="Start TSC position (steps)")
     stop_3tscpos = models.IntegerField(help_text="Stop TSC position (steps)")
@@ -923,7 +979,7 @@ class DarkCalReplica(TlmEvent):
     """
 
     event_msids = ["ciumacac"]
-    event_val = "ON "
+    event_val = "ON"
     event_min_dur = 300
 
 
@@ -951,7 +1007,7 @@ class DarkCal(TlmEvent):
     """
 
     event_msids = ["ciumacac"]
-    event_val = "ON "
+    event_val = "ON"
     event_time_fuzz = 86400  # One full day of fuzz / pad
     event_min_dur = 8000
 
@@ -960,18 +1016,17 @@ class Scs107(TlmEvent):
     """
     SCS107 run
 
-    **Event definition**: interval with the following combination of state values::
+    **Event definition**: reaction wheel bias disabled between 500 to 1000 sec::
 
-      3TSCMOVE = MOVE
       AORWBIAS = DISA
-      CORADMEN = DISA
 
-    These MSIDs are first sampled onto a common time sequence of 32.8 sec samples
-    so the start / stop times are accurate only to that resolution.
+    This is commanded by SCS-107 with a roughly constant time delay from RW Bias
+    disable to the subsequent re-enable. Over the mission the delay has varied from
+    around 900 seconds (early) to ~550 secs (circa 2025), as SCS-107 has been modified.
+    See `notebooks/scs107-via-RW-bias-disable.ipynb` for the supporting analysis.
 
-    Early in the mission there were two SIM TSC translations during an SCS107 run.
-    By the above rules this would generate two SCS107 events, but instead any two
-    SCS107 events within 600 seconds are combined into a single event.
+    For this event, intervals of RW Bias being disabled for 500 to 1000 seconds are
+    selected as a proxy for SCS-107 runs.
 
     **Fields**
 
@@ -990,23 +1045,15 @@ class Scs107(TlmEvent):
 
     notes = models.TextField(help_text="Supplemental notes")
 
-    event_msids = ["3tscmove", "aorwbias", "coradmen"]
-    event_time_fuzz = 600  # Earlier in the mission SCS107 resulted in two SIM moves
-    event_filter_bad = False
+    event_msids = ["aorwbias"]
+    event_val = "DISA"
 
     @classmethod
-    def get_state_times_bools(cls, msidset):
-        # Interpolate all MSIDs to a common time.  Sync to the start of 3tscmove which is
-        # sampled at 32.8 seconds
-        msidset_interpolate(msidset, 32.8, msidset["3tscmove"].times[0])
-
-        scs107 = (
-            (msidset["3tscmove"].vals == "T")
-            & (msidset["aorwbias"].vals == "DISA")
-            & (msidset["coradmen"].vals == "DISA")
-        )
-
-        return msidset.times, scs107
+    def get_events(cls, start, stop=None):
+        events = super().get_events(start, stop)
+        # See docstring for why we select only 500 to 1000 second intervals
+        events = [event for event in events if 500 < event["dur"] < 1000]
+        return events
 
 
 class FaMove(TlmEvent):
@@ -1032,7 +1079,7 @@ class FaMove(TlmEvent):
     """
 
     event_msids = ["3famove", "3fapos"]
-    event_val = "T"
+    event_val = ["T", "MOVE"]
 
     start_3fapos = models.IntegerField(help_text="Start FA position (steps)")
     stop_3fapos = models.IntegerField(help_text="Stop FA position (steps)")
@@ -1177,6 +1224,7 @@ class Dump(TlmEvent):
 
     event_msids = ["aounload"]
     event_val = "GRND"
+    event_min_dur = 4.0
 
     type = models.CharField(max_length=4, help_text="Momentum unload type (GRND AUTO)")
 
@@ -1222,8 +1270,11 @@ class Eclipse(TlmEvent):
     """
 
     event_msids = ["aoeclips"]
-    event_val = "ECL "
+    event_val = "ECL"
     fetch_event_msids = ["aoeclips", "eb1k5", "eb2k5", "eb3k5"]
+    # There are many short periods of ECL that are not real eclipses, typically
+    # following a real eclipse, most commonly < 10 s. Require a minimum duration.
+    event_min_dur = 100
 
 
 class Manvr(TlmEvent):
@@ -1331,6 +1382,8 @@ class Manvr(TlmEvent):
     _get_obsid_start_attr = "stop"  # Attribute to use for getting event obsid
     event_msids = ["aofattmd", "aopcadmd", "aoacaseq", "aopsacpr"]
     event_val = "MNVR"
+    # Aux MSIDs to fetch for maneuver events (required for one-shot)
+    aux_msids = ["aotarqt1", "aotarqt2", "aotarqt3", "aoatter1", "aoatter2", "aoatter3"]
 
     fetch_event_msids = [
         "one_shot",
@@ -1562,12 +1615,12 @@ class Manvr(TlmEvent):
             "aopcadmd": ("NPNT", "NMAN"),
             "aoacaseq": ("GUID", "KALM", "AQXN"),
             "aofattmd": ("MNVR", "STDY"),
-            "aopsacpr": ("INIT", "INAC", "ACT "),
-            "aounload": ("MON ", "GRND"),
+            "aopsacpr": ("INIT", "INAC", "ACT"),
+            "aounload": ("MON", "GRND"),
         }
         anomalous = False
         for change in changes[changes["dt"] >= ZERO_DT]:
-            if change["val"] not in nom_vals[change["msid"]]:
+            if change["val"].strip() not in nom_vals[change["msid"]]:
                 anomalous = True
                 break
 
@@ -1700,11 +1753,7 @@ class Manvr(TlmEvent):
         """
         events = []
         # Auxiliary information
-        aux_msidset = fetch.Msidset(
-            ["aotarqt1", "aotarqt2", "aotarqt3", "aoatter1", "aoatter2", "aoatter3"],
-            start,
-            stop,
-        )
+        aux_msidset = fetch.Msidset(cls.aux_msids, start, stop)
 
         # Need at least 2 samples to get states. Having no samples typically
         # happens when building the event tables and telemetry queries are just
@@ -1898,8 +1947,7 @@ class SafeSun(TlmEvent):
     notes = models.TextField()
     event_msids = ["conlofp", "ctufmtsl", "c1sqax"]
     event_filter_bad = False
-    event_time_fuzz = 86400  # One full day of fuzz / pad
-    event_min_dur = 36000
+    event_min_dur = 3600
 
     fetch_event_pad = 86400 / 2
     fetch_event_msids = ["conlofp", "ctufmtsl", "c1sqax", "aopcadmd", "61psts02"]
@@ -1965,7 +2013,6 @@ class NormalSun(TlmEvent):
 
     event_msids = ["aopcadmd"]
     event_val = "NSUN"
-    event_time_fuzz = 86400  # One full day of fuzz
 
 
 class MajorEvent(BaseEvent):
@@ -2390,7 +2437,7 @@ class DsnComm(IFotEvent):
             out["cc"] = pass_plan.cc
             out["pass_plan"] = pass_plan
         if len(pass_plans) > 1:
-            logger.warn(
+            logger.warning(
                 "Multiple pass plans found at {}: {}".format(event["start"], pass_plans)
             )
 

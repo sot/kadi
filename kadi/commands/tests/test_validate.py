@@ -179,7 +179,7 @@ def test_validate_regression(
     assert data_obs["vals_compressed"].keys() == data_exp["vals_compressed"].keys()
 
     for key, vals_obs in data_obs["vals_compressed"].items():
-        vals_obs = np.asarray(vals_obs)
+        vals_obs = np.asarray(vals_obs)  # noqa: PLW2901
         vals_exp = np.asarray(data_exp["vals_compressed"][key])
         assert vals_obs.shape == vals_exp.shape
         assert vals_obs.dtype.kind == vals_exp.dtype.kind

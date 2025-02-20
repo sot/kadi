@@ -18,6 +18,7 @@ if "--user" not in sys.argv:
                 "task_schedule_cmds.cfg",
                 "task_schedule_events.cfg",
                 "task_schedule_validate.cfg",
+                "task_schedule_check_cron.cfg",
                 "ltt_bads.dat",
             ],
         )

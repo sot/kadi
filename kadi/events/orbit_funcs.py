@@ -113,7 +113,7 @@ def get_tlr_files(mpdir=""):
 
     tlrfiles = []
     for root, dirs, files in os.walk(rootdir):
-        root = root.rstrip("/")
+        root = root.rstrip("/")  # noqa: PLW2901
         depth = len(Path(root).parts) - len(MPLOGS_DIR.parts)
         logger.debug(f"get_trl_files: root={root} {depth} {rootdir}")
         if depth == 0:
@@ -197,7 +197,7 @@ def get_orbit_points(tlrfiles):
         try:
             fh = open(tlrfile, "r", encoding="ascii", errors="ignore")
         except IOError as err:
-            logger.warn(err)
+            logger.warning(err)
             continue
         for line in fh:
             if len(line) < 30 or line[:2] != " 2":

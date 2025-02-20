@@ -412,9 +412,9 @@ def _find(
                 ok &= idx_cmds["date"] < CxoTime(stop).date
 
     for key, val in kwargs.items():
-        key = key.lower()
+        key = key.lower()  # noqa: PLW2901
         if isinstance(val, str):
-            val = val.upper()
+            val = val.upper()  # noqa: PLW2901
         if key in idx_cmds.dtype.names:
             ok &= idx_cmds[key] == val
         else:
@@ -1017,16 +1017,16 @@ class CommandTable(Table):
 
             # Now check that the params match.
             idxs_match = []
-            for idx in idxs:
+            for idx_check in idxs:
                 # Get the intersection of the keys in cmd_not_run["params"] and self["params"][idx]
-                self_params = self["params"][idx]
+                self_params = self["params"][idx_check]
                 cmd_not_run_params = cmd_not_run["params"]
                 keys = set(cmd_not_run_params) & set(self_params)
 
                 # Check that the values match for all common keys
                 match = all(cmd_not_run_params[key] == self_params[key] for key in keys)
                 if match:
-                    idxs_match.append(idx)
+                    idxs_match.append(idx_check)
 
             idxs_remove.update(idxs_match)
 

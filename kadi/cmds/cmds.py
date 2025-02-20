@@ -147,9 +147,9 @@ def _find(start=None, stop=None, **kwargs):
     if stop:
         ok &= idx_cmds["date"] < DateTime(stop).date
     for key, val in kwargs.items():
-        key = key.lower()
+        key = key.lower()  # noqa: PLW2901
         if isinstance(val, str):
-            val = val.upper()
+            val = val.upper()  # noqa: PLW2901
         if key in idx_cmds.dtype.names:
             ok &= idx_cmds[key] == val
         else:

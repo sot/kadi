@@ -270,7 +270,7 @@ def get_cmds_from_event(date, event, params_str):
     for step, cmd in enumerate(cmds):
         # Force CommandTable row to be a dict
         if not isinstance(cmd, dict):
-            cmd = {name: cmd[name] for name in cmd.colnames}
+            cmd = {name: cmd[name] for name in cmd.colnames}  # noqa: PLW2901
 
         # Get command duration (if any). If the cmd is only {'dur': <dt>} then
         # it is a pure delay so skip subsequent processing.
