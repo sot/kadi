@@ -123,7 +123,7 @@ def main():
 
     # Make the model
     model = MLPRegressor(
-        hidden_layer_sizes=(64, 32),  # Two layers with 64 and 32 neurons
+        hidden_layer_sizes=(32, 16),  # Two layers with 32 and 16 neurons
         solver="adam",
         max_iter=500,
     )
