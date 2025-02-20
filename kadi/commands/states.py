@@ -2110,6 +2110,7 @@ def get_states(
     reduce=True,
     merge_identical=False,
     scenario=None,
+    event_filter=None,
 ) -> Table:
     """
     Get table of states for intervals when ``state_keys`` params are unchanged.
@@ -2155,6 +2156,10 @@ def get_states(
         Merge identical states (see reduce_states() docs, default=False).
     scenario : str, optional
         Name of commands archive scenario to use instead of default.
+    event_filter : callable, list of callable, None
+        Callable function or list of callable functions that takes an Event Table as
+        input and returns a boolean mask with same length as Table. This is used to
+        select rows from the Table. If None, no filtering is done.
 
     Returns
     -------
@@ -2183,7 +2188,9 @@ def get_states(
     if cmds is None:
         if start is None:
             raise ValueError("must supply either 'cmds' argument or 'start' argument")
-        cmds = commands.get_cmds(start, stop, scenario=scenario)
+        cmds = commands.get_cmds(
+            start, stop, scenario=scenario, event_filter=event_filter
+        )
         start = DateTime(start).date
         stop = DateTime(
             stop or cmds[-1]["date"]
@@ -2195,7 +2202,9 @@ def get_states(
     # Get initial state at start of commands
     if continuity is None:
         try:
-            continuity = get_continuity(start, state_keys, scenario=scenario)
+            continuity = get_continuity(
+                start, state_keys, scenario=scenario, event_filter=event_filter
+            )
         except ValueError as exc:
             if "did not find transitions" in str(exc):
                 raise ValueError(
@@ -2383,7 +2392,11 @@ def reduce_states(states, state_keys, merge_identical=False, all_keys=False) -> 
 
 
 def get_continuity(
-    date=None, state_keys=None, lookbacks=(7, 30, 180, 1000), scenario=None
+    date=None,
+    state_keys=None,
+    lookbacks=(7, 30, 180, 1000),
+    scenario=None,
+    event_filter=None,
 ):
     """
     Get the state and transition dates at ``date`` for ``state_keys``.
@@ -2415,6 +2428,10 @@ def get_continuity(
         list of lookback times in days (default=[7, 30, 180, 1000])
     scenario
         commands archive scenario (default=None)
+    event_filter : callable, list of callable, None
+        Callable function or list of callable functions that takes an Event Table as
+        input and returns a boolean mask with same length as Table. This is used to
+        select rows from the Table. If None, no filtering is done.
 
     Returns
     -------
@@ -2440,7 +2457,9 @@ def get_continuity(
 
     for lookback in lookbacks:
         start = stop - lookback
-        cmds = commands.get_cmds(start, stop, scenario=scenario)
+        cmds = commands.get_cmds(
+            start, stop, scenario=scenario, event_filter=event_filter
+        )
         if len(cmds) == 0:
             continue
 
@@ -2468,6 +2487,7 @@ def get_continuity(
                     continuity={},
                     reduce=False,
                     scenario=scenario,
+                    event_filter=event_filter,
                 )
             except NoTransitionsError:
                 # No transitions within `cmds` for state_key, continue with other keys

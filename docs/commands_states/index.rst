@@ -889,6 +889,60 @@ transition callback functions.  There are a number of examples of this in the ka
 and this should serve as your starting point.  The Ska team will be happy to assist
 you if this is not enough.
 
+Filtered Event History
+----------------------
+
+In some cases you may want to use a filtered event history, most commonly to see the
+originally planned commands and states following an SCS-107 event.  Since SCS-107 stops
+the observing loads, commands in those loads like the ObsID update and science
+instrument commanding stop appearing in the kadi command history and states.
+
+Filtering the Chandra command events is done by specifying the ``event_filter`` argument
+to any of |get_cmds|, |get_states|, |get_continuity|,
+:func:`~kadi.commands.observations.get_observations`,
+:func:`~kadi.commands.observations.get_starcats`, and
+:func:`~kadi.commands.observations.get_starcats_as_table`. This filter allows for
+dynamically excluding command events from the flight Command Events sheet or whatever
+scenario you have chosen.
+
+The ``event_filter`` argument takes a single callable function or a list of functions.
+Each function must take a single argument, an Command Events Table object, and return a
+boolean mask indicating whether each row (command event) in the table should be included
+when generating the final commands.  The functions are applied in order, and the command
+event is included if any of the functions return ``True``.
+
+Filtering within last 30 days
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+If the events you want to filter occurred within the last 30 days, you can use any of
+the supported functions (listed above) directly, for example::
+
+  >>> from kadi.commands import filter_scs107_events
+  >>> obss_planned = get_observations(start, stop, event_filter=filter_scs107_events)
+
+Filtering events older than 30 days
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+By default, the commands archive dynamically applies the event history from the last 30
+days when constructing the command history from backstop files. Beyond 30 days, the
+commands are taken from a static HDF5 archive file.  To filter events older than 30
+days, you need to make kadi pretend that the "current time" is actually a date in the
+past.
+
+For example, to get the "as-planned" observations covering two SCS-107 runs in the
+beginning of 2025, you can use the following code. This uses the
+:func:`~kadi.commands.set_time_now` context manager to temporarily set the current time
+to a date in the past, and the :func:`~kadi.commands.filter_scs107_events` function to
+filter out the SCS-107 events::
+
+  >>> from kadi.commands import filter_scs107_events, set_time_now
+  >>> with set_time_now("2025:015"):
+  ...     obss_planned = get_observations(
+  ...         "2024:365", "2025:015", event_filter=filter_scs107_events
+  ...     )
+
+For a custom filter you can use :func:`~kadi.commands.filter_cmd_events_by_event`, or
+build your own filtering function that takes a command events table as input returns a
+boolean numpy array mask.
+
 Commands archive details
 ------------------------
 
