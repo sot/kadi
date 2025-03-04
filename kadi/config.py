@@ -21,7 +21,7 @@ class Conf(ConfigNamespace):
     """
 
     default_lookback = ConfigItem(
-        30, "Default lookback for previous approved loads (days)."
+        30.0, "Default lookback for previous approved loads (days)."
     )
     cache_loads_in_astropy_cache = ConfigItem(
         False,
