@@ -1286,4 +1286,4 @@ def set_time_now(date):
     """
     from ska_helpers.utils import temp_env_var
 
-    return temp_env_var("CXOTIME_NOW", date)
+    return temp_env_var("CXOTIME_NOW", CxoTime(date).date)
