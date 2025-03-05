@@ -42,15 +42,6 @@ except FileNotFoundError:
     HAS_AGASC_1P8 = False
 
 
-@pytest.fixture(scope="module", autouse=True)
-def cmds_dir(tmp_path_factory):
-    with commands.conf.set_temp("cache_loads_in_astropy_cache", True):
-        with commands.conf.set_temp("clean_loads_dir", False):
-            cmds_dir = tmp_path_factory.mktemp("cmds_dir")
-            with commands.conf.set_temp("commands_dir", str(cmds_dir)):
-                yield
-
-
 def test_find():
     idx_cmds = commands_v2.IDX_CMDS
     pars_dict = commands_v2.PARS_DICT
@@ -553,6 +544,7 @@ def test_cmds_scenario(stop_date_2020_12_03):  # noqa: ARG001
     cmds_dir = Path(commands.conf.commands_dir) / scenario
     cmds_dir.mkdir(exist_ok=True, parents=True)
     # Note variation in format of date, since this comes from humans.
+    # This also does not have a State column, which tests code to put that in.
     cmd_evts_text = """\
 Date,Event,Params,Author,Comment
 2020-12-01T00:08:30,Command,ACISPKT | TLMSID=WSPOW00000",Tom Aldcroft,
@@ -1313,7 +1305,7 @@ def test_scenario_with_rts(monkeypatch, fast_sun_position_method):
     # Make a new custom scenario from the flight version
     events_flight = Table.read(path_flight)
     cti_event = {
-        "State": "definitive",
+        "State": "Definitive",
         "Date": "2021:297:13:00:00",
         "Event": "RTS",
         "Params": "RTSLOAD,1_CTI06,NUM_HOURS=12:00:00,SCS_NUM=135",

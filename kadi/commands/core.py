@@ -8,6 +8,7 @@ import struct
 import warnings
 import weakref
 from pathlib import Path
+from typing import Callable
 
 import numpy as np
 import parse_cm.paths
@@ -16,6 +17,7 @@ from astropy.table import Column, Row, Table, TableAttribute, vstack
 from cxotime import CxoTime
 from ska_helpers import retry
 
+from kadi.config import conf
 from kadi.paths import IDX_CMDS_PATH, PARS_DICT_PATH
 
 __all__ = [
@@ -23,7 +25,15 @@ __all__ = [
     "get_cmds_from_backstop",
     "CommandTable",
     "add_observations_to_cmds",
+    "filter_cmd_events_by_event",
+    "SCS107_EVENTS",
+    "filter_scs107_events",
+    "set_time_now",
 ]
+
+
+# Events to filter for getting as-planned commands after SCS-107
+SCS107_EVENTS = ["SCS-107", "Observing not run", "Obsid", "RTS"]
 
 logger = logging.getLogger(__name__)
 
@@ -1110,15 +1120,15 @@ def ska_load_dir(load_name: str) -> Path:
     return load_dir_from_load_name(load_name)
 
 
-def get_default_stop() -> str | None:
-    """Get the default stop date for kadi commands.
+def get_cxotime_now() -> str | None:
+    """Get the value of CXOTIME_NOW env var (or legacy proxy) for kadi commands.
 
     This returns the value of the CXOTIME_NOW environment variable if set,
     otherwise the value of the KADI_COMMANDS_DEFAULT_STOP environment variable,
     otherwise None.
     """
 
-    stop = os.environ.get(
+    cxotime_now = os.environ.get(
         "CXOTIME_NOW", kadi_stop := os.environ.get("KADI_COMMANDS_DEFAULT_STOP")
     )
 
@@ -1129,4 +1139,156 @@ def get_default_stop() -> str | None:
             stacklevel=2,
         )
 
-    return stop
+    return cxotime_now
+
+
+def filter_cmd_events_date_stop(date_stop):
+    """
+    Returns an event filter function to remove events with ``Date > date_stop``.
+
+    The returned function can be used as an ``event_filter`` argument to ``get_cmds()``
+    and other related functions.
+
+    Parameters
+    ----------
+    date_stop : CxoTimeLike
+        Date string in CxoTime-compatible format.
+
+    Returns
+    -------
+    Callable
+        Function that takes a Table of command events and returns a boolean numpy array
+        of the same length as the table. The array is a mask and ``True`` entries are
+        kept.
+    """
+
+    def func(cmd_events):
+        stop = CxoTime(date_stop)
+        # Filter table based on stop date. Need to use CxoTime on each event separately
+        # because the date format could be inconsistent.
+        ok = [CxoTime(cmd_event["Date"]).date <= stop.date for cmd_event in cmd_events]
+        logger.debug(
+            f"Filtering cmd_events to stop date {stop.date} "
+            f"({np.count_nonzero(ok)} vs {len(cmd_events)})"
+        )
+        return ok
+
+    return func
+
+
+@functools.lru_cache()
+def filter_cmd_events_by_event(*args: tuple[str]) -> Callable:
+    """
+    Returns a function that filters command events based on a list of event names.
+
+    Example::
+
+      >>> import kadi.commands as kc
+      >>> filter = kc.filter_cmd_events_by_event("SCS-107", "RTS", "Obsid", "Observing not run")
+      >>> with kc.set_time_now("2025:015"):
+      ...     cmds = kc.get_cmds("2025:001", "2025:015", event_filter=filter)
+
+    See also: :func:`~kadi.commands.core.filter_scs107_events`.
+
+    Parameters
+    ----------
+    *args : str
+        Event names (e.g., "SCS-107" or "RTS") to filter out from the command events.
+
+    Returns
+    -------
+    Callable
+        Function that takes a Table of command events and returns a boolean numpy array.
+
+
+    """
+
+    def func(cmd_events: Table) -> np.ndarray[bool]:
+        ok = ~np.isin(cmd_events["Event"], args)
+        logger.info(
+            f"Filtering cmd_events['Event'] that match {args} "
+            f"({np.count_nonzero(ok)} vs {len(cmd_events)})"
+        )
+        return ok
+
+    return func
+
+
+def filter_scs107_events(cmd_events: Table) -> np.ndarray[bool]:
+    """Filter SCS-107 related events from command history.
+
+    This filters out the following command event types:
+    - "SCS-107"
+    - "Observing not run"
+    - "Obsid"
+    - "RTS"
+
+    Example::
+
+      >>> import kadi.commands as kc
+      >>> with kc.set_time_now("2025:015"):
+      ...     cmds = kc.get_cmds("2025:001", "2025:015", event_filter=kc.filter_scs107_events)
+
+    Parameters
+    ----------
+    cmd_events : Table
+        Command events, where each event has an "Event" attribute.
+
+    Returns
+    -------
+    numpy.ndarray
+        A boolean array indicating which command events are not SCS-107 related.
+    """
+    filter_func = filter_cmd_events_by_event(*SCS107_EVENTS)
+    return filter_func(cmd_events)
+
+
+def filter_cmd_events_state(cmd_events: Table) -> np.ndarray[bool]:
+    """
+    Filters command events based on State.
+
+    Parameters
+    ----------
+    cmd_events : Table
+        Command events, where each event has a "State" attribute.
+
+    Returns
+    -------
+    numpy.ndarray
+        A boolean array indicating which command events have allowed states.
+    """
+    allowed_states = ["Predictive", "Definitive"]
+    # In-work can be used to validate the new event vs telemetry prior to make it
+    # operational.
+    if conf.include_in_work_command_events:
+        allowed_states.append("In-work")
+    ok = np.isin(cmd_events["State"], allowed_states)
+    return ok
+
+
+def set_time_now(date):
+    """Context manager to temporarily set CXOTIME_NOW to ``date``.
+
+    This temporarily sets the CXOTIME_NOW environment variable to ``date`` within the
+    context block. This is a very thin wrapper around ska_helpers.utils.temp_env_var.
+    This effectively makes ``date`` serve as the current time and is useful for testing.
+
+    In this example we get the observation history as if the 2025:012:14:37:04 SCS-107
+    run never happened::
+
+      import kadi.commands as kc
+      start = "2025:012"
+      stop = "2025:018"
+      with kc.set_time_now(stop):
+          obss_as_planned = kc.get_observations(
+              start, stop, event_filter=kc.filter_scs107_events
+          )
+
+    Parameters
+    ----------
+    date : CxoTimeLike
+        Date in CxoTime-compatible format.
+    """
+    from ska_helpers.utils import temp_env_var
+
+    return temp_env_var("CXOTIME_NOW", CxoTime(date).date)
