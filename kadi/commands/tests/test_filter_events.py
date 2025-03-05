@@ -166,9 +166,6 @@ def test_filter_scs107_events(
     # get_cmds() is working as expected - no CMD_EVT in the planned observations
     ok = cmds_planned["source"] == "CMD_EVT"
     assert np.all(cmds_planned[ok]["params"] == cmd_evt_params)
-
-    # As-run gets an extra observation because the manual obsid update at
-    # 2025:001:12:48:34.040 breaks the observation into two.
     assert len(obss_as_run) == len_as_run
     assert len(obss_planned) == len_planned
 

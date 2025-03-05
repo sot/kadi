@@ -1022,6 +1022,8 @@ def update_cmd_events(
     this environment variable is set, then events with a date after the value of
     ``CXOTIME_NOW`` are filtered out.
 
+    Finally, events are filtered by `event_filter` if it is provided.
+
     Parameters
     ----------
     scenario : str, None
