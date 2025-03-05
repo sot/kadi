@@ -102,8 +102,8 @@ cmd_evt_params_2025012 = [
 cases = [
     # Includes a manual "Obsid" update event
     {
-        "start": "2024:366",
-        "stop": "2025:004",
+        "start": "2024:366:00:00:00.000",
+        "stop": "2025:004:00:00:00.000",
         "exp_lines": exp_2024366,
         "len_as_run": 36,  # One extra observation due to the manual obsid update
         "len_planned": 35,
@@ -116,8 +116,8 @@ cases = [
     },
     # Includes an "Observing not run" JAN1325A event
     {
-        "start": "2025:012",
-        "stop": "2025:016",
+        "start": "2025:012:00:00:00.000",
+        "stop": "2025:016:00:00:00.000",
         "exp_lines": exp_2025012,
         "len_as_run": 29,
         "len_planned": 29,
