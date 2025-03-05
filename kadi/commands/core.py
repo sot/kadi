@@ -1144,7 +1144,10 @@ def get_cxotime_now() -> str | None:
 
 def filter_cmd_events_date_stop(date_stop):
     """
-    Returns a function that removes command events with ``Date > date_stop``.
+    Returns an event filter function to remove events with ``Date > date_stop``.
+
+    The returned function can be used as an ``event_filter`` argument to ``get_cmds()``
+    and other related functions.
 
     Parameters
     ----------
@@ -1154,7 +1157,9 @@ def filter_cmd_events_date_stop(date_stop):
     Returns
     -------
     Callable
-        Function that takes a Table of command events and returns a boolean numpy array.
+        Function that takes a Table of command events and returns a boolean numpy array
+        of the same length as the table. The array is a mask and ``True`` entries are
+        kept.
     """
 
     def func(cmd_events):
