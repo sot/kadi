@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Commands and states &#8212; kadi 7.15.0 documentation</title>
+    <title>Commands and states &#8212; kadi 7.16.0 documentation</title>
   
   
   
@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../_static/documentation_options.js?v=85b8a37b"></script>
+    <script src="../_static/documentation_options.js?v=17c77d90"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -54,7 +54,7 @@
     <link rel="prev" title="Event Descriptions" href="../events/event_descriptions.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="7.15.0" />
+  <meta name="docsearch:version" content="7.16.0" />
   </head>
   
   
@@ -107,7 +107,7 @@
     <span style="color: rgb(186, 70, 21); font-size: x-large;">kadi</span>
 </a>
 &nbsp;
-<span style="font-size: x-large;">7.15.0</span></div>
+<span style="font-size: x-large;">7.16.0</span></div>
     
   </div>
   
@@ -1220,6 +1220,57 @@ and this should serve as your starting point.  The Ska team will be happy to ass
 you if this is not enough.</p>
 </section>
 </section>
+<section id="filtered-event-history">
+<h2>Filtered Event History<a class="headerlink" href="#filtered-event-history" title="Link to this heading">#</a></h2>
+<p>In some cases you may want to use a filtered event history, most commonly to see the
+originally planned commands and states following an SCS-107 event.  Since SCS-107 stops
+the observing loads, commands in those loads like the ObsID update and science
+instrument commanding stop appearing in the kadi command history and states.</p>
+<p>Filtering the Chandra command events is done by specifying the <code class="docutils literal notranslate"><span class="pre">event_filter</span></code> argument
+to any of <a class="reference internal" href="../api/kadi/commands/commands_v2/get_cmds.html#kadi.commands.commands_v2.get_cmds" title="kadi.commands.commands_v2.get_cmds"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_cmds()</span></code></a>, <a class="reference internal" href="../api/kadi/commands/states/get_states.html#kadi.commands.states.get_states" title="kadi.commands.states.get_states"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_states()</span></code></a>, <a class="reference internal" href="../api/kadi/commands/states/get_continuity.html#kadi.commands.states.get_continuity" title="kadi.commands.states.get_continuity"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_continuity()</span></code></a>,
+<a class="reference internal" href="../api/kadi/commands/observations/get_observations.html#kadi.commands.observations.get_observations" title="kadi.commands.observations.get_observations"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_observations()</span></code></a>,
+<a class="reference internal" href="../api/kadi/commands/observations/get_starcats.html#kadi.commands.observations.get_starcats" title="kadi.commands.observations.get_starcats"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_starcats()</span></code></a>, and
+<a class="reference internal" href="../api/kadi/commands/observations/get_starcats_as_table.html#kadi.commands.observations.get_starcats_as_table" title="kadi.commands.observations.get_starcats_as_table"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_starcats_as_table()</span></code></a>. This filter allows for
+dynamically excluding command events from the flight Command Events sheet or whatever
+scenario you have chosen.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">event_filter</span></code> argument takes a single callable function or a list of functions.
+Each function must take a single argument, an Command Events Table object, and return a
+boolean mask indicating whether each row (command event) in the table should be included
+when generating the final commands.  The functions are applied in order, and the command
+event is included if any of the functions return <code class="docutils literal notranslate"><span class="pre">True</span></code>.</p>
+<section id="filtering-within-last-30-days">
+<h3>Filtering within last 30 days<a class="headerlink" href="#filtering-within-last-30-days" title="Link to this heading">#</a></h3>
+<p>If the events you want to filter occurred within the last 30 days, you can use any of
+the supported functions (listed above) directly, for example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">kadi.commands</span> <span class="kn">import</span> <span class="n">filter_scs107_events</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">obss_planned</span> <span class="o">=</span> <span class="n">get_observations</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">,</span> <span class="n">event_filter</span><span class="o">=</span><span class="n">filter_scs107_events</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="filtering-events-older-than-30-days">
+<h3>Filtering events older than 30 days<a class="headerlink" href="#filtering-events-older-than-30-days" title="Link to this heading">#</a></h3>
+<p>By default, the commands archive dynamically applies the event history from the last 30
+days when constructing the command history from backstop files. Beyond 30 days, the
+commands are taken from a static HDF5 archive file.  To filter events older than 30
+days, you need to make kadi pretend that the “current time” is actually a date in the
+past.</p>
+<p>For example, to get the “as-planned” observations covering two SCS-107 runs in the
+beginning of 2025, you can use the following code. This uses the
+<a class="reference internal" href="../api/kadi/commands/set_time_now.html#kadi.commands.set_time_now" title="kadi.commands.set_time_now"><code class="xref py py-func docutils literal notranslate"><span class="pre">set_time_now()</span></code></a> context manager to temporarily set the current time
+to a date in the past, and the <a class="reference internal" href="../api/kadi/commands/filter_scs107_events.html#kadi.commands.filter_scs107_events" title="kadi.commands.filter_scs107_events"><code class="xref py py-func docutils literal notranslate"><span class="pre">filter_scs107_events()</span></code></a> function to
+filter out the SCS-107 events:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">kadi.commands</span> <span class="kn">import</span> <span class="n">filter_scs107_events</span><span class="p">,</span> <span class="n">set_time_now</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">set_time_now</span><span class="p">(</span><span class="s2">&quot;2025:015&quot;</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="n">obss_planned</span> <span class="o">=</span> <span class="n">get_observations</span><span class="p">(</span>
+<span class="gp">... </span>        <span class="s2">&quot;2024:365&quot;</span><span class="p">,</span> <span class="s2">&quot;2025:015&quot;</span><span class="p">,</span> <span class="n">event_filter</span><span class="o">=</span><span class="n">filter_scs107_events</span>
+<span class="gp">... </span>    <span class="p">)</span>
+</pre></div>
+</div>
+<p>For a custom filter you can use <a class="reference internal" href="../api/kadi/commands/filter_cmd_events_by_event.html#kadi.commands.filter_cmd_events_by_event" title="kadi.commands.filter_cmd_events_by_event"><code class="xref py py-func docutils literal notranslate"><span class="pre">filter_cmd_events_by_event()</span></code></a>, or
+build your own filtering function that takes a command events table as input returns a
+boolean numpy array mask.</p>
+</section>
+</section>
 <section id="commands-archive-details">
 <h2>Commands archive details<a class="headerlink" href="#commands-archive-details" title="Link to this heading">#</a></h2>
 <p>For more details of the commands archive, including important information
@@ -1311,6 +1362,11 @@ details, please see:</p>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#state-keys">State keys</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#implementation">Implementation</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#user-defined-states">User-defined states</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#filtered-event-history">Filtered Event History</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#filtering-within-last-30-days">Filtering within last 30 days</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#filtering-events-older-than-30-days">Filtering events older than 30 days</a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#commands-archive-details">Commands archive details</a></li>

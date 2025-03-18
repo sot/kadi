@@ -1,7 +1,7 @@
 kadi.commands.get_starcats_as_table
 ===================================
 
-.. py:function:: kadi.commands.get_starcats_as_table(start=None, stop=None, *, obsid=None, unique=False, scenario=None, cmds=None, starcat_date=None)
+.. py:function:: kadi.commands.get_starcats_as_table(start=None, stop=None, *, obsid=None, unique=False, scenario=None, cmds=None, starcat_date=None, event_filter=None)
 
    
    Get a single table of star catalog entries corresponding to input parameters.
@@ -52,6 +52,11 @@ kadi.commands.get_starcats_as_table
 
        **starcat_date** : CxoTime-like, None
            Date of the observation's star catalog
+
+       **event_filter** : callable, list of callable, None
+           Callable function or list of callable functions that takes an Event Table as
+           input and returns a boolean mask with same length as Table. If None, no
+           filtering is done.
 
 
 

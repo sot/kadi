@@ -1,7 +1,7 @@
 kadi.commands.get_starcats
 ==========================
 
-.. py:function:: kadi.commands.get_starcats(start=None, stop=None, *, obsid=None, scenario=None, cmds=None, as_dict=False, starcat_date=None, show_progress=False)
+.. py:function:: kadi.commands.get_starcats(start=None, stop=None, *, obsid=None, scenario=None, cmds=None, as_dict=False, starcat_date=None, show_progress=False, event_filter=None)
 
    
    Get a list of star catalogs corresponding to input parameters.
@@ -84,6 +84,11 @@ kadi.commands.get_starcats
 
        **show_progress** : bool
            Show progress bar for long queries (default=False)
+
+       **event_filter** : callable, list of callable, None
+           Callable function or list of callable functions that takes an Event Table as
+           input and returns a boolean mask with same length as Table. If None, no
+           filtering is done.
 
 
 

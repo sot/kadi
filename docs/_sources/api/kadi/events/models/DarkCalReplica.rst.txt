@@ -49,7 +49,7 @@ kadi.events.models.DarkCalReplica
 
 
    .. py:attribute:: event_val
-      :value: 'ON '
+      :value: 'ON'
 
 
 

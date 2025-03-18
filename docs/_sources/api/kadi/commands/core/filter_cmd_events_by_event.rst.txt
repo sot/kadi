@@ -1,0 +1,41 @@
+kadi.commands.core.filter_cmd_events_by_event
+=============================================
+
+.. py:function:: kadi.commands.core.filter_cmd_events_by_event(*args)
+
+   
+   Returns a function that filters command events based on a list of event names.
+
+   Example::
+
+     >>> import kadi.commands as kc
+     >>> filter = kc.filter_cmd_events_by_event("SCS-107", "RTS", "Obsid", "Observing not run")
+     >>> with kc.set_time_now("2025:015"):
+     ...     cmds = kc.get_cmds("2025:001", "2025:015", event_filter=filter)
+
+   See also: :func:`~kadi.commands.core.filter_scs107_events`.
+
+   :Parameters:
+
+       **\*args** : str
+           Event names (e.g., "SCS-107" or "RTS") to filter out from the command events.
+
+
+
+   :Returns:
+
+       Callable
+           Function that takes a Table of command events and returns a boolean numpy array.
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!

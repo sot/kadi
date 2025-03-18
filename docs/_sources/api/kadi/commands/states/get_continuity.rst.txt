@@ -1,7 +1,7 @@
 kadi.commands.states.get_continuity
 ===================================
 
-.. py:function:: kadi.commands.states.get_continuity(date=None, state_keys=None, lookbacks=(7, 30, 180, 1000), scenario=None)
+.. py:function:: kadi.commands.states.get_continuity(date=None, state_keys=None, lookbacks=(7, 30, 180, 1000), scenario=None, event_filter=None)
 
    
    Get the state and transition dates at ``date`` for ``state_keys``.
@@ -36,6 +36,11 @@ kadi.commands.states.get_continuity
 
        **scenario**
            commands archive scenario (default=None)
+
+       **event_filter** : callable, list of callable, None
+           Callable function or list of callable functions that takes an Event Table as
+           input and returns a boolean mask with same length as Table. This is used to
+           select rows from the Table. If None, no filtering is done.
 
 
 

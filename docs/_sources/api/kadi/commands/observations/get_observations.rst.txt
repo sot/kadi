@@ -1,7 +1,7 @@
 kadi.commands.observations.get_observations
 ===========================================
 
-.. py:function:: kadi.commands.observations.get_observations(start=None, stop=None, *, obsid=None, scenario=None, cmds=None, starcat_date=None)
+.. py:function:: kadi.commands.observations.get_observations(start=None, stop=None, *, obsid=None, scenario=None, cmds=None, starcat_date=None, event_filter=None)
 
    
    Get observations corresponding to input parameters.
@@ -35,8 +35,9 @@ kadi.commands.observations.get_observations
 
        >>> obs_all = get_observations()  # All observations in commands archive
 
-       # Might be convenient to handle this as a Table >>> from astropy.table
-       import Table >>> obs_all = Table(obs_all)
+       # Might be convenient to handle this as a Table
+       >>> from astropy.table import Table
+       >>> obs_all = Table(obs_all)
 
        >>> from kadi.commands import get_observations
        >>> get_observations(starcat_date='2022:001:17:00:58.521')
@@ -71,6 +72,11 @@ kadi.commands.observations.get_observations
 
        **starcat_date** : CxoTime-like, None
            Date of the observation's star catalog
+
+       **event_filter** : callable, list of callable, None
+           Callable function or list of callable functions that takes an Event Table as
+           input and returns a boolean mask with same length as Table. If None, no
+           filtering is done.
 
 
 

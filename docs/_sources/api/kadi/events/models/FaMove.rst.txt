@@ -49,7 +49,7 @@ kadi.events.models.FaMove
 
 
    .. py:attribute:: event_val
-      :value: 'T'
+      :value: ['T', 'MOVE']
 
 
 

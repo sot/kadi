@@ -1,0 +1,44 @@
+kadi.commands.core.filter_scs107_events
+=======================================
+
+.. py:function:: kadi.commands.core.filter_scs107_events(cmd_events)
+
+   
+   Filter SCS-107 related events from command history.
+
+   This filters out the following command event types:
+   - "SCS-107"
+   - "Observing not run"
+   - "Obsid"
+   - "RTS"
+
+   Example::
+
+     >>> import kadi.commands as kc
+     >>> with kc.set_time_now("2025:015"):
+     ...     cmds = kc.get_cmds("2025:001", "2025:015", event_filter=kc.filter_scs107_events)
+
+   :Parameters:
+
+       **cmd_events** : Table
+           Command events, where each event has an "Event" attribute.
+
+
+
+   :Returns:
+
+       numpy.ndarray
+           A boolean array indicating which command events are not SCS-107 related.
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!

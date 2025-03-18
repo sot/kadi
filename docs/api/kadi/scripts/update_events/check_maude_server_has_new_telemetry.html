@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>kadi.scripts.update_events.update &#8212; kadi 7.15.0 documentation</title>
+    <title>kadi.scripts.update_events.check_maude_server_has_new_telemetry &#8212; kadi 7.16.0 documentation</title>
   
   
   
@@ -41,20 +41,20 @@
   <link rel="preload" as="script" href="../../../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../../../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../../../../_static/documentation_options.js?v=85b8a37b"></script>
+    <script src="../../../../_static/documentation_options.js?v=17c77d90"></script>
     <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../../../../_static/copybutton.js?v=30646c52"></script>
-    <script>DOCUMENTATION_OPTIONS.pagename = 'api/kadi/scripts/update_events/update';</script>
-    <link rel="canonical" href="https://sot.github.io/kadi/api/kadi/scripts/update_events/update.html" />
+    <script>DOCUMENTATION_OPTIONS.pagename = 'api/kadi/scripts/update_events/check_maude_server_has_new_telemetry';</script>
+    <link rel="canonical" href="https://sot.github.io/kadi/api/kadi/scripts/update_events/check_maude_server_has_new_telemetry.html" />
     <link rel="index" title="Index" href="../../../../genindex.html" />
     <link rel="search" title="Search" href="../../../../search.html" />
-    <link rel="next" title="kadi.scripts.update_events.save_event_to_database" href="save_event_to_database.html" />
-    <link rel="prev" title="kadi.scripts.update_events.delete_from_date" href="delete_from_date.html" />
+    <link rel="next" title="kadi.scripts.update_events.main" href="main.html" />
+    <link rel="prev" title="kadi.scripts.update_events.get_all_telemetry_event_msids" href="get_all_telemetry_event_msids.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="7.15.0" />
+  <meta name="docsearch:version" content="7.16.0" />
   </head>
   
   
@@ -107,7 +107,7 @@
     <span style="color: rgb(186, 70, 21); font-size: x-large;">kadi</span>
 </a>
 &nbsp;
-<span style="font-size: x-large;">7.15.0</span></div>
+<span style="font-size: x-large;">7.16.0</span></div>
     
   </div>
   
@@ -333,7 +333,7 @@
     
     <li class="breadcrumb-item"><a href="index.html" class="nav-link">kadi.scripts.update_events</a></li>
     
-    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">kadi.scripts.update_events.update</span></li>
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">kadi.scripts.update_events.check_maude_server_has_new_telemetry</span></li>
   </ul>
 </nav>
 </div>
@@ -350,12 +350,29 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="kadi-scripts-update-events-update">
-<h1>kadi.scripts.update_events.update<a class="headerlink" href="#kadi-scripts-update-events-update" title="Link to this heading">#</a></h1>
+  <section id="kadi-scripts-update-events-check-maude-server-has-new-telemetry">
+<h1>kadi.scripts.update_events.check_maude_server_has_new_telemetry<a class="headerlink" href="#kadi-scripts-update-events-check-maude-server-has-new-telemetry" title="Link to this heading">#</a></h1>
 <dl class="py function">
-<dt class="sig sig-object py" id="kadi.scripts.update_events.update">
-<span class="sig-prename descclassname"><span class="pre">kadi.scripts.update_events.</span></span><span class="sig-name descname"><span class="pre">update</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">EventModel</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">date_stop</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kadi.scripts.update_events.update" title="Link to this definition">#</a></dt>
-<dd></dd></dl>
+<dt class="sig sig-object py" id="kadi.scripts.update_events.check_maude_server_has_new_telemetry">
+<span class="sig-prename descclassname"><span class="pre">kadi.scripts.update_events.</span></span><span class="sig-name descname"><span class="pre">check_maude_server_has_new_telemetry</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stop</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kadi.scripts.update_events.check_maude_server_has_new_telemetry" title="Link to this definition">#</a></dt>
+<dd><p>Check if the MAUDE server has new telemetry since the last run of update_events.</p>
+<p>This also saves the last telemetry date in the <cite>Update</cite> model of the database using
+the <cite>maude_latest_backorbit</cite> name.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>stop</strong><span class="classifier">CxoTimeLike</span></dt><dd><p>Stop date for event update processing.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>has_new_telemetry</strong><span class="classifier">bool</span></dt><dd><p>True if new telemetry is available, else False.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
 
 </section>
 
@@ -370,20 +387,20 @@
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="delete_from_date.html"
+       href="get_all_telemetry_event_msids.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">kadi.scripts.update_events.delete_from_date</p>
+        <p class="prev-next-title">kadi.scripts.update_events.get_all_telemetry_event_msids</p>
       </div>
     </a>
     <a class="right-next"
-       href="save_event_to_database.html"
+       href="main.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">kadi.scripts.update_events.save_event_to_database</p>
+        <p class="prev-next-title">kadi.scripts.update_events.main</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -406,7 +423,7 @@
   </div>
   <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#kadi.scripts.update_events.update"><code class="docutils literal notranslate"><span class="pre">kadi.scripts.update_events.update()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#kadi.scripts.update_events.check_maude_server_has_new_telemetry"><code class="docutils literal notranslate"><span class="pre">kadi.scripts.update_events.check_maude_server_has_new_telemetry()</span></code></a></li>
 </ul>
   </nav></div>
 

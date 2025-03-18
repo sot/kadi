@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Index &#8212; kadi 7.15.0 documentation</title>
+    <title>Index &#8212; kadi 7.16.0 documentation</title>
   
   
   
@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="_static/documentation_options.js?v=85b8a37b"></script>
+    <script src="_static/documentation_options.js?v=17c77d90"></script>
     <script src="_static/doctools.js?v=9bcbadda"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/clipboard.min.js?v=a7894cd8"></script>
@@ -51,7 +51,7 @@
     <link rel="search" title="Search" href="search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="7.15.0" />
+  <meta name="docsearch:version" content="7.16.0" />
   </head>
   
   
@@ -104,7 +104,7 @@
     <span style="color: rgb(186, 70, 21); font-size: x-large;">kadi</span>
 </a>
 &nbsp;
-<span style="font-size: x-large;">7.15.0</span></div>
+<span style="font-size: x-large;">7.16.0</span></div>
     
   </div>
   
@@ -513,10 +513,10 @@
         <li><a href="api/kadi/commands/core/CommandTable.html#kadi.commands.core.CommandTable.add_cmds">(kadi.commands.core.CommandTable method)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/kadi/commands/validate/Validate.html#kadi.commands.validate.Validate.add_exclude_interval">add_exclude_interval() (kadi.commands.validate.Validate method)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/kadi/commands/validate/Validate.html#kadi.commands.validate.Validate.add_exclude_intervals">add_exclude_intervals() (kadi.commands.validate.Validate method)</a>
 
       <ul>
@@ -541,6 +541,12 @@
 
       <ul>
         <li><a href="api/kadi/commands/core/CommandTable.html#kadi.commands.core.CommandTable.as_list_of_dict">(kadi.commands.core.CommandTable method)</a>
+</li>
+      </ul></li>
+      <li><a href="api/kadi/events/models/Manvr.html#kadi.events.models.Manvr.aux_msids">aux_msids (kadi.events.models.Manvr attribute)</a>
+
+      <ul>
+        <li><a href="api/kadi/events/models/TlmEvent.html#kadi.events.models.TlmEvent.aux_msids">(kadi.events.models.TlmEvent attribute)</a>
 </li>
       </ul></li>
   </ul></td>
@@ -619,9 +625,19 @@
 </li>
         <li><a href="api/kadi/commands/core/add_observations_to_cmds.html#kadi.commands.core.add_observations_to_cmds">kadi.commands.core.add_observations_to_cmds()</a>
 </li>
+        <li><a href="api/kadi/commands/core/filter_cmd_events_by_event.html#kadi.commands.core.filter_cmd_events_by_event">kadi.commands.core.filter_cmd_events_by_event()</a>
+</li>
+        <li><a href="api/kadi/commands/core/filter_scs107_events.html#kadi.commands.core.filter_scs107_events">kadi.commands.core.filter_scs107_events()</a>
+</li>
         <li><a href="api/kadi/commands/core/get_cmds_from_backstop.html#kadi.commands.core.get_cmds_from_backstop">kadi.commands.core.get_cmds_from_backstop()</a>
 </li>
         <li><a href="api/kadi/commands/core/read_backstop.html#kadi.commands.core.read_backstop">kadi.commands.core.read_backstop()</a>
+</li>
+        <li><a href="api/kadi/commands/core/set_time_now.html#kadi.commands.core.set_time_now">kadi.commands.core.set_time_now()</a>
+</li>
+        <li><a href="api/kadi/commands/filter_cmd_events_by_event.html#kadi.commands.filter_cmd_events_by_event">kadi.commands.filter_cmd_events_by_event()</a>
+</li>
+        <li><a href="api/kadi/commands/filter_scs107_events.html#kadi.commands.filter_scs107_events">kadi.commands.filter_scs107_events()</a>
 </li>
         <li><a href="api/kadi/commands/get_cmds.html#kadi.commands.get_cmds">kadi.commands.get_cmds()</a>
 </li>
@@ -640,6 +656,8 @@
         <li><a href="api/kadi/commands/observations/get_starcats_as_table.html#kadi.commands.observations.get_starcats_as_table">kadi.commands.observations.get_starcats_as_table()</a>
 </li>
         <li><a href="api/kadi/commands/read_backstop.html#kadi.commands.read_backstop">kadi.commands.read_backstop()</a>
+</li>
+        <li><a href="api/kadi/commands/set_time_now.html#kadi.commands.set_time_now">kadi.commands.set_time_now()</a>
 </li>
         <li><a href="api/kadi/commands/states/_unique.html#kadi.commands.states._unique">kadi.commands.states._unique()</a>
 </li>
@@ -781,11 +799,19 @@
 </li>
         <li><a href="api/kadi/scripts/update_cmds_v2/main.html#kadi.scripts.update_cmds_v2.main">kadi.scripts.update_cmds_v2.main()</a>
 </li>
+        <li><a href="api/kadi/scripts/update_events/check_maude_server_has_new_telemetry.html#kadi.scripts.update_events.check_maude_server_has_new_telemetry">kadi.scripts.update_events.check_maude_server_has_new_telemetry()</a>
+</li>
         <li><a href="api/kadi/scripts/update_events/delete_from_date.html#kadi.scripts.update_events.delete_from_date">kadi.scripts.update_events.delete_from_date()</a>
 </li>
-        <li><a href="api/kadi/scripts/update_events/get_events_and_event_models.html#kadi.scripts.update_events.get_events_and_event_models">kadi.scripts.update_events.get_events_and_event_models()</a>
+        <li><a href="api/kadi/scripts/update_events/filter_events_to_add_to_database.html#kadi.scripts.update_events.filter_events_to_add_to_database">kadi.scripts.update_events.filter_events_to_add_to_database()</a>
 </li>
-        <li><a href="api/kadi/scripts/update_events/get_opt.html#kadi.scripts.update_events.get_opt">kadi.scripts.update_events.get_opt()</a>
+        <li><a href="api/kadi/scripts/update_events/get_all_telemetry_event_msids.html#kadi.scripts.update_events.get_all_telemetry_event_msids">kadi.scripts.update_events.get_all_telemetry_event_msids()</a>
+</li>
+        <li><a href="api/kadi/scripts/update_events/get_date_start_stop_for_maude.html#kadi.scripts.update_events.get_date_start_stop_for_maude">kadi.scripts.update_events.get_date_start_stop_for_maude()</a>
+</li>
+        <li><a href="api/kadi/scripts/update_events/get_opt_parser.html#kadi.scripts.update_events.get_opt_parser">kadi.scripts.update_events.get_opt_parser()</a>
+</li>
+        <li><a href="api/kadi/scripts/update_events/get_sample_period_max.html#kadi.scripts.update_events.get_sample_period_max">kadi.scripts.update_events.get_sample_period_max()</a>
 </li>
         <li><a href="api/kadi/scripts/update_events/main.html#kadi.scripts.update_events.main">kadi.scripts.update_events.main()</a>
 </li>
@@ -793,7 +819,7 @@
 </li>
         <li><a href="api/kadi/scripts/update_events/try4times.html#kadi.scripts.update_events.try4times">kadi.scripts.update_events.try4times()</a>
 </li>
-        <li><a href="api/kadi/scripts/update_events/update.html#kadi.scripts.update_events.update">kadi.scripts.update_events.update()</a>
+        <li><a href="api/kadi/scripts/update_events/update_event_model.html#kadi.scripts.update_events.update_event_model">kadi.scripts.update_events.update_event_model()</a>
 </li>
         <li><a href="api/kadi/scripts/validate_states/get_index_page_html.html#kadi.scripts.validate_states.get_index_page_html">kadi.scripts.validate_states.get_index_page_html()</a>
 </li>
@@ -1114,6 +1140,8 @@
       </ul></li>
       <li><a href="api/kadi/events/models/GratingMove.html#kadi.events.models.GratingMove.direction">direction (kadi.events.models.GratingMove attribute)</a>
 </li>
+      <li><a href="api/kadi/config/Conf.html#kadi.config.Conf.disable_hrc_scs107_commanding">disable_hrc_scs107_commanding (kadi.config.Conf attribute)</a>
+</li>
       <li><a href="api/kadi/events/models/ManvrSeq.html#kadi.events.models.ManvrSeq.dt">dt (kadi.events.models.ManvrSeq attribute)</a>
 </li>
       <li><a href="api/kadi/events/models/Orbit.html#kadi.events.models.Orbit.dt_start_radzone">dt_start_radzone (kadi.events.models.Orbit attribute)</a>
@@ -1149,8 +1177,6 @@
       <li><a href="api/kadi/events/models/SafeSun.html#kadi.events.models.SafeSun.event_filter_bad">event_filter_bad (kadi.events.models.SafeSun attribute)</a>
 
       <ul>
-        <li><a href="api/kadi/events/models/Scs107.html#kadi.events.models.Scs107.event_filter_bad">(kadi.events.models.Scs107 attribute)</a>
-</li>
         <li><a href="api/kadi/events/models/TlmEvent.html#kadi.events.models.TlmEvent.event_filter_bad">(kadi.events.models.TlmEvent attribute)</a>
 </li>
       </ul></li>
@@ -1158,6 +1184,10 @@
 
       <ul>
         <li><a href="api/kadi/events/models/DarkCalReplica.html#kadi.events.models.DarkCalReplica.event_min_dur">(kadi.events.models.DarkCalReplica attribute)</a>
+</li>
+        <li><a href="api/kadi/events/models/Dump.html#kadi.events.models.Dump.event_min_dur">(kadi.events.models.Dump attribute)</a>
+</li>
+        <li><a href="api/kadi/events/models/Eclipse.html#kadi.events.models.Eclipse.event_min_dur">(kadi.events.models.Eclipse attribute)</a>
 </li>
         <li><a href="api/kadi/events/models/SafeSun.html#kadi.events.models.SafeSun.event_min_dur">(kadi.events.models.SafeSun attribute)</a>
 </li>
@@ -1197,12 +1227,6 @@
       <ul>
         <li><a href="api/kadi/events/models/GratingMove.html#kadi.events.models.GratingMove.event_time_fuzz">(kadi.events.models.GratingMove attribute)</a>
 </li>
-        <li><a href="api/kadi/events/models/NormalSun.html#kadi.events.models.NormalSun.event_time_fuzz">(kadi.events.models.NormalSun attribute)</a>
-</li>
-        <li><a href="api/kadi/events/models/SafeSun.html#kadi.events.models.SafeSun.event_time_fuzz">(kadi.events.models.SafeSun attribute)</a>
-</li>
-        <li><a href="api/kadi/events/models/Scs107.html#kadi.events.models.Scs107.event_time_fuzz">(kadi.events.models.Scs107 attribute)</a>
-</li>
       </ul></li>
       <li><a href="api/kadi/events/models/DarkCal.html#kadi.events.models.DarkCal.event_val">event_val (kadi.events.models.DarkCal attribute)</a>
 
@@ -1218,6 +1242,8 @@
         <li><a href="api/kadi/events/models/Manvr.html#kadi.events.models.Manvr.event_val">(kadi.events.models.Manvr attribute)</a>
 </li>
         <li><a href="api/kadi/events/models/NormalSun.html#kadi.events.models.NormalSun.event_val">(kadi.events.models.NormalSun attribute)</a>
+</li>
+        <li><a href="api/kadi/events/models/Scs107.html#kadi.events.models.Scs107.event_val">(kadi.events.models.Scs107 attribute)</a>
 </li>
         <li><a href="api/kadi/events/models/TlmEvent.html#kadi.events.models.TlmEvent.event_val">(kadi.events.models.TlmEvent attribute)</a>
 </li>
@@ -1258,10 +1284,10 @@
         <li><a href="api/kadi/commands/core/CommandTable.html#kadi.commands.core.CommandTable.fetch_params">(kadi.commands.core.CommandTable method)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/kadi/config/Conf.html#kadi.config.Conf.fid_id_match_halfwidth">fid_id_match_halfwidth (kadi.config.Conf attribute)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/kadi/commands/states/FidsTransition.html#kadi.commands.states.FidsTransition.fids_callback">fids_callback() (kadi.commands.states.FidsTransition class method)</a>
 </li>
       <li><a href="api/kadi/events/query/EventQuery.html#kadi.events.query.EventQuery.filter">filter() (kadi.events.query.EventQuery method)</a>
@@ -1279,7 +1305,11 @@
       <li><a href="api/kadi/events/models/LttBad.html#kadi.events.models.LttBad.flag">flag (kadi.events.models.LttBad attribute)</a>
 </li>
       <li><a href="api/kadi/events/models/BaseModel.html#kadi.events.models.BaseModel.from_dict">from_dict() (kadi.events.models.BaseModel class method)</a>
+
+      <ul>
+        <li><a href="api/kadi/events/models/TlmEvent.html#kadi.events.models.TlmEvent.from_dict">(kadi.events.models.TlmEvent class method)</a>
 </li>
+      </ul></li>
   </ul></td>
 </tr></table>
 
@@ -1309,6 +1339,8 @@
 </li>
         <li><a href="api/kadi/events/models/Orbit.html#kadi.events.models.Orbit.get_events">(kadi.events.models.Orbit class method)</a>
 </li>
+        <li><a href="api/kadi/events/models/Scs107.html#kadi.events.models.Scs107.get_events">(kadi.events.models.Scs107 class method)</a>
+</li>
         <li><a href="api/kadi/events/models/TlmEvent.html#kadi.events.models.TlmEvent.get_events">(kadi.events.models.TlmEvent class method)</a>
 </li>
       </ul></li>
@@ -1334,10 +1366,10 @@
 </li>
       <li><a href="api/kadi/events/models/Manvr.html#kadi.events.models.Manvr.get_manvr_attrs">get_manvr_attrs() (kadi.events.models.Manvr class method)</a>
 </li>
-      <li><a href="api/kadi/events/models/BaseModel.html#kadi.events.models.BaseModel.get_model_fields">get_model_fields() (kadi.events.models.BaseModel class method)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/kadi/events/models/BaseModel.html#kadi.events.models.BaseModel.get_model_fields">get_model_fields() (kadi.events.models.BaseModel class method)</a>
+</li>
       <li><a href="api/kadi/events/models/TlmEvent.html#kadi.events.models.TlmEvent.get_msids_states">get_msids_states() (kadi.events.models.TlmEvent class method)</a>
 </li>
       <li><a href="api/kadi/events/models/BaseEvent.html#kadi.events.models.BaseEvent.get_next">get_next() (kadi.events.models.BaseEvent method)</a>
@@ -1374,8 +1406,6 @@
         <li><a href="api/kadi/events/models/GratingMove.html#kadi.events.models.GratingMove.get_state_times_bools">(kadi.events.models.GratingMove class method)</a>
 </li>
         <li><a href="api/kadi/events/models/SafeSun.html#kadi.events.models.SafeSun.get_state_times_bools">(kadi.events.models.SafeSun class method)</a>
-</li>
-        <li><a href="api/kadi/events/models/Scs107.html#kadi.events.models.Scs107.get_state_times_bools">(kadi.events.models.Scs107 class method)</a>
 </li>
         <li><a href="api/kadi/events/models/TlmEvent.html#kadi.events.models.TlmEvent.get_state_times_bools">(kadi.events.models.TlmEvent class method)</a>
 </li>
@@ -1711,6 +1741,20 @@
       <li><a href="api/kadi/commands/core/CommandTable.html#kadi.commands.core.CommandTable">kadi.commands.core.CommandTable (built-in class)</a>
 </li>
       <li>
+    kadi.commands.core.filter_cmd_events_by_event()
+
+      <ul>
+        <li><a href="api/kadi/commands/core/filter_cmd_events_by_event.html#kadi.commands.core.filter_cmd_events_by_event">built-in function</a>
+</li>
+      </ul></li>
+      <li>
+    kadi.commands.core.filter_scs107_events()
+
+      <ul>
+        <li><a href="api/kadi/commands/core/filter_scs107_events.html#kadi.commands.core.filter_scs107_events">built-in function</a>
+</li>
+      </ul></li>
+      <li>
     kadi.commands.core.get_cmds_from_backstop()
 
       <ul>
@@ -1722,6 +1766,27 @@
 
       <ul>
         <li><a href="api/kadi/commands/core/read_backstop.html#kadi.commands.core.read_backstop">built-in function</a>
+</li>
+      </ul></li>
+      <li>
+    kadi.commands.core.set_time_now()
+
+      <ul>
+        <li><a href="api/kadi/commands/core/set_time_now.html#kadi.commands.core.set_time_now">built-in function</a>
+</li>
+      </ul></li>
+      <li>
+    kadi.commands.filter_cmd_events_by_event()
+
+      <ul>
+        <li><a href="api/kadi/commands/filter_cmd_events_by_event.html#kadi.commands.filter_cmd_events_by_event">built-in function</a>
+</li>
+      </ul></li>
+      <li>
+    kadi.commands.filter_scs107_events()
+
+      <ul>
+        <li><a href="api/kadi/commands/filter_scs107_events.html#kadi.commands.filter_scs107_events">built-in function</a>
 </li>
       </ul></li>
       <li>
@@ -1792,6 +1857,13 @@
 
       <ul>
         <li><a href="api/kadi/commands/read_backstop.html#kadi.commands.read_backstop">built-in function</a>
+</li>
+      </ul></li>
+      <li>
+    kadi.commands.set_time_now()
+
+      <ul>
+        <li><a href="api/kadi/commands/set_time_now.html#kadi.commands.set_time_now">built-in function</a>
 </li>
       </ul></li>
       <li>
@@ -2112,6 +2184,8 @@
 </li>
       <li><a href="api/kadi/commands/validate/ValidateRoll.html#kadi.commands.validate.ValidateRoll">kadi.commands.validate.ValidateRoll (built-in class)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/kadi/commands/validate/ValidateSimpos.html#kadi.commands.validate.ValidateSimpos">kadi.commands.validate.ValidateSimpos (built-in class)</a>
 </li>
       <li>
@@ -2121,8 +2195,6 @@
         <li><a href="api/kadi/config/index.html#module-kadi.config">module</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/kadi/config/Conf.html#kadi.config.Conf">kadi.config.Conf (built-in class)</a>
 </li>
       <li><a href="api/kadi/config/ConfigItem.html#kadi.config.ConfigItem">kadi.config.ConfigItem (built-in class)</a>
@@ -2692,6 +2764,13 @@
 </li>
       </ul></li>
       <li>
+    kadi.scripts.update_events.check_maude_server_has_new_telemetry()
+
+      <ul>
+        <li><a href="api/kadi/scripts/update_events/check_maude_server_has_new_telemetry.html#kadi.scripts.update_events.check_maude_server_has_new_telemetry">built-in function</a>
+</li>
+      </ul></li>
+      <li>
     kadi.scripts.update_events.delete_from_date()
 
       <ul>
@@ -2699,17 +2778,38 @@
 </li>
       </ul></li>
       <li>
-    kadi.scripts.update_events.get_events_and_event_models()
+    kadi.scripts.update_events.filter_events_to_add_to_database()
 
       <ul>
-        <li><a href="api/kadi/scripts/update_events/get_events_and_event_models.html#kadi.scripts.update_events.get_events_and_event_models">built-in function</a>
+        <li><a href="api/kadi/scripts/update_events/filter_events_to_add_to_database.html#kadi.scripts.update_events.filter_events_to_add_to_database">built-in function</a>
 </li>
       </ul></li>
       <li>
-    kadi.scripts.update_events.get_opt()
+    kadi.scripts.update_events.get_all_telemetry_event_msids()
 
       <ul>
-        <li><a href="api/kadi/scripts/update_events/get_opt.html#kadi.scripts.update_events.get_opt">built-in function</a>
+        <li><a href="api/kadi/scripts/update_events/get_all_telemetry_event_msids.html#kadi.scripts.update_events.get_all_telemetry_event_msids">built-in function</a>
+</li>
+      </ul></li>
+      <li>
+    kadi.scripts.update_events.get_date_start_stop_for_maude()
+
+      <ul>
+        <li><a href="api/kadi/scripts/update_events/get_date_start_stop_for_maude.html#kadi.scripts.update_events.get_date_start_stop_for_maude">built-in function</a>
+</li>
+      </ul></li>
+      <li>
+    kadi.scripts.update_events.get_opt_parser()
+
+      <ul>
+        <li><a href="api/kadi/scripts/update_events/get_opt_parser.html#kadi.scripts.update_events.get_opt_parser">built-in function</a>
+</li>
+      </ul></li>
+      <li>
+    kadi.scripts.update_events.get_sample_period_max()
+
+      <ul>
+        <li><a href="api/kadi/scripts/update_events/get_sample_period_max.html#kadi.scripts.update_events.get_sample_period_max">built-in function</a>
 </li>
       </ul></li>
       <li>
@@ -2734,10 +2834,10 @@
 </li>
       </ul></li>
       <li>
-    kadi.scripts.update_events.update()
+    kadi.scripts.update_events.update_event_model()
 
       <ul>
-        <li><a href="api/kadi/scripts/update_events/update.html#kadi.scripts.update_events.update">built-in function</a>
+        <li><a href="api/kadi/scripts/update_events/update_event_model.html#kadi.scripts.update_events.update_event_model">built-in function</a>
 </li>
       </ul></li>
       <li>

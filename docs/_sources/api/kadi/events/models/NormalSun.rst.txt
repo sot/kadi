@@ -53,8 +53,3 @@ kadi.events.models.NormalSun
       :value: 'NSUN'
 
 
-
-   .. py:attribute:: event_time_fuzz
-      :value: 86400
-
-

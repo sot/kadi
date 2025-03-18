@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>kadi.events.models.Scs107 &#8212; kadi 7.15.0 documentation</title>
+    <title>kadi.events.models.Scs107 &#8212; kadi 7.16.0 documentation</title>
   
   
   
@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../../../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../../../../_static/documentation_options.js?v=85b8a37b"></script>
+    <script src="../../../../_static/documentation_options.js?v=17c77d90"></script>
     <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -54,7 +54,7 @@
     <link rel="prev" title="kadi.events.models.DarkCal" href="DarkCal.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="7.15.0" />
+  <meta name="docsearch:version" content="7.16.0" />
   </head>
   
   
@@ -107,7 +107,7 @@
     <span style="color: rgb(186, 70, 21); font-size: x-large;">kadi</span>
 </a>
 &nbsp;
-<span style="font-size: x-large;">7.15.0</span></div>
+<span style="font-size: x-large;">7.16.0</span></div>
     
   </div>
   
@@ -357,17 +357,16 @@
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">kadi.events.models.</span></span><span class="sig-name descname"><span class="pre">Scs107</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kadi.events.models.Scs107" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">TlmEvent</span></code></p>
 <p>SCS107 run</p>
-<p><strong>Event definition</strong>: interval with the following combination of state values:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="mi">3</span><span class="n">TSCMOVE</span> <span class="o">=</span> <span class="n">MOVE</span>
-<span class="n">AORWBIAS</span> <span class="o">=</span> <span class="n">DISA</span>
-<span class="n">CORADMEN</span> <span class="o">=</span> <span class="n">DISA</span>
+<p><strong>Event definition</strong>: reaction wheel bias disabled between 500 to 1000 sec:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">AORWBIAS</span> <span class="o">=</span> <span class="n">DISA</span>
 </pre></div>
 </div>
-<p>These MSIDs are first sampled onto a common time sequence of 32.8 sec samples
-so the start / stop times are accurate only to that resolution.</p>
-<p>Early in the mission there were two SIM TSC translations during an SCS107 run.
-By the above rules this would generate two SCS107 events, but instead any two
-SCS107 events within 600 seconds are combined into a single event.</p>
+<p>This is commanded by SCS-107 with a roughly constant time delay from RW Bias
+disable to the subsequent re-enable. Over the mission the delay has varied from
+around 900 seconds (early) to ~550 secs (circa 2025), as SCS-107 has been modified.
+See <cite>notebooks/scs107-via-RW-bias-disable.ipynb</cite> for the supporting analysis.</p>
+<p>For this event, intervals of RW Bias being disabled for 500 to 1000 seconds are
+selected as a proxy for SCS-107 runs.</p>
 <p><strong>Fields</strong></p>
 <div class="pst-scrollable-table-container"><table class="table">
 <thead>
@@ -415,38 +414,19 @@ SCS107 events within 600 seconds are combined into a single event.</p>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="kadi.events.models.Scs107.event_msids">
-<span class="sig-name descname"><span class="pre">event_msids</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">['3tscmove',</span> <span class="pre">'aorwbias',</span> <span class="pre">'coradmen']</span></em><a class="headerlink" href="#kadi.events.models.Scs107.event_msids" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">event_msids</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">['aorwbias']</span></em><a class="headerlink" href="#kadi.events.models.Scs107.event_msids" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="kadi.events.models.Scs107.event_time_fuzz">
-<span class="sig-name descname"><span class="pre">event_time_fuzz</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">600</span></em><a class="headerlink" href="#kadi.events.models.Scs107.event_time_fuzz" title="Link to this definition">#</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="kadi.events.models.Scs107.event_filter_bad">
-<span class="sig-name descname"><span class="pre">event_filter_bad</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#kadi.events.models.Scs107.event_filter_bad" title="Link to this definition">#</a></dt>
+<dt class="sig sig-object py" id="kadi.events.models.Scs107.event_val">
+<span class="sig-name descname"><span class="pre">event_val</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'DISA'</span></em><a class="headerlink" href="#kadi.events.models.Scs107.event_val" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="kadi.events.models.Scs107.get_state_times_bools">
-<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_state_times_bools</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">msidset</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kadi.events.models.Scs107.get_state_times_bools" title="Link to this definition">#</a></dt>
-<dd><p>Get the boolean True/False array indicating when <code class="docutils literal notranslate"><span class="pre">event_msid</span></code> is in the
-desired state for this event type.  The default is when
-<code class="docutils literal notranslate"><span class="pre">event_msid</span> <span class="pre">==</span> <span class="pre">cls.event_val</span></code>, but subclasses may override this method.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>event_msid</strong></dt><dd><p>fetch.MSID object</p>
-</dd>
-</dl>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><dl class="simple">
-<dt>boolean ndarray</dt><dd></dd>
-</dl>
-</dd>
-</dl>
+<dt class="sig sig-object py" id="kadi.events.models.Scs107.get_events">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_events</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stop</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kadi.events.models.Scs107.get_events" title="Link to this definition">#</a></dt>
+<dd><p>Get events from telemetry defined by a simple rule that the value of
+<cite>event_msids[0]</cite> == <cite>event_val</cite>.</p>
 </dd></dl>
 
 </dd></dl>
@@ -503,9 +483,8 @@ desired state for this event type.  The default is when
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#kadi.events.models.Scs107"><code class="docutils literal notranslate"><span class="pre">kadi.events.models.Scs107</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#kadi.events.models.Scs107.notes"><code class="docutils literal notranslate"><span class="pre">kadi.events.models.Scs107.notes</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#kadi.events.models.Scs107.event_msids"><code class="docutils literal notranslate"><span class="pre">kadi.events.models.Scs107.event_msids</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#kadi.events.models.Scs107.event_time_fuzz"><code class="docutils literal notranslate"><span class="pre">kadi.events.models.Scs107.event_time_fuzz</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#kadi.events.models.Scs107.event_filter_bad"><code class="docutils literal notranslate"><span class="pre">kadi.events.models.Scs107.event_filter_bad</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#kadi.events.models.Scs107.get_state_times_bools"><code class="docutils literal notranslate"><span class="pre">kadi.events.models.Scs107.get_state_times_bools()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#kadi.events.models.Scs107.event_val"><code class="docutils literal notranslate"><span class="pre">kadi.events.models.Scs107.event_val</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#kadi.events.models.Scs107.get_events"><code class="docutils literal notranslate"><span class="pre">kadi.events.models.Scs107.get_events()</span></code></a></li>
 </ul>
 </li>
 </ul>

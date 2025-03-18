@@ -62,13 +62,8 @@ kadi.events.models.SafeSun
 
 
 
-   .. py:attribute:: event_time_fuzz
-      :value: 86400
-
-
-
    .. py:attribute:: event_min_dur
-      :value: 36000
+      :value: 3600
 
 
 

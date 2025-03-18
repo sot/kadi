@@ -1,0 +1,46 @@
+kadi.scripts.update_events.filter_events_to_add_to_database
+===========================================================
+
+.. py:function:: kadi.scripts.update_events.filter_events_to_add_to_database(EventModel, cls_name, events_in_dates)
+
+   
+   Filter events to add to the database.
+
+   This takes a list of events (dicts) and returns those that are not already in the
+   database.  This is done by checking the primary key of the event model or else
+   (for telemetry events) by checking if the start time of the new event is close to
+   that of an existing event.
+
+   :Parameters:
+
+       **EventModel** : class
+           Event model class to update (e.g. models.DsnComm)
+
+       **cls_name** : str
+           Event model class name
+
+       **events_in_dates** : list of dict
+           List of event dictionaries
+
+
+
+   :Returns:
+
+       **event_models** : list of EventModel
+           List of event model instances to save
+
+       **events** : list of dict
+           List of event dictionaries (filtered from original)
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!

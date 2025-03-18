@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>kadi.commands.observations.get_observations &#8212; kadi 7.15.0 documentation</title>
+    <title>kadi.commands.observations.get_observations &#8212; kadi 7.16.0 documentation</title>
   
   
   
@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../../../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../../../../_static/documentation_options.js?v=85b8a37b"></script>
+    <script src="../../../../_static/documentation_options.js?v=17c77d90"></script>
     <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -54,7 +54,7 @@
     <link rel="prev" title="kadi.commands.observations.get_starcats" href="get_starcats.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="7.15.0" />
+  <meta name="docsearch:version" content="7.16.0" />
   </head>
   
   
@@ -107,7 +107,7 @@
     <span style="color: rgb(186, 70, 21); font-size: x-large;">kadi</span>
 </a>
 &nbsp;
-<span style="font-size: x-large;">7.15.0</span></div>
+<span style="font-size: x-large;">7.16.0</span></div>
     
   </div>
   
@@ -354,7 +354,7 @@
 <h1>kadi.commands.observations.get_observations<a class="headerlink" href="#kadi-commands-observations-get-observations" title="Link to this heading">#</a></h1>
 <dl class="py function">
 <dt class="sig sig-object py" id="kadi.commands.observations.get_observations">
-<span class="sig-prename descclassname"><span class="pre">kadi.commands.observations.</span></span><span class="sig-name descname"><span class="pre">get_observations</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stop</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obsid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scenario</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">starcat_date</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kadi.commands.observations.get_observations" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">kadi.commands.observations.</span></span><span class="sig-name descname"><span class="pre">get_observations</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stop</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obsid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scenario</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">starcat_date</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">event_filter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kadi.commands.observations.get_observations" title="Link to this definition">#</a></dt>
 <dd><p>Get observations corresponding to input parameters.</p>
 <p>The <code class="docutils literal notranslate"><span class="pre">start</span></code>, <code class="docutils literal notranslate"><span class="pre">stop</span></code>, <code class="docutils literal notranslate"><span class="pre">starcat_date</span></code> and <code class="docutils literal notranslate"><span class="pre">obsid</span></code> parameters serve as
 matching filters on the list of observations that is returned.</p>
@@ -382,8 +382,9 @@ use the first element.</p>
 
 <span class="gp">&gt;&gt;&gt; </span><span class="n">obs_all</span> <span class="o">=</span> <span class="n">get_observations</span><span class="p">()</span>  <span class="c1"># All observations in commands archive</span>
 
-<span class="go"># Might be convenient to handle this as a Table &gt;&gt;&gt; from astropy.table</span>
-<span class="go">import Table &gt;&gt;&gt; obs_all = Table(obs_all)</span>
+<span class="go"># Might be convenient to handle this as a Table</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">astropy.table</span> <span class="kn">import</span> <span class="n">Table</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">obs_all</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="n">obs_all</span><span class="p">)</span>
 
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">kadi.commands</span> <span class="kn">import</span> <span class="n">get_observations</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">get_observations</span><span class="p">(</span><span class="n">starcat_date</span><span class="o">=</span><span class="s1">&#39;2022:001:17:00:58.521&#39;</span><span class="p">)</span>
@@ -414,6 +415,10 @@ use the first element.</p>
 <dt><strong>cmds</strong><span class="classifier">CommandTable, None</span></dt><dd><p>Use this command table instead of querying the archive</p>
 </dd>
 <dt><strong>starcat_date</strong><span class="classifier">CxoTime-like, None</span></dt><dd><p>Date of the observation’s star catalog</p>
+</dd>
+<dt><strong>event_filter</strong><span class="classifier">callable, list of callable, None</span></dt><dd><p>Callable function or list of callable functions that takes an Event Table as
+input and returns a boolean mask with same length as Table. If None, no
+filtering is done.</p>
 </dd>
 </dl>
 </dd>

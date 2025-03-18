@@ -143,6 +143,11 @@ kadi.events.models.Manvr
 
 
 
+   .. py:attribute:: aux_msids
+      :value: ['aotarqt1', 'aotarqt2', 'aotarqt3', 'aoatter1', 'aoatter2', 'aoatter3']
+
+
+
    .. py:attribute:: fetch_event_msids
       :value: ['one_shot', 'aofattmd', 'aopcadmd', 'aoacaseq', 'aopsacpr', 'aounload', 'aoattqt1', 'aoattqt2',...
 

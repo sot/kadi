@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>kadi.commands &#8212; kadi 7.15.0 documentation</title>
+    <title>kadi.commands &#8212; kadi 7.16.0 documentation</title>
   
   
   
@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../../../_static/documentation_options.js?v=85b8a37b"></script>
+    <script src="../../../_static/documentation_options.js?v=17c77d90"></script>
     <script src="../../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -54,7 +54,7 @@
     <link rel="prev" title="kadi.cmds.filter" href="../cmds/filter.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="7.15.0" />
+  <meta name="docsearch:version" content="7.16.0" />
   </head>
   
   
@@ -107,7 +107,7 @@
     <span style="color: rgb(186, 70, 21); font-size: x-large;">kadi</span>
 </a>
 &nbsp;
-<span style="font-size: x-large;">7.15.0</span></div>
+<span style="font-size: x-large;">7.16.0</span></div>
     
   </div>
   
@@ -383,7 +383,7 @@
 <tr class="row-odd"><td><p><a class="reference internal" href="clear_caches.html#kadi.commands.clear_caches" title="kadi.commands.clear_caches"><code class="xref py py-obj docutils literal notranslate"><span class="pre">clear_caches</span></code></a>()</p></td>
 <td><p>Clear all commands caches.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="get_cmds.html#kadi.commands.get_cmds" title="kadi.commands.get_cmds"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_cmds</span></code></a>([start, stop, inclusive_stop, scenario])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="get_cmds.html#kadi.commands.get_cmds" title="kadi.commands.get_cmds"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_cmds</span></code></a>([start, stop, inclusive_stop, scenario, ...])</p></td>
 <td><p>Get Chandra commands that ran on-board or are approved to run.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="read_backstop.html#kadi.commands.read_backstop" title="kadi.commands.read_backstop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">read_backstop</span></code></a>(backstop[, add_observations, load_name])</p></td>
@@ -395,13 +395,22 @@
 <tr class="row-odd"><td><p><a class="reference internal" href="add_observations_to_cmds.html#kadi.commands.add_observations_to_cmds" title="kadi.commands.add_observations_to_cmds"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_observations_to_cmds</span></code></a>(cmds[, load_name])</p></td>
 <td><p>Add OBS commands to <code class="docutils literal notranslate"><span class="pre">cmds</span></code> and return new <code class="docutils literal notranslate"><span class="pre">CommandTable</span></code>.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="get_starcats.html#kadi.commands.get_starcats" title="kadi.commands.get_starcats"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_starcats</span></code></a>([start, stop, obsid, scenario, cmds, ...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="filter_cmd_events_by_event.html#kadi.commands.filter_cmd_events_by_event" title="kadi.commands.filter_cmd_events_by_event"><code class="xref py py-obj docutils literal notranslate"><span class="pre">filter_cmd_events_by_event</span></code></a>(*args)</p></td>
+<td><p>Returns a function that filters command events based on a list of event names.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="filter_scs107_events.html#kadi.commands.filter_scs107_events" title="kadi.commands.filter_scs107_events"><code class="xref py py-obj docutils literal notranslate"><span class="pre">filter_scs107_events</span></code></a>(cmd_events)</p></td>
+<td><p>Filter SCS-107 related events from command history.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="set_time_now.html#kadi.commands.set_time_now" title="kadi.commands.set_time_now"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_time_now</span></code></a>(date)</p></td>
+<td><p>Context manager to temporarily set CXOTIME_NOW to <code class="docutils literal notranslate"><span class="pre">date</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="get_starcats.html#kadi.commands.get_starcats" title="kadi.commands.get_starcats"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_starcats</span></code></a>([start, stop, obsid, scenario, cmds, ...])</p></td>
 <td><p>Get a list of star catalogs corresponding to input parameters.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="get_observations.html#kadi.commands.get_observations" title="kadi.commands.get_observations"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_observations</span></code></a>([start, stop, obsid, scenario, cmds, ...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="get_observations.html#kadi.commands.get_observations" title="kadi.commands.get_observations"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_observations</span></code></a>([start, stop, obsid, scenario, cmds, ...])</p></td>
 <td><p>Get observations corresponding to input parameters.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="get_starcats_as_table.html#kadi.commands.get_starcats_as_table" title="kadi.commands.get_starcats_as_table"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_starcats_as_table</span></code></a>([start, stop, obsid, unique, ...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="get_starcats_as_table.html#kadi.commands.get_starcats_as_table" title="kadi.commands.get_starcats_as_table"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_starcats_as_table</span></code></a>([start, stop, obsid, unique, ...])</p></td>
 <td><p>Get a single table of star catalog entries corresponding to input parameters.</p></td>
 </tr>
 </tbody>

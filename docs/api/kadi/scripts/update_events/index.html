@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>kadi.scripts.update_events &#8212; kadi 7.15.0 documentation</title>
+    <title>kadi.scripts.update_events &#8212; kadi 7.16.0 documentation</title>
   
   
   
@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../../../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../../../../_static/documentation_options.js?v=85b8a37b"></script>
+    <script src="../../../../_static/documentation_options.js?v=17c77d90"></script>
     <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -50,11 +50,11 @@
     <link rel="canonical" href="https://sot.github.io/kadi/api/kadi/scripts/update_events/index.html" />
     <link rel="index" title="Index" href="../../../../genindex.html" />
     <link rel="search" title="Search" href="../../../../search.html" />
-    <link rel="next" title="kadi.scripts.update_events.get_opt" href="get_opt.html" />
+    <link rel="next" title="kadi.scripts.update_events.get_opt_parser" href="get_opt_parser.html" />
     <link rel="prev" title="kadi.scripts.update_cmds_v2.main" href="../update_cmds_v2/main.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="7.15.0" />
+  <meta name="docsearch:version" content="7.16.0" />
   </head>
   
   
@@ -107,7 +107,7 @@
     <span style="color: rgb(186, 70, 21); font-size: x-large;">kadi</span>
 </a>
 &nbsp;
-<span style="font-size: x-large;">7.15.0</span></div>
+<span style="font-size: x-large;">7.16.0</span></div>
     
   </div>
   
@@ -356,7 +356,7 @@
 </div>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table autosummary">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="get_opt.html#kadi.scripts.update_events.get_opt" title="kadi.scripts.update_events.get_opt"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_opt</span></code></a>([args])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="get_opt_parser.html#kadi.scripts.update_events.get_opt_parser" title="kadi.scripts.update_events.get_opt_parser"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_opt_parser</span></code></a>()</p></td>
 <td><p></p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="try4times.html#kadi.scripts.update_events.try4times" title="kadi.scripts.update_events.try4times"><code class="xref py py-obj docutils literal notranslate"><span class="pre">try4times</span></code></a>(func, *arg, **kwarg)</p></td>
@@ -365,16 +365,28 @@
 <tr class="row-odd"><td><p><a class="reference internal" href="delete_from_date.html#kadi.scripts.update_events.delete_from_date" title="kadi.scripts.update_events.delete_from_date"><code class="xref py py-obj docutils literal notranslate"><span class="pre">delete_from_date</span></code></a>(EventModel, start[, set_update_date])</p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="update.html#kadi.scripts.update_events.update" title="kadi.scripts.update_events.update"><code class="xref py py-obj docutils literal notranslate"><span class="pre">update</span></code></a>(EventModel, date_stop)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="update_event_model.html#kadi.scripts.update_events.update_event_model" title="kadi.scripts.update_events.update_event_model"><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_event_model</span></code></a>(EventModel, date_stop, maude)</p></td>
+<td><p>Update the event model in the database with events up through date_stop.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="get_date_start_stop_for_maude.html#kadi.scripts.update_events.get_date_start_stop_for_maude" title="kadi.scripts.update_events.get_date_start_stop_for_maude"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_date_start_stop_for_maude</span></code></a>(EventModel, date_start, ...)</p></td>
+<td><p>Get updated date_start and date_stop for MAUDE telemetry events.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="save_event_to_database.html#kadi.scripts.update_events.save_event_to_database" title="kadi.scripts.update_events.save_event_to_database"><code class="xref py py-obj docutils literal notranslate"><span class="pre">save_event_to_database</span></code></a>(cls_name, event, event_model, ...)</p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="save_event_to_database.html#kadi.scripts.update_events.save_event_to_database" title="kadi.scripts.update_events.save_event_to_database"><code class="xref py py-obj docutils literal notranslate"><span class="pre">save_event_to_database</span></code></a>(cls_name, event, event_model, ...)</p></td>
-<td><p></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="filter_events_to_add_to_database.html#kadi.scripts.update_events.filter_events_to_add_to_database" title="kadi.scripts.update_events.filter_events_to_add_to_database"><code class="xref py py-obj docutils literal notranslate"><span class="pre">filter_events_to_add_to_database</span></code></a>(EventModel, cls_name, ...)</p></td>
+<td><p>Filter events to add to the database.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="get_events_and_event_models.html#kadi.scripts.update_events.get_events_and_event_models" title="kadi.scripts.update_events.get_events_and_event_models"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_events_and_event_models</span></code></a>(EventModel, cls_name, ...)</p></td>
-<td><p></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="get_sample_period_max.html#kadi.scripts.update_events.get_sample_period_max" title="kadi.scripts.update_events.get_sample_period_max"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_sample_period_max</span></code></a>(msid)</p></td>
+<td><p>Get max telemetry sample period for <code class="docutils literal notranslate"><span class="pre">msid</span></code>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="main.html#kadi.scripts.update_events.main" title="kadi.scripts.update_events.main"><code class="xref py py-obj docutils literal notranslate"><span class="pre">main</span></code></a>()</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="get_all_telemetry_event_msids.html#kadi.scripts.update_events.get_all_telemetry_event_msids" title="kadi.scripts.update_events.get_all_telemetry_event_msids"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_all_telemetry_event_msids</span></code></a>()</p></td>
+<td><p>Get all telemetry event MSIDs.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="check_maude_server_has_new_telemetry.html#kadi.scripts.update_events.check_maude_server_has_new_telemetry" title="kadi.scripts.update_events.check_maude_server_has_new_telemetry"><code class="xref py py-obj docutils literal notranslate"><span class="pre">check_maude_server_has_new_telemetry</span></code></a>(stop)</p></td>
+<td><p>Check if the MAUDE server has new telemetry since the last run of update_events.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="main.html#kadi.scripts.update_events.main" title="kadi.scripts.update_events.main"><code class="xref py py-obj docutils literal notranslate"><span class="pre">main</span></code></a>([args])</p></td>
 <td><p></p></td>
 </tr>
 </tbody>
@@ -403,11 +415,11 @@
       </div>
     </a>
     <a class="right-next"
-       href="get_opt.html"
+       href="get_opt_parser.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">kadi.scripts.update_events.get_opt</p>
+        <p class="prev-next-title">kadi.scripts.update_events.get_opt_parser</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>

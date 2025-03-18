@@ -1,0 +1,29 @@
+kadi.scripts.update_events.get_all_telemetry_event_msids
+========================================================
+
+.. py:function:: kadi.scripts.update_events.get_all_telemetry_event_msids()
+
+   
+   Get all telemetry event MSIDs.
+
+
+
+
+
+   :Returns:
+
+       **event_msids** : list of str
+           List of telemetry event MSIDs
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!

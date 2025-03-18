@@ -1,0 +1,40 @@
+kadi.scripts.update_events.update_event_model
+=============================================
+
+.. py:function:: kadi.scripts.update_events.update_event_model(EventModel, date_stop, maude)
+
+   
+   Update the event model in the database with events up through date_stop.
+
+   For telemetry events, date_stop is the upper limit on possible events, but most
+   commonly it is limited by available telemetry.
+
+   For non-telemetry events, date_stop is a bit fuzzier since some (like DSNComm) can
+   go into the future.
+
+   :Parameters:
+
+       **EventModel** : class
+           Event model class to update (e.g. models.DsnComm)
+
+       **date_stop** : str
+           Stop date for event update
+
+       **maude** : bool
+           Use MAUDE data source for telemetry
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!

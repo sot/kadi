@@ -1,0 +1,4 @@
+kadi.scripts.update_events.get_opt_parser
+=========================================
+
+.. py:function:: kadi.scripts.update_events.get_opt_parser()

@@ -1,4 +1,0 @@
-kadi.scripts.update_events.get_opt
-==================================
-
-.. py:function:: kadi.scripts.update_events.get_opt(args=None)

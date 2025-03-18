@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>kadi.scripts.update_events.get_opt &#8212; kadi 7.15.0 documentation</title>
+    <title>kadi.commands.core.filter_cmd_events_by_event &#8212; kadi 7.16.0 documentation</title>
   
   
   
@@ -41,20 +41,20 @@
   <link rel="preload" as="script" href="../../../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../../../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../../../../_static/documentation_options.js?v=85b8a37b"></script>
+    <script src="../../../../_static/documentation_options.js?v=17c77d90"></script>
     <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../../../../_static/copybutton.js?v=30646c52"></script>
-    <script>DOCUMENTATION_OPTIONS.pagename = 'api/kadi/scripts/update_events/get_opt';</script>
-    <link rel="canonical" href="https://sot.github.io/kadi/api/kadi/scripts/update_events/get_opt.html" />
+    <script>DOCUMENTATION_OPTIONS.pagename = 'api/kadi/commands/core/filter_cmd_events_by_event';</script>
+    <link rel="canonical" href="https://sot.github.io/kadi/api/kadi/commands/core/filter_cmd_events_by_event.html" />
     <link rel="index" title="Index" href="../../../../genindex.html" />
     <link rel="search" title="Search" href="../../../../search.html" />
-    <link rel="next" title="kadi.scripts.update_events.try4times" href="try4times.html" />
-    <link rel="prev" title="kadi.scripts.update_events" href="index.html" />
+    <link rel="next" title="kadi.commands.core.filter_scs107_events" href="filter_scs107_events.html" />
+    <link rel="prev" title="kadi.commands.core.get_cmds_from_backstop" href="get_cmds_from_backstop.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="7.15.0" />
+  <meta name="docsearch:version" content="7.16.0" />
   </head>
   
   
@@ -107,7 +107,7 @@
     <span style="color: rgb(186, 70, 21); font-size: x-large;">kadi</span>
 </a>
 &nbsp;
-<span style="font-size: x-large;">7.15.0</span></div>
+<span style="font-size: x-large;">7.16.0</span></div>
     
   </div>
   
@@ -328,12 +328,12 @@
     <li class="breadcrumb-item"><a href="../../index.html" class="nav-link">kadi</a></li>
     
     
-    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">kadi.scripts</a></li>
+    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">kadi.commands</a></li>
     
     
-    <li class="breadcrumb-item"><a href="index.html" class="nav-link">kadi.scripts.update_events</a></li>
+    <li class="breadcrumb-item"><a href="index.html" class="nav-link">kadi.commands.core</a></li>
     
-    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">kadi.scripts.update_events.get_opt</span></li>
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">kadi.commands.core.filter_cmd_events_by_event</span></li>
   </ul>
 </nav>
 </div>
@@ -350,12 +350,35 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="kadi-scripts-update-events-get-opt">
-<h1>kadi.scripts.update_events.get_opt<a class="headerlink" href="#kadi-scripts-update-events-get-opt" title="Link to this heading">#</a></h1>
+  <section id="kadi-commands-core-filter-cmd-events-by-event">
+<h1>kadi.commands.core.filter_cmd_events_by_event<a class="headerlink" href="#kadi-commands-core-filter-cmd-events-by-event" title="Link to this heading">#</a></h1>
 <dl class="py function">
-<dt class="sig sig-object py" id="kadi.scripts.update_events.get_opt">
-<span class="sig-prename descclassname"><span class="pre">kadi.scripts.update_events.</span></span><span class="sig-name descname"><span class="pre">get_opt</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">args</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kadi.scripts.update_events.get_opt" title="Link to this definition">#</a></dt>
-<dd></dd></dl>
+<dt class="sig sig-object py" id="kadi.commands.core.filter_cmd_events_by_event">
+<span class="sig-prename descclassname"><span class="pre">kadi.commands.core.</span></span><span class="sig-name descname"><span class="pre">filter_cmd_events_by_event</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kadi.commands.core.filter_cmd_events_by_event" title="Link to this definition">#</a></dt>
+<dd><p>Returns a function that filters command events based on a list of event names.</p>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">kadi.commands</span> <span class="k">as</span> <span class="nn">kc</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">filter</span> <span class="o">=</span> <span class="n">kc</span><span class="o">.</span><span class="n">filter_cmd_events_by_event</span><span class="p">(</span><span class="s2">&quot;SCS-107&quot;</span><span class="p">,</span> <span class="s2">&quot;RTS&quot;</span><span class="p">,</span> <span class="s2">&quot;Obsid&quot;</span><span class="p">,</span> <span class="s2">&quot;Observing not run&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">kc</span><span class="o">.</span><span class="n">set_time_now</span><span class="p">(</span><span class="s2">&quot;2025:015&quot;</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="n">cmds</span> <span class="o">=</span> <span class="n">kc</span><span class="o">.</span><span class="n">get_cmds</span><span class="p">(</span><span class="s2">&quot;2025:001&quot;</span><span class="p">,</span> <span class="s2">&quot;2025:015&quot;</span><span class="p">,</span> <span class="n">event_filter</span><span class="o">=</span><span class="nb">filter</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>See also: <a class="reference internal" href="filter_scs107_events.html#kadi.commands.core.filter_scs107_events" title="kadi.commands.core.filter_scs107_events"><code class="xref py py-func docutils literal notranslate"><span class="pre">filter_scs107_events()</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>*args</strong><span class="classifier">str</span></dt><dd><p>Event names (e.g., “SCS-107” or “RTS”) to filter out from the command events.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>Callable</dt><dd><p>Function that takes a Table of command events and returns a boolean numpy array.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
 
 </section>
 
@@ -370,20 +393,20 @@
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="index.html"
+       href="get_cmds_from_backstop.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">kadi.scripts.update_events</p>
+        <p class="prev-next-title">kadi.commands.core.get_cmds_from_backstop</p>
       </div>
     </a>
     <a class="right-next"
-       href="try4times.html"
+       href="filter_scs107_events.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">kadi.scripts.update_events.try4times</p>
+        <p class="prev-next-title">kadi.commands.core.filter_scs107_events</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -406,7 +429,7 @@
   </div>
   <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#kadi.scripts.update_events.get_opt"><code class="docutils literal notranslate"><span class="pre">kadi.scripts.update_events.get_opt()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#kadi.commands.core.filter_cmd_events_by_event"><code class="docutils literal notranslate"><span class="pre">kadi.commands.core.filter_cmd_events_by_event()</span></code></a></li>
 </ul>
   </nav></div>
 

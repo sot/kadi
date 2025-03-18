@@ -1,0 +1,47 @@
+kadi.scripts.update_events.get_date_start_stop_for_maude
+========================================================
+
+.. py:function:: kadi.scripts.update_events.get_date_start_stop_for_maude(EventModel, date_start, date_stop)
+
+   
+   Get updated date_start and date_stop for MAUDE telemetry events.
+
+   Fetching data from the MAUDE server is relatively slow, so we need to take care to
+   not fetch more data than necessary. This function adjusts the start and stop dates
+   for telemetry events accordingly. In addition, there can be a mix of definitive
+   backorbit data and realtime data with a gap between them. We need to avoid that gap
+   and the realtime data.
+
+   :Parameters:
+
+       **EventModel** : class
+           Telemetry Event model class to update (e.g. models.DsnComm)
+
+       **date_start** : DateTime
+           Start date for event update
+
+       **date_stop** : DateTime
+           Stop date for event update
+
+
+
+   :Returns:
+
+       **date_start** : DateTime
+           Updated start date
+
+       **date_stop** : DateTime
+           Updated stop date
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!

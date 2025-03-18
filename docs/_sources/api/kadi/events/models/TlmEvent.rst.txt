@@ -52,6 +52,11 @@ kadi.events.models.TlmEvent
 
 
 
+   .. py:attribute:: aux_msids
+      :value: None
+
+
+
    .. py:method:: plot(figsize=None, fig=None)
 
       
@@ -154,6 +159,44 @@ kadi.events.models.TlmEvent
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: from_dict(model_dict, logger=None)
+      :classmethod:
+
+
+      
+      Set model from a dict `model_dict` which might have extra stuff not in
+      Model.  If `logger` is supplied then log output at debug level.
+
+
+      :Parameters:
+
+          **model_dict** : dict
+              Dictionary of model attributes
+
+          **logger** : logging.Logger, optional
+              Logger object to log debug output
+
+
+
+      :Returns:
+
+          **model** : BaseModel
+              Model instance
 
 
 

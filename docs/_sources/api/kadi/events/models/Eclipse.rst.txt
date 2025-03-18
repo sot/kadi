@@ -47,11 +47,16 @@ kadi.events.models.Eclipse
 
 
    .. py:attribute:: event_val
-      :value: 'ECL '
+      :value: 'ECL'
 
 
 
    .. py:attribute:: fetch_event_msids
       :value: ['aoeclips', 'eb1k5', 'eb2k5', 'eb3k5']
+
+
+
+   .. py:attribute:: event_min_dur
+      :value: 100
 
 

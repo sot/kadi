@@ -1,0 +1,39 @@
+kadi.scripts.update_events.get_sample_period_max
+================================================
+
+.. py:function:: kadi.scripts.update_events.get_sample_period_max(msid)
+
+   
+   Get max telemetry sample period for ``msid``.
+
+   This is used to allow switching between CXC and MAUDE telemetry as the input.
+   CXC telemetry uses the time of first VCDU in the sample period, while MAUDE
+   telemetry uses the time of the minor frame where the telemetry is sampled.
+
+   This method returns the max sample period (32.8 sec / min sample rate) over the
+   available telmeetry formats.
+
+   :Parameters:
+
+       **msid** : str
+           MSID name
+
+
+
+   :Returns:
+
+       **sample_period_max** : float
+           Maximum sample period (secs)
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!

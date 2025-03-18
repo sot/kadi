@@ -1,0 +1,35 @@
+kadi.scripts.update_events.check_maude_server_has_new_telemetry
+===============================================================
+
+.. py:function:: kadi.scripts.update_events.check_maude_server_has_new_telemetry(stop)
+
+   
+   Check if the MAUDE server has new telemetry since the last run of update_events.
+
+   This also saves the last telemetry date in the `Update` model of the database using
+   the `maude_latest_backorbit` name.
+
+   :Parameters:
+
+       **stop** : CxoTimeLike
+           Stop date for event update processing.
+
+
+
+   :Returns:
+
+       **has_new_telemetry** : bool
+           True if new telemetry is available, else False.
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!

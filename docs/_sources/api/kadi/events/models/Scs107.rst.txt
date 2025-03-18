@@ -9,18 +9,17 @@ kadi.events.models.Scs107
    
    SCS107 run
 
-   **Event definition**: interval with the following combination of state values::
+   **Event definition**: reaction wheel bias disabled between 500 to 1000 sec::
 
-     3TSCMOVE = MOVE
      AORWBIAS = DISA
-     CORADMEN = DISA
 
-   These MSIDs are first sampled onto a common time sequence of 32.8 sec samples
-   so the start / stop times are accurate only to that resolution.
+   This is commanded by SCS-107 with a roughly constant time delay from RW Bias
+   disable to the subsequent re-enable. Over the mission the delay has varied from
+   around 900 seconds (early) to ~550 secs (circa 2025), as SCS-107 has been modified.
+   See `notebooks/scs107-via-RW-bias-disable.ipynb` for the supporting analysis.
 
-   Early in the mission there were two SIM TSC translations during an SCS107 run.
-   By the above rules this would generate two SCS107 events, but instead any two
-   SCS107 events within 600 seconds are combined into a single event.
+   For this event, intervals of RW Bias being disabled for 500 to 1000 seconds are
+   selected as a proxy for SCS-107 runs.
 
    **Fields**
 
@@ -57,41 +56,27 @@ kadi.events.models.Scs107
 
 
    .. py:attribute:: event_msids
-      :value: ['3tscmove', 'aorwbias', 'coradmen']
+      :value: ['aorwbias']
 
 
 
-   .. py:attribute:: event_time_fuzz
-      :value: 600
+   .. py:attribute:: event_val
+      :value: 'DISA'
 
 
 
-   .. py:attribute:: event_filter_bad
-      :value: False
-
-
-
-   .. py:method:: get_state_times_bools(msidset)
+   .. py:method:: get_events(start, stop=None)
       :classmethod:
 
 
       
-      Get the boolean True/False array indicating when ``event_msid`` is in the
-      desired state for this event type.  The default is when
-      ``event_msid == cls.event_val``, but subclasses may override this method.
-
-
-      :Parameters:
-
-          **event_msid**
-              fetch.MSID object
+      Get events from telemetry defined by a simple rule that the value of
+      `event_msids[0]` == `event_val`.
 
 
 
-      :Returns:
 
-          boolean ndarray
-              ..
+
 
 
 

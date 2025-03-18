@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>kadi.commands.states.get_continuity &#8212; kadi 7.15.0 documentation</title>
+    <title>kadi.commands.states.get_continuity &#8212; kadi 7.16.0 documentation</title>
   
   
   
@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../../../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../../../../_static/documentation_options.js?v=85b8a37b"></script>
+    <script src="../../../../_static/documentation_options.js?v=17c77d90"></script>
     <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -54,7 +54,7 @@
     <link rel="prev" title="kadi.commands.states.reduce_states" href="reduce_states.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="7.15.0" />
+  <meta name="docsearch:version" content="7.16.0" />
   </head>
   
   
@@ -107,7 +107,7 @@
     <span style="color: rgb(186, 70, 21); font-size: x-large;">kadi</span>
 </a>
 &nbsp;
-<span style="font-size: x-large;">7.15.0</span></div>
+<span style="font-size: x-large;">7.16.0</span></div>
     
   </div>
   
@@ -354,7 +354,7 @@
 <h1>kadi.commands.states.get_continuity<a class="headerlink" href="#kadi-commands-states-get-continuity" title="Link to this heading">#</a></h1>
 <dl class="py function">
 <dt class="sig sig-object py" id="kadi.commands.states.get_continuity">
-<span class="sig-prename descclassname"><span class="pre">kadi.commands.states.</span></span><span class="sig-name descname"><span class="pre">get_continuity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">date</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">state_keys</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lookbacks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(7,</span> <span class="pre">30,</span> <span class="pre">180,</span> <span class="pre">1000)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scenario</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kadi.commands.states.get_continuity" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">kadi.commands.states.</span></span><span class="sig-name descname"><span class="pre">get_continuity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">date</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">state_keys</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lookbacks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(7,</span> <span class="pre">30,</span> <span class="pre">180,</span> <span class="pre">1000)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scenario</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">event_filter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kadi.commands.states.get_continuity" title="Link to this definition">#</a></dt>
 <dd><p>Get the state and transition dates at <code class="docutils literal notranslate"><span class="pre">date</span></code> for <code class="docutils literal notranslate"><span class="pre">state_keys</span></code>.</p>
 <p>This function finds the state at a particular date by fetching commands
 prior to that date and determine the states.  It returns dictionary
@@ -380,6 +380,10 @@ ACIS, PCAD, and mechanisms).</p>
 <dt><strong>lookbacks</strong></dt><dd><p>list of lookback times in days (default=[7, 30, 180, 1000])</p>
 </dd>
 <dt><strong>scenario</strong></dt><dd><p>commands archive scenario (default=None)</p>
+</dd>
+<dt><strong>event_filter</strong><span class="classifier">callable, list of callable, None</span></dt><dd><p>Callable function or list of callable functions that takes an Event Table as
+input and returns a boolean mask with same length as Table. This is used to
+select rows from the Table. If None, no filtering is done.</p>
 </dd>
 </dl>
 </dd>

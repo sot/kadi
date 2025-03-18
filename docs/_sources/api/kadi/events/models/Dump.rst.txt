@@ -52,6 +52,11 @@ kadi.events.models.Dump
 
 
 
+   .. py:attribute:: event_min_dur
+      :value: 4.0
+
+
+
    .. py:attribute:: type
 
 

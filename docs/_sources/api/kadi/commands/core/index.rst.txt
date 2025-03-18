@@ -27,12 +27,18 @@ Functions
    /api/kadi/commands/core/read_backstop
    /api/kadi/commands/core/add_observations_to_cmds
    /api/kadi/commands/core/get_cmds_from_backstop
+   /api/kadi/commands/core/filter_cmd_events_by_event
+   /api/kadi/commands/core/filter_scs107_events
+   /api/kadi/commands/core/set_time_now
 
 .. autoapisummary::
 
    kadi.commands.core.read_backstop
    kadi.commands.core.add_observations_to_cmds
    kadi.commands.core.get_cmds_from_backstop
+   kadi.commands.core.filter_cmd_events_by_event
+   kadi.commands.core.filter_scs107_events
+   kadi.commands.core.set_time_now
 
 
 

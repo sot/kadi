@@ -18,22 +18,30 @@ Functions
 .. toctree::
    :hidden:
 
-   /api/kadi/scripts/update_events/get_opt
+   /api/kadi/scripts/update_events/get_opt_parser
    /api/kadi/scripts/update_events/try4times
    /api/kadi/scripts/update_events/delete_from_date
-   /api/kadi/scripts/update_events/update
+   /api/kadi/scripts/update_events/update_event_model
+   /api/kadi/scripts/update_events/get_date_start_stop_for_maude
    /api/kadi/scripts/update_events/save_event_to_database
-   /api/kadi/scripts/update_events/get_events_and_event_models
+   /api/kadi/scripts/update_events/filter_events_to_add_to_database
+   /api/kadi/scripts/update_events/get_sample_period_max
+   /api/kadi/scripts/update_events/get_all_telemetry_event_msids
+   /api/kadi/scripts/update_events/check_maude_server_has_new_telemetry
    /api/kadi/scripts/update_events/main
 
 .. autoapisummary::
 
-   kadi.scripts.update_events.get_opt
+   kadi.scripts.update_events.get_opt_parser
    kadi.scripts.update_events.try4times
    kadi.scripts.update_events.delete_from_date
-   kadi.scripts.update_events.update
+   kadi.scripts.update_events.update_event_model
+   kadi.scripts.update_events.get_date_start_stop_for_maude
    kadi.scripts.update_events.save_event_to_database
-   kadi.scripts.update_events.get_events_and_event_models
+   kadi.scripts.update_events.filter_events_to_add_to_database
+   kadi.scripts.update_events.get_sample_period_max
+   kadi.scripts.update_events.get_all_telemetry_event_msids
+   kadi.scripts.update_events.check_maude_server_has_new_telemetry
    kadi.scripts.update_events.main
 
 

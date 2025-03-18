@@ -45,6 +45,9 @@ Functions
    /api/kadi/commands/read_backstop
    /api/kadi/commands/get_cmds_from_backstop
    /api/kadi/commands/add_observations_to_cmds
+   /api/kadi/commands/filter_cmd_events_by_event
+   /api/kadi/commands/filter_scs107_events
+   /api/kadi/commands/set_time_now
    /api/kadi/commands/get_starcats
    /api/kadi/commands/get_observations
    /api/kadi/commands/get_starcats_as_table
@@ -56,6 +59,9 @@ Functions
    kadi.commands.read_backstop
    kadi.commands.get_cmds_from_backstop
    kadi.commands.add_observations_to_cmds
+   kadi.commands.filter_cmd_events_by_event
+   kadi.commands.filter_scs107_events
+   kadi.commands.set_time_now
    kadi.commands.get_starcats
    kadi.commands.get_observations
    kadi.commands.get_starcats_as_table

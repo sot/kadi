@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>kadi.events.models.TlmEvent &#8212; kadi 7.15.0 documentation</title>
+    <title>kadi.events.models.TlmEvent &#8212; kadi 7.16.0 documentation</title>
   
   
   
@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../../../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../../../../_static/documentation_options.js?v=85b8a37b"></script>
+    <script src="../../../../_static/documentation_options.js?v=17c77d90"></script>
     <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -54,7 +54,7 @@
     <link rel="prev" title="kadi.events.models.Event.Meta" href="Event.Meta.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="7.15.0" />
+  <meta name="docsearch:version" content="7.16.0" />
   </head>
   
   
@@ -107,7 +107,7 @@
     <span style="color: rgb(186, 70, 21); font-size: x-large;">kadi</span>
 </a>
 &nbsp;
-<span style="font-size: x-large;">7.15.0</span></div>
+<span style="font-size: x-large;">7.16.0</span></div>
     
   </div>
   
@@ -381,6 +381,11 @@ generated as part of another event class.</p>
 <span class="sig-name descname"><span class="pre">event_filter_bad</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></em><a class="headerlink" href="#kadi.events.models.TlmEvent.event_filter_bad" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
 
+<dl class="py attribute">
+<dt class="sig sig-object py" id="kadi.events.models.TlmEvent.aux_msids">
+<span class="sig-name descname"><span class="pre">aux_msids</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#kadi.events.models.TlmEvent.aux_msids" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="kadi.events.models.TlmEvent.plot">
 <span class="sig-name descname"><span class="pre">plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fig</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kadi.events.models.TlmEvent.plot" title="Link to this definition">#</a></dt>
@@ -423,6 +428,29 @@ desired state for this event type.  The default is when
 <em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_msids_states</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stop</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kadi.events.models.TlmEvent.get_msids_states" title="Link to this definition">#</a></dt>
 <dd><p>Get event and related MSIDs and compute the states corresponding
 to the event.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="kadi.events.models.TlmEvent.from_dict">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logger</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kadi.events.models.TlmEvent.from_dict" title="Link to this definition">#</a></dt>
+<dd><p>Set model from a dict <cite>model_dict</cite> which might have extra stuff not in
+Model.  If <cite>logger</cite> is supplied then log output at debug level.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>model_dict</strong><span class="classifier">dict</span></dt><dd><p>Dictionary of model attributes</p>
+</dd>
+<dt><strong>logger</strong><span class="classifier">logging.Logger, optional</span></dt><dd><p>Logger object to log debug output</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>model</strong><span class="classifier">BaseModel</span></dt><dd><p>Model instance</p>
+</dd>
+</dl>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
@@ -511,10 +539,12 @@ to the event.</p>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#kadi.events.models.TlmEvent.event_msids"><code class="docutils literal notranslate"><span class="pre">kadi.events.models.TlmEvent.event_msids</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#kadi.events.models.TlmEvent.event_val"><code class="docutils literal notranslate"><span class="pre">kadi.events.models.TlmEvent.event_val</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#kadi.events.models.TlmEvent.event_filter_bad"><code class="docutils literal notranslate"><span class="pre">kadi.events.models.TlmEvent.event_filter_bad</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#kadi.events.models.TlmEvent.aux_msids"><code class="docutils literal notranslate"><span class="pre">kadi.events.models.TlmEvent.aux_msids</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#kadi.events.models.TlmEvent.plot"><code class="docutils literal notranslate"><span class="pre">kadi.events.models.TlmEvent.plot()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#kadi.events.models.TlmEvent.get_extras"><code class="docutils literal notranslate"><span class="pre">kadi.events.models.TlmEvent.get_extras()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#kadi.events.models.TlmEvent.get_state_times_bools"><code class="docutils literal notranslate"><span class="pre">kadi.events.models.TlmEvent.get_state_times_bools()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#kadi.events.models.TlmEvent.get_msids_states"><code class="docutils literal notranslate"><span class="pre">kadi.events.models.TlmEvent.get_msids_states()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#kadi.events.models.TlmEvent.from_dict"><code class="docutils literal notranslate"><span class="pre">kadi.events.models.TlmEvent.from_dict()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#kadi.events.models.TlmEvent.get_events"><code class="docutils literal notranslate"><span class="pre">kadi.events.models.TlmEvent.get_events()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#kadi.events.models.TlmEvent.msidset"><code class="docutils literal notranslate"><span class="pre">kadi.events.models.TlmEvent.msidset</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#kadi.events.models.TlmEvent.fetch_event"><code class="docutils literal notranslate"><span class="pre">kadi.events.models.TlmEvent.fetch_event()</span></code></a></li>

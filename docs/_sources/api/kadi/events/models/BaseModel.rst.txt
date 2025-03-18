@@ -55,9 +55,20 @@ kadi.events.models.BaseModel
       Model.  If `logger` is supplied then log output at debug level.
 
 
+      :Parameters:
+
+          **model_dict** : dict
+              Dictionary of model attributes
+
+          **logger** : logging.Logger, optional
+              Logger object to log debug output
 
 
 
+      :Returns:
+
+          **model** : BaseModel
+              Model instance
 
 
 

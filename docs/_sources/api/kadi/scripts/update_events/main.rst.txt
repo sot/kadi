@@ -1,4 +1,4 @@
 kadi.scripts.update_events.main
 ===============================
 
-.. py:function:: kadi.scripts.update_events.main()
+.. py:function:: kadi.scripts.update_events.main(args=None)
