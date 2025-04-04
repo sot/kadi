@@ -11,6 +11,8 @@ from astropy.table import Table
 from astropy.table import unique as table_unique
 from cxotime import CxoTime, date2secs
 
+from kadi.config import conf
+
 # kadi.commands.commands_v2 is also a dependency but encapsulated in the
 # functions to reduce top-level imports for v1-compatibility
 
@@ -125,10 +127,6 @@ def set_fid_ids(aca: dict) -> None:
         # because the SIM is translated so don't warn in this case.
 
 
-class StarIdentificationFailed(Exception):
-    """Exception raised when star identification fails."""
-
-
 def set_star_ids(aca: dict) -> None:
     """Find the star ID for each star in the ACA.
 
@@ -139,17 +137,16 @@ def set_star_ids(aca: dict) -> None:
     the commanded position.
 
     This function uses AGASC 1.7 or 1.8, depending on the observation date. For dates
-    before 2024-Jul-21, AGASC 1.7 is used. Between 2024-Jul-28 and 2024-Aug-19, both
-    versions are tried (1.8 then 1.7). After 2024-Aug-19, only 1.8 is used. These are
-    defined in the configuration parameters ``date_start_agasc1p8_earliest`` and
-    ``date_start_agasc1p8_latest``.
+    before 2024:217:21:59:00 (``conf.date_start_agasc1p8``), AGASC 1.7 is used, else
+    AGASC 1.8.
 
     Parameters
     ----------
     aca : dict
         Input star catalog
     """
-    from kadi.config import conf
+    from chandra_aca.transform import radec_to_yagzag
+    from Quaternion import Quat
 
     version = "1p7" if aca["meta"]["date"] < conf.date_start_agasc1p8 else "1p8"
 
@@ -158,35 +155,6 @@ def set_star_ids(aca: dict) -> None:
     # ``aca`` dict can be partially updated. This is not expected to be an issue in
     # practice, and a warning is issue in any case.
     agasc_file = agasc.get_agasc_filename(version=version)
-    try:
-        _set_star_ids(aca, agasc_file)
-    except StarIdentificationFailed as err:
-        logger.warning(str(err))
-
-
-def _set_star_ids(aca: dict, agasc_file: str) -> None:
-    """Work function to find the star ID for each star in the ACA.
-
-    This function does the real work for ``set_star_ids`` but it allows for trying
-    AGASC 1.8 and falling back to 1.7 in case of failure.
-
-    ``aca`` is a dict of list with starcat values along with a ``meta`` key containing
-    relevant observation info. This is from ``convert_aostrcat_to_starcat_dict()``.
-
-    This set the ``id`` and ``mag`` in-place to the brightest star within 1.5 arcsec of the
-    commanded position.
-
-    Parameters
-    ----------
-    aca : dict
-        Input star catalog
-    agasc_file : str
-        AGASC file name
-    """
-    from chandra_aca.transform import radec_to_yagzag
-    from Quaternion import Quat
-
-    from kadi.commands import conf
 
     obs = aca["meta"]
     q_att = Quat(obs["att"])
@@ -203,23 +171,31 @@ def _set_star_ids(aca: dict, agasc_file: str) -> None:
     )
     idxs_aca = np.where(np.isin(aca["type"], ("ACQ", "GUI", "BOT")))[0]
     for idx_aca in idxs_aca:
-        yang = aca["yang"][idx_aca]
-        zang = aca["zang"][idx_aca]
-        dys = np.abs(yang - yang_stars)
-        dzs = np.abs(zang - zang_stars)
+        _set_star_id(aca, obs, stars, yang_stars, zang_stars, idx_aca)
 
-        # Get the brightest star within a box (default = 1.5 arcsec halfwidth)
-        halfw = conf.star_id_match_halfwidth
-        ok = (dys < halfw) & (dzs < halfw)
-        if np.any(ok):
-            idx = np.argmin(stars["MAG_ACA"][ok])
-            aca["id"][idx_aca] = int(stars["AGASC_ID"][ok][idx])
-            aca["mag"][idx_aca] = float(stars["MAG_ACA"][ok][idx])
-        else:
-            raise StarIdentificationFailed(
-                f"WARNING: star idx {idx_aca + 1} not found in obsid {obs['obsid']} at "
-                f"{obs['date']}"
-            )
+
+def _set_star_id(aca, obs, stars, yang_stars, zang_stars, idx_aca) -> None:
+    """Set the star ID for a single star in the ACA.
+
+    This updates the ``aca`` catalog in-place.
+    """
+    yang = aca["yang"][idx_aca]
+    zang = aca["zang"][idx_aca]
+    dys = np.abs(yang - yang_stars)
+    dzs = np.abs(zang - zang_stars)
+
+    # Get the brightest star within a box (default = 1.5 arcsec halfwidth)
+    halfw = conf.star_id_match_halfwidth
+    ok = (dys < halfw) & (dzs < halfw)
+    if np.any(ok):
+        idx = np.argmin(stars["MAG_ACA"][ok])
+        aca["id"][idx_aca] = int(stars["AGASC_ID"][ok][idx])
+        aca["mag"][idx_aca] = float(stars["MAG_ACA"][ok][idx])
+    else:
+        logger.warning(
+            f"WARNING: star idx {idx_aca + 1} not found in obsid {obs['obsid']} at "
+            f"{obs['date']}"
+        )
 
 
 def convert_starcat_dict_to_acatable(starcat_dict: dict):
