@@ -1138,6 +1138,9 @@ def get_cmd_events_from_local(scenario=None):
 
 def update_loads(scenario=None, *, lookback=None, stop_loads=None) -> Table:
     """Update local copy of approved command loads though ``lookback`` days."""
+    if lookback is None:
+        lookback = conf.default_lookback
+
     dt = 21 * u.day
     cxotime_now = get_cxotime_now()
     # This is either the true current time or else the mock time from CXOTIME_NOW.
@@ -1147,9 +1150,6 @@ def update_loads(scenario=None, *, lookback=None, stop_loads=None) -> Table:
     # stop is the current time).
     if stop_loads is None and cxotime_now is None:
         stop += dt
-
-    if lookback is None:
-        lookback = conf.default_lookback
 
     # Ensure the scenario directory exists
     paths.SCENARIO_DIR(scenario).mkdir(parents=True, exist_ok=True)
