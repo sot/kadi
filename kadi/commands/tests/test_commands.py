@@ -246,7 +246,6 @@ def test_commands_create_archive_regress(
             os.environ["KADI"] = str(tmpdir)
             update_cmds_v2.main(
                 (
-                    "--lookback=30",
                     f"--stop={stop.date}",
                     f"--data-root={tmpdir}",
                 )
