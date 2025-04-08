@@ -764,10 +764,11 @@ class ValidateACISStatePower(ValidateSingleMsid):
             "float64"
         )
         int_states["cc"] *= ~int_states["clocking"].astype("bool")
+        int_states["cc_zero"] = int_states["cc"] * (int_states["ccd_count"] > 0)
 
         # Convert to pandas DataFrame, so we can use sklearn
         df = int_states.to_pandas()
-        keep_cols = ["cc"] + list(ccdsfeps.keys())
+        keep_cols = ["cc", "cc_zero"] + list(ccdsfeps.keys())
         XX = df.drop(
             [col for col in int_states.colnames if col not in keep_cols], axis=1
         )

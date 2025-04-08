@@ -97,11 +97,12 @@ def main():
     # check for continuous clocking mode
     int_states["cc"] = np.char.startswith(int_states["si_mode"], "CC").astype("float64")
     int_states["cc"] *= ~int_states["clocking"].astype("bool")
+    int_states["cc_zero"] = int_states["cc"] * (int_states["ccd_count"] > 0)
 
     # Convert to pandas DataFrame, so we can use sklearn
     df = int_states.to_pandas()
 
-    model_keys = ["cc"] + list(ccdsfeps.keys())
+    model_keys = ["cc", "cc_zero"] + list(ccdsfeps.keys())
 
     # Separate into features and target
     X = df.drop([col for col in int_states.colnames if col not in model_keys], axis=1)
