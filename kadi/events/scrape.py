@@ -114,7 +114,10 @@ def get_fot_major_events():
 
     html = occweb.get_url(page)
     soup = parse_html(html, "lxml")
-    table = soup.find("table", attrs={"class": "MsoNormalTable"})
+    major_events_span = soup.find("span", string="Major Events:")
+    if major_events_span is None:
+        raise ValueError("No 'Major Events:' span found on page")
+    table = major_events_span.find_next("table", attrs={"class": "MsoNormalTable"})
     rows = get_table_rows(table)
     evts = []
 
