@@ -91,7 +91,7 @@ def test_get_fdb_major_events():
 @pytest.mark.skipif(not HAS_OCCWEB, reason="No access to OCCweb")
 def test_get_fot_major_events():
     page = occweb.get_url("fot_major_events")
-    assert re.search("ACA\W*Dark\W*Current\W*Calibration", page, re.DOTALL) is not None
+    assert re.search(r"ACA\W*Dark\W*Current\W*Calibration", page, re.DOTALL) is not None
 
 
 @pytest.mark.skipif(not HAS_OCCWEB, reason="No access to OCCweb")
