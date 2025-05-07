@@ -10,6 +10,7 @@ REPLACES = (
     (r"&#150", "-"),
     (r"&amp;", "&"),
     (r"&nbsp;", " "),
+    (r"&#160;", " "),
     (r"&quot;", '"'),
     (r"&gt;", ">"),
     (r"&lt;", "<"),
@@ -114,11 +115,17 @@ def get_fot_major_events():
 
     html = occweb.get_url(page)
     soup = parse_html(html, "lxml")
-    table = soup.find("table", attrs={"class": "MsoNormalTable"})
+    major_events_span = soup.find("span", string="Major Events:")
+    if major_events_span is None:
+        raise ValueError("No 'Major Events:' span found on page")
+    table = major_events_span.find_next("table", attrs={"class": "MsoNormalTable"})
     rows = get_table_rows(table)
     evts = []
 
     for i, row_vals in enumerate(rows[1:]):
+        # If the row_vals[0] doesn't look like a date, skip the row
+        if not re.match(r"^\d{4}:\d{3}", row_vals[0]):
+            continue
         start = DateTime(row_vals[0])
         caldate = start.caldate
         evt = dict(
