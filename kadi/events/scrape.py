@@ -124,7 +124,7 @@ def get_fot_major_events():
 
     for i, row_vals in enumerate(rows[1:]):
         # If the row_vals[0] doesn't look like a date, skip the row
-        if not re.match(r"^\d{4}\:\d{3}", row_vals[0]):
+        if not re.match(r"^\d{4}:\d{3}", row_vals[0]):
             continue
         start = DateTime(row_vals[0])
         caldate = start.caldate
