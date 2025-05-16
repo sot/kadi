@@ -1674,13 +1674,14 @@ class ManeuverSunRaslTransition(ManeuverTransition):
                 Transition(
                     cmd["date"],
                     maneuver_transition=TransitionCallback(
-                        cls.callback, {"rasl": cmd["params"]["rasl"]}
+                        cls.callback,
+                        {"rasl": cmd["params"]["rasl"], "rate": cmd["params"]["rate"]},
                     ),
                 )
             )
 
     @classmethod
-    def callback(cls, date, transitions, state, idx, *, rasl):
+    def callback(cls, date, transitions, state, idx, *, rasl, rate):
         # Setup for maneuver to sun-pointed attitude from current att
         curr_att = [state[qc] for qc in QUAT_COMPS]
 
@@ -1692,14 +1693,56 @@ class ManeuverSunRaslTransition(ManeuverTransition):
 
         curr_att = Quat(curr_att)
         sun_ra, sun_dec = ska_sun.position(date)
-        targ_att = ska_sun.apply_sun_pitch_yaw(
-            curr_att, yaw=rasl, sun_ra=sun_ra, sun_dec=sun_dec
-        )
-        for qc, targ_q in zip(QUAT_COMPS, targ_att.q):
-            state["targ_" + qc] = targ_q
 
-        # Do the maneuver
-        ManeuverTransition.add_manvr_transitions(date, transitions, state, idx)
+        start = CxoTime(date)
+        stop = start + rasl / rate * u.s
+        date_atts: list[str] = CxoTime.linspace(start, stop, step_max=120 * u.s).date
+        yaws = np.linspace(0, rasl, len(date_atts))
+
+        atts = [
+            ska_sun.apply_sun_pitch_yaw(
+                curr_att, yaw=yaw, sun_ra=sun_ra, sun_dec=sun_dec
+            )
+            for yaw in yaws
+        ]
+
+        pitches = [
+            ska_sun.pitch(att.ra, att.dec, sun_ra=sun_ra, sun_dec=sun_dec)
+            for att in atts
+        ]
+        off_nom_rolls = [
+            ska_sun.off_nominal_roll(
+                [att.ra, att.dec, att.roll], date, sun_ra=sun_ra, sun_dec=sun_dec
+            )
+            for att in atts
+        ]
+
+        # Add transitions for each bit of the maneuver.  Note that this sets the
+        # attitude (q1..q4) at the *beginning* of each state, while setting
+        # pitch and off_nominal_roll at the *midpoint* of each state.  This is
+        # for legacy compatibility with chandra_cmd_states but might be
+        # something to change since it would probably be better to have the
+        # midpoint attitude.
+        for att, date_att, pitch, off_nom_roll in zip(
+            atts, date_atts, pitches, off_nom_rolls
+        ):
+            # Check pcad_mode at time of each maneuver transition is same as at start.
+            # This cuts off maneuver for a mode change like NSM or Safe mode. Note that
+            # `state_` is the future state and `state` is the current state.
+            transition = Transition(
+                date_att, lambda state_: state_["pcad_mode"] == state["pcad_mode"]
+            )
+            for qc, q_i in zip(QUAT_COMPS, att.q):
+                transition[qc] = q_i
+            transition["pitch"] = pitch
+            transition["off_nom_roll"] = off_nom_roll
+
+            ra, dec, roll = att.equatorial
+            transition["ra"] = ra
+            transition["dec"] = dec
+            transition["roll"] = roll
+
+            add_transition(transitions, idx, transition)
 
 
 ###################################################################

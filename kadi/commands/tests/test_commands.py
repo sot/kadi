@@ -574,6 +574,33 @@ stop_date_2024_01_30 = stop_date_fixture_factory("2024-01-30")
 
 
 @pytest.mark.skipif(not HAS_INTERNET, reason="No internet connection")
+def test_nsm_offset_pitch_rasl_with_rate_command_events(stop_date_2024_01_30):  # noqa: ARG001
+    """Test custom scenario with NSM offset pitch load event command"""
+    # First make the cmd_events.csv file for the scenario
+    scenario = "test_nsm_offset_pitch"
+    cmds_dir = Path(commands.conf.commands_dir) / scenario
+    cmds_dir.mkdir(exist_ok=True, parents=True)
+    # Note variation in format of date, since this comes from humans.
+    cmd_evts_text = """\
+State,Date,Event,Params,Author,Reviewer,Comment
+Definitive,2024:025:02:00:00,Maneuver sun rasl,90 0.2,,,
+Definitive,2024:024:09:44:06,NSM,,,,
+"""
+    (cmds_dir / "cmd_events.csv").write_text(cmd_evts_text)
+
+    # Now get commands in a time range that includes the new command events
+    cmds = commands.get_cmds(
+        "2024-01-24 12:00:00", "2024-01-25 05:00:00", scenario=scenario
+    )
+    cmds = cmds[(cmds["tlmsid"] != "OBS") & (cmds["type"] != "ORBPOINT")]
+    exp = [
+        "2024:025:02:00:00.000 | LOAD_EVENT       | SUN_RASL   | CMD_EVT  | event=Maneuver_sun_rasl, event_date=2024:025:02:00:00, rasl=90, rate=2.00000000e-01, scs=0",
+    ]
+
+    assert cmds.pformat_like_backstop(max_params_width=200) == exp
+
+
+@pytest.mark.skipif(not HAS_INTERNET, reason="No internet connection")
 def test_nsm_offset_pitch_rasl_command_events(stop_date_2024_01_30):  # noqa: ARG001
     """Test custom scenario with NSM offset pitch load event command"""
     # First make the cmd_events.csv file for the scenario
@@ -596,10 +623,10 @@ Definitive,2024:024:09:44:06,NSM,,,,
     cmds = cmds[(cmds["tlmsid"] != "OBS") & (cmds["type"] != "ORBPOINT")]
     exp = [
         "2024:025:00:00:00.000 | LOAD_EVENT       | SUN_PITCH  | CMD_EVT  | event=Maneuver_sun_pitch, event_date=2024:025:00:00:00, pitch=160, scs=0",
-        "2024:025:04:00:00.000 | LOAD_EVENT       | SUN_RASL   | CMD_EVT  | event=Maneuver_sun_rasl, event_date=2024:025:04:00:00, rasl=90, scs=0",
+        "2024:025:04:00:00.000 | LOAD_EVENT       | SUN_RASL   | CMD_EVT  | event=Maneuver_sun_rasl, event_date=2024:025:04:00:00, rasl=90, rate=2.50000000e-02, scs=0",
     ]
 
-    assert cmds.pformat_like_backstop() == exp
+    assert cmds.pformat_like_backstop(max_params_width=200) == exp
 
     states = kcs.get_states(
         "2024:024:09:00:00",
@@ -644,13 +671,13 @@ Definitive,2024:024:09:44:06,NSM,,,,
 
     # Interpolate states at two times just after the pitch maneuver and just after the
     # roll about sun line (rasl) maneuver.
-    dates = ["2024:025:00:30:00", "2024:025:05:00:00"]
+    dates = ["2024:025:04:00:00", "2024:025:05:00:00"]
     sts = kcs.interpolate_states(states, dates)
     q1 = Quat([sts["q1"][0], sts["q2"][0], sts["q3"][0], sts["q4"][0]])
     q2 = Quat([sts["q1"][1], sts["q2"][1], sts["q3"][1], sts["q4"][1]])
     pitch1, rasl1 = ska_sun.get_sun_pitch_yaw(q1.ra, q1.dec, dates[0])
     pitch2, rasl2 = ska_sun.get_sun_pitch_yaw(q2.ra, q2.dec, dates[1])
-    assert np.isclose(pitch1, 160, atol=0.1)
+    assert np.isclose(pitch1, 160, atol=0.2)
     assert np.isclose(pitch2, 160, atol=0.5)
     assert np.isclose((rasl2 - rasl1) % 360, 90, atol=0.5)
 
