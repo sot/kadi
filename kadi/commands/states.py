@@ -2273,7 +2273,7 @@ def get_states(
 
     # List of dict to hold state values.  Datestarts is the corresponding list of
     # start dates for each state.
-    states = [StateDict({key: None for key in state_keys_all})]
+    states = [StateDict(dict.fromkeys(state_keys_all, None))]
     datestarts = [start]
 
     # Apply initial ``continuity`` values.  Clear the trans_keys set after setting
