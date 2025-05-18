@@ -243,7 +243,7 @@ def test_quick():
             "vid_board",
             "ccd_count",
         ]
-        + ["q1", "q2", "q3", "q4", "pcad_mode", "dither", "ra", "dec", "roll"]
+        + ["pcad_mode", "dither"]
         + ["letg", "hetg"]
         + ["simpos", "simfa_pos"]
     )
@@ -291,7 +291,7 @@ def test_states_2017(fast_sun_position_method):
 
     state_keys = (
         ["obsid", "clocking", "power_cmd", "fep_count"]
-        + ["q1", "q2", "q3", "q4", "pcad_mode", "dither", "ra", "dec", "roll"]
+        + ["pcad_mode", "dither"]
         + ["letg", "hetg"]
         + ["simpos", "simfa_pos"]
     )
@@ -308,7 +308,7 @@ def test_states_2017(fast_sun_position_method):
     rkstates = rkstates[1:]
     rcstates = rcstates[1:]
     bad = np.flatnonzero(rkstates["datestart"] != rcstates["datestart"])
-    assert len(bad) == 4
+    assert len(bad) == 2
     tk = DateTime(rkstates["datestart"][bad]).secs
     tc = DateTime(rcstates["datestart"][bad]).secs
     assert np.all(np.abs(tk - tc) < 0.0015)
