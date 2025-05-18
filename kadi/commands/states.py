@@ -1508,7 +1508,7 @@ class ManeuverTransition(BaseTransition):
 
             add_transition(transitions, idx, transition)
 
-        return date_att  # Date of end of maneuver.
+        return secs2date(atts["time"][-1])  # Date of end of maneuver.
 
 
 class NormalSunTransition(ManeuverTransition):
