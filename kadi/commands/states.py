@@ -1482,16 +1482,36 @@ class ManeuverTransition(BaseTransition):
         # attitudes are for the transition times (state start) and the odd-indexed
         # (2N+1) attitudes are used for the attitude values. This means that the
         # attitude states reflect the attitude at the midpoint of the maneuver states.
+
+        # First we need to ensure that the attitudes() function returns an even number
+        # of attitudes. Function uses `np.linspace(0.0, Tm, int(round(Tm / step)) + 1)`.
+        duration = chandra_maneuver.duration(curr_att, targ_att)
+        step = 150.0
+        n_steps = int(round(duration / step)) + 1
+        if n_steps % 2 == 1:
+            # Setting step as such effectively adds 1 to n_steps within get_attitudes()
+            step = duration / n_steps
+
         atts = chandra_maneuver.attitudes(
             curr_att,
             targ_att,
             tstart=date2secs(date),
-            step=150,
+            step=step,
         )
         # Make sure there are an even number of attitudes so that we always have a final
-        # 2N+1 index. Repeat the final attitude if necessary.
+        # 2N+1 index. Repeat the final attitude if necessary. This should never happen
+        # because of the code above, but just in case...
         if (n_att := len(atts)) % 2 == 1:
             atts = np.concatenate([atts, atts[n_att - 1 :]])
+            import logging
+
+            logger = logging.getLogger("kadi")
+            logger.warning(
+                (
+                    f"WARNING: maneuver at {date} from {curr_att} to {targ_att} "
+                    f"has odd number {n_att} of attitudes, this should not happen."
+                )
+            )
 
         # Add transitions for each bit of the maneuver.  Note that this sets the
         # attitude (q1..q4) at the *midpoint* of each state.
