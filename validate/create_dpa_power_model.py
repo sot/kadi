@@ -139,3 +139,7 @@ def main():
     logger.info("Mean Squared Error: %2f", mse)
     logger.info("Mean Absolute Error: %2f", mae)
     dump((model, scaler_X, scaler_y), "dpa_power_model.joblib")
+
+
+if __name__ == "__main__":
+    main()
