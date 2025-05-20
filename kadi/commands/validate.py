@@ -768,7 +768,7 @@ class ValidateACISStatePower(ValidateSingleMsid):
 
         # Convert to pandas DataFrame, so we can use sklearn
         df = int_states.to_pandas()
-        keep_cols = ["cc", "cc_zero"] + list(ccdsfeps.keys())
+        keep_cols = ["cc_zero"] + list(ccdsfeps.keys())
         XX = df.drop(
             [col for col in int_states.colnames if col not in keep_cols], axis=1
         )

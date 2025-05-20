@@ -102,7 +102,7 @@ def main():
     # Convert to pandas DataFrame, so we can use sklearn
     df = int_states.to_pandas()
 
-    model_keys = ["cc", "cc_zero"] + list(ccdsfeps.keys())
+    model_keys = ["cc_zero"] + list(ccdsfeps.keys())
 
     # Separate into features and target
     X = df.drop([col for col in int_states.colnames if col not in model_keys], axis=1)
