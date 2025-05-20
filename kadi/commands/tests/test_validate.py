@@ -28,6 +28,7 @@ import kadi.commands as kc
 from kadi.commands.utils import compress_time_series
 from kadi.commands.validate import (
     Validate,
+    ValidateACISStatePower,
     ValidateRoll,
 )
 
@@ -202,6 +203,20 @@ def test_off_nominal_roll_violations():
     with ska_sun.conf.set_temp("sun_position_method_default", "fast"):
         off_nom_roll2 = ValidateRoll(stop="2023:327:00:00:00", days=1)
     assert len(off_nom_roll2.violations) == 3
+
+
+@pytest.mark.skipif(not HAS_INTERNET, reason="Command sheet not available")
+def test_acis_power_violations():
+    start_viols = [
+        "2025:133:22:37:17.616",
+    ]
+    stop_viols = [
+        "2025:133:23:00:48.016",
+    ]
+    acis_power_val = ValidateACISStatePower(stop="2025:134:00:00:00", days=1.0)
+    assert len(acis_power_val.violations) == 1
+    assert list(acis_power_val.violations["start"]) == start_viols
+    assert list(acis_power_val.violations["stop"]) == stop_viols
 
 
 if __name__ == "__main__":
