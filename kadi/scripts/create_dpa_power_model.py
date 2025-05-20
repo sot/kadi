@@ -95,9 +95,9 @@ def main():
         int_states[key] = np.array(ccdsfeps[key], dtype="float64")
 
     # check for continuous clocking mode
-    int_states["cc"] = np.char.startswith(int_states["si_mode"], "CC").astype("float64")
-    int_states["cc"] *= ~int_states["clocking"].astype("bool")
-    int_states["cc_zero"] = int_states["cc"] * (int_states["ccd_count"] > 0)
+    cc = np.char.startswith(int_states["si_mode"], "CC").astype("float64")
+    cc *= ~int_states["clocking"].astype("bool")
+    int_states["cc_zero"] = cc * (int_states["ccd_count"] > 0)
 
     # Convert to pandas DataFrame, so we can use sklearn
     df = int_states.to_pandas()
