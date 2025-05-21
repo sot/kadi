@@ -110,7 +110,7 @@ def main():
 
     # Split into training and testing sets
     X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=0.2, random_state=42
+        X, y, test_size=0.2, random_state=41
     )
 
     # Scale the data
@@ -127,6 +127,7 @@ def main():
         hidden_layer_sizes=(32, 64, 32),  # Two layers with 64 and 32 neurons
         solver="adam",
         max_iter=500,
+        random_state=41,
     )
 
     # Train the model
