@@ -1,5 +1,6 @@
 import argparse
 import logging
+import sys
 from collections import defaultdict
 
 import astropy.units as u
@@ -24,7 +25,7 @@ exclude_intervals = [
 ]
 
 
-def get_args():
+def get_parser():
     parser = argparse.ArgumentParser(
         description="Create DPA power model by fitting a MLP regressor telemetry "
         "to commanded states, for purposes of state validation."
@@ -47,11 +48,11 @@ def get_args():
         default="INFO",
         help="Logging level (DEBUG | INFO | WARNING, default=INFO)",
     )
-    return parser.parse_args()
+    return parser
 
 
-def main():
-    args = get_args()
+def main(args=None):
+    args = get_parser().parse_args(args)
 
     stop = CxoTime(args.stop)
     start = stop - args.days * u.day
@@ -143,4 +144,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    main(sys.argv[1:])
