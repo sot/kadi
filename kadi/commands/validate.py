@@ -777,18 +777,6 @@ class ValidateACISStatePower(ValidateSingleMsid):
 
         return _state_vals
 
-    def add_exclude_intervals(self):
-        super().add_exclude_intervals()
-        self.add_exclude_interval(
-            "2020:023:17:57:00", "2020:023:23:07:30", "ACIS FSW v56 Update"
-        )
-        self.add_exclude_interval(
-            "2022:016:00:05:23", "2022:018:18:43:48", "ACIS Watchdog Reboot"
-        )
-        self.add_exclude_interval(
-            "2023:263:00:37:00", "2023:263:07:40:00", "ACIS FSW v60 Update"
-        )
-
 
 def get_overlap_mask(times: np.ndarray, intervals: Table):
     """Return a bool mask of ``times`` that are within any of the ``intervals``.
