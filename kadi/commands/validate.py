@@ -769,7 +769,7 @@ class ValidateACISStatePower(ValidateSingleMsid):
         XX = df.drop(
             [col for col in int_states.colnames if col not in keep_cols], axis=1
         )
-        XX = self.scaler_X.fit_transform(XX.values)
+        XX = self.scaler_X.transform(XX)
         yy = self.model.predict(XX)
 
         # Inverse transform the predictions and actual values

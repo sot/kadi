@@ -125,7 +125,7 @@ def main(args=None):
 
     # Make the model
     model = MLPRegressor(
-        hidden_layer_sizes=(32, 64, 32),  # Two layers with 64 and 32 neurons
+        hidden_layer_sizes=(32, 64, 32),
         solver="adam",
         max_iter=500,
         random_state=41,
