@@ -53,7 +53,7 @@ setup(
         "kadi.commands.tests",
     ],
     package_data={
-        "kadi.commands": ["templates/*.html"],
+        "kadi.commands": ["templates/*.html", "data/*.joblib"],
         "kadi.commands.tests": ["data/*.gz", "data/*.yaml"],
     },
     tests_require=["pytest"],
