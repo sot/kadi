@@ -644,7 +644,7 @@ classes which affect the keys.
 ``aoephem1``, ``aoephem2``, ``aoratio``, ``aoargper``, ``aoeccent``, ``ao1minus``, ``ao1plus``, ``aomotion``, ``aoiterat``, ``aoorbang``, ``aoperige``, ``aoascend``, ``aosini``, ``aoslr``, ``aosqrtmu``
   - :class:`~kadi.commands.states.EphemerisTransition`
 
-``clocking``, ``power_cmd``, ``vid_board``, ``fep_count``, ``si_mode``, ``ccd_count``
+``clocking``, ``power_cmd``, ``vid_board``, ``fep_count``, ``si_mode``, ``ccd_count``, ``feps``, ``ccds``
   - :class:`~kadi.commands.states.ACISTransition`
 
 ``dither``
