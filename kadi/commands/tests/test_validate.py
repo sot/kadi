@@ -213,7 +213,9 @@ def test_acis_power_violations():
     stop_viols = [
         "2025:133:23:00:48.016",
     ]
-    acis_power_val = ValidateACISStatePower(stop="2025:134:00:00:00", days=1.0)
+    acis_power_val = ValidateACISStatePower(
+        stop="2025:134:00:00:00", days=1.0, no_exclude=True
+    )
     assert len(acis_power_val.violations) == 1
     assert list(acis_power_val.violations["start"]) == start_viols
     assert list(acis_power_val.violations["stop"]) == stop_viols
