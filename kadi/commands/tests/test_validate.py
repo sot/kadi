@@ -92,8 +92,8 @@ def read_regression_data(cls, stop, days, no_exclude):
     path = get_regression_data_path(cls, stop, days, no_exclude)
     if not path.exists():
         raise FileNotFoundError(
-            f"validation regression data {path} not found.\n"
-            "Run `python -m kadi.commands.tests.test_validate` to generate it."
+            f"validation regression data {path} not found, to generate it run:\n"
+            " env KADI_VALIDATE_WRITE_REGRESSION=1 pytest -k test_validate -s -v"
         )
 
     print(f"Reading validation regression data from {path}")
@@ -219,9 +219,3 @@ def test_acis_power_violations():
     assert len(acis_power_val.violations) == 1
     assert list(acis_power_val.violations["start"]) == start_viols
     assert list(acis_power_val.violations["stop"]) == stop_viols
-
-
-if __name__ == "__main__":
-    for cls in Validate.subclasses:
-        write_regression_data(cls, REGRESSION_STOP, REGRESSION_DAYS, no_exclude=False)
-        write_regression_data(cls, REGRESSION_STOP, REGRESSION_DAYS, no_exclude=True)
