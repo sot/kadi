@@ -1595,7 +1595,8 @@ def test_get_states_start_between_aouptarg_aomanuvr_cmds():
         "--------------------- --------------------- ----------- ---------",
         "2021:025:13:56:00.000 2021:025:23:43:14.731        None      None",
         "2021:025:23:43:14.731 2021:025:23:43:24.982        None      NMAN",
-        "2021:025:23:43:24.982 2021:025:23:47:24.982 0.129399482      NMAN",
+        "2021:025:23:43:24.982 2021:025:23:46:04.982 0.129401742      NMAN",
+        "2021:025:23:46:04.982 2021:025:23:47:24.982 0.129399482      NMAN",
         "2021:025:23:47:24.982 2021:026:00:00:00.000 0.129399482      NPNT",
     ]
 
@@ -1609,7 +1610,7 @@ def test_get_states_start_between_aouptarg_aomanuvr_cmds():
 
     # Failure example from #198
     cont = states.get_continuity("2021:032:13:56:00.000")
-    assert cont["__dates__"]["q1"] == "2021:032:12:49:45.458"
+    assert cont["__dates__"]["q1"] == "2021:032:12:47:31.814"
 
 
 def test_get_continuity_and_pitch_from_mid_maneuver(fast_sun_position_method):
