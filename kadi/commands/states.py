@@ -2714,15 +2714,28 @@ def _unique(seq):
     return [x for x in seq if not (x in seen or seen_add(x))]
 
 
-def print_state_keys_transition_classes_docs():
+def get_state_keys_transition_classes() -> dict[
+    tuple[str], list[type[BaseTransition] | type[CompState]]
+]:
     """
-    Sort transition classes into a data structure keyed by state_keys
+    Get a mapping of state key tuples to transition classes that update them.
+
+    This returns a dictionary where the keys are tuples of state keys and the values are
+    lists of transition classes or computed states that update those state keys.
     """
     state_keys_classes = collections.defaultdict(list)
-    for cls in TRANSITION_CLASSES:
+    # Get all transition classes (native and computed) and sort by state_keys
+    for cls in TRANSITION_CLASSES | set(COMP_STATES.values()):
         keys = tuple(cls.state_keys)
         state_keys_classes[keys].append(cls)
+    return state_keys_classes
 
+
+def print_state_keys_transition_classes_docs():
+    """
+    Print state keys and transition classes in a format suitable for documentation.
+    """
+    state_keys_classes = get_state_keys_transition_classes()
     for keys in sorted(state_keys_classes):
         print(", ".join("``{}``".format(key) for key in keys))
         for cls in sorted(state_keys_classes[keys], key=lambda cls: cls.__name__):
