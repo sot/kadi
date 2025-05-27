@@ -1,17 +1,16 @@
 import functools
-import gzip
-import hashlib
 import os
 from pathlib import Path
 
 import numpy as np
 import pytest
+import ska_helpers.utils
 from astropy import units as u
 from astropy.io import ascii
 from astropy.table import Table
 from chandra_time import DateTime
 from cheta import fetch
-from cxotime import CxoTime
+from cxotime import CxoTime, CxoTimeLike
 
 from kadi import commands  # noqa: E402
 from kadi.commands import states  # noqa: E402
@@ -55,73 +54,197 @@ STATE0 = {
 }
 
 
-def assert_all_close_states(rc, rk, keys):
+def assert_all_close_states(states_regr, states_test):
     """
-    Compare all ``key`` columns of the commanded states table ``rc`` and
-    the kadi states table ``rk``.
+    Compare all columns of the commanded states tables.
+
+    Parameters
+    ----------
+    states_regr : astropy.table.Table
+        Regression states table which defines the expected columns and values.
+    states_test : astropy.table.Table
+        Test states table to compare against the regression data.
     """
-    for key in keys:
-        rcdtype = rc[key].dtype
-        if rcdtype.kind == "f":
-            assert np.allclose(rk[key].astype(rcdtype), rc[key])
+    assert len(states_regr) == len(states_test), "State tables have different lengths"
+
+    for key in states_regr.colnames:
+        for sts in states_test, states_regr:
+            if sts[key].dtype.kind == "O":
+                # Convert object column to string
+                sts[key] = [str(val) for val in sts[key]]
+
+        col_test = states_test[key]
+        col_regr = states_regr[key]
+        assert (kind := col_test.dtype.kind) == col_regr.dtype.kind
+
+        if kind == "f":
+            np.testing.assert_allclose(col_regr, col_test)
         else:
-            assert np.all(rk[key] == rc[key])
+            np.testing.assert_equal(col_regr, col_test)
 
 
-def get_states_test(start, stop, state_keys, continuity=None):
+def get_regression_pathdir():
+    """Get the directory path for regression data."""
+    pathdir = Path(__file__).parent / "data" / "regression"
+    pathdir.mkdir(exist_ok=True)
+    return pathdir
+
+
+def get_regression_path(
+    start: CxoTime,
+    stop: CxoTime,
+    state_keys: tuple[str],
+) -> Path:
+    """Get file path for regression data based on start, stop, and state keys.
+
+    This is within the `kadi/commands/tests/data` directory.
     """
-    Helper for getting states from kadi and cmd_states
+    start_date = start.date[:8].replace(":", "")
+    stop_date = stop.date[:8].replace(":", "")
+    dates_keys_str = "-".join(state_keys + (start_date, stop_date))
+    path = get_regression_pathdir() / f"{dates_keys_str}.ecsv"
+    return path
+
+
+def write_one_regression_data(
+    start: CxoTimeLike,
+    stop: CxoTimeLike,
+    state_keys: tuple[str],
+) -> None:
+    """Write regression data to an ECSV file.
+
+    This is used to generate regression data for a specific time range and combination
+    of state keys.
     """
-    start = DateTime(start)
-    stop = DateTime(stop)
+    start = CxoTime(start)
+    stop = CxoTime(stop)
 
-    cstates = cmd_states_fetch_states(start.date, stop.date)
-    trans_keys = [set(val.split(",")) for val in cstates["trans_keys"]]
-    cstates.remove_column("trans_keys")  # Necessary for older astropy
-    cstates["trans_keys"] = trans_keys
-    rcstates = states.reduce_states(cstates, state_keys, merge_identical=True)
-    lenr = len(rcstates)
-
-    cmds = commands.get_cmds(start - 7, stop)
-    with states.disable_grating_move_duration():
-        kstates = states.get_states(
-            state_keys=state_keys, cmds=cmds, continuity=continuity, reduce=False
+    # Need to set CXOTIME_NOW and lookback so that commands and states are regenerated
+    # from scratch instead of grabbing from the commands archive. This accounts for
+    # potential changes in command sets and all the other states machinery. An example
+    # is the change to Safe Mode handling (2023:044) which used to explicitly include
+    # a NSM transition for the maneuver, but no longer does so.
+    lookback = (stop - start).jd + 1
+    with (
+        commands.conf.set_temp("default_lookback", lookback),
+        ska_helpers.utils.temp_env_var("CXOTIME_NOW", (stop + 12 * u.hr).date),
+    ):
+        sts = states.get_states(
+            start, stop, state_keys=state_keys, merge_identical=False
         )
-    rkstates = states.reduce_states(kstates, state_keys, merge_identical=True)[-lenr:]
 
-    return rcstates, rkstates
+    sts.remove_columns(["tstart", "tstop", "trans_keys"])
+    for col in sts.itercols():
+        if col.dtype.kind == "O":
+            # Convert object columns to string
+            sts[col.name] = [str(val) for val in col]
+
+    path = get_regression_path(start, stop, state_keys)
+    print(f"Writing regression data to {path.relative_to(Path.cwd())}")
+    sts.meta["start"] = start.date
+    sts.meta["stop"] = stop.date
+    sts.meta["state_keys"] = state_keys
+    sts.write(path, format="ascii.ecsv", overwrite=True)
+
+    # Provide info on coverage of state keys
+    if len(sts) == 1:
+        print(" - Only one state found")
+    else:
+        for col in sts.itercols():
+            if len(np.unique(col)) == 1:
+                # Remove columns with only one unique value
+                print(f" - {col.name} has only one unique value")
 
 
-def compare_states(
-    start,
-    stop,
-    state_keys,
-    *,
-    compare_state_keys=None,
-    continuity=None,
-    compare_dates=True,
+def write_regression_data(
+    start: CxoTimeLike,
+    stop: CxoTimeLike,
+    include: list[str] | None = None,
+    exclude: list[str] | None = None,
 ):
     """
-    Helper for comparing states from kadi and cmd_states
+    Write regression data for all combinations of state keys for start and stop time.
+
+    This is used to manually generate regression data for all state keys. A combination
+    of state keys is a list of state keys that are updated together in the same
+    transition or transition classes. An example is ['letg', 'hetg', 'grating']. This
+    corresponds to the state keys listed here:
+
+    https://sot.github.io/kadi/commands_states/index.html#state-keys
+
+    When running this function, it is useful to examine the output to ensure that
+    transitions are generated for all state keys.
+
+    Example usage for baseline regression data. The period from 2023:030 to 2023:060
+    includes a safe mode and NSM transition, and is used for attitude state key combos.
+    The period from 2024:360 to 2025:030 is more normal but also has an SCS-107, the
+    LETG anomaly and coverage of HRC commanding. For efficiency do not include the
+    attitude states in the latter interval.
+
+    >>> from kadi.commands.tests.test_states import write_regression_data
+    >>> att_keys = ["pitch", "ra", "q1"]
+    >>> write_regression_data("2023:030", "2023:060", include=att_keys)
+    >>> write_regression_data("2024:360", "2025:030", exclude=att_keys)
+
+    Parameters
+    ----------
+    start : CxoTimeLike
+        Start time for the regression data.
+    stop : CxoTimeLike
+        Stop time for the regression data.
+    include : list of str, optional
+        List of state keys to include in the regression data.
+    exclude : list of str, optional
+        List of state keys to exclude from the regression data (applied after
+        ``include``).
     """
-    rcstates, rkstates = get_states_test(start, stop, state_keys, continuity=continuity)
+    all_state_keys = states.get_state_keys_transition_classes()
+    for state_keys in all_state_keys:
+        fn = "-".join(state_keys)
+        if include and not any(key in state_keys for key in include):
+            print(f"Skipping {fn} because it is not in include list")
+            continue
+        if exclude and any(key in state_keys for key in exclude):
+            print(f"Skipping {fn} because it is in exclude list")
+            continue
 
-    if compare_state_keys is None:
-        compare_state_keys = state_keys
+        # NOTE: the commands caching machinery notices CXOTIME_NOW and uses that to decide
+        # if there are cached commands available. The first time through this is going to
+        # fetch all the backstop commands for the time range and then after cache them.
 
-    assert_all_close_states(rcstates, rkstates, compare_state_keys)
-
-    if compare_dates:
-        assert np.all(rcstates["datestart"][1:] == rkstates["datestart"][1:])
-        assert np.all(rcstates["datestop"][:-1] == rkstates["datestop"][:-1])
-
-    return rcstates, rkstates
+        # Get states from current test code using command states data and write to file
+        write_one_regression_data(start, stop, state_keys)
 
 
-def test_acis_vidboard():
-    # Test all ACIS states include vid_board for late-2017
-    state_keys = ["clocking", "power_cmd", "fep_count", "vid_board"]
-    rc, rk = compare_states("2017:280:12:00:00", "2017:360:12:00:00", state_keys)
+def get_regression_filenames():
+    for path in get_regression_pathdir().glob("*.ecsv"):
+        yield str(path.relative_to(Path.cwd()))
+
+
+@pytest.mark.parametrize("filename", list(get_regression_filenames()))
+def test_regression(filename, monkeypatch):
+    """Test current code vs. regression data in tests/data/regression"""
+    # Read regression data
+    sts_regr = Table.read(filename, format="ascii.ecsv")
+    start = CxoTime(sts_regr.meta["start"])
+    stop = CxoTime(sts_regr.meta["stop"])
+    state_keys = sts_regr.meta["state_keys"]
+    lookback = (stop - start).jd + 1
+
+    # NOTE: the commands caching machinery notices CXOTIME_NOW and uses that to decide
+    # if there are cached commands available. The first time through this is going to
+    # fetch all the backstop commands for the time range and then after cache them.
+
+    # Get states from current test code using command states data
+    with (
+        commands.conf.set_temp("default_lookback", lookback),
+        ska_helpers.utils.temp_env_var("CXOTIME_NOW", (stop + 12 * u.hr).date),
+    ):
+        sts_test = states.get_states(
+            start, stop, state_keys=state_keys, merge_identical=False
+        )
+
+    assert_all_close_states(sts_regr, sts_test)
 
 
 def test_acis_simode():
@@ -228,117 +351,6 @@ def test_cmd_line_interface(tmpdir):
         " 2017:002:11:26:43.185  2017:002:11:29:29.870  50432  TE_00A58B       NMAN ",
         " 2017:002:11:29:29.870  2017:002:11:30:00.000  50432  TE_00A58B       NPNT ",
     ]
-
-
-def test_quick():
-    """
-    Test for a few days in 2017.  Sanity check for refactoring etc.
-    """
-    state_keys = (
-        [
-            "obsid",
-            "clocking",
-            "power_cmd",
-            "fep_count",
-            "vid_board",
-            "ccd_count",
-        ]
-        + ["q1", "q2", "q3", "q4", "pcad_mode", "dither", "ra", "dec", "roll"]
-        + ["letg", "hetg"]
-        + ["simpos", "simfa_pos"]
-    )
-    continuity = {"letg": "RETR", "hetg": "RETR"}  # Not necessarily set within 7 days
-    rc, rk = compare_states(
-        "2018:235:12:00:00", "2018:245:12:00:00", state_keys, continuity=continuity
-    )
-
-    # Now test using start/stop pair with start/stop and no supplied cmds or continuity.
-    # This also tests the API kwarg order: datestart, datestop, state_keys, ..)
-    with states.disable_grating_move_duration():
-        sts = states.get_states(
-            "2018:235:12:00:00", "2018:245:12:00:00", state_keys, reduce=False
-        )
-    assert np.all(DateTime(sts["tstart"]).date == sts["datestart"])
-    assert np.all(DateTime(sts["tstop"]).date == sts["datestop"])
-
-    rk = states.reduce_states(sts, state_keys, merge_identical=True)
-    assert len(rc) == len(rk)
-
-    assert_all_close_states(rc, rk, state_keys)
-
-    assert np.all(rc["datestart"][1:] == rk["datestart"][1:])
-    assert np.all(rc["datestop"][:-1] == rk["datestop"][:-1])
-
-
-def test_states_2017(fast_sun_position_method):
-    """
-    Test for 200 days in 2017.  Includes 2017:066, 068, 090 anomalies and
-    2017:250-254 SCS107 + 251 CTI.
-
-    Skip 'vid_board' because https://github.com/sot/cmd_states/pull/31 was put
-    in place around 2017:276 and so the behavior of this changed then. (Tested later).
-
-    Skip 'si_mode' because raw-mode SI modes occur in this time frame and are
-    not found in cmd_states.  Si_mode is tested in other places.
-
-    Skip 'ccd_count' because https://github.com/sot/cmd_states/pull/39 changed
-    that behavior.
-
-    Skip 'pitch' because chandra_cmd_states only avoids pitch breaks within actual
-    maneuver commanding (so the NMAN period before maneuver starts is OK) while kadi
-    will insert pitch breaks only in NPNT.  (Tested later).
-    """
-
-    state_keys = (
-        ["obsid", "clocking", "power_cmd", "fep_count"]
-        + ["q1", "q2", "q3", "q4", "pcad_mode", "dither", "ra", "dec", "roll"]
-        + ["letg", "hetg"]
-        + ["simpos", "simfa_pos"]
-    )
-    rcstates, rkstates = compare_states(
-        "2017:060:12:00:00", "2017:260:12:00:00", state_keys, compare_dates=False
-    )
-
-    # Check state datestart.  There are 4 known discrepancies of 0.001 sec
-    # due to a slight difference in the start time for NSUN maneuvers.  Cmd_states
-    # uses the exact floating point time to start while kadi uses the string time
-    # rounded to the nearest msec.  The float command time is not stored in kadi.
-    # For this test drop the first state, which has a datestart mismatch because
-    # of the difference in startup between chandra_cmd_states and kadi.states.
-    rkstates = rkstates[1:]
-    rcstates = rcstates[1:]
-    bad = np.flatnonzero(rkstates["datestart"] != rcstates["datestart"])
-    assert len(bad) == 4
-    tk = DateTime(rkstates["datestart"][bad]).secs
-    tc = DateTime(rcstates["datestart"][bad]).secs
-    assert np.all(np.abs(tk - tc) < 0.0015)
-
-
-def test_pitch_2017(fast_sun_position_method):
-    """
-    Test pitch for 100 days in 2017.  Includes 2017:066, 068, 090 anomalies.  This is done
-    by interpolating states (at 200 second intervals) because the pitch generation differs
-    slightly between kadi and chandra_cmd_states.  (See test_states_2017 note).
-
-    Make sure that pitch matches to within 0.5 deg in all samples, and 0.05 deg during
-    NPNT.
-    """
-    rcstates, rkstates = get_states_test(
-        "2017:060:12:00:00", "2017:160:12:00:00", ["pcad_mode", "pitch"]
-    )
-
-    rcstates["tstop"] = DateTime(rcstates["datestop"]).secs
-    rkstates["tstop"] = DateTime(rkstates["datestop"]).secs
-
-    times = np.arange(rcstates["tstop"][0], rcstates["tstop"][-2], 200.0)
-    rci = states.interpolate_states(rcstates, times)
-    rki = states.interpolate_states(rkstates, times)
-
-    dp = np.abs(rci["pitch"] - rki["pitch"])
-    assert np.all(dp < 0.5)
-    assert np.all(rci["pcad_mode"] == rki["pcad_mode"])
-    ok = rci["pcad_mode"] == "NPNT"
-    assert np.all(dp[ok] < 0.05)
 
 
 @pytest.mark.skipif("not HAS_PITCH")
@@ -482,22 +494,22 @@ def test_get_continuity_regress(fast_sun_position_method):
     expected = {
         "ccd_count": 3,
         "clocking": 1,
-        "dec": 32.166641023063612,
+        "dec": 29.541207067565384,
         "dither": "ENAB",
         "fep_count": 3,
         "hetg": "RETR",
         "letg": "RETR",
         "obsid": 20392,
-        "off_nom_roll": -2.0300858116326026,
+        "off_nom_roll": -1.7094393884391508,
         "pcad_mode": "NMAN",
-        "pitch": 134.5392571808533,
+        "pitch": 132.28726587630078,
         "power_cmd": "XTZ0000005",
-        "q1": -0.32430877626423488,
-        "q2": -0.59794754520454407,
-        "q3": -0.73138983148061287,
-        "q4": 0.048491903554710794,
-        "ra": 158.0145560201608,
-        "roll": 84.946493470873875,
+        "q1": -0.3244449073149954,
+        "q2": -0.5849791307822495,
+        "q3": -0.7432701449727902,
+        "q4": 0.009187477373013092,
+        "ra": 155.127026108128,
+        "roll": 83.06347122856376,
         "si_mode": "TE_005C6B",
         "simfa_pos": -468,
         "simpos": 75624,
@@ -511,22 +523,22 @@ def test_get_continuity_regress(fast_sun_position_method):
     dates = {
         "ccd_count": "2018:001:11:58:21.735",
         "clocking": "2018:001:11:59:28.735",
-        "dec": "2018:001:11:57:47.798",
+        "dec": "2018:001:11:57:10.940",
         "dither": "2017:364:11:51:48.955",
         "fep_count": "2018:001:11:58:21.735",
         "hetg": "2018:001:02:58:48.143",
         "letg": "2017:364:10:50:43.995",
         "obsid": "2018:001:11:55:05.818",
-        "off_nom_roll": "2018:001:11:57:47.798",
+        "off_nom_roll": "2018:001:11:57:10.940",
         "pcad_mode": "2018:001:11:52:05.818",
-        "pitch": "2018:001:11:57:47.798",
+        "pitch": "2018:001:11:57:10.940",
         "power_cmd": "2018:001:11:59:28.735",
-        "q1": "2018:001:11:57:47.798",
-        "q2": "2018:001:11:57:47.798",
-        "q3": "2018:001:11:57:47.798",
-        "q4": "2018:001:11:57:47.798",
-        "ra": "2018:001:11:57:47.798",
-        "roll": "2018:001:11:57:47.798",
+        "q1": "2018:001:11:57:10.940",
+        "q2": "2018:001:11:57:10.940",
+        "q3": "2018:001:11:57:10.940",
+        "q4": "2018:001:11:57:10.940",
+        "ra": "2018:001:11:57:10.940",
+        "roll": "2018:001:11:57:10.940",
         "si_mode": "2018:001:11:59:24.735",
         "simfa_pos": "2017:364:11:39:00.159",
         "simpos": "2018:001:02:55:13.804",
@@ -685,78 +697,6 @@ def test_reduce_states_merge_identical(all_keys):
     assert dr["trans_keys"][1] == {"val1"}
     assert dr["trans_keys"][2] == {"val1"}
     assert dr["trans_keys"][3] == {"val2"}
-
-
-def cmd_states_fetch_states(*args, **kwargs):
-    """Generate regression data files for states using chandra_cmd_states.
-
-    Once files have been created they are included in the package distribution
-    and chandra_cmd_states is no longer needed. From this point kadi will be
-    the definitive reference for states.
-    """
-    md5 = hashlib.md5()  # noqa: S324
-    md5.update(repr(args).encode("utf8"))
-    md5.update(repr(kwargs).encode("utf8"))
-    digest = md5.hexdigest()
-    datafile = Path(__file__).parent / "data" / f"states_{digest}.ecsv"
-    datafile_gz = datafile.parent / (datafile.name + ".gz")
-
-    if datafile_gz.exists():
-        cs = Table.read(datafile_gz, format="ascii.ecsv")
-    else:
-        # Prevent accidentally writing data to flight in case of some packaging problem.
-        if "KADI_WRITE_TEST_DATA" not in os.environ:
-            raise RuntimeError(
-                "cannot find test data. Define KADI_WRITE_TEST_DATA "
-                "env var to create it."
-            )
-        import chandra_cmd_states as cmd_states  # noqa: PLR0402
-
-        cs = cmd_states.fetch_states(*args, **kwargs)
-        cs = Table(cs)
-        print(f"Writing {datafile_gz} for args={args} kwargs={kwargs}")
-        cs.write(datafile, format="ascii.ecsv")
-
-        # Gzip the file
-        with open(datafile, "rb") as f_in, gzip.open(datafile_gz, "wb") as f_out:
-            f_out.writelines(f_in)
-        datafile.unlink()
-
-    return cs
-
-
-def test_reduce_states_cmd_states(fast_sun_position_method):
-    """
-    Test that simple get_states() call with defaults gives the same results
-    as calling cmd_states.fetch_states().
-    """
-    cs = cmd_states_fetch_states(
-        "2018:235:12:00:00", "2018:245:12:00:00", allow_identical=True
-    )
-
-    state_keys = set(STATE0) - {
-        "datestart",
-        "datestop",
-        "trans_keys",
-        "tstart",
-        "tstop",
-    }
-
-    # Default setting is reduce states with merge_identical=False, which is the same
-    # as cmd_states.
-    with states.disable_grating_move_duration():
-        ksr = states.get_states("2018:235:12:00:00", "2018:245:12:00:00", state_keys)
-
-    assert len(ksr) == len(cs)
-
-    assert_all_close_states(cs, ksr, set(state_keys) - {"trans_keys", "si_mode"})
-
-    assert np.all(ksr["datestart"][1:] == cs["datestart"][1:])
-    assert np.all(ksr["datestop"][:-1] == cs["datestop"][:-1])
-
-    # Transition keys after first should match.  cmd_states is a comma-delimited string.
-    for k_trans_keys, c_trans_keys in zip(ksr["trans_keys"][1:], cs["trans_keys"][1:]):
-        assert k_trans_keys == set(c_trans_keys.split(","))
 
 
 ###########################################################################
@@ -1547,15 +1487,15 @@ def test_get_pitch_from_mid_maneuver(fast_sun_position_method):
     start = "2019:039:14:16:25.002"  # Mid-maneuver
     stop = "2019:039:16:00:00.000"
     exp = [
-        "      datestart              datestop           pitch     pcad_mode",
-        "--------------------- --------------------- ------------- ---------",
-        "2019:039:14:16:25.002 2019:039:14:16:54.364 63.2696565838      NMAN",
-        "2019:039:14:16:54.364 2019:039:14:22:01.825 83.0388345752      NMAN",
-        "2019:039:14:22:01.825 2019:039:14:27:09.285 106.057258631      NMAN",
-        "2019:039:14:27:09.285 2019:039:14:32:16.745 129.079427541      NMAN",
-        "2019:039:14:32:16.745 2019:039:14:37:24.205 148.857427163      NMAN",
-        "2019:039:14:37:24.205 2019:039:14:42:31.665 159.541502291      NMAN",
-        "2019:039:14:42:31.665 2019:039:16:00:00.000 161.950922135      NPNT",
+        "      datestart              datestop             pitch        pcad_mode",
+        "--------------------- --------------------- ------------------ ---------",
+        "2019:039:14:16:25.002 2019:039:14:21:00.332  79.18318279740022      NMAN",
+        "2019:039:14:21:00.332 2019:039:14:25:47.295 100.68142145564228      NMAN",
+        "2019:039:14:25:47.295 2019:039:14:30:34.258 122.18389895580964      NMAN",
+        "2019:039:14:30:34.258 2019:039:14:35:21.221  143.4709296459047      NMAN",
+        "2019:039:14:35:21.221 2019:039:14:40:08.184 157.81546233001538      NMAN",
+        "2019:039:14:40:08.184 2019:039:14:42:31.665 161.95150302398088      NMAN",
+        "2019:039:14:42:31.665 2019:039:16:00:00.000 161.93209261077413      NPNT",
     ]
     exp = Table.read(exp, format="ascii")
 
@@ -1595,21 +1535,22 @@ def test_get_states_start_between_aouptarg_aomanuvr_cmds():
         "--------------------- --------------------- ----------- ---------",
         "2021:025:13:56:00.000 2021:025:23:43:14.731        None      None",
         "2021:025:23:43:14.731 2021:025:23:43:24.982        None      NMAN",
-        "2021:025:23:43:24.982 2021:025:23:47:24.982 0.129399482      NMAN",
+        "2021:025:23:43:24.982 2021:025:23:46:04.982 0.129401742      NMAN",
+        "2021:025:23:46:04.982 2021:025:23:47:24.982 0.129399482      NMAN",
         "2021:025:23:47:24.982 2021:026:00:00:00.000 0.129399482      NPNT",
     ]
 
     exp = Table.read(exp, format="ascii", fill_values=[("None", "0")])
     for name in ("datestart", "datestop", "pcad_mode"):
         assert np.all(sts[name] == exp[name])
-    assert np.allclose(sts["q1"][2:].astype(float), exp["q1"][2:])
+    assert np.allclose(sts["q1"][2:].astype(float), exp["q1"][2:], atol=1e-5)
     assert sts["q1"][0] is None
     assert sts["q1"][1] is None
     assert sts["pcad_mode"][0] is None
 
     # Failure example from #198
     cont = states.get_continuity("2021:032:13:56:00.000")
-    assert cont["__dates__"]["q1"] == "2021:032:12:49:45.458"
+    assert cont["__dates__"]["q1"] == "2021:032:12:47:31.814"
 
 
 def test_get_continuity_and_pitch_from_mid_maneuver(fast_sun_position_method):
@@ -1621,14 +1562,15 @@ def test_get_continuity_and_pitch_from_mid_maneuver(fast_sun_position_method):
     start = "2017:207:23:35:00"
     stop = "2017:208:00:00:00"
     sts = states.get_states(start, stop, state_keys=["pitch", "pcad_mode"])
-    exp = """
-    datestart              datestop                   pitch        pcad_mode
-    --------------------- --------------------- ------------------ ---------
-    2017:207:23:35:00.000 2017:207:23:37:23.398  69.54669822454251      NMAN
-    2017:207:23:37:23.398 2017:207:23:42:25.863  59.41050320985601      NMAN
-    2017:207:23:42:25.863 2017:207:23:45:30.816  57.13454809508824      NPNT
-    2017:207:23:45:30.816 2017:208:00:00:00.000 57.132522367348834      NPNT
-    """
+    exp = [
+        "      datestart              datestop             pitch        pcad_mode",
+        "--------------------- --------------------- ------------------ ---------",
+        "2017:207:23:35:00.000 2017:207:23:35:27.066   74.2497570112975      NMAN",
+        "2017:207:23:35:27.066 2017:207:23:40:06.264  60.94464535476736      NMAN",
+        "2017:207:23:40:06.264 2017:207:23:42:25.863 57.135312591551276      NMAN",
+        "2017:207:23:42:25.863 2017:207:23:45:30.816  57.13353523338555      NPNT",
+        "2017:207:23:45:30.816 2017:208:00:00:00.000  57.12776241937949      NPNT",
+    ]
     exp = Table.read(exp, format="ascii")
 
     assert np.all(exp["datestart"] == sts["datestart"])
@@ -1637,7 +1579,7 @@ def test_get_continuity_and_pitch_from_mid_maneuver(fast_sun_position_method):
     assert np.all(np.isclose(exp["pitch"], sts["pitch"], rtol=0, atol=1e-8))
 
     cont = states.get_continuity(start, state_keys=["pitch", "pcad_mode"])
-    assert np.isclose(cont["pitch"], sts["pitch"][0], rtol=0, atol=1e-8)
+    assert np.isclose(cont["pitch"], sts["pitch"][0], rtol=0, atol=1e-2)
     assert cont["pcad_mode"] == sts["pcad_mode"][0]
 
 

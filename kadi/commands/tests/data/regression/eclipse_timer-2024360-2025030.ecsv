@@ -1,0 +1,15 @@
+# %ECSV 1.0
+# ---
+# datatype:
+# - {name: datestart, datatype: string}
+# - {name: datestop, datatype: string}
+# - {name: eclipse_timer, datatype: int64}
+# meta: !!omap
+# - continuity_transitions: []
+# - {start: '2024:360:00:00:00.000'}
+# - {stop: '2025:030:00:00:00.000'}
+# - state_keys: !!python/tuple [eclipse_timer]
+# schema: astropy-2.0
+datestart datestop eclipse_timer
+2024:360:00:00:00.000 2025:013:19:00:01.000 1171
+2025:013:19:00:01.000 2025:030:00:00:00.000 1171
