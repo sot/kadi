@@ -12,7 +12,6 @@ or from the command-line application ``kadi_validate_states`` (defined in
 import functools
 import logging
 from abc import ABC
-from collections import defaultdict
 from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Optional
@@ -722,60 +721,9 @@ class ValidateSunPosMon(ValidateStateCode):
 class ValidateACISStatePower(ValidateSingleMsid):
     state_name = "dpa_power"
     msids = ["dpa_power"]
-    state_keys_extra = ["ccd_count", "clocking", "feps", "ccds", "fep_count", "si_mode"]
     plot_attrs = PlotAttrs(title="DPA Power", ylabel="DPA Power (W)")
     min_violation_duration = 600.0  # seconds
     max_delta_val = 2.0  # W
-
-    def __init__(self, stop=None, days: float = 14, no_exclude: bool = False):
-        from joblib import load
-
-        model_path = Path(__file__).parent / "data/dpa_power_model.joblib"
-        super().__init__(stop=stop, days=days, no_exclude=no_exclude)
-        self.model, self.scaler_X, self.scaler_y = load(model_path)
-
-    @functools.cached_property
-    def states(self):
-        _states = get_states(
-            start=self.tlm["time"][0],
-            stop=self.tlm["time"][-1],
-            state_keys=self.state_keys_extra,
-        )
-        return _states
-
-    @functools.cached_property
-    def state_vals(self):
-        int_states = interpolate_states(self.states, self.times)
-
-        # create on-off states for FEPs and CCDs
-        ccds = [f"I{i}" for i in range(4)] + [f"S{i}" for i in range(6)]
-        ccdsfeps = defaultdict(list)
-        for row in int_states:
-            for i in range(6):
-                ccdsfeps[f"FEP{i}"].append(str(i) in row["feps"])
-            for key in ccds:
-                ccdsfeps[key].append(key in row["ccds"])
-        for key in ccdsfeps:
-            int_states[key] = np.array(ccdsfeps[key], dtype="float64")
-
-        # check for continuous clocking mode
-        cc = np.char.startswith(int_states["si_mode"], "CC").astype("float64")
-        cc *= ~int_states["clocking"].astype("bool")
-        int_states["cc_zero"] = cc * (int_states["ccd_count"] > 0)
-
-        # Convert to pandas DataFrame, so we can use sklearn
-        df = int_states.to_pandas()
-        keep_cols = ["cc_zero"] + list(ccdsfeps.keys())
-        XX = df.drop(
-            [col for col in int_states.colnames if col not in keep_cols], axis=1
-        )
-        XX = self.scaler_X.transform(XX)
-        yy = self.model.predict(XX)
-
-        # Inverse transform the predictions and actual values
-        _state_vals = self.scaler_y.inverse_transform(yy.reshape(-1, 1)).flatten()
-
-        return _state_vals
 
 
 def get_overlap_mask(times: np.ndarray, intervals: Table):
