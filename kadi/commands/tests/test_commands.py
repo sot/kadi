@@ -583,21 +583,49 @@ def test_nsm_offset_pitch_rasl_with_rate_command_events(stop_date_2024_01_30):  
     # Note variation in format of date, since this comes from humans.
     cmd_evts_text = """\
 State,Date,Event,Params,Author,Reviewer,Comment
-Definitive,2024:025:02:00:00,Maneuver sun rasl,90 0.2,,,
-Definitive,2024:024:09:44:06,NSM,,,,
+Definitive,2024:024:08:00:00,NSM,120,,,
+Definitive,2024:024:10:00:00,Maneuver sun rasl,12 0.02,,,
 """
     (cmds_dir / "cmd_events.csv").write_text(cmd_evts_text)
 
     # Now get commands in a time range that includes the new command events
     cmds = commands.get_cmds(
-        "2024-01-24 12:00:00", "2024-01-25 05:00:00", scenario=scenario
+        "2024-01-24 09:00:00", "2024-01-25 12:00:00", scenario=scenario
     )
     cmds = cmds[(cmds["tlmsid"] != "OBS") & (cmds["type"] != "ORBPOINT")]
     exp = [
-        "2024:025:02:00:00.000 | LOAD_EVENT       | SUN_RASL   | CMD_EVT  | event=Maneuver_sun_rasl, event_date=2024:025:02:00:00, rasl=90, rate=2.00000000e-01, scs=0",
+        "2024:024:10:00:00.000 | LOAD_EVENT       | SUN_RASL   | CMD_EVT  | event=Maneuver_sun_rasl, event_date=2024:024:10:00:00, rasl=12, rate=2.00000000e-02, scs=0",
     ]
 
     assert cmds.pformat_like_backstop(max_params_width=200) == exp
+
+    # Now get states in a time range that includes the new command events
+    states = kcs.get_states(
+        "2024:024:10:00:00",
+        "2024:024:11:00:00",
+        state_keys=["pitch", "rasl"],
+        scenario=scenario,
+    )
+    exp_text = """
+      datestart              datestop        pitch    rasl
+2024:024:10:00:00.000 2024:024:10:02:00.000 120.048 312.622
+2024:024:10:02:00.000 2024:024:10:04:00.000 120.049 315.022
+2024:024:10:04:00.000 2024:024:10:06:00.000 120.049 317.422
+2024:024:10:06:00.000 2024:024:10:08:00.000 120.050 319.822
+2024:024:10:08:00.000 2024:024:10:10:00.000 120.050 322.222
+2024:024:10:10:00.000 2024:024:11:00:00.000 120.057 324.626
+"""
+    exp = Table.read(exp_text, format="ascii", guess=False, delimiter=" ")
+    # Total RASL change is 12 degrees.
+    rasl = states["rasl"]
+    d_rasl = 12
+    n_rasl = len(rasl)
+    np.testing.assert_allclose(states["pitch"], exp["pitch"], atol=1e-2, rtol=0)
+    np.testing.assert_allclose(rasl, exp["rasl"], atol=1e-2, rtol=0)
+    np.testing.assert_allclose(rasl[-1] - rasl[0], d_rasl, atol=1e-2, rtol=0)
+    np.testing.assert_allclose(np.diff(rasl), d_rasl / (n_rasl - 1), atol=1e-2, rtol=0)
+    np.testing.assert_equal(states["datestart"], exp["datestart"])
+    np.testing.assert_equal(states["datestop"], exp["datestop"])
 
 
 @pytest.mark.skipif(not HAS_INTERNET, reason="No internet connection")
