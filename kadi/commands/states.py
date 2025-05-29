@@ -1692,13 +1692,15 @@ class ManeuverSunRaslTransition(ManeuverTransition):
             return
 
         curr_att = Quat(curr_att)
-        sun_ra, sun_dec = ska_sun.position(date)
 
         start = CxoTime(date)
-        stop = start + rasl / rate * u.s
+        dur = rasl / rate * u.s
+        stop = start + dur
         date_atts: list[str] = CxoTime.linspace(start, stop, step_max=120 * u.s).date
         yaws = np.linspace(0, rasl, len(date_atts))
 
+        # Sun position at the middle of the maneuver
+        sun_ra, sun_dec = ska_sun.position(start + dur / 2)
         atts = [
             ska_sun.apply_sun_pitch_yaw(
                 curr_att, yaw=yaw, sun_ra=sun_ra, sun_dec=sun_dec
@@ -1706,26 +1708,9 @@ class ManeuverSunRaslTransition(ManeuverTransition):
             for yaw in yaws
         ]
 
-        pitches = [
-            ska_sun.pitch(att.ra, att.dec, sun_ra=sun_ra, sun_dec=sun_dec)
-            for att in atts
-        ]
-        off_nom_rolls = [
-            ska_sun.off_nominal_roll(
-                [att.ra, att.dec, att.roll], date, sun_ra=sun_ra, sun_dec=sun_dec
-            )
-            for att in atts
-        ]
-
         # Add transitions for each bit of the maneuver.  Note that this sets the
-        # attitude (q1..q4) at the *beginning* of each state, while setting
-        # pitch and off_nominal_roll at the *midpoint* of each state.  This is
-        # for legacy compatibility with chandra_cmd_states but might be
-        # something to change since it would probably be better to have the
-        # midpoint attitude.
-        for att, date_att, pitch, off_nom_roll in zip(
-            atts, date_atts, pitches, off_nom_rolls
-        ):
+        # attitude (q1..q4) at the *beginning* of each state.
+        for att, date_att in zip(atts, date_atts):
             # Check pcad_mode at time of each maneuver transition is same as at start.
             # This cuts off maneuver for a mode change like NSM or Safe mode. Note that
             # `state_` is the future state and `state` is the current state.
@@ -1734,13 +1719,6 @@ class ManeuverSunRaslTransition(ManeuverTransition):
             )
             for qc, q_i in zip(QUAT_COMPS, att.q):
                 transition[qc] = q_i
-            transition["pitch"] = pitch
-            transition["off_nom_roll"] = off_nom_roll
-
-            ra, dec, roll = att.equatorial
-            transition["ra"] = ra
-            transition["dec"] = dec
-            transition["roll"] = roll
 
             add_transition(transitions, idx, transition)
 
