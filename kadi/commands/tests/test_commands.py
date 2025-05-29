@@ -699,7 +699,7 @@ Definitive,2024:024:09:44:06,NSM,,,,
 
     # Interpolate states at two times just after the pitch maneuver and just after the
     # roll about sun line (rasl) maneuver.
-    dates = ["2024:025:04:00:00", "2024:025:05:00:00"]
+    dates = ["2024:025:04:00:00", "2024:025:05:00:01"]
     sts = kcs.interpolate_states(states, dates)
     q1 = Quat([sts["q1"][0], sts["q2"][0], sts["q3"][0], sts["q4"][0]])
     q2 = Quat([sts["q1"][1], sts["q2"][1], sts["q3"][1], sts["q4"][1]])
@@ -707,7 +707,7 @@ Definitive,2024:024:09:44:06,NSM,,,,
     pitch2, rasl2 = ska_sun.get_sun_pitch_yaw(q2.ra, q2.dec, dates[1])
     assert np.isclose(pitch1, 160, atol=0.2)
     assert np.isclose(pitch2, 160, atol=0.5)
-    assert np.isclose((rasl2 - rasl1) % 360, 90, atol=0.5)
+    assert np.isclose((rasl2 - rasl1) % 360, 90, atol=0.2)
 
     commands.clear_caches()
 
