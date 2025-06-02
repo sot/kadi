@@ -1659,6 +1659,9 @@ class ManeuverSunRaslTransition(ManeuverTransition):
     """
     Like ``ManeuverTransition`` except roll about the sun line.
 
+    This implements a constant-rate rotation about the sun line. At 90 deg sun pitch
+    this corresponds to a yaw-bias maneuver.
+
     This does not change the PCAD mode.
     """
 
@@ -1694,7 +1697,7 @@ class ManeuverSunRaslTransition(ManeuverTransition):
         curr_att = Quat(curr_att)
 
         start = CxoTime(date)
-        dur = rasl / rate * u.s
+        dur = abs(rasl / rate) * u.s
         stop = start + dur
         date_atts: list[str] = CxoTime.linspace(start, stop, step_max=120 * u.s).date
         yaws = np.linspace(0, rasl, len(date_atts))
