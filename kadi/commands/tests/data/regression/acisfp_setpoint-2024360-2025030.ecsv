@@ -1,0 +1,14 @@
+# %ECSV 1.0
+# ---
+# datatype:
+# - {name: datestart, datatype: string}
+# - {name: datestop, datatype: string}
+# - {name: acisfp_setpoint, datatype: float64}
+# meta: !!omap
+# - continuity_transitions: []
+# - {start: '2024:360:00:00:00.000'}
+# - {stop: '2025:030:00:00:00.000'}
+# - state_keys: !!python/tuple [acisfp_setpoint]
+# schema: astropy-2.0
+datestart datestop acisfp_setpoint
+2024:360:00:00:00.000 2025:030:00:00:00.000 -121.0

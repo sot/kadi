@@ -290,7 +290,7 @@ def get_cmds(
             )
             CMDS_RECENT[cache_key] = cmds_recent
         else:
-            logger.info("Getting recent commands from cache")
+            logger.info(f"Getting recent commands from cache {cache_key=}")
             cmds_recent = CMDS_RECENT[cache_key]
 
         # Get `cmds` as correct mix of recent and archive commands that contains
