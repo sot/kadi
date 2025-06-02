@@ -7,9 +7,11 @@ This is based entirely on known history of commands.
 import collections
 import contextlib
 import dataclasses
+import functools
 import inspect
 import itertools
 import re
+from pathlib import Path
 from typing import Callable
 
 import astropy.units as u
@@ -272,6 +274,51 @@ class CompState(AutoDocMixin):
             COMP_STATES[state_key] = cls
 
         cls._auto_update_docstring()
+
+
+@functools.lru_cache(maxsize=1)
+def get_dpa_power_model():
+    from joblib import load
+
+    model_path = Path(__file__).parent / "data" / "dpa_power_model.joblib"
+    return load(model_path)
+
+
+class ACISDpaPowerState(CompState):
+    state_keys_input = ["ccd_count", "clocking", "feps", "ccds", "fep_count", "si_mode"]
+    state_keys = ["dpa_power"]
+
+    @classmethod
+    def calc(cls, states: Table) -> dict[str, np.array]:
+        model, scaler_X, scaler_y = get_dpa_power_model()
+
+        # create on-off states for FEPs and CCDs
+        ccds = [f"I{i}" for i in range(4)] + [f"S{i}" for i in range(6)]
+        ccdsfeps = collections.defaultdict(list)
+        for row in states:
+            for i in range(6):
+                ccdsfeps[f"FEP{i}"].append(str(i) in row["feps"])
+            for key in ccds:
+                ccdsfeps[key].append(key in row["ccds"])
+        for key in ccdsfeps:
+            states[key] = np.array(ccdsfeps[key], dtype="float64")
+
+        # check for continuous clocking mode
+        cc = np.char.startswith(states["si_mode"], "CC").astype("float64")
+        cc *= ~states["clocking"].astype("bool")
+        states["cc_zero"] = cc * (states["ccd_count"] > 0)
+
+        # Convert to pandas DataFrame, so we can use sklearn
+        df = states.to_pandas()
+        keep_cols = ["cc_zero"] + list(ccdsfeps.keys())
+        XX = df.drop([col for col in states.colnames if col not in keep_cols], axis=1)
+        XX = scaler_X.transform(XX)
+        yy = model.predict(XX)
+
+        # Inverse transform the predictions and actual values
+        state_vals = scaler_y.inverse_transform(yy.reshape(-1, 1)).flatten()
+
+        return {"dpa_power": state_vals}
 
 
 class RaDecRollState(CompState):

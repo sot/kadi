@@ -654,6 +654,9 @@ classes which affect the keys.
 ``dither_phase_pitch``, ``dither_phase_yaw``, ``dither_ampl_pitch``, ``dither_ampl_yaw``, ``dither_period_pitch``, ``dither_period_yaw``
   - :class:`~kadi.commands.states.DitherParamsTransition`
 
+``dpa_power``
+  - :class:`~kadi.commands.states.ACISDpaPowerState`
+
 ``eclipse``
   - :class:`~kadi.commands.states.EclipsePenumbraEntryTransition`
   - :class:`~kadi.commands.states.EclipsePenumbraExitTransition`
