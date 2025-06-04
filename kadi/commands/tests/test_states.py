@@ -14,6 +14,7 @@ from cxotime import CxoTime, CxoTimeLike
 
 from kadi import commands  # noqa: E402
 from kadi.commands import states  # noqa: E402
+from kadi.commands.tests.test_commands import get_cmds_from_cmd_evts_text
 
 try:
     fetch.get_time_range("dp_pitch")
@@ -54,7 +55,7 @@ STATE0 = {
 }
 
 
-def assert_all_close_states(states_regr, states_test):
+def assert_all_close_states(states_regr, states_test, **kwargs):
     """
     Compare all columns of the commanded states tables.
 
@@ -64,6 +65,8 @@ def assert_all_close_states(states_regr, states_test):
         Regression states table which defines the expected columns and values.
     states_test : astropy.table.Table
         Test states table to compare against the regression data.
+    kwargs : dict
+        Additional keyword arguments to pass to `np.testing.assert_allclose`.
     """
     assert len(states_regr) == len(states_test), "State tables have different lengths"
 
@@ -78,7 +81,7 @@ def assert_all_close_states(states_regr, states_test):
         assert (kind := col_test.dtype.kind) == col_regr.dtype.kind
 
         if kind == "f":
-            np.testing.assert_allclose(col_regr, col_test)
+            np.testing.assert_allclose(col_regr, col_test, **kwargs)
         else:
             np.testing.assert_equal(col_regr, col_test)
 
@@ -314,6 +317,75 @@ def test_acis_simode():
     )
     assert "TN_000B4" in kstates["si_mode"]
     assert "TN_000B6" in kstates["si_mode"]
+
+
+def test_configurable_maneuver_rasl_step_time():
+    cmd_evts_text = """\
+State,Date,Event,Params,Author,Reviewer,Comment
+Definitive,2024:024:01:00:00,NSM,,,,
+Definitive,2024:024:02:00:00,Maneuver sun rasl,10,,,
+"""
+    cmds = get_cmds_from_cmd_evts_text(cmd_evts_text)
+    with commands.conf.set_temp("maneuver_rasl_step_time", 55.0):
+        sts = states.get_states(
+            "2024:024:01:00:00",
+            "2024:024:03:00:00",
+            cmds=cmds,
+            state_keys=["pcad_mode", "rasl"],
+        )
+    # Actual RASL step time is 50 seconds just below the configured value of 55.
+    exp_text = """
+      datestart              datestop       pcad_mode   rasl  trans_keys
+2024:024:01:00:00.000 2024:024:01:10:29.075      NSUN 312.750  pcad_mode
+2024:024:01:10:29.075 2024:024:02:00:00.000      NSUN 312.732       rasl
+2024:024:02:00:00.000 2024:024:02:00:50.000      NSUN 312.726       rasl
+2024:024:02:00:50.000 2024:024:02:01:40.000      NSUN 313.976       rasl
+2024:024:02:01:40.000 2024:024:02:02:30.000      NSUN 315.226       rasl
+2024:024:02:02:30.000 2024:024:02:03:20.000      NSUN 316.475       rasl
+2024:024:02:03:20.000 2024:024:02:04:10.000      NSUN 317.725       rasl
+2024:024:02:04:10.000 2024:024:02:05:00.000      NSUN 318.975       rasl
+2024:024:02:05:00.000 2024:024:02:05:50.000      NSUN 320.225       rasl
+2024:024:02:05:50.000 2024:024:02:06:40.000      NSUN 321.475       rasl
+2024:024:02:06:40.000 2024:024:03:00:00.000      NSUN 322.718       rasl
+"""
+    exp = Table.read(exp_text, format="ascii.basic", guess=False)
+    sts.pprint_exclude_names = ["tstart", "tstop"]
+    sts["rasl"].format = ".3f"
+    assert_all_close_states(exp, sts, atol=1e-2, rtol=0)
+
+
+def test_configurable_maneuver_nman_step_time():
+    # Maneuver from 200.278  46.089  86.615 to 200, 36, 86
+    # with a step time of 120 seconds. Confirm output steps are about 2 minutes apart.
+    cmd_evts_text = """\
+State,Date,Event,Params,Author,Reviewer,Comment
+Definitive,2024:024:00:00:01,Maneuver, 0.10993576 0.67800962 0.64839541 -0.32832983,,,
+"""
+    cmds = get_cmds_from_cmd_evts_text(cmd_evts_text)
+    with commands.conf.set_temp("maneuver_nman_step_time", 120.0):
+        sts = states.get_states(
+            "2024:024:00:00:00",
+            "2024:024:01:00:00",
+            cmds=cmds,
+            state_keys=["pcad_mode", "ra", "dec", "roll"],
+        )
+    sts.pprint_exclude_names = ["tstart", "tstop"]
+    for name in ["ra", "dec", "roll"]:
+        sts[name].format = ".3f"
+    exp_text = """
+      datestart              datestop       pcad_mode    ra     dec     roll   trans_keys
+2024:024:00:00:00.000 2024:024:00:00:01.000      NPNT 200.278  46.089  86.615    ""
+2024:024:00:00:01.000 2024:024:00:00:11.250      NMAN 200.278  46.089  86.615   pcad_mode
+2024:024:00:00:11.250 2024:024:00:02:06.211      NMAN 200.276  46.023  86.611 dec,ra,roll
+2024:024:00:02:06.211 2024:024:00:04:01.173      NMAN 200.248  44.806  86.535 dec,ra,roll
+2024:024:00:04:01.173 2024:024:00:05:56.134      NMAN 200.176  41.953  86.359 dec,ra,roll
+2024:024:00:05:56.134 2024:024:00:07:51.095      NMAN 200.078  38.508  86.150 dec,ra,roll
+2024:024:00:07:51.095 2024:024:00:09:46.056      NMAN 200.015  36.468  86.028 dec,ra,roll
+2024:024:00:09:46.056 2024:024:00:10:43.537      NMAN 200.000  36.000  86.000 dec,ra,roll
+2024:024:00:10:43.537 2024:024:01:00:00.000      NPNT 200.000  36.000  86.000   pcad_mode
+"""
+    exp = Table.read(exp_text, format="ascii.basic", guess=False)
+    assert_all_close_states(exp, sts, atol=1e-3, rtol=0)
 
 
 def test_cmd_line_interface(tmpdir):

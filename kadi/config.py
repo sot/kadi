@@ -79,6 +79,14 @@ class Conf(ConfigNamespace):
         "of command generation prior to that patch.",
     )
 
+    maneuver_nman_step_time = ConfigItem(
+        300.0, "Time step (sec) for NMAN maneuver generation in kadi states."
+    )
+
+    maneuver_rasl_step_time = ConfigItem(
+        120.0, "Time step (sec) for RASL maneuver generation in kadi states."
+    )
+
 
 # Create a configuration instance for the user
 conf = Conf()

@@ -21,6 +21,7 @@ import kadi
 import kadi.commands.states as kcs
 from kadi import commands
 from kadi.commands import (
+    CommandTable,
     commands_v2,
     conf,
     core,
@@ -40,6 +41,23 @@ try:
     HAS_AGASC_1P8 = True
 except FileNotFoundError:
     HAS_AGASC_1P8 = False
+
+
+def get_cmds_from_cmd_evts_text(cmd_evts_text: str):
+    """Get commands from a cmd_events text string.
+
+    This helper function can make it easier to test scenarios without creating a
+    scenario file.
+    """
+    cmd_evts = Table.read(cmd_evts_text, format="ascii.csv", fill_values=[])
+    cmds_list = [
+        get_cmds_from_event(cmd_evt["Date"], cmd_evt["Event"], cmd_evt["Params"])
+        for cmd_evt in cmd_evts
+    ]
+    cmds: CommandTable = core.vstack_exact(cmds_list)
+    cmds.sort_in_backstop_order()
+
+    return cmds
 
 
 def test_find():
