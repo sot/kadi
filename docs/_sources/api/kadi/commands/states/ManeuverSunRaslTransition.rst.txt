@@ -9,6 +9,9 @@ kadi.commands.states.ManeuverSunRaslTransition
    
    Like ``ManeuverTransition`` except roll about the sun line.
 
+   This implements a constant-rate rotation about the sun line. At 90 deg sun pitch
+   this corresponds to a yaw-bias maneuver.
+
    This does not change the PCAD mode.
 
 
@@ -39,7 +42,7 @@ kadi.commands.states.ManeuverSunRaslTransition
 
 
 
-   .. py:method:: callback(date, transitions, state, idx, *, rasl)
+   .. py:method:: callback(date, transitions, state, idx, *, rasl, rate)
       :classmethod:
 
 

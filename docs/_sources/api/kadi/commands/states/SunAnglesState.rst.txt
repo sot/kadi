@@ -1,0 +1,43 @@
+kadi.commands.states.SunAnglesState
+===================================
+
+.. py:class:: kadi.commands.states.SunAnglesState
+
+   Bases: :py:obj:`CompState`
+
+
+   
+   Compute useful state angles related to Sun position and attitude.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:attribute:: state_keys_input
+      :value: ['q1', 'q2', 'q3', 'q4', 'sun_vector_update']
+
+
+
+   .. py:attribute:: state_keys
+      :value: ['pitch', 'rasl', 'off_nom_roll', 'sun_ra', 'sun_dec']
+
+
+
+   .. py:method:: calc(states)
+      :classmethod:
+
+

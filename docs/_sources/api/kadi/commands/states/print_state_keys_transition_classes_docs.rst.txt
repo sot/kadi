@@ -4,7 +4,7 @@ kadi.commands.states.print_state_keys_transition_classes_docs
 .. py:function:: kadi.commands.states.print_state_keys_transition_classes_docs()
 
    
-   Sort transition classes into a data structure keyed by state_keys
+   Print state keys and transition classes in a format suitable for documentation.
 
 
 

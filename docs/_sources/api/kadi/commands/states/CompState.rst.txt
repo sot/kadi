@@ -1,0 +1,56 @@
+kadi.commands.states.CompState
+==============================
+
+.. py:class:: kadi.commands.states.CompState
+
+   Bases: :py:obj:`AutoDocMixin`
+
+
+   
+   Base class for computed states.
+
+   These are states that are computed strictly from other states and do not
+   inject any Transitions.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:method:: __init_subclass__()
+      :classmethod:
+
+
+      
+      Register the output state keys and the class
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+

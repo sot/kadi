@@ -81,10 +81,8 @@ kadi.commands.states.SunVectorTransition
 
 
       
-      Transition callback method for ``pitch`` / ``off_nom_roll`` states.
+      Transition callback method for ``sun_ra``, ``sun_dec`` states.
 
-      This will potentially update the ``pitch`` and ``off_nom_roll`` states if
-      pcad_mode is NPNT.
 
       :Parameters:
 

@@ -1,0 +1,30 @@
+kadi.commands.states.AutoDocMixin
+=================================
+
+.. py:class:: kadi.commands.states.AutoDocMixin
+
+   .. py:method:: _auto_update_docstring()
+      :classmethod:
+
+
+      
+      Put some useful information at the top of docstring.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+

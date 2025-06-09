@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>kadi.commands.states &#8212; kadi 7.16.0 documentation</title>
+    <title>kadi.commands.states &#8212; kadi 7.17.0 documentation</title>
   
   
   
@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../../../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../../../../_static/documentation_options.js?v=17c77d90"></script>
+    <script src="../../../../_static/documentation_options.js?v=661237c9"></script>
     <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -54,7 +54,7 @@
     <link rel="prev" title="kadi.commands.observations.get_observations" href="../observations/get_observations.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="7.16.0" />
+  <meta name="docsearch:version" content="7.17.0" />
   </head>
   
   
@@ -107,7 +107,7 @@
     <span style="color: rgb(186, 70, 21); font-size: x-large;">kadi</span>
 </a>
 &nbsp;
-<span style="font-size: x-large;">7.16.0</span></div>
+<span style="font-size: x-large;">7.17.0</span></div>
     
   </div>
   
@@ -382,202 +382,217 @@
 <tr class="row-even"><td><p><a class="reference internal" href="TransitionCallback.html#kadi.commands.states.TransitionCallback" title="kadi.commands.states.TransitionCallback"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TransitionCallback</span></code></a></p></td>
 <td><p>Callback function for a transition.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="BaseTransition.html#kadi.commands.states.BaseTransition" title="kadi.commands.states.BaseTransition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseTransition</span></code></a></p></td>
-<td><p>Base transition class from which all actual transition classes are derived.</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="AutoDocMixin.html#kadi.commands.states.AutoDocMixin" title="kadi.commands.states.AutoDocMixin"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AutoDocMixin</span></code></a></p></td>
+<td><p></p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="FixedTransition.html#kadi.commands.states.FixedTransition" title="kadi.commands.states.FixedTransition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FixedTransition</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="CompState.html#kadi.commands.states.CompState" title="kadi.commands.states.CompState"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CompState</span></code></a></p></td>
+<td><p>Base class for computed states.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="ACISDpaPowerState.html#kadi.commands.states.ACISDpaPowerState" title="kadi.commands.states.ACISDpaPowerState"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ACISDpaPowerState</span></code></a></p></td>
+<td><p>Base class for computed states.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="RaDecRollState.html#kadi.commands.states.RaDecRollState" title="kadi.commands.states.RaDecRollState"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RaDecRollState</span></code></a></p></td>
+<td><p>Compute RA, Dec, and Roll state from quaternion components.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="SunAnglesState.html#kadi.commands.states.SunAnglesState" title="kadi.commands.states.SunAnglesState"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SunAnglesState</span></code></a></p></td>
+<td><p>Compute useful state angles related to Sun position and attitude.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="BaseTransition.html#kadi.commands.states.BaseTransition" title="kadi.commands.states.BaseTransition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseTransition</span></code></a></p></td>
+<td><p>Base transition class from which all actual transition classes are subclassed.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="FixedTransition.html#kadi.commands.states.FixedTransition" title="kadi.commands.states.FixedTransition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FixedTransition</span></code></a></p></td>
 <td><p>Transitions for fixed attribute.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="ParamTransition.html#kadi.commands.states.ParamTransition" title="kadi.commands.states.ParamTransition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ParamTransition</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="ParamTransition.html#kadi.commands.states.ParamTransition" title="kadi.commands.states.ParamTransition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ParamTransition</span></code></a></p></td>
 <td><p>Transitions for case of attribute that gets set to value defined by cmd param.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="Format1_Transition.html#kadi.commands.states.Format1_Transition" title="kadi.commands.states.Format1_Transition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Format1_Transition</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="Format1_Transition.html#kadi.commands.states.Format1_Transition" title="kadi.commands.states.Format1_Transition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Format1_Transition</span></code></a></p></td>
 <td><p>Transition to telemetry format 1</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="Format2_Transition.html#kadi.commands.states.Format2_Transition" title="kadi.commands.states.Format2_Transition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Format2_Transition</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="Format2_Transition.html#kadi.commands.states.Format2_Transition" title="kadi.commands.states.Format2_Transition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Format2_Transition</span></code></a></p></td>
 <td><p>Transition to telemetry format 2</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="Format3_Transition.html#kadi.commands.states.Format3_Transition" title="kadi.commands.states.Format3_Transition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Format3_Transition</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="Format3_Transition.html#kadi.commands.states.Format3_Transition" title="kadi.commands.states.Format3_Transition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Format3_Transition</span></code></a></p></td>
 <td><p>Transition to telemetry format 3</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="Format4_Transition.html#kadi.commands.states.Format4_Transition" title="kadi.commands.states.Format4_Transition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Format4_Transition</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="Format4_Transition.html#kadi.commands.states.Format4_Transition" title="kadi.commands.states.Format4_Transition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Format4_Transition</span></code></a></p></td>
 <td><p>Transition to telemetry format 4</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="Format5_Transition.html#kadi.commands.states.Format5_Transition" title="kadi.commands.states.Format5_Transition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Format5_Transition</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="Format5_Transition.html#kadi.commands.states.Format5_Transition" title="kadi.commands.states.Format5_Transition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Format5_Transition</span></code></a></p></td>
 <td><p>Transition to telemetry format 5</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="Format6_Transition.html#kadi.commands.states.Format6_Transition" title="kadi.commands.states.Format6_Transition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Format6_Transition</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="Format6_Transition.html#kadi.commands.states.Format6_Transition" title="kadi.commands.states.Format6_Transition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Format6_Transition</span></code></a></p></td>
 <td><p>Transition to telemetry format 6</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="SubFormatEPS_Transition.html#kadi.commands.states.SubFormatEPS_Transition" title="kadi.commands.states.SubFormatEPS_Transition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SubFormatEPS_Transition</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="SubFormatEPS_Transition.html#kadi.commands.states.SubFormatEPS_Transition" title="kadi.commands.states.SubFormatEPS_Transition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SubFormatEPS_Transition</span></code></a></p></td>
 <td><p>Transition to telemetry EPS subformat</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="SubFormatNRM_Transition.html#kadi.commands.states.SubFormatNRM_Transition" title="kadi.commands.states.SubFormatNRM_Transition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SubFormatNRM_Transition</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="SubFormatNRM_Transition.html#kadi.commands.states.SubFormatNRM_Transition" title="kadi.commands.states.SubFormatNRM_Transition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SubFormatNRM_Transition</span></code></a></p></td>
 <td><p>Transition to telemetry NRM subformat</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="SubFormatPDG_Transition.html#kadi.commands.states.SubFormatPDG_Transition" title="kadi.commands.states.SubFormatPDG_Transition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SubFormatPDG_Transition</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="SubFormatPDG_Transition.html#kadi.commands.states.SubFormatPDG_Transition" title="kadi.commands.states.SubFormatPDG_Transition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SubFormatPDG_Transition</span></code></a></p></td>
 <td><p>Transition to telemetry PDG subformat</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="SubFormatSSR_Transition.html#kadi.commands.states.SubFormatSSR_Transition" title="kadi.commands.states.SubFormatSSR_Transition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SubFormatSSR_Transition</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="SubFormatSSR_Transition.html#kadi.commands.states.SubFormatSSR_Transition" title="kadi.commands.states.SubFormatSSR_Transition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SubFormatSSR_Transition</span></code></a></p></td>
 <td><p>Transition to telemetry SSR subformat</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="MechMove.html#kadi.commands.states.MechMove" title="kadi.commands.states.MechMove"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MechMove</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="MechMove.html#kadi.commands.states.MechMove" title="kadi.commands.states.MechMove"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MechMove</span></code></a></p></td>
 <td><p>Transitions for mech moves that have non-zero duration.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="HETG_INSR_Transition.html#kadi.commands.states.HETG_INSR_Transition" title="kadi.commands.states.HETG_INSR_Transition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HETG_INSR_Transition</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="HETG_INSR_Transition.html#kadi.commands.states.HETG_INSR_Transition" title="kadi.commands.states.HETG_INSR_Transition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HETG_INSR_Transition</span></code></a></p></td>
 <td><p>HETG insertion</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="HETG_RETR_Transition.html#kadi.commands.states.HETG_RETR_Transition" title="kadi.commands.states.HETG_RETR_Transition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HETG_RETR_Transition</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="HETG_RETR_Transition.html#kadi.commands.states.HETG_RETR_Transition" title="kadi.commands.states.HETG_RETR_Transition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HETG_RETR_Transition</span></code></a></p></td>
 <td><p>HETG retraction</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="LETG_INSR_Transition.html#kadi.commands.states.LETG_INSR_Transition" title="kadi.commands.states.LETG_INSR_Transition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LETG_INSR_Transition</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="LETG_INSR_Transition.html#kadi.commands.states.LETG_INSR_Transition" title="kadi.commands.states.LETG_INSR_Transition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LETG_INSR_Transition</span></code></a></p></td>
 <td><p>LETG insertion</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="LETG_RETR_Transition.html#kadi.commands.states.LETG_RETR_Transition" title="kadi.commands.states.LETG_RETR_Transition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LETG_RETR_Transition</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="LETG_RETR_Transition.html#kadi.commands.states.LETG_RETR_Transition" title="kadi.commands.states.LETG_RETR_Transition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LETG_RETR_Transition</span></code></a></p></td>
 <td><p>LETG retraction</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="SimTscTransition.html#kadi.commands.states.SimTscTransition" title="kadi.commands.states.SimTscTransition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SimTscTransition</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="SimTscTransition.html#kadi.commands.states.SimTscTransition" title="kadi.commands.states.SimTscTransition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SimTscTransition</span></code></a></p></td>
 <td><p>SIM translating science compartment translation</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="SimFocusTransition.html#kadi.commands.states.SimFocusTransition" title="kadi.commands.states.SimFocusTransition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SimFocusTransition</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="SimFocusTransition.html#kadi.commands.states.SimFocusTransition" title="kadi.commands.states.SimFocusTransition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SimFocusTransition</span></code></a></p></td>
 <td><p>SIM focus assembly translation</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="Hrc15vOn_Transition.html#kadi.commands.states.Hrc15vOn_Transition" title="kadi.commands.states.Hrc15vOn_Transition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Hrc15vOn_Transition</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="Hrc15vOn_Transition.html#kadi.commands.states.Hrc15vOn_Transition" title="kadi.commands.states.Hrc15vOn_Transition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Hrc15vOn_Transition</span></code></a></p></td>
 <td><p>HRC 15V ON from hardware 215PCAON command</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="Hrc15vOn_SCS134_Transition.html#kadi.commands.states.Hrc15vOn_SCS134_Transition" title="kadi.commands.states.Hrc15vOn_SCS134_Transition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Hrc15vOn_SCS134_Transition</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="Hrc15vOn_SCS134_Transition.html#kadi.commands.states.Hrc15vOn_SCS134_Transition" title="kadi.commands.states.Hrc15vOn_SCS134_Transition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Hrc15vOn_SCS134_Transition</span></code></a></p></td>
 <td><p>HRC 15V ON from SCS-134</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="Hrc15vOff_Transition.html#kadi.commands.states.Hrc15vOff_Transition" title="kadi.commands.states.Hrc15vOff_Transition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Hrc15vOff_Transition</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="Hrc15vOff_Transition.html#kadi.commands.states.Hrc15vOff_Transition" title="kadi.commands.states.Hrc15vOff_Transition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Hrc15vOff_Transition</span></code></a></p></td>
 <td><p>HRC 15V OFF</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="Hrc24vOn_Transition.html#kadi.commands.states.Hrc24vOn_Transition" title="kadi.commands.states.Hrc24vOn_Transition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Hrc24vOn_Transition</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="Hrc24vOn_Transition.html#kadi.commands.states.Hrc24vOn_Transition" title="kadi.commands.states.Hrc24vOn_Transition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Hrc24vOn_Transition</span></code></a></p></td>
 <td><p>HRC 24V ON</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="Hrc24vOff_Transition.html#kadi.commands.states.Hrc24vOff_Transition" title="kadi.commands.states.Hrc24vOff_Transition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Hrc24vOff_Transition</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="Hrc24vOff_Transition.html#kadi.commands.states.Hrc24vOff_Transition" title="kadi.commands.states.Hrc24vOff_Transition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Hrc24vOff_Transition</span></code></a></p></td>
 <td><p>HRC 24V OFF</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="HrcIOn_Transition.html#kadi.commands.states.HrcIOn_Transition" title="kadi.commands.states.HrcIOn_Transition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HrcIOn_Transition</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="HrcIOn_Transition.html#kadi.commands.states.HrcIOn_Transition" title="kadi.commands.states.HrcIOn_Transition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HrcIOn_Transition</span></code></a></p></td>
 <td><p>HRC-I ON</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="HrcIOff_Transition.html#kadi.commands.states.HrcIOff_Transition" title="kadi.commands.states.HrcIOff_Transition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HrcIOff_Transition</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="HrcIOff_Transition.html#kadi.commands.states.HrcIOff_Transition" title="kadi.commands.states.HrcIOff_Transition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HrcIOff_Transition</span></code></a></p></td>
 <td><p>HRC-I OFF</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="HrcSOn_Transition.html#kadi.commands.states.HrcSOn_Transition" title="kadi.commands.states.HrcSOn_Transition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HrcSOn_Transition</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="HrcSOn_Transition.html#kadi.commands.states.HrcSOn_Transition" title="kadi.commands.states.HrcSOn_Transition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HrcSOn_Transition</span></code></a></p></td>
 <td><p>HRC-S ON</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="HrcSOff_Transition.html#kadi.commands.states.HrcSOff_Transition" title="kadi.commands.states.HrcSOff_Transition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HrcSOff_Transition</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="HrcSOff_Transition.html#kadi.commands.states.HrcSOff_Transition" title="kadi.commands.states.HrcSOff_Transition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HrcSOff_Transition</span></code></a></p></td>
 <td><p>HRC-S OFF</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="ObsidTransition.html#kadi.commands.states.ObsidTransition" title="kadi.commands.states.ObsidTransition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ObsidTransition</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="ObsidTransition.html#kadi.commands.states.ObsidTransition" title="kadi.commands.states.ObsidTransition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ObsidTransition</span></code></a></p></td>
 <td><p>Obsid update</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="EclipseEntryTimerTransition.html#kadi.commands.states.EclipseEntryTimerTransition" title="kadi.commands.states.EclipseEntryTimerTransition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">EclipseEntryTimerTransition</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="EclipseEntryTimerTransition.html#kadi.commands.states.EclipseEntryTimerTransition" title="kadi.commands.states.EclipseEntryTimerTransition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">EclipseEntryTimerTransition</span></code></a></p></td>
 <td><p>Eclipse entry timer update</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="EclipsePenumbraEntryTransition.html#kadi.commands.states.EclipsePenumbraEntryTransition" title="kadi.commands.states.EclipsePenumbraEntryTransition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">EclipsePenumbraEntryTransition</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="EclipsePenumbraEntryTransition.html#kadi.commands.states.EclipsePenumbraEntryTransition" title="kadi.commands.states.EclipsePenumbraEntryTransition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">EclipsePenumbraEntryTransition</span></code></a></p></td>
 <td><p>Eclipse penumbra entry</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="EclipsePenumbraExitTransition.html#kadi.commands.states.EclipsePenumbraExitTransition" title="kadi.commands.states.EclipsePenumbraExitTransition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">EclipsePenumbraExitTransition</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="EclipsePenumbraExitTransition.html#kadi.commands.states.EclipsePenumbraExitTransition" title="kadi.commands.states.EclipsePenumbraExitTransition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">EclipsePenumbraExitTransition</span></code></a></p></td>
 <td><p>Eclipse penumbra exit</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="EclipseUmbraEntryTransition.html#kadi.commands.states.EclipseUmbraEntryTransition" title="kadi.commands.states.EclipseUmbraEntryTransition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">EclipseUmbraEntryTransition</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="EclipseUmbraEntryTransition.html#kadi.commands.states.EclipseUmbraEntryTransition" title="kadi.commands.states.EclipseUmbraEntryTransition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">EclipseUmbraEntryTransition</span></code></a></p></td>
 <td><p>Eclipse umbra entry</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="EclipseUmbraExitTransition.html#kadi.commands.states.EclipseUmbraExitTransition" title="kadi.commands.states.EclipseUmbraExitTransition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">EclipseUmbraExitTransition</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="EclipseUmbraExitTransition.html#kadi.commands.states.EclipseUmbraExitTransition" title="kadi.commands.states.EclipseUmbraExitTransition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">EclipseUmbraExitTransition</span></code></a></p></td>
 <td><p>Eclipse umbra exit</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="SPMEnableTransition.html#kadi.commands.states.SPMEnableTransition" title="kadi.commands.states.SPMEnableTransition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SPMEnableTransition</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="SPMEnableTransition.html#kadi.commands.states.SPMEnableTransition" title="kadi.commands.states.SPMEnableTransition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SPMEnableTransition</span></code></a></p></td>
 <td><p>Sun position monitor enable</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="SPMDisableTransition.html#kadi.commands.states.SPMDisableTransition" title="kadi.commands.states.SPMDisableTransition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SPMDisableTransition</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="SPMDisableTransition.html#kadi.commands.states.SPMDisableTransition" title="kadi.commands.states.SPMDisableTransition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SPMDisableTransition</span></code></a></p></td>
 <td><p>Sun position monitor disable</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="SPMEclipseEnableTransition.html#kadi.commands.states.SPMEclipseEnableTransition" title="kadi.commands.states.SPMEclipseEnableTransition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SPMEclipseEnableTransition</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="SPMEclipseEnableTransition.html#kadi.commands.states.SPMEclipseEnableTransition" title="kadi.commands.states.SPMEclipseEnableTransition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SPMEclipseEnableTransition</span></code></a></p></td>
 <td><p>Automatic enable of sun position monitor.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="EclipseEnableSPM.html#kadi.commands.states.EclipseEnableSPM" title="kadi.commands.states.EclipseEnableSPM"><code class="xref py py-obj docutils literal notranslate"><span class="pre">EclipseEnableSPM</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="EclipseEnableSPM.html#kadi.commands.states.EclipseEnableSPM" title="kadi.commands.states.EclipseEnableSPM"><code class="xref py py-obj docutils literal notranslate"><span class="pre">EclipseEnableSPM</span></code></a></p></td>
 <td><p>Flag to indicate whether SPM will be enabled 11 minutes after eclipse exit.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="BatteryConnect.html#kadi.commands.states.BatteryConnect" title="kadi.commands.states.BatteryConnect"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BatteryConnect</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="BatteryConnect.html#kadi.commands.states.BatteryConnect" title="kadi.commands.states.BatteryConnect"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BatteryConnect</span></code></a></p></td>
 <td><p>Most recent battery connect time (type=COMMAND_SW and tlmsid=EOESTECN)</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="SCS84EnableTransition.html#kadi.commands.states.SCS84EnableTransition" title="kadi.commands.states.SCS84EnableTransition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SCS84EnableTransition</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="SCS84EnableTransition.html#kadi.commands.states.SCS84EnableTransition" title="kadi.commands.states.SCS84EnableTransition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SCS84EnableTransition</span></code></a></p></td>
 <td><p>SCS-84 enable</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="SCS84DisableTransition.html#kadi.commands.states.SCS84DisableTransition" title="kadi.commands.states.SCS84DisableTransition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SCS84DisableTransition</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="SCS84DisableTransition.html#kadi.commands.states.SCS84DisableTransition" title="kadi.commands.states.SCS84DisableTransition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SCS84DisableTransition</span></code></a></p></td>
 <td><p>SCS-84 disable</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="SCS98EnableTransition.html#kadi.commands.states.SCS98EnableTransition" title="kadi.commands.states.SCS98EnableTransition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SCS98EnableTransition</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="SCS98EnableTransition.html#kadi.commands.states.SCS98EnableTransition" title="kadi.commands.states.SCS98EnableTransition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SCS98EnableTransition</span></code></a></p></td>
 <td><p>SCS-98 enable</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="SCS98DisableTransition.html#kadi.commands.states.SCS98DisableTransition" title="kadi.commands.states.SCS98DisableTransition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SCS98DisableTransition</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="SCS98DisableTransition.html#kadi.commands.states.SCS98DisableTransition" title="kadi.commands.states.SCS98DisableTransition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SCS98DisableTransition</span></code></a></p></td>
 <td><p>SCS-98 disable</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="RadmonEnableTransition.html#kadi.commands.states.RadmonEnableTransition" title="kadi.commands.states.RadmonEnableTransition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RadmonEnableTransition</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="RadmonEnableTransition.html#kadi.commands.states.RadmonEnableTransition" title="kadi.commands.states.RadmonEnableTransition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RadmonEnableTransition</span></code></a></p></td>
 <td><p>RADMON enable</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="RadmonDisableTransition.html#kadi.commands.states.RadmonDisableTransition" title="kadi.commands.states.RadmonDisableTransition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RadmonDisableTransition</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="RadmonDisableTransition.html#kadi.commands.states.RadmonDisableTransition" title="kadi.commands.states.RadmonDisableTransition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RadmonDisableTransition</span></code></a></p></td>
 <td><p>RADMON disable</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="OrbitPointTransition.html#kadi.commands.states.OrbitPointTransition" title="kadi.commands.states.OrbitPointTransition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">OrbitPointTransition</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="OrbitPointTransition.html#kadi.commands.states.OrbitPointTransition" title="kadi.commands.states.OrbitPointTransition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">OrbitPointTransition</span></code></a></p></td>
 <td><p>Orbit point state based on backstop ephemeris entries</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="EphemerisTransition.html#kadi.commands.states.EphemerisTransition" title="kadi.commands.states.EphemerisTransition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">EphemerisTransition</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="EphemerisTransition.html#kadi.commands.states.EphemerisTransition" title="kadi.commands.states.EphemerisTransition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">EphemerisTransition</span></code></a></p></td>
 <td><p>On-board ephemeris update values</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="EphemerisUpdateTransition.html#kadi.commands.states.EphemerisUpdateTransition" title="kadi.commands.states.EphemerisUpdateTransition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">EphemerisUpdateTransition</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="EphemerisUpdateTransition.html#kadi.commands.states.EphemerisUpdateTransition" title="kadi.commands.states.EphemerisUpdateTransition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">EphemerisUpdateTransition</span></code></a></p></td>
 <td><p>On-board ephemeris update date.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="SunVectorTransition.html#kadi.commands.states.SunVectorTransition" title="kadi.commands.states.SunVectorTransition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SunVectorTransition</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="SunVectorTransition.html#kadi.commands.states.SunVectorTransition" title="kadi.commands.states.SunVectorTransition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SunVectorTransition</span></code></a></p></td>
 <td><p>Add transitions between start/stop every 10 ksec.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="DitherEnableTransition.html#kadi.commands.states.DitherEnableTransition" title="kadi.commands.states.DitherEnableTransition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DitherEnableTransition</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="DitherEnableTransition.html#kadi.commands.states.DitherEnableTransition" title="kadi.commands.states.DitherEnableTransition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DitherEnableTransition</span></code></a></p></td>
 <td><p>Dither enable</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="DitherDisableTransition.html#kadi.commands.states.DitherDisableTransition" title="kadi.commands.states.DitherDisableTransition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DitherDisableTransition</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="DitherDisableTransition.html#kadi.commands.states.DitherDisableTransition" title="kadi.commands.states.DitherDisableTransition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DitherDisableTransition</span></code></a></p></td>
 <td><p>Dither disable</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="DitherParamsTransition.html#kadi.commands.states.DitherParamsTransition" title="kadi.commands.states.DitherParamsTransition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DitherParamsTransition</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="DitherParamsTransition.html#kadi.commands.states.DitherParamsTransition" title="kadi.commands.states.DitherParamsTransition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DitherParamsTransition</span></code></a></p></td>
 <td><p>Dither parameters</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="NMM_Transition.html#kadi.commands.states.NMM_Transition" title="kadi.commands.states.NMM_Transition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NMM_Transition</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="NMM_Transition.html#kadi.commands.states.NMM_Transition" title="kadi.commands.states.NMM_Transition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NMM_Transition</span></code></a></p></td>
 <td><p>Transition to Normal Maneuver Mode</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="NPM_Transition.html#kadi.commands.states.NPM_Transition" title="kadi.commands.states.NPM_Transition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NPM_Transition</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="NPM_Transition.html#kadi.commands.states.NPM_Transition" title="kadi.commands.states.NPM_Transition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NPM_Transition</span></code></a></p></td>
 <td><p>Transition to Normal Point Mode</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="AutoNPMEnableTransition.html#kadi.commands.states.AutoNPMEnableTransition" title="kadi.commands.states.AutoNPMEnableTransition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AutoNPMEnableTransition</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="AutoNPMEnableTransition.html#kadi.commands.states.AutoNPMEnableTransition" title="kadi.commands.states.AutoNPMEnableTransition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AutoNPMEnableTransition</span></code></a></p></td>
 <td><p>Enable automatic transition to Normal Point Mode</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="AutoNPMDisableTransition.html#kadi.commands.states.AutoNPMDisableTransition" title="kadi.commands.states.AutoNPMDisableTransition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AutoNPMDisableTransition</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="AutoNPMDisableTransition.html#kadi.commands.states.AutoNPMDisableTransition" title="kadi.commands.states.AutoNPMDisableTransition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AutoNPMDisableTransition</span></code></a></p></td>
 <td><p>Disable automatic transition to Normal Point Mode</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="TargQuatTransition.html#kadi.commands.states.TargQuatTransition" title="kadi.commands.states.TargQuatTransition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TargQuatTransition</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="TargQuatTransition.html#kadi.commands.states.TargQuatTransition" title="kadi.commands.states.TargQuatTransition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TargQuatTransition</span></code></a></p></td>
 <td><p>Commanded target quaternion</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="ManeuverTransition.html#kadi.commands.states.ManeuverTransition" title="kadi.commands.states.ManeuverTransition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ManeuverTransition</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="ManeuverTransition.html#kadi.commands.states.ManeuverTransition" title="kadi.commands.states.ManeuverTransition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ManeuverTransition</span></code></a></p></td>
 <td><p>Execute maneuver.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="NormalSunTransition.html#kadi.commands.states.NormalSunTransition" title="kadi.commands.states.NormalSunTransition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NormalSunTransition</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="NormalSunTransition.html#kadi.commands.states.NormalSunTransition" title="kadi.commands.states.NormalSunTransition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NormalSunTransition</span></code></a></p></td>
 <td><p>Same as <code class="docutils literal notranslate"><span class="pre">ManeuverTransition</span></code> except perform maneuver to NSM.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="SafeSunTransition.html#kadi.commands.states.SafeSunTransition" title="kadi.commands.states.SafeSunTransition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SafeSunTransition</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="SafeSunTransition.html#kadi.commands.states.SafeSunTransition" title="kadi.commands.states.SafeSunTransition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SafeSunTransition</span></code></a></p></td>
 <td><p>Similar to <code class="docutils literal notranslate"><span class="pre">NormalSunTransition</span></code> but in Safe Sun Mode with pcad_mode = STBY.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="ManeuverSunPitchTransition.html#kadi.commands.states.ManeuverSunPitchTransition" title="kadi.commands.states.ManeuverSunPitchTransition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ManeuverSunPitchTransition</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="ManeuverSunPitchTransition.html#kadi.commands.states.ManeuverSunPitchTransition" title="kadi.commands.states.ManeuverSunPitchTransition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ManeuverSunPitchTransition</span></code></a></p></td>
 <td><p>Like <code class="docutils literal notranslate"><span class="pre">ManeuverTransition</span></code> except perform a pure-pitch maneuver from attitude.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="ManeuverSunRaslTransition.html#kadi.commands.states.ManeuverSunRaslTransition" title="kadi.commands.states.ManeuverSunRaslTransition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ManeuverSunRaslTransition</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="ManeuverSunRaslTransition.html#kadi.commands.states.ManeuverSunRaslTransition" title="kadi.commands.states.ManeuverSunRaslTransition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ManeuverSunRaslTransition</span></code></a></p></td>
 <td><p>Like <code class="docutils literal notranslate"><span class="pre">ManeuverTransition</span></code> except roll about the sun line.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="ACISTransition.html#kadi.commands.states.ACISTransition" title="kadi.commands.states.ACISTransition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ACISTransition</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="ACISTransition.html#kadi.commands.states.ACISTransition" title="kadi.commands.states.ACISTransition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ACISTransition</span></code></a></p></td>
 <td><p>Implement transitions for ACIS states.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="ACISFP_SetPointTransition.html#kadi.commands.states.ACISFP_SetPointTransition" title="kadi.commands.states.ACISFP_SetPointTransition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ACISFP_SetPointTransition</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="ACISFP_SetPointTransition.html#kadi.commands.states.ACISFP_SetPointTransition" title="kadi.commands.states.ACISFP_SetPointTransition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ACISFP_SetPointTransition</span></code></a></p></td>
 <td><p>Implement transitions for ACIS focal plane temperature setpoint state.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="FidsTransition.html#kadi.commands.states.FidsTransition" title="kadi.commands.states.FidsTransition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FidsTransition</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="FidsTransition.html#kadi.commands.states.FidsTransition" title="kadi.commands.states.FidsTransition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FidsTransition</span></code></a></p></td>
 <td><p>Fid light transitions.</p></td>
 </tr>
 </tbody>
@@ -593,8 +608,14 @@
 <tr class="row-odd"><td><p><a class="reference internal" href="disable_grating_move_duration.html#kadi.commands.states.disable_grating_move_duration" title="kadi.commands.states.disable_grating_move_duration"><code class="xref py py-obj docutils literal notranslate"><span class="pre">disable_grating_move_duration</span></code></a>()</p></td>
 <td><p>Temporarily disable the grating move duration</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="decode_power.html#kadi.commands.states.decode_power" title="kadi.commands.states.decode_power"><code class="xref py py-obj docutils literal notranslate"><span class="pre">decode_power</span></code></a>(mnem)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="get_dpa_power_model.html#kadi.commands.states.get_dpa_power_model" title="kadi.commands.states.get_dpa_power_model"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_dpa_power_model</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="decode_power.html#kadi.commands.states.decode_power" title="kadi.commands.states.decode_power"><code class="xref py py-obj docutils literal notranslate"><span class="pre">decode_power</span></code></a>(mnem)</p></td>
 <td><p>Decode number of chips and feps from a ACIS power command.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="get_quat_from_state.html#kadi.commands.states.get_quat_from_state" title="kadi.commands.states.get_quat_from_state"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_quat_from_state</span></code></a>(state)</p></td>
+<td><p>Get the quaternion from the state.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="get_transition_classes.html#kadi.commands.states.get_transition_classes" title="kadi.commands.states.get_transition_classes"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_transition_classes</span></code></a>([state_keys])</p></td>
 <td><p>Get BaseTransition subclasses in module for <code class="docutils literal notranslate"><span class="pre">state_keys</span></code>.</p></td>
@@ -608,20 +629,26 @@
 <tr class="row-even"><td><p><a class="reference internal" href="get_states.html#kadi.commands.states.get_states" title="kadi.commands.states.get_states"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_states</span></code></a>([start, stop, state_keys, cmds, ...])</p></td>
 <td><p>Get table of states for intervals when <code class="docutils literal notranslate"><span class="pre">state_keys</span></code> params are unchanged.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="reduce_states.html#kadi.commands.states.reduce_states" title="kadi.commands.states.reduce_states"><code class="xref py py-obj docutils literal notranslate"><span class="pre">reduce_states</span></code></a>(states, state_keys[, merge_identical, ...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="get_associated_state_keys.html#kadi.commands.states.get_associated_state_keys" title="kadi.commands.states.get_associated_state_keys"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_associated_state_keys</span></code></a>(state_keys)</p></td>
+<td><p>Return the full set of state keys that are associated with the requested keys.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="reduce_states.html#kadi.commands.states.reduce_states" title="kadi.commands.states.reduce_states"><code class="xref py py-obj docutils literal notranslate"><span class="pre">reduce_states</span></code></a>(states, state_keys[, merge_identical, ...])</p></td>
 <td><p>Reduce input <code class="docutils literal notranslate"><span class="pre">states</span></code> so only transitions in <code class="docutils literal notranslate"><span class="pre">state_keys</span></code> are in output.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="get_continuity.html#kadi.commands.states.get_continuity" title="kadi.commands.states.get_continuity"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_continuity</span></code></a>([date, state_keys, lookbacks, ...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="get_continuity.html#kadi.commands.states.get_continuity" title="kadi.commands.states.get_continuity"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_continuity</span></code></a>([date, state_keys, lookbacks, ...])</p></td>
 <td><p>Get the state and transition dates at <code class="docutils literal notranslate"><span class="pre">date</span></code> for <code class="docutils literal notranslate"><span class="pre">state_keys</span></code>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="interpolate_states.html#kadi.commands.states.interpolate_states" title="kadi.commands.states.interpolate_states"><code class="xref py py-obj docutils literal notranslate"><span class="pre">interpolate_states</span></code></a>(states, times)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="interpolate_states.html#kadi.commands.states.interpolate_states" title="kadi.commands.states.interpolate_states"><code class="xref py py-obj docutils literal notranslate"><span class="pre">interpolate_states</span></code></a>(states, times)</p></td>
 <td><p>Interpolate <code class="docutils literal notranslate"><span class="pre">states</span></code> table at given times.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="_unique.html#kadi.commands.states._unique" title="kadi.commands.states._unique"><code class="xref py py-obj docutils literal notranslate"><span class="pre">_unique</span></code></a>(seq)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="_unique.html#kadi.commands.states._unique" title="kadi.commands.states._unique"><code class="xref py py-obj docutils literal notranslate"><span class="pre">_unique</span></code></a>(seq)</p></td>
 <td><p>Return unique elements of <code class="docutils literal notranslate"><span class="pre">seq</span></code> in order</p></td>
 </tr>
+<tr class="row-even"><td><p><a class="reference internal" href="get_state_keys_transition_classes.html#kadi.commands.states.get_state_keys_transition_classes" title="kadi.commands.states.get_state_keys_transition_classes"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_state_keys_transition_classes</span></code></a>()</p></td>
+<td><p>Get a mapping of state key tuples to transition classes that update them.</p></td>
+</tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="print_state_keys_transition_classes_docs.html#kadi.commands.states.print_state_keys_transition_classes_docs" title="kadi.commands.states.print_state_keys_transition_classes_docs"><code class="xref py py-obj docutils literal notranslate"><span class="pre">print_state_keys_transition_classes_docs</span></code></a>()</p></td>
-<td><p>Sort transition classes into a data structure keyed by state_keys</p></td>
+<td><p>Print state keys and transition classes in a format suitable for documentation.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="get_chandra_states.html#kadi.commands.states.get_chandra_states" title="kadi.commands.states.get_chandra_states"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_chandra_states</span></code></a>([main_args])</p></td>
 <td><p>Command line interface to output commanded states over a date range.</p></td>

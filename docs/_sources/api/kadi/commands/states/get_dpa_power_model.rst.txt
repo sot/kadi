@@ -1,0 +1,4 @@
+kadi.commands.states.get_dpa_power_model
+========================================
+
+.. py:function:: kadi.commands.states.get_dpa_power_model()

@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Index &#8212; kadi 7.16.0 documentation</title>
+    <title>Index &#8212; kadi 7.17.0 documentation</title>
   
   
   
@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="_static/documentation_options.js?v=17c77d90"></script>
+    <script src="_static/documentation_options.js?v=661237c9"></script>
     <script src="_static/doctools.js?v=9bcbadda"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/clipboard.min.js?v=a7894cd8"></script>
@@ -51,7 +51,7 @@
     <link rel="search" title="Search" href="search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="7.16.0" />
+  <meta name="docsearch:version" content="7.17.0" />
   </head>
   
   
@@ -104,7 +104,7 @@
     <span style="color: rgb(186, 70, 21); font-size: x-large;">kadi</span>
 </a>
 &nbsp;
-<span style="font-size: x-large;">7.16.0</span></div>
+<span style="font-size: x-large;">7.17.0</span></div>
     
   </div>
   
@@ -368,6 +368,8 @@
       <li><a href="api/kadi/commands/states/BaseTransition.html#kadi.commands.states.BaseTransition.__init_subclass__">__init_subclass__() (kadi.commands.states.BaseTransition class method)</a>
 
       <ul>
+        <li><a href="api/kadi/commands/states/CompState.html#kadi.commands.states.CompState.__init_subclass__">(kadi.commands.states.CompState class method)</a>
+</li>
         <li><a href="api/kadi/commands/validate/Validate.html#kadi.commands.validate.Validate.__init_subclass__">(kadi.commands.validate.Validate class method)</a>
 </li>
       </ul></li>
@@ -457,7 +459,7 @@
         <li><a href="api/kadi/events/models/Update.html#kadi.events.models.Update.__unicode__">(kadi.events.models.Update method)</a>
 </li>
       </ul></li>
-      <li><a href="api/kadi/commands/states/BaseTransition.html#kadi.commands.states.BaseTransition._auto_update_docstring">_auto_update_docstring() (kadi.commands.states.BaseTransition class method)</a>
+      <li><a href="api/kadi/commands/states/AutoDocMixin.html#kadi.commands.states.AutoDocMixin._auto_update_docstring">_auto_update_docstring() (kadi.commands.states.AutoDocMixin class method)</a>
 </li>
       <li><a href="api/kadi/commands/CommandTable.html#kadi.commands.CommandTable._convert_data_to_col">_convert_data_to_col() (kadi.commands.CommandTable method)</a>
 
@@ -667,9 +669,17 @@
 </li>
         <li><a href="api/kadi/commands/states/disable_grating_move_duration.html#kadi.commands.states.disable_grating_move_duration">kadi.commands.states.disable_grating_move_duration()</a>
 </li>
+        <li><a href="api/kadi/commands/states/get_associated_state_keys.html#kadi.commands.states.get_associated_state_keys">kadi.commands.states.get_associated_state_keys()</a>
+</li>
         <li><a href="api/kadi/commands/states/get_chandra_states.html#kadi.commands.states.get_chandra_states">kadi.commands.states.get_chandra_states()</a>
 </li>
         <li><a href="api/kadi/commands/states/get_continuity.html#kadi.commands.states.get_continuity">kadi.commands.states.get_continuity()</a>
+</li>
+        <li><a href="api/kadi/commands/states/get_dpa_power_model.html#kadi.commands.states.get_dpa_power_model">kadi.commands.states.get_dpa_power_model()</a>
+</li>
+        <li><a href="api/kadi/commands/states/get_quat_from_state.html#kadi.commands.states.get_quat_from_state">kadi.commands.states.get_quat_from_state()</a>
+</li>
+        <li><a href="api/kadi/commands/states/get_state_keys_transition_classes.html#kadi.commands.states.get_state_keys_transition_classes">kadi.commands.states.get_state_keys_transition_classes()</a>
 </li>
         <li><a href="api/kadi/commands/states/get_states.html#kadi.commands.states.get_states">kadi.commands.states.get_states()</a>
 </li>
@@ -848,6 +858,14 @@
 </li>
       <li><a href="api/kadi/config/Conf.html#kadi.config.Conf.cache_starcats">cache_starcats (kadi.config.Conf attribute)</a>
 </li>
+      <li><a href="api/kadi/commands/states/ACISDpaPowerState.html#kadi.commands.states.ACISDpaPowerState.calc">calc() (kadi.commands.states.ACISDpaPowerState class method)</a>
+
+      <ul>
+        <li><a href="api/kadi/commands/states/RaDecRollState.html#kadi.commands.states.RaDecRollState.calc">(kadi.commands.states.RaDecRollState class method)</a>
+</li>
+        <li><a href="api/kadi/commands/states/SunAnglesState.html#kadi.commands.states.SunAnglesState.calc">(kadi.commands.states.SunAnglesState class method)</a>
+</li>
+      </ul></li>
       <li><a href="api/kadi/commands/states/TransitionCallback.html#kadi.commands.states.TransitionCallback.callback">callback (kadi.commands.states.TransitionCallback attribute)</a>
 </li>
       <li><a href="api/kadi/commands/states/EclipseEnableSPM.html#kadi.commands.states.EclipseEnableSPM.callback">callback() (kadi.commands.states.EclipseEnableSPM class method)</a>
@@ -1880,6 +1898,8 @@
         <li><a href="api/kadi/commands/states/_unique.html#kadi.commands.states._unique">built-in function</a>
 </li>
       </ul></li>
+      <li><a href="api/kadi/commands/states/ACISDpaPowerState.html#kadi.commands.states.ACISDpaPowerState">kadi.commands.states.ACISDpaPowerState (built-in class)</a>
+</li>
       <li><a href="api/kadi/commands/states/ACISFP_SetPointTransition.html#kadi.commands.states.ACISFP_SetPointTransition">kadi.commands.states.ACISFP_SetPointTransition (built-in class)</a>
 </li>
       <li><a href="api/kadi/commands/states/ACISTransition.html#kadi.commands.states.ACISTransition">kadi.commands.states.ACISTransition (built-in class)</a>
@@ -1891,6 +1911,8 @@
         <li><a href="api/kadi/commands/states/add_transition.html#kadi.commands.states.add_transition">built-in function</a>
 </li>
       </ul></li>
+      <li><a href="api/kadi/commands/states/AutoDocMixin.html#kadi.commands.states.AutoDocMixin">kadi.commands.states.AutoDocMixin (built-in class)</a>
+</li>
       <li><a href="api/kadi/commands/states/AutoNPMDisableTransition.html#kadi.commands.states.AutoNPMDisableTransition">kadi.commands.states.AutoNPMDisableTransition (built-in class)</a>
 </li>
       <li><a href="api/kadi/commands/states/AutoNPMEnableTransition.html#kadi.commands.states.AutoNPMEnableTransition">kadi.commands.states.AutoNPMEnableTransition (built-in class)</a>
@@ -1898,6 +1920,8 @@
       <li><a href="api/kadi/commands/states/BaseTransition.html#kadi.commands.states.BaseTransition">kadi.commands.states.BaseTransition (built-in class)</a>
 </li>
       <li><a href="api/kadi/commands/states/BatteryConnect.html#kadi.commands.states.BatteryConnect">kadi.commands.states.BatteryConnect (built-in class)</a>
+</li>
+      <li><a href="api/kadi/commands/states/CompState.html#kadi.commands.states.CompState">kadi.commands.states.CompState (built-in class)</a>
 </li>
       <li>
     kadi.commands.states.decode_power()
@@ -1952,6 +1976,13 @@
       <li><a href="api/kadi/commands/states/Format6_Transition.html#kadi.commands.states.Format6_Transition">kadi.commands.states.Format6_Transition (built-in class)</a>
 </li>
       <li>
+    kadi.commands.states.get_associated_state_keys()
+
+      <ul>
+        <li><a href="api/kadi/commands/states/get_associated_state_keys.html#kadi.commands.states.get_associated_state_keys">built-in function</a>
+</li>
+      </ul></li>
+      <li>
     kadi.commands.states.get_chandra_states()
 
       <ul>
@@ -1963,6 +1994,27 @@
 
       <ul>
         <li><a href="api/kadi/commands/states/get_continuity.html#kadi.commands.states.get_continuity">built-in function</a>
+</li>
+      </ul></li>
+      <li>
+    kadi.commands.states.get_dpa_power_model()
+
+      <ul>
+        <li><a href="api/kadi/commands/states/get_dpa_power_model.html#kadi.commands.states.get_dpa_power_model">built-in function</a>
+</li>
+      </ul></li>
+      <li>
+    kadi.commands.states.get_quat_from_state()
+
+      <ul>
+        <li><a href="api/kadi/commands/states/get_quat_from_state.html#kadi.commands.states.get_quat_from_state">built-in function</a>
+</li>
+      </ul></li>
+      <li>
+    kadi.commands.states.get_state_keys_transition_classes()
+
+      <ul>
+        <li><a href="api/kadi/commands/states/get_state_keys_transition_classes.html#kadi.commands.states.get_state_keys_transition_classes">built-in function</a>
 </li>
       </ul></li>
       <li>
@@ -2048,6 +2100,8 @@
         <li><a href="api/kadi/commands/states/print_state_keys_transition_classes_docs.html#kadi.commands.states.print_state_keys_transition_classes_docs">built-in function</a>
 </li>
       </ul></li>
+      <li><a href="api/kadi/commands/states/RaDecRollState.html#kadi.commands.states.RaDecRollState">kadi.commands.states.RaDecRollState (built-in class)</a>
+</li>
       <li><a href="api/kadi/commands/states/RadmonDisableTransition.html#kadi.commands.states.RadmonDisableTransition">kadi.commands.states.RadmonDisableTransition (built-in class)</a>
 </li>
       <li><a href="api/kadi/commands/states/RadmonEnableTransition.html#kadi.commands.states.RadmonEnableTransition">kadi.commands.states.RadmonEnableTransition (built-in class)</a>
@@ -2088,6 +2142,8 @@
       <li><a href="api/kadi/commands/states/SubFormatPDG_Transition.html#kadi.commands.states.SubFormatPDG_Transition">kadi.commands.states.SubFormatPDG_Transition (built-in class)</a>
 </li>
       <li><a href="api/kadi/commands/states/SubFormatSSR_Transition.html#kadi.commands.states.SubFormatSSR_Transition">kadi.commands.states.SubFormatSSR_Transition (built-in class)</a>
+</li>
+      <li><a href="api/kadi/commands/states/SunAnglesState.html#kadi.commands.states.SunAnglesState">kadi.commands.states.SunAnglesState (built-in class)</a>
 </li>
       <li><a href="api/kadi/commands/states/SunVectorTransition.html#kadi.commands.states.SunVectorTransition">kadi.commands.states.SunVectorTransition (built-in class)</a>
 </li>
@@ -2170,6 +2226,8 @@
 </li>
       <li><a href="api/kadi/commands/validate/Validate.html#kadi.commands.validate.Validate">kadi.commands.validate.Validate (built-in class)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/kadi/commands/validate/ValidateDither.html#kadi.commands.validate.ValidateDither">kadi.commands.validate.ValidateDither (built-in class)</a>
 </li>
       <li><a href="api/kadi/commands/validate/ValidateHETG.html#kadi.commands.validate.ValidateHETG">kadi.commands.validate.ValidateHETG (built-in class)</a>
@@ -2184,8 +2242,6 @@
 </li>
       <li><a href="api/kadi/commands/validate/ValidateRoll.html#kadi.commands.validate.ValidateRoll">kadi.commands.validate.ValidateRoll (built-in class)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/kadi/commands/validate/ValidateSimpos.html#kadi.commands.validate.ValidateSimpos">kadi.commands.validate.ValidateSimpos (built-in class)</a>
 </li>
       <li>
@@ -2983,6 +3039,10 @@
 <h2 id="M">M</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/kadi/config/Conf.html#kadi.config.Conf.maneuver_nman_step_time">maneuver_nman_step_time (kadi.config.Conf attribute)</a>
+</li>
+      <li><a href="api/kadi/config/Conf.html#kadi.config.Conf.maneuver_rasl_step_time">maneuver_rasl_step_time (kadi.config.Conf attribute)</a>
+</li>
       <li><a href="api/kadi/events/models/Dwell.html#kadi.events.models.Dwell.manvr">manvr (kadi.events.models.Dwell attribute)</a>
 
       <ul>
@@ -3456,9 +3516,11 @@
 </li>
       <li><a href="api/kadi/events/models/Manvr.html#kadi.events.models.Manvr.start_roll">start_roll (kadi.events.models.Manvr attribute)</a>
 </li>
-      <li><a href="api/kadi/commands/states/ACISFP_SetPointTransition.html#kadi.commands.states.ACISFP_SetPointTransition.state_keys">state_keys (kadi.commands.states.ACISFP_SetPointTransition attribute)</a>
+      <li><a href="api/kadi/commands/states/ACISDpaPowerState.html#kadi.commands.states.ACISDpaPowerState.state_keys">state_keys (kadi.commands.states.ACISDpaPowerState attribute)</a>
 
       <ul>
+        <li><a href="api/kadi/commands/states/ACISFP_SetPointTransition.html#kadi.commands.states.ACISFP_SetPointTransition.state_keys">(kadi.commands.states.ACISFP_SetPointTransition attribute)</a>
+</li>
         <li><a href="api/kadi/commands/states/ACISTransition.html#kadi.commands.states.ACISTransition.state_keys">(kadi.commands.states.ACISTransition attribute)</a>
 </li>
         <li><a href="api/kadi/commands/states/AutoNPMDisableTransition.html#kadi.commands.states.AutoNPMDisableTransition.state_keys">(kadi.commands.states.AutoNPMDisableTransition attribute)</a>
@@ -3545,6 +3607,8 @@
 </li>
         <li><a href="api/kadi/commands/states/OrbitPointTransition.html#kadi.commands.states.OrbitPointTransition.state_keys">(kadi.commands.states.OrbitPointTransition attribute)</a>
 </li>
+        <li><a href="api/kadi/commands/states/RaDecRollState.html#kadi.commands.states.RaDecRollState.state_keys">(kadi.commands.states.RaDecRollState attribute)</a>
+</li>
         <li><a href="api/kadi/commands/states/RadmonDisableTransition.html#kadi.commands.states.RadmonDisableTransition.state_keys">(kadi.commands.states.RadmonDisableTransition attribute)</a>
 </li>
         <li><a href="api/kadi/commands/states/RadmonEnableTransition.html#kadi.commands.states.RadmonEnableTransition.state_keys">(kadi.commands.states.RadmonEnableTransition attribute)</a>
@@ -3577,6 +3641,8 @@
 </li>
         <li><a href="api/kadi/commands/states/SubFormatSSR_Transition.html#kadi.commands.states.SubFormatSSR_Transition.state_keys">(kadi.commands.states.SubFormatSSR_Transition attribute)</a>
 </li>
+        <li><a href="api/kadi/commands/states/SunAnglesState.html#kadi.commands.states.SunAnglesState.state_keys">(kadi.commands.states.SunAnglesState attribute)</a>
+</li>
         <li><a href="api/kadi/commands/states/SunVectorTransition.html#kadi.commands.states.SunVectorTransition.state_keys">(kadi.commands.states.SunVectorTransition attribute)</a>
 </li>
         <li><a href="api/kadi/commands/states/TargQuatTransition.html#kadi.commands.states.TargQuatTransition.state_keys">(kadi.commands.states.TargQuatTransition attribute)</a>
@@ -3590,6 +3656,14 @@
         <li><a href="api/kadi/commands/validate/ValidatePitch.html#kadi.commands.validate.ValidatePitch.state_keys_extra">(kadi.commands.validate.ValidatePitch attribute)</a>
 </li>
         <li><a href="api/kadi/commands/validate/ValidateRoll.html#kadi.commands.validate.ValidateRoll.state_keys_extra">(kadi.commands.validate.ValidateRoll attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="api/kadi/commands/states/ACISDpaPowerState.html#kadi.commands.states.ACISDpaPowerState.state_keys_input">state_keys_input (kadi.commands.states.ACISDpaPowerState attribute)</a>
+
+      <ul>
+        <li><a href="api/kadi/commands/states/RaDecRollState.html#kadi.commands.states.RaDecRollState.state_keys_input">(kadi.commands.states.RaDecRollState attribute)</a>
+</li>
+        <li><a href="api/kadi/commands/states/SunAnglesState.html#kadi.commands.states.SunAnglesState.state_keys_input">(kadi.commands.states.SunAnglesState attribute)</a>
 </li>
       </ul></li>
       <li><a href="api/kadi/commands/validate/Validate.html#kadi.commands.validate.Validate.state_name">state_name (kadi.commands.validate.Validate attribute)</a>

@@ -644,7 +644,7 @@ classes which affect the keys.
 ``aoephem1``, ``aoephem2``, ``aoratio``, ``aoargper``, ``aoeccent``, ``ao1minus``, ``ao1plus``, ``aomotion``, ``aoiterat``, ``aoorbang``, ``aoperige``, ``aoascend``, ``aosini``, ``aoslr``, ``aosqrtmu``
   - :class:`~kadi.commands.states.EphemerisTransition`
 
-``clocking``, ``power_cmd``, ``vid_board``, ``fep_count``, ``si_mode``, ``ccd_count``
+``clocking``, ``power_cmd``, ``vid_board``, ``fep_count``, ``si_mode``, ``ccd_count``, ``obsid``, ``feps``, ``ccds``
   - :class:`~kadi.commands.states.ACISTransition`
 
 ``dither``
@@ -653,6 +653,9 @@ classes which affect the keys.
 
 ``dither_phase_pitch``, ``dither_phase_yaw``, ``dither_ampl_pitch``, ``dither_ampl_yaw``, ``dither_period_pitch``, ``dither_period_yaw``
   - :class:`~kadi.commands.states.DitherParamsTransition`
+
+``dpa_power``
+  - :class:`~kadi.commands.states.ACISDpaPowerState`
 
 ``eclipse``
   - :class:`~kadi.commands.states.EclipsePenumbraEntryTransition`
@@ -665,6 +668,9 @@ classes which affect the keys.
 
 ``ephem_update``
   - :class:`~kadi.commands.states.EphemerisUpdateTransition`
+
+``fids``
+  - :class:`~kadi.commands.states.FidsTransition`
 
 ``format``
   - :class:`~kadi.commands.states.Format1_Transition`
@@ -703,15 +709,24 @@ classes which affect the keys.
 ``orbit_point``
   - :class:`~kadi.commands.states.OrbitPointTransition`
 
-``q1``, ``q2``, ``q3``, ``q4``, ``targ_q1``, ``targ_q2``, ``targ_q3``, ``targ_q4``, ``ra``, ``dec``, ``roll``, ``auto_npnt``, ``pcad_mode``, ``pitch``, ``off_nom_roll``
+``pitch``, ``rasl``, ``off_nom_roll``, ``sun_ra``, ``sun_dec``
+  - :class:`~kadi.commands.states.SunAnglesState`
+
+``q1``, ``q2``, ``q3``, ``q4``, ``targ_q1``, ``targ_q2``, ``targ_q3``, ``targ_q4``, ``auto_npnt``, ``pcad_mode``, ``sun_vector_update``
   - :class:`~kadi.commands.states.AutoNPMDisableTransition`
   - :class:`~kadi.commands.states.AutoNPMEnableTransition`
+  - :class:`~kadi.commands.states.ManeuverSunPitchTransition`
+  - :class:`~kadi.commands.states.ManeuverSunRaslTransition`
   - :class:`~kadi.commands.states.ManeuverTransition`
   - :class:`~kadi.commands.states.NMM_Transition`
   - :class:`~kadi.commands.states.NPM_Transition`
   - :class:`~kadi.commands.states.NormalSunTransition`
+  - :class:`~kadi.commands.states.SafeSunTransition`
   - :class:`~kadi.commands.states.SunVectorTransition`
   - :class:`~kadi.commands.states.TargQuatTransition`
+
+``ra``, ``dec``, ``roll``
+  - :class:`~kadi.commands.states.RaDecRollState`
 
 ``radmon``
   - :class:`~kadi.commands.states.RadmonDisableTransition`
@@ -737,7 +752,9 @@ classes which affect the keys.
   - :class:`~kadi.commands.states.SubFormatPDG_Transition`
   - :class:`~kadi.commands.states.SubFormatSSR_Transition`
 
-``sun_pos_mon``
+``sun_pos_mon``, ``battery_connect``, ``eclipse_enable_spm``
+  - :class:`~kadi.commands.states.BatteryConnect`
+  - :class:`~kadi.commands.states.EclipseEnableSPM`
   - :class:`~kadi.commands.states.SPMDisableTransition`
   - :class:`~kadi.commands.states.SPMEclipseEnableTransition`
   - :class:`~kadi.commands.states.SPMEnableTransition`

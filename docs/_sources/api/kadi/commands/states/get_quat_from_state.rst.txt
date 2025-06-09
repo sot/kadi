@@ -1,0 +1,33 @@
+kadi.commands.states.get_quat_from_state
+========================================
+
+.. py:function:: kadi.commands.states.get_quat_from_state(state)
+
+   
+   Get the quaternion from the state.
+
+
+   :Parameters:
+
+       **state**
+           state dictionary or Table or Table Row with q1..q4 keys
+
+
+
+   :Returns:
+
+       Quat
+           ..
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!

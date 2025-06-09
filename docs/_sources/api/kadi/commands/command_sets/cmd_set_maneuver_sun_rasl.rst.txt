@@ -1,10 +1,10 @@
 kadi.commands.command_sets.cmd_set_maneuver_sun_rasl
 ====================================================
 
-.. py:function:: kadi.commands.command_sets.cmd_set_maneuver_sun_rasl(rasl, date=None)
+.. py:function:: kadi.commands.command_sets.cmd_set_maneuver_sun_rasl(rasl, rate=0.025, *, date=None)
 
    
-   Maneuver by ``angle`` degrees in roll about Sun line (relative to current).
+   Maneuver by ``rasl`` degrees in roll about Sun line  at ``rate`` (deg/s).
 
 
 

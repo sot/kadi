@@ -3,8 +3,11 @@ kadi.commands.states.BaseTransition
 
 .. py:class:: kadi.commands.states.BaseTransition
 
+   Bases: :py:obj:`AutoDocMixin`
+
+
    
-   Base transition class from which all actual transition classes are derived.
+   Base transition class from which all actual transition classes are subclassed.
 
 
 
@@ -36,7 +39,7 @@ kadi.commands.states.BaseTransition
       
       Get commands that match the required attributes for state changing commands.
 
-      This depends on two class attributes that are defined in derived classes:
+      This depends on two class attributes that are defined in subclasses:
 
       ``command_attributes`` (required)
         dict of {cmd_attr: match_value, ..}, where ``cmd_attr`` is either ``type``
@@ -58,32 +61,6 @@ kadi.commands.states.BaseTransition
 
           CommandTable
               Subset of ``cmds`` relevant for this Transition class
-
-
-
-
-
-
-
-
-
-
-
-      ..
-          !! processed by numpydoc !!
-
-
-   .. py:method:: _auto_update_docstring()
-      :classmethod:
-
-
-      
-      Put some useful information at the top of docstring.
-
-
-
-
-
 
 
 

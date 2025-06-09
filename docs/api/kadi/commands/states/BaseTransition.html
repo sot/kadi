@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>kadi.commands.states.BaseTransition &#8212; kadi 7.16.0 documentation</title>
+    <title>kadi.commands.states.BaseTransition &#8212; kadi 7.17.0 documentation</title>
   
   
   
@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../../../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../../../../_static/documentation_options.js?v=17c77d90"></script>
+    <script src="../../../../_static/documentation_options.js?v=661237c9"></script>
     <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -51,10 +51,10 @@
     <link rel="index" title="Index" href="../../../../genindex.html" />
     <link rel="search" title="Search" href="../../../../search.html" />
     <link rel="next" title="kadi.commands.states.FixedTransition" href="FixedTransition.html" />
-    <link rel="prev" title="kadi.commands.states.TransitionCallback" href="TransitionCallback.html" />
+    <link rel="prev" title="kadi.commands.states.SunAnglesState" href="SunAnglesState.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="7.16.0" />
+  <meta name="docsearch:version" content="7.17.0" />
   </head>
   
   
@@ -107,7 +107,7 @@
     <span style="color: rgb(186, 70, 21); font-size: x-large;">kadi</span>
 </a>
 &nbsp;
-<span style="font-size: x-large;">7.16.0</span></div>
+<span style="font-size: x-large;">7.17.0</span></div>
     
   </div>
   
@@ -355,7 +355,8 @@
 <dl class="py class">
 <dt class="sig sig-object py" id="kadi.commands.states.BaseTransition">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">kadi.commands.states.</span></span><span class="sig-name descname"><span class="pre">BaseTransition</span></span><a class="headerlink" href="#kadi.commands.states.BaseTransition" title="Link to this definition">#</a></dt>
-<dd><p>Base transition class from which all actual transition classes are derived.</p>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">AutoDocMixin</span></code></p>
+<p>Base transition class from which all actual transition classes are subclassed.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="kadi.commands.states.BaseTransition.__init_subclass__">
 <em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">__init_subclass__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kadi.commands.states.BaseTransition.__init_subclass__" title="Link to this definition">#</a></dt>
@@ -365,7 +366,7 @@
 <dt class="sig sig-object py" id="kadi.commands.states.BaseTransition.get_state_changing_commands">
 <em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_state_changing_commands</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cmds</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kadi.commands.states.BaseTransition.get_state_changing_commands" title="Link to this definition">#</a></dt>
 <dd><p>Get commands that match the required attributes for state changing commands.</p>
-<p>This depends on two class attributes that are defined in derived classes:</p>
+<p>This depends on two class attributes that are defined in subclasses:</p>
 <dl class="simple">
 <dt><code class="docutils literal notranslate"><span class="pre">command_attributes</span></code> (required)</dt><dd><p>dict of {cmd_attr: match_value, ..}, where <code class="docutils literal notranslate"><span class="pre">cmd_attr</span></code> is either <code class="docutils literal notranslate"><span class="pre">type</span></code>
 or <code class="docutils literal notranslate"><span class="pre">tlmsid</span></code>, and <code class="docutils literal notranslate"><span class="pre">match_value</span></code> is the required value.</p>
@@ -391,12 +392,6 @@ or a list of required values (where at least one must match).</p>
 </dl>
 </dd></dl>
 
-<dl class="py method">
-<dt class="sig sig-object py" id="kadi.commands.states.BaseTransition._auto_update_docstring">
-<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">_auto_update_docstring</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kadi.commands.states.BaseTransition._auto_update_docstring" title="Link to this definition">#</a></dt>
-<dd><p>Put some useful information at the top of docstring.</p>
-</dd></dl>
-
 </dd></dl>
 
 </section>
@@ -412,12 +407,12 @@ or a list of required values (where at least one must match).</p>
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="TransitionCallback.html"
+       href="SunAnglesState.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">kadi.commands.states.TransitionCallback</p>
+        <p class="prev-next-title">kadi.commands.states.SunAnglesState</p>
       </div>
     </a>
     <a class="right-next"
@@ -451,7 +446,6 @@ or a list of required values (where at least one must match).</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#kadi.commands.states.BaseTransition"><code class="docutils literal notranslate"><span class="pre">kadi.commands.states.BaseTransition</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#kadi.commands.states.BaseTransition.__init_subclass__"><code class="docutils literal notranslate"><span class="pre">kadi.commands.states.BaseTransition.__init_subclass__()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#kadi.commands.states.BaseTransition.get_state_changing_commands"><code class="docutils literal notranslate"><span class="pre">kadi.commands.states.BaseTransition.get_state_changing_commands()</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#kadi.commands.states.BaseTransition._auto_update_docstring"><code class="docutils literal notranslate"><span class="pre">kadi.commands.states.BaseTransition._auto_update_docstring()</span></code></a></li>
 </ul>
 </li>
 </ul>

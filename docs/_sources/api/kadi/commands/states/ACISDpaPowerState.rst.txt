@@ -1,0 +1,45 @@
+kadi.commands.states.ACISDpaPowerState
+======================================
+
+.. py:class:: kadi.commands.states.ACISDpaPowerState
+
+   Bases: :py:obj:`CompState`
+
+
+   
+   Base class for computed states.
+
+   These are states that are computed strictly from other states and do not
+   inject any Transitions.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:attribute:: state_keys_input
+      :value: ['ccd_count', 'clocking', 'feps', 'ccds', 'fep_count', 'si_mode']
+
+
+
+   .. py:attribute:: state_keys
+      :value: ['dpa_power']
+
+
+
+   .. py:method:: calc(states)
+      :classmethod:
+
+

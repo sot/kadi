@@ -1,0 +1,27 @@
+kadi.commands.states.get_state_keys_transition_classes
+======================================================
+
+.. py:function:: kadi.commands.states.get_state_keys_transition_classes()
+
+   
+   Get a mapping of state key tuples to transition classes that update them.
+
+   This returns a dictionary where the keys are tuples of state keys and the values are
+   lists of transition classes or computed states that update those state keys.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!

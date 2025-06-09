@@ -37,6 +37,11 @@ Classes
    /api/kadi/commands/states/TransKeysSet
    /api/kadi/commands/states/StateDict
    /api/kadi/commands/states/TransitionCallback
+   /api/kadi/commands/states/AutoDocMixin
+   /api/kadi/commands/states/CompState
+   /api/kadi/commands/states/ACISDpaPowerState
+   /api/kadi/commands/states/RaDecRollState
+   /api/kadi/commands/states/SunAnglesState
    /api/kadi/commands/states/BaseTransition
    /api/kadi/commands/states/FixedTransition
    /api/kadi/commands/states/ParamTransition
@@ -110,6 +115,11 @@ Classes
    kadi.commands.states.TransKeysSet
    kadi.commands.states.StateDict
    kadi.commands.states.TransitionCallback
+   kadi.commands.states.AutoDocMixin
+   kadi.commands.states.CompState
+   kadi.commands.states.ACISDpaPowerState
+   kadi.commands.states.RaDecRollState
+   kadi.commands.states.SunAnglesState
    kadi.commands.states.BaseTransition
    kadi.commands.states.FixedTransition
    kadi.commands.states.ParamTransition
@@ -185,30 +195,38 @@ Functions
    :hidden:
 
    /api/kadi/commands/states/disable_grating_move_duration
+   /api/kadi/commands/states/get_dpa_power_model
    /api/kadi/commands/states/decode_power
+   /api/kadi/commands/states/get_quat_from_state
    /api/kadi/commands/states/get_transition_classes
    /api/kadi/commands/states/get_transitions_list
    /api/kadi/commands/states/add_transition
    /api/kadi/commands/states/get_states
+   /api/kadi/commands/states/get_associated_state_keys
    /api/kadi/commands/states/reduce_states
    /api/kadi/commands/states/get_continuity
    /api/kadi/commands/states/interpolate_states
    /api/kadi/commands/states/_unique
+   /api/kadi/commands/states/get_state_keys_transition_classes
    /api/kadi/commands/states/print_state_keys_transition_classes_docs
    /api/kadi/commands/states/get_chandra_states
 
 .. autoapisummary::
 
    kadi.commands.states.disable_grating_move_duration
+   kadi.commands.states.get_dpa_power_model
    kadi.commands.states.decode_power
+   kadi.commands.states.get_quat_from_state
    kadi.commands.states.get_transition_classes
    kadi.commands.states.get_transitions_list
    kadi.commands.states.add_transition
    kadi.commands.states.get_states
+   kadi.commands.states.get_associated_state_keys
    kadi.commands.states.reduce_states
    kadi.commands.states.get_continuity
    kadi.commands.states.interpolate_states
    kadi.commands.states._unique
+   kadi.commands.states.get_state_keys_transition_classes
    kadi.commands.states.print_state_keys_transition_classes_docs
    kadi.commands.states.get_chandra_states
 

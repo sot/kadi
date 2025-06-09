@@ -62,3 +62,9 @@ kadi.config.Conf
 
    .. py:attribute:: disable_hrc_scs107_commanding
 
+
+   .. py:attribute:: maneuver_nman_step_time
+
+
+   .. py:attribute:: maneuver_rasl_step_time
+

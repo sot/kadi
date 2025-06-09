@@ -1,0 +1,29 @@
+kadi.commands.states.get_associated_state_keys
+==============================================
+
+.. py:function:: kadi.commands.states.get_associated_state_keys(state_keys)
+
+   
+   Return the full set of state keys that are associated with the requested keys.
+
+   Go through each transition class which impacts desired state keys and accumulate
+   all the state keys that the classes touch.  For instance if user requests
+   state_keys=['q1'] then we actually need to process all the PCAD_states state keys
+   and then at the end reduce down to the requested keys.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!

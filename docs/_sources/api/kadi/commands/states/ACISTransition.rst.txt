@@ -31,7 +31,7 @@ kadi.commands.states.ACISTransition
 
 
    .. py:attribute:: state_keys
-      :value: ['clocking', 'power_cmd', 'vid_board', 'fep_count', 'si_mode', 'ccd_count', 'obsid']
+      :value: ['clocking', 'power_cmd', 'vid_board', 'fep_count', 'si_mode', 'ccd_count', 'obsid', 'feps', 'ccds']
 
 
 

@@ -1,0 +1,43 @@
+kadi.commands.states.RaDecRollState
+===================================
+
+.. py:class:: kadi.commands.states.RaDecRollState
+
+   Bases: :py:obj:`CompState`
+
+
+   
+   Compute RA, Dec, and Roll state from quaternion components.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:attribute:: state_keys_input
+      :value: ['q1', 'q2', 'q3', 'q4']
+
+
+
+   .. py:attribute:: state_keys
+      :value: ['ra', 'dec', 'roll']
+
+
+
+   .. py:method:: calc(states)
+      :classmethod:
+
+
