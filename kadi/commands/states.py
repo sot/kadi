@@ -1533,7 +1533,7 @@ class ManeuverTransition(BaseTransition):
         # First we need to ensure that the attitudes() function returns an even number
         # of attitudes. Function uses `np.linspace(0.0, Tm, int(round(Tm / step)) + 1)`.
         duration = chandra_maneuver.duration(curr_att, targ_att)
-        step = 150.0
+        step = commands.conf.maneuver_nman_step_time / 2
         n_steps = int(round(duration / step)) + 1
         if n_steps % 2 == 1:
             # Setting step as such effectively adds 1 to n_steps within get_attitudes()
@@ -1746,7 +1746,8 @@ class ManeuverSunRaslTransition(ManeuverTransition):
         start = CxoTime(date)
         dur = abs(rasl / rate) * u.s
         stop = start + dur
-        date_atts: list[str] = CxoTime.linspace(start, stop, step_max=120 * u.s).date
+        step_max = commands.conf.maneuver_rasl_step_time * u.s
+        date_atts: list[str] = CxoTime.linspace(start, stop, step_max=step_max).date
         yaws = np.linspace(0, rasl, len(date_atts))
 
         # Sun position at the middle of the maneuver
@@ -2334,9 +2335,8 @@ def get_states(
             start, stop, scenario=scenario, event_filter=event_filter
         )
         start = DateTime(start).date
-        stop = DateTime(
-            stop or cmds[-1]["date"]
-        ).date  # User-supplied stop or last command
+        # User-supplied stop or last command
+        stop = DateTime(stop or cmds[-1]["date"]).date
     else:
         start = cmds[0]["date"] if start is None else DateTime(start).date
         stop = cmds[-1]["date"] if stop is None else DateTime(stop).date
