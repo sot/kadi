@@ -80,11 +80,21 @@ class Conf(ConfigNamespace):
     )
 
     maneuver_nman_step_time = ConfigItem(
-        300.0, "Time step (sec) for NMAN maneuver generation in kadi states."
+        300.0,
+        (
+            "Time step (sec) for NMAN maneuver generation in kadi states. "
+            "Applied as the step_max kwarg of CxoTime.linspace so effective "
+            "step size may be smaller."
+        ),
     )
 
     maneuver_rasl_step_time = ConfigItem(
-        120.0, "Time step (sec) for RASL maneuver generation in kadi states."
+        120.0,
+        (
+            "Time step (sec) for RASL maneuver generation in kadi states. "
+            "Applied as the step_max kwarg of CxoTime.linspace so effective "
+            "step size may be smaller."
+        ),
     )
 
 
