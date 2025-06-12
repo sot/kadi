@@ -54,7 +54,7 @@ setup(
     ],
     package_data={
         "kadi.commands": ["templates/*.html", "data/*.joblib"],
-        "kadi.commands.tests": ["data/*.gz", "data/*.yaml"],
+        "kadi.commands.tests": ["data/*.yaml", "data/regression/*.ecsv"],
     },
     tests_require=["pytest"],
     data_files=data_files,
