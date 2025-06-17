@@ -104,8 +104,8 @@ def get_regression_path(
     """
     start_date = start.date[:8].replace(":", "")
     stop_date = stop.date[:8].replace(":", "")
-    print_keys = (state_keys[0], "set") if len(state_keys) > 1 else (state_keys[0])
-    dates_first_key_str = "-".join(print_keys + (start_date, stop_date))
+    prefixes = (state_keys[0], "set") if len(state_keys) > 1 else (state_keys[0],)
+    dates_first_key_str = "-".join(prefixes + (start_date, stop_date))
     path = get_regression_pathdir() / f"{dates_first_key_str}.ecsv"
     return path
 
