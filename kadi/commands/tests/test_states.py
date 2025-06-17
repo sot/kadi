@@ -204,7 +204,7 @@ def write_regression_data(
     """
     all_state_keys = states.get_state_keys_transition_classes()
     for state_keys in all_state_keys:
-        state_key_str = ",".join(state_keys)
+        state_key_str = ", ".join(state_keys)
         if include and not any(key in state_keys for key in include):
             print(f"Skipping {state_key_str} because it is not in include list")
             continue
