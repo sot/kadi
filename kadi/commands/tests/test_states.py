@@ -104,8 +104,9 @@ def get_regression_path(
     """
     start_date = start.date[:8].replace(":", "")
     stop_date = stop.date[:8].replace(":", "")
-    dates_keys_str = "-".join(state_keys + (start_date, stop_date))
-    path = get_regression_pathdir() / f"{dates_keys_str}.ecsv"
+    prefixes = (state_keys[0], "set") if len(state_keys) > 1 else (state_keys[0],)
+    dates_first_key_str = "-".join(prefixes + (start_date, stop_date))
+    path = get_regression_pathdir() / f"{dates_first_key_str}.ecsv"
     return path
 
 
@@ -203,12 +204,12 @@ def write_regression_data(
     """
     all_state_keys = states.get_state_keys_transition_classes()
     for state_keys in all_state_keys:
-        fn = "-".join(state_keys)
+        state_key_str = ", ".join(state_keys)
         if include and not any(key in state_keys for key in include):
-            print(f"Skipping {fn} because it is not in include list")
+            print(f"Skipping {state_key_str} because it is not in include list")
             continue
         if exclude and any(key in state_keys for key in exclude):
-            print(f"Skipping {fn} because it is in exclude list")
+            print(f"Skipping {state_key_str} because it is in exclude list")
             continue
 
         # NOTE: the commands caching machinery notices CXOTIME_NOW and uses that to decide
