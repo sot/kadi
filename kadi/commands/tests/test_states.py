@@ -11,10 +11,13 @@ from astropy.table import Table
 from chandra_time import DateTime
 from cheta import fetch
 from cxotime import CxoTime, CxoTimeLike
+from testr.test_helper import has_internet
 
 from kadi import commands  # noqa: E402
 from kadi.commands import states  # noqa: E402
 from kadi.commands.tests.test_commands import get_cmds_from_cmd_evts_text
+
+HAS_INTERNET = has_internet()
 
 try:
     fetch.get_time_range("dp_pitch")
@@ -225,6 +228,7 @@ def get_regression_filenames():
         yield str(path.relative_to(Path.cwd()))
 
 
+@pytest.mark.skipif(not HAS_INTERNET, reason="Command sheet not available")
 @pytest.mark.parametrize("filename", list(get_regression_filenames()))
 def test_regression(filename, monkeypatch):
     """Test current code vs. regression data in tests/data/regression"""
