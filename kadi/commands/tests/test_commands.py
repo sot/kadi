@@ -1154,7 +1154,6 @@ cmd_events_all_text = """\
     Load not run,OCT2521A
     Command,"ACISPKT | TLMSID= AA00000000, CMDS= 3, WORDS= 3, PACKET(40)= D80000300030603001300"
     Command not run,"COMMAND_SW | TLMSID=4OHETGIN, HEX= 8050300, MSID= 4OHETGIN"
-    RTS,"RTSLOAD,1_4_CTI,NUM_HOURS=39:00:00,SCS_NUM=135"
     Obsid,65527
     Maneuver,0.70546907 0.32988307 0.53440901 0.32847766
     Safe mode,
@@ -1178,44 +1177,6 @@ cmd_events_all_exps = [
     ],
     [
         "2020:001:00:00:00.000 | NOT_RUN          | 4OHETGIN   | CMD_EVT  | event=Command_not_run, event_date=2020:001:00:00:00, hex=8050300, msid=4OHETGIN, __type__=COMMAND_SW, scs=0"
-    ],
-    [
-        "2020:001:00:00:00.000 | COMMAND_SW       | OORMPEN    | CMD_EVT  | event=RTS,"
-        " event_date=2020:001:00:00:00, msid=OORMPEN, scs=135",
-        "2020:001:00:00:01.000 | ACISPKT          | WSVIDALLDN | CMD_EVT  | event=RTS,"
-        " event_date=2020:001:00:00:00, scs=135",
-        "2020:001:00:00:02.000 | COMMAND_HW       | 2S2STHV    | CMD_EVT  | event=RTS,"
-        " event_date=2020:001:00:00:00, 2s2sthv2=0 , msid=2S2STHV, scs=135",
-        "2020:001:00:00:03.000 | COMMAND_HW       | 2S2HVON    | CMD_EVT  | event=RTS,"
-        " event_date=2020:001:00:00:00, msid=2S2HVON, scs=135",
-        "2020:001:00:00:13.000 | COMMAND_HW       | 2S2STHV    | CMD_EVT  | event=RTS,"
-        " event_date=2020:001:00:00:00, 2s2sthv2=4 , msid=2S2STHV, scs=135",
-        "2020:001:00:00:23.000 | COMMAND_HW       | 2S2STHV    | CMD_EVT  | event=RTS,"
-        " event_date=2020:001:00:00:00, 2s2sthv2=8 , msid=2S2STHV, scs=135",
-        "2020:001:00:00:24.000 | ACISPKT          | WSPOW08E1E | CMD_EVT  | event=RTS,"
-        " event_date=2020:001:00:00:00, scs=135",
-        "2020:001:00:01:27.000 | ACISPKT          | WT00C62014 | CMD_EVT  | event=RTS,"
-        " event_date=2020:001:00:00:00, scs=135",
-        "2020:001:00:01:31.000 | ACISPKT          | XTZ0000005 | CMD_EVT  | event=RTS,"
-        " event_date=2020:001:00:00:00, scs=135",
-        "2020:001:00:01:35.000 | ACISPKT          | RS_0000001 | CMD_EVT  | event=RTS,"
-        " event_date=2020:001:00:00:00, scs=135",
-        "2020:001:00:01:39.000 | ACISPKT          | RH_0000001 | CMD_EVT  | event=RTS,"
-        " event_date=2020:001:00:00:00, scs=135",
-        "2020:002:15:01:39.000 | COMMAND_HW       | 2S2HVOF    | CMD_EVT  | event=RTS,"
-        " event_date=2020:001:00:00:00, msid=2S2HVOF, scs=135",
-        "2020:002:15:01:39.000 | COMMAND_SW       | OORMPDS    | CMD_EVT  | event=RTS,"
-        " event_date=2020:001:00:00:00, msid=OORMPDS, scs=135",
-        "2020:002:15:01:40.000 | COMMAND_HW       | 2S2STHV    | CMD_EVT  | event=RTS,"
-        " event_date=2020:001:00:00:00, 2s2sthv2=0 , msid=2S2STHV, scs=135",
-        "2020:002:17:40:00.000 | ACISPKT          | AA00000000 | CMD_EVT  | event=RTS,"
-        " event_date=2020:001:00:00:00, scs=135",
-        "2020:002:17:40:10.000 | ACISPKT          | AA00000000 | CMD_EVT  | event=RTS,"
-        " event_date=2020:001:00:00:00, scs=135",
-        "2020:002:17:40:14.000 | ACISPKT          | WSPOW00000 | CMD_EVT  | event=RTS,"
-        " event_date=2020:001:00:00:00, scs=135",
-        "2020:002:17:40:18.000 | ACISPKT          | RS_0000001 | CMD_EVT  | event=RTS,"
-        " event_date=2020:001:00:00:00, scs=135",
     ],
     [
         "2020:001:00:00:00.000 | MP_OBSID         | COAOSQID   | CMD_EVT  | event=Obsid, event_date=2020:001:00:00:00, id=65527, scs=0"
@@ -1365,6 +1326,67 @@ def test_get_cmds_from_event_all(idx, disable_hrc_scs107_commanding):
     """Test getting commands from every event type in the Command Events sheet"""
     cevt = cmd_events_all[idx]
     exp = cmd_events_all_exps[idx]
+    cmds = get_cmds_from_event("2020:001:00:00:00", cevt["Event"], cevt["Params"])
+    if cmds is not None:
+        cmds = cmds.pformat_like_backstop(max_params_width=None)
+    assert cmds == exp
+
+
+cmd_events_rts_text = """\
+    Event,Params
+    RTS,"RTSLOAD,1_4_CTI,NUM_HOURS=39:00:00,SCS_NUM=135"
+    """
+cmd_events_rts = Table.read(
+    cmd_events_rts_text, format="ascii.csv", fill_values=[], converters={"Params": str}
+)
+cmd_events_rts_exps = [
+    [
+        "2020:001:00:00:00.000 | COMMAND_SW       | OORMPEN    | CMD_EVT  | event=RTS,"
+        " event_date=2020:001:00:00:00, msid=OORMPEN, scs=135",
+        "2020:001:00:00:01.000 | ACISPKT          | WSVIDALLDN | CMD_EVT  | event=RTS,"
+        " event_date=2020:001:00:00:00, scs=135",
+        "2020:001:00:00:02.000 | COMMAND_HW       | 2S2STHV    | CMD_EVT  | event=RTS,"
+        " event_date=2020:001:00:00:00, 2s2sthv2=0 , msid=2S2STHV, scs=135",
+        "2020:001:00:00:03.000 | COMMAND_HW       | 2S2HVON    | CMD_EVT  | event=RTS,"
+        " event_date=2020:001:00:00:00, msid=2S2HVON, scs=135",
+        "2020:001:00:00:13.000 | COMMAND_HW       | 2S2STHV    | CMD_EVT  | event=RTS,"
+        " event_date=2020:001:00:00:00, 2s2sthv2=4 , msid=2S2STHV, scs=135",
+        "2020:001:00:00:23.000 | COMMAND_HW       | 2S2STHV    | CMD_EVT  | event=RTS,"
+        " event_date=2020:001:00:00:00, 2s2sthv2=8 , msid=2S2STHV, scs=135",
+        "2020:001:00:00:24.000 | ACISPKT          | WSPOW08E1E | CMD_EVT  | event=RTS,"
+        " event_date=2020:001:00:00:00, scs=135",
+        "2020:001:00:01:27.000 | ACISPKT          | WT00C62014 | CMD_EVT  | event=RTS,"
+        " event_date=2020:001:00:00:00, scs=135",
+        "2020:001:00:01:31.000 | ACISPKT          | XTZ0000005 | CMD_EVT  | event=RTS,"
+        " event_date=2020:001:00:00:00, scs=135",
+        "2020:001:00:01:35.000 | ACISPKT          | RS_0000001 | CMD_EVT  | event=RTS,"
+        " event_date=2020:001:00:00:00, scs=135",
+        "2020:001:00:01:39.000 | ACISPKT          | RH_0000001 | CMD_EVT  | event=RTS,"
+        " event_date=2020:001:00:00:00, scs=135",
+        "2020:002:15:01:39.000 | COMMAND_HW       | 2S2HVOF    | CMD_EVT  | event=RTS,"
+        " event_date=2020:001:00:00:00, msid=2S2HVOF, scs=135",
+        "2020:002:15:01:39.000 | COMMAND_SW       | OORMPDS    | CMD_EVT  | event=RTS,"
+        " event_date=2020:001:00:00:00, msid=OORMPDS, scs=135",
+        "2020:002:15:01:40.000 | COMMAND_HW       | 2S2STHV    | CMD_EVT  | event=RTS,"
+        " event_date=2020:001:00:00:00, 2s2sthv2=0 , msid=2S2STHV, scs=135",
+        "2020:002:17:40:00.000 | ACISPKT          | AA00000000 | CMD_EVT  | event=RTS,"
+        " event_date=2020:001:00:00:00, scs=135",
+        "2020:002:17:40:10.000 | ACISPKT          | AA00000000 | CMD_EVT  | event=RTS,"
+        " event_date=2020:001:00:00:00, scs=135",
+        "2020:002:17:40:14.000 | ACISPKT          | WSPOW00000 | CMD_EVT  | event=RTS,"
+        " event_date=2020:001:00:00:00, scs=135",
+        "2020:002:17:40:18.000 | ACISPKT          | RS_0000001 | CMD_EVT  | event=RTS,"
+        " event_date=2020:001:00:00:00, scs=135",
+    ],
+]
+
+
+@pytest.mark.skipif(not HAS_INTERNET, reason="No internet connection")
+@pytest.mark.parametrize("idx", range(len(cmd_events_rts_exps)))
+def test_get_cmds_from_event_rts(idx, disable_hrc_scs107_commanding):
+    """Test getting commands from every event type in the Command Events sheet"""
+    cevt = cmd_events_rts[idx]
+    exp = cmd_events_rts_exps[idx]
     cmds = get_cmds_from_event("2020:001:00:00:00", cevt["Event"], cevt["Params"])
     if cmds is not None:
         cmds = cmds.pformat_like_backstop(max_params_width=None)
