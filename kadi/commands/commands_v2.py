@@ -499,9 +499,9 @@ def update_cmd_events_and_loads_and_get_cmds_recent(
             cmds_source = f"CMD_EVT {cmds[0]['event']} at {cmds[0]['date']}"
         logger.info(f"Processing {cmds_source} with {len(cmds)} commands")
         end_scs = collections.defaultdict(list)
-        if date_end := cmds.meta.get("rltt"):
+        if rltt := cmds.meta.get("rltt"):
             source = f"RLTT in {cmds['source'][0]}"
-            end_scs[date_end, source].extend([128, 129, 130, 131, 132, 133])
+            end_scs[rltt, source].extend([128, 129, 130, 131, 132, 133])
 
         # Explicit END SCS commands. Most commonly these come from command events
         # like SCS-107, but can also be in weekly loads e.g. disabling an ACIS
@@ -531,6 +531,14 @@ def update_cmd_events_and_loads_and_get_cmds_recent(
                             f"{prev_cmds['source'][0]} due to {source}"
                         )
                     cmds_list[jj] = prev_cmds[~bad]
+
+        # If this command table has an RLTT then clip the SCHEDULED_STOP_TIME of all
+        # previous command tables to RLTT.
+        if rltt:
+            for jj in range(ii):
+                sched_stop_cmd = cmds_list[jj].get_scheduled_stop_time_cmd()
+                if sched_stop_cmd and sched_stop_cmd["date"] > rltt:
+                    sched_stop_cmd["date"] = rltt
 
         if len(cmds) > 0:
             logger.info(f"Adding {len(cmds)} commands from {cmds_source}")

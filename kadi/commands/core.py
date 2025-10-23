@@ -691,7 +691,7 @@ class CommandTable(Table):
         for cmd in self:
             cmd["params"]
 
-    def get_rltt(self) -> str | None:
+    def get_rltt_cmd(self) -> str | None:
         """Return the first RLTT (Running Load Termination Time) command in table.
 
         This is a command of type LOAD_EVENT with
@@ -708,12 +708,47 @@ class CommandTable(Table):
                 cmd["type"] == "LOAD_EVENT"
                 and cmd["params"].get("event_type") == "RUNNING_LOAD_TERMINATION_TIME"
             ):
-                return cmd["date"]
+                return cmd
+
+        return None
+
+    def get_rltt(self) -> str | None:
+        """Return date of first RLTT (Running Load Termination Time) command in table.
+
+        This is a command of type LOAD_EVENT with
+        event_type=RUNNING_LOAD_TERMINATION_TIME.
+
+        Returns
+        -------
+        str or None
+            RLTT as a date string (e.g. '2012:001:23:59:59.999') or None if there is no
+            RLTT in the table.
+        """
+        return cmd["date"] if (cmd := self.get_rltt_cmd()) else None
+
+    def get_scheduled_stop_time_cmd(self) -> Row | None:
+        """Return the last scheduled stop time command in table.
+
+        This is a command of type LOAD_EVENT with event_type=SCHEDULED_STOP_TIME.
+
+        Returns
+        -------
+        Row or None
+            Scheduled stop time command or None if there is no scheduled stop
+            time command in the table.
+        """
+        for idx in range(len(self), 0, -1):
+            cmd = self[idx - 1]
+            if (
+                cmd["type"] == "LOAD_EVENT"
+                and cmd["params"].get("event_type") == "SCHEDULED_STOP_TIME"
+            ):
+                return cmd
 
         return None
 
     def get_scheduled_stop_time(self) -> str | None:
-        """Return the last scheduled stop time in table.
+        """Return the date of the last scheduled stop time command in table.
 
         This is a command of type LOAD_EVENT with event_type=SCHEDULED_STOP_TIME.
 
@@ -723,15 +758,7 @@ class CommandTable(Table):
             Scheduled stop time as a date string (e.g. '2012:001:23:59:59.999')
             or None if there is no scheduled stop time in the table.
         """
-        for idx in range(len(self), 0, -1):
-            cmd = self[idx - 1]
-            if (
-                cmd["type"] == "LOAD_EVENT"
-                and cmd["params"].get("event_type") == "SCHEDULED_STOP_TIME"
-            ):
-                return cmd["date"]
-
-        return None
+        return cmd["date"] if (cmd := self.get_scheduled_stop_time_cmd()) else None
 
     def add_cmds(self, cmds: "CommandTable", rltt: str | None = None):
         """
