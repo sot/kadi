@@ -538,6 +538,10 @@ def update_cmd_events_and_loads_and_get_cmds_recent(
             for jj in range(ii):
                 sched_stop_cmd = cmds_list[jj].get_scheduled_stop_time_cmd()
                 if sched_stop_cmd and sched_stop_cmd["date"] > rltt:
+                    sched_stop_cmd["params"]["scheduled_stop_time_orig"] = (
+                        sched_stop_cmd["date"]
+                    )
+                    sched_stop_cmd["params"]["interrupt_load"] = cmds["source"][0]
                     sched_stop_cmd["date"] = rltt
 
         if len(cmds) > 0:

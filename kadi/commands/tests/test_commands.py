@@ -362,6 +362,45 @@ def stop_date_fixture_factory(stop_date):
 stop_date_2021_10_24 = stop_date_fixture_factory("2021-10-24T03:00:00")
 stop_date_2020_12_03 = stop_date_fixture_factory("2020-12-03")
 stop_date_2023_203 = stop_date_fixture_factory("2023:203")
+stop_date_2025_10_25 = stop_date_fixture_factory("2025-10-25")
+
+
+@pytest.mark.skipif(not HAS_INTERNET, reason="No internet connection")
+def test_get_scheduled_stop_time_commands(stop_date_2025_10_25):
+    """Test a time frame with two load interrupts"""
+    cmds = commands.get_cmds("2025:290", "2025:300")
+    cok = cmds[(cmds["type"] == "LOAD_EVENT") & (cmds["tlmsid"] == "None")]
+    params_list = cok["params"].tolist()
+    for date, params in zip(cok["date"], params_list):
+        params["date"] = date
+    assert params_list == [
+        {"event_type": "SCHEDULED_STOP_TIME", "date": "2025:292:21:47:50.679"},
+        {
+            "event_type": "RUNNING_LOAD_TERMINATION_TIME",
+            "date": "2025:292:21:47:50.679",
+        },
+        {
+            "event_type": "SCHEDULED_STOP_TIME",
+            "scheduled_stop_time_orig": "2025:299:22:52:08.292",
+            "interrupt_load": "OCT2125A",
+            "date": "2025:294:18:45:00.000",
+        },
+        {
+            "event_type": "RUNNING_LOAD_TERMINATION_TIME",
+            "date": "2025:294:18:45:00.000",
+        },
+        {
+            "event_type": "SCHEDULED_STOP_TIME",
+            "scheduled_stop_time_orig": "2025:299:22:52:08.282",
+            "interrupt_load": "OCT2225A",
+            "date": "2025:295:21:30:00.000",
+        },
+        {
+            "event_type": "RUNNING_LOAD_TERMINATION_TIME",
+            "date": "2025:295:21:30:00.000",
+        },
+        {"event_type": "SCHEDULED_STOP_TIME", "date": "2025:299:22:52:08.292"},
+    ]
 
 
 @pytest.mark.skipif(not HAS_INTERNET, reason="No internet connection")
