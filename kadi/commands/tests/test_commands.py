@@ -259,6 +259,10 @@ def test_commands_create_archive_regress(
     cmds_flight = commands.get_cmds(start + 3 * u.day, stop - 3 * u.day)
     cmds_flight.fetch_params()
 
+    sched_stop_flight: np.ndarray = (cmds_flight["type"] == "LOAD_EVENT") & (
+        cmds_flight["event_type"] == "SCHEDULED_STOP_TIME"
+    )
+
     with conf.set_temp("commands_dir", str(tmpdir)):
         try:
             os.environ["KADI"] = str(tmpdir)
@@ -288,6 +292,21 @@ def test_commands_create_archive_regress(
                 # out = "\n".join(cmds_local.pformat_like_backstop())
                 # Path("cmds_local.txt").write_text(out)
                 assert len(cmds_flight) == len(cmds_local)
+
+            sched_stop_local: np.ndarray = (cmds_local["type"] == "LOAD_EVENT") & (
+                cmds_local["event_type"] == "SCHEDULED_STOP_TIME"
+            )
+
+            # PR#364 changed the time stamp of SCHEDULED_STOP_TIME commands when there
+            # is an interrupt, which in turn changes the order. First check that the
+            # sources of such commands are the same (we have the same sched stop
+            # commands but ignore timestamps).
+            assert sorted(cmds_flight[sched_stop_flight]["source"]) == sorted(
+                cmds_local[sched_stop_local]["source"]
+            )
+            # Now remove such commands from both for the rest of the comparison.
+            cmds_flight = cmds_flight[~sched_stop_flight]
+            cmds_local = cmds_local[~sched_stop_local]
 
             # Validate quaternions using numeric comparison and then remove
             # from the == comparison below.  This is both appropriate for these
