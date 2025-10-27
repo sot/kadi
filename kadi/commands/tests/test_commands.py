@@ -367,7 +367,11 @@ stop_date_2025_10_25 = stop_date_fixture_factory("2025-10-25")
 
 @pytest.mark.skipif(not HAS_INTERNET, reason="No internet connection")
 def test_get_scheduled_stop_time_commands(stop_date_2025_10_25):
-    """Test a time frame with two load interrupts"""
+    """Test a time frame with two load interrupts.
+
+    These provide test coverage of the get_rltt_cmd() and get_scheduled_stop_time_cmd()
+    methods.
+    """
     cmds = commands.get_cmds("2025:290", "2025:300")
     cok = cmds[(cmds["type"] == "LOAD_EVENT") & (cmds["tlmsid"] == "None")]
     params_list = cok["params"].tolist()
