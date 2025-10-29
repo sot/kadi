@@ -259,6 +259,10 @@ def test_commands_create_archive_regress(
     cmds_flight = commands.get_cmds(start + 3 * u.day, stop - 3 * u.day)
     cmds_flight.fetch_params()
 
+    sched_stop_flight: np.ndarray = (cmds_flight["type"] == "LOAD_EVENT") & (
+        cmds_flight["event_type"] == "SCHEDULED_STOP_TIME"
+    )
+
     with conf.set_temp("commands_dir", str(tmpdir)):
         try:
             os.environ["KADI"] = str(tmpdir)
@@ -288,6 +292,21 @@ def test_commands_create_archive_regress(
                 # out = "\n".join(cmds_local.pformat_like_backstop())
                 # Path("cmds_local.txt").write_text(out)
                 assert len(cmds_flight) == len(cmds_local)
+
+            sched_stop_local: np.ndarray = (cmds_local["type"] == "LOAD_EVENT") & (
+                cmds_local["event_type"] == "SCHEDULED_STOP_TIME"
+            )
+
+            # PR#364 changed the time stamp of SCHEDULED_STOP_TIME commands when there
+            # is an interrupt, which in turn changes the order. First check that the
+            # sources of such commands are the same (we have the same sched stop
+            # commands but ignore timestamps).
+            assert sorted(cmds_flight[sched_stop_flight]["source"]) == sorted(
+                cmds_local[sched_stop_local]["source"]
+            )
+            # Now remove such commands from both for the rest of the comparison.
+            cmds_flight = cmds_flight[~sched_stop_flight]
+            cmds_local = cmds_local[~sched_stop_local]
 
             # Validate quaternions using numeric comparison and then remove
             # from the == comparison below.  This is both appropriate for these
@@ -343,6 +362,49 @@ def stop_date_fixture_factory(stop_date):
 stop_date_2021_10_24 = stop_date_fixture_factory("2021-10-24T03:00:00")
 stop_date_2020_12_03 = stop_date_fixture_factory("2020-12-03")
 stop_date_2023_203 = stop_date_fixture_factory("2023:203")
+stop_date_2025_10_25 = stop_date_fixture_factory("2025-10-25")
+
+
+@pytest.mark.skipif(not HAS_INTERNET, reason="No internet connection")
+def test_get_scheduled_stop_time_commands(stop_date_2025_10_25):
+    """Test a time frame with two load interrupts.
+
+    These provide test coverage of the get_rltt_cmd() and get_scheduled_stop_time_cmd()
+    methods.
+    """
+    cmds = commands.get_cmds("2025:290", "2025:300")
+    cok = cmds[(cmds["type"] == "LOAD_EVENT") & (cmds["tlmsid"] == "None")]
+    params_list = cok["params"].tolist()
+    for date, params in zip(cok["date"], params_list):
+        params["date"] = date
+    assert params_list == [
+        {"event_type": "SCHEDULED_STOP_TIME", "date": "2025:292:21:47:50.679"},
+        {
+            "event_type": "RUNNING_LOAD_TERMINATION_TIME",
+            "date": "2025:292:21:47:50.679",
+        },
+        {
+            "event_type": "SCHEDULED_STOP_TIME",
+            "scheduled_stop_time_orig": "2025:299:22:52:08.292",
+            "interrupt_load": "OCT2125A",
+            "date": "2025:294:18:45:00.000",
+        },
+        {
+            "event_type": "RUNNING_LOAD_TERMINATION_TIME",
+            "date": "2025:294:18:45:00.000",
+        },
+        {
+            "event_type": "SCHEDULED_STOP_TIME",
+            "scheduled_stop_time_orig": "2025:299:22:52:08.282",
+            "interrupt_load": "OCT2225A",
+            "date": "2025:295:21:30:00.000",
+        },
+        {
+            "event_type": "RUNNING_LOAD_TERMINATION_TIME",
+            "date": "2025:295:21:30:00.000",
+        },
+        {"event_type": "SCHEDULED_STOP_TIME", "date": "2025:299:22:52:08.292"},
+    ]
 
 
 @pytest.mark.skipif(not HAS_INTERNET, reason="No internet connection")
