@@ -543,6 +543,7 @@ def update_cmd_events_and_loads_and_get_cmds_recent(
                     )
                     sched_stop_cmd["params"]["interrupt_load"] = cmds["source"][0]
                     sched_stop_cmd["date"] = rltt
+                    sched_stop_cmd["time"] = CxoTime(rltt).secs
 
         if len(cmds) > 0:
             logger.info(f"Adding {len(cmds)} commands from {cmds_source}")
