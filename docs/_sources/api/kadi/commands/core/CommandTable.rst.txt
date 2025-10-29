@@ -173,7 +173,7 @@ kadi.commands.core.CommandTable
           !! processed by numpydoc !!
 
 
-   .. py:method:: get_rltt()
+   .. py:method:: get_rltt_cmd()
 
       
       Return the first RLTT (Running Load Termination Time) command in table.
@@ -186,9 +186,70 @@ kadi.commands.core.CommandTable
 
       :Returns:
 
-          str or None
+          CommandRow or None
               RLTT as a date string (e.g. '2012:001:23:59:59.999') or None if
               there is no RLTT in the table.
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: get_rltt()
+
+      
+      Return date of first RLTT (Running Load Termination Time) command in table.
+
+      This is a command of type LOAD_EVENT with
+      event_type=RUNNING_LOAD_TERMINATION_TIME.
+
+
+
+
+      :Returns:
+
+          str or None
+              RLTT as a date string (e.g. '2012:001:23:59:59.999') or None if there is no
+              RLTT in the table.
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: get_scheduled_stop_time_cmd()
+
+      
+      Return the last scheduled stop time command in table.
+
+      This is a command of type LOAD_EVENT with event_type=SCHEDULED_STOP_TIME.
+
+
+
+
+      :Returns:
+
+          CommandRow or None
+              Scheduled stop time command or None if there is no scheduled stop
+              time command in the table.
 
 
 
@@ -207,7 +268,7 @@ kadi.commands.core.CommandTable
    .. py:method:: get_scheduled_stop_time()
 
       
-      Return the last scheduled stop time in table.
+      Return the date of the last scheduled stop time command in table.
 
       This is a command of type LOAD_EVENT with event_type=SCHEDULED_STOP_TIME.
 

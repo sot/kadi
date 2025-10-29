@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>kadi.commands.core.CommandTable &#8212; kadi 7.17.3 documentation</title>
+    <title>kadi.commands.core.CommandTable &#8212; kadi 7.17.4 documentation</title>
   
   
   
@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../../../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../../../../_static/documentation_options.js?v=51eabda3"></script>
+    <script src="../../../../_static/documentation_options.js?v=9a632d6e"></script>
     <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -54,7 +54,7 @@
     <link rel="prev" title="kadi.commands.core" href="index.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="7.17.3" />
+  <meta name="docsearch:version" content="7.17.4" />
   </head>
   
   
@@ -107,7 +107,7 @@
     <span style="color: rgb(186, 70, 21); font-size: x-large;">kadi</span>
 </a>
 &nbsp;
-<span style="font-size: x-large;">7.17.3</span></div>
+<span style="font-size: x-large;">7.17.4</span></div>
     
   </div>
   
@@ -467,16 +467,49 @@ at once.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="kadi.commands.core.CommandTable.get_rltt">
-<span class="sig-name descname"><span class="pre">get_rltt</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kadi.commands.core.CommandTable.get_rltt" title="Link to this definition">#</a></dt>
+<dt class="sig sig-object py" id="kadi.commands.core.CommandTable.get_rltt_cmd">
+<span class="sig-name descname"><span class="pre">get_rltt_cmd</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kadi.commands.core.CommandTable.get_rltt_cmd" title="Link to this definition">#</a></dt>
 <dd><p>Return the first RLTT (Running Load Termination Time) command in table.</p>
 <p>This is a command of type LOAD_EVENT with
 event_type=RUNNING_LOAD_TERMINATION_TIME.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
-<dt>str or None</dt><dd><p>RLTT as a date string (e.g. ‘2012:001:23:59:59.999’) or None if
+<dt>CommandRow or None</dt><dd><p>RLTT as a date string (e.g. ‘2012:001:23:59:59.999’) or None if
 there is no RLTT in the table.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="kadi.commands.core.CommandTable.get_rltt">
+<span class="sig-name descname"><span class="pre">get_rltt</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kadi.commands.core.CommandTable.get_rltt" title="Link to this definition">#</a></dt>
+<dd><p>Return date of first RLTT (Running Load Termination Time) command in table.</p>
+<p>This is a command of type LOAD_EVENT with
+event_type=RUNNING_LOAD_TERMINATION_TIME.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt>str or None</dt><dd><p>RLTT as a date string (e.g. ‘2012:001:23:59:59.999’) or None if there is no
+RLTT in the table.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="kadi.commands.core.CommandTable.get_scheduled_stop_time_cmd">
+<span class="sig-name descname"><span class="pre">get_scheduled_stop_time_cmd</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kadi.commands.core.CommandTable.get_scheduled_stop_time_cmd" title="Link to this definition">#</a></dt>
+<dd><p>Return the last scheduled stop time command in table.</p>
+<p>This is a command of type LOAD_EVENT with event_type=SCHEDULED_STOP_TIME.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt>CommandRow or None</dt><dd><p>Scheduled stop time command or None if there is no scheduled stop
+time command in the table.</p>
 </dd>
 </dl>
 </dd>
@@ -486,7 +519,7 @@ there is no RLTT in the table.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="kadi.commands.core.CommandTable.get_scheduled_stop_time">
 <span class="sig-name descname"><span class="pre">get_scheduled_stop_time</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kadi.commands.core.CommandTable.get_scheduled_stop_time" title="Link to this definition">#</a></dt>
-<dd><p>Return the last scheduled stop time in table.</p>
+<dd><p>Return the date of the last scheduled stop time command in table.</p>
 <p>This is a command of type LOAD_EVENT with event_type=SCHEDULED_STOP_TIME.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
@@ -692,7 +725,9 @@ LETG retract command in the loads after the LETG insert anomaly.</p>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#kadi.commands.core.CommandTable.__bytes__"><code class="docutils literal notranslate"><span class="pre">kadi.commands.core.CommandTable.__bytes__()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#kadi.commands.core.CommandTable.find_date"><code class="docutils literal notranslate"><span class="pre">kadi.commands.core.CommandTable.find_date()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#kadi.commands.core.CommandTable.fetch_params"><code class="docutils literal notranslate"><span class="pre">kadi.commands.core.CommandTable.fetch_params()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#kadi.commands.core.CommandTable.get_rltt_cmd"><code class="docutils literal notranslate"><span class="pre">kadi.commands.core.CommandTable.get_rltt_cmd()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#kadi.commands.core.CommandTable.get_rltt"><code class="docutils literal notranslate"><span class="pre">kadi.commands.core.CommandTable.get_rltt()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#kadi.commands.core.CommandTable.get_scheduled_stop_time_cmd"><code class="docutils literal notranslate"><span class="pre">kadi.commands.core.CommandTable.get_scheduled_stop_time_cmd()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#kadi.commands.core.CommandTable.get_scheduled_stop_time"><code class="docutils literal notranslate"><span class="pre">kadi.commands.core.CommandTable.get_scheduled_stop_time()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#kadi.commands.core.CommandTable.add_cmds"><code class="docutils literal notranslate"><span class="pre">kadi.commands.core.CommandTable.add_cmds()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#kadi.commands.core.CommandTable.sort_in_backstop_order"><code class="docutils literal notranslate"><span class="pre">kadi.commands.core.CommandTable.sort_in_backstop_order()</span></code></a></li>
