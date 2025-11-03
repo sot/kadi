@@ -20,6 +20,7 @@ import requests
 from astropy.table import Table
 from cxotime import CxoTime
 from parse_cm.paths import load_dir_from_load_name
+from ska_helpers.retry import retry_func
 from ska_sun import get_nsm_attitude
 from testr.test_helper import has_internet
 
@@ -1108,7 +1109,7 @@ def get_cmd_events_from_sheet(scenario: str | None) -> Table:
     # Fetch the command events from the Google Sheet URL.
     url = CMD_EVENTS_SHEET_URL.format(doc_id=doc_id)
     logger.info(f"Getting cmd_events from {url}")
-    req = requests.get(url, timeout=30)
+    req = retry_func(requests.get)(url, timeout=5)
     if req.status_code != 200:
         raise ValueError(f"Failed to get cmd events sheet: {req.status_code}")
 
@@ -1200,7 +1201,7 @@ def update_loads(scenario=None, *, lookback=None, stop_loads=None) -> Table:
 
         # Get directory listing for Year/Month
         try:
-            contents = occweb.get_occweb_dir(dir_year_month)
+            contents = retry_func(occweb.get_occweb_dir)(dir_year_month, timeout=5)
         except requests.exceptions.HTTPError as exc:
             if str(exc).startswith("404"):
                 logger.debug(f"No OCCweb directory for {dir_year_month}")
@@ -1299,13 +1300,16 @@ def get_load_cmds_from_occweb_or_local(
             raise ValueError(f"No backstop file found in {ska_dir}")
 
     else:  # use OCCweb
-        load_dir_contents = occweb.get_occweb_dir(dir_year_month / load_name)
+        load_dir_contents = retry_func(occweb.get_occweb_dir)(
+            dir_year_month / load_name, timeout=5
+        )
         for filename in load_dir_contents["Name"]:
             if re.match(r"CR\d{3}.\d{4}\.backstop", filename):
                 # Download the backstop file from OCCweb
-                backstop_text = occweb.get_occweb_page(
+                backstop_text = retry_func(occweb.get_occweb_page)(
                     dir_year_month / load_name / filename,
                     cache=conf.cache_loads_in_astropy_cache,
+                    timeout=10,
                 )
                 cmds = parse_backstop_and_write(load_name, cmds_filename, backstop_text)
                 break

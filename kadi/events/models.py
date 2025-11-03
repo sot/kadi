@@ -12,6 +12,7 @@ from chandra_time import DateTime
 from cheta import utils
 from django.db import models
 from Quaternion import Quat
+from ska_helpers.retry import retry_func
 from ska_numpy import interpolate
 
 from .manvr_templates import get_manvr_templates
@@ -2149,7 +2150,7 @@ class IFotEvent(BaseEvent):
         datestop = DateTime(stop).date
 
         # def get_ifot(event_type, start=None, stop=None, props=[], columns=[], timeout=TIMEOUT):
-        ifot_evts = occweb.get_ifot(
+        ifot_evts = retry_func(occweb.get_ifot)(
             cls.ifot_type_desc,
             start=datestart,
             stop=datestop,

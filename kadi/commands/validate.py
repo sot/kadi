@@ -30,6 +30,7 @@ from cheta.utils import (
     logical_intervals,
 )
 from cxotime import CxoTime, CxoTimeLike
+from ska_helpers.retry import retry_func
 
 import kadi
 import kadi.commands
@@ -748,7 +749,7 @@ def get_command_sheet_exclude_intervals() -> Table:
         gid=kadi.commands.conf.cmd_events_exclude_intervals_gid,
     )
     logger.info(f"Getting exclude times from {url}")
-    req = requests.get(url, timeout=30)
+    req = retry_func(requests.get)(url, timeout=5)
     if req.status_code != 200:
         raise ValueError(f"Failed to get exclude times sheet: {req.status_code}")
 
