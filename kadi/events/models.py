@@ -136,9 +136,15 @@ def get_event_models(baseclass=None):
     for var in globals().values():
         if inspect.isclass(var) and issubclass(var, baseclass or BaseEvent):
             # Make an instance of event class to discover if it is an abstact base class.
-            event = var()
-            if not event._meta.abstract:
-                models[event.model_name] = var
+            try:
+                event = var()
+            except TypeError:
+                # Probably an abstract base class that can't be instantiated
+                continue
+            else:
+                # Compatibility with Django < 1.8-ish
+                if not event._meta.abstract:
+                    models[event.model_name] = var
 
     return models
 
