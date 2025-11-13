@@ -3,7 +3,6 @@ import re
 
 from bs4 import BeautifulSoup as parse_html
 from chandra_time import DateTime
-from ska_helpers.retry import retry_func
 
 from kadi import occweb
 
@@ -68,7 +67,7 @@ def get_fdb_major_events():
     if page in evts_cache:
         return evts_cache[page]
 
-    html = retry_func(occweb.get_url)(page)
+    html = occweb.get_url(page)
     soup = parse_html(html, "lxml")
     table = soup.find("table")
     rows = get_table_rows(table)
@@ -114,7 +113,7 @@ def get_fot_major_events():
     if page in evts_cache:
         return evts_cache[page]
 
-    html = retry_func(occweb.get_url)(page)
+    html = occweb.get_url(page)
     soup = parse_html(html, "lxml")
     major_events_span = soup.find("span", string="Major Events:")
     if major_events_span is None:

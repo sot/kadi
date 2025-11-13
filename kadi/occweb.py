@@ -17,6 +17,7 @@ from astropy.io import ascii
 from astropy.table import Table
 from astropy.utils.data import download_file
 from chandra_time import DateTime
+from ska_helpers.retry import retry_func
 
 # This is for deprecated functionality to cache to a local directory
 CACHE_DIR = "cache"
@@ -86,7 +87,7 @@ def get_url(page, timeout=TIMEOUT):
         with open(cachefile, "rb") as f:
             html = f.read().decode("utf8")
     else:
-        response = requests.get(url, auth=get_auth(), timeout=timeout)
+        response = retry_func(requests.get)(url, auth=get_auth(), timeout=timeout)
         html = response.text
 
         if os.path.exists(CACHE_DIR):
@@ -154,7 +155,9 @@ def get_ifot(
 
     # Get the TSV data for the iFOT event table
     url = ROOTURL + URLS["ifot"]
-    response = requests.get(url, auth=get_auth(), params=params, timeout=timeout)
+    response = retry_func(requests.get)(
+        url, auth=get_auth(), params=params, timeout=timeout
+    )
 
     # For Py2 convert from unicode to ASCII str
     text = response.text
@@ -309,7 +312,7 @@ def get_occweb_page(
         user, password = get_auth(user, password)
         headers = get_auth_http_headers(user, password)
         try:
-            cachefile = download_file(
+            cachefile = retry_func(download_file)(
                 url,
                 cache=cache,
                 show_progress=False,
@@ -325,7 +328,7 @@ def get_occweb_page(
     else:
         # Not caching so don't write to a file (per download_file) just get it.
         auth = get_auth(user, password)
-        req = requests.get(url, auth=auth, timeout=timeout)
+        req = retry_func(requests.get)(url, auth=auth, timeout=timeout)
         req.raise_for_status()  # raise exception if not 200
 
         out = req.content if binary else req.text

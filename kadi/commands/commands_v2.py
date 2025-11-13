@@ -1201,7 +1201,7 @@ def update_loads(scenario=None, *, lookback=None, stop_loads=None) -> Table:
 
         # Get directory listing for Year/Month
         try:
-            contents = retry_func(occweb.get_occweb_dir)(dir_year_month, timeout=5)
+            contents = occweb.get_occweb_dir(dir_year_month, timeout=5)
         except requests.exceptions.HTTPError as exc:
             if str(exc).startswith("404"):
                 logger.debug(f"No OCCweb directory for {dir_year_month}")
@@ -1300,13 +1300,11 @@ def get_load_cmds_from_occweb_or_local(
             raise ValueError(f"No backstop file found in {ska_dir}")
 
     else:  # use OCCweb
-        load_dir_contents = retry_func(occweb.get_occweb_dir)(
-            dir_year_month / load_name, timeout=5
-        )
+        load_dir_contents = occweb.get_occweb_dir(dir_year_month / load_name, timeout=5)
         for filename in load_dir_contents["Name"]:
             if re.match(r"CR\d{3}.\d{4}\.backstop", filename):
                 # Download the backstop file from OCCweb
-                backstop_text = retry_func(occweb.get_occweb_page)(
+                backstop_text = occweb.get_occweb_page(
                     dir_year_month / load_name / filename,
                     cache=conf.cache_loads_in_astropy_cache,
                     timeout=10,
