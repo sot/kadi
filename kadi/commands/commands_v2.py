@@ -51,6 +51,7 @@ MATCHING_BLOCK_SIZE = 500
 # TODO: cache translation from cmd_events to CommandTable's  [Probably not]
 
 APPROVED_LOADS_OCCWEB_DIR = Path("FOT/mission_planning/PRODUCTS/APPR_LOADS")
+IN_WORK_LOADS_OCCWEB_DIR = Path("FOT/mission_planning/Backstop")
 
 # URL to download google sheets `doc_id`
 # See https://stackoverflow.com/questions/33713084 (original question).
@@ -364,6 +365,44 @@ def get_cmds(
 # APR0122 commands will also not be in the archive.
 
 
+def update_cmds_list_for_in_work_loads(
+    cmd_events: Table, cmds_list: List[CommandTable]
+) -> None:
+    """Update ``cmds_list`` in place to add loads that are in-work and not yet approved.
+
+    This checks ``cmd_events`` for "Load in work" events and then reads those commands
+    and appends them to ``cmds_list``.
+
+    Parameters
+    ----------
+    cmd_events : Table
+        Command events table.
+    cmds_list : list of CommandTable
+        List of CommandTable objects to update in place.
+    """
+    # Find loads that are "in work". Params is a single string with the load name.
+    ok = cmd_events["Event"] == "Load in work"
+    load_names = cmd_events["Params"][ok]
+
+    if len(load_names) == 0:
+        return
+
+    for load_name in load_names:
+        # Read backstop commands but do not write them to the local kadi "loads"
+        # archive. This is reserved for approved loads.
+        cmds = get_load_cmds_from_occweb_or_local(
+            IN_WORK_LOADS_OCCWEB_DIR,
+            load_name,
+            archive=False,
+        )
+        cmds.meta["rltt"] = cmds.get_rltt()
+        logger.info(
+            f"Adding {len(cmds)} commands from in-work load {load_name} "
+            f"with RLTT={cmds.meta['rltt']}"
+        )
+        cmds_list.append(cmds)
+
+
 def update_cmd_events_and_loads_and_get_cmds_recent(
     scenario=None,
     *,
@@ -476,6 +515,8 @@ def update_cmd_events_and_loads_and_get_cmds_recent(
         logger.info("Including cmd_events:\n  {}".format("\n  ".join(cmd_events_ids)))
     else:
         logger.info("No cmd_events to include")
+
+    update_cmds_list_for_in_work_loads(cmd_events, cmds_list)
 
     for cmd_event in cmd_events:
         cmds = get_cmds_from_event(
@@ -1257,7 +1298,11 @@ def clean_loads_dir(loads):
 
 
 def get_load_cmds_from_occweb_or_local(
-    dir_year_month=None, load_name=None, *, use_ska_dir=False
+    dir_year_month=None,
+    load_name=None,
+    *,
+    use_ska_dir=False,
+    archive=True,
 ) -> CommandTable:
     """Get the load cmds (backstop) for ``load_name`` within ``dir_year_month``
 
@@ -1278,23 +1323,27 @@ def get_load_cmds_from_occweb_or_local(
         Backstop commands for the load.
     """
     # Determine output file name and make directory if necessary.
-    loads_dir = paths.LOADS_ARCHIVE_DIR()
-    loads_dir.mkdir(parents=True, exist_ok=True)
-    cmds_filename = loads_dir / f"{load_name}.pkl.gz"
+    cmds_filename = None
+    if archive:
+        loads_dir = paths.LOADS_ARCHIVE_DIR()
+        loads_dir.mkdir(parents=True, exist_ok=True)
+        cmds_filename = loads_dir / f"{load_name}.pkl.gz"
 
-    # If the output file already exists, read the commands and return them.
-    if cmds_filename.exists():
-        logger.info(f"Already have {cmds_filename}")
-        with gzip.open(cmds_filename, "rb") as fh:
-            cmds = pickle.load(fh)
-        return cmds
+        # If the output file already exists, read the commands and return them.
+        if cmds_filename.exists():
+            logger.info(f"Already have {cmds_filename}")
+            with gzip.open(cmds_filename, "rb") as fh:
+                cmds = pickle.load(fh)
+            return cmds
 
     if use_ska_dir:
         ska_dir = load_dir_from_load_name(load_name)
         for filename in ska_dir.glob("CR????????.backstop"):
             backstop_text = filename.read_text()
             logger.info(f"Got backstop from {filename}")
-            cmds = parse_backstop_and_write(load_name, cmds_filename, backstop_text)
+            cmds = parse_backstop(load_name, backstop_text)
+            if archive:
+                write_backstop(cmds, cmds_filename)
             break
         else:
             raise ValueError(f"No backstop file found in {ska_dir}")
@@ -1309,7 +1358,9 @@ def get_load_cmds_from_occweb_or_local(
                     cache=conf.cache_loads_in_astropy_cache,
                     timeout=10,
                 )
-                cmds = parse_backstop_and_write(load_name, cmds_filename, backstop_text)
+                cmds = parse_backstop(load_name, backstop_text)
+                if archive:
+                    write_backstop(cmds, cmds_filename)
                 break
         else:
             raise ValueError(
@@ -1319,8 +1370,8 @@ def get_load_cmds_from_occweb_or_local(
     return cmds
 
 
-def parse_backstop_and_write(load_name, cmds_filename, backstop_text):
-    """Parse ``backstop_text`` and write to ``cmds_filename`` (gzipped pickle).
+def parse_backstop(load_name: str, backstop_text: str):
+    """Parse ``backstop_text`.
 
     This sets the ``source`` column to ``load_name`` and removes the
     ``timeline_id`` column.
@@ -1332,11 +1383,27 @@ def parse_backstop_and_write(load_name, cmds_filename, backstop_text):
     idx = cmds.colnames.index("timeline_id")
     cmds.add_column(load_name, index=idx, name="source")
     del cmds["timeline_id"]
+    return cmds
 
+
+def write_backstop(cmds: CommandTable, cmds_filename: str | Path):
+    """Write CommandTable to a gzipped pickle file.
+
+    This function saves a CommandTable object to disk as a compressed pickle file.
+    ``cmds_filename`` is normally the kadi loads archive directory.
+
+    Parameters
+    ----------
+    cmds : CommandTable
+        CommandTable object containing the backstop commands to be saved.
+    cmds_filename : str or Path
+        Path to the output file where the CommandTable will be saved. The file
+        will be created with gzip compression.
+
+    """
     logger.info(f"Saving {cmds_filename}")
     with gzip.open(cmds_filename, "wb") as fh:
         pickle.dump(cmds, fh)
-    return cmds
 
 
 def update_cmds_archive(
