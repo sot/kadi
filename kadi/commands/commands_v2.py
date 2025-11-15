@@ -969,7 +969,7 @@ def get_cmds_obs_final(
                 )
             else:
                 starcat_idx = cmd["idx"]
-        elif tlmsid == "COAOSQID":
+        elif tlmsid == "OBSID":
             obsid = cmd["params"]["id"]
             # Look for obsid change within obs, likely an undercover
             # (target="cold blank ECS"). First stop the initial obs at the time
@@ -1452,6 +1452,15 @@ def parse_backstop(load_name: str, backstop_text: str):
     idx = cmds.colnames.index("timeline_id")
     cmds.add_column(load_name, index=idx, name="source")
     del cmds["timeline_id"]
+
+    # Add OBSID load event commands to track the scheduled obsid in the event of an
+    # SCS-107 where the original COAOSQID commands in the observing loads are dropped.
+    cmds_obsid = cmds[cmds["tlmsid"] == "COAOSQID"]
+    cmds_obsid["type"] = "LOAD_EVENT"
+    cmds_obsid["tlmsid"] = "OBSID"
+    cmds_obsid["scs"] -= 3  # Move these load event cmds to vehicle loads
+    cmds = cmds.add_cmds(cmds_obsid)
+
     return cmds
 
 
