@@ -715,6 +715,7 @@ def get_state_cmds(cmds):
         "AOUPTARQ",
         "AONM2NPE",
         "AONM2NPD",
+        "OBSID",
     ]
 
     if cmds["tlmsid"].dtype.kind == "S":
@@ -946,6 +947,7 @@ def get_cmds_obs_final(
     # use values that are not None to avoid errors. For `sim_pos`, if the SIM
     # has not been commanded in a long time then it will be at -99616.
     obsid = -1 if prev_obsid is None else prev_obsid
+    obsid_sched = -1 if prev_obsid is None else prev_obsid
     starcat_idx = None
     starcat_date = None
     sim_pos = -99616 if prev_simpos is None else prev_simpos
@@ -965,7 +967,11 @@ def get_cmds_obs_final(
                 )
             else:
                 starcat_idx = cmd["idx"]
+
         elif tlmsid == "OBSID":
+            obsid_sched = cmd["params"]["id"]
+
+        elif tlmsid == "COAOSQID":
             obsid = cmd["params"]["id"]
             # Look for obsid change within obs, likely an undercover
             # (target="cold blank ECS"). First stop the initial obs at the time
@@ -993,6 +999,7 @@ def get_cmds_obs_final(
         elif tlmsid == "OBS":
             obs_params = cmd["params"]
             obs_params["obsid"] = obsid
+            obs_params["obsid_sched"] = obsid_sched
             obs_params["simpos"] = sim_pos  # matches states 'simpos'
             obs_params["obs_start"] = cmd["date"]
             if obs_params["npnt_enab"]:
@@ -1454,7 +1461,9 @@ def parse_backstop(load_name: str, backstop_text: str):
     cmds_obsid = cmds[cmds["tlmsid"] == "COAOSQID"]
     cmds_obsid["type"] = "LOAD_EVENT"
     cmds_obsid["tlmsid"] = "OBSID"
-    cmds_obsid["scs"] -= 3  # Move these load event cmds to vehicle loads
+    # Move these load event cmds to vehicle loads. They will be stopped if vehicle loads
+    # are stopped.
+    cmds_obsid["scs"] -= 3
     cmds = cmds.add_cmds(cmds_obsid)
 
     return cmds
