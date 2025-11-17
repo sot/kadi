@@ -1606,18 +1606,19 @@ def get_matching_block_idx(cmds_arch, cmds_recent):
     diff = difflib.SequenceMatcher(a=arch_vals, b=recent_vals, autojunk=False)
 
     matching_blocks = diff.get_matching_blocks()
-    logger.info("Matching blocks for (a) recent commands and (b) existing HDF5")
-    for block in matching_blocks:
-        logger.info("  {}".format(block))
     opcodes = diff.get_opcodes()
-    logger.info("Diffs between (a) recent commands and (b) existing HDF5")
-    for opcode in opcodes:
-        logger.info("  {}".format(opcode))
     # Find the first matching block that is sufficiently long
     for block in matching_blocks:
         if block.size > conf.matching_block_size:
             break
     else:
+        logger.info("Matching blocks for (a) recent commands and (b) existing HDF5")
+        for block in matching_blocks:
+            logger.info("  {}".format(block))
+        logger.info("Diffs between (a) recent commands and (b) existing HDF5")
+        for opcode in opcodes:
+            logger.info("  {}".format(opcode))
+
         raise ValueError(
             f"No matching blocks at least {conf.matching_block_size} long. This most likely "
             "means that you have not recently synced your local Ska data using `ska_sync`."
