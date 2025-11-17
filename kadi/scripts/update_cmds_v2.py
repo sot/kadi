@@ -30,6 +30,12 @@ def get_opt(args=None):
         action="version",
         version="%(prog)s {version}".format(version=__version__),
     )
+    parser.add_argument(
+        "--no-match-prev-cmds",
+        action="store_true",
+        help="Do not enforce matching previous command block when updating cmds v2 "
+        "(experts only, this can produce an invalid commands table)",
+    )
 
     args = parser.parse_args(args)
     return args
@@ -48,6 +54,7 @@ def main(args=None):
         log_level=opt.log_level,
         scenario=opt.scenario,
         data_root=opt.data_root,
+        match_prev_cmds=not opt.no_match_prev_cmds,
     )
 
 
