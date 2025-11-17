@@ -44,10 +44,6 @@ from kadi.config import conf
 
 __all__ = ["clear_caches", "get_cmds"]
 
-# TODO configuration options, but use DEFAULT_* in the mean time
-
-MATCHING_BLOCK_SIZE = 500
-
 # TODO: cache translation from cmd_events to CommandTable's  [Probably not]
 
 # Formally approved load products
@@ -1619,11 +1615,11 @@ def get_matching_block_idx(cmds_arch, cmds_recent):
         logger.info("  {}".format(opcode))
     # Find the first matching block that is sufficiently long
     for block in matching_blocks:
-        if block.size > MATCHING_BLOCK_SIZE:
+        if block.size > conf.matching_block_size:
             break
     else:
         raise ValueError(
-            f"No matching blocks at least {MATCHING_BLOCK_SIZE} long. This most likely "
+            f"No matching blocks at least {conf.matching_block_size} long. This most likely "
             "means that you have not recently synced your local Ska data using `ska_sync`."
         )
 

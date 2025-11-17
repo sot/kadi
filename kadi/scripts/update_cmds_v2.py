@@ -5,6 +5,7 @@ from ska_helpers.run_info import log_run_info
 
 from kadi import __version__
 from kadi.commands.commands_v2 import update_cmds_archive
+from kadi.config import conf
 
 
 def get_opt(args=None):
@@ -36,6 +37,11 @@ def get_opt(args=None):
         help="Do not enforce matching previous command block when updating cmds v2 "
         "(experts only, this can produce an invalid commands table)",
     )
+    parser.add_argument(
+        "--matching-block-size",
+        type=int,
+        help=f"Matching block size (default={conf.matching_block_size})",
+    )
 
     args = parser.parse_args(args)
     return args
@@ -47,6 +53,9 @@ def main(args=None):
     """
     opt = get_opt(args)
     log_run_info(log_func=print, opt=opt)
+
+    if opt.matching_block_size is not None:
+        conf.matching_block_size = opt.matching_block_size
 
     update_cmds_archive(
         lookback=opt.lookback,
