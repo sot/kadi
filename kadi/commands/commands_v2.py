@@ -1102,7 +1102,9 @@ def update_cmd_events(
 
     # Named scenarios with a name that isn't "flight" and does not look like a
     # google sheet ID are local files.
-    use_local = scenario not in (None, "flight") and not is_google_id(scenario)
+    use_local = scenario not in (None, "flight", "working") and not is_google_id(
+        scenario
+    )
     if use_local or not HAS_INTERNET:
         cmd_events = get_cmd_events_from_local(scenario)
     else:
@@ -1144,10 +1146,36 @@ def get_cmd_events_from_sheet(scenario: str | None) -> Table:
     ValueError
         If the request to fetch the Google Sheet fails.
     """
-    # Check if the scenario is a Google Sheet ID or uses a default configuration ID.
-    doc_id = scenario if is_google_id(scenario) else conf.cmd_events_flight_id
+    if scenario == "working":
+        # This special scenario uses both the flight and working sheets.
+        doc_ids = [conf.cmd_events_flight_id, conf.cmd_events_working_id]
+    else:
+        # Check if the scenario is a Google Sheet ID or uses a default configuration ID.
+        doc_id = scenario if is_google_id(scenario) else conf.cmd_events_flight_id
+        doc_ids = [doc_id]
 
-    # Fetch the command events from the Google Sheet URL.
+    cmd_events_list = []
+    for doc_id in doc_ids:
+        # Fetch the command events from the Google Sheet URL.
+        cmd_events = read_cmd_events_from_sheet(doc_id)
+        cmd_events_list.append(cmd_events)
+
+    # Combine command events from multiple documents if necessary.
+    if len(cmd_events_list) == 1:
+        cmd_events = cmd_events_list[0]
+    else:
+        cmd_events = vstack_exact(cmd_events_list)
+
+    # Ensure the scenario directory exists and write file
+    paths.SCENARIO_DIR(scenario).mkdir(parents=True, exist_ok=True)
+    cmd_events_path = paths.CMD_EVENTS_PATH(scenario)
+    logger.info(f"Writing {len(cmd_events)} cmd_events to {cmd_events_path}")
+    cmd_events.write(cmd_events_path, format="csv", overwrite=True)
+
+    return cmd_events
+
+
+def read_cmd_events_from_sheet(doc_id):
     url = CMD_EVENTS_SHEET_URL.format(doc_id=doc_id)
     logger.info(f"Getting cmd_events from {url}")
     req = retry_func(requests.get)(url, timeout=5)
@@ -1160,13 +1188,6 @@ def get_cmd_events_from_sheet(scenario: str | None) -> Table:
     # Remove blank rows from Google sheet export
     ok = [cmd_event["Date"].strip() != "" for cmd_event in cmd_events]
     cmd_events = cmd_events[ok]
-
-    # Ensure the scenario directory exists and write file
-    paths.SCENARIO_DIR(scenario).mkdir(parents=True, exist_ok=True)
-    cmd_events_path = paths.CMD_EVENTS_PATH(scenario)
-    logger.info(f"Writing {len(cmd_events)} cmd_events to {cmd_events_path}")
-    cmd_events.write(cmd_events_path, format="csv", overwrite=True)
-
     return cmd_events
 
 
