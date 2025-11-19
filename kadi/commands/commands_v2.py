@@ -388,7 +388,7 @@ def update_cmds_list_for_in_work_loads(
         cmds = get_load_cmds_from_occweb_or_local(
             IN_WORK_LOADS_OCCWEB_DIR,
             load_name,
-            archive=False,
+            in_work=True,
         )
         cmds.meta["rltt"] = cmds.get_rltt()
         logger.info(
@@ -1303,13 +1303,13 @@ def get_load_cmds_from_occweb_or_local(
     dir_year_month=None,
     load_name=None,
     *,
-    archive=True,
+    in_work=False,
 ) -> CommandTable:
     """Get the load cmds (backstop) for ``load_name`` within ``dir_year_month``
 
-    If the backstop file is already available locally, use that. Otherwise, the
-    file is downloaded from OCCweb and is then parsed and saved as a gzipped
-    pickle file of the corresponding CommandTable object.
+    If the backstop file is already available locally, use that. Otherwise, the file is
+    downloaded from OCCweb and is then parsed and saved as a gzipped pickle file of the
+    corresponding CommandTable object.
 
     Parameters
     ----------
@@ -1317,6 +1317,9 @@ def get_load_cmds_from_occweb_or_local(
         Path to the directory containing the ``load_name`` directory.
     load_name : str
         Load name in the usual format e.g. JAN0521A.
+    in_work : bool
+        If True then the backstop file is in-work and should not be saved in the command
+        loads archive (~/.kadi/loads by default).
 
     Returns
     -------
@@ -1325,7 +1328,7 @@ def get_load_cmds_from_occweb_or_local(
     """
     # Determine output file name and make directory if necessary.
     cmds_filename = None
-    if archive:
+    if not in_work:
         loads_dir = paths.LOADS_ARCHIVE_DIR()
         loads_dir.mkdir(parents=True, exist_ok=True)
         cmds_filename = loads_dir / f"{load_name}.pkl.gz"
@@ -1347,7 +1350,7 @@ def get_load_cmds_from_occweb_or_local(
                 timeout=10,
             )
             cmds = parse_backstop(load_name, backstop_text)
-            if archive:
+            if not in_work:
                 write_backstop(cmds, cmds_filename)
             break
     else:
