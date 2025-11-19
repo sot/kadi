@@ -19,7 +19,6 @@ import numpy as np
 import requests
 from astropy.table import Table
 from cxotime import CxoTime
-from parse_cm.paths import load_dir_from_load_name
 from ska_helpers.retry import retry_func
 from ska_sun import get_nsm_attitude
 from testr.test_helper import has_internet
@@ -43,10 +42,6 @@ from kadi.commands.core import (
 from kadi.config import conf
 
 __all__ = ["clear_caches", "get_cmds"]
-
-# TODO configuration options, but use DEFAULT_* in the mean time
-
-MATCHING_BLOCK_SIZE = 500
 
 # TODO: cache translation from cmd_events to CommandTable's  [Probably not]
 
@@ -393,7 +388,7 @@ def update_cmds_list_for_in_work_loads(
         cmds = get_load_cmds_from_occweb_or_local(
             IN_WORK_LOADS_OCCWEB_DIR,
             load_name,
-            archive=False,
+            in_work=True,
         )
         cmds.meta["rltt"] = cmds.get_rltt()
         logger.info(
@@ -697,6 +692,7 @@ def get_state_cmds(cmds):
         "AOUPTARQ",
         "AONM2NPE",
         "AONM2NPD",
+        "OBSID",
     ]
 
     if cmds["tlmsid"].dtype.kind == "S":
@@ -928,6 +924,7 @@ def get_cmds_obs_final(
     # use values that are not None to avoid errors. For `sim_pos`, if the SIM
     # has not been commanded in a long time then it will be at -99616.
     obsid = -1 if prev_obsid is None else prev_obsid
+    obsid_sched = -1 if prev_obsid is None else prev_obsid
     starcat_idx = None
     starcat_date = None
     sim_pos = -99616 if prev_simpos is None else prev_simpos
@@ -947,6 +944,10 @@ def get_cmds_obs_final(
                 )
             else:
                 starcat_idx = cmd["idx"]
+
+        elif tlmsid == "OBSID":
+            obsid_sched = cmd["params"]["id"]
+
         elif tlmsid == "COAOSQID":
             obsid = cmd["params"]["id"]
             # Look for obsid change within obs, likely an undercover
@@ -975,6 +976,7 @@ def get_cmds_obs_final(
         elif tlmsid == "OBS":
             obs_params = cmd["params"]
             obs_params["obsid"] = obsid
+            obs_params["obsid_sched"] = obsid_sched
             obs_params["simpos"] = sim_pos  # matches states 'simpos'
             obs_params["obs_start"] = cmd["date"]
             if obs_params["npnt_enab"]:
@@ -1322,14 +1324,13 @@ def get_load_cmds_from_occweb_or_local(
     dir_year_month=None,
     load_name=None,
     *,
-    use_ska_dir=False,
-    archive=True,
+    in_work=False,
 ) -> CommandTable:
     """Get the load cmds (backstop) for ``load_name`` within ``dir_year_month``
 
-    If the backstop file is already available locally, use that. Otherwise, the
-    file is downloaded from OCCweb and is then parsed and saved as a gzipped
-    pickle file of the corresponding CommandTable object.
+    If the backstop file is already available locally, use that. Otherwise, the file is
+    downloaded from OCCweb and is then parsed and saved as a gzipped pickle file of the
+    corresponding CommandTable object.
 
     Parameters
     ----------
@@ -1337,56 +1338,45 @@ def get_load_cmds_from_occweb_or_local(
         Path to the directory containing the ``load_name`` directory.
     load_name : str
         Load name in the usual format e.g. JAN0521A.
+    in_work : bool
+        If True then the backstop file is in-work and should not be saved in the command
+        loads archive (~/.kadi/loads by default).
 
     Returns
     -------
     CommandTable
         Backstop commands for the load.
     """
-    # Determine output file name and make directory if necessary.
-    cmds_filename = None
-    if archive:
-        loads_dir = paths.LOADS_ARCHIVE_DIR()
-        loads_dir.mkdir(parents=True, exist_ok=True)
-        cmds_filename = loads_dir / f"{load_name}.pkl.gz"
+    # Determine archived local gzip file name
+    cmds_filename = paths.LOADS_ARCHIVE_DIR() / f"{load_name}.pkl.gz"
 
+    if not in_work and cmds_filename.exists():
         # If the output file already exists, read the commands and return them.
-        if cmds_filename.exists():
-            logger.info(f"Already have {cmds_filename}")
-            with gzip.open(cmds_filename, "rb") as fh:
-                cmds = pickle.load(fh)
-            return cmds
+        logger.info(f"Already have {cmds_filename}")
+        with gzip.open(cmds_filename, "rb") as fh:
+            cmds = pickle.load(fh)
+        cmds = add_load_event_obsid_cmds(cmds)
+        return cmds
 
-    if use_ska_dir:
-        ska_dir = load_dir_from_load_name(load_name)
-        for filename in ska_dir.glob("CR????????.backstop"):
-            backstop_text = filename.read_text()
-            logger.info(f"Got backstop from {filename}")
-            cmds = parse_backstop(load_name, backstop_text)
-            if archive:
-                write_backstop(cmds, cmds_filename)
+    # Find the backstop file on OCCweb
+    load_dir_contents = occweb.get_occweb_dir(dir_year_month / load_name, timeout=5)
+    for filename in load_dir_contents["Name"]:
+        if re.match(r"CR\d{3}.\d{4}\.backstop", filename):
             break
-        else:
-            raise ValueError(f"No backstop file found in {ska_dir}")
-
-    else:  # use OCCweb
-        load_dir_contents = occweb.get_occweb_dir(dir_year_month / load_name, timeout=5)
-        for filename in load_dir_contents["Name"]:
-            if re.match(r"CR\d{3}.\d{4}\.backstop", filename):
-                # Download the backstop file from OCCweb
-                backstop_text = occweb.get_occweb_page(
-                    dir_year_month / load_name / filename,
-                    cache=conf.cache_loads_in_astropy_cache,
-                    timeout=10,
-                )
-                cmds = parse_backstop(load_name, backstop_text)
-                if archive:
-                    write_backstop(cmds, cmds_filename)
-                break
-        else:
-            raise ValueError(
-                f"Could not find backstop file in {dir_year_month / load_name}"
-            )
+    else:
+        raise ValueError(
+            f"Could not find backstop file in {dir_year_month / load_name}"
+        )
+    # Download the backstop file from OCCweb
+    backstop_text = occweb.get_occweb_page(
+        dir_year_month / load_name / filename,
+        cache=conf.cache_loads_in_astropy_cache,
+        timeout=10,
+    )
+    cmds = parse_backstop(load_name, backstop_text)
+    if not in_work:
+        write_backstop(cmds, cmds_filename)
+    cmds = add_load_event_obsid_cmds(cmds)
 
     return cmds
 
@@ -1404,7 +1394,24 @@ def parse_backstop(load_name: str, backstop_text: str):
     idx = cmds.colnames.index("timeline_id")
     cmds.add_column(load_name, index=idx, name="source")
     del cmds["timeline_id"]
+
     return cmds
+
+
+def add_load_event_obsid_cmds(cmds: CommandTable) -> CommandTable:
+    """Add OBSID commands in vehicle loads corresponding to COAOSQID commands.
+
+    This allows tracking of the scheduled OBSID in the event of an SCS-107 where the
+    original COAOSQID commands in the observing loads are dropped. The load event cmds
+    are placed in the vehicle loads so they get stopped if vehicle loads are stopped
+    by NSM etc.
+    """
+    cmds_obsid = cmds[cmds["tlmsid"] == "COAOSQID"]
+    cmds_obsid["type"] = "LOAD_EVENT"
+    cmds_obsid["tlmsid"] = "OBSID"
+    cmds_obsid["scs"] -= 3
+
+    return cmds.add_cmds(cmds_obsid)
 
 
 def write_backstop(cmds: CommandTable, cmds_filename: str | Path):
@@ -1412,6 +1419,8 @@ def write_backstop(cmds: CommandTable, cmds_filename: str | Path):
 
     This function saves a CommandTable object to disk as a compressed pickle file.
     ``cmds_filename`` is normally the kadi loads archive directory.
+
+    It also creates the parent directories as needed.
 
     Parameters
     ----------
@@ -1423,6 +1432,7 @@ def write_backstop(cmds: CommandTable, cmds_filename: str | Path):
 
     """
     logger.info(f"Saving {cmds_filename}")
+    Path(cmds_filename).parent.mkdir(parents=True, exist_ok=True)
     with gzip.open(cmds_filename, "wb") as fh:
         pickle.dump(cmds, fh)
 
@@ -1553,20 +1563,21 @@ def get_matching_block_idx(cmds_arch, cmds_recent):
     diff = difflib.SequenceMatcher(a=arch_vals, b=recent_vals, autojunk=False)
 
     matching_blocks = diff.get_matching_blocks()
-    logger.info("Matching blocks for (a) recent commands and (b) existing HDF5")
-    for block in matching_blocks:
-        logger.info("  {}".format(block))
     opcodes = diff.get_opcodes()
-    logger.info("Diffs between (a) recent commands and (b) existing HDF5")
-    for opcode in opcodes:
-        logger.info("  {}".format(opcode))
     # Find the first matching block that is sufficiently long
     for block in matching_blocks:
-        if block.size > MATCHING_BLOCK_SIZE:
+        if block.size > conf.matching_block_size:
             break
     else:
+        logger.info("Matching blocks for (a) recent commands and (b) existing HDF5")
+        for block in matching_blocks:
+            logger.info("  {}".format(block))
+        logger.info("Diffs between (a) recent commands and (b) existing HDF5")
+        for opcode in opcodes:
+            logger.info("  {}".format(opcode))
+
         raise ValueError(
-            f"No matching blocks at least {MATCHING_BLOCK_SIZE} long. This most likely "
+            f"No matching blocks at least {conf.matching_block_size} long. This most likely "
             "means that you have not recently synced your local Ska data using `ska_sync`."
         )
 
