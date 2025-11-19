@@ -1390,37 +1390,36 @@ def get_load_cmds_from_occweb_or_local(
     CommandTable
         Backstop commands for the load.
     """
-    # Determine output file name and make directory if necessary.
-    cmds_filename = None
-    if not in_work:
-        loads_dir = paths.LOADS_ARCHIVE_DIR()
-        loads_dir.mkdir(parents=True, exist_ok=True)
-        cmds_filename = loads_dir / f"{load_name}.pkl.gz"
+    # Determine archived local gzip file name
+    cmds_filename = paths.LOADS_ARCHIVE_DIR() / f"{load_name}.pkl.gz"
 
+    if not in_work and cmds_filename.exists():
         # If the output file already exists, read the commands and return them.
-        if cmds_filename.exists():
-            logger.info(f"Already have {cmds_filename}")
-            with gzip.open(cmds_filename, "rb") as fh:
-                cmds = pickle.load(fh)
-            return cmds
+        logger.info(f"Already have {cmds_filename}")
+        with gzip.open(cmds_filename, "rb") as fh:
+            cmds = pickle.load(fh)
+        cmds = add_load_event_obsid_cmds(cmds)
+        return cmds
 
+    # Find the backstop file on OCCweb
     load_dir_contents = occweb.get_occweb_dir(dir_year_month / load_name, timeout=5)
     for filename in load_dir_contents["Name"]:
         if re.match(r"CR\d{3}.\d{4}\.backstop", filename):
-            # Download the backstop file from OCCweb
-            backstop_text = occweb.get_occweb_page(
-                dir_year_month / load_name / filename,
-                cache=conf.cache_loads_in_astropy_cache,
-                timeout=10,
-            )
-            cmds = parse_backstop(load_name, backstop_text)
-            if not in_work:
-                write_backstop(cmds, cmds_filename)
             break
     else:
         raise ValueError(
             f"Could not find backstop file in {dir_year_month / load_name}"
         )
+    # Download the backstop file from OCCweb
+    backstop_text = occweb.get_occweb_page(
+        dir_year_month / load_name / filename,
+        cache=conf.cache_loads_in_astropy_cache,
+        timeout=10,
+    )
+    cmds = parse_backstop(load_name, backstop_text)
+    if not in_work:
+        write_backstop(cmds, cmds_filename)
+    cmds = add_load_event_obsid_cmds(cmds)
 
     return cmds
 
@@ -1439,17 +1438,23 @@ def parse_backstop(load_name: str, backstop_text: str):
     cmds.add_column(load_name, index=idx, name="source")
     del cmds["timeline_id"]
 
-    # Add OBSID load event commands to track the scheduled obsid in the event of an
-    # SCS-107 where the original COAOSQID commands in the observing loads are dropped.
+    return cmds
+
+
+def add_load_event_obsid_cmds(cmds: CommandTable) -> CommandTable:
+    """Add OBSID commands in vehicle loads corresponding to COAOSQID commands.
+
+    This allows tracking of the scheduled OBSID in the event of an SCS-107 where the
+    original COAOSQID commands in the observing loads are dropped. The load event cmds
+    are placed in the vehicle loads so they get stopped if vehicle loads are stopped
+    by NSM etc.
+    """
     cmds_obsid = cmds[cmds["tlmsid"] == "COAOSQID"]
     cmds_obsid["type"] = "LOAD_EVENT"
     cmds_obsid["tlmsid"] = "OBSID"
-    # Move these load event cmds to vehicle loads. They will be stopped if vehicle loads
-    # are stopped.
     cmds_obsid["scs"] -= 3
-    cmds = cmds.add_cmds(cmds_obsid)
 
-    return cmds
+    return cmds.add_cmds(cmds_obsid)
 
 
 def write_backstop(cmds: CommandTable, cmds_filename: str | Path):
@@ -1457,6 +1462,8 @@ def write_backstop(cmds: CommandTable, cmds_filename: str | Path):
 
     This function saves a CommandTable object to disk as a compressed pickle file.
     ``cmds_filename`` is normally the kadi loads archive directory.
+
+    It also creates the parent directories as needed.
 
     Parameters
     ----------
@@ -1468,6 +1475,7 @@ def write_backstop(cmds: CommandTable, cmds_filename: str | Path):
 
     """
     logger.info(f"Saving {cmds_filename}")
+    Path(cmds_filename).parent.mkdir(parents=True, exist_ok=True)
     with gzip.open(cmds_filename, "wb") as fh:
         pickle.dump(cmds, fh)
 
