@@ -1367,7 +1367,6 @@ def get_load_cmds_from_occweb_or_local(
     dir_year_month=None,
     load_name=None,
     *,
-    use_ska_dir=False,
     archive=True,
 ) -> CommandTable:
     """Get the load cmds (backstop) for ``load_name`` within ``dir_year_month``
@@ -1408,36 +1407,23 @@ def get_load_cmds_from_occweb_or_local(
                 cmds = pickle.load(fh)
             return cmds
 
-    if use_ska_dir:
-        ska_dir = load_dir_from_load_name(load_name)
-        for filename in ska_dir.glob("CR????????.backstop"):
-            backstop_text = filename.read_text()
-            logger.info(f"Got backstop from {filename}")
+    load_dir_contents = occweb.get_occweb_dir(dir_year_month / load_name, timeout=5)
+    for filename in load_dir_contents["Name"]:
+        if re.match(r"CR\d{3}.\d{4}\.backstop", filename):
+            # Download the backstop file from OCCweb
+            backstop_text = occweb.get_occweb_page(
+                dir_year_month / load_name / filename,
+                cache=conf.cache_loads_in_astropy_cache,
+                timeout=10,
+            )
             cmds = parse_backstop(load_name, backstop_text)
             if archive:
                 write_backstop(cmds, cmds_filename)
             break
-        else:
-            raise ValueError(f"No backstop file found in {ska_dir}")
-
-    else:  # use OCCweb
-        load_dir_contents = occweb.get_occweb_dir(dir_year_month / load_name, timeout=5)
-        for filename in load_dir_contents["Name"]:
-            if re.match(r"CR\d{3}.\d{4}\.backstop", filename):
-                # Download the backstop file from OCCweb
-                backstop_text = occweb.get_occweb_page(
-                    dir_year_month / load_name / filename,
-                    cache=conf.cache_loads_in_astropy_cache,
-                    timeout=10,
-                )
-                cmds = parse_backstop(load_name, backstop_text)
-                if archive:
-                    write_backstop(cmds, cmds_filename)
-                break
-        else:
-            raise ValueError(
-                f"Could not find backstop file in {dir_year_month / load_name}"
-            )
+    else:
+        raise ValueError(
+            f"Could not find backstop file in {dir_year_month / load_name}"
+        )
 
     return cmds
 
