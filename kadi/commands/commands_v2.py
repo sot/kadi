@@ -415,7 +415,9 @@ def update_cmds_list_for_loads_in_backstop(
             load_name,
             archive=False,
         )
-        cmds.meta["rltt"] = cmds.get_rltt()
+        cmd_rltt = cmds.get_rltt_cmd()
+        cmd_rltt["params"]["load_path"] = load_path
+        cmds.meta["rltt"] = cmd_rltt["date"]
         logger.info(
             f"Adding {len(cmds)} commands from backstop load {load_path} "
             f"with RLTT={cmds.meta['rltt']}"
