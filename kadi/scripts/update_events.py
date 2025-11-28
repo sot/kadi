@@ -599,12 +599,29 @@ def main(args=None):
             for date_stop in date_stops:
                 with fetch.data_source(cheta_data_source):
                     update_event_model(EventModel, date_stop, opt.maude)
-        except Exception:
-            # Something went wrong, but press on with processing other EventModels
+        except Exception as exc:
+            import socket
+            import requests
             import traceback
+            import urllib3
 
-            logger.error(f"ERROR in processing {EventModel.__name__}")
-            logger.error(f"Traceback:\n{traceback.format_exc()}")
+            network_errors = (
+                socket.gaierror,
+                socket.timeout,
+                ConnectionError,
+                requests.ConnectionError,
+                requests.Timeout,
+                urllib3.exceptions.ReadTimeoutError,
+                urllib3.exceptions.MaxRetryError,
+            )
+
+            if isinstance(exc, network_errors):
+                logger.warning(
+                    f"Internet-related issue in processing {EventModel.__name__}: {exc}"
+                )
+            else:
+                logger.error(f"ERROR in processing {EventModel.__name__}")
+                logger.error(f"Traceback:\n{traceback.format_exc()}")
 
 
 if __name__ == "__main__":
