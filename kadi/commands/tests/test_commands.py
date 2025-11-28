@@ -1219,7 +1219,7 @@ def test_custom_scenario(monkeypatch, stop_date_2024_035_23_00_00):
     events.
 
     The flight FEB0524A loads starting at 2024:036:00:45:17.999 were approved but never
-    run due ot the NSM.
+    run due to the NSM.
 
     With "flight+custom", we expect the NSM and then the FEB0524A loads from the
     archive.
