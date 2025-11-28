@@ -183,7 +183,7 @@ def cmd_set_load_not_run(load_name, date=None):
     return (cmd,)
 
 
-def cmd_set_load_in_work(*args, date=None):
+def cmd_set_load_in_backstop(*args, date=None):
     # This is handled separately in update_cmds_list_for_in_work_loads()
     return None
 

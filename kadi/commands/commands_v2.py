@@ -19,7 +19,7 @@ import numpy as np
 import requests
 from astropy.table import Table
 from cxotime import CxoTime
-from parse_cm.paths import load_dir_from_load_name
+from parse_cm.paths import ParseLoadNameError, load_dir_from_load_name, parse_load_name
 from ska_helpers.retry import retry_func
 from ska_sun import get_nsm_attitude
 from testr.test_helper import has_internet
@@ -50,8 +50,11 @@ MATCHING_BLOCK_SIZE = 500
 
 # TODO: cache translation from cmd_events to CommandTable's  [Probably not]
 
+# Formally approved load products
 APPROVED_LOADS_OCCWEB_DIR = Path("FOT/mission_planning/PRODUCTS/APPR_LOADS")
-IN_WORK_LOADS_OCCWEB_DIR = Path("FOT/mission_planning/Backstop")
+
+# Products that are currently in-review or in-work.
+BACKSTOP_LOADS_OCCWEB_DIR = Path("FOT/mission_planning/Backstop")
 
 # URL to download google sheets `doc_id`
 # See https://stackoverflow.com/questions/33713084 (original question).
@@ -365,13 +368,18 @@ def get_cmds(
 # APR0122 commands will also not be in the archive.
 
 
-def update_cmds_list_for_in_work_loads(
-    cmd_events: Table, cmds_list: List[CommandTable]
+def update_cmds_list_for_loads_in_backstop(
+    cmd_events: Table,
+    cmds_list: List[CommandTable],
 ) -> None:
-    """Update ``cmds_list`` in place to add loads that are in-work and not yet approved.
+    """Update ``cmds_list`` in place to add loads that are in backstop and not approved.
 
-    This checks ``cmd_events`` for "Load in work" events and then reads those commands
-    and appends them to ``cmds_list``.
+    This checks ``cmd_events`` for "Load in backstop" events and then reads those
+    commands and appends them to ``cmds_list``.
+
+    The ``Params`` for each such event must correspond to a load directory in
+    https://occweb.cfa.harvard.edu/occweb/FOT/mission_planning/Backstop/ which has a
+    backstop file. This can be a load name
 
     Parameters
     ----------
@@ -380,24 +388,36 @@ def update_cmds_list_for_in_work_loads(
     cmds_list : list of CommandTable
         List of CommandTable objects to update in place.
     """
-    # Find loads that are "in work". Params is a single string with the load name.
-    ok = cmd_events["Event"] == "Load in work"
-    load_names = cmd_events["Params"][ok]
+    # Find loads that are "in backstop". Params is a single string with the load name.
+    ok = cmd_events["Event"] == "Load in backstop"
+    load_paths = cmd_events["Params"][ok]
 
-    if len(load_names) == 0:
+    if len(load_paths) == 0:
         return
 
-    for load_name in load_names:
+    for load_path in load_paths:
+        # Load path like SEP1025A then it lives in BACKSTOP_LOADS_OCCWEB_DIR, otherwise
+        # assume it is a relative path on OCCweb.
+        try:
+            parse_load_name(load_path)
+        except ParseLoadNameError:
+            parts = Path(load_path).parts
+            load_dir = Path(*parts[:-1])
+            load_name = parts[-1]
+        else:
+            load_dir = BACKSTOP_LOADS_OCCWEB_DIR
+            load_name = load_path
+
         # Read backstop commands but do not write them to the local kadi "loads"
         # archive. This is reserved for approved loads.
         cmds = get_load_cmds_from_occweb_or_local(
-            IN_WORK_LOADS_OCCWEB_DIR,
+            load_dir,
             load_name,
             archive=False,
         )
         cmds.meta["rltt"] = cmds.get_rltt()
         logger.info(
-            f"Adding {len(cmds)} commands from in-work load {load_name} "
+            f"Adding {len(cmds)} commands from backstop load {load_path} "
             f"with RLTT={cmds.meta['rltt']}"
         )
         cmds_list.append(cmds)
@@ -516,7 +536,7 @@ def update_cmd_events_and_loads_and_get_cmds_recent(
     else:
         logger.info("No cmd_events to include")
 
-    update_cmds_list_for_in_work_loads(cmd_events, cmds_list)
+    update_cmds_list_for_loads_in_backstop(cmd_events, cmds_list)
 
     for cmd_event in cmd_events:
         cmds = get_cmds_from_event(
@@ -1100,15 +1120,12 @@ def update_cmd_events(
     else:
         event_filters = list(event_filter)
 
-    # Named scenarios with a name that isn't "flight" and does not look like a
-    # google sheet ID are local files.
-    use_local = scenario not in (None, "flight", "working") and not is_google_id(
-        scenario
-    )
-    if use_local or not HAS_INTERNET:
+    # Get sheet doc ids for scenario, or [] if not applicable
+    doc_ids = get_sheet_doc_ids_for_scenario(scenario)
+    if not doc_ids or not HAS_INTERNET:
         cmd_events = get_cmd_events_from_local(scenario)
     else:
-        cmd_events = get_cmd_events_from_sheet(scenario)
+        cmd_events = get_cmd_events_from_sheet(scenario, doc_ids)
 
     # Filter table based on State column (if available)
     if "State" in cmd_events.colnames:
@@ -1127,14 +1144,17 @@ def update_cmd_events(
     return cmd_events
 
 
-def get_cmd_events_from_sheet(scenario: str | None) -> Table:
+def get_cmd_events_from_sheet(scenario: str | None, doc_ids: list[str]) -> Table:
     """
     Fetch command events from Google Sheet for ``scenario`` and write to a CSV file.
 
     Parameters
     ----------
     scenario : str, None
-        Scenario identifier, which can be a Google Sheet ID or another identifier.
+        Scenario identifier, which can be a Google Sheet ID or one of the special
+        scenarios ("flight", "custom", "flight+custom", or None).
+    doc_ids : list[str]
+        Google sheet doc ids from which to read events, corresponding to the scenario.
 
     Returns
     -------
@@ -1146,25 +1166,18 @@ def get_cmd_events_from_sheet(scenario: str | None) -> Table:
     ValueError
         If the request to fetch the Google Sheet fails.
     """
-    if scenario == "working":
-        # This special scenario uses both the flight and working sheets.
-        doc_ids = [conf.cmd_events_flight_id, conf.cmd_events_working_id]
-    else:
-        # Check if the scenario is a Google Sheet ID or uses a default configuration ID.
-        doc_id = scenario if is_google_id(scenario) else conf.cmd_events_flight_id
-        doc_ids = [doc_id]
-
     cmd_events_list = []
     for doc_id in doc_ids:
-        # Fetch the command events from the Google Sheet URL.
+        # Fetch the command events from the Google Sheet URL(s).
         cmd_events = read_cmd_events_from_sheet(doc_id)
         cmd_events_list.append(cmd_events)
 
     # Combine command events from multiple documents if necessary.
-    if len(cmd_events_list) == 1:
-        cmd_events = cmd_events_list[0]
-    else:
-        cmd_events = vstack_exact(cmd_events_list)
+    cmd_events = (
+        cmd_events_list[0]
+        if len(cmd_events_list) == 1
+        else vstack_exact(cmd_events_list)
+    )
 
     # Ensure the scenario directory exists and write file
     paths.SCENARIO_DIR(scenario).mkdir(parents=True, exist_ok=True)
@@ -1173,6 +1186,33 @@ def get_cmd_events_from_sheet(scenario: str | None) -> Table:
     cmd_events.write(cmd_events_path, format="csv", overwrite=True)
 
     return cmd_events
+
+
+def get_sheet_doc_ids_for_scenario(scenario) -> list[str]:
+    """Get Google sheet doc ids for a given scenario.
+
+    Parameters
+    ----------
+    scenario : str, None
+        Scenario name.
+
+    Returns
+    -------
+    list[str]
+        List of Google sheet document IDs. This will be an empty list if no
+        Google sheet(s) are associated with the scenario.
+    """
+    if scenario in ("flight", None):
+        doc_ids = [conf.cmd_events_flight_id]
+    elif scenario == "custom":
+        doc_ids = [conf.cmd_events_custom_id]
+    elif scenario == "flight+custom":
+        doc_ids = [conf.cmd_events_flight_id, conf.cmd_events_custom_id]
+    elif is_google_id(scenario):
+        doc_ids = [scenario]
+    else:
+        doc_ids = []
+    return doc_ids
 
 
 def read_cmd_events_from_sheet(doc_id):
