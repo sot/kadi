@@ -138,9 +138,12 @@ def get_event_models(baseclass=None):
             # Make an instance of event class to discover if it is an abstact base class.
             try:
                 event = var()
-            except TypeError:
+            except TypeError as err:
                 # Probably an abstract base class that can't be instantiated
-                continue
+                if "Abstract models cannot be instantiated" in str(err):
+                    continue
+                else:
+                    raise
             else:
                 # Compatibility with Django < 1.8-ish
                 if not event._meta.abstract:
