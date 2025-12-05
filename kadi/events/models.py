@@ -2552,7 +2552,7 @@ class Orbit(BaseEvent):
         events = []
         for orbit in orbits:
             ok = orbit_points["orbit_num"] == orbit["orbit_num"]
-            event = {key: orbit[key] for key in orbit.dtype.names}
+            event = {key: orbit[key].item() for key in orbit.dtype.names}
             event["foreign"] = {
                 "OrbitPoint": orbit_points[ok],
                 "RadZone": [orbit_funcs.get_radzone_from_orbit(orbit)],
