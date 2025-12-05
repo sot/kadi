@@ -326,9 +326,9 @@ def get_cmds_from_backstop(backstop, remove_starcat=False):
     out = {}
     # Set idx to -1 so it does not match any real idx
     out["idx"] = np.full(n_bs, fill_value=-1, dtype=np.int32)
-    out["date"] = np.chararray.encode(bs["date"])
-    out["type"] = np.chararray.encode(bs["type"])
-    out["tlmsid"] = np.chararray.encode(bs["tlmsid"])
+    out["date"] = np.char.encode(bs["date"])
+    out["type"] = np.char.encode(bs["type"])
+    out["tlmsid"] = np.char.encode(bs["tlmsid"])
     out["scs"] = bs["scs"].astype(np.uint8)
     out["step"] = bs["step"].astype(np.uint16)
     out["time"] = CxoTime(bs["date"], format="date").secs
