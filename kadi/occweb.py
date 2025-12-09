@@ -303,6 +303,11 @@ def get_occweb_page(
     if isinstance(path, str) and path.startswith("https://occweb"):
         url = path
     else:
+        path = Path(path)
+        # Handle the case of providing an absolute path into the OCCweb tree, e.g.
+        # /FOT/mission_planning/Backstop instead of FOT/mission_planning/Backstop.
+        if path.is_absolute():
+            path = path.relative_to(path.anchor)
         url = ROOTURL + (Path("/occweb") / path).as_posix()
 
     logger.info(f"Getting OCCweb {path} with {cache=}")
