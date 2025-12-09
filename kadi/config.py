@@ -52,7 +52,7 @@ class Conf(ConfigNamespace):
     )
 
     cmd_events_custom_id = ConfigItem(
-        "1dGEf5FvD43JrsVy41LvCN3PNKKsbHIgYfx5Z7D5oXZk",
+        "11p7_WRfOzuOMwASRGTdv1gjF-Kc-vm6zN59ZcYC5Lzo",
         "Google Sheet ID of command events also include for 'custom' scenario).",
     )
 
