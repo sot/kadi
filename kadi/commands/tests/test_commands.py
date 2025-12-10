@@ -31,6 +31,7 @@ from kadi.commands import (
     read_backstop,
 )
 from kadi.commands.command_sets import get_cmds_from_event
+from kadi.commands.commands_v2 import read_cmd_events_from_sheet
 from kadi.scripts import update_cmds_v2
 
 HAS_MPDIR = Path(os.environ["SKA"], "data", "mpcrit1", "mplogs", "2020").exists()
@@ -363,6 +364,7 @@ stop_date_2021_10_24 = stop_date_fixture_factory("2021-10-24T03:00:00")
 stop_date_2020_12_03 = stop_date_fixture_factory("2020-12-03")
 stop_date_2023_203 = stop_date_fixture_factory("2023:203")
 stop_date_2025_10_25 = stop_date_fixture_factory("2025-10-25")
+stop_date_2024_035_23_00_00 = stop_date_fixture_factory("2024:035:23:00:00")
 
 
 @pytest.mark.skipif(not HAS_INTERNET, reason="No internet connection")
@@ -1187,6 +1189,86 @@ def test_get_starcats_as_table():
     assert np.all(aces["starcat_date"] == dates)
     for name in aces_from_starcats.colnames:
         assert np.all(aces[name] == aces_from_starcats[name])
+
+
+def patched_read_cmd_events_from_sheet(doc_id):
+    """Monkey patch function for test_custom_scenario below"""
+    if doc_id == conf.cmd_events_custom_id:
+        evts = Table(
+            [
+                {
+                    "State": "Definitive",
+                    "Date": "2024:035:22:00:00",
+                    "Event": "Load in backstop",
+                    "Params": "FOT/mission_planning/Backstop/Archive/2024/02_feb/FEB0524A",
+                    "Author": "",
+                    "Reviewer": "",
+                    "Comment": "",
+                }
+            ]
+        )
+    else:
+        evts = read_cmd_events_from_sheet(doc_id)
+    return evts
+
+
+def test_custom_scenario(monkeypatch, stop_date_2024_035_23_00_00):
+    """Test "custom" scenario with a carefully constructed sequence of events.
+
+    Flight events include NSM at 2024:035:03:27:11.000 and a number of other command
+    events.
+
+    The flight FEB0524A loads starting at 2024:036:00:45:17.999 were approved but never
+    run due to the NSM.
+
+    With "flight+custom", we expect the NSM and then the FEB0524A loads from the
+    archive.
+
+    With only "custom", there was no NSM but we still get the FEB0524A loads from the
+    archive.
+    """
+    monkeypatch.setattr(
+        kadi.commands.commands_v2,
+        "read_cmd_events_from_sheet",
+        patched_read_cmd_events_from_sheet,
+    )
+    exps = {
+        "flight+custom": {
+            "feb0524a": 2543,
+            "jan2924a": 2105,
+            "jan2624a": 220,
+            "cmd_evt": 22,
+        },
+        "custom": {  # No NSM, so more JAN2924A load commands and no CMD_EVT's
+            "feb0524a": 2543,
+            "jan2924a": 2377,
+            "jan2624a": 220,
+            "cmd_evt": 0,
+        },
+    }
+    for scenario in ("flight+custom", "custom"):
+        exp = exps[scenario]
+        cmds = commands.get_cmds("2024:028", "2024:050", scenario=scenario)
+        sources = {"FEB0524A", "JAN2924A", "JAN2624A"}
+        if scenario == "flight+custom":
+            sources.add("CMD_EVT")
+        assert set(cmds["source"]) == sources
+        assert len(cmds[cmds["source"] == "FEB0524A"]) == exp["feb0524a"]
+        assert len(cmds[cmds["source"] == "JAN2924A"]) == exp["jan2924a"]
+        assert len(cmds[cmds["source"] == "JAN2624A"]) == exp["jan2624a"]
+        assert len(cmds[cmds["source"] == "CMD_EVT"]) == exp["cmd_evt"]
+
+        # Select RLTT and SST cmds, then get RLTT cmd
+        ok = (
+            (cmds["source"] == "FEB0524A")
+            & (cmds["tlmsid"] == "None")
+            & (cmds["type"] == "LOAD_EVENT")
+        )
+        cmd_rltt = cmds[ok][0]
+        assert cmd_rltt["params"] == {
+            "event_type": "RUNNING_LOAD_TERMINATION_TIME",
+            "load_path": "FOT/mission_planning/Backstop/Archive/2024/02_feb/FEB0524A",
+        }
 
 
 @pytest.mark.parametrize(
