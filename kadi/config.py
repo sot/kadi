@@ -48,7 +48,12 @@ class Conf(ConfigNamespace):
 
     cmd_events_flight_id = ConfigItem(
         "19d6XqBhWoFjC-z1lS1nM6wLE_zjr4GYB1lOvrEGCbKQ",
-        "Google Sheet ID for command events (flight scenario).",
+        "Google Sheet ID for command events ('flight' or default scenario).",
+    )
+
+    cmd_events_custom_id = ConfigItem(
+        "11p7_WRfOzuOMwASRGTdv1gjF-Kc-vm6zN59ZcYC5Lzo",
+        "Google Sheet ID of command events also include for 'custom' scenario).",
     )
 
     cmd_events_exclude_intervals_gid = ConfigItem(
