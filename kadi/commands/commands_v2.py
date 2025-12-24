@@ -1379,6 +1379,12 @@ def get_load_cmds_from_occweb_or_local(
         Path to the directory containing the ``load_name`` directory.
     load_name : str
         Load name in the usual format e.g. JAN0521A.
+    use_ska_dir : bool
+        If True, get the backstop from the SKA directory structure instead of
+        OCCweb.
+    archive : bool
+        If True, save the backstop commands as a gzipped pickle file in the
+        loads archive directory.
 
     Returns
     -------
