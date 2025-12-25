@@ -82,6 +82,24 @@ Any row can be used for comments so long as the =State= column is left blank (te
 
 The following sections list the available command event types (=Event= column), and where applicable the content and format of the =Params= column. Examples of all of these can be found in the Command Events sheet, which is likely the quickest way to understand the fields.
 
+The available command events are:
+
+   * [[#CommandAnchor][Command]]: Add a single backstop command.
+   * [[#CommandNotRunAnchor][Command not run]]: Mark a command as not having run.
+   * [[#DitherAnchor][Dither]]: Enable or disable spacecraft dithering.
+   * [[#HrcNotRunAnchor][HRC not run]]: Indicate HRC observations were disabled for a load.
+   * [[#LoadNotRunAnchor][Load not run]]: Mark entire approved loads as not executed.
+   * [[#ManeuverAnchor][Maneuver]]: Execute maneuver to specific attitude quaternion.
+   * [[#ManeuverSunPitchAnchor][Maneuver sun pitch]]: Maneuver to specified absolute Sun pitch angle.
+   * [[#ManeuverSunRaslAnchor][Maneuver sun rasl]]: Rotate about Sun line by relative angle.
+   * [[#NsmAnchor][NSM]]: Normal Sun Mode transition with SCS-107 and dither off.
+   * [[#ObservingNotRunAnchor][Observing not run]]: Mark observing loads as not run (vehicle loads only).
+   * [[#ObsidAnchor][Obsid]]: Manually set observation ID.
+   * [[#RtsAnchor][RTS]]: Execute Real Time Sequence with parameters.
+   * [[#SafeModeAnchor][Safe mode]]: Safe mode transition including NSM command set.
+   * [[#Scs107Anchor][SCS-107]]: Autonomous safing sequence execution.
+
+#CommandAnchor
 ---+++ =Command=
 
 Enter a backstop command directly.  =PARAMS= should be in the format:
@@ -99,6 +117,7 @@ Example =Params= value:
 
 Note that details like the HEX, SCS, STEP are accepted but not necessary since they do not impact kadi state generation.
 
+#CommandNotRunAnchor
 ---+++ =Command not run=
 
 Enter a backstop command directly.  =PARAMS= should be in the format:
@@ -112,18 +131,22 @@ Example =Params= values:
 <verbatim>
   COMMAND_SW | TLMSID= COACTSX, COACTS1=134</verbatim>
 
+#DitherAnchor
 ---+++ =Dither=
 
 Enable or disable dither. This could be needed during NSM recovery (step 4 of the NSM/BSH recovery SOP). The =Params= column should contain either =ON= or =OFF=.
 
+#HrcNotRunAnchor
 ---+++ =HRC not run=
 
 Indicate that HRC observations following the event =Date= were disabled. Whether they were disabled manually via F_HRC_SAFING or autonomously by the OBC, the same event still applies. Use the event =HRC not run=. The =Params= column must include the load name, e.g.  =DEC1123A=. For every week that would not run its HRC observations, a new entry must be added. For example, F_HRC_SAFING was run halfway through the  NOV2324B loads, and it was known that the approved DEC0224A loads would also not run its HRC observations, thus two entries were needed: one for NOV2324B and one for DEC0224A. If it remained off for DEC0924A, _and there were HRC observations in that loads set_, another entry would have been required. However, the commanding is not explicitly required for loads that do not contain HRC observations, but coordinate with Tom and Jean about whether to include them anyway.
 
+#LoadNotRunAnchor
 ---+++ =Load not run=
 
 Indicate that the approved loads were not actually run, meaning the loads were waived off entirely after approval. The =Params= column must include the load name, e.g.  =OCT2521A=. For the time, use the first command time in the loads.
 
+#ManeuverAnchor
 ---+++ =Maneuver=
 
 Execute a maneuver to the attitude, expressed as a space-delimited quaternion 4-vector. Example =Params=:
@@ -131,6 +154,7 @@ Execute a maneuver to the attitude, expressed as a space-delimited quaternion 4-
 <verbatim>
 -0.0447033 0.6350255 -0.6757591 0.3716099</verbatim>
 
+#ManeuverSunPitchAnchor
 ---+++ =Maneuver sun pitch=
 
 Execute a maneuver to the specified absolute Sun pitch angle in deg. This is intended to implement a NSM or SSM offset pitch to a given angle. Example =Params=:
@@ -138,6 +162,7 @@ Execute a maneuver to the specified absolute Sun pitch angle in deg. This is int
 <verbatim>
 160</verbatim>
 
+#ManeuverSunRaslAnchor
 ---+++ =Maneuver sun rasl=
 
 Execute a maneuver which rotates about the Sun line by the specified *relative angle* in deg. This can be used to implement a yaw bias maneuver in NSM or SSM by a given angle. If the spacecraft supports it, this could also implement a rotation about the Sun line at an offset pitch (e.g. managing momentum at a 160 offset pitch).
@@ -162,6 +187,7 @@ Example =Params=:
 
 NOTE: the RASL =angle= includes the sign of the rotation whereas the =rate= is always positve.
 
+#NsmAnchor
 ---+++ =NSM=
 
 This includes the =SCS-107= command set along with dither off and the OBC NSM transition command (which by default does a pure-pitch maneuver from the current attitude to 90 pitch). No parameters are required, but most commonly you should include the offset pitch angle of 160. Example =Params=:
@@ -169,10 +195,12 @@ This includes the =SCS-107= command set along with dither off and the OBC NSM tr
 <verbatim>
 160</verbatim>
 
+#ObservingNotRunAnchor
 ---+++ =Observing not run=
 
 Indicate that the observing segment of approved loads were not actually run, where only the vehicle loads got uplinked. The =Params= column must include the load name, e.g.  =OCT2821A=. The time used should be the first (actual) command in the backstop file.
 
+#ObsidAnchor
 ---+++ =Obsid=
 
 Set the obsid manually, e.g. in the event of a long stoppage. The =Params= column should contain the Obsid.
@@ -203,6 +231,7 @@ def obsid_changes(approx_time=None, telem_source="maude"):
 >>> obsid_changes("2025:315:17:20:00")
 65517 2025:315:17:12:14.132</verbatim>
 
+#RtsAnchor
 ---+++ =RTS=
 
 Run the specified RTS with specified input parameters. The =Params= column should be in the format =RTSLOAD,RTS_NAME,PARAM=VALUE,…=.
@@ -215,6 +244,7 @@ Example =Params= for a 39 hour 4-CCD ACIS CTI:
 
 Retrieve the time of the commanding from telemetry (e.g. MAUDE via query builder or your favorite MAUDE tool). To do this, either use the change in SCS-135 state, or use the change in radmon (CORADMEN). Use a small window around the iFOT commanding time to get the precise time from MAUDE telemetry.
 
+#SafeModeAnchor
 ---+++ =Safe mode=
 
 This includes the =NSM= command set. No parameters are required, but most commonly you should include the offset pitch angle of 160. Example =Params=:
@@ -222,6 +252,7 @@ This includes the =NSM= command set. No parameters are required, but most common
 <verbatim>
 160</verbatim>
 
+#Scs107Anchor
 ---+++ =SCS-107=
 
 This generates commands that reflect the key state-impacting effect of SCS-107, namely disable RADMON, turn off the fids, configure ACIS, translate the SIM and stop the observing loads. No parameters are required.
