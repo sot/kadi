@@ -112,47 +112,17 @@ Example =Params= values:
 <verbatim>
   COMMAND_SW | TLMSID= COACTSX, COACTS1=134</verbatim>
 
+---+++ =Dither=
+
+Enable or disable dither. This could be needed during NSM recovery (step 4 of the NSM/BSH recovery SOP). The =Params= column should contain either =ON= or =OFF=.
+
 ---+++ =HRC not run=
 
 Indicate that HRC observations following the event =Date= were disabled. Whether they were disabled manually via F_HRC_SAFING or autonomously by the OBC, the same event still applies. Use the event =HRC not run=. The =Params= column must include the load name, e.g.  =DEC1123A=. For every week that would not run its HRC observations, a new entry must be added. For example, F_HRC_SAFING was run halfway through the  NOV2324B loads, and it was known that the approved DEC0224A loads would also not run its HRC observations, thus two entries were needed: one for NOV2324B and one for DEC0224A. If it remained off for DEC0924A, _and there were HRC observations in that loads set_, another entry would have been required. However, the commanding is not explicitly required for loads that do not contain HRC observations, but coordinate with Tom and Jean about whether to include them anyway.
 
----+++ =SCS-107=
-
-This generates commands that reflect the key state-impacting effect of SCS-107, namely disable RADMON, turn off the fids, configure ACIS, translate the SIM and stop the observing loads. No parameters are required.
-
-You can get the exact time of the SCS-107 run using the following Ska Python commands, assuming you have an approximate time that is good to 20 minutes:
-
-<verbatim>
-from cheta import fetch
-from cxotime import CxoTime
-import astropy.units as u
-fetch.data_source.set('maude')
-date_approx = CxoTime('2022:087:12:47:00')  # <== CHANGE
-dat = fetch.Msid('AORWBIAS', date_approx - 20 * u.min, date_approx + 20 * u.min)
-t_scs107 = CxoTime(dat.times[dat.vals == 'DISA'][0]) - 2 * u.s
-print(t_scs107.date)</verbatim>
-
----+++ =NSM=
-
-This includes the =SCS-107= command set along with dither off and the OBC NSM transition command (which by default does a pure-pitch maneuver from the current attitude to 90 pitch). No parameters are required, but most commonly you should include the offset pitch angle of 160. Example =Params=:
-
-<verbatim>
-160</verbatim>
-
----+++ =Safe mode=
-
-This includes the =NSM= command set. No parameters are required, but most commonly you should include the offset pitch angle of 160. Example =Params=:
-
-<verbatim>
-160</verbatim>
-
 ---+++ =Load not run=
 
 Indicate that the approved loads were not actually run, meaning the loads were waived off entirely after approval. The =Params= column must include the load name, e.g.  =OCT2521A=. For the time, use the first command time in the loads.
-
----+++ =Observing not run=
-
-Indicate that the observing segment of approved loads were not actually run, where only the vehicle loads got uplinked. The =Params= column must include the load name, e.g.  =OCT2821A=. The time used should be the first (actual) command in the backstop file.
 
 ---+++ =Maneuver=
 
@@ -192,17 +162,16 @@ Example =Params=:
 
 NOTE: the RASL =angle= includes the sign of the rotation whereas the =rate= is always positve.
 
----+++ =RTS=
+---+++ =NSM=
 
-Run the specified RTS with specified input parameters. The =Params= column should be in the format =RTSLOAD,RTS_NAME,PARAM=VALUE,…=.
+This includes the =SCS-107= command set along with dither off and the OBC NSM transition command (which by default does a pure-pitch maneuver from the current attitude to 90 pitch). No parameters are required, but most commonly you should include the offset pitch angle of 160. Example =Params=:
 
-Example =Params= for a 39 hour 4-CCD ACIS CTI:
 <verbatim>
-  RTSLOAD,1_4_CTI,NUM_HOURS=39:00:00,SCS_NUM=135</verbatim>
+160</verbatim>
 
-*NOTE*: if =NUM_HOURS= is less than 10 hours you need to provide a leading zero, e.g. =NUM_HOURS=09:00:00=.
+---+++ =Observing not run=
 
-Retrieve the time of the commanding from telemetry (e.g. MAUDE via query builder or your favorite MAUDE tool). To do this, either use the change in SCS-135 state, or use the change in radmon (CORADMEN). Use a small window around the iFOT commanding time to get the precise time from MAUDE telemetry.
+Indicate that the observing segment of approved loads were not actually run, where only the vehicle loads got uplinked. The =Params= column must include the load name, e.g.  =OCT2821A=. The time used should be the first (actual) command in the backstop file.
 
 ---+++ =Obsid=
 
@@ -234,8 +203,39 @@ def obsid_changes(approx_time=None, telem_source="maude"):
 >>> obsid_changes("2025:315:17:20:00")
 65517 2025:315:17:12:14.132</verbatim>
 
----+++ =Dither=
+---+++ =RTS=
 
-Enable or disable dither. This could be needed during NSM recovery (step 4 of the NSM/BSH recovery SOP). The =Params= column should contain either =ON= or =OFF=.
+Run the specified RTS with specified input parameters. The =Params= column should be in the format =RTSLOAD,RTS_NAME,PARAM=VALUE,…=.
+
+Example =Params= for a 39 hour 4-CCD ACIS CTI:
+<verbatim>
+  RTSLOAD,1_4_CTI,NUM_HOURS=39:00:00,SCS_NUM=135</verbatim>
+
+*NOTE*: if =NUM_HOURS= is less than 10 hours you need to provide a leading zero, e.g. =NUM_HOURS=09:00:00=.
+
+Retrieve the time of the commanding from telemetry (e.g. MAUDE via query builder or your favorite MAUDE tool). To do this, either use the change in SCS-135 state, or use the change in radmon (CORADMEN). Use a small window around the iFOT commanding time to get the precise time from MAUDE telemetry.
+
+---+++ =Safe mode=
+
+This includes the =NSM= command set. No parameters are required, but most commonly you should include the offset pitch angle of 160. Example =Params=:
+
+<verbatim>
+160</verbatim>
+
+---+++ =SCS-107=
+
+This generates commands that reflect the key state-impacting effect of SCS-107, namely disable RADMON, turn off the fids, configure ACIS, translate the SIM and stop the observing loads. No parameters are required.
+
+You can get the exact time of the SCS-107 run using the following Ska Python commands, assuming you have an approximate time that is good to 20 minutes:
+
+<verbatim>
+from cheta import fetch
+from cxotime import CxoTime
+import astropy.units as u
+fetch.data_source.set('maude')
+date_approx = CxoTime('2022:087:12:47:00')  # <== CHANGE
+dat = fetch.Msid('AORWBIAS', date_approx - 20 * u.min, date_approx + 20 * u.min)
+t_scs107 = CxoTime(dat.times[dat.vals == 'DISA'][0]) - 2 * u.s
+print(t_scs107.date)</verbatim>
 
 -- %USERSIG{TomAldcroft - 2022-01-07}%
