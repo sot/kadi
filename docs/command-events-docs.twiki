@@ -196,7 +196,7 @@ The sign corresponds to the sign of the yaw bias in the =A_TIMED_YAWBIAS= RTS. F
 
 NOTE: _prior to MATLAB 2025040_, this is implemented internally as a normal Chandra maneuver (in NMAN) instead of a constant-rate rotation about the Sun line. Therefore the exact timing will be somewhat different from reality. In extreme cases this might impact momentum propagation if using kadi states for this calculation (if the yaw bias maneuver were done when gravity gradient torques are high).
 
-*Optional =rate= parameter (%RED% available with MATLAB tools 2025040 %ENDCOLOR%)*
+*Optional =rate= parameter*
 
 You can also enter a bias rate in =deg/s= as the second parameter. For example, a negative yaw bias of =0.02 deg/s= for =25 min= implies an angle of =-0.02 deg/s * 25 * 60 s = -30.0 deg=.
 
