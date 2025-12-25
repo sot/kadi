@@ -88,6 +88,7 @@ The available command events are:
    * [[#CommandNotRunAnchor][Command not run]]: Mark a command as not having run.
    * [[#DitherAnchor][Dither]]: Enable or disable spacecraft dithering.
    * [[#HrcNotRunAnchor][HRC not run]]: Indicate HRC observations were disabled for a load.
+   * [[#LoadInBackstopAnchor][Load in backstop]]: Include in-work backstop commands from OCCweb.
    * [[#LoadNotRunAnchor][Load not run]]: Mark entire approved loads as not executed.
    * [[#ManeuverAnchor][Maneuver]]: Execute maneuver to specific attitude quaternion.
    * [[#ManeuverSunPitchAnchor][Maneuver sun pitch]]: Maneuver to specified absolute Sun pitch angle.
@@ -140,6 +141,25 @@ Enable or disable dither. This could be needed during NSM recovery (step 4 of th
 ---+++ =HRC not run=
 
 Indicate that HRC observations following the event =Date= were disabled. Whether they were disabled manually via F_HRC_SAFING or autonomously by the OBC, the same event still applies. Use the event =HRC not run=. The =Params= column must include the load name, e.g.  =DEC1123A=. For every week that would not run its HRC observations, a new entry must be added. For example, F_HRC_SAFING was run halfway through the  NOV2324B loads, and it was known that the approved DEC0224A loads would also not run its HRC observations, thus two entries were needed: one for NOV2324B and one for DEC0224A. If it remained off for DEC0924A, _and there were HRC observations in that loads set_, another entry would have been required. However, the commanding is not explicitly required for loads that do not contain HRC observations, but coordinate with Tom and Jean about whether to include them anyway.
+
+#LoadInBackstopAnchor
+---+++ =Load in backstop=
+
+Include in-work backstop commands that are currently under development or review. This allows incorporating commands from loads that are not yet approved but are available on OCCweb for evaluation purposes.
+
+ %RED% Available with MATLAB tools 2026010 and Ska3 2026.1. %ENDCOLOR%
+
+The =Params= column can contain either:
+
+   * Load name like =SEP0825A=
+      * Commands from from [[https://occweb.cfa.harvard.edu/occweb/FOT/mission_planning/Backstop]]
+   * Full OCCweb path like =FOT/mission_planning/Backstop/Archive/2024/02_feb/FEB0524A=
+      * Primarily for testing or accessing archived loads.
+
+Example =Params= values:
+
+<verbatim>
+SEP0825A</verbatim>
 
 #LoadNotRunAnchor
 ---+++ =Load not run=
