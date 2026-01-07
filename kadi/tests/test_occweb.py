@@ -22,6 +22,18 @@ else:
     lucky.close()
 
 
+# Expected directory contents for MAR 2000 directory tests
+EXPECTED_MAR_DIR_CONTENTS = [
+    "      Name        Last modified   Size",
+    "---------------- ---------------- ----",
+    "Parent Directory               --    -",
+    "       MAR0500D/ 2002-04-30 13:38    -",
+    "       MAR1200D/ 2002-04-30 13:38    -",
+    "       MAR1900E/ 2004-03-18 13:44    -",
+    "       MAR2600C/ 2002-04-30 13:38    -",
+]
+
+
 def _test_put_get(user):
     filenames = ["test.dat", "test2.dat"]
 
@@ -103,17 +115,8 @@ def test_get_occweb_dir(str_or_Path, cache):
     url = f"https://occweb.cfa.harvard.edu/occweb/{path}"
     files_path = occweb.get_occweb_dir(path, cache=cache)
     files_url = occweb.get_occweb_dir(url, cache=cache)
-    exp = [
-        "      Name        Last modified   Size",
-        "---------------- ---------------- ----",
-        "Parent Directory               --    -",
-        "       MAR0500D/ 2002-04-30 13:38    -",
-        "       MAR1200D/ 2002-04-30 13:38    -",
-        "       MAR1900E/ 2004-03-18 13:44    -",
-        "       MAR2600C/ 2002-04-30 13:38    -",
-    ]
-    assert files_path.pformat() == exp
-    assert files_url.pformat() == exp
+    assert files_path.pformat() == EXPECTED_MAR_DIR_CONTENTS
+    assert files_url.pformat() == EXPECTED_MAR_DIR_CONTENTS
 
 
 @pytest.mark.skipif(not HAS_OCCWEB, reason="No access to OCCweb")
@@ -121,16 +124,7 @@ def test_get_occweb_dir_absolute():
     """Test get_occweb_dir and get_occweb_page (which is called in the process)"""
     path = "/FOT/mission_planning/PRODUCTS/APPR_LOADS/2000/MAR/"
     files_path = occweb.get_occweb_dir(path, cache=False)
-    exp = [
-        "      Name        Last modified   Size",
-        "---------------- ---------------- ----",
-        "Parent Directory               --    -",
-        "       MAR0500D/ 2002-04-30 13:38    -",
-        "       MAR1200D/ 2002-04-30 13:38    -",
-        "       MAR1900E/ 2004-03-18 13:44    -",
-        "       MAR2600C/ 2002-04-30 13:38    -",
-    ]
-    assert files_path.pformat() == exp
+    assert files_path.pformat() == EXPECTED_MAR_DIR_CONTENTS
 
 
 @pytest.mark.skipif(not HAS_OCCWEB, reason="No access to OCCweb")
@@ -146,16 +140,7 @@ def test_get_occweb_noodle(lowercase, backslash):
     if backslash:
         path = path.replace("/", "\\")
     files_path = occweb.get_occweb_dir(path)
-    exp = [
-        "      Name        Last modified   Size",
-        "---------------- ---------------- ----",
-        "Parent Directory               --    -",
-        "       MAR0500D/ 2002-04-30 13:38    -",
-        "       MAR1200D/ 2002-04-30 13:38    -",
-        "       MAR1900E/ 2004-03-18 13:44    -",
-        "       MAR2600C/ 2002-04-30 13:38    -",
-    ]
-    assert files_path.pformat() == exp
+    assert files_path.pformat() == EXPECTED_MAR_DIR_CONTENTS
 
 
 @pytest.mark.skipif(not HAS_OCCWEB, reason="No access to OCCweb")
