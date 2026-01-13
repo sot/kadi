@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>kadi.commands.states.Transition &#8212; kadi 7.17.6 documentation</title>
+    <title>kadi.commands.states.Transition &#8212; kadi 7.18.0 documentation</title>
   
   
   
@@ -30,7 +30,7 @@
   <link href="../../../../_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
 <link href="../../../../_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
 
-    <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/plot_directive.css" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css?v=4ae1632d" />
@@ -41,9 +41,9 @@
   <link rel="preload" as="script" href="../../../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../../../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../../../../_static/documentation_options.js?v=09e3231d"></script>
-    <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
-    <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../../_static/documentation_options.js?v=d001984d"></script>
+    <script src="../../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../../../../_static/copybutton.js?v=30646c52"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'api/kadi/commands/states/Transition';</script>
@@ -54,7 +54,7 @@
     <link rel="prev" title="kadi.commands.states.NoTransitionsError" href="NoTransitionsError.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="7.17.6" />
+  <meta name="docsearch:version" content="7.18.0" />
   </head>
   
   
@@ -107,7 +107,7 @@
     <span style="color: rgb(186, 70, 21); font-size: x-large;">kadi</span>
 </a>
 &nbsp;
-<span style="font-size: x-large;">7.17.6</span></div>
+<span style="font-size: x-large;">7.18.0</span></div>
     
   </div>
   
@@ -354,7 +354,7 @@
 <h1>kadi.commands.states.Transition<a class="headerlink" href="#kadi-commands-states-transition" title="Link to this heading">#</a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="kadi.commands.states.Transition">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">kadi.commands.states.</span></span><span class="sig-name descname"><span class="pre">Transition</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kadi.commands.states.Transition" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">kadi.commands.states.</span></span><span class="sig-name descname"><span class="pre">Transition</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kadi.commands.states.Transition" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code></p>
 <p>Dict of transitions at a given date.</p>
 <p>This is a dict of {state_key: state_val} where state_val is either a value
@@ -363,7 +363,7 @@ or a TransitionCallback object.</p>
 positional arguments: the date (str) and the constraint (function).</p>
 <p>The constraint function must take a single argument, the state dict, and return
 True if the transition is allowed and False otherwise. For example:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">constraint</span><span class="p">(</span><span class="n">state</span><span class="p">):</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">constraint</span><span class="p">(</span><span class="n">state</span><span class="p">):</span>
       <span class="k">return</span> <span class="n">state</span><span class="p">[</span><span class="s2">&quot;pcad_mode&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;NMAN&quot;</span>
 
 <span class="n">transition</span> <span class="o">=</span> <span class="n">Transition</span><span class="p">(</span><span class="s2">&quot;2010:001:00:00:00&quot;</span><span class="p">,</span> <span class="n">constraint</span><span class="o">=</span><span class="n">constraint</span><span class="p">)</span>
@@ -371,12 +371,12 @@ True if the transition is allowed and False otherwise. For example:</p>
 </div>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="kadi.commands.states.Transition.date">
-<span class="sig-name descname"><span class="pre">date</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#kadi.commands.states.Transition.date" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">date</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#kadi.commands.states.Transition.date" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="kadi.commands.states.Transition.constraint">
-<span class="sig-name descname"><span class="pre">constraint</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Callable</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#kadi.commands.states.Transition.constraint" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">constraint</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Callable</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#kadi.commands.states.Transition.constraint" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
@@ -486,7 +486,7 @@ True if the transition is allowed and False otherwise. For example:</p>
         <div class="footer-item">
 
   <p class="sphinx-version">
-    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.1.3.
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
     <br/>
   </p>
 </div>

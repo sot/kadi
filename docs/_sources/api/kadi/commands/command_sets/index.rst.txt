@@ -26,6 +26,7 @@ Functions
    /api/kadi/commands/command_sets/cmd_set_nsm
    /api/kadi/commands/command_sets/cmd_set_safe_mode
    /api/kadi/commands/command_sets/cmd_set_load_not_run
+   /api/kadi/commands/command_sets/cmd_set_load_in_backstop
    /api/kadi/commands/command_sets/cmd_set_observing_not_run
    /api/kadi/commands/command_sets/cmd_set_hrc_not_run
    /api/kadi/commands/command_sets/cmd_set_command
@@ -50,6 +51,7 @@ Functions
    kadi.commands.command_sets.cmd_set_nsm
    kadi.commands.command_sets.cmd_set_safe_mode
    kadi.commands.command_sets.cmd_set_load_not_run
+   kadi.commands.command_sets.cmd_set_load_in_backstop
    kadi.commands.command_sets.cmd_set_observing_not_run
    kadi.commands.command_sets.cmd_set_hrc_not_run
    kadi.commands.command_sets.cmd_set_command

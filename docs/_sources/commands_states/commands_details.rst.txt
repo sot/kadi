@@ -63,11 +63,68 @@ kadi external web resources.
 Using the ``"flight"`` scenario is also recommended for use on some GRETA
 workstations if they cannot access the Chandra Command Events Google sheet.
 
-Custom scenario example
-^^^^^^^^^^^^^^^^^^^^^^^
+Custom scenarios
+^^^^^^^^^^^^^^^^
+
+Custom events sheet
+"""""""""""""""""""
+The custom Google events sheet scenario provides a convenient built-in way to evaluate
+"what-if" situations, including adding command loads that are in-work but not yet
+approved. This is particularly useful to evaluate different operational scenarios or
+recovery options.
+
+The custom events sheet has the same format as the flight Chandra Command Events sheet.
+The default custom sheet is the `FOTMP Command Events
+<https://docs.google.com/spreadsheets/d/11p7_WRfOzuOMwASRGTdv1gjF-Kc-vm6zN59ZcYC5Lzo/edit?gid=0#gid=0>`_
+sheet. This is maintained by FOT MP and only the FOT planners should modify this file.
+The default custom sheet ID is specified by the ``cmd_events_custom_id`` configuration
+parameter.
+
+The custom sheet can be used by itself or (most commonly) as an additive supplement the
+flight sheet. Just as the ``"flight"`` scenario has a special meaning, now the
+``"flight+custom"`` or ``"custom"`` scenarios are special-case scenario names. Here is a
+programmatic example of getting states starting from 7 days before now::
+
+    >>> import kadi.commands.states as kcs
+
+    # Use events from custom sheet and the flight sheet to get states
+    >>> states = kcs.get_states("-7d", scenario="flight+custom")
+
+     # Use only custom sheet events (mostly just for testing)
+    >>> states = kcs.get_states("-7d", scenario="custom")
+
+For use in existing application codes that do not explicitly set the kadi scenario, you
+can alternatively set the ``KADI_SCENARIO`` environment variable accordingly.
+
+Using a non-default custom events sheet
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
+To use a non-default custom sheet, do the following:
+
+1. **Create a copy** of the main `FOTMP Command Events <https://docs.google.com/spreadsheets/d/11p7_WRfOzuOMwASRGTdv1gjF-Kc-vm6zN59ZcYC5Lzo/edit?gid=0#gid=0>`_ sheet and add your events.
+2. **Get the sheet ID** from the URL (the long alphanumeric string in the URL between
+   ``spreadsheets/d/`` and ``/edit``).
+3. **Configure access** by either:
+
+   - Modifying the configuration file ``~/.kadi/config/kadi.cfg``::
+
+       cmd_events_custom_id = <your_custom_sheet_id>
+
+   - Setting the custom sheet ID programmatically::
+
+       import kadi.commands as kc
+       kc.conf.cmd_events_custom_id = <your_custom_sheet_id>
+
+With this, calls to ``get_cmds`` or ``get_states`` with a scenario of ``"custom"`` or
+``"flight+custom"`` will access your non-default custom events sheet.
+
+Local scenario
+""""""""""""""
+You can create a custom scenario by making an appropriate local directory and making
+a CSV file that provides the events.
 
 This example shows the steps to programmatically add an ACIS CTI in the midst
-of the 2021:296 NSM recovery::
+of the 2021:296 NSM recovery using a local scenario directory::
 
 
     >>> from kadi import paths

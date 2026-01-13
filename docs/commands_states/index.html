@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Commands and states &#8212; kadi 7.17.6 documentation</title>
+    <title>Commands and states &#8212; kadi 7.18.0 documentation</title>
   
   
   
@@ -30,7 +30,7 @@
   <link href="../_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
 <link href="../_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
 
-    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/plot_directive.css" />
     <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=4ae1632d" />
@@ -41,9 +41,9 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../_static/documentation_options.js?v=09e3231d"></script>
-    <script src="../_static/doctools.js?v=9bcbadda"></script>
-    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/documentation_options.js?v=d001984d"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../_static/copybutton.js?v=30646c52"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'commands_states/index';</script>
@@ -54,7 +54,7 @@
     <link rel="prev" title="Event Descriptions" href="../events/event_descriptions.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="7.17.6" />
+  <meta name="docsearch:version" content="7.18.0" />
   </head>
   
   
@@ -107,7 +107,7 @@
     <span style="color: rgb(186, 70, 21); font-size: x-large;">kadi</span>
 </a>
 &nbsp;
-<span style="font-size: x-large;">7.17.6</span></div>
+<span style="font-size: x-large;">7.18.0</span></div>
     
   </div>
   
@@ -397,7 +397,7 @@ then there needs to be a blank line between entries.</p>
 <h2>Getting commands<a class="headerlink" href="#getting-commands" title="Link to this heading">#</a></h2>
 <p>The basic way to select commands is with the <a class="reference internal" href="../api/kadi/commands/commands_v2/get_cmds.html#kadi.commands.commands_v2.get_cmds" title="kadi.commands.commands_v2.get_cmds"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_cmds()</span></code></a> method.  For example you can find
 load commands from early in 2013 with:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">kadi.commands</span> <span class="kn">import</span> <span class="n">get_cmds</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">kadi.commands</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_cmds</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">cmds</span> <span class="o">=</span> <span class="n">get_cmds</span><span class="p">(</span><span class="s1">&#39;2013:001:00:00:00&#39;</span><span class="p">,</span> <span class="s1">&#39;2013:001:00:56:10&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">cmds</span><span class="p">)</span>
 <span class="go">        date            type      tlmsid   scs step      time      source    vcdu  params</span>
@@ -506,7 +506,7 @@ contain information about observations in the loads. An “observation” is def
 as a dwell in normal point mode following a maneuver and includes most OR’s and
 ER’s. These are most easily accessed via the
 <a class="reference internal" href="../api/kadi/commands/observations/get_observations.html#kadi.commands.observations.get_observations" title="kadi.commands.observations.get_observations"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_observations()</span></code></a> function. For example:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">kadi.commands</span> <span class="kn">import</span> <span class="n">get_observations</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">kadi.commands</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_observations</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">obss</span> <span class="o">=</span> <span class="n">get_observations</span><span class="p">(</span><span class="n">obsid</span><span class="o">=</span><span class="mi">26330</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">obss</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 <span class="go">{&#39;obsid&#39;: 26330,</span>
@@ -543,7 +543,7 @@ typically seconds the first query and then &lt;&lt; 1 sec for subsequent queries
 </div>
 <p>For a large number of observations like this you may find it convenient to turn
 this into an astropy <code class="docutils literal notranslate"><span class="pre">Table</span></code>:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">astropy.table</span> <span class="kn">import</span> <span class="n">Table</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">astropy.table</span><span class="w"> </span><span class="kn">import</span> <span class="n">Table</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">obss</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="n">obss</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">obss</span>
 <span class="go">&lt;Table length=4018&gt;</span>
@@ -563,7 +563,7 @@ this into an astropy <code class="docutils literal notranslate"><span class="pre
 <h3>Under the hood<a class="headerlink" href="#under-the-hood" title="Link to this heading">#</a></h3>
 <p>The observation information is stored as <code class="docutils literal notranslate"><span class="pre">LOAD_EVENT</span></code> commands that can be viewed
 directly:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">kadi.commands</span> <span class="kn">import</span> <span class="n">get_cmds</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">kadi.commands</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_cmds</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">cmds</span> <span class="o">=</span> <span class="n">get_cmds</span><span class="p">(</span><span class="s1">&#39;2022:001&#39;</span><span class="p">,</span> <span class="s1">&#39;2022:002&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;LOAD_EVENT&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">cmds</span><span class="p">)</span>
 <span class="go">        date            type    tlmsid scs step      time      source  vcdu params</span>
@@ -595,7 +595,7 @@ select a custom or <code class="docutils literal notranslate"><span class="pre">
 <span id="id2"></span><h2>Getting star catalogs<a class="headerlink" href="#getting-star-catalogs" title="Link to this heading">#</a></h2>
 <p>The ACA star catalogs associated with observations can be retrieved using the
 <a class="reference internal" href="../api/kadi/commands/observations/get_starcats.html#kadi.commands.observations.get_starcats" title="kadi.commands.observations.get_starcats"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_starcats()</span></code></a> function. For example:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">kadi.commands</span> <span class="kn">import</span> <span class="n">get_starcats</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">kadi.commands</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_starcats</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">acas</span> <span class="o">=</span> <span class="n">get_starcats</span><span class="p">(</span><span class="n">obsid</span><span class="o">=</span><span class="mi">26330</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">acas</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 <span class="go">&lt;ACATable length=11&gt;</span>
@@ -646,7 +646,7 @@ are (by default) cached in a file <code class="docutils literal notranslate"><sp
 permanently disable caching you can edit your configuration file (see
 <a class="reference internal" href="commands_details.html#configuration-options"><span class="std std-ref">Configuration options</span></a>). To disable caching for a single call to
 <code class="docutils literal notranslate"><span class="pre">get_starcats()</span></code>, you can do something like:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">kadi.commands</span> <span class="kn">import</span> <span class="n">get_starcats</span><span class="p">,</span> <span class="n">conf</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">kadi.commands</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_starcats</span><span class="p">,</span> <span class="n">conf</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">conf</span><span class="o">.</span><span class="n">set_temp</span><span class="p">(</span><span class="s1">&#39;cache_starcats&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
 <span class="gp">... </span>   <span class="n">starcats</span> <span class="o">=</span> <span class="n">get_starcats</span><span class="p">(</span><span class="s1">&#39;2022:001&#39;</span><span class="p">,</span> <span class="s1">&#39;2022:002&#39;</span><span class="p">)</span>
 </pre></div>
@@ -656,7 +656,7 @@ permanently disable caching you can edit your configuration file (see
 <section id="chandra-states-and-continuity">
 <h2>Chandra states and continuity<a class="headerlink" href="#chandra-states-and-continuity" title="Link to this heading">#</a></h2>
 <p>To get started, import the <code class="docutils literal notranslate"><span class="pre">kadi.commands.states</span></code> module:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">kadi.commands</span> <span class="kn">import</span> <span class="n">states</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">kadi.commands</span><span class="w"> </span><span class="kn">import</span> <span class="n">states</span>
 </pre></div>
 </div>
 <p>The fundamental idea of the <code class="docutils literal notranslate"><span class="pre">states</span></code> module is that one has a state quantity
@@ -677,7 +677,7 @@ and  <code class="xref py py-func docutils literal notranslate"><span class="pre
 <p>To get the commanded states over a date range you can do the following, which internally
 does a call to <a class="reference internal" href="../api/kadi/commands/commands_v2/get_cmds.html#kadi.commands.commands_v2.get_cmds" title="kadi.commands.commands_v2.get_cmds"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_cmds()</span></code></a> in order to get commands over the <code class="docutils literal notranslate"><span class="pre">start</span></code> / <code class="docutils literal notranslate"><span class="pre">stop</span></code> date
 range:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">kadi.commands.states</span> <span class="kn">import</span> <span class="n">get_states</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">kadi.commands.states</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_states</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">get_states</span><span class="p">(</span><span class="s1">&#39;2017:001:21:00:00&#39;</span><span class="p">,</span> <span class="s1">&#39;2017:002:11:29:00&#39;</span><span class="p">,</span>
 <span class="gp">... </span>           <span class="n">state_keys</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;obsid&#39;</span><span class="p">,</span> <span class="s1">&#39;simpos&#39;</span><span class="p">,</span> <span class="s1">&#39;clocking&#39;</span><span class="p">])</span>
 <span class="go">&lt;Table length=9&gt;</span>
@@ -816,7 +816,7 @@ All of the supported state keys that reproduce backstop history files are tested
 <h4>States from commands<a class="headerlink" href="#states-from-commands" title="Link to this heading">#</a></h4>
 <p>Instead of relying on <a class="reference internal" href="../api/kadi/commands/states/get_states.html#kadi.commands.states.get_states" title="kadi.commands.states.get_states"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_states()</span></code></a> to get the commands and continuity, you can do things
 manually.  For example:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">kadi.commands.states</span> <span class="kn">import</span> <span class="n">get_continuity</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">kadi.commands.states</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_continuity</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">start</span><span class="p">,</span> <span class="n">stop</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;2017:001:21:00:00&#39;</span><span class="p">,</span> <span class="s1">&#39;2017:002:11:29:00&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">state_keys</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;obsid&#39;</span><span class="p">,</span> <span class="s1">&#39;simpos&#39;</span><span class="p">,</span> <span class="s1">&#39;clocking&#39;</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">cmds</span> <span class="o">=</span> <span class="n">get_cmds</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">)</span>
@@ -886,7 +886,7 @@ process more straightforward.  E.g.:</p>
 <p>To get the continuity state for a desired set of state keys at a certain time, use
 <a class="reference internal" href="../api/kadi/commands/states/get_continuity.html#kadi.commands.states.get_continuity" title="kadi.commands.states.get_continuity"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_continuity()</span></code></a>.</p>
 <p>So let’s get the state of <code class="docutils literal notranslate"><span class="pre">obsid</span></code> and <code class="docutils literal notranslate"><span class="pre">si_mode</span></code> at <code class="docutils literal notranslate"><span class="pre">2017:300:00:00:00</span></code>:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">kadi.commands.states</span> <span class="kn">import</span> <span class="n">get_continuity</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">kadi.commands.states</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_continuity</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">continuity</span> <span class="o">=</span> <span class="n">get_continuity</span><span class="p">(</span><span class="s1">&#39;2017:300:00:00:00&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;obsid&#39;</span><span class="p">,</span> <span class="s1">&#39;si_mode&#39;</span><span class="p">])</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">continuity</span>
 <span class="go">{&#39;__dates__&#39;: {&#39;obsid&#39;: &#39;2017:299:21:50:34.193&#39;,</span>
@@ -1129,7 +1129,7 @@ functions can dynamically add downstream transitions during this process to
 handle events like a maneuver, where the current state is required to generate
 mid-maneuver attitudes and the NPM transition.</p></li>
 <li><p>The signature of a transition function callback is:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">callback</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">date</span><span class="p">,</span> <span class="n">transitions</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">idx</span><span class="p">):</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">callback</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">date</span><span class="p">,</span> <span class="n">transitions</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">idx</span><span class="p">):</span>
 </pre></div>
 </div>
 <p>It has access to the current state date, the complete list of transitions,
@@ -1157,7 +1157,7 @@ of the relevant command, which in this case is <code class="docutils literal not
 us this can be implemented as a <a class="reference internal" href="../api/kadi/commands/states/ParamTransition.html#kadi.commands.states.ParamTransition" title="kadi.commands.states.ParamTransition"><code class="xref py py-class docutils literal notranslate"><span class="pre">ParamTransition</span></code></a> sub-class.
 This class is documented, but in practice it is probably easiest to look through the available
 classes in the code and find an example.  In this case the <a class="reference internal" href="../api/kadi/commands/states/ObsidTransition.html#kadi.commands.states.ObsidTransition" title="kadi.commands.states.ObsidTransition"><code class="xref py py-class docutils literal notranslate"><span class="pre">ObsidTransition</span></code></a> class:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">ObsidTransition</span><span class="p">(</span><span class="n">ParamTransition</span><span class="p">):</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">ObsidTransition</span><span class="p">(</span><span class="n">ParamTransition</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Obsid update&quot;&quot;&quot;</span>
     <span class="n">command_attributes</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;MP_OBSID&#39;</span><span class="p">}</span>
     <span class="n">state_keys</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;obsid&#39;</span><span class="p">]</span>
@@ -1166,8 +1166,8 @@ classes in the code and find an example.  In this case the <a class="reference i
 </pre></div>
 </div>
 <p>So we just adapt this:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">kadi.commands.states</span> <span class="kn">import</span> <span class="n">ParamTransition</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">class</span> <span class="nc">IUModeSelectTransition</span><span class="p">(</span><span class="n">ParamTransition</span><span class="p">):</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">kadi.commands.states</span><span class="w"> </span><span class="kn">import</span> <span class="n">ParamTransition</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">class</span><span class="w"> </span><span class="nc">IUModeSelectTransition</span><span class="p">(</span><span class="n">ParamTransition</span><span class="p">):</span>
 <span class="gp">... </span><span class="w">    </span><span class="sd">&quot;&quot;&quot;IU mode select update&quot;&quot;&quot;</span>
 <span class="gp">... </span>    <span class="n">command_attributes</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;tlmsid&#39;</span><span class="p">:</span> <span class="s1">&#39;CIMODESL&#39;</span><span class="p">}</span>
 <span class="gp">... </span>    <span class="n">state_keys</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;iu_mode_select&#39;</span><span class="p">]</span>
@@ -1194,7 +1194,7 @@ state to update using the <em>value</em> of the  specified command parameter, re
 The subtlety here is that if you have multiple transition classes that affect multiple
 states as a group, all the transition classes need to have the <strong>same</strong> <code class="docutils literal notranslate"><span class="pre">state_keys</span></code>
 attribute.  An example of this is in the grating transition classes, e.g.:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">HETG_INSR_Transition</span><span class="p">(</span><span class="n">FixedTransition</span><span class="p">):</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">HETG_INSR_Transition</span><span class="p">(</span><span class="n">FixedTransition</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;HETG insertion&quot;&quot;&quot;</span>
     <span class="n">command_attributes</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;tlmsid&#39;</span><span class="p">:</span> <span class="s1">&#39;4OHETGIN&#39;</span><span class="p">}</span> <span class="c1"># Command (HETG insert)</span>
     <span class="n">state_keys</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;letg&#39;</span><span class="p">,</span> <span class="s1">&#39;hetg&#39;</span><span class="p">,</span> <span class="s1">&#39;grating&#39;</span><span class="p">]</span>    <span class="c1"># Collective set of grating states</span>
@@ -1263,7 +1263,7 @@ event is included if any of the functions return <code class="docutils literal n
 <h3>Filtering within last 30 days<a class="headerlink" href="#filtering-within-last-30-days" title="Link to this heading">#</a></h3>
 <p>If the events you want to filter occurred within the last 30 days, you can use any of
 the supported functions (listed above) directly, for example:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">kadi.commands</span> <span class="kn">import</span> <span class="n">filter_scs107_events</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">kadi.commands</span><span class="w"> </span><span class="kn">import</span> <span class="n">filter_scs107_events</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">obss_planned</span> <span class="o">=</span> <span class="n">get_observations</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">,</span> <span class="n">event_filter</span><span class="o">=</span><span class="n">filter_scs107_events</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -1280,7 +1280,7 @@ beginning of 2025, you can use the following code. This uses the
 <a class="reference internal" href="../api/kadi/commands/set_time_now.html#kadi.commands.set_time_now" title="kadi.commands.set_time_now"><code class="xref py py-func docutils literal notranslate"><span class="pre">set_time_now()</span></code></a> context manager to temporarily set the current time
 to a date in the past, and the <a class="reference internal" href="../api/kadi/commands/filter_scs107_events.html#kadi.commands.filter_scs107_events" title="kadi.commands.filter_scs107_events"><code class="xref py py-func docutils literal notranslate"><span class="pre">filter_scs107_events()</span></code></a> function to
 filter out the SCS-107 events:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">kadi.commands</span> <span class="kn">import</span> <span class="n">filter_scs107_events</span><span class="p">,</span> <span class="n">set_time_now</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">kadi.commands</span><span class="w"> </span><span class="kn">import</span> <span class="n">filter_scs107_events</span><span class="p">,</span> <span class="n">set_time_now</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">set_time_now</span><span class="p">(</span><span class="s2">&quot;2025:015&quot;</span><span class="p">):</span>
 <span class="gp">... </span>    <span class="n">obss_planned</span> <span class="o">=</span> <span class="n">get_observations</span><span class="p">(</span>
 <span class="gp">... </span>        <span class="s2">&quot;2024:365&quot;</span><span class="p">,</span> <span class="s2">&quot;2025:015&quot;</span><span class="p">,</span> <span class="n">event_filter</span><span class="o">=</span><span class="n">filter_scs107_events</span>
@@ -1428,7 +1428,7 @@ details, please see:</p>
         <div class="footer-item">
 
   <p class="sphinx-version">
-    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.1.3.
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
     <br/>
   </p>
 </div>

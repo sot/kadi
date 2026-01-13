@@ -45,6 +45,9 @@ kadi.config.Conf
    .. py:attribute:: cmd_events_flight_id
 
 
+   .. py:attribute:: cmd_events_custom_id
+
+
    .. py:attribute:: cmd_events_exclude_intervals_gid
 
 

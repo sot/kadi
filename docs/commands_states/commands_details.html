@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Commands archive details &#8212; kadi 7.17.6 documentation</title>
+    <title>Commands archive details &#8212; kadi 7.18.0 documentation</title>
   
   
   
@@ -30,7 +30,7 @@
   <link href="../_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
 <link href="../_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
 
-    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/plot_directive.css" />
     <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=4ae1632d" />
@@ -41,9 +41,9 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../_static/documentation_options.js?v=09e3231d"></script>
-    <script src="../_static/doctools.js?v=9bcbadda"></script>
-    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/documentation_options.js?v=d001984d"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../_static/copybutton.js?v=30646c52"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'commands_states/commands_details';</script>
@@ -54,7 +54,7 @@
     <link rel="prev" title="Commands and states" href="index.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="7.17.6" />
+  <meta name="docsearch:version" content="7.18.0" />
   </head>
   
   
@@ -107,7 +107,7 @@
     <span style="color: rgb(186, 70, 21); font-size: x-large;">kadi</span>
 </a>
 &nbsp;
-<span style="font-size: x-large;">7.17.6</span></div>
+<span style="font-size: x-large;">7.18.0</span></div>
     
   </div>
   
@@ -392,12 +392,69 @@ kadi external web resources.</p>
 <p>Using the <code class="docutils literal notranslate"><span class="pre">&quot;flight&quot;</span></code> scenario is also recommended for use on some GRETA
 workstations if they cannot access the Chandra Command Events Google sheet.</p>
 </section>
-<section id="custom-scenario-example">
-<h3>Custom scenario example<a class="headerlink" href="#custom-scenario-example" title="Link to this heading">#</a></h3>
+<section id="custom-scenarios">
+<h3>Custom scenarios<a class="headerlink" href="#custom-scenarios" title="Link to this heading">#</a></h3>
+<section id="custom-events-sheet">
+<h4>Custom events sheet<a class="headerlink" href="#custom-events-sheet" title="Link to this heading">#</a></h4>
+<p>The custom Google events sheet scenario provides a convenient built-in way to evaluate
+“what-if” situations, including adding command loads that are in-work but not yet
+approved. This is particularly useful to evaluate different operational scenarios or
+recovery options.</p>
+<p>The custom events sheet has the same format as the flight Chandra Command Events sheet.
+The default custom sheet is the <a class="reference external" href="https://docs.google.com/spreadsheets/d/11p7_WRfOzuOMwASRGTdv1gjF-Kc-vm6zN59ZcYC5Lzo/edit?gid=0#gid=0">FOTMP Command Events</a>
+sheet. This is maintained by FOT MP and only the FOT planners should modify this file.
+The default custom sheet ID is specified by the <code class="docutils literal notranslate"><span class="pre">cmd_events_custom_id</span></code> configuration
+parameter.</p>
+<p>The custom sheet can be used by itself or (most commonly) as an additive supplement the
+flight sheet. Just as the <code class="docutils literal notranslate"><span class="pre">&quot;flight&quot;</span></code> scenario has a special meaning, now the
+<code class="docutils literal notranslate"><span class="pre">&quot;flight+custom&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;custom&quot;</span></code> scenarios are special-case scenario names. Here is a
+programmatic example of getting states starting from 7 days before now:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">kadi.commands.states</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">kcs</span>
+
+<span class="go"># Use events from custom sheet and the flight sheet to get states</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">states</span> <span class="o">=</span> <span class="n">kcs</span><span class="o">.</span><span class="n">get_states</span><span class="p">(</span><span class="s2">&quot;-7d&quot;</span><span class="p">,</span> <span class="n">scenario</span><span class="o">=</span><span class="s2">&quot;flight+custom&quot;</span><span class="p">)</span>
+
+<span class="go"> # Use only custom sheet events (mostly just for testing)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">states</span> <span class="o">=</span> <span class="n">kcs</span><span class="o">.</span><span class="n">get_states</span><span class="p">(</span><span class="s2">&quot;-7d&quot;</span><span class="p">,</span> <span class="n">scenario</span><span class="o">=</span><span class="s2">&quot;custom&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>For use in existing application codes that do not explicitly set the kadi scenario, you
+can alternatively set the <code class="docutils literal notranslate"><span class="pre">KADI_SCENARIO</span></code> environment variable accordingly.</p>
+<section id="using-a-non-default-custom-events-sheet">
+<h5>Using a non-default custom events sheet<a class="headerlink" href="#using-a-non-default-custom-events-sheet" title="Link to this heading">#</a></h5>
+<p>To use a non-default custom sheet, do the following:</p>
+<ol class="arabic">
+<li><p><strong>Create a copy</strong> of the main <a class="reference external" href="https://docs.google.com/spreadsheets/d/11p7_WRfOzuOMwASRGTdv1gjF-Kc-vm6zN59ZcYC5Lzo/edit?gid=0#gid=0">FOTMP Command Events</a> sheet and add your events.</p></li>
+<li><p><strong>Get the sheet ID</strong> from the URL (the long alphanumeric string in the URL between
+<code class="docutils literal notranslate"><span class="pre">spreadsheets/d/</span></code> and <code class="docutils literal notranslate"><span class="pre">/edit</span></code>).</p></li>
+<li><p><strong>Configure access</strong> by either:</p>
+<ul>
+<li><p>Modifying the configuration file <code class="docutils literal notranslate"><span class="pre">~/.kadi/config/kadi.cfg</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cmd_events_custom_id</span> <span class="o">=</span> <span class="o">&lt;</span><span class="n">your_custom_sheet_id</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+</li>
+<li><p>Setting the custom sheet ID programmatically:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">kadi.commands</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">kc</span>
+<span class="n">kc</span><span class="o">.</span><span class="n">conf</span><span class="o">.</span><span class="n">cmd_events_custom_id</span> <span class="o">=</span> <span class="o">&lt;</span><span class="n">your_custom_sheet_id</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</li>
+</ol>
+<p>With this, calls to <code class="docutils literal notranslate"><span class="pre">get_cmds</span></code> or <code class="docutils literal notranslate"><span class="pre">get_states</span></code> with a scenario of <code class="docutils literal notranslate"><span class="pre">&quot;custom&quot;</span></code> or
+<code class="docutils literal notranslate"><span class="pre">&quot;flight+custom&quot;</span></code> will access your non-default custom events sheet.</p>
+</section>
+</section>
+<section id="local-scenario">
+<h4>Local scenario<a class="headerlink" href="#local-scenario" title="Link to this heading">#</a></h4>
+<p>You can create a custom scenario by making an appropriate local directory and making
+a CSV file that provides the events.</p>
 <p>This example shows the steps to programmatically add an ACIS CTI in the midst
-of the 2021:296 NSM recovery:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">kadi</span> <span class="kn">import</span> <span class="n">paths</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">kadi.commands</span> <span class="kn">import</span> <span class="n">conf</span><span class="p">,</span> <span class="n">get_cmds</span>
+of the 2021:296 NSM recovery using a local scenario directory:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">kadi</span><span class="w"> </span><span class="kn">import</span> <span class="n">paths</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">kadi.commands</span><span class="w"> </span><span class="kn">import</span> <span class="n">conf</span><span class="p">,</span> <span class="n">get_cmds</span>
 
 <span class="gp">&gt;&gt;&gt; </span><span class="n">cmds</span> <span class="o">=</span> <span class="n">get_cmds</span><span class="p">(</span><span class="n">start</span><span class="o">=</span><span class="s1">&#39;2022:001&#39;</span><span class="p">)</span>  <span class="c1"># Ensure local cmd_events.csv is up to date</span>
 
@@ -410,7 +467,7 @@ of the 2021:296 NSM recovery:</p>
 <span class="go">PosixPath(&#39;/Users/aldcroft/.kadi/nsm-cti/cmd_events.csv&#39;)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">path_cti</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">astropy.table</span> <span class="kn">import</span> <span class="n">Table</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">astropy.table</span><span class="w"> </span><span class="kn">import</span> <span class="n">Table</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">events_flight</span> <span class="o">=</span> <span class="n">Table</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">path_flight</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">events_flight</span><span class="o">.</span><span class="n">colnames</span>
 <span class="go">[&#39;State&#39;, &#39;Date&#39;, &#39;Event&#39;, &#39;Params&#39;, &#39;Author&#39;, &#39;Reviewer&#39;, &#39;Comment&#39;]</span>
@@ -423,7 +480,7 @@ of the 2021:296 NSM recovery:</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">events_cti</span><span class="o">.</span><span class="n">add_row</span><span class="p">(</span><span class="n">cti_event</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">events_cti</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">path_cti</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;CXOTIME_NOW&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;2021:299&#39;</span>
 
 <span class="gp">&gt;&gt;&gt; </span><span class="n">cmds</span> <span class="o">=</span> <span class="n">get_cmds</span><span class="p">(</span><span class="s1">&#39;2021:296:10:35:00&#39;</span><span class="p">,</span> <span class="s1">&#39;2021:298:01:58:00&#39;</span><span class="p">,</span> <span class="n">scenario</span><span class="o">=</span><span class="s1">&#39;nsm-cti&#39;</span><span class="p">)</span>
@@ -452,8 +509,9 @@ $ dpa_check \
 </div>
 </section>
 </section>
+</section>
 <section id="configuration-options">
-<span id="id1"></span><h2>Configuration options<a class="headerlink" href="#configuration-options" title="Link to this heading">#</a></h2>
+<span id="id2"></span><h2>Configuration options<a class="headerlink" href="#configuration-options" title="Link to this heading">#</a></h2>
 <p>The kadi commands configuration options are stored in the file
 <code class="docutils literal notranslate"><span class="pre">~/.kadi/config/kadi.cfg</span></code>. The location of this file is fixed.</p>
 <p>The available options with the default settings are as follows:</p>
@@ -488,7 +546,7 @@ $ dpa_check \
 <h3>Modify options<a class="headerlink" href="#modify-options" title="Link to this heading">#</a></h3>
 <p>To modify a configuration there a few options. First is programmatically within
 Python to change a parameter for all subsequent code:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">kadi.commands</span> <span class="kn">import</span> <span class="n">conf</span><span class="p">,</span> <span class="n">get_cmds</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">kadi.commands</span><span class="w"> </span><span class="kn">import</span> <span class="n">conf</span><span class="p">,</span> <span class="n">get_cmds</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">conf</span><span class="o">.</span><span class="n">default_lookback</span>
 <span class="go">30</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">conf</span><span class="o">.</span><span class="n">default_lookback</span> <span class="o">=</span> <span class="mi">60</span>
@@ -503,8 +561,8 @@ Python to change a parameter for all subsequent code:</p>
 <p>For an even-more permanent solution you can write out the configuration file
 to disk and then edit it. Be wary of “temporarily” changing an option and  then
 forgetting to revert it later.</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">kadi</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">kadi.events.models</span>  <span class="c1"># Due to a strange interaction with Django</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">kadi</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">kadi.events.models</span>  <span class="c1"># Due to a strange interaction with Django</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">status</span> <span class="o">=</span> <span class="n">kadi</span><span class="o">.</span><span class="n">create_config_file</span><span class="p">()</span>
 <span class="go">INFO: The configuration file has been successfully written to</span>
 <span class="go">~/.kadi/config/kadi.cfg [astropy.config.configuration]</span>
@@ -671,7 +729,14 @@ is not configurable as they are set by the <a class="reference external" href="h
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#concept-overview">Concept overview</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#scenarios">Scenarios</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#flight-scenario-no-network">Flight scenario (no network)</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#custom-scenario-example">Custom scenario example</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#custom-scenarios">Custom scenarios</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#custom-events-sheet">Custom events sheet</a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#using-a-non-default-custom-events-sheet">Using a non-default custom events sheet</a></li>
+</ul>
+</li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#local-scenario">Local scenario</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#configuration-options">Configuration options</a><ul class="nav section-nav flex-column">
@@ -724,7 +789,7 @@ is not configurable as they are set by the <a class="reference external" href="h
         <div class="footer-item">
 
   <p class="sphinx-version">
-    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.1.3.
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
     <br/>
   </p>
 </div>
