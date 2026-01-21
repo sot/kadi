@@ -1216,11 +1216,13 @@ def patched_read_cmd_events_from_sheet(doc_id):
 def test_flight_scenario_sheet_access():
     """Test that flight scenario does not access the google command events sheet"""
     with kadi.commands.conf.set_temp("cmd_events_flight_id", "id-does-not-exist"):
+        commands.clear_caches()
         commands.get_cmds("-7d", scenario="flight")  # succeeds, no sheet access
         match = re.escape(
             "Failed to get cmd events sheet: 404 for "
             "https://docs.google.com/spreadsheets/d/id-does-not-exist/export?format=csv"
         )
+        commands.clear_caches()
         with pytest.raises(ValueError, match=match):
             commands.get_cmds("-7d")  # fails, bad sheet URL
 
