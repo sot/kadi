@@ -272,8 +272,18 @@ def get_cmds(
 
     if not HAS_INTERNET and scenario != "flight":
         raise ValueError(
-            "no internet found (no response from google), so the"
-            "'flight' scenario is required"
+            """\
+no internet found (no response from google), so the 'flight' scenario is required.
+
+Options to fix this include:
+
+- Ensure internet access is enabled (check if https://google.com responds).
+- Call the kadi commands function with `scenario="flight"`.
+- Set the environment variable KADI_SCENARIO="flight" in your shell.
+- Set the environment variable KADI_SCENARIO="flight" in your code:
+    import os
+    os.environ["KADI_SCENARIO"] = "flight"
+"""
         )
 
     # For flight scenario or no internet or if the query stop time is guaranteed

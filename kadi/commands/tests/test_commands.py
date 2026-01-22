@@ -1249,7 +1249,7 @@ def test_no_internet():
     assert len(cmds) > 10
 
     match = re.escape(
-        "no internet found (no response from google), so the'flight' scenario is required"
+        "no internet found (no response from google), so the 'flight' scenario is required"
     )
     with pytest.raises(ValueError, match=match):
         commands.get_cmds("-3d")
