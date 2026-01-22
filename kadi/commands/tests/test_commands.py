@@ -1227,6 +1227,7 @@ def test_flight_scenario_sheet_access():
             commands.get_cmds("-7d")  # fails, bad sheet URL
 
 
+@pytest.mark.skipif(not HAS_INTERNET, reason="No internet connection")
 def test_custom_scenario(monkeypatch, stop_date_2024_035_23_00_00):
     """Test "custom" scenario with a carefully constructed sequence of events.
 
