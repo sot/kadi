@@ -170,7 +170,7 @@ def get_violations_text(violations: list[dict]) -> str:
         Text for alert
     """
     lines = ["kadi validate_states processing found state violation(s):", ""]
-    lines.extend(Table(violations).pformat(max_lines=-1, max_width=-1))
+    lines.extend(Table(violations).pformat())
     lines.extend(["", "See:https://cxc.harvard.edu/mta/ASPECT/validate_states/", ""])
     text = "\n".join(lines)
     return text
