@@ -271,6 +271,7 @@ def test_acis_simode():
             "fep_count",
             "format",
         ],
+        scenario="flight",
     )
     idxs = (
         (sts["radmon"] == "ENAB") & (sts["clocking"] == 1) & (sts["format"] == "FMT1")
@@ -291,6 +292,7 @@ def test_acis_simode():
         "2023:260:02:00:00",
         merge_identical=True,
         state_keys=["si_mode", "simpos", "clocking", "radmon"],
+        scenario="flight",
     )
     idxs = (sts["radmon"] == "ENAB") & (sts["simpos"] < -50000) & (sts["clocking"] == 1)
     assert np.all(sts["si_mode"][idxs] == "H2C_0001")
@@ -300,6 +302,7 @@ def test_acis_simode():
         "2024:050:02:00:00",
         merge_identical=True,
         state_keys=["si_mode", "simpos", "clocking", "radmon"],
+        scenario="flight",
     )
     idxs = (sts["radmon"] == "ENAB") & (sts["simpos"] < -50000) & (sts["clocking"] == 1)
     assert np.all(sts["si_mode"][idxs] == "H2C_0002")
@@ -309,6 +312,7 @@ def test_acis_simode():
         "2024:028:17:17:52.589",
         merge_identical=True,
         state_keys=["si_mode", "obsid", "clocking"],
+        scenario="flight",
     )
     acis_run = sts["clocking"] == 1
     assert np.all(sts["si_mode"][acis_run & sts["obsid"] == 27148] == "TE_006E6B")
@@ -318,7 +322,10 @@ def test_acis_simode():
     # Minimal test for ACIS raw mode SI modes to verify that they are found in
     # a period of time known to have raw mode commanding.
     kstates = states.get_states(
-        start="2017:189:12:00:00", stop="2017:197:12:00:00", state_keys=["si_mode"]
+        start="2017:189:12:00:00",
+        stop="2017:197:12:00:00",
+        state_keys=["si_mode"],
+        scenario="flight",
     )
     assert "TN_000B4" in kstates["si_mode"]
     assert "TN_000B6" in kstates["si_mode"]
@@ -337,6 +344,7 @@ Definitive,2024:024:02:00:00,Maneuver sun rasl,10,,,
             "2024:024:03:00:00",
             cmds=cmds,
             state_keys=["pcad_mode", "pitch", "rasl"],
+            scenario="flight",
         )
     # Actual RASL step time is 50 seconds just below the configured value of 55.
     exp_text = """
@@ -376,6 +384,7 @@ Definitive,2024:024:00:00:01,Maneuver, 0.10993576 0.67800962 0.64839541 -0.32832
             "2024:024:01:00:00",
             cmds=cmds,
             state_keys=["pcad_mode", "ra", "dec", "roll"],
+            scenario="flight",
         )
     sts.pprint_exclude_names = ["tstart", "tstop"]
     for name in ["ra", "dec", "roll"]:
@@ -396,6 +405,7 @@ Definitive,2024:024:00:00:01,Maneuver, 0.10993576 0.67800962 0.64839541 -0.32832
     assert_all_close_states(exp, sts, atol=1e-3, rtol=0)
 
 
+@pytest.mark.skipif(not HAS_INTERNET, reason="No internet connection")
 def test_cmd_line_interface(tmpdir):
     """
     Test command line interface
@@ -445,10 +455,13 @@ def test_sun_vec_versus_telemetry():
 
     state_keys = ["pitch", "off_nom_roll"]
     start, stop = "2017:349:10:00:00", "2017:350:10:00:00"
-    cmds = commands.get_cmds(start, stop)
-    rk = states.get_states(state_keys=state_keys, cmds=cmds, merge_identical=True)[
-        -20:-1
-    ]
+    cmds = commands.get_cmds(start, stop, scenario="flight")
+    rk = states.get_states(
+        state_keys=state_keys,
+        cmds=cmds,
+        merge_identical=True,
+        scenario="flight",
+    )[-20:-1]
 
     tstart = DateTime(rk["datestart"]).secs
     tstop = DateTime(rk["datestop"]).secs
@@ -471,7 +484,9 @@ def test_sun_vec_versus_telemetry():
 
 def test_dither():
     """Values look reasonable given load commands"""
-    cmds = commands.get_cmds("2017:341:21:40:05", "2017:350:00:00:00")
+    cmds = commands.get_cmds(
+        "2017:341:21:40:05", "2017:350:00:00:00", scenario="flight"
+    )
     rk = states.get_states(
         state_keys=[
             "dither_phase_pitch",
@@ -482,6 +497,7 @@ def test_dither():
             "dither_period_yaw",
         ],
         cmds=cmds,
+        scenario="flight",
     )
 
     assert np.all(
@@ -541,7 +557,9 @@ def test_dither():
 
 
 def test_fids_state():
-    kstates = states.get_states("2023:001", "2023:002", state_keys=["fids"])
+    kstates = states.get_states(
+        "2023:001", "2023:002", state_keys=["fids"], scenario="flight"
+    )
     exp = [
         "      datestart              datestop          fids   trans_keys",
         "--------------------- --------------------- --------- ----------",
@@ -630,7 +648,7 @@ def test_get_continuity_regress(fast_sun_position_method):
     }
 
     with states.disable_grating_move_duration():
-        continuity = states.get_continuity("2018:001:12:00:00")
+        continuity = states.get_continuity("2018:001:12:00:00", scenario="flight")
 
     for key, val in expected.items():
         if isinstance(val, (int, str)):
@@ -653,7 +671,9 @@ def test_get_continuity_regress(fast_sun_position_method):
             "q4",
         )
         if key not in manvr_keys:
-            cmds = commands.get_cmds(date=continuity["__dates__"][key])
+            cmds = commands.get_cmds(
+                date=continuity["__dates__"][key], scenario="flight"
+            )
             assert len(cmds) > 0
 
 
@@ -664,11 +684,11 @@ def test_get_continuity_vs_states():
     """
     date0 = "2017:014:12:00:00"
     # Get last state up through `date0`.  Hardwire the lookback here to 21 days.
-    cmds = commands.get_cmds("2016:360:12:00:00", date0)
-    sts = states.get_states(cmds=cmds, stop=date0)
+    cmds = commands.get_cmds("2016:360:12:00:00", date0, scenario="flight")
+    sts = states.get_states(cmds=cmds, stop=date0, scenario="flight")
     sts0 = sts[-1]
 
-    continuity = states.get_continuity(date0)
+    continuity = states.get_continuity(date0, scenario="flight")
     del continuity["__dates__"]
 
     for key, val in continuity.items():
@@ -683,9 +703,11 @@ def test_get_states_with_cmds_and_start_stop():
     stop."""
     # Get 6 commands from 2020:001:02:55:00.000 to 2020:001:02:55:01.285
     # (just comm setup commanding)
-    cmds = commands.get_cmds("2020:001:02:00:00", "2020:001:03:00:00")
+    cmds = commands.get_cmds(
+        "2020:001:02:00:00", "2020:001:03:00:00", scenario="flight"
+    )
 
-    sts = states.get_states(cmds=cmds, state_keys=["fep_count"])
+    sts = states.get_states(cmds=cmds, state_keys=["fep_count"], scenario="flight")
     assert len(sts) == 1
     assert sts["datestart"][0] == "2020:001:02:55:00.000"
     assert sts["datestop"][-1] == "2020:001:02:55:01.285"
@@ -696,6 +718,7 @@ def test_get_states_with_cmds_and_start_stop():
         state_keys=["fep_count"],
         start="2020:001:00:00:00",
         stop="2020:002:00:00:00",
+        scenario="flight",
     )
     assert len(sts) == 1
     assert sts["datestart"][0] == "2020:001:00:00:00.000"
@@ -706,13 +729,17 @@ def test_get_states_with_cmds_and_start_stop():
 def test_get_continuity_keys():
     """Test that output has only the desired state keys. Also test that one can
     provide a string instead of list of state keys"""
-    continuity = states.get_continuity("2017:014:12:00:00", "clocking")
+    continuity = states.get_continuity(
+        "2017:014:12:00:00", "clocking", scenario="flight"
+    )
     assert set(continuity) == {"clocking", "__dates__"}
 
 
 def test_get_continuity_fail():
     with pytest.raises(ValueError) as err:  # noqa: PT011
-        states.get_continuity("2017:014:12:00:00", "letg", lookbacks=[3])
+        states.get_continuity(
+            "2017:014:12:00:00", "letg", lookbacks=[3], scenario="flight"
+        )
     assert "did not find transitions" in str(err)
 
 
@@ -793,7 +820,9 @@ def compare_backstop_history(history, state_key, *, compare_val=True):
     )
     start = DateTime(hist["col1"][0], format="greta") - 1 / 86400.0
     stop = DateTime(hist["col1"][-1], format="greta") + 1 / 86400.0
-    sts = states.get_states(start=start, stop=stop, state_keys=state_key)
+    sts = states.get_states(
+        start=start, stop=stop, state_keys=state_key, scenario="flight"
+    )
     sts = sts[1:]  # Drop the first state (which is continuity at start time)
     assert len(sts) == len(hist)
     assert np.all(DateTime(sts["datestart"]).greta == hist["col1"])
@@ -1090,8 +1119,12 @@ def test_backstop_sun_pos_mon_lunar():
 2017:087:23:59:21.087 2099:365:00:00:00.000        DISA
 """
     spm = ascii.read(history, guess=False)
-    cmds = commands.get_cmds("2017:087:03:04:02", "2017:088:00:00:00")
-    sts = states.get_states(state_keys=["sun_pos_mon"], cmds=cmds)
+    cmds = commands.get_cmds(
+        "2017:087:03:04:02",
+        "2017:088:00:00:00",
+        scenario="flight",
+    )
+    sts = states.get_states(state_keys=["sun_pos_mon"], cmds=cmds, scenario="flight")
 
     assert len(sts) == len(spm)
     assert np.all(sts["datestart"] == spm["datestart"])
@@ -1252,7 +1285,10 @@ def test_backstop_scs84():
     SCS 84 has not changed from DISA since 2006 due to a change in operations.
     """
     sts = states.get_states(
-        start="2017:001:12:00:00", stop="2017:300:12:00:00", state_keys=["scs84"]
+        start="2017:001:12:00:00",
+        stop="2017:300:12:00:00",
+        state_keys=["scs84"],
+        scenario="flight",
     )
     assert len(sts) == 1
     assert sts[0]["scs84"] == "DISA"
@@ -1377,7 +1413,7 @@ def compare_regress_output(regress, state_key):
     regr = ascii.read(regress, format="fixed_width_two_line", fill_values=None)
     start = regr["datestart"][0]
     stop = regr["datestop"][-1]
-    sts = states.get_states(start, stop, state_keys=[state_key])
+    sts = states.get_states(start, stop, state_keys=[state_key], scenario="flight")
     for colname in ("datestart", "datestop", state_key):
         assert np.all(regr[colname] == sts[colname])
 
@@ -1466,11 +1502,11 @@ def test_continuity_just_after_command():
     Fix issue where continuity required having at least one other
     command after the relevant continuity command.
     """
-    cont = states.get_continuity("2018:001:12:00:00", "targ_q1")
+    cont = states.get_continuity("2018:001:12:00:00", "targ_q1", scenario="flight")
     assert cont["__dates__"]["targ_q1"] == "2018:001:11:52:10.175"
 
     # 1 msec later
-    cont = states.get_continuity("2018:001:11:52:10.176", "targ_q1")
+    cont = states.get_continuity("2018:001:11:52:10.176", "targ_q1", scenario="flight")
     assert cont["__dates__"]["targ_q1"] == "2018:001:11:52:10.175"
 
 
@@ -1482,7 +1518,7 @@ def test_continuity_far_future():
     # Now + 150 days.  Don't know the answer but just make sure this
     # runs to completion.  The lookbacks of 7 and 30 days should fail
     # but 180 days will get something.
-    cont = states.get_continuity(DateTime() + 150, "obsid")
+    cont = states.get_continuity(DateTime() + 150, "obsid", scenario="flight")
     assert "obsid" in cont
     assert "obsid" in cont["__dates__"]
 
@@ -1491,10 +1527,14 @@ def test_acis_power_cmds():
     start = "2017:359:13:37:50"
     stop = "2017:360:00:46:00"
     state_keys = ["power_cmd", "ccd_count", "fep_count", "vid_board"]
-    cmds = commands.get_cmds(start, stop)
-    continuity = states.get_continuity(start, state_keys)
+    cmds = commands.get_cmds(start, stop, scenario="flight")
+    continuity = states.get_continuity(start, state_keys, scenario="flight")
     test_states = states.get_states(
-        cmds=cmds, continuity=continuity, state_keys=state_keys, reduce=False
+        cmds=cmds,
+        continuity=continuity,
+        state_keys=state_keys,
+        reduce=False,
+        scenario="flight",
     )
     vid_dn = np.where(test_states["power_cmd"] == "WSVIDALLDN")[0]
     assert (test_states["ccd_count"][vid_dn] == 0).all()
@@ -1520,7 +1560,7 @@ def test_continuity_with_transitions_SPM():  # noqa: N802
     """
     start = "2017:087:08:20:35.838"
     stop = "2017:087:10:20:35.838"
-    cont = states.get_continuity(start, state_keys=["sun_pos_mon"])
+    cont = states.get_continuity(start, state_keys=["sun_pos_mon"], scenario="flight")
     assert cont == {
         "__dates__": {"sun_pos_mon": "2017:087:07:44:55.838"},
         "__transitions__": [
@@ -1543,7 +1583,7 @@ def test_continuity_with_transitions_SPM():  # noqa: N802
         "607083705.022        DISA sun_pos_mon",
     ]
     # fmt: on
-    sts = states.get_states(start, stop, state_keys=["sun_pos_mon"])
+    sts = states.get_states(start, stop, state_keys=["sun_pos_mon"], scenario="flight")
     assert sts.pformat(max_lines=-1, max_width=-1) == exp
 
 
@@ -1552,7 +1592,11 @@ def test_continuity_with_no_transitions_SPM():  # noqa: N802
     key set if not needed.  Part of fix for #125.
 
     """
-    cont = states.get_continuity("2017:001:12:00:00", state_keys=["sun_pos_mon"])
+    cont = states.get_continuity(
+        "2017:001:12:00:00",
+        state_keys=["sun_pos_mon"],
+        scenario="flight",
+    )
     assert cont == {
         "sun_pos_mon": "DISA",
         "__dates__": {"sun_pos_mon": "2017:001:04:23:55.764"},
@@ -1579,7 +1623,9 @@ def test_get_pitch_from_mid_maneuver(fast_sun_position_method):
     ]
     exp = Table.read(exp, format="ascii")
 
-    sts = states.get_states(start, stop, state_keys=["pitch", "pcad_mode"])
+    sts = states.get_states(
+        start, stop, state_keys=["pitch", "pcad_mode"], scenario="flight"
+    )
 
     assert np.all(exp["datestart"] == sts["datestart"])
     assert np.all(exp["datestop"] == sts["datestop"])
@@ -1609,6 +1655,7 @@ def test_get_states_start_between_aouptarg_aomanuvr_cmds():
         "2021:026:00:00:00",
         state_keys=("q1", "pcad_mode"),
         continuity={},
+        scenario="flight",
     )
     exp = [
         "      datestart              datestop            q1     pcad_mode",
@@ -1629,7 +1676,7 @@ def test_get_states_start_between_aouptarg_aomanuvr_cmds():
     assert sts["pcad_mode"][0] is None
 
     # Failure example from #198
-    cont = states.get_continuity("2021:032:13:56:00.000")
+    cont = states.get_continuity("2021:032:13:56:00.000", scenario="flight")
     assert cont["__dates__"]["q1"] == "2021:032:12:47:31.814"
 
 
@@ -1641,7 +1688,9 @@ def test_get_continuity_and_pitch_from_mid_maneuver(fast_sun_position_method):
     """
     start = "2017:207:23:35:00"
     stop = "2017:208:00:00:00"
-    sts = states.get_states(start, stop, state_keys=["pitch", "pcad_mode"])
+    sts = states.get_states(
+        start, stop, state_keys=["pitch", "pcad_mode"], scenario="flight"
+    )
     exp = [
         "      datestart              datestop             pitch        pcad_mode",
         "--------------------- --------------------- ------------------ ---------",
@@ -1658,14 +1707,19 @@ def test_get_continuity_and_pitch_from_mid_maneuver(fast_sun_position_method):
     assert np.all(exp["pcad_mode"] == sts["pcad_mode"])
     assert np.all(np.isclose(exp["pitch"], sts["pitch"], rtol=0, atol=1e-8))
 
-    cont = states.get_continuity(start, state_keys=["pitch", "pcad_mode"])
+    cont = states.get_continuity(
+        start, state_keys=["pitch", "pcad_mode"], scenario="flight"
+    )
     assert np.isclose(cont["pitch"], sts["pitch"][0], rtol=0, atol=1e-2)
     assert cont["pcad_mode"] == sts["pcad_mode"][0]
 
 
 def test_acisfp_setpoint_state():
     sts = states.get_states(
-        "1999-01-01 12:00:00", "2004-01-01 12:00:00", state_keys="acisfp_setpoint"
+        "1999-01-01 12:00:00",
+        "2004-01-01 12:00:00",
+        state_keys="acisfp_setpoint",
+        scenario="flight",
     )
     del sts["tstart"]
     del sts["tstop"]
@@ -1683,7 +1737,10 @@ def test_acisfp_setpoint_state():
     ]
 
     sts = states.get_states(
-        "2018-01-01 12:00:00", "2020-03-01 12:00:00", state_keys="acisfp_setpoint"
+        "2018-01-01 12:00:00",
+        "2020-03-01 12:00:00",
+        state_keys="acisfp_setpoint",
+        scenario="flight",
     )
     del sts["tstart"]
     del sts["tstop"]
@@ -1703,7 +1760,10 @@ def test_acisfp_setpoint_state():
 
 def test_grating_motion_states():
     sts = states.get_states(
-        "2021:227:12:00:00", "2021:230:12:00:00", state_keys=["letg", "hetg", "grating"]
+        "2021:227:12:00:00",
+        "2021:230:12:00:00",
+        state_keys=["letg", "hetg", "grating"],
+        scenario="flight",
     )
     del sts["tstart"]
     del sts["tstop"]
@@ -1732,6 +1792,7 @@ def test_hrc_states():
         state_keys=["hrc_15v", "hrc_24v", "hrc_i", "hrc_s"],
         merge_identical=True,
         continuity={"hrc_15v": "OFF", "hrc_24v": "OFF", "hrc_i": "OFF", "hrc_s": "OFF"},
+        scenario="flight",
     )
     del sts["tstart"]
     del sts["tstop"]
@@ -1778,6 +1839,7 @@ def test_hrc_states_with_scs_commanding():
         state_keys=["hrc_15v"],
         continuity={"hrc_15v": "OFF"},
         merge_identical=True,
+        scenario="flight",
     )
     del sts["tstart"]
     del sts["tstop"]
@@ -1800,7 +1862,9 @@ def test_early_start_exception():
     with pytest.raises(
         ValueError, match="no continuity found for start='2002:001:00:00:00.000'"
     ):
-        states.get_states("2002:001", "2003:001", state_keys=["orbit_point"])
+        states.get_states(
+            "2002:001", "2003:001", state_keys=["orbit_point"], scenario="flight"
+        )
 
 
 def test_nsm_continuity():
@@ -1851,7 +1915,11 @@ def test_sun_pos_mon_within_eclipse():
         # fmt: on
 
         sts = states.get_states(
-            start, stop, state_keys=spm_state_keys, merge_identical=True
+            start,
+            stop,
+            state_keys=spm_state_keys,
+            merge_identical=True,
+            scenario="flight",
         )
 
         names = ["datestart"] + spm_state_keys
@@ -1876,6 +1944,7 @@ def test_sun_pos_mon_within_eclipse_no_spm_enab(monkeypatch):
         "2005:014:16:38:10",  # Just after pexit
         "2005:014:17:00:00",  # 22 min later
         state_keys=states.SPM_STATE_KEYS,
+        scenario="flight",
     )
 
     exp = [
@@ -1895,7 +1964,7 @@ def test_get_continuity_acis_cmd_requires_obsid():
     this would raise an exception.
     """
     for time in ["2021:205:09:35:06.322", "2021:020:07:04:40.280"]:
-        states.get_continuity(time)
+        states.get_continuity(time, scenario="flight")
 
 
 def test_get_continuity_spm_eclipse():
@@ -1907,7 +1976,9 @@ def test_get_continuity_spm_eclipse():
     date in 1858. The end result was OK but this was a bit accidental.
     """
     cont = states.get_continuity(
-        CxoTime("2017:087:07:47:59.838") + 7 * u.day, state_keys=states.SPM_STATE_KEYS
+        CxoTime("2017:087:07:47:59.838") + 7 * u.day,
+        state_keys=states.SPM_STATE_KEYS,
+        scenario="flight",
     )
     assert cont == {
         "sun_pos_mon": "DISA",
@@ -1924,7 +1995,7 @@ def test_get_continuity_spm_eclipse():
 def test_interpolate_states_extrapolate():
     """Test that the states are correctly interpolated and extrapolated."""
     # fmt: off
-    sts =  states.get_states("2024:001:00:01:00", "2024:001:00:05:00", state_keys=["obsid"])
+    sts =  states.get_states("2024:001:00:01:00", "2024:001:00:05:00", state_keys=["obsid"], scenario="flight")
     times = ["2024:001:00:00:00", "2024:001:00:02:30", "2024:001:00:05:00", "2024:001:00:06:00"]
     sts_interp = states.interpolate_states(sts, times)
     assert np.all(sts_interp["obsid"] == [43839] * 4)
