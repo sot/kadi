@@ -270,14 +270,20 @@ def get_cmds(
     cache_key = scenario, cxotime_now, lookback, event_filter
     logger.info(f"Cache key: {cache_key}")
 
+    if not HAS_INTERNET and scenario != "flight":
+        raise ValueError(
+            "no internet found (no response from google), so the"
+            "'flight' scenario is required"
+        )
+
     # For flight scenario or no internet or if the query stop time is guaranteed
     # to not require recent commands then just use the archive.
     before_recent_cmds = stop < CxoTime(cxotime_now) - lookback * u.day
-    if scenario == "flight" or not HAS_INTERNET or before_recent_cmds:
+    if scenario == "flight" or before_recent_cmds:
         cmds = IDX_CMDS
         logger.info(
             "Getting commands from archive only because of:"
-            f" {scenario=} {before_recent_cmds=} {HAS_INTERNET=}"
+            f" {scenario=} {before_recent_cmds=}"
         )
     else:
         if cache_key not in CMDS_RECENT:
@@ -1124,7 +1130,7 @@ def update_cmd_events(
 
     # Get sheet doc ids for scenario, or [] if not applicable
     doc_ids = get_sheet_doc_ids_for_scenario(scenario)
-    if not doc_ids or not HAS_INTERNET:
+    if not doc_ids:
         cmd_events = get_cmd_events_from_local(scenario)
     else:
         cmd_events = get_cmd_events_from_sheet(scenario, doc_ids)
@@ -1201,11 +1207,13 @@ def get_sheet_doc_ids_for_scenario(scenario) -> list[str]:
     Returns
     -------
     list[str]
-        List of Google sheet document IDs. This will be an empty list if no
-        Google sheet(s) are associated with the scenario.
+        List of Google sheet document IDs. This will be an empty list for the "flight"
+        scenario or for a local scenario.
     """
-    if scenario in ("flight", None):
+    if scenario is None:
         doc_ids = [conf.cmd_events_flight_id]
+    elif scenario == "flight":
+        doc_ids = []
     elif scenario == "custom":
         doc_ids = [conf.cmd_events_custom_id]
     elif scenario == "flight+custom":
