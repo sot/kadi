@@ -1222,7 +1222,7 @@ def read_cmd_events_from_sheet(doc_id):
     logger.info(f"Getting cmd_events from {url}")
     req = retry_func(requests.get)(url, timeout=5)
     if req.status_code != 200:
-        raise ValueError(f"Failed to get cmd events sheet: {req.status_code}")
+        raise ValueError(f"Failed to get cmd events sheet: {req.status_code} for {url}")
 
     cmd_events = Table.read(
         req.text, format="csv", fill_values=[], converters={"Params": str}

@@ -1,4 +1,5 @@
 import os
+import re
 from pathlib import Path
 
 # Use data file from parse_cm.test for get_cmds_from_backstop test.
@@ -1210,6 +1211,20 @@ def patched_read_cmd_events_from_sheet(doc_id):
     else:
         evts = read_cmd_events_from_sheet(doc_id)
     return evts
+
+
+def test_flight_scenario_sheet_access():
+    """Test that flight scenario does not access the google command events sheet"""
+    with kadi.commands.conf.set_temp("cmd_events_flight_id", "id-does-not-exist"):
+        commands.clear_caches()
+        commands.get_cmds("-7d", scenario="flight")  # succeeds, no sheet access
+        match = re.escape(
+            "Failed to get cmd events sheet: 404 for "
+            "https://docs.google.com/spreadsheets/d/id-does-not-exist/export?format=csv"
+        )
+        commands.clear_caches()
+        with pytest.raises(ValueError, match=match):
+            commands.get_cmds("-7d")  # fails, bad sheet URL
 
 
 def test_custom_scenario(monkeypatch, stop_date_2024_035_23_00_00):
