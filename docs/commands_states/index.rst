@@ -926,7 +926,7 @@ The ``event_filter`` argument takes a single callable function or a list of func
 Each function must take a single argument, an Command Events Table object, and return a
 boolean mask indicating whether each row (command event) in the table should be included
 when generating the final commands.  The functions are applied in order, and the command
-event is included if any of the functions return ``True``.
+event is excluded if any of the functions return ``False`` for that event.
 
 Filtering within last 30 days
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
