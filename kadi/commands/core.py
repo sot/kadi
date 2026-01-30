@@ -6,14 +6,13 @@ import os
 import pickle
 import struct
 import warnings
-import weakref
 from pathlib import Path
 from typing import Callable
 
 import numpy as np
 import parse_cm.paths
 import tables
-from astropy.table import Column, Row, Table, TableAttribute, vstack
+from astropy.table import Column, Row, Table, vstack
 from cxotime import CxoTime
 from ska_helpers import retry
 
@@ -277,18 +276,6 @@ def add_observations_to_cmds(
         prev_obsid=cont["obsid"],
     )
 
-    # General implementation note: Using a weakref means that it is not possible to
-    # define local dicts to keep the starcat params "private" to the cmds object. These
-    # local dicts will go out of scope and the weakref becomes undefined. When commands
-    # V1 is removed then there is the possibility of removing the `rev_pars_dict`
-    # attribute. In general it is fragile and basically only works with the global
-    # REV_PARS_DICT anyway. For instance appending two command tables with different
-    # REV_PARS_DICTs will not work as expected.
-
-    # Add weakref to REV_PARS_DICT so that it can be used in CommandRow.__getitem__,
-    # in particular for getting star catalogs via the `starcat_idx` key in OBS commands.
-    cmds_obs.rev_pars_dict = weakref.ref(kcc2.REV_PARS_DICT)
-
     return cmds_obs
 
 
@@ -489,21 +476,12 @@ class CommandRow(Row):
             out = super().__getitem__(item)
             if out is None:
                 idx = super().__getitem__("idx")
-                # self.parent.rev_pars_dict should be a weakref to the reverse
-                # pars dict for this CommandTable. But it might not be defined,
-                # in which case just leave it as None.
-                if rev_pars_dict := self.table.rev_pars_dict:
-                    parvals = rev_pars_dict()[idx]
-                    if isinstance(parvals, bytes):
-                        params = decode_starcat_params(parvals)
-                    else:
-                        params = dict(parvals)
+                parvals = self.rev_pars_dict()[idx]
+                if isinstance(parvals, bytes):
+                    params = decode_starcat_params(parvals)
                 else:
-                    raise KeyError(
-                        "params cannot be mapped because the rev_pars_dict "
-                        "attribute is not defined (needs to be a weakref.ref "
-                        "of REV_PARS_DICT)"
-                    )
+                    params = dict(parvals)
+
                 out = self["params"] = params
         elif item not in self.colnames:
             out = self["params"][item]
@@ -555,8 +533,6 @@ class CommandTable(Table):
     This uses a ``params`` column that is expected to be ``None`` or a dict of
     params.
     """
-
-    rev_pars_dict = TableAttribute()
 
     COL_TYPES = {
         "idx": np.int32,
@@ -650,6 +626,11 @@ class CommandTable(Table):
 
     def __bytes__(self):
         return str(self).encode("utf-8")
+
+    def rev_pars_dict(self):
+        import kadi.commands.commands_v2 as kcc2
+
+        return kcc2.REV_PARS_DICT
 
     def find_date(self, date, side="left"):
         """Find row in table corresponding to ``date``.
@@ -789,7 +770,6 @@ class CommandTable(Table):
         except ValueError:
             out = vstack([orig, cmds])
         out.sort_in_backstop_order()
-        out.rev_pars_dict = self.rev_pars_dict
 
         return out
 
