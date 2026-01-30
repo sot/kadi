@@ -19,7 +19,7 @@ import numpy as np
 import requests
 from astropy.table import Table
 from cxotime import CxoTime
-from parse_cm.paths import ParseLoadNameError, load_dir_from_load_name, parse_load_name
+from parse_cm.paths import ParseLoadNameError, parse_load_name
 from ska_helpers.retry import retry_func
 from ska_sun import get_nsm_attitude
 from testr.test_helper import has_internet
