@@ -719,7 +719,7 @@ def get_state_cmds(cmds):
         "AOUPTARQ",
         "AONM2NPE",
         "AONM2NPD",
-        "OBSID",
+        "OBSID_SCH",
     ]
 
     if cmds["tlmsid"].dtype.kind == "S":
@@ -972,7 +972,7 @@ def get_cmds_obs_final(
             else:
                 starcat_idx = cmd["idx"]
 
-        elif tlmsid == "OBSID":
+        elif tlmsid == "OBSID_SCH":
             obsid_sched = cmd["params"]["id"]
 
         elif tlmsid == "COAOSQID":
@@ -1475,15 +1475,17 @@ def check_add_scheduled_obsid_cmds() -> bool:
     where original COAOSQID commands in observing loads are dropped.
     """
     if conf.match_from_rltt_start:
-        logger.info('Adding "OBSID" commands due to conf.match_from_rltt_start=True')
-        out = True
-    elif np.any(IDX_CMDS["tlmsid"] == "OBSID"):
         logger.info(
-            'Adding "OBSID" commands due to existing "OBSID" commands in archive'
+            'Adding "OBSID_SCH" commands due to conf.match_from_rltt_start=True'
+        )
+        out = True
+    elif np.any(IDX_CMDS["tlmsid"] == "OBSID_SCH"):
+        logger.info(
+            'Adding "OBSID_SCH" commands due to existing "OBSID_SCH" commands in archive'
         )
         out = True
     else:
-        logger.info('Not adding "OBSID" commands')
+        logger.info('Not adding "OBSID_SCH" commands')
         out = False
 
     return out
@@ -1509,7 +1511,7 @@ def add_scheduled_obsid_cmds(cmds: CommandTable) -> CommandTable:
     """
     cmds_obsid = cmds[cmds["tlmsid"] == "COAOSQID"]
     cmds_obsid["type"] = "LOAD_EVENT"
-    cmds_obsid["tlmsid"] = "OBSID"
+    cmds_obsid["tlmsid"] = "OBSID_SCH"
     cmds_obsid["scs"] -= 3
     logger.info(f"Adding {len(cmds_obsid)} OBSID load event commands")
 
