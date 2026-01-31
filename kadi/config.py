@@ -101,7 +101,33 @@ class Conf(ConfigNamespace):
             "step size may be smaller."
         ),
     )
-    matching_block_size = ConfigItem(500, "Matching block size for command blocks.")
+
+    no_match_prev_cmds = ConfigItem(
+        False,
+        "Do not match previous command block when updating cmds v2. "
+        "Setting to True can produce an invalid commands table (experts only).",
+    )
+
+    matching_block_size = ConfigItem(
+        500,
+        "Matching block size for command blocks.",
+    )
+
+    add_scheduled_obsid_commands = ConfigItem(
+        defaultvalue=None,
+        cfgtype="boolean",
+        description=(
+            "Add scheduled OBSID commands to commands archive. ",
+            "If None then check for OBSID commands in the existing archive and "
+            "behave accordingly. Developers only.",
+        ),
+    )
+
+    match_from_rltt_start = ConfigItem(
+        False,
+        "Match previous commands exactly from the start of the RLTT era (APR1420B). "
+        "Developers only.",
+    )
 
 
 # Create a configuration instance for the user

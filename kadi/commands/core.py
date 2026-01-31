@@ -86,7 +86,7 @@ def load_idx_cmds(version=None, file=None):
         file = IDX_CMDS_PATH(version)
     with tables.open_file(file, mode="r") as h5:
         idx_cmds = CommandTable(h5.root.data[:])
-    logger.info(f"Loaded {file} with {len(idx_cmds)} commands")
+    logger.info(f"Loaded {Path(file).absolute()} with {len(idx_cmds)} commands")
 
     # For V2 add the params column here to make IDX_CMDS be same as regular cmds
     if version == 2:
@@ -101,7 +101,7 @@ def load_pars_dict(version=None, file=None):
         file = PARS_DICT_PATH(version)
     with open(file, "rb") as fh:
         pars_dict = pickle.load(fh, encoding="ascii")
-    logger.info(f"Loaded {file} with {len(pars_dict)} pars")
+    logger.info(f"Loaded {Path(file).absolute()} with {len(pars_dict)} pars")
     return pars_dict
 
 

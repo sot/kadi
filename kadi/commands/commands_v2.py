@@ -21,6 +21,7 @@ from astropy.table import Table
 from cxotime import CxoTime
 from parse_cm.paths import ParseLoadNameError, parse_load_name
 from ska_helpers.retry import retry_func
+from ska_helpers.utils import temp_env_var
 from ska_sun import get_nsm_attitude
 from testr.test_helper import has_internet
 
@@ -71,6 +72,7 @@ MATCHING_BLOCKS = {}
 
 # APR1420B was the first load set to have RLTT (backstop 6.9)
 RLTT_ERA_START = CxoTime("2020-04-14")
+RLTT_ERA_START_LOAD = "APR1420B"
 
 HAS_INTERNET = has_internet()
 
@@ -489,6 +491,8 @@ def update_cmd_events_and_loads_and_get_cmds_recent(
         loads_backstop_path = paths.LOADS_BACKSTOP_PATH(load_name)
         with gzip.open(loads_backstop_path, "rb") as fh:
             cmds: CommandTable = pickle.load(fh)
+            if check_add_scheduled_obsid_cmds():
+                cmds = add_scheduled_obsid_cmds(cmds)
 
         # Filter commands if loads (vehicle and/or observing) were approved but
         # never uplinked
@@ -1398,28 +1402,28 @@ def get_load_cmds_from_occweb_or_local(
         logger.info(f"Already have {cmds_filename}")
         with gzip.open(cmds_filename, "rb") as fh:
             cmds = pickle.load(fh)
-        cmds = add_load_event_obsid_cmds(cmds)
-        return cmds
-
-    # Find the backstop file on OCCweb
-    load_dir_contents = occweb.get_occweb_dir(dir_year_month / load_name, timeout=5)
-    for filename in load_dir_contents["Name"]:
-        if re.match(r"CR\d{3}.\d{4}\.backstop", filename):
-            break
     else:
-        raise ValueError(
-            f"Could not find backstop file in {dir_year_month / load_name}"
+        # Find the backstop file on OCCweb
+        load_dir_contents = occweb.get_occweb_dir(dir_year_month / load_name, timeout=5)
+        for filename in load_dir_contents["Name"]:
+            if re.match(r"CR\d{3}.\d{4}\.backstop", filename):
+                break
+        else:
+            raise ValueError(
+                f"Could not find backstop file in {dir_year_month / load_name}"
+            )
+        # Download the backstop file from OCCweb
+        backstop_text = occweb.get_occweb_page(
+            dir_year_month / load_name / filename,
+            cache=conf.cache_loads_in_astropy_cache,
+            timeout=10,
         )
-    # Download the backstop file from OCCweb
-    backstop_text = occweb.get_occweb_page(
-        dir_year_month / load_name / filename,
-        cache=conf.cache_loads_in_astropy_cache,
-        timeout=10,
-    )
-    cmds = parse_backstop(load_name, backstop_text)
-    if not in_work:
-        write_backstop(cmds, cmds_filename)
-    cmds = add_load_event_obsid_cmds(cmds)
+        cmds = parse_backstop(load_name, backstop_text)
+        if not in_work:
+            write_backstop(cmds, cmds_filename)
+
+    if check_add_scheduled_obsid_cmds():
+        cmds = add_scheduled_obsid_cmds(cmds)
 
     return cmds
 
@@ -1441,18 +1445,74 @@ def parse_backstop(load_name: str, backstop_text: str):
     return cmds
 
 
-def add_load_event_obsid_cmds(cmds: CommandTable) -> CommandTable:
+@functools.cache
+def check_add_scheduled_obsid_cmds() -> bool:
+    """Determine whether to add scheduled OBSID commands to the commands archive.
+
+    This function evaluates the configuration setting
+    `conf.add_scheduled_obsid_commands` to determine if scheduled OBSID commands should
+    be added. The logic is:
+
+    - If the config is explicitly set to True or False, return that value
+    - If the config is None (default), auto-detect based on whether existing commands
+      archive already contains OBSID commands
+
+    Returns
+    -------
+    bool
+        True if scheduled OBSID commands should be added, False otherwise.
+
+    Raises
+    ------
+    ValueError
+        If conf.add_scheduled_obsid_commands is not a bool or None.
+
+    Notes
+    -----
+    This function is cached to avoid repeated evaluation during processing. Scheduled
+    OBSID commands allow tracking of the scheduled OBSID in the event of an SCS-107
+    where original COAOSQID commands in observing loads are dropped.
+    """
+    if isinstance(conf.add_scheduled_obsid_commands, bool):
+        logger.info(
+            f"add_scheduled_obsid_commands set to {conf.add_scheduled_obsid_commands}"
+        )
+        out = conf.add_scheduled_obsid_commands
+    elif conf.add_scheduled_obsid_commands is None:
+        out = (has_obsid := np.any(IDX_CMDS["tlmsid"] == "OBSID"))
+        logger.info(
+            "add_scheduled_obsid_commands auto-detected as "
+            f"{out} based on existing OBSID commands={has_obsid})"
+        )
+    else:
+        raise ValueError("conf.add_scheduled_obsid_commands must be a bool or None")
+
+    return out
+
+
+def add_scheduled_obsid_cmds(cmds: CommandTable) -> CommandTable:
     """Add OBSID commands in vehicle loads corresponding to COAOSQID commands.
 
     This allows tracking of the scheduled OBSID in the event of an SCS-107 where the
     original COAOSQID commands in the observing loads are dropped. The load event cmds
     are placed in the vehicle loads so they get stopped if vehicle loads are stopped
     by NSM etc.
+
+    Parameters
+    ----------
+    cmds : CommandTable
+        CommandTable of load commands
+
+    Returns
+    -------
+    CommandTable
+        New CommandTable with original table and added OBSID load event commands.
     """
     cmds_obsid = cmds[cmds["tlmsid"] == "COAOSQID"]
     cmds_obsid["type"] = "LOAD_EVENT"
     cmds_obsid["tlmsid"] = "OBSID"
     cmds_obsid["scs"] -= 3
+    logger.info(f"Adding {len(cmds_obsid)} OBSID load event commands")
 
     return cmds.add_cmds(cmds_obsid)
 
@@ -1487,7 +1547,6 @@ def update_cmds_archive(
     log_level=logging.INFO,
     scenario=None,
     data_root=".",
-    match_prev_cmds=True,
 ):
     """Update cmds2.h5 and cmds2.pkl archive files.
 
@@ -1520,16 +1579,19 @@ def update_cmds_archive(
     # Local context manager for log_level and data_root
     kadi_logger = logging.getLogger("kadi")
     log_level_orig = kadi_logger.level
-    with conf.set_temp("commands_dir", data_root):
+    with conf.set_temp("commands_dir", data_root), temp_env_var("KADI", data_root):
         try:
             kadi_logger.setLevel(log_level)
-            _update_cmds_archive(lookback, stop, match_prev_cmds, scenario, data_root)
+            _update_cmds_archive(lookback, stop, scenario, data_root)
         finally:
             kadi_logger.setLevel(log_level_orig)
 
 
-def _update_cmds_archive(lookback, stop_loads, match_prev_cmds, scenario, data_root):
+def _update_cmds_archive(lookback, stop_loads, scenario, data_root):
     """Do the real work of updating the cmds archive"""
+    # Either no-match-prev-cmds or matching RLTT start disables matching previous cmds
+    match_prev_cmds = not (conf.no_match_prev_cmds or conf.match_from_rltt_start)
+
     idx_cmds_path = Path(data_root) / "cmds2.h5"
     pars_dict_path = Path(data_root) / "cmds2.pkl"
 
@@ -1544,7 +1606,7 @@ def _update_cmds_archive(lookback, stop_loads, match_prev_cmds, scenario, data_r
         )
         del cmds_arch["timeline_id"]
         pars_dict = {}
-        match_prev_cmds = False  # No matching of previous commands
+        match_prev_cmds = False  # No match of previous commands since there are none.
 
     cmds_recent = update_cmd_events_and_loads_and_get_cmds_recent(
         scenario=scenario,
@@ -1556,10 +1618,23 @@ def _update_cmds_archive(lookback, stop_loads, match_prev_cmds, scenario, data_r
     if match_prev_cmds:
         idx0_arch, idx0_recent = get_matching_block_idx(cmds_arch, cmds_recent)
     else:
-        idx0_arch = len(cmds_arch)
         idx0_recent = 0
+        if conf.match_from_rltt_start:
+            # Special case for reprocessing the commands archive starting at the RLTT
+            # era from load RLTT_ERA_START_LOAD (APR1420B). Find the index of the first
+            # command in these loads. Note np.argmax() returns the first matching index
+            # in the case of multiple matches.
+            idx0_arch = np.argmax(cmds_arch["source"] == RLTT_ERA_START_LOAD)
+            logger.info(
+                f"Matching from RLTT start load {RLTT_ERA_START_LOAD}, "
+                f"idx0_arch={idx0_arch}, idx0_recent={idx0_recent}"
+            )
+        else:
+            # Append to end of existing cmds archive file
+            idx0_arch = len(cmds_arch)
 
     # Convert from `params` col of dicts to index into same params in pars_dict.
+    cmds_recent[-100:].pprint_like_backstop()
     for cmd in cmds_recent:
         cmd["idx"] = get_par_idx_update_pars_dict(pars_dict, cmd)
 
@@ -1567,7 +1642,9 @@ def _update_cmds_archive(lookback, stop_loads, match_prev_cmds, scenario, data_r
     # For the command below the no-op logic should be clear:
     # cmds_arch = vstack([cmds_arch[:idx0_arch], cmds_recent[idx0_recent:]])
     if idx0_arch == len(cmds_arch) and idx0_recent == len(cmds_recent):
-        logger.info(f"No new commands found, skipping writing {idx_cmds_path}")
+        logger.info(
+            f"No new commands found, skipping writing {idx_cmds_path.absolute()}"
+        )
         return
 
     # Merge the recent commands with the existing archive.
@@ -1586,19 +1663,21 @@ def _update_cmds_archive(lookback, stop_loads, match_prev_cmds, scenario, data_r
 
     # Save the updated archive and pars_dict.
     cmds_arch_new = vstack_exact([cmds_arch[:idx0_arch], cmds_recent[idx0_recent:]])
-    logger.info(f"Writing {len(cmds_arch_new)} commands to {idx_cmds_path}")
-    cmds_arch_new.write(str(idx_cmds_path), path="data", format="hdf5", overwrite=True)
+    logger.info(f"Writing {len(cmds_arch_new)} commands to {idx_cmds_path.absolute()}")
+    cmds_arch_new.write(
+        str(idx_cmds_path.absolute()), path="data", format="hdf5", overwrite=True
+    )
 
-    logger.info(f"Writing updated pars_dict to {pars_dict_path}")
-    pickle.dump(pars_dict, open(pars_dict_path, "wb"))
+    logger.info(f"Writing updated pars_dict to {pars_dict_path.absolute()}")
+    pickle.dump(pars_dict, open(pars_dict_path.absolute(), "wb"))
 
 
 def get_matching_block_idx(cmds_arch, cmds_recent):
     # Find place in archive where the recent commands start.
     idx_arch_recent = cmds_arch.find_date(cmds_recent["date"][0])
-    logger.info("Selecting commands from cmds_arch[{}:]".format(idx_arch_recent))
     cmds_arch_recent = cmds_arch[idx_arch_recent:]
     cmds_arch_recent.rev_pars_dict = weakref.ref(REV_PARS_DICT)
+    logger.info("Selecting commands from cmds_arch[{}:]".format(idx_arch_recent))
 
     arch_vals = get_list_for_matching(cmds_arch_recent)
     recent_vals = get_list_for_matching(cmds_recent)
@@ -1608,13 +1687,15 @@ def get_matching_block_idx(cmds_arch, cmds_recent):
     matching_blocks = diff.get_matching_blocks()
     opcodes = diff.get_opcodes()
     # Find the first matching block that is sufficiently long
+    logger.info("Matching blocks for (a) recent commands and (b) existing HDF5")
     for block in matching_blocks:
+        logger.info("  {}".format(block))
         if block.size > conf.matching_block_size:
+            logger.info(
+                f"Found matching block of size {block.size} > {conf.matching_block_size}"
+            )
             break
     else:
-        logger.info("Matching blocks for (a) recent commands and (b) existing HDF5")
-        for block in matching_blocks:
-            logger.info("  {}".format(block))
         logger.info("Diffs between (a) recent commands and (b) existing HDF5")
         for opcode in opcodes:
             logger.info("  {}".format(opcode))
