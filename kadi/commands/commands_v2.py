@@ -1473,19 +1473,17 @@ def check_add_scheduled_obsid_cmds() -> bool:
     OBSID commands allow tracking of the scheduled OBSID in the event of an SCS-107
     where original COAOSQID commands in observing loads are dropped.
     """
-    if isinstance(conf.add_scheduled_obsid_commands, bool):
+    if conf.match_from_rltt_start:
+        logger.info('Adding "OBSID" commands due to conf.match_from_rltt_start=True')
+        out = True
+    elif np.any(IDX_CMDS["tlmsid"] == "OBSID"):
         logger.info(
-            f"add_scheduled_obsid_commands set to {conf.add_scheduled_obsid_commands}"
+            'Adding "OBSID" commands due to existing "OBSID" commands in archive'
         )
-        out = conf.add_scheduled_obsid_commands
-    elif conf.add_scheduled_obsid_commands is None:
-        out = (has_obsid := np.any(IDX_CMDS["tlmsid"] == "OBSID"))
-        logger.info(
-            "add_scheduled_obsid_commands auto-detected as "
-            f"{out} based on existing OBSID commands={has_obsid})"
-        )
+        out = True
     else:
-        raise ValueError("conf.add_scheduled_obsid_commands must be a bool or None")
+        logger.info('Not adding "OBSID" commands')
+        out = False
 
     return out
 
@@ -1634,7 +1632,6 @@ def _update_cmds_archive(lookback, stop_loads, scenario, data_root):
             idx0_arch = len(cmds_arch)
 
     # Convert from `params` col of dicts to index into same params in pars_dict.
-    cmds_recent[-100:].pprint_like_backstop()
     for cmd in cmds_recent:
         cmd["idx"] = get_par_idx_update_pars_dict(pars_dict, cmd)
 

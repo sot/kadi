@@ -113,16 +113,6 @@ class Conf(ConfigNamespace):
         "Matching block size for command blocks.",
     )
 
-    add_scheduled_obsid_commands = ConfigItem(
-        defaultvalue=None,
-        cfgtype="boolean",
-        description=(
-            "Add scheduled OBSID commands to commands archive. ",
-            "If None then check for OBSID commands in the existing archive and "
-            "behave accordingly. Developers only.",
-        ),
-    )
-
     match_from_rltt_start = ConfigItem(
         False,
         "Match previous commands exactly from the start of the RLTT era (APR1420B). "

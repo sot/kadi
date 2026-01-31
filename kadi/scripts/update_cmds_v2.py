@@ -55,11 +55,6 @@ def get_opt(args=None):
         help=f"Matching block size (default={conf.matching_block_size})",
     )
     dev_group.add_argument(
-        "--add-scheduled-obsid-commands",
-        action="store_true",
-        help="Add scheduled OBSID commands to commands archive",
-    )
-    dev_group.add_argument(
         "--match-from-rltt-start",
         action="store_true",
         help="Match previous commands exactly from the start of the RLTT era "
@@ -81,7 +76,6 @@ def main(args=None):
     for attr in (
         "no_match_prev_cmds",
         "matching_block_size",
-        "add_scheduled_obsid_commands",
         "match_from_rltt_start",
     ):
         if (value := getattr(opt, attr)) is not None:
