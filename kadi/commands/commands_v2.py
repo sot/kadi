@@ -1003,7 +1003,8 @@ def get_cmds_obs_final(
         elif tlmsid == "OBS":
             obs_params = cmd["params"]
             obs_params["obsid"] = obsid
-            obs_params["obsid_sched"] = obsid_sched
+            if check_add_scheduled_obsid_cmds():
+                obs_params["obsid_sched"] = obsid_sched
             obs_params["simpos"] = sim_pos  # matches states 'simpos'
             obs_params["obs_start"] = cmd["date"]
             if obs_params["npnt_enab"]:
@@ -1715,11 +1716,6 @@ def get_list_for_matching(cmds: CommandTable) -> list[tuple]:
     keys = ("date", "type", "tlmsid", "scs", "step", "source", "vcdu")
     rows = []
     for cmd in cmds:
-        if cmd["type"] == "LOAD_EVENT" and cmd["tlmsid"] == "OBSID":
-            # Ignore OBSID LOAD_EVENT commands (aka scheduled obsid) for matching
-            # because the commands archive may or may not include these commands.
-            continue
-
         row = tuple(
             cmd[key].decode("ascii") if isinstance(cmd[key], bytes) else str(cmd[key])
             for key in keys
@@ -1733,9 +1729,7 @@ def get_list_for_matching(cmds: CommandTable) -> list[tuple]:
         # commands are not mutable in this way we just apply this for OBS commands.
         if cmd["tlmsid"] == "OBS":
             row_params = tuple(
-                (key, cmd["params"][key])
-                for key in sorted(cmd["params"])
-                if key != "obsid_sched"
+                (key, cmd["params"][key]) for key in sorted(cmd["params"])
             )
             row += row_params
         rows.append(row)
