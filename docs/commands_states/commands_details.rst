@@ -256,16 +256,16 @@ Environment variables
   Override the default location of kadi flight data files ``cmds2.h5`` and
   ``cmds2.pkl``.
 
-``KADI_SCENARIO``
-  Set the default scenario. This can be used to set the scenario in an
-  application that is not aware of kadi scenarios, effectively a back door to
-  override the flight commands.
-
 ``KADI_CMDS_VERSION``
   Set the kadi commands archive version to use. By default, kadi uses the highest
   version found in the data directory. The version is the integer value in the kadi
   ``cmds<N>.h5`` and ``cmds<N>.pkl`` files. This environment variable can be set to an
   integer value (e.g. ``2`` or ``3``) to force kadi to use a specific version.
+
+``KADI_SCENARIO``
+  Set the default scenario. This can be used to set the scenario in an
+  application that is not aware of kadi scenarios, effectively a back door to
+  override the flight commands.
 
 Mocking the current time
 ------------------------
