@@ -261,6 +261,12 @@ Environment variables
   application that is not aware of kadi scenarios, effectively a back door to
   override the flight commands.
 
+``KADI_CMDS_VERSION``
+  Set the kadi commands archive version to use. By default, kadi uses the highest
+  version found in the data directory. The version is the integer value in the kadi
+  ``cmds<N>.h5`` and ``cmds<N>.pkl`` files. This environment variable can be set to an
+  integer value (e.g. ``2`` or ``3``) to force kadi to use a specific version.
+
 Mocking the current time
 ------------------------
 Setting the ``CXOTIME_NOW`` environment variable allows you to pretend that the current
