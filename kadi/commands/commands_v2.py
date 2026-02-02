@@ -36,6 +36,7 @@ from kadi.commands.core import (
     get_cmds_from_backstop,
     get_cxotime_now,
     get_par_idx_update_pars_dict,
+    kadi_cmds_version,
     load_idx_cmds,
     load_name_to_cxotime,
     load_pars_dict,
@@ -62,8 +63,8 @@ CMD_EVENTS_SHEET_URL = (
 
 # Cached values of the full mission commands archive (cmds_v2.h5, cmds_v2.pkl).
 # These are loaded on demand.
-IDX_CMDS = LazyVal(functools.partial(load_idx_cmds, version=2))
-PARS_DICT = LazyVal(functools.partial(load_pars_dict, version=2))
+IDX_CMDS = LazyVal(functools.partial(load_idx_cmds))
+PARS_DICT = LazyVal(functools.partial(load_pars_dict))
 REV_PARS_DICT = LazyVal(lambda: {v: k for k, v in PARS_DICT.items()})
 
 # Cache of recent commands keyed by scenario
@@ -491,7 +492,7 @@ def update_cmd_events_and_loads_and_get_cmds_recent(
         loads_backstop_path = paths.LOADS_BACKSTOP_PATH(load_name)
         with gzip.open(loads_backstop_path, "rb") as fh:
             cmds: CommandTable = pickle.load(fh)
-            if check_add_scheduled_obsid_cmds():
+            if kadi_cmds_version() >= 3:
                 cmds = add_scheduled_obsid_cmds(cmds)
 
         # Filter commands if loads (vehicle and/or observing) were approved but
@@ -1003,7 +1004,7 @@ def get_cmds_obs_final(
         elif tlmsid == "OBS":
             obs_params = cmd["params"]
             obs_params["obsid"] = obsid
-            if check_add_scheduled_obsid_cmds():
+            if kadi_cmds_version() >= 3:
                 obs_params["obsid_sched"] = obsid_sched
             obs_params["simpos"] = sim_pos  # matches states 'simpos'
             obs_params["obs_start"] = cmd["date"]
@@ -1423,7 +1424,7 @@ def get_load_cmds_from_occweb_or_local(
         if not in_work:
             write_backstop(cmds, cmds_filename)
 
-    if check_add_scheduled_obsid_cmds():
+    if kadi_cmds_version() >= 3:
         cmds = add_scheduled_obsid_cmds(cmds)
 
     return cmds
@@ -1444,51 +1445,6 @@ def parse_backstop(load_name: str, backstop_text: str):
     del cmds["timeline_id"]
 
     return cmds
-
-
-@functools.cache
-def check_add_scheduled_obsid_cmds() -> bool:
-    """Determine whether to add scheduled OBSID commands to the commands archive.
-
-    This function evaluates the configuration setting
-    `conf.add_scheduled_obsid_commands` to determine if scheduled OBSID commands should
-    be added. The logic is:
-
-    - If the config is explicitly set to True or False, return that value
-    - If the config is None (default), auto-detect based on whether existing commands
-      archive already contains OBSID commands
-
-    Returns
-    -------
-    bool
-        True if scheduled OBSID commands should be added, False otherwise.
-
-    Raises
-    ------
-    ValueError
-        If conf.add_scheduled_obsid_commands is not a bool or None.
-
-    Notes
-    -----
-    This function is cached to avoid repeated evaluation during processing. Scheduled
-    OBSID commands allow tracking of the scheduled OBSID in the event of an SCS-107
-    where original COAOSQID commands in observing loads are dropped.
-    """
-    if conf.match_from_rltt_start:
-        logger.info(
-            'Adding "OBSID_SCH" commands due to conf.match_from_rltt_start=True'
-        )
-        out = True
-    elif np.any(IDX_CMDS["tlmsid"] == "OBSID_SCH"):
-        logger.info(
-            'Adding "OBSID_SCH" commands due to existing "OBSID_SCH" commands in archive'
-        )
-        out = True
-    else:
-        logger.info('Not adding "OBSID_SCH" commands')
-        out = False
-
-    return out
 
 
 def add_scheduled_obsid_cmds(cmds: CommandTable) -> CommandTable:
@@ -1553,6 +1509,10 @@ def update_cmds_archive(
 
     This updates the archive though ``stop`` date, where is required that the
     ``stop`` date is within ``lookback`` days of existing data in the archive.
+
+    By default this updates the latest version of the archive. This can be changed by
+    setting the KADI_CMDS_VERSION environment variable. Note that the version is
+    cached via kadi.commands.core.kadi_cmds_version().
 
     Parameters
     ----------

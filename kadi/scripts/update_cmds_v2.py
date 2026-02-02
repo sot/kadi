@@ -1,5 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import argparse
+import os
 
 from ska_helpers.run_info import log_run_info
 
@@ -14,6 +15,11 @@ def get_opt(args=None):
     """
     parser = argparse.ArgumentParser(
         description="Update HDF5 cmds v2 table",
+    )
+    parser.add_argument(
+        "--data-root",
+        default=".",
+        help="Data root (default='.')",
     )
     parser.add_argument(
         "--lookback",
@@ -34,7 +40,11 @@ def get_opt(args=None):
         "--scenario",
         help="Scenario for loads and command events outputs (default=None)",
     )
-    parser.add_argument("--data-root", default=".", help="Data root (default='.')")
+    parser.add_argument(
+        "--kadi-cmds-version",
+        type=int,
+        help="Kadi cmds version (default=latest)",
+    )
     parser.add_argument(
         "--version",
         action="version",
@@ -81,6 +91,9 @@ def main(args=None):
         if (value := getattr(opt, attr)) is not None:
             setattr(conf, attr, value)
             print(f"Set conf.{attr} = {value}")
+
+    if opt.kadi_cmds_version is not None:
+        os.environ["KADI_CMDS_VERSION"] = str(opt.kadi_cmds_version)
 
     update_cmds_archive(
         lookback=opt.lookback,

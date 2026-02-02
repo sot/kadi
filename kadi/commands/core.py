@@ -18,7 +18,7 @@ from cxotime import CxoTime
 from ska_helpers import retry
 
 from kadi.config import conf
-from kadi.paths import IDX_CMDS_PATH, PARS_DICT_PATH
+from kadi.paths import DATA_DIR, IDX_CMDS_PATH, PARS_DICT_PATH
 
 __all__ = [
     "read_backstop",
@@ -29,6 +29,7 @@ __all__ = [
     "SCS107_EVENTS",
     "filter_scs107_events",
     "set_time_now",
+    "kadi_cmds_version",
 ]
 
 
@@ -82,14 +83,16 @@ def load_idx_cmds(version=None, file=None):
         File "H5FDsec2.c", line 941, in H5FD_sec2_lock
         unable to lock file, errno = 11, error message = 'Resource temporarily unavailable'
     """  # noqa: E501
+    if version is None:
+        version = kadi_cmds_version()
     if file is None:
         file = IDX_CMDS_PATH(version)
     with tables.open_file(file, mode="r") as h5:
         idx_cmds = CommandTable(h5.root.data[:])
     logger.info(f"Loaded {Path(file).absolute()} with {len(idx_cmds)} commands")
 
-    # For V2 add the params column here to make IDX_CMDS be same as regular cmds
-    if version == 2:
+    # For V2 or later add params column here to make IDX_CMDS be same as regular cmds
+    if version >= 2:
         idx_cmds["params"] = None
 
     return idx_cmds
@@ -97,12 +100,46 @@ def load_idx_cmds(version=None, file=None):
 
 @retry.retry(tries=4, delay=0.5, backoff=4)
 def load_pars_dict(version=None, file=None):
+    if version is None:
+        version = kadi_cmds_version()
     if file is None:
         file = PARS_DICT_PATH(version)
     with open(file, "rb") as fh:
         pars_dict = pickle.load(fh, encoding="ascii")
     logger.info(f"Loaded {Path(file).absolute()} with {len(pars_dict)} pars")
     return pars_dict
+
+
+@functools.cache
+def kadi_cmds_version() -> int:
+    """Determine the kadi commands version by checking for cmds*.h5 files.
+
+    The version number can be an integer. Return the highest version number that
+    where the corresponding PARS_DICT_PATH(version) file also exists.
+
+    Returns
+    -------
+    int
+        Highest kadi commands version number found.
+    """
+    if version := os.environ.get("KADI_CMDS_VERSION"):
+        return int(version)
+
+    versions = set()
+    for path in DATA_DIR().glob("cmds*.h5"):
+        ver_str = path.stem.replace("cmds", "")
+        try:
+            ver = int(ver_str)
+        except ValueError:
+            continue
+        else:
+            if PARS_DICT_PATH(ver).exists():
+                versions.add(ver)
+
+    if not versions:
+        raise RuntimeError(f"no valid kadi commands versions found in {DATA_DIR()}")
+
+    return max(versions)
 
 
 @functools.lru_cache
