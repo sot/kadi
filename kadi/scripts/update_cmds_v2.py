@@ -2,10 +2,12 @@
 import argparse
 import os
 
+import astropy.units as u
+from cxotime import CxoTime
 from ska_helpers.run_info import log_run_info
 
 from kadi import __version__
-from kadi.commands.commands_v2 import update_cmds_archive
+from kadi.commands.commands_v2 import RLTT_ERA_START, logger, update_cmds_archive
 from kadi.config import conf
 
 
@@ -71,6 +73,12 @@ def get_opt(args=None):
         "(APR1420B). This implies --no-match-prev-cmds.",
     )
 
+    dev_group.add_argument(
+        "--reprocess-from-rltt-start",
+        action="store_true",
+        help="Reprocess cmds archive from the start of the RLTT era",
+    )
+
     args = parser.parse_args(args)
     return args
 
@@ -81,7 +89,33 @@ def main(args=None):
     """
     opt = get_opt(args)
     log_run_info(log_func=print, opt=opt)
+    if opt.reprocess_from_rltt_start:
+        reprocess_from_rltt_start(opt)
+    else:
+        process_one_update(opt)
 
+
+def reprocess_from_rltt_start(opt):
+    # Start the V2 updates a week and a day after CMDS_V2_START
+    step = 365 * u.day
+    date = RLTT_ERA_START + step
+    stop = CxoTime.now()
+    opt.lookback = step.to_value(u.day) + 30
+
+    while date < stop:
+        logger.info("*" * 80)
+        logger.info(f"Updating cmds2 to {date}")
+        logger.info("*" * 80)
+        opt.stop = date.date
+        process_one_update(opt)
+        date += step
+
+    # Final catchup to `stop`
+    opt.stop = date.date
+    process_one_update(opt)
+
+
+def process_one_update(opt):
     # Transfer these developer-only options to conf
     for attr in (
         "no_match_prev_cmds",

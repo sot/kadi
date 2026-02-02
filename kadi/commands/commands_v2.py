@@ -1528,10 +1528,6 @@ def update_cmds_archive(
         Scenario name for loads and command events
     data_root : str, Path
         Root directory where cmds2.h5 and cmds2.pkl are stored. Default is '.'.
-    match_prev_cmds : bool
-        One-time use flag set to True to update the cmds archive near the v1/v2
-        transition of APR1420B. See ``utils/migrate_cmds_to_cmds2.py`` for
-        details.
     """
     # For testing allow override of default `stop` value
     if stop is None:
