@@ -1553,12 +1553,13 @@ def _update_cmds_archive(lookback, stop_loads, scenario, data_root):
     # Either no-match-prev-cmds or matching RLTT start disables matching previous cmds
     match_prev_cmds = not (conf.no_match_prev_cmds or conf.match_from_rltt_start)
 
-    idx_cmds_path = Path(data_root) / "cmds2.h5"
-    pars_dict_path = Path(data_root) / "cmds2.pkl"
+    version = kadi_cmds_version()
+    idx_cmds_path = Path(data_root) / f"cmds{version}.h5"
+    pars_dict_path = Path(data_root) / f"cmds{version}.pkl"
 
     if idx_cmds_path.exists():
-        cmds_arch = load_idx_cmds(version=2, file=idx_cmds_path)
-        pars_dict = load_pars_dict(version=2, file=pars_dict_path)
+        cmds_arch = load_idx_cmds(file=idx_cmds_path)
+        pars_dict = load_pars_dict(file=pars_dict_path)
     else:
         # Make an empty cmds archive table and pars dict
         cmds_arch = CommandTable(
