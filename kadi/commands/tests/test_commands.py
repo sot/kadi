@@ -245,6 +245,12 @@ def test_get_cmds_from_backstop_and_add_cmds():
     assert np.all(bs_cmds["params"][ok] != {})
 
 
+def test_kadi_cmds_version():
+    """Test that kadi commands version matches expectation."""
+    version_exp = os.environ.get("KADI_CMDS_VERSION", str(core.KADI_CMDS_VERSION_MAX))
+    assert core.kadi_cmds_version() == int(version_exp)
+
+
 @pytest.mark.skipif("not HAS_MPDIR")
 @pytest.mark.skipif(not HAS_INTERNET, reason="No internet connection")
 def test_commands_create_archive_regress(
