@@ -32,6 +32,8 @@ __all__ = [
     "kadi_cmds_version",
 ]
 
+# Maximum supported version of kadi commands, used by kadi_cmds_version()
+KADI_CMDS_VERSION_MAX = 3
 
 # Events to filter for getting as-planned commands after SCS-107
 SCS107_EVENTS = ["SCS-107", "Observing not run", "Obsid", "RTS"]
@@ -112,18 +114,28 @@ def load_pars_dict(version=None, file=None):
 
 @functools.cache
 def kadi_cmds_version() -> int:
-    """Determine the kadi commands version by checking for cmds*.h5 files.
+    """Determine the kadi commands version by checking for cmds<version>.h5,pkl files.
 
-    The version number can be an integer. Return the highest version number that
-    where the corresponding PARS_DICT_PATH(version) file also exists.
+    If the environment variable KADI_CMDS_VERSION is set then that version number is
+    returned instead.
+
+    The version number can be an integer. Return the highest version number satisfying:
+    - cmds<version>.h5 and cmds<version>.pkl files exist in the data directory.
+
+    In all cases the version must be less than or equal to KADI_CMDS_VERSION_MAX.
 
     Returns
     -------
     int
-        Highest kadi commands version number found.
+        Highest allowed kadi commands version number found.
     """
-    if version := os.environ.get("KADI_CMDS_VERSION"):
-        return int(version)
+    if ver_str := os.environ.get("KADI_CMDS_VERSION"):
+        version = int(ver_str)
+        if version > KADI_CMDS_VERSION_MAX:
+            raise ValueError(
+                f"KADI_CMDS_VERSION={version} env var exceeds maximum supported "
+                f"version {KADI_CMDS_VERSION_MAX}"
+            )
 
     versions = set()
     for path in DATA_DIR().glob("cmds*.h5"):
@@ -133,7 +145,7 @@ def kadi_cmds_version() -> int:
         except ValueError:
             continue
         else:
-            if PARS_DICT_PATH(ver).exists():
+            if ver <= KADI_CMDS_VERSION_MAX and PARS_DICT_PATH(ver).exists():
                 versions.add(ver)
 
     if not versions:
