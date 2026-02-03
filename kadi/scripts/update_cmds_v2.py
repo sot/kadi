@@ -19,7 +19,7 @@ def get_opt(args=None):
     Get options for command line interface to update.
     """
     parser = argparse.ArgumentParser(
-        description="Update HDF5 cmds v2 table",
+        description="Update cmds archive HDF5 and pickle files",
     )
     parser.add_argument(
         "--data-root",
@@ -37,9 +37,9 @@ def get_opt(args=None):
     )
     parser.add_argument(
         "--log-level",
-        type=int,
-        default=10,
-        help="Log level (10=debug, 20=info, 30=warnings)",
+        type=str,
+        default="DEBUG",
+        help="Log level ('DEBUG', 'INFO', 'WARNING', etc.)",
     )
     parser.add_argument(
         "--scenario",
@@ -55,7 +55,6 @@ def get_opt(args=None):
         action="version",
         version="%(prog)s {version}".format(version=__version__),
     )
-
     parser.add_argument(
         "--truncate-from-rltt-start",
         action="store_true",
@@ -81,16 +80,32 @@ def main(args=None):
         process_from_rltt_start(opt)
     else:
         update_cmds_archive(
-            opt.lookback,
-            opt.stop,
-            opt.log_level,
-            opt.scenario,
-            opt.data_root,
-            opt.truncate_from_rltt_start,
+            lookback=opt.lookback,
+            stop=opt.stop,
+            log_level=opt.log_level,
+            scenario=opt.scenario,
+            data_root=opt.data_root,
+            truncate_from_rltt_start=False,
         )
 
 
-def process_from_rltt_start(opt):
+def process_from_rltt_start(opt: argparse.Namespace) -> None:
+    """
+    Process commands archive from the start of the RLTT era in chunks.
+
+    This function updates the commands archive from the RLTT era start date
+    (APR1420B) to the specified stop date (or Now+21 days) by breaking the
+    time range into manageable chunks to avoid memory issues.
+
+    Parameters
+    ----------
+    opt : argparse.Namespace
+        Command line options containing:
+        - stop: Optional stop date for processing
+        - log_level: Logging level
+        - scenario: Scenario for loads and command events
+        - data_root: Root directory for data
+    """
     # Final processing stop
     stop0 = RLTT_ERA_START + 21 * u.day
     stop1 = CxoTime(opt.stop) if opt.stop else CxoTime.now() + 21 * u.day
