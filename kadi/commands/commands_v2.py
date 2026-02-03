@@ -1502,7 +1502,6 @@ def update_cmds_archive(
     lookback=None,
     stop=None,
     log_level=logging.INFO,
-    scenario=None,
     data_root=".",
     truncate_from_rltt_start=False,
 ):
@@ -1525,8 +1524,6 @@ def update_cmds_archive(
         events are included.
     log_level : int
         Logging level. Default is ``logging.INFO``.
-    scenario : str, None
-        Scenario name for loads and command events
     data_root : str, Path
         Root directory where cmds2.h5 and cmds2.pkl are stored. Default is '.'.
     truncate_from_rltt_start : bool
@@ -1543,9 +1540,7 @@ def update_cmds_archive(
     with conf.set_temp("commands_dir", data_root), temp_env_var("KADI", data_root):
         try:
             kadi_logger.setLevel(log_level)
-            _update_cmds_archive(
-                lookback, stop, scenario, data_root, truncate_from_rltt_start
-            )
+            _update_cmds_archive(lookback, stop, data_root, truncate_from_rltt_start)
         finally:
             kadi_logger.setLevel(log_level_orig)
 
@@ -1553,7 +1548,6 @@ def update_cmds_archive(
 def _update_cmds_archive(
     lookback,
     stop_loads,
-    scenario,
     data_root,
     truncate_from_rltt_start,
 ):
@@ -1575,7 +1569,6 @@ def _update_cmds_archive(
         pars_dict = {}
 
     cmds_recent = update_cmd_events_and_loads_and_get_cmds_recent(
-        scenario=scenario,
         stop_loads=stop_loads,
         lookback=lookback,
         pars_dict=pars_dict,

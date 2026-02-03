@@ -42,10 +42,6 @@ def get_opt(args=None):
         help="Log level ('DEBUG', 'INFO', 'WARNING', etc.)",
     )
     parser.add_argument(
-        "--scenario",
-        help="Scenario for loads and command events outputs (default=None)",
-    )
-    parser.add_argument(
         "--kadi-cmds-version",
         type=int,
         help="Kadi cmds version (default=latest)",
@@ -83,7 +79,6 @@ def main(args=None):
             lookback=opt.lookback,
             stop=opt.stop,
             log_level=opt.log_level,
-            scenario=opt.scenario,
             data_root=opt.data_root,
             truncate_from_rltt_start=False,
         )
@@ -103,7 +98,6 @@ def process_from_rltt_start(opt: argparse.Namespace) -> None:
         Command line options containing:
         - stop: Optional stop date for processing
         - log_level: Logging level
-        - scenario: Scenario for loads and command events
         - data_root: Root directory for data
     """
     # Final processing stop
@@ -131,7 +125,6 @@ def process_from_rltt_start(opt: argparse.Namespace) -> None:
             lookback=lookback.to_value(u.day),
             stop=stop,
             log_level=opt.log_level,
-            scenario=opt.scenario,
             data_root=opt.data_root,
             truncate_from_rltt_start=first_update,
         )
