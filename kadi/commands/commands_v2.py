@@ -1556,7 +1556,7 @@ def _update_cmds_archive(
     idx_cmds_path = Path(data_root) / f"cmds{version}.h5"
     pars_dict_path = Path(data_root) / f"cmds{version}.pkl"
 
-    if idx_cmds_path.exists():
+    if idx_cmds_path_exists := idx_cmds_path.exists():
         cmds_arch = load_idx_cmds(file=idx_cmds_path)
         pars_dict = load_pars_dict(file=pars_dict_path)
     else:
@@ -1574,7 +1574,11 @@ def _update_cmds_archive(
         pars_dict=pars_dict,
     )
 
-    if truncate_from_rltt_start:
+    if not idx_cmds_path_exists:
+        # New archive, so use all recent commands with zero-length existing archive
+        idx0_recent = 0
+        idx0_arch = 0
+    elif truncate_from_rltt_start:
         # Special case for reprocessing the commands archive starting at the RLTT
         # era from load RLTT_ERA_START_LOAD (APR1420B). Find the index of the first
         # command in these loads. Note np.argmax() returns the first matching index

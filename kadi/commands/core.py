@@ -136,6 +136,8 @@ def kadi_cmds_version() -> int:
                 f"KADI_CMDS_VERSION={version} env var exceeds maximum supported "
                 f"version {KADI_CMDS_VERSION_MAX}"
             )
+        else:
+            return version
 
     versions = set()
     for path in DATA_DIR().glob("cmds*.h5"):
