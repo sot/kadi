@@ -102,21 +102,9 @@ class Conf(ConfigNamespace):
         ),
     )
 
-    no_match_prev_cmds = ConfigItem(
-        False,
-        "Do not match previous command block when updating cmds v2. "
-        "Setting to True can produce an invalid commands table (experts only).",
-    )
-
     matching_block_size = ConfigItem(
         500,
         "Matching block size for command blocks.",
-    )
-
-    match_from_rltt_start = ConfigItem(
-        False,
-        "Match previous commands exactly from the start of the RLTT era (APR1420B). "
-        "Developers only.",
     )
 
 

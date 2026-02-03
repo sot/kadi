@@ -7,8 +7,11 @@ from cxotime import CxoTime
 from ska_helpers.run_info import log_run_info
 
 from kadi import __version__
-from kadi.commands.commands_v2 import RLTT_ERA_START, logger, update_cmds_archive
-from kadi.config import conf
+from kadi.commands.commands_v2 import (
+    RLTT_ERA_START,
+    clear_caches,
+    update_cmds_archive,
+)
 
 
 def get_opt(args=None):
@@ -53,30 +56,10 @@ def get_opt(args=None):
         version="%(prog)s {version}".format(version=__version__),
     )
 
-    # Developer-only options
-    dev_group = parser.add_argument_group("Developer-only options")
-    dev_group.add_argument(
-        "--no-match-prev-cmds",
+    parser.add_argument(
+        "--truncate-from-rltt-start",
         action="store_true",
-        help="Do not enforce matching previous command block when updating cmds v2 "
-        "(experts only, this can produce an invalid commands table)",
-    )
-    dev_group.add_argument(
-        "--matching-block-size",
-        type=int,
-        help=f"Matching block size (default={conf.matching_block_size})",
-    )
-    dev_group.add_argument(
-        "--match-from-rltt-start",
-        action="store_true",
-        help="Match previous commands exactly from the start of the RLTT era "
-        "(APR1420B). This implies --no-match-prev-cmds.",
-    )
-
-    dev_group.add_argument(
-        "--reprocess-from-rltt-start",
-        action="store_true",
-        help="Reprocess cmds archive from the start of the RLTT era",
+        help="Truncate cmds archive from the start of the RLTT era (APR1420B)",
     )
 
     args = parser.parse_args(args)
@@ -88,54 +71,56 @@ def main(args=None):
     Main function for update_cmds_v2
     """
     opt = get_opt(args)
-    log_run_info(log_func=print, opt=opt)
-    if opt.reprocess_from_rltt_start:
-        reprocess_from_rltt_start(opt)
-    else:
-        process_one_update(opt)
-
-
-def reprocess_from_rltt_start(opt):
-    # Start the V2 updates a week and a day after CMDS_V2_START
-    step = 365 * u.day
-    date = RLTT_ERA_START + step
-    stop = CxoTime.now()
-    opt.lookback = step.to_value(u.day) + 30
-
-    while date < stop:
-        logger.info("*" * 80)
-        logger.info(f"Updating cmds2 to {date}")
-        logger.info("*" * 80)
-        opt.stop = date.date
-        process_one_update(opt)
-        date += step
-
-    # Final catchup to `stop`
-    opt.stop = date.date
-    process_one_update(opt)
-
-
-def process_one_update(opt):
-    # Transfer these developer-only options to conf
-    for attr in (
-        "no_match_prev_cmds",
-        "matching_block_size",
-        "match_from_rltt_start",
-    ):
-        if (value := getattr(opt, attr)) is not None:
-            setattr(conf, attr, value)
-            print(f"Set conf.{attr} = {value}")
 
     if opt.kadi_cmds_version is not None:
         os.environ["KADI_CMDS_VERSION"] = str(opt.kadi_cmds_version)
 
-    update_cmds_archive(
-        lookback=opt.lookback,
-        stop=opt.stop,
-        log_level=opt.log_level,
-        scenario=opt.scenario,
-        data_root=opt.data_root,
-    )
+    log_run_info(log_func=print, opt=opt)
+
+    if opt.truncate_from_rltt_start:
+        process_from_rltt_start(opt)
+    else:
+        update_cmds_archive(
+            opt.lookback,
+            opt.stop,
+            opt.log_level,
+            opt.scenario,
+            opt.data_root,
+            opt.truncate_from_rltt_start,
+        )
+
+
+def process_from_rltt_start(opt):
+    # Final processing stop
+    stop0 = RLTT_ERA_START + 21 * u.day
+    stop1 = CxoTime(opt.stop) if opt.stop else CxoTime.now() + 21 * u.day
+    step = 365 * u.day
+    lookback0 = 30 * u.day
+    stops = CxoTime.linspace(stop0, stop1, step_max=step)
+    dt = stops[1] - stops[0]
+
+    for stop in stops:
+        first_update = stop == stop0
+        lookback = lookback0 if first_update else dt + lookback0
+
+        print()
+        print("*" * 80)
+        print(
+            f"Updating cmds archive to {stop} with "
+            f"lookback={lookback.to_value(u.day):.1f} days"
+        )
+        print("*" * 80)
+        print()
+
+        update_cmds_archive(
+            lookback=lookback.to_value(u.day),
+            stop=stop,
+            log_level=opt.log_level,
+            scenario=opt.scenario,
+            data_root=opt.data_root,
+            truncate_from_rltt_start=first_update,
+        )
+        clear_caches()
 
 
 if __name__ == "__main__":

@@ -1504,6 +1504,7 @@ def update_cmds_archive(
     log_level=logging.INFO,
     scenario=None,
     data_root=".",
+    truncate_from_rltt_start=False,
 ):
     """Update cmds2.h5 and cmds2.pkl archive files.
 
@@ -1528,6 +1529,9 @@ def update_cmds_archive(
         Scenario name for loads and command events
     data_root : str, Path
         Root directory where cmds2.h5 and cmds2.pkl are stored. Default is '.'.
+    truncate_from_rltt_start : bool
+        If True, truncate the commands archive starting at the RLTT era from
+        load RLTT_ERA_START_LOAD (APR1420B). Default is False.
     """
     # For testing allow override of default `stop` value
     if stop is None:
@@ -1539,16 +1543,21 @@ def update_cmds_archive(
     with conf.set_temp("commands_dir", data_root), temp_env_var("KADI", data_root):
         try:
             kadi_logger.setLevel(log_level)
-            _update_cmds_archive(lookback, stop, scenario, data_root)
+            _update_cmds_archive(
+                lookback, stop, scenario, data_root, truncate_from_rltt_start
+            )
         finally:
             kadi_logger.setLevel(log_level_orig)
 
 
-def _update_cmds_archive(lookback, stop_loads, scenario, data_root):
+def _update_cmds_archive(
+    lookback,
+    stop_loads,
+    scenario,
+    data_root,
+    truncate_from_rltt_start,
+):
     """Do the real work of updating the cmds archive"""
-    # Either no-match-prev-cmds or matching RLTT start disables matching previous cmds
-    match_prev_cmds = not (conf.no_match_prev_cmds or conf.match_from_rltt_start)
-
     version = kadi_cmds_version()
     idx_cmds_path = Path(data_root) / f"cmds{version}.h5"
     pars_dict_path = Path(data_root) / f"cmds{version}.pkl"
@@ -1564,7 +1573,6 @@ def _update_cmds_archive(lookback, stop_loads, scenario, data_root):
         )
         del cmds_arch["timeline_id"]
         pars_dict = {}
-        match_prev_cmds = False  # No match of previous commands since there are none.
 
     cmds_recent = update_cmd_events_and_loads_and_get_cmds_recent(
         scenario=scenario,
@@ -1573,23 +1581,20 @@ def _update_cmds_archive(lookback, stop_loads, scenario, data_root):
         pars_dict=pars_dict,
     )
 
-    if match_prev_cmds:
-        idx0_arch, idx0_recent = get_matching_block_idx(cmds_arch, cmds_recent)
-    else:
+    if truncate_from_rltt_start:
+        # Special case for reprocessing the commands archive starting at the RLTT
+        # era from load RLTT_ERA_START_LOAD (APR1420B). Find the index of the first
+        # command in these loads. Note np.argmax() returns the first matching index
+        # in the case of multiple matches.
         idx0_recent = 0
-        if conf.match_from_rltt_start:
-            # Special case for reprocessing the commands archive starting at the RLTT
-            # era from load RLTT_ERA_START_LOAD (APR1420B). Find the index of the first
-            # command in these loads. Note np.argmax() returns the first matching index
-            # in the case of multiple matches.
-            idx0_arch = np.argmax(cmds_arch["source"] == RLTT_ERA_START_LOAD)
-            logger.info(
-                f"Matching from RLTT start load {RLTT_ERA_START_LOAD}, "
-                f"idx0_arch={idx0_arch}, idx0_recent={idx0_recent}"
-            )
-        else:
-            # Append to end of existing cmds archive file
-            idx0_arch = len(cmds_arch)
+        idx0_arch = np.argmax(cmds_arch["source"] == RLTT_ERA_START_LOAD)
+        logger.info(
+            f"Matching from RLTT start load {RLTT_ERA_START_LOAD}, "
+            f"idx0_arch={idx0_arch}, idx0_recent={idx0_recent}"
+        )
+    else:
+        # Normal processing: find the matching block between recent and archive cmds
+        idx0_arch, idx0_recent = get_matching_block_idx(cmds_arch, cmds_recent)
 
     # Convert from `params` col of dicts to index into same params in pars_dict.
     for cmd in cmds_recent:
