@@ -129,9 +129,6 @@ def kadi_cmds_version() -> int:
     int
         Highest allowed kadi commands version number found.
     """
-    # Allowed versions in descending order down to version=2.
-    versions_allowed = tuple(range(KADI_CMDS_VERSION_MAX, 1, -1))
-
     if ver_str := os.environ.get("KADI_CMDS_VERSION"):
         version = int(ver_str)
         if version > KADI_CMDS_VERSION_MAX:
@@ -140,8 +137,10 @@ def kadi_cmds_version() -> int:
                 f"version {KADI_CMDS_VERSION_MAX}"
             )
         else:
-            versions_allowed = (version,)
+            return version
 
+    # Allowed versions in descending order down to version=2.
+    versions_allowed = tuple(range(KADI_CMDS_VERSION_MAX, 1, -1))
     for version in versions_allowed:
         if IDX_CMDS_PATH(version).exists() and PARS_DICT_PATH(version).exists():
             return version
