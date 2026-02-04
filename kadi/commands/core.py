@@ -303,11 +303,18 @@ def add_observations_to_cmds(
         cmds = cmds.copy()
         cmds["source"] = str(load_name)
 
-    # Get continuity for attitude, obsid, and SIM position. These are part of OBS cmd.
+    # For kadi commands version >= 3, we need to add the OBSID_SCH commands so that
+    # they are right in the OBS commands.
+    if kadi_cmds_version() >= 3:
+        cmds = kcc2.add_scheduled_obsid_cmds(cmds)
+
+    # Get continuity for attitude, obsid, obsid_sched, and SIM position. These are part
+    # of OBS cmd.
     rltt = cmds.get_rltt() or cmds["date"][0]
-    cont = kcs.get_continuity(
-        date=rltt, state_keys=["simpos", "obsid", "q1", "q2", "q3", "q4"]
-    )
+    state_keys = ["simpos", "obsid", "q1", "q2", "q3", "q4"]
+    if kadi_cmds_version() >= 3:
+        state_keys.append("obsid_sched")
+    cont = kcs.get_continuity(date=rltt, state_keys=state_keys)
     prev_att = tuple(cont[f"q{ii}"] for ii in range(1, 5))
 
     # Add observations to cmds. This uses the global PARS_DICT and REV_PARS_DICT from
@@ -321,6 +328,7 @@ def add_observations_to_cmds(
         prev_att=prev_att,
         prev_simpos=cont["simpos"],
         prev_obsid=cont["obsid"],
+        prev_obsid_sched=cont["obsid_sched"] if kadi_cmds_version() >= 3 else None,
     )
 
     # General implementation note: Using a weakref means that it is not possible to

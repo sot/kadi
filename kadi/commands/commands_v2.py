@@ -631,6 +631,7 @@ def add_obs_cmds(
     prev_att=None,
     prev_obsid=None,
     prev_simpos=None,
+    prev_obsid_sched=None,
 ):
     """Add 'type=LOAD_EVENT tlmsid=OBS' commands with info about observations.
 
@@ -661,6 +662,8 @@ def add_obs_cmds(
         Previous obsid, default is -1.
     prev_simpos : int, optional
         Previous SIM position, default is -99616.
+    prev_obsid_sched : int, optional
+        Previous scheduled obsid, default is -1.
 
     Returns
     -------
@@ -692,6 +695,7 @@ def add_obs_cmds(
         schedule_stop_time,
         prev_obsid=prev_obsid,
         prev_simpos=prev_simpos,
+        prev_obsid_sched=prev_obsid_sched,
     )
 
     # Finally add the OBS cmds to the recent cmds table.
@@ -917,6 +921,7 @@ def get_cmds_obs_final(
     *,
     prev_obsid=None,
     prev_simpos=None,
+    prev_obsid_sched=None,
 ):
     """Fill in the rest of params for each OBS command.
 
@@ -940,6 +945,8 @@ def get_cmds_obs_final(
         Previous obsid, default is -1.
     prev_simpos : int, optional
         Previous SIM position, default is -99616.
+    prev_obsid_sched : int, optional
+        Previous scheduled obsid, default is -1.
 
     Returns
     -------
@@ -952,7 +959,7 @@ def get_cmds_obs_final(
     # use values that are not None to avoid errors. For `sim_pos`, if the SIM
     # has not been commanded in a long time then it will be at -99616.
     obsid = -1 if prev_obsid is None else prev_obsid
-    obsid_sched = -1 if prev_obsid is None else prev_obsid
+    obsid_sched = -1 if prev_obsid_sched is None else prev_obsid_sched
     starcat_idx = None
     starcat_date = None
     sim_pos = -99616 if prev_simpos is None else prev_simpos
