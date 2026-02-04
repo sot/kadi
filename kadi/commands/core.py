@@ -18,7 +18,7 @@ from cxotime import CxoTime
 from ska_helpers import retry
 
 from kadi.config import conf
-from kadi.paths import IDX_CMDS_PATH, PARS_DICT_PATH
+from kadi.paths import DATA_DIR, IDX_CMDS_PATH, PARS_DICT_PATH
 
 __all__ = [
     "read_backstop",
@@ -29,8 +29,11 @@ __all__ = [
     "SCS107_EVENTS",
     "filter_scs107_events",
     "set_time_now",
+    "kadi_cmds_version",
 ]
 
+# Maximum supported version of kadi commands, used by kadi_cmds_version()
+KADI_CMDS_VERSION_MAX = 3
 
 # Events to filter for getting as-planned commands after SCS-107
 SCS107_EVENTS = ["SCS-107", "Observing not run", "Obsid", "RTS"]
@@ -82,14 +85,16 @@ def load_idx_cmds(version=None, file=None):
         File "H5FDsec2.c", line 941, in H5FD_sec2_lock
         unable to lock file, errno = 11, error message = 'Resource temporarily unavailable'
     """  # noqa: E501
+    if version is None:
+        version = kadi_cmds_version()
     if file is None:
         file = IDX_CMDS_PATH(version)
     with tables.open_file(file, mode="r") as h5:
         idx_cmds = CommandTable(h5.root.data[:])
-    logger.info(f"Loaded {file} with {len(idx_cmds)} commands")
+    logger.info(f"Loaded {Path(file).absolute()} with {len(idx_cmds)} commands")
 
-    # For V2 add the params column here to make IDX_CMDS be same as regular cmds
-    if version == 2:
+    # For V2 or later add params column here to make IDX_CMDS be same as regular cmds
+    if version >= 2:
         idx_cmds["params"] = None
 
     return idx_cmds
@@ -97,12 +102,53 @@ def load_idx_cmds(version=None, file=None):
 
 @retry.retry(tries=4, delay=0.5, backoff=4)
 def load_pars_dict(version=None, file=None):
+    if version is None:
+        version = kadi_cmds_version()
     if file is None:
         file = PARS_DICT_PATH(version)
     with open(file, "rb") as fh:
         pars_dict = pickle.load(fh, encoding="ascii")
-    logger.info(f"Loaded {file} with {len(pars_dict)} pars")
+    logger.info(f"Loaded {Path(file).absolute()} with {len(pars_dict)} pars")
     return pars_dict
+
+
+@functools.cache
+def kadi_cmds_version() -> int:
+    """Determine the kadi commands version by checking for cmds<version>.h5,pkl files.
+
+    If the environment variable KADI_CMDS_VERSION is set then that version number is
+    returned instead.
+
+    The version number can be an integer. Return the highest version number satisfying:
+    - cmds<version>.h5 and cmds<version>.pkl files exist in the data directory.
+
+    In all cases the version must be less than or equal to KADI_CMDS_VERSION_MAX.
+
+    Returns
+    -------
+    int
+        Highest allowed kadi commands version number found.
+    """
+    if ver_str := os.environ.get("KADI_CMDS_VERSION"):
+        version = int(ver_str)
+        if version > KADI_CMDS_VERSION_MAX:
+            raise ValueError(
+                f"KADI_CMDS_VERSION={version} env var exceeds maximum supported "
+                f"version {KADI_CMDS_VERSION_MAX}"
+            )
+        else:
+            return version
+
+    # Allowed versions in descending order down to version=2.
+    versions_allowed = tuple(range(KADI_CMDS_VERSION_MAX, 1, -1))
+    for version in versions_allowed:
+        if IDX_CMDS_PATH(version).exists() and PARS_DICT_PATH(version).exists():
+            return version
+
+    raise RuntimeError(
+        f"no valid kadi commands versions found in {DATA_DIR()}. "
+        f"Allowed versions: {versions_allowed}"
+    )
 
 
 @functools.lru_cache
@@ -257,11 +303,18 @@ def add_observations_to_cmds(
         cmds = cmds.copy()
         cmds["source"] = str(load_name)
 
-    # Get continuity for attitude, obsid, and SIM position. These are part of OBS cmd.
+    # For kadi commands version >= 3, we need to add the OBSID_SCH commands so that
+    # they are right in the OBS commands.
+    if kadi_cmds_version() >= 3:
+        cmds = kcc2.add_scheduled_obsid_cmds(cmds)
+
+    # Get continuity for attitude, obsid, obsid_sched, and SIM position. These are part
+    # of OBS cmd.
     rltt = cmds.get_rltt() or cmds["date"][0]
-    cont = kcs.get_continuity(
-        date=rltt, state_keys=["simpos", "obsid", "q1", "q2", "q3", "q4"]
-    )
+    state_keys = ["simpos", "obsid", "q1", "q2", "q3", "q4"]
+    if kadi_cmds_version() >= 3:
+        state_keys.append("obsid_sched")
+    cont = kcs.get_continuity(date=rltt, state_keys=state_keys)
     prev_att = tuple(cont[f"q{ii}"] for ii in range(1, 5))
 
     # Add observations to cmds. This uses the global PARS_DICT and REV_PARS_DICT from
@@ -275,6 +328,7 @@ def add_observations_to_cmds(
         prev_att=prev_att,
         prev_simpos=cont["simpos"],
         prev_obsid=cont["obsid"],
+        prev_obsid_sched=cont["obsid_sched"] if kadi_cmds_version() >= 3 else None,
     )
 
     # General implementation note: Using a weakref means that it is not possible to
