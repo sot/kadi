@@ -2,16 +2,19 @@ import pytest
 import ska_sun
 
 import kadi.commands as kc
+import kadi.commands.core as kcc
 
 
 @pytest.fixture()
 def fast_sun_position_method(monkeypatch: pytest.MonkeyPatch):
-    monkeypatch.setattr(ska_sun.conf, "sun_position_method_default", "fast")
+    if kcc.kadi_cmds_version() == 2:
+        monkeypatch.setattr(ska_sun.conf, "sun_position_method_default", "fast")
 
 
 @pytest.fixture()
 def disable_hrc_scs107_commanding(monkeypatch: pytest.MonkeyPatch):
-    monkeypatch.setattr(kc.conf, "disable_hrc_scs107_commanding", True)
+    if kcc.kadi_cmds_version() == 2:
+        monkeypatch.setattr(kc.conf, "disable_hrc_scs107_commanding", True)
 
 
 @pytest.fixture(scope="module", autouse=True)

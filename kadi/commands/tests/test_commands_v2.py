@@ -39,8 +39,9 @@ HAS_MPDIR = Path(os.environ["SKA"], "data", "mpcrit1", "mplogs", "2020").exists(
 HAS_INTERNET = has_internet()
 KADI_CMDS_VERSION = core.kadi_cmds_version()
 
+
 pytestmark = pytest.mark.skipif(
-    KADI_CMDS_VERSION < 3, reason="requires KADI_CMDS_VERSION >= 3"
+    KADI_CMDS_VERSION > 2, reason="requires KADI_CMDS_VERSION <= 2"
 )
 
 try:
