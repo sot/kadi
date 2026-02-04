@@ -4,7 +4,6 @@ from pathlib import Path
 
 # Use data file from parse_cm.test for get_cmds_from_backstop test.
 # This package is a dependency
-import agasc
 import astropy.units as u
 import numpy as np
 import parse_cm.paths
@@ -42,12 +41,6 @@ KADI_CMDS_VERSION = core.kadi_cmds_version()
 pytestmark = pytest.mark.skipif(
     KADI_CMDS_VERSION < 3, reason="requires KADI_CMDS_VERSION >= 3"
 )
-
-try:
-    agasc.get_agasc_filename(version="1p8")
-    HAS_AGASC_1P8 = True
-except FileNotFoundError:
-    HAS_AGASC_1P8 = False
 
 
 def get_cmds_from_cmd_evts_text(cmd_evts_text: str):
@@ -1091,7 +1084,6 @@ def test_get_starcat_only_agasc1p7():
         assert np.all(starcat["mag"] != -999)
 
 
-@pytest.mark.skipif(not HAS_AGASC_1P8, reason="AGASC 1.8 not available")
 def test_get_starcat_only_agasc1p8():
     """For obsids 3829 and 2576, try AGASC 1.8 only
 
