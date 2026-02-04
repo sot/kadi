@@ -251,9 +251,7 @@ def test_kadi_cmds_version():
 
 @pytest.mark.skipif("not HAS_MPDIR")
 @pytest.mark.skipif(not HAS_INTERNET, reason="No internet connection")
-def test_commands_create_archive_regress(
-    tmpdir, fast_sun_position_method, disable_hrc_scs107_commanding
-):
+def test_commands_create_archive_regress(tmpdir):
     """Create cmds archive from scratch and test that it matches flight
 
     This tests over an eventful month that includes IU reset/NSM, SCS-107
@@ -499,7 +497,9 @@ def test_get_cmds_v2_arch_recent(stop_date_2020_12_03):  # noqa: ARG001
     # of the matching block).
     assert np.all(cmds["idx"] != -1)
     # PR #248: made this change from 17640 to 17644
-    assert 17640 <= len(cmds) <= 17644
+    # PR #368: changed to 18112 with addition of OBSID_SCH commands
+    assert len(cmds) == 18112
+    assert np.count_nonzero(cmds["tlmsid"] != "OBSID_SCH") == 17644
 
     commands.clear_caches()
 
@@ -510,7 +510,7 @@ def test_get_cmds_v2_recent_only(stop_date_2020_12_03):  # noqa: ARG001
     # only commands out to the end of the NOV3020A loads (~ Dec 7).
     cmds = commands.get_cmds(start="2020-12-01", stop="2021-01-01")
     cmds = cmds[cmds["tlmsid"] != "OBS"]
-    assert len(cmds) == 1523
+    assert len(cmds) == 1523 + 34  # 34 for OBSID_SCH
     assert np.all(cmds["idx"] == -1)
     # fmt: off
     assert cmds[:5].pformat_like_backstop() == [
@@ -530,7 +530,7 @@ def test_get_cmds_v2_recent_only(stop_date_2020_12_03):  # noqa: ARG001
     # fmt: on
     # Same for no stop date
     cmds = commands.get_cmds(start="2020-12-01", stop=None)
-    cmds = cmds[cmds["tlmsid"] != "OBS"]
+    cmds = cmds[(cmds["tlmsid"] != "OBS") & (cmds["tlmsid"] != "OBSID_SCH")]
     assert len(cmds) == 1523
     assert np.all(cmds["idx"] == -1)
 
@@ -544,7 +544,7 @@ def test_get_cmds_v2_recent_only(stop_date_2020_12_03):  # noqa: ARG001
 def test_get_cmds_nsm_2021(stop_date_2021_10_24, disable_hrc_scs107_commanding):
     """NSM at ~2021:296:10:41. This tests non-load commands from cmd_events."""
     cmds = commands.get_cmds("2021:296:10:35:00")  # , '2021:298:01:58:00')
-    cmds = cmds[cmds["tlmsid"] != "OBS"]
+    cmds = cmds[(cmds["tlmsid"] != "OBS") & (cmds["tlmsid"] != "OBSID_SCH")]
     exp = [
         "2021:296:10:35:00.000 | COMMAND_HW       | CIMODESL   | OCT1821A | "
         "hex=7C067C0, msid=CIU1024X, scs=128",
@@ -885,6 +885,7 @@ Definitive,2020:337:00:00:00,Bright star hold,,Tom Aldcroft,
 """
     )
     cmds = commands.get_cmds(start="2020:336:21:48:00", stop="2020:338", scenario="bsh")
+    cmds = cmds[cmds["tlmsid"] != "OBSID_SCH"]
     exp = [
         "2020:336:21:48:03.312 | LOAD_EVENT       | OBS        | NOV3020A | "
         "manvr_start=2020:336:21:09:24.361, prev_att=(-0.242373434, -0.348723922, "
@@ -1269,6 +1270,7 @@ def test_custom_scenario(monkeypatch, stop_date_2024_035_23_00_00):
     for scenario in ("flight+custom", "custom"):
         exp = exps[scenario]
         cmds = commands.get_cmds("2024:028", "2024:050", scenario=scenario)
+        cmds = cmds[cmds["tlmsid"] != "OBSID_SCH"]
         sources = {"FEB0524A", "JAN2924A", "JAN2624A"}
         if scenario == "flight+custom":
             sources.add("CMD_EVT")
