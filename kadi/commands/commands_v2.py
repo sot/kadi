@@ -553,7 +553,7 @@ def update_cmd_events_and_loads_and_get_cmds_recent(
 
     # Sort cmds_list and rltts by the date of the first cmd in each cmds Table
     cmds_starts = np.array([cmds["date"][0] for cmds in cmds_list])
-    idx_sort = np.argsort(cmds_starts)
+    idx_sort = np.argsort(cmds_starts, kind="stable")
     cmds_list = [cmds_list[ii] for ii in idx_sort]
 
     # Apply RLTT and any END SCS commands (CODISAXS) to loads. RLTT is applied
