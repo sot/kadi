@@ -22,7 +22,6 @@ from cxotime import CxoTime
 from parse_cm.paths import ParseLoadNameError, load_dir_from_load_name, parse_load_name
 from ska_helpers.retry import retry_func
 from ska_sun import get_nsm_attitude
-from testr.test_helper import has_internet
 
 from kadi import occweb, paths
 from kadi.commands.command_sets import get_cmds_from_event
@@ -76,7 +75,6 @@ MATCHING_BLOCKS = {}
 # APR1420B was the first load set to have RLTT (backstop 6.9)
 RLTT_ERA_START = CxoTime("2020-04-14")
 
-HAS_INTERNET = has_internet()
 
 logger = logging.getLogger(__name__)
 
@@ -270,14 +268,14 @@ def get_cmds(
     cache_key = scenario, cxotime_now, lookback, event_filter
     logger.info(f"Cache key: {cache_key}")
 
-    # For flight scenario or no internet or if the query stop time is guaranteed
-    # to not require recent commands then just use the archive.
+    # For flight scenario or if the query stop time is guaranteed to not require recent
+    # commands then just use the archive.
     before_recent_cmds = stop < CxoTime(cxotime_now) - lookback * u.day
-    if scenario == "flight" or not HAS_INTERNET or before_recent_cmds:
+    if scenario == "flight" or before_recent_cmds:
         cmds = IDX_CMDS
         logger.info(
             "Getting commands from archive only because of:"
-            f" {scenario=} {before_recent_cmds=} {HAS_INTERNET=}"
+            f" {scenario=} {before_recent_cmds=}"
         )
     else:
         if cache_key not in CMDS_RECENT:
@@ -1124,7 +1122,7 @@ def update_cmd_events(
 
     # Get sheet doc ids for scenario, or [] if not applicable
     doc_ids = get_sheet_doc_ids_for_scenario(scenario)
-    if not doc_ids or not HAS_INTERNET:
+    if not doc_ids:
         cmd_events = get_cmd_events_from_local(scenario)
     else:
         cmd_events = get_cmd_events_from_sheet(scenario, doc_ids)
@@ -1171,7 +1169,29 @@ def get_cmd_events_from_sheet(scenario: str | None, doc_ids: list[str]) -> Table
     cmd_events_list = []
     for doc_id in doc_ids:
         # Fetch the command events from the Google Sheet URL(s).
-        cmd_events = read_cmd_events_from_sheet(doc_id)
+        try:
+            cmd_events = read_cmd_events_from_sheet(doc_id)
+        except requests.ConnectionError as exc:
+            # Checking for scenario != "flight" is probaby not necessary since the code
+            # should not be calling this function for the flight scenario. But leave it
+            # in just to be sure.
+            if scenario != "flight":
+                msg = """\
+connection error implies no internet, so the 'flight' scenario is required.
+
+Options to fix this include:
+
+- Ensure internet access is enabled (check if https://google.com responds).
+- Call the kadi commands function with `scenario="flight"`.
+- Set the environment variable KADI_SCENARIO="flight" in your shell.
+- Set the environment variable KADI_SCENARIO="flight" in your code:
+    import os
+    os.environ["KADI_SCENARIO"] = "flight"
+"""
+                raise ValueError(msg) from exc
+            else:
+                raise exc
+
         cmd_events_list.append(cmd_events)
 
     # Combine command events from multiple documents if necessary.
@@ -1201,11 +1221,13 @@ def get_sheet_doc_ids_for_scenario(scenario) -> list[str]:
     Returns
     -------
     list[str]
-        List of Google sheet document IDs. This will be an empty list if no
-        Google sheet(s) are associated with the scenario.
+        List of Google sheet document IDs. This will be an empty list for the "flight"
+        scenario or for a local scenario.
     """
-    if scenario in ("flight", None):
+    if scenario is None:
         doc_ids = [conf.cmd_events_flight_id]
+    elif scenario == "flight":
+        doc_ids = []
     elif scenario == "custom":
         doc_ids = [conf.cmd_events_custom_id]
     elif scenario == "flight+custom":
