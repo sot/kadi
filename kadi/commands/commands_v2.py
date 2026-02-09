@@ -268,8 +268,8 @@ def get_cmds(
     cache_key = scenario, cxotime_now, lookback, event_filter
     logger.info(f"Cache key: {cache_key}")
 
-    # For flight scenario or no internet or if the query stop time is guaranteed
-    # to not require recent commands then just use the archive.
+    # For flight scenario or if the query stop time is guaranteed to not require recent
+    # commands then just use the archive.
     before_recent_cmds = stop < CxoTime(cxotime_now) - lookback * u.day
     if scenario == "flight" or before_recent_cmds:
         cmds = IDX_CMDS
@@ -1172,6 +1172,9 @@ def get_cmd_events_from_sheet(scenario: str | None, doc_ids: list[str]) -> Table
         try:
             cmd_events = read_cmd_events_from_sheet(doc_id)
         except requests.ConnectionError as exc:
+            # Checking for scenario != "flight" is probaby not necessary since the code
+            # should not be calling this function for the flight scenario. But leave it
+            # in just to be sure.
             if scenario != "flight":
                 msg = """\
 connection error implies no internet, so the 'flight' scenario is required.
