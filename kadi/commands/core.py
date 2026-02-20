@@ -447,7 +447,7 @@ def _find(
     include_stop : bool (optional)
         If True, find commands with ``date <= stop``, otherwise ``date < stop``.
     idx_cmds : CommandTable-like
-        Table of commands from the commands archive HDF5 file (e.g. ``cmds2.h5``).
+        Table of commands from the commands archive HDF5 file (e.g. ``cmds3.h5``).
         In reality this is a ``LazyVal`` which encapsulates a ``CommandTable``.
     pars_dict : dict-like
         Dict mapping a command parameters tuple to the index in the commands

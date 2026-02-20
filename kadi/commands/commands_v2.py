@@ -1532,7 +1532,7 @@ def update_cmds_archive(
     log_level : int
         Logging level. Default is ``logging.INFO``.
     data_root : str, Path
-        Root directory where cmds2.h5 and cmds2.pkl are stored. Default is '.'.
+        Root directory where cmds archive HDF5 and pkl files are stored. Default is '.'.
     truncate_from_rltt_start : bool
         If True, truncate the commands archive starting at the RLTT era from
         load RLTT_ERA_START_LOAD (APR1420B). Default is False.
