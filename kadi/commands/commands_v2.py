@@ -1512,7 +1512,7 @@ def update_cmds_archive(
     data_root=".",
     truncate_from_rltt_start=False,
 ):
-    """Update cmds2.h5 and cmds2.pkl archive files.
+    """Update commands archive files cmds<ver>.h5 and cmds<ver>.pkl.
 
     This updates the archive though ``stop`` date, where is required that the
     ``stop`` date is within ``lookback`` days of existing data in the archive.
