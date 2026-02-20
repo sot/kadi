@@ -55,7 +55,7 @@ update the local loads, the special ``"flight"`` scenario can be used.
 The impact of selecting ``scenario="flight"`` in a commands query is that it
 disables access to network resources (Google sheets and OCCweb). This means that
 results will depend strictly on the production commands archive files
-``${SKA}/data/kadi/cmds2.h5`` and ``${SKA}/data/kadi/cmds2.pkl``. On the HEAD
+``${SKA}/data/kadi/cmds3.h5`` and ``${SKA}/data/kadi/cmds3.pkl``. On the HEAD
 network these files are brought up to date each 10 minutes by a cron jobs, so
 using ``"flight"`` in this case is a reliable way to eliminate dependence on the
 kadi external web resources.
@@ -253,8 +253,8 @@ Environment variables
   `Mocking the current time`_ section for more details.
 
 ``KADI``
-  Override the default location of kadi flight data files ``cmds2.h5`` and
-  ``cmds2.pkl``.
+  Override the default location of kadi flight data files ``cmds3.h5`` and
+  ``cmds3.pkl``.
 
 ``KADI_CMDS_VERSION``
   Set the kadi commands archive version to use. By default, kadi uses the highest
@@ -305,10 +305,10 @@ files listed below. These files are kept up to date each 10 minutes on the
 HEAD server and must synced at least once each 3 weeks to GRETA and other
 computers using either ``ska_sync`` or by other means.
 
-``${SKA}/data/kadi/cmds2.h5``
+``${SKA}/data/kadi/cmds3.h5``
   HDF5 table of commands
 
-``${SKA}/data/kadi/cmds2.pkl``
+``${SKA}/data/kadi/cmds3.pkl``
   Python pickle file containing a dict of command parameters. Since the command
   parameters are often the same this significantly reduces the same of the
   archive data files.
