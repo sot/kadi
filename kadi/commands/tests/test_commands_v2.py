@@ -32,7 +32,7 @@ from kadi.commands import (
 )
 from kadi.commands.command_sets import get_cmds_from_event
 from kadi.commands.commands_v2 import read_cmd_events_from_sheet
-from kadi.scripts import update_cmds_v2
+from kadi.scripts import update_cmds
 
 HAS_MPDIR = Path(os.environ["SKA"], "data", "mpcrit1", "mplogs", "2020").exists()
 HAS_INTERNET = has_internet()
@@ -273,7 +273,7 @@ def test_commands_create_archive_regress(
     with conf.set_temp("commands_dir", str(tmpdir)):
         try:
             os.environ["KADI"] = str(tmpdir)
-            update_cmds_v2.main(
+            update_cmds.main(
                 (
                     f"--stop={stop.date}",
                     f"--data-root={tmpdir}",
