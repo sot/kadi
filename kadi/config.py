@@ -102,6 +102,11 @@ class Conf(ConfigNamespace):
         ),
     )
 
+    matching_block_size = ConfigItem(
+        500,
+        "Matching block size for command blocks.",
+    )
+
 
 # Create a configuration instance for the user
 conf = Conf()

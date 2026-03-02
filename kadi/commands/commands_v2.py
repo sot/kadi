@@ -19,8 +19,9 @@ import numpy as np
 import requests
 from astropy.table import Table
 from cxotime import CxoTime
-from parse_cm.paths import ParseLoadNameError, load_dir_from_load_name, parse_load_name
+from parse_cm.paths import ParseLoadNameError, parse_load_name
 from ska_helpers.retry import retry_func
+from ska_helpers.utils import temp_env_var
 from ska_sun import get_nsm_attitude
 
 from kadi import occweb, paths
@@ -34,6 +35,7 @@ from kadi.commands.core import (
     get_cmds_from_backstop,
     get_cxotime_now,
     get_par_idx_update_pars_dict,
+    kadi_cmds_version,
     load_idx_cmds,
     load_name_to_cxotime,
     load_pars_dict,
@@ -42,10 +44,6 @@ from kadi.commands.core import (
 from kadi.config import conf
 
 __all__ = ["clear_caches", "get_cmds"]
-
-# TODO configuration options, but use DEFAULT_* in the mean time
-
-MATCHING_BLOCK_SIZE = 500
 
 # TODO: cache translation from cmd_events to CommandTable's  [Probably not]
 
@@ -64,8 +62,8 @@ CMD_EVENTS_SHEET_URL = (
 
 # Cached values of the full mission commands archive (cmds_v2.h5, cmds_v2.pkl).
 # These are loaded on demand.
-IDX_CMDS = LazyVal(functools.partial(load_idx_cmds, version=2))
-PARS_DICT = LazyVal(functools.partial(load_pars_dict, version=2))
+IDX_CMDS = LazyVal(functools.partial(load_idx_cmds))
+PARS_DICT = LazyVal(functools.partial(load_pars_dict))
 REV_PARS_DICT = LazyVal(lambda: {v: k for k, v in PARS_DICT.items()})
 
 # Cache of recent commands keyed by scenario
@@ -74,6 +72,7 @@ MATCHING_BLOCKS = {}
 
 # APR1420B was the first load set to have RLTT (backstop 6.9)
 RLTT_ERA_START = CxoTime("2020-04-14")
+RLTT_ERA_START_LOAD = "APR1420B"
 
 
 logger = logging.getLogger(__name__)
@@ -411,7 +410,7 @@ def update_cmds_list_for_loads_in_backstop(
         cmds = get_load_cmds_from_occweb_or_local(
             load_dir,
             load_name,
-            archive=False,
+            in_work=True,
         )
         cmd_rltt = cmds.get_rltt_cmd()
         cmd_rltt["params"]["load_path"] = load_path
@@ -491,6 +490,8 @@ def update_cmd_events_and_loads_and_get_cmds_recent(
         loads_backstop_path = paths.LOADS_BACKSTOP_PATH(load_name)
         with gzip.open(loads_backstop_path, "rb") as fh:
             cmds: CommandTable = pickle.load(fh)
+            if kadi_cmds_version() >= 3:
+                cmds = add_scheduled_obsid_cmds(cmds)
 
         # Filter commands if loads (vehicle and/or observing) were approved but
         # never uplinked
@@ -550,7 +551,7 @@ def update_cmd_events_and_loads_and_get_cmds_recent(
 
     # Sort cmds_list and rltts by the date of the first cmd in each cmds Table
     cmds_starts = np.array([cmds["date"][0] for cmds in cmds_list])
-    idx_sort = np.argsort(cmds_starts)
+    idx_sort = np.argsort(cmds_starts, kind="stable")
     cmds_list = [cmds_list[ii] for ii in idx_sort]
 
     # Apply RLTT and any END SCS commands (CODISAXS) to loads. RLTT is applied
@@ -628,6 +629,7 @@ def add_obs_cmds(
     prev_att=None,
     prev_obsid=None,
     prev_simpos=None,
+    prev_obsid_sched=None,
 ):
     """Add 'type=LOAD_EVENT tlmsid=OBS' commands with info about observations.
 
@@ -658,6 +660,8 @@ def add_obs_cmds(
         Previous obsid, default is -1.
     prev_simpos : int, optional
         Previous SIM position, default is -99616.
+    prev_obsid_sched : int, optional
+        Previous scheduled obsid, default is -1.
 
     Returns
     -------
@@ -689,6 +693,7 @@ def add_obs_cmds(
         schedule_stop_time,
         prev_obsid=prev_obsid,
         prev_simpos=prev_simpos,
+        prev_obsid_sched=prev_obsid_sched,
     )
 
     # Finally add the OBS cmds to the recent cmds table.
@@ -717,6 +722,7 @@ def get_state_cmds(cmds):
         "AOUPTARQ",
         "AONM2NPE",
         "AONM2NPD",
+        "OBSID_SCH",
     ]
 
     if cmds["tlmsid"].dtype.kind == "S":
@@ -913,6 +919,7 @@ def get_cmds_obs_final(
     *,
     prev_obsid=None,
     prev_simpos=None,
+    prev_obsid_sched=None,
 ):
     """Fill in the rest of params for each OBS command.
 
@@ -936,6 +943,8 @@ def get_cmds_obs_final(
         Previous obsid, default is -1.
     prev_simpos : int, optional
         Previous SIM position, default is -99616.
+    prev_obsid_sched : int, optional
+        Previous scheduled obsid, default is -1.
 
     Returns
     -------
@@ -948,6 +957,7 @@ def get_cmds_obs_final(
     # use values that are not None to avoid errors. For `sim_pos`, if the SIM
     # has not been commanded in a long time then it will be at -99616.
     obsid = -1 if prev_obsid is None else prev_obsid
+    obsid_sched = -1 if prev_obsid_sched is None else prev_obsid_sched
     starcat_idx = None
     starcat_date = None
     sim_pos = -99616 if prev_simpos is None else prev_simpos
@@ -967,6 +977,10 @@ def get_cmds_obs_final(
                 )
             else:
                 starcat_idx = cmd["idx"]
+
+        elif tlmsid == "OBSID_SCH":
+            obsid_sched = cmd["params"]["id"]
+
         elif tlmsid == "COAOSQID":
             obsid = cmd["params"]["id"]
             # Look for obsid change within obs, likely an undercover
@@ -995,6 +1009,8 @@ def get_cmds_obs_final(
         elif tlmsid == "OBS":
             obs_params = cmd["params"]
             obs_params["obsid"] = obsid
+            if kadi_cmds_version() >= 3:
+                obs_params["obsid_sched"] = obsid_sched
             obs_params["simpos"] = sim_pos  # matches states 'simpos'
             obs_params["obs_start"] = cmd["date"]
             if obs_params["npnt_enab"]:
@@ -1386,14 +1402,13 @@ def get_load_cmds_from_occweb_or_local(
     dir_year_month=None,
     load_name=None,
     *,
-    use_ska_dir=False,
-    archive=True,
+    in_work=False,
 ) -> CommandTable:
     """Get the load cmds (backstop) for ``load_name`` within ``dir_year_month``
 
-    If the backstop file is already available locally, use that. Otherwise, the
-    file is downloaded from OCCweb and is then parsed and saved as a gzipped
-    pickle file of the corresponding CommandTable object.
+    If the backstop file is already available locally, use that. Otherwise, the file is
+    downloaded from OCCweb and is then parsed and saved as a gzipped pickle file of the
+    corresponding CommandTable object.
 
     Parameters
     ----------
@@ -1401,62 +1416,45 @@ def get_load_cmds_from_occweb_or_local(
         Path to the directory containing the ``load_name`` directory.
     load_name : str
         Load name in the usual format e.g. JAN0521A.
-    use_ska_dir : bool
-        If True, get the backstop from the SKA directory structure instead of
-        OCCweb.
-    archive : bool
-        If True, save the backstop commands as a gzipped pickle file in the
-        loads archive directory.
+    in_work : bool
+        If True then the backstop file is in-work and should not be saved in the command
+        loads archive (~/.kadi/loads by default).
 
     Returns
     -------
     CommandTable
         Backstop commands for the load.
     """
-    # Determine output file name and make directory if necessary.
-    cmds_filename = None
-    if archive:
-        loads_dir = paths.LOADS_ARCHIVE_DIR()
-        loads_dir.mkdir(parents=True, exist_ok=True)
-        cmds_filename = loads_dir / f"{load_name}.pkl.gz"
+    # Determine archived local gzip file name
+    cmds_filename = paths.LOADS_ARCHIVE_DIR() / f"{load_name}.pkl.gz"
 
+    if not in_work and cmds_filename.exists():
         # If the output file already exists, read the commands and return them.
-        if cmds_filename.exists():
-            logger.info(f"Already have {cmds_filename}")
-            with gzip.open(cmds_filename, "rb") as fh:
-                cmds = pickle.load(fh)
-            return cmds
-
-    if use_ska_dir:
-        ska_dir = load_dir_from_load_name(load_name)
-        for filename in ska_dir.glob("CR????????.backstop"):
-            backstop_text = filename.read_text()
-            logger.info(f"Got backstop from {filename}")
-            cmds = parse_backstop(load_name, backstop_text)
-            if archive:
-                write_backstop(cmds, cmds_filename)
-            break
-        else:
-            raise ValueError(f"No backstop file found in {ska_dir}")
-
-    else:  # use OCCweb
+        logger.info(f"Already have {cmds_filename}")
+        with gzip.open(cmds_filename, "rb") as fh:
+            cmds = pickle.load(fh)
+    else:
+        # Find the backstop file on OCCweb
         load_dir_contents = occweb.get_occweb_dir(dir_year_month / load_name, timeout=5)
         for filename in load_dir_contents["Name"]:
             if re.match(r"CR\d{3}.\d{4}\.backstop", filename):
-                # Download the backstop file from OCCweb
-                backstop_text = occweb.get_occweb_page(
-                    dir_year_month / load_name / filename,
-                    cache=conf.cache_loads_in_astropy_cache,
-                    timeout=10,
-                )
-                cmds = parse_backstop(load_name, backstop_text)
-                if archive:
-                    write_backstop(cmds, cmds_filename)
                 break
         else:
             raise ValueError(
                 f"Could not find backstop file in {dir_year_month / load_name}"
             )
+        # Download the backstop file from OCCweb
+        backstop_text = occweb.get_occweb_page(
+            dir_year_month / load_name / filename,
+            cache=conf.cache_loads_in_astropy_cache,
+            timeout=10,
+        )
+        cmds = parse_backstop(load_name, backstop_text)
+        if not in_work:
+            write_backstop(cmds, cmds_filename)
+
+    if kadi_cmds_version() >= 3:
+        cmds = add_scheduled_obsid_cmds(cmds)
 
     return cmds
 
@@ -1474,7 +1472,35 @@ def parse_backstop(load_name: str, backstop_text: str):
     idx = cmds.colnames.index("timeline_id")
     cmds.add_column(load_name, index=idx, name="source")
     del cmds["timeline_id"]
+
     return cmds
+
+
+def add_scheduled_obsid_cmds(cmds: CommandTable) -> CommandTable:
+    """Add OBSID commands in vehicle loads corresponding to COAOSQID commands.
+
+    This allows tracking of the scheduled OBSID in the event of an SCS-107 where the
+    original COAOSQID commands in the observing loads are dropped. The load event cmds
+    are placed in the vehicle loads so they get stopped if vehicle loads are stopped
+    by NSM etc.
+
+    Parameters
+    ----------
+    cmds : CommandTable
+        CommandTable of load commands
+
+    Returns
+    -------
+    CommandTable
+        New CommandTable with original table and added OBSID load event commands.
+    """
+    cmds_obsid = cmds[cmds["tlmsid"] == "COAOSQID"]
+    cmds_obsid["type"] = "LOAD_EVENT"
+    cmds_obsid["tlmsid"] = "OBSID_SCH"
+    cmds_obsid["scs"] -= 3
+    logger.info(f"Adding {len(cmds_obsid)} OBSID load event commands")
+
+    return cmds.add_cmds(cmds_obsid)
 
 
 def write_backstop(cmds: CommandTable, cmds_filename: str | Path):
@@ -1482,6 +1508,8 @@ def write_backstop(cmds: CommandTable, cmds_filename: str | Path):
 
     This function saves a CommandTable object to disk as a compressed pickle file.
     ``cmds_filename`` is normally the kadi loads archive directory.
+
+    It also creates the parent directories as needed.
 
     Parameters
     ----------
@@ -1493,6 +1521,7 @@ def write_backstop(cmds: CommandTable, cmds_filename: str | Path):
 
     """
     logger.info(f"Saving {cmds_filename}")
+    Path(cmds_filename).parent.mkdir(parents=True, exist_ok=True)
     with gzip.open(cmds_filename, "wb") as fh:
         pickle.dump(cmds, fh)
 
@@ -1502,14 +1531,17 @@ def update_cmds_archive(
     lookback=None,
     stop=None,
     log_level=logging.INFO,
-    scenario=None,
     data_root=".",
-    match_prev_cmds=True,
+    truncate_from_rltt_start=False,
 ):
-    """Update cmds2.h5 and cmds2.pkl archive files.
+    """Update commands archive files cmds<ver>.h5 and cmds<ver>.pkl.
 
     This updates the archive though ``stop`` date, where is required that the
     ``stop`` date is within ``lookback`` days of existing data in the archive.
+
+    By default this updates the latest version of the archive. This can be changed by
+    setting the KADI_CMDS_VERSION environment variable. Note that the version is
+    cached via kadi.commands.core.kadi_cmds_version().
 
     Parameters
     ----------
@@ -1521,14 +1553,11 @@ def update_cmds_archive(
         events are included.
     log_level : int
         Logging level. Default is ``logging.INFO``.
-    scenario : str, None
-        Scenario name for loads and command events
     data_root : str, Path
-        Root directory where cmds2.h5 and cmds2.pkl are stored. Default is '.'.
-    match_prev_cmds : bool
-        One-time use flag set to True to update the cmds archive near the v1/v2
-        transition of APR1420B. See ``utils/migrate_cmds_to_cmds2.py`` for
-        details.
+        Root directory where cmds archive HDF5 and pkl files are stored. Default is '.'.
+    truncate_from_rltt_start : bool
+        If True, truncate the commands archive starting at the RLTT era from
+        load RLTT_ERA_START_LOAD (APR1420B). Default is False.
     """
     # For testing allow override of default `stop` value
     if stop is None:
@@ -1537,22 +1566,28 @@ def update_cmds_archive(
     # Local context manager for log_level and data_root
     kadi_logger = logging.getLogger("kadi")
     log_level_orig = kadi_logger.level
-    with conf.set_temp("commands_dir", data_root):
+    with conf.set_temp("commands_dir", data_root), temp_env_var("KADI", data_root):
         try:
             kadi_logger.setLevel(log_level)
-            _update_cmds_archive(lookback, stop, match_prev_cmds, scenario, data_root)
+            _update_cmds_archive(lookback, stop, data_root, truncate_from_rltt_start)
         finally:
             kadi_logger.setLevel(log_level_orig)
 
 
-def _update_cmds_archive(lookback, stop_loads, match_prev_cmds, scenario, data_root):
+def _update_cmds_archive(
+    lookback,
+    stop_loads,
+    data_root,
+    truncate_from_rltt_start,
+):
     """Do the real work of updating the cmds archive"""
-    idx_cmds_path = Path(data_root) / "cmds2.h5"
-    pars_dict_path = Path(data_root) / "cmds2.pkl"
+    version = kadi_cmds_version()
+    idx_cmds_path = Path(data_root) / f"cmds{version}.h5"
+    pars_dict_path = Path(data_root) / f"cmds{version}.pkl"
 
-    if idx_cmds_path.exists():
-        cmds_arch = load_idx_cmds(version=2, file=idx_cmds_path)
-        pars_dict = load_pars_dict(version=2, file=pars_dict_path)
+    if idx_cmds_path_exists := idx_cmds_path.exists():
+        cmds_arch = load_idx_cmds(file=idx_cmds_path)
+        pars_dict = load_pars_dict(file=pars_dict_path)
     else:
         # Make an empty cmds archive table and pars dict
         cmds_arch = CommandTable(
@@ -1561,20 +1596,31 @@ def _update_cmds_archive(lookback, stop_loads, match_prev_cmds, scenario, data_r
         )
         del cmds_arch["timeline_id"]
         pars_dict = {}
-        match_prev_cmds = False  # No matching of previous commands
 
     cmds_recent = update_cmd_events_and_loads_and_get_cmds_recent(
-        scenario=scenario,
         stop_loads=stop_loads,
         lookback=lookback,
         pars_dict=pars_dict,
     )
 
-    if match_prev_cmds:
-        idx0_arch, idx0_recent = get_matching_block_idx(cmds_arch, cmds_recent)
-    else:
-        idx0_arch = len(cmds_arch)
+    if not idx_cmds_path_exists:
+        # New archive, so use all recent commands with zero-length existing archive
         idx0_recent = 0
+        idx0_arch = 0
+    elif truncate_from_rltt_start:
+        # Special case for reprocessing the commands archive starting at the RLTT
+        # era from load RLTT_ERA_START_LOAD (APR1420B). Find the index of the first
+        # command in these loads. Note np.argmax() returns the first matching index
+        # in the case of multiple matches.
+        idx0_recent = 0
+        idx0_arch = np.argmax(cmds_arch["source"] == RLTT_ERA_START_LOAD)
+        logger.info(
+            f"Matching from RLTT start load {RLTT_ERA_START_LOAD}, "
+            f"idx0_arch={idx0_arch}, idx0_recent={idx0_recent}"
+        )
+    else:
+        # Normal processing: find the matching block between recent and archive cmds
+        idx0_arch, idx0_recent = get_matching_block_idx(cmds_arch, cmds_recent)
 
     # Convert from `params` col of dicts to index into same params in pars_dict.
     for cmd in cmds_recent:
@@ -1584,7 +1630,9 @@ def _update_cmds_archive(lookback, stop_loads, match_prev_cmds, scenario, data_r
     # For the command below the no-op logic should be clear:
     # cmds_arch = vstack([cmds_arch[:idx0_arch], cmds_recent[idx0_recent:]])
     if idx0_arch == len(cmds_arch) and idx0_recent == len(cmds_recent):
-        logger.info(f"No new commands found, skipping writing {idx_cmds_path}")
+        logger.info(
+            f"No new commands found, skipping writing {idx_cmds_path.absolute()}"
+        )
         return
 
     # Merge the recent commands with the existing archive.
@@ -1603,19 +1651,21 @@ def _update_cmds_archive(lookback, stop_loads, match_prev_cmds, scenario, data_r
 
     # Save the updated archive and pars_dict.
     cmds_arch_new = vstack_exact([cmds_arch[:idx0_arch], cmds_recent[idx0_recent:]])
-    logger.info(f"Writing {len(cmds_arch_new)} commands to {idx_cmds_path}")
-    cmds_arch_new.write(str(idx_cmds_path), path="data", format="hdf5", overwrite=True)
+    logger.info(f"Writing {len(cmds_arch_new)} commands to {idx_cmds_path.absolute()}")
+    cmds_arch_new.write(
+        str(idx_cmds_path.absolute()), path="data", format="hdf5", overwrite=True
+    )
 
-    logger.info(f"Writing updated pars_dict to {pars_dict_path}")
-    pickle.dump(pars_dict, open(pars_dict_path, "wb"))
+    logger.info(f"Writing updated pars_dict to {pars_dict_path.absolute()}")
+    pickle.dump(pars_dict, open(pars_dict_path.absolute(), "wb"))
 
 
 def get_matching_block_idx(cmds_arch, cmds_recent):
     # Find place in archive where the recent commands start.
     idx_arch_recent = cmds_arch.find_date(cmds_recent["date"][0])
-    logger.info("Selecting commands from cmds_arch[{}:]".format(idx_arch_recent))
     cmds_arch_recent = cmds_arch[idx_arch_recent:]
     cmds_arch_recent.rev_pars_dict = weakref.ref(REV_PARS_DICT)
+    logger.info("Selecting commands from cmds_arch[{}:]".format(idx_arch_recent))
 
     arch_vals = get_list_for_matching(cmds_arch_recent)
     recent_vals = get_list_for_matching(cmds_recent)
@@ -1623,20 +1673,23 @@ def get_matching_block_idx(cmds_arch, cmds_recent):
     diff = difflib.SequenceMatcher(a=arch_vals, b=recent_vals, autojunk=False)
 
     matching_blocks = diff.get_matching_blocks()
+    opcodes = diff.get_opcodes()
+    # Find the first matching block that is sufficiently long
     logger.info("Matching blocks for (a) recent commands and (b) existing HDF5")
     for block in matching_blocks:
         logger.info("  {}".format(block))
-    opcodes = diff.get_opcodes()
-    logger.info("Diffs between (a) recent commands and (b) existing HDF5")
-    for opcode in opcodes:
-        logger.info("  {}".format(opcode))
-    # Find the first matching block that is sufficiently long
-    for block in matching_blocks:
-        if block.size > MATCHING_BLOCK_SIZE:
+        if block.size > conf.matching_block_size:
+            logger.info(
+                f"Found matching block of size {block.size} > {conf.matching_block_size}"
+            )
             break
     else:
+        logger.info("Diffs between (a) recent commands and (b) existing HDF5")
+        for opcode in opcodes:
+            logger.info("  {}".format(opcode))
+
         raise ValueError(
-            f"No matching blocks at least {MATCHING_BLOCK_SIZE} long. This most likely "
+            f"No matching blocks at least {conf.matching_block_size} long. This most likely "
             "means that you have not recently synced your local Ska data using `ska_sync`."
         )
 

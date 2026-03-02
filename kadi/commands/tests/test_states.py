@@ -15,6 +15,7 @@ from testr.test_helper import has_internet
 
 from kadi import commands  # noqa: E402
 from kadi.commands import states  # noqa: E402
+from kadi.commands.core import kadi_cmds_version
 from kadi.commands.tests.test_commands import get_cmds_from_cmd_evts_text
 
 HAS_INTERNET = has_internet()
@@ -224,8 +225,10 @@ def write_regression_data(
 
 
 def get_regression_filenames():
-    for path in get_regression_pathdir().glob("*.ecsv"):
-        yield str(path.relative_to(Path.cwd()))
+    root = get_regression_pathdir()
+    for data_dir in root, root / f"v{kadi_cmds_version()}":
+        for path in data_dir.glob("*.ecsv"):
+            yield str(path.relative_to(Path.cwd()))
 
 
 @pytest.mark.skipif(not HAS_INTERNET, reason="Command sheet not available")

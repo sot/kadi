@@ -38,8 +38,9 @@ HAS_MPDIR = Path(os.environ["SKA"], "data", "mpcrit1", "mplogs", "2020").exists(
 HAS_INTERNET = has_internet()
 KADI_CMDS_VERSION = core.kadi_cmds_version()
 
+
 pytestmark = pytest.mark.skipif(
-    KADI_CMDS_VERSION < 3, reason="requires KADI_CMDS_VERSION >= 3"
+    KADI_CMDS_VERSION > 2, reason="requires KADI_CMDS_VERSION <= 2"
 )
 
 
@@ -110,7 +111,7 @@ def test_find():
 
 
 def test_get_cmds():
-    cs = commands.get_cmds("2012:029:12:00:00", "2012:030:12:00:00", scenario="flight")
+    cs = commands.get_cmds("2012:029:12:00:00", "2012:030:12:00:00")
     assert isinstance(cs, commands.CommandTable)
     assert len(cs) == 151  # OBS commands in v2 only
     assert np.all(cs["source"][:10] == "JAN2612A")
@@ -119,9 +120,7 @@ def test_get_cmds():
     assert cs["date"][-1] == "2012:030:11:00:01.285"
     assert cs["tlmsid"][-1] == "CTXBON"
 
-    cs = commands.get_cmds(
-        "2012:029:12:00:00", "2012:030:12:00:00", type="simtrans", scenario="flight"
-    )
+    cs = commands.get_cmds("2012:029:12:00:00", "2012:030:12:00:00", type="simtrans")
     assert len(cs) == 2
     assert np.all(cs["date"] == ["2012:030:02:00:00.000", "2012:030:08:27:02.000"])
     assert np.all(cs["pos"] == [75624, 73176])  # from params
@@ -140,7 +139,7 @@ def test_get_cmds():
 
 
 def test_get_cmds_zero_length_result():
-    cmds = commands.get_cmds(date="2017:001:12:00:00", scenario="flight")
+    cmds = commands.get_cmds(date="2017:001:12:00:00")
     assert len(cmds) == 0
     source_name = "source"
     assert cmds.colnames == [
@@ -162,15 +161,15 @@ def test_get_cmds_inclusive_stop():
     # or start <= date <= stop for inclusive_stop=True.
     # Query over a range that includes two commands at exactly start and stop.
     start, stop = "2020:001:15:50:00.000", "2020:001:15:50:00.257"
-    cmds = commands.get_cmds(start, stop, scenario="flight")
+    cmds = commands.get_cmds(start, stop)
     assert np.all(cmds["date"] == [start])
 
-    cmds = commands.get_cmds(start, stop, inclusive_stop=True, scenario="flight")
+    cmds = commands.get_cmds(start, stop, inclusive_stop=True)
     assert np.all(cmds["date"] == [start, stop])
 
 
 def test_cmds_as_list_of_dict():
-    cmds = commands.get_cmds("2020:140", "2020:141", scenario="flight")
+    cmds = commands.get_cmds("2020:140", "2020:141")
     cmds_list = cmds.as_list_of_dict()
     assert isinstance(cmds_list, list)
     assert isinstance(cmds_list[0], dict)
@@ -182,7 +181,7 @@ def test_cmds_as_list_of_dict():
 
 def test_cmds_as_list_of_dict_ska_parsecm():
     """Test the ska_parsecm=True compatibility mode for list_of_dict"""
-    cmds = commands.get_cmds("2020:140", "2020:141", scenario="flight")
+    cmds = commands.get_cmds("2020:140", "2020:141")
     cmds_list = cmds.as_list_of_dict(ska_parsecm=True)
     assert isinstance(cmds_list, list)
     assert isinstance(cmds_list[0], dict)
@@ -211,9 +210,7 @@ def test_get_cmds_from_backstop_and_add_cmds():
     bs_file = Path(parse_cm.tests.__file__).parent / "data" / "CR182_0803.backstop"
     bs_cmds = commands.get_cmds_from_backstop(bs_file, remove_starcat=True)
 
-    cmds = commands.get_cmds(
-        start="2018:182:00:00:00", stop="2018:182:08:00:00", scenario="flight"
-    )
+    cmds = commands.get_cmds(start="2018:182:00:00:00", stop="2018:182:08:00:00")
 
     assert len(bs_cmds) == 674
     assert len(cmds) == 57
@@ -255,7 +252,9 @@ def test_kadi_cmds_version():
 
 @pytest.mark.skipif("not HAS_MPDIR")
 @pytest.mark.skipif(not HAS_INTERNET, reason="No internet connection")
-def test_commands_create_archive_regress(tmpdir):
+def test_commands_create_archive_regress(
+    tmpdir, fast_sun_position_method, disable_hrc_scs107_commanding
+):
     """Create cmds archive from scratch and test that it matches flight
 
     This tests over an eventful month that includes IU reset/NSM, SCS-107
@@ -264,9 +263,7 @@ def test_commands_create_archive_regress(tmpdir):
     kadi_orig = os.environ.get("KADI")
     start = CxoTime("2021:290")
     stop = start + 30 * u.day
-    cmds_flight = commands.get_cmds(
-        start + 3 * u.day, stop - 3 * u.day, scenario="flight"
-    )
+    cmds_flight = commands.get_cmds(start + 3 * u.day, stop - 3 * u.day)
     cmds_flight.fetch_params()
 
     sched_stop_flight: np.ndarray = (cmds_flight["type"] == "LOAD_EVENT") & (
@@ -288,17 +285,11 @@ def test_commands_create_archive_regress(tmpdir):
             del commands_v2.REV_PARS_DICT._val
 
             # Make sure we are seeing the temporary cmds archive
-            cmds_empty = commands.get_cmds(
-                start - 60 * u.day, start - 50 * u.day, scenario="flight"
-            )
-            cmds_empty = commands.get_cmds(
-                start - 60 * u.day, start - 50 * u.day, scenario="flight"
-            )
+            cmds_empty = commands.get_cmds(start - 60 * u.day, start - 50 * u.day)
+            cmds_empty = commands.get_cmds(start - 60 * u.day, start - 50 * u.day)
             assert len(cmds_empty) == 0
 
-            cmds_local = commands.get_cmds(
-                start + 3 * u.day, stop - 3 * u.day, scenario="flight"
-            )
+            cmds_local = commands.get_cmds(start + 3 * u.day, stop - 3 * u.day)
 
             cmds_local.fetch_params()
             if len(cmds_flight) != len(cmds_local):
@@ -509,9 +500,7 @@ def test_get_cmds_v2_arch_recent(stop_date_2020_12_03):  # noqa: ARG001
     # of the matching block).
     assert np.all(cmds["idx"] != -1)
     # PR #248: made this change from 17640 to 17644
-    # PR #368: changed to 18112 with addition of OBSID_SCH commands
-    assert len(cmds) == 18112
-    assert np.count_nonzero(cmds["tlmsid"] != "OBSID_SCH") == 17644
+    assert 17640 <= len(cmds) <= 17644
 
     commands.clear_caches()
 
@@ -522,7 +511,7 @@ def test_get_cmds_v2_recent_only(stop_date_2020_12_03):  # noqa: ARG001
     # only commands out to the end of the NOV3020A loads (~ Dec 7).
     cmds = commands.get_cmds(start="2020-12-01", stop="2021-01-01")
     cmds = cmds[cmds["tlmsid"] != "OBS"]
-    assert len(cmds) == 1523 + 34  # 34 for OBSID_SCH
+    assert len(cmds) == 1523
     assert np.all(cmds["idx"] == -1)
     # fmt: off
     assert cmds[:5].pformat_like_backstop() == [
@@ -542,7 +531,7 @@ def test_get_cmds_v2_recent_only(stop_date_2020_12_03):  # noqa: ARG001
     # fmt: on
     # Same for no stop date
     cmds = commands.get_cmds(start="2020-12-01", stop=None)
-    cmds = cmds[(cmds["tlmsid"] != "OBS") & (cmds["tlmsid"] != "OBSID_SCH")]
+    cmds = cmds[cmds["tlmsid"] != "OBS"]
     assert len(cmds) == 1523
     assert np.all(cmds["idx"] == -1)
 
@@ -556,7 +545,7 @@ def test_get_cmds_v2_recent_only(stop_date_2020_12_03):  # noqa: ARG001
 def test_get_cmds_nsm_2021(stop_date_2021_10_24, disable_hrc_scs107_commanding):
     """NSM at ~2021:296:10:41. This tests non-load commands from cmd_events."""
     cmds = commands.get_cmds("2021:296:10:35:00")  # , '2021:298:01:58:00')
-    cmds = cmds[(cmds["tlmsid"] != "OBS") & (cmds["tlmsid"] != "OBSID_SCH")]
+    cmds = cmds[cmds["tlmsid"] != "OBS"]
     exp = [
         "2021:296:10:35:00.000 | COMMAND_HW       | CIMODESL   | OCT1821A | "
         "hex=7C067C0, msid=CIU1024X, scs=128",
@@ -897,7 +886,6 @@ Definitive,2020:337:00:00:00,Bright star hold,,Tom Aldcroft,
 """
     )
     cmds = commands.get_cmds(start="2020:336:21:48:00", stop="2020:338", scenario="bsh")
-    cmds = cmds[cmds["tlmsid"] != "OBSID_SCH"]
     exp = [
         "2020:336:21:48:03.312 | LOAD_EVENT       | OBS        | NOV3020A | "
         "manvr_start=2020:336:21:09:24.361, prev_att=(-0.242373434, -0.348723922, "
@@ -1120,7 +1108,7 @@ def test_get_starcat_only_agasc1p8():
 def test_get_starcats_with_cmds():
     start, stop = "2021:365:19:00:00", "2022:002:01:25:00"
     cmds = commands.get_cmds(start, stop, scenario="flight")
-    starcats0 = get_starcats(start, stop, scenario="flight")
+    starcats0 = get_starcats(start, stop)
     starcats1 = get_starcats(cmds=cmds)
     assert len(starcats0) == len(starcats1)
     for starcat0, starcat1 in zip(starcats0, starcats1):
@@ -1129,12 +1117,10 @@ def test_get_starcats_with_cmds():
             assert np.all(col)
 
 
-@pytest.mark.skipif(not HAS_INTERNET, reason="No internet connection")
 def test_get_starcats_obsid():
     from mica.starcheck import get_starcat
 
     sc_kadi = get_starcats(obsid=26330, scenario="flight")[0]
-    # get_starcat() requires internet - it calls get_observations() with no scenario
     sc_mica = get_starcat(26330)
     assert len(sc_kadi) == len(sc_mica)
     assert sc_kadi.colnames == [
@@ -1174,7 +1160,7 @@ def test_get_starcats_date():
     sc = get_starcats(obsid=8008, scenario="flight")[0]
     obs = get_observations(obsid=8008, scenario="flight")[0]
     assert sc.date == obs["starcat_date"] == "2007:002:04:31:43.965"
-    cmds = commands.get_cmds("2007:002", "2007:003", scenario="flight")
+    cmds = commands.get_cmds("2007:002", "2007:003")
     sc_cmd = cmds[cmds["date"] == obs["starcat_date"]][0]
     assert sc_cmd["type"] == "MP_STARCAT"
 
@@ -1246,25 +1232,6 @@ def test_flight_scenario_sheet_access():
             commands.get_cmds("-7d")  # fails, bad sheet URL
 
 
-@pytest.mark.skipif(HAS_INTERNET, reason="Requires no internet connection")
-def test_no_internet():
-    # All OK for "flight" scenario, we get some commands in the last 3 weeks
-    cmds = commands.get_cmds("-21d", scenario="flight")
-    assert len(cmds) > 10
-
-    match = re.escape(
-        "connection error implies no internet, so the 'flight' scenario is required"
-    )
-    with pytest.raises(ValueError, match=match):
-        commands.get_cmds("-3d")
-
-    with pytest.raises(ValueError, match=match):
-        commands.get_cmds("-3d", scenario="custom")
-
-    with pytest.raises(ValueError, match=match):
-        commands.get_cmds("-3d", scenario="flight+custom")
-
-
 @pytest.mark.skipif(not HAS_INTERNET, reason="No internet connection")
 def test_custom_scenario(monkeypatch, stop_date_2024_035_23_00_00):
     """Test "custom" scenario with a carefully constructed sequence of events.
@@ -1303,7 +1270,6 @@ def test_custom_scenario(monkeypatch, stop_date_2024_035_23_00_00):
     for scenario in ("flight+custom", "custom"):
         exp = exps[scenario]
         cmds = commands.get_cmds("2024:028", "2024:050", scenario=scenario)
-        cmds = cmds[cmds["tlmsid"] != "OBSID_SCH"]
         sources = {"FEB0524A", "JAN2924A", "JAN2624A"}
         if scenario == "flight+custom":
             sources.add("CMD_EVT")
@@ -1785,14 +1751,14 @@ def test_fill_gaps():
 
 def test_get_rltt_scheduled_stop_time():
     """RLTT and scheduled stop time are both 2023:009:04:14:00.000."""
-    cmds = commands.get_cmds("2023:009", "2023:010", scenario="flight")
+    cmds = commands.get_cmds("2023:009", "2023:010")
     rltt = cmds.get_rltt()
     assert rltt == "2023:009:04:14:00.000"
 
     stt = cmds.get_scheduled_stop_time()
     assert stt == "2023:009:04:14:00.000"
 
-    cmds = commands.get_cmds("2023:009:12:00:00", "2023:010", scenario="flight")
+    cmds = commands.get_cmds("2023:009:12:00:00", "2023:010")
     assert cmds.get_rltt() is None
     assert cmds.get_scheduled_stop_time() is None
 
@@ -2036,7 +2002,6 @@ def test_add_cmds():
     assert cmds12_no_rltt.pformat_like_backstop() == exp_no_rltt
 
 
-@pytest.mark.skipif(not HAS_INTERNET, reason="No internet connection")
 def test_read_backstop_with_observations():
     """Test reading backstop with observations in it.
 
@@ -2048,8 +2013,6 @@ def test_read_backstop_with_observations():
     except FileNotFoundError:
         pytest.skip("No backstop file found")
 
-    # read_backstop(add_observations=True) requires internet because it calls
-    # kcs.get_continuity().
     cmds = read_backstop(path, add_observations=True)
     obss = get_observations(cmds=cmds)
     starcats = get_starcats(cmds=cmds)

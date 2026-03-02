@@ -880,6 +880,15 @@ class ObsidTransition(ParamTransition):
     cmd_param_key = "id"
 
 
+class ObsidSchedTransition(ParamTransition):
+    """Scheduled Obsid update"""
+
+    command_attributes = {"tlmsid": "OBSID_SCH"}
+    state_keys = ["obsid_sched"]
+    transition_key = "obsid_sched"
+    cmd_param_key = "id"
+
+
 class EclipseEntryTimerTransition(ParamTransition):
     """Eclipse entry timer update"""
 
