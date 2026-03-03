@@ -412,6 +412,7 @@ def get_starcats(
     starcat_date=None,
     show_progress=False,
     event_filter=None,
+    **obs_filter,
 ):
     """Get a list of star catalogs corresponding to input parameters.
 
@@ -494,6 +495,9 @@ def get_starcats(
         Callable function or list of callable functions that takes an Event Table as
         input and returns a boolean mask with same length as Table. If None, no
         filtering is done.
+    **obs_filter : dict
+        Additional filters on the observation parameters. The keys should be
+        parameter names, for instance ``source`` or ``simpos``.
 
     Returns
     -------
@@ -519,6 +523,7 @@ def get_starcats(
         cmds=cmds,
         starcat_date=starcat_date,
         event_filter=event_filter,
+        **obs_filter,
     )
     starcats = []
     rev_pars_dict = REV_PARS_DICT if cmds is None else cmds.rev_pars_dict()
@@ -598,6 +603,7 @@ def get_observations(
     cmds=None,
     starcat_date=None,
     event_filter=None,
+    **obs_filter,
 ):
     """Get observations corresponding to input parameters.
 
@@ -670,6 +676,9 @@ def get_observations(
         Callable function or list of callable functions that takes an Event Table as
         input and returns a boolean mask with same length as Table. If None, no
         filtering is done.
+    **obs_filter : dict
+        Additional filters on the observation parameters. The keys should be
+        parameter names, for instance ``source`` or ``simpos``.
 
     Returns
     -------
@@ -713,20 +722,16 @@ def get_observations(
     i0, i1 = cmds_obs.find_date([(start - 7 * u.day).date, (stop + 7 * u.day).date])
     cmds_obs = cmds_obs[i0:i1]
 
+    # Filter cmd_obs, starting with three explicit keywords and then including any
+    # additional filters passed in obs_filter.
     if starcat_date is not None:
-        cmds_obs = cmds_obs[cmds_obs["starcat_date"] == starcat_date]
-        if len(cmds_obs) == 0:
-            raise ValueError(f"No matching observations for {starcat_date=}")
-
+        obs_filter["starcat_date"] = starcat_date
     if obsid is not None:
-        cmds_obs = cmds_obs[cmds_obs["obsid"] == obsid]
-        if len(cmds_obs) == 0:
-            raise ValueError(f"No matching observations for {obsid=}")
-
+        obs_filter["obsid"] = obsid
     if obsid_sched is not None:
-        cmds_obs = cmds_obs[cmds_obs["obsid_sched"] == obsid_sched]
-        if len(cmds_obs) == 0:
-            raise ValueError(f"No matching observations for {obsid_sched=}")
+        obs_filter["obsid_sched"] = obsid_sched
+    for key, val in obs_filter.items():
+        cmds_obs = cmds_obs[cmds_obs[key] == val]
 
     obss = [cmd["params"].copy() for cmd in cmds_obs]
     for obs, cmd_obs in zip(obss, cmds_obs):
