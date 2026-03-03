@@ -405,6 +405,7 @@ def get_starcats(
     stop=None,
     *,
     obsid=None,
+    obsid_sched=None,
     scenario=None,
     cmds=None,
     as_dict=False,
@@ -414,8 +415,8 @@ def get_starcats(
 ):
     """Get a list of star catalogs corresponding to input parameters.
 
-    The ``start``, ``stop`` and ``obsid`` parameters serve as matching filters
-    on the list of star catalogs that is returned.
+    The ``start``, ``stop``, ``obsid``, ``obsid_sched``, and ``starcat_date`` parameters
+    serve as matching filters on the list of star catalogs that is returned.
 
     By default the result is a list of ``ACATable`` objects similar to the
     output of ``proseco.get_aca_catalog``.
@@ -474,7 +475,11 @@ def get_starcats(
     stop : CxoTime-like, None
         Stop time (default=end of commands)
     obsid : int, None
-        ObsID
+        Return starcats matching requested ObsID
+    obsid_sched : int, None
+        Return starcats matching requested scheduled ObsID from the as-planned
+        loads. This can differ from ``obsid`` after an SCS-107. This is only available
+        for observations after the APR1420B loads.
     scenario : str, None
         Scenario
     cmds : CommandTable, None
@@ -507,6 +512,7 @@ def get_starcats(
 
     obss = get_observations(
         obsid=obsid,
+        obsid_sched=obsid_sched,
         start=start,
         stop=stop,
         scenario=scenario,
@@ -587,6 +593,7 @@ def get_observations(
     stop=None,
     *,
     obsid=None,
+    obsid_sched=None,
     scenario=None,
     cmds=None,
     starcat_date=None,
@@ -648,7 +655,11 @@ def get_observations(
     stop : CxoTime-like, None
         Stop time (default=end of commands)
     obsid : int, None
-        ObsID
+        Return observations matching requested ObsID
+    obsid_sched : int, None
+        Return observations matching requested scheduled ObsID from the as-planned
+        loads. This can differ from ``obsid`` after an SCS-107. This is only available
+        for observations after the APR1420B loads.
     scenario : str, None
         Scenario
     cmds : CommandTable, None
@@ -711,6 +722,11 @@ def get_observations(
         cmds_obs = cmds_obs[cmds_obs["obsid"] == obsid]
         if len(cmds_obs) == 0:
             raise ValueError(f"No matching observations for {obsid=}")
+
+    if obsid_sched is not None:
+        cmds_obs = cmds_obs[cmds_obs["obsid_sched"] == obsid_sched]
+        if len(cmds_obs) == 0:
+            raise ValueError(f"No matching observations for {obsid_sched=}")
 
     obss = [cmd["params"].copy() for cmd in cmds_obs]
     for obs, cmd_obs in zip(obss, cmds_obs):
