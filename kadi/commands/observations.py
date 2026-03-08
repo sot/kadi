@@ -722,6 +722,8 @@ def get_observations(
     i0, i1 = cmds_obs.find_date([(start - 7 * u.day).date, (stop + 7 * u.day).date])
     cmds_obs = cmds_obs[i0:i1]
 
+    cmds_obs = merge_cmds_obs_with_cmd_evt_obsid(cmds_obs)
+
     # Filter cmd_obs, starting with three explicit keywords and then including any
     # additional filters passed in obs_filter.
     if starcat_date is not None:
@@ -748,6 +750,40 @@ def get_observations(
     ]
 
     return obss
+
+
+def merge_cmds_obs_with_cmd_evt_obsid(cmds_obs: Table) -> None:
+    """Merge each OBS command from a CMD_EVT into the prior normal OBS.
+
+    This is an in-place update of ``cmds_obs``.
+
+    When there is a manually commanded ObsID change following SCS-107, the state machine
+    for creating OBS commands breaks the observation at that point. The original OBS
+    gets a obs_stop time at the manual ObsID change time and then there is a new OBS
+    with the manually commanded ObsID that goes until the original (scheduled) ObsID
+    ends.
+
+    This is good for strict bookkeeping, but in practice it is more useful to have the
+    full scheduled observation as a single OBS. This will have the same values for
+    ``obsid`` and ``obsid_sched``. Then the *next* observation will have obsid as the
+    new manual ObsID for ``obsid`` and the original one for ``obsid_sched``. In this
+    way the number and duration of observations matches the schedule.
+    """
+    nok = cmds_obs["source"] == "CMD_EVT"
+    if not np.any(nok):
+        return cmds_obs
+
+    idxs_cmd_evt = np.where(nok)[0]
+    for idx_cmd_evt in idxs_cmd_evt:
+        if (idx_prior := idx_cmd_evt - 1) < 0:
+            continue
+        # Copy params dict to be sure of not corrupting upstream cmds
+        params = cmds_obs[idx_prior]["params"].copy()
+        params["obs_stop"] = cmds_obs[idx_cmd_evt]["params"]["obs_stop"]
+        cmds_obs[idx_prior]["params"] = params
+    cmds_obs.remove_rows(idxs_cmd_evt)
+
+    return cmds_obs
 
 
 def get_agasc_cone_fast(
