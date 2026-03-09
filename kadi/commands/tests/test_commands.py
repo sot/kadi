@@ -1029,6 +1029,45 @@ def test_get_observations_by_obsid_multi():
     ]
 
 
+def test_get_observations_and_starcats_filtering():
+    # Observation impacted by SCS-107 around 2025:001 and rescheduled in MAR1025B
+    obss = Table(get_observations(obsid_sched=28365, scenario="flight"))
+    assert obss["obsid", "obsid_sched", "source", "obs_start"].pformat() == [
+        "obsid obsid_sched  source        obs_start      ",
+        "----- ----------- -------- ---------------------",
+        "30550       28365 DEC2324B 2024:366:21:58:02.061",
+        "28365       28365 MAR1025B 2025:072:23:55:14.230",
+    ]
+    starcats = get_starcats(obsid_sched=28365, scenario="flight")
+    for obs, starcat in zip(obss, starcats, strict=True):
+        assert starcat.date == obs["starcat_date"]
+
+    obss = Table(
+        get_observations(obsid_sched=28365, source="MAR1025B", scenario="flight")
+    )
+    assert obss["obsid", "obsid_sched", "source", "obs_start"].pformat() == [
+        "obsid obsid_sched  source        obs_start      ",
+        "----- ----------- -------- ---------------------",
+        "28365       28365 MAR1025B 2025:072:23:55:14.230",
+    ]
+    starcats = get_starcats(obsid_sched=28365, source="MAR1025B", scenario="flight")
+    for obs, starcat in zip(obss, starcats, strict=True):
+        assert starcat.date == obs["starcat_date"]
+
+    obss = Table(
+        get_observations(manvr_start="2024:366:21:21:11.789", scenario="flight")
+    )
+    assert obss["obsid", "obsid_sched", "source", "manvr_start"].pformat() == [
+        "obsid obsid_sched  source       manvr_start     ",
+        "----- ----------- -------- ---------------------",
+        "30550       28365 DEC2324B 2024:366:21:21:11.789",
+    ]
+
+    starcats = get_starcats(manvr_start="2024:366:21:21:11.789", scenario="flight")
+    for obs, starcat in zip(obss, starcats, strict=True):
+        assert starcat.date == obs["starcat_date"]
+
+
 def test_get_observations_by_start_date():
     # Test observations from a 6 months ago onward
     obss = get_observations(start=CxoTime.now() - 180 * u.day, scenario="flight")
