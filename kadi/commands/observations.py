@@ -521,7 +521,13 @@ def get_starcats(
 
             # From the commands archive, building ACA catalog dict from backstop
             # params
-            params = rev_pars_dict[idx]
+            if cmds is None:
+                params = rev_pars_dict[idx]
+            else:
+                cmds_starcat = cmds[cmds["date"] == obs["starcat_date"]]
+                cmds_starcat.fetch_params()
+                params = cmds_starcat["params"][0]
+
             if isinstance(params, bytes):
                 params = decode_starcat_params(params)
             starcat_dict = convert_aostrcat_to_starcat_dict(params)
