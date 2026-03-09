@@ -735,6 +735,10 @@ def get_observations(
     for key, val in obs_filter.items():
         cmds_obs = cmds_obs[cmds_obs[key] == val]
 
+    if len(cmds_obs) == 0:
+        filters_as_str = ", ".join(f"{key}={val}" for key, val in obs_filter.items())
+        raise ValueError(f"No matching observations for {filters_as_str}")
+
     obss = [cmd["params"].copy() for cmd in cmds_obs]
     for obs, cmd_obs in zip(obss, cmds_obs):
         obs["source"] = cmd_obs["source"]
@@ -774,14 +778,35 @@ def merge_cmds_obs_with_cmd_evt_obsid(cmds_obs: Table) -> None:
         return cmds_obs
 
     idxs_cmd_evt = np.where(nok)[0]
+    idxs_cmd_evt_remove = []
     for idx_cmd_evt in idxs_cmd_evt:
         if (idx_prior := idx_cmd_evt - 1) < 0:
             continue
         # Copy params dict to be sure of not corrupting upstream cmds
-        params = cmds_obs[idx_prior]["params"].copy()
-        params["obs_stop"] = cmds_obs[idx_cmd_evt]["params"]["obs_stop"]
-        cmds_obs[idx_prior]["params"] = params
-    cmds_obs.remove_rows(idxs_cmd_evt)
+        params_prior = cmds_obs[idx_prior]["params"].copy()
+        params_current = cmds_obs[idx_cmd_evt]["params"]
+
+        # All of these keys will be identical for a manual obsid change observation.
+        # Events like NSM or manual maneuver will also drive a new observation. For
+        # these at least one of these keys will differ.
+        if any(
+            params_prior[key] != params_current[key]
+            for key in [
+                "simpos",
+                "manvr_start",
+                "targ_att",
+                "npnt_enab",
+                "obsid_sched",
+                "prev_att",
+            ]
+        ):
+            continue
+
+        params_prior["obs_stop"] = params_current["obs_stop"]
+        cmds_obs[idx_prior]["params"] = params_prior
+        idxs_cmd_evt_remove.append(idx_cmd_evt)
+
+    cmds_obs.remove_rows(idxs_cmd_evt_remove)
 
     return cmds_obs
 
