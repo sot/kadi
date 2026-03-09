@@ -196,8 +196,10 @@ ER's. These are most easily accessed via the
     'targ_att': (0.105773397, -0.727314387, -0.579818109, 0.351620152),
     'npnt_enab': True,
     'obs_start': '2022:075:17:57:55.985',
+    'obsid_sched': 26330,
     'prev_att': (0.113370245, -0.848288771, -0.329080853, 0.399072852),
-    'starcat_idx': 211630,
+    'starcat_date': '2022:075:17:39:50.445',
+    'starcat_idx': 174523,
     'source': 'MAR1422A'}
 
 Notice that the command always returns a list of observations, even for a query
@@ -214,8 +216,56 @@ persisted for 64 distinct observations in the vehicle loads::
     >>> len(obss)
     64
 
+
+Scheduled ObsID
+^^^^^^^^^^^^^^^
+
+Kadi observations since the APR1420B loads also include the original *scheduled* ObsID
+in the ``obsid_sched`` field. These can differ in the case of an SCS-107 run where the
+ObsID commanding in the observing loads stops running. For observations selected over a
+date range you easily can map back to the original load product commanding using the
+``obsid_sched`` value
+
+For example::
+
+    >>> import kadi.commands as kc
+    >>> import kadi.commands.states as kcs
+    >>> import astropy.table as apt
+
+    >>> start = "2025:001"
+    >>> stop = "2025:002"
+
+    >>> obss = apt.Table(kc.get_observations(start, stop))
+    >>> obss["obs_start", "obs_stop", "obsid", "obsid_sched", "source"]
+    <Table length=6>
+        obs_start              obs_stop       obsid obsid_sched  source
+            str21                 str21         int64    int64      str8
+    --------------------- --------------------- ----- ----------- --------
+    2024:366:21:58:02.061 2025:001:08:44:01.810 30550       28365 DEC2324B
+    2025:001:09:10:23.636 2025:001:12:48:34.040 30550       29835 DEC2324B
+    2025:001:12:48:34.040 2025:001:13:08:03.384 65518       29835  CMD_EVT
+    2025:001:13:44:13.046 2025:001:16:38:44.384 65518       25501 DEC2324B
+    2025:001:17:13:35.743 2025:001:20:54:35.492 65518       26975 DEC2324B
+    2025:001:21:21:03.527 2025:002:01:35:23.276 65518       30500 DEC2324B
+
+    >>> states = kcs.get_states(start, stop, state_keys=["obsid", "obsid_sched"])
+    >>> states["datestart", "datestop", "obsid", "obsid_sched"]
+    <Table length=6>
+        datestart              datestop       obsid obsid_sched
+            str21                 str21         int64    int64
+    --------------------- --------------------- ----- -----------
+    2025:001:00:00:00.000 2025:001:08:47:01.810 30550       28365
+    2025:001:08:47:01.810 2025:001:12:48:34.040 30550       29835
+    2025:001:12:48:34.040 2025:001:13:11:03.384 65518       29835
+    2025:001:13:11:03.384 2025:001:16:38:58.384 65518       25501
+    2025:001:16:38:58.384 2025:001:20:57:35.492 65518       26975
+    2025:001:20:57:35.492 2025:002:00:00:00.000 65518       30500
+
+Performance
+^^^^^^^^^^^
+
 Getting all the observations covering years or more is reasonably fast,
-typically seconds the first query and then << 1 sec for subsequent queries.
+typically a few seconds for the first query and then << 1 sec for subsequent queries.
 
     >>> %time obss = get_observations(start='2020:001', stop='2022:001')
     CPU times: user 28.4 ms, sys: 952 µs, total: 29.4 ms
@@ -257,15 +307,17 @@ directly::
     2022:001:15:29:26.255 LOAD_EVENT    OBS   0    0 757438235.439 DEC3021A   -1    N/A
     2022:001:17:33:53.255 LOAD_EVENT    OBS   0    0 757445702.439 DEC3021A   -1    N/A
     >>> cmds[0]['params']
-    {'obsid': 45814,
-    'simpos': -99616,
-    'obs_stop': '2022:001:09:13:04.557',
-    'manvr_start': '2022:001:05:21:38.855',
-    'targ_att': (0.530730117, 0.556620885, 0.610704042, 0.188518716),
+    {'manvr_start': '2022:001:05:21:38.855',
     'npnt_enab': True,
     'obs_start': '2022:001:05:48:44.808',
+    'obs_stop': '2022:001:09:13:04.557',
+    'obsid': 45814,
+    'obsid_sched': 45814,
     'prev_att': (-0.0743435142, -0.559183412, -0.804323901, 0.186681591),
-    'starcat_idx': 170518}
+    'simpos': -99616,
+    'starcat_date': '2022:001:05:21:34.604',
+    'starcat_idx': 174028,
+    'targ_att': (0.530730117, 0.556620885, 0.610704042, 0.188518716)}
 
 As with |get_cmds| in the archive, you can provide a
 ``scenario`` keyword to :func:`~kadi.commands.observations.get_observations` to
@@ -706,6 +758,9 @@ classes which affect the keys.
 ``obsid``
   - :class:`~kadi.commands.states.ObsidTransition`
 
+``obsid_sched``
+  - :class:`~kadi.commands.states.ObsidSchedTransition`
+
 ``orbit_point``
   - :class:`~kadi.commands.states.OrbitPointTransition`
 
@@ -926,7 +981,7 @@ The ``event_filter`` argument takes a single callable function or a list of func
 Each function must take a single argument, an Command Events Table object, and return a
 boolean mask indicating whether each row (command event) in the table should be included
 when generating the final commands.  The functions are applied in order, and the command
-event is included if any of the functions return ``True``.
+event is excluded if any of the functions return ``False`` for that event.
 
 Filtering within last 30 days
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

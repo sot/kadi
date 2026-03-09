@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>kadi.commands.core &#8212; kadi 7.18.1 documentation</title>
+    <title>kadi.commands.core &#8212; kadi 7.19.0 documentation</title>
   
   
   
@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../../../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../../../../_static/documentation_options.js?v=74791c54"></script>
+    <script src="../../../../_static/documentation_options.js?v=a1d4d214"></script>
     <script src="../../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -54,7 +54,7 @@
     <link rel="prev" title="kadi.commands.commands_v2.get_cmds" href="../commands_v2/get_cmds.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="7.18.1" />
+  <meta name="docsearch:version" content="7.19.0" />
   </head>
   
   
@@ -107,7 +107,7 @@
     <span style="color: rgb(186, 70, 21); font-size: x-large;">kadi</span>
 </a>
 &nbsp;
-<span style="font-size: x-large;">7.18.1</span></div>
+<span style="font-size: x-large;">7.19.0</span></div>
     
   </div>
   
@@ -368,22 +368,25 @@
 </div>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="read_backstop.html#kadi.commands.core.read_backstop" title="kadi.commands.core.read_backstop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">read_backstop</span></code></a>(backstop[, add_observations, load_name])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="kadi_cmds_version.html#kadi.commands.core.kadi_cmds_version" title="kadi.commands.core.kadi_cmds_version"><code class="xref py py-obj docutils literal notranslate"><span class="pre">kadi_cmds_version</span></code></a>()</p></td>
+<td><p>Determine the kadi commands version by checking for cmds&lt;version&gt;.h5,pkl files.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="read_backstop.html#kadi.commands.core.read_backstop" title="kadi.commands.core.read_backstop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">read_backstop</span></code></a>(backstop[, add_observations, load_name])</p></td>
 <td><p>Read <code class="docutils literal notranslate"><span class="pre">backstop</span></code> and return a <code class="docutils literal notranslate"><span class="pre">CommandTable</span></code>.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="add_observations_to_cmds.html#kadi.commands.core.add_observations_to_cmds" title="kadi.commands.core.add_observations_to_cmds"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_observations_to_cmds</span></code></a>(cmds[, load_name])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="add_observations_to_cmds.html#kadi.commands.core.add_observations_to_cmds" title="kadi.commands.core.add_observations_to_cmds"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_observations_to_cmds</span></code></a>(cmds[, load_name])</p></td>
 <td><p>Add OBS commands to <code class="docutils literal notranslate"><span class="pre">cmds</span></code> and return new <code class="docutils literal notranslate"><span class="pre">CommandTable</span></code>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="get_cmds_from_backstop.html#kadi.commands.core.get_cmds_from_backstop" title="kadi.commands.core.get_cmds_from_backstop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_cmds_from_backstop</span></code></a>(backstop[, remove_starcat])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="get_cmds_from_backstop.html#kadi.commands.core.get_cmds_from_backstop" title="kadi.commands.core.get_cmds_from_backstop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_cmds_from_backstop</span></code></a>(backstop[, remove_starcat])</p></td>
 <td><p>Initialize a <code class="docutils literal notranslate"><span class="pre">CommandTable</span></code> from <code class="docutils literal notranslate"><span class="pre">backstop</span></code>.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="filter_cmd_events_by_event.html#kadi.commands.core.filter_cmd_events_by_event" title="kadi.commands.core.filter_cmd_events_by_event"><code class="xref py py-obj docutils literal notranslate"><span class="pre">filter_cmd_events_by_event</span></code></a>(*args)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="filter_cmd_events_by_event.html#kadi.commands.core.filter_cmd_events_by_event" title="kadi.commands.core.filter_cmd_events_by_event"><code class="xref py py-obj docutils literal notranslate"><span class="pre">filter_cmd_events_by_event</span></code></a>(*args)</p></td>
 <td><p>Returns a function that filters command events based on a list of event names.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="filter_scs107_events.html#kadi.commands.core.filter_scs107_events" title="kadi.commands.core.filter_scs107_events"><code class="xref py py-obj docutils literal notranslate"><span class="pre">filter_scs107_events</span></code></a>(cmd_events)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="filter_scs107_events.html#kadi.commands.core.filter_scs107_events" title="kadi.commands.core.filter_scs107_events"><code class="xref py py-obj docutils literal notranslate"><span class="pre">filter_scs107_events</span></code></a>(cmd_events)</p></td>
 <td><p>Filter SCS-107 related events from command history.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="set_time_now.html#kadi.commands.core.set_time_now" title="kadi.commands.core.set_time_now"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_time_now</span></code></a>(date)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="set_time_now.html#kadi.commands.core.set_time_now" title="kadi.commands.core.set_time_now"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_time_now</span></code></a>(date)</p></td>
 <td><p>Context manager to temporarily set CXOTIME_NOW to <code class="docutils literal notranslate"><span class="pre">date</span></code>.</p></td>
 </tr>
 </tbody>

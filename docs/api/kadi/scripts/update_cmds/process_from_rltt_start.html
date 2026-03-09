@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>kadi.scripts.update_cmds_v2 &#8212; kadi 7.18.1 documentation</title>
+    <title>kadi.scripts.update_cmds.process_from_rltt_start &#8212; kadi 7.19.0 documentation</title>
   
   
   
@@ -41,20 +41,20 @@
   <link rel="preload" as="script" href="../../../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../../../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../../../../_static/documentation_options.js?v=74791c54"></script>
+    <script src="../../../../_static/documentation_options.js?v=a1d4d214"></script>
     <script src="../../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../../../../_static/copybutton.js?v=30646c52"></script>
-    <script>DOCUMENTATION_OPTIONS.pagename = 'api/kadi/scripts/update_cmds_v2/index';</script>
-    <link rel="canonical" href="https://sot.github.io/kadi/api/kadi/scripts/update_cmds_v2/index.html" />
+    <script>DOCUMENTATION_OPTIONS.pagename = 'api/kadi/scripts/update_cmds/process_from_rltt_start';</script>
+    <link rel="canonical" href="https://sot.github.io/kadi/api/kadi/scripts/update_cmds/process_from_rltt_start.html" />
     <link rel="index" title="Index" href="../../../../genindex.html" />
     <link rel="search" title="Search" href="../../../../search.html" />
-    <link rel="next" title="kadi.scripts.update_cmds_v2.get_opt" href="get_opt.html" />
-    <link rel="prev" title="kadi.scripts" href="../index.html" />
+    <link rel="next" title="kadi.scripts.update_events" href="../update_events/index.html" />
+    <link rel="prev" title="kadi.scripts.update_cmds.main" href="main.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="7.18.1" />
+  <meta name="docsearch:version" content="7.19.0" />
   </head>
   
   
@@ -107,7 +107,7 @@
     <span style="color: rgb(186, 70, 21); font-size: x-large;">kadi</span>
 </a>
 &nbsp;
-<span style="font-size: x-large;">7.18.1</span></div>
+<span style="font-size: x-large;">7.19.0</span></div>
     
   </div>
   
@@ -330,7 +330,10 @@
     
     <li class="breadcrumb-item"><a href="../index.html" class="nav-link">kadi.scripts</a></li>
     
-    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">kadi.scripts.update_cmds_v2</span></li>
+    
+    <li class="breadcrumb-item"><a href="index.html" class="nav-link">kadi.scripts.update_cmds</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">kadi.scripts.update_cmds.process_from_rltt_start</span></li>
   </ul>
 </nav>
 </div>
@@ -347,24 +350,28 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="module-kadi.scripts.update_cmds_v2">
-<span id="kadi-scripts-update-cmds-v2"></span><h1>kadi.scripts.update_cmds_v2<a class="headerlink" href="#module-kadi.scripts.update_cmds_v2" title="Link to this heading">#</a></h1>
-<section id="functions">
-<h2>Functions<a class="headerlink" href="#functions" title="Link to this heading">#</a></h2>
-<div class="toctree-wrapper compound">
-</div>
-<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
-<tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="get_opt.html#kadi.scripts.update_cmds_v2.get_opt" title="kadi.scripts.update_cmds_v2.get_opt"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_opt</span></code></a>([args])</p></td>
-<td><p>Get options for command line interface to update.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="main.html#kadi.scripts.update_cmds_v2.main" title="kadi.scripts.update_cmds_v2.main"><code class="xref py py-obj docutils literal notranslate"><span class="pre">main</span></code></a>([args])</p></td>
-<td><p>Main function for update_cmds_v2</p></td>
-</tr>
-</tbody>
-</table>
-</div>
-</section>
+  <section id="kadi-scripts-update-cmds-process-from-rltt-start">
+<h1>kadi.scripts.update_cmds.process_from_rltt_start<a class="headerlink" href="#kadi-scripts-update-cmds-process-from-rltt-start" title="Link to this heading">#</a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="kadi.scripts.update_cmds.process_from_rltt_start">
+<span class="sig-prename descclassname"><span class="pre">kadi.scripts.update_cmds.</span></span><span class="sig-name descname"><span class="pre">process_from_rltt_start</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">opt</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kadi.scripts.update_cmds.process_from_rltt_start" title="Link to this definition">#</a></dt>
+<dd><p>Process commands archive from the start of the RLTT era in chunks.</p>
+<p>This function updates the commands archive from the RLTT era start date
+(APR1420B) to the specified stop date (or Now+21 days) by breaking the
+time range into manageable chunks to avoid memory issues.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>opt</strong><span class="classifier">argparse.Namespace</span></dt><dd><p>Command line options containing:
+- stop: Optional stop date for processing
+- log_level: Logging level
+- data_root: Root directory for data</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 
 
@@ -378,20 +385,20 @@
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="../index.html"
+       href="main.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">kadi.scripts</p>
+        <p class="prev-next-title">kadi.scripts.update_cmds.main</p>
       </div>
     </a>
     <a class="right-next"
-       href="get_opt.html"
+       href="../update_events/index.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">kadi.scripts.update_cmds_v2.get_opt</p>
+        <p class="prev-next-title">kadi.scripts.update_events</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -414,7 +421,7 @@
   </div>
   <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#functions">Functions</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#kadi.scripts.update_cmds.process_from_rltt_start"><code class="docutils literal notranslate"><span class="pre">kadi.scripts.update_cmds.process_from_rltt_start()</span></code></a></li>
 </ul>
   </nav></div>
 

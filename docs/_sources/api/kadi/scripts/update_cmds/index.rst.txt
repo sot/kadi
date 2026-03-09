@@ -1,0 +1,25 @@
+kadi.scripts.update_cmds
+========================
+
+.. py:module:: kadi.scripts.update_cmds
+
+
+
+Functions
+---------
+
+.. toctree::
+   :hidden:
+
+   /api/kadi/scripts/update_cmds/get_opt
+   /api/kadi/scripts/update_cmds/main
+   /api/kadi/scripts/update_cmds/process_from_rltt_start
+
+.. autoapisummary::
+
+   kadi.scripts.update_cmds.get_opt
+   kadi.scripts.update_cmds.main
+   kadi.scripts.update_cmds.process_from_rltt_start
+
+
+

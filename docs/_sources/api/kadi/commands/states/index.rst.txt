@@ -72,6 +72,7 @@ Classes
    /api/kadi/commands/states/HrcSOn_Transition
    /api/kadi/commands/states/HrcSOff_Transition
    /api/kadi/commands/states/ObsidTransition
+   /api/kadi/commands/states/ObsidSchedTransition
    /api/kadi/commands/states/EclipseEntryTimerTransition
    /api/kadi/commands/states/EclipsePenumbraEntryTransition
    /api/kadi/commands/states/EclipsePenumbraExitTransition
@@ -150,6 +151,7 @@ Classes
    kadi.commands.states.HrcSOn_Transition
    kadi.commands.states.HrcSOff_Transition
    kadi.commands.states.ObsidTransition
+   kadi.commands.states.ObsidSchedTransition
    kadi.commands.states.EclipseEntryTimerTransition
    kadi.commands.states.EclipsePenumbraEntryTransition
    kadi.commands.states.EclipsePenumbraExitTransition

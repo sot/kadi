@@ -1,0 +1,36 @@
+kadi.commands.kadi_cmds_version
+===============================
+
+.. py:function:: kadi.commands.kadi_cmds_version()
+
+   
+   Determine the kadi commands version by checking for cmds<version>.h5,pkl files.
+
+   If the environment variable KADI_CMDS_VERSION is set then that version number is
+   returned instead.
+
+   The version number can be an integer. Return the highest version number satisfying:
+   - cmds<version>.h5 and cmds<version>.pkl files exist in the data directory.
+
+   In all cases the version must be less than or equal to KADI_CMDS_VERSION_MAX.
+
+
+
+
+   :Returns:
+
+       int
+           Highest allowed kadi commands version number found.
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!

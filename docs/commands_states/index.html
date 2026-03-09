@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Commands and states &#8212; kadi 7.18.1 documentation</title>
+    <title>Commands and states &#8212; kadi 7.19.0 documentation</title>
   
   
   
@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../_static/documentation_options.js?v=74791c54"></script>
+    <script src="../_static/documentation_options.js?v=a1d4d214"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -54,7 +54,7 @@
     <link rel="prev" title="Event Descriptions" href="../events/event_descriptions.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="7.18.1" />
+  <meta name="docsearch:version" content="7.19.0" />
   </head>
   
   
@@ -107,7 +107,7 @@
     <span style="color: rgb(186, 70, 21); font-size: x-large;">kadi</span>
 </a>
 &nbsp;
-<span style="font-size: x-large;">7.18.1</span></div>
+<span style="font-size: x-large;">7.19.0</span></div>
     
   </div>
   
@@ -516,8 +516,10 @@ ER’s. These are most easily accessed via the
 <span class="go">&#39;targ_att&#39;: (0.105773397, -0.727314387, -0.579818109, 0.351620152),</span>
 <span class="go">&#39;npnt_enab&#39;: True,</span>
 <span class="go">&#39;obs_start&#39;: &#39;2022:075:17:57:55.985&#39;,</span>
+<span class="go">&#39;obsid_sched&#39;: 26330,</span>
 <span class="go">&#39;prev_att&#39;: (0.113370245, -0.848288771, -0.329080853, 0.399072852),</span>
-<span class="go">&#39;starcat_idx&#39;: 211630,</span>
+<span class="go">&#39;starcat_date&#39;: &#39;2022:075:17:39:50.445&#39;,</span>
+<span class="go">&#39;starcat_idx&#39;: 174523,</span>
 <span class="go">&#39;source&#39;: &#39;MAR1422A&#39;}</span>
 </pre></div>
 </div>
@@ -534,8 +536,53 @@ persisted for 64 distinct observations in the vehicle loads:</p>
 <span class="go">64</span>
 </pre></div>
 </div>
+<section id="scheduled-obsid">
+<h3>Scheduled ObsID<a class="headerlink" href="#scheduled-obsid" title="Link to this heading">#</a></h3>
+<p>Kadi observations since the APR1420B loads also include the original <em>scheduled</em> ObsID
+in the <code class="docutils literal notranslate"><span class="pre">obsid_sched</span></code> field. These can differ in the case of an SCS-107 run where the
+ObsID commanding in the observing loads stops running. For observations selected over a
+date range you easily can map back to the original load product commanding using the
+<code class="docutils literal notranslate"><span class="pre">obsid_sched</span></code> value</p>
+<p>For example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">kadi.commands</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">kc</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">kadi.commands.states</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">kcs</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">astropy.table</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">apt</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">start</span> <span class="o">=</span> <span class="s2">&quot;2025:001&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">stop</span> <span class="o">=</span> <span class="s2">&quot;2025:002&quot;</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">obss</span> <span class="o">=</span> <span class="n">apt</span><span class="o">.</span><span class="n">Table</span><span class="p">(</span><span class="n">kc</span><span class="o">.</span><span class="n">get_observations</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">obss</span><span class="p">[</span><span class="s2">&quot;obs_start&quot;</span><span class="p">,</span> <span class="s2">&quot;obs_stop&quot;</span><span class="p">,</span> <span class="s2">&quot;obsid&quot;</span><span class="p">,</span> <span class="s2">&quot;obsid_sched&quot;</span><span class="p">,</span> <span class="s2">&quot;source&quot;</span><span class="p">]</span>
+<span class="go">&lt;Table length=6&gt;</span>
+<span class="go">    obs_start              obs_stop       obsid obsid_sched  source</span>
+<span class="go">        str21                 str21         int64    int64      str8</span>
+<span class="go">--------------------- --------------------- ----- ----------- --------</span>
+<span class="go">2024:366:21:58:02.061 2025:001:08:44:01.810 30550       28365 DEC2324B</span>
+<span class="go">2025:001:09:10:23.636 2025:001:12:48:34.040 30550       29835 DEC2324B</span>
+<span class="go">2025:001:12:48:34.040 2025:001:13:08:03.384 65518       29835  CMD_EVT</span>
+<span class="go">2025:001:13:44:13.046 2025:001:16:38:44.384 65518       25501 DEC2324B</span>
+<span class="go">2025:001:17:13:35.743 2025:001:20:54:35.492 65518       26975 DEC2324B</span>
+<span class="go">2025:001:21:21:03.527 2025:002:01:35:23.276 65518       30500 DEC2324B</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">states</span> <span class="o">=</span> <span class="n">kcs</span><span class="o">.</span><span class="n">get_states</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">,</span> <span class="n">state_keys</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;obsid&quot;</span><span class="p">,</span> <span class="s2">&quot;obsid_sched&quot;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">states</span><span class="p">[</span><span class="s2">&quot;datestart&quot;</span><span class="p">,</span> <span class="s2">&quot;datestop&quot;</span><span class="p">,</span> <span class="s2">&quot;obsid&quot;</span><span class="p">,</span> <span class="s2">&quot;obsid_sched&quot;</span><span class="p">]</span>
+<span class="go">&lt;Table length=6&gt;</span>
+<span class="go">    datestart              datestop       obsid obsid_sched</span>
+<span class="go">        str21                 str21         int64    int64</span>
+<span class="go">--------------------- --------------------- ----- -----------</span>
+<span class="go">2025:001:00:00:00.000 2025:001:08:47:01.810 30550       28365</span>
+<span class="go">2025:001:08:47:01.810 2025:001:12:48:34.040 30550       29835</span>
+<span class="go">2025:001:12:48:34.040 2025:001:13:11:03.384 65518       29835</span>
+<span class="go">2025:001:13:11:03.384 2025:001:16:38:58.384 65518       25501</span>
+<span class="go">2025:001:16:38:58.384 2025:001:20:57:35.492 65518       26975</span>
+<span class="go">2025:001:20:57:35.492 2025:002:00:00:00.000 65518       30500</span>
+</pre></div>
+</div>
+</section>
+<section id="performance">
+<h3>Performance<a class="headerlink" href="#performance" title="Link to this heading">#</a></h3>
 <p>Getting all the observations covering years or more is reasonably fast,
-typically seconds the first query and then &lt;&lt; 1 sec for subsequent queries.</p>
+typically a few seconds for the first query and then &lt;&lt; 1 sec for subsequent queries.</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="o">%</span><span class="n">time</span> <span class="n">obss</span> <span class="o">=</span> <span class="n">get_observations</span><span class="p">(</span><span class="n">start</span><span class="o">=</span><span class="s1">&#39;2020:001&#39;</span><span class="p">,</span> <span class="n">stop</span><span class="o">=</span><span class="s1">&#39;2022:001&#39;</span><span class="p">)</span>
 <span class="go">CPU times: user 28.4 ms, sys: 952 µs, total: 29.4 ms</span>
 <span class="go">Wall time: 28.7 ms</span>
@@ -559,6 +606,7 @@ this into an astropy <code class="docutils literal notranslate"><span class="pre
 <span class="go">26247  75624 2022:001:05:21:28.604 2021:365:18:39:30.234 ... 2021:365:19:06:05.650  0.553670113 .. 0.0635036584      170517 DEC3021A</span>
 </pre></div>
 </div>
+</section>
 <section id="under-the-hood">
 <h3>Under the hood<a class="headerlink" href="#under-the-hood" title="Link to this heading">#</a></h3>
 <p>The observation information is stored as <code class="docutils literal notranslate"><span class="pre">LOAD_EVENT</span></code> commands that can be viewed
@@ -575,15 +623,17 @@ directly:</p>
 <span class="go">2022:001:15:29:26.255 LOAD_EVENT    OBS   0    0 757438235.439 DEC3021A   -1    N/A</span>
 <span class="go">2022:001:17:33:53.255 LOAD_EVENT    OBS   0    0 757445702.439 DEC3021A   -1    N/A</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">cmds</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;params&#39;</span><span class="p">]</span>
-<span class="go">{&#39;obsid&#39;: 45814,</span>
-<span class="go">&#39;simpos&#39;: -99616,</span>
-<span class="go">&#39;obs_stop&#39;: &#39;2022:001:09:13:04.557&#39;,</span>
-<span class="go">&#39;manvr_start&#39;: &#39;2022:001:05:21:38.855&#39;,</span>
-<span class="go">&#39;targ_att&#39;: (0.530730117, 0.556620885, 0.610704042, 0.188518716),</span>
+<span class="go">{&#39;manvr_start&#39;: &#39;2022:001:05:21:38.855&#39;,</span>
 <span class="go">&#39;npnt_enab&#39;: True,</span>
 <span class="go">&#39;obs_start&#39;: &#39;2022:001:05:48:44.808&#39;,</span>
+<span class="go">&#39;obs_stop&#39;: &#39;2022:001:09:13:04.557&#39;,</span>
+<span class="go">&#39;obsid&#39;: 45814,</span>
+<span class="go">&#39;obsid_sched&#39;: 45814,</span>
 <span class="go">&#39;prev_att&#39;: (-0.0743435142, -0.559183412, -0.804323901, 0.186681591),</span>
-<span class="go">&#39;starcat_idx&#39;: 170518}</span>
+<span class="go">&#39;simpos&#39;: -99616,</span>
+<span class="go">&#39;starcat_date&#39;: &#39;2022:001:05:21:34.604&#39;,</span>
+<span class="go">&#39;starcat_idx&#39;: 174028,</span>
+<span class="go">&#39;targ_att&#39;: (0.530730117, 0.556620885, 0.610704042, 0.188518716)}</span>
 </pre></div>
 </div>
 <p>As with <a class="reference internal" href="../api/kadi/commands/commands_v2/get_cmds.html#kadi.commands.commands_v2.get_cmds" title="kadi.commands.commands_v2.get_cmds"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_cmds()</span></code></a> in the archive, you can provide a
@@ -1029,6 +1079,10 @@ classes which affect the keys.</p>
 <li><p><a class="reference internal" href="../api/kadi/commands/states/ObsidTransition.html#kadi.commands.states.ObsidTransition" title="kadi.commands.states.ObsidTransition"><code class="xref py py-class docutils literal notranslate"><span class="pre">ObsidTransition</span></code></a></p></li>
 </ul>
 </dd>
+<dt><code class="docutils literal notranslate"><span class="pre">obsid_sched</span></code></dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="../api/kadi/commands/states/ObsidSchedTransition.html#kadi.commands.states.ObsidSchedTransition" title="kadi.commands.states.ObsidSchedTransition"><code class="xref py py-class docutils literal notranslate"><span class="pre">ObsidSchedTransition</span></code></a></p></li>
+</ul>
+</dd>
 <dt><code class="docutils literal notranslate"><span class="pre">orbit_point</span></code></dt><dd><ul class="simple">
 <li><p><a class="reference internal" href="../api/kadi/commands/states/OrbitPointTransition.html#kadi.commands.states.OrbitPointTransition" title="kadi.commands.states.OrbitPointTransition"><code class="xref py py-class docutils literal notranslate"><span class="pre">OrbitPointTransition</span></code></a></p></li>
 </ul>
@@ -1258,7 +1312,7 @@ scenario you have chosen.</p>
 Each function must take a single argument, an Command Events Table object, and return a
 boolean mask indicating whether each row (command event) in the table should be included
 when generating the final commands.  The functions are applied in order, and the command
-event is included if any of the functions return <code class="docutils literal notranslate"><span class="pre">True</span></code>.</p>
+event is excluded if any of the functions return <code class="docutils literal notranslate"><span class="pre">False</span></code> for that event.</p>
 <section id="filtering-within-last-30-days">
 <h3>Filtering within last 30 days<a class="headerlink" href="#filtering-within-last-30-days" title="Link to this heading">#</a></h3>
 <p>If the events you want to filter occurred within the last 30 days, you can use any of
@@ -1363,6 +1417,8 @@ details, please see:</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#initial-setup">Initial setup</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#getting-commands">Getting commands</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#getting-observations">Getting observations</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#scheduled-obsid">Scheduled ObsID</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#performance">Performance</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#under-the-hood">Under the hood</a></li>
 </ul>
 </li>

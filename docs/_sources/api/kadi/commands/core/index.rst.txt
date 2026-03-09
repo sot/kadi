@@ -24,6 +24,7 @@ Functions
 .. toctree::
    :hidden:
 
+   /api/kadi/commands/core/kadi_cmds_version
    /api/kadi/commands/core/read_backstop
    /api/kadi/commands/core/add_observations_to_cmds
    /api/kadi/commands/core/get_cmds_from_backstop
@@ -33,6 +34,7 @@ Functions
 
 .. autoapisummary::
 
+   kadi.commands.core.kadi_cmds_version
    kadi.commands.core.read_backstop
    kadi.commands.core.add_observations_to_cmds
    kadi.commands.core.get_cmds_from_backstop

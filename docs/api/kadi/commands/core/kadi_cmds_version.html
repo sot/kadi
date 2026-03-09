@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>kadi.scripts.update_cmds_v2.get_opt &#8212; kadi 7.18.1 documentation</title>
+    <title>kadi.commands.core.kadi_cmds_version &#8212; kadi 7.19.0 documentation</title>
   
   
   
@@ -41,20 +41,20 @@
   <link rel="preload" as="script" href="../../../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../../../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../../../../_static/documentation_options.js?v=74791c54"></script>
+    <script src="../../../../_static/documentation_options.js?v=a1d4d214"></script>
     <script src="../../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../../../../_static/copybutton.js?v=30646c52"></script>
-    <script>DOCUMENTATION_OPTIONS.pagename = 'api/kadi/scripts/update_cmds_v2/get_opt';</script>
-    <link rel="canonical" href="https://sot.github.io/kadi/api/kadi/scripts/update_cmds_v2/get_opt.html" />
+    <script>DOCUMENTATION_OPTIONS.pagename = 'api/kadi/commands/core/kadi_cmds_version';</script>
+    <link rel="canonical" href="https://sot.github.io/kadi/api/kadi/commands/core/kadi_cmds_version.html" />
     <link rel="index" title="Index" href="../../../../genindex.html" />
     <link rel="search" title="Search" href="../../../../search.html" />
-    <link rel="next" title="kadi.scripts.update_cmds_v2.main" href="main.html" />
-    <link rel="prev" title="kadi.scripts.update_cmds_v2" href="index.html" />
+    <link rel="next" title="kadi.commands.core.read_backstop" href="read_backstop.html" />
+    <link rel="prev" title="kadi.commands.core.CommandTable" href="CommandTable.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="7.18.1" />
+  <meta name="docsearch:version" content="7.19.0" />
   </head>
   
   
@@ -107,7 +107,7 @@
     <span style="color: rgb(186, 70, 21); font-size: x-large;">kadi</span>
 </a>
 &nbsp;
-<span style="font-size: x-large;">7.18.1</span></div>
+<span style="font-size: x-large;">7.19.0</span></div>
     
   </div>
   
@@ -328,12 +328,12 @@
     <li class="breadcrumb-item"><a href="../../index.html" class="nav-link">kadi</a></li>
     
     
-    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">kadi.scripts</a></li>
+    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">kadi.commands</a></li>
     
     
-    <li class="breadcrumb-item"><a href="index.html" class="nav-link">kadi.scripts.update_cmds_v2</a></li>
+    <li class="breadcrumb-item"><a href="index.html" class="nav-link">kadi.commands.core</a></li>
     
-    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">kadi.scripts.update_cmds_v2.get_opt</span></li>
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">kadi.commands.core.kadi_cmds_version</span></li>
   </ul>
 </nav>
 </div>
@@ -350,12 +350,25 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="kadi-scripts-update-cmds-v2-get-opt">
-<h1>kadi.scripts.update_cmds_v2.get_opt<a class="headerlink" href="#kadi-scripts-update-cmds-v2-get-opt" title="Link to this heading">#</a></h1>
+  <section id="kadi-commands-core-kadi-cmds-version">
+<h1>kadi.commands.core.kadi_cmds_version<a class="headerlink" href="#kadi-commands-core-kadi-cmds-version" title="Link to this heading">#</a></h1>
 <dl class="py function">
-<dt class="sig sig-object py" id="kadi.scripts.update_cmds_v2.get_opt">
-<span class="sig-prename descclassname"><span class="pre">kadi.scripts.update_cmds_v2.</span></span><span class="sig-name descname"><span class="pre">get_opt</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">args</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kadi.scripts.update_cmds_v2.get_opt" title="Link to this definition">#</a></dt>
-<dd><p>Get options for command line interface to update.</p>
+<dt class="sig sig-object py" id="kadi.commands.core.kadi_cmds_version">
+<span class="sig-prename descclassname"><span class="pre">kadi.commands.core.</span></span><span class="sig-name descname"><span class="pre">kadi_cmds_version</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kadi.commands.core.kadi_cmds_version" title="Link to this definition">#</a></dt>
+<dd><p>Determine the kadi commands version by checking for cmds&lt;version&gt;.h5,pkl files.</p>
+<p>If the environment variable KADI_CMDS_VERSION is set then that version number is
+returned instead.</p>
+<p>The version number can be an integer. Return the highest version number satisfying:
+- cmds&lt;version&gt;.h5 and cmds&lt;version&gt;.pkl files exist in the data directory.</p>
+<p>In all cases the version must be less than or equal to KADI_CMDS_VERSION_MAX.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt>int</dt><dd><p>Highest allowed kadi commands version number found.</p>
+</dd>
+</dl>
+</dd>
+</dl>
 </dd></dl>
 
 </section>
@@ -371,20 +384,20 @@
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="index.html"
+       href="CommandTable.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">kadi.scripts.update_cmds_v2</p>
+        <p class="prev-next-title">kadi.commands.core.CommandTable</p>
       </div>
     </a>
     <a class="right-next"
-       href="main.html"
+       href="read_backstop.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">kadi.scripts.update_cmds_v2.main</p>
+        <p class="prev-next-title">kadi.commands.core.read_backstop</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -407,7 +420,7 @@
   </div>
   <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#kadi.scripts.update_cmds_v2.get_opt"><code class="docutils literal notranslate"><span class="pre">kadi.scripts.update_cmds_v2.get_opt()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#kadi.commands.core.kadi_cmds_version"><code class="docutils literal notranslate"><span class="pre">kadi.commands.core.kadi_cmds_version()</span></code></a></li>
 </ul>
   </nav></div>
 

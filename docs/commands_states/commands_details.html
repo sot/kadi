@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Commands archive details &#8212; kadi 7.18.1 documentation</title>
+    <title>Commands archive details &#8212; kadi 7.19.0 documentation</title>
   
   
   
@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../_static/documentation_options.js?v=74791c54"></script>
+    <script src="../_static/documentation_options.js?v=a1d4d214"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -54,7 +54,7 @@
     <link rel="prev" title="Commands and states" href="index.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="7.18.1" />
+  <meta name="docsearch:version" content="7.19.0" />
   </head>
   
   
@@ -107,7 +107,7 @@
     <span style="color: rgb(186, 70, 21); font-size: x-large;">kadi</span>
 </a>
 &nbsp;
-<span style="font-size: x-large;">7.18.1</span></div>
+<span style="font-size: x-large;">7.19.0</span></div>
     
   </div>
   
@@ -385,7 +385,7 @@ update the local loads, the special <code class="docutils literal notranslate"><
 <p>The impact of selecting <code class="docutils literal notranslate"><span class="pre">scenario=&quot;flight&quot;</span></code> in a commands query is that it
 disables access to network resources (Google sheets and OCCweb). This means that
 results will depend strictly on the production commands archive files
-<code class="docutils literal notranslate"><span class="pre">${SKA}/data/kadi/cmds2.h5</span></code> and <code class="docutils literal notranslate"><span class="pre">${SKA}/data/kadi/cmds2.pkl</span></code>. On the HEAD
+<code class="docutils literal notranslate"><span class="pre">${SKA}/data/kadi/cmds3.h5</span></code> and <code class="docutils literal notranslate"><span class="pre">${SKA}/data/kadi/cmds3.pkl</span></code>. On the HEAD
 network these files are brought up to date each 10 minutes by a cron jobs, so
 using <code class="docutils literal notranslate"><span class="pre">&quot;flight&quot;</span></code> in this case is a reliable way to eliminate dependence on the
 kadi external web resources.</p>
@@ -577,8 +577,13 @@ forgetting to revert it later.</p>
 the code believe that <code class="docutils literal notranslate"><span class="pre">CXOTIME_NOW</span></code> is the current time. See the
 <a class="reference internal" href="#mocking-the-current-time">Mocking the current time</a> section for more details.</p>
 </dd>
-<dt><code class="docutils literal notranslate"><span class="pre">KADI</span></code></dt><dd><p>Override the default location of kadi flight data files <code class="docutils literal notranslate"><span class="pre">cmds2.h5</span></code> and
-<code class="docutils literal notranslate"><span class="pre">cmds2.pkl</span></code>.</p>
+<dt><code class="docutils literal notranslate"><span class="pre">KADI</span></code></dt><dd><p>Override the default location of kadi flight data files <code class="docutils literal notranslate"><span class="pre">cmds3.h5</span></code> and
+<code class="docutils literal notranslate"><span class="pre">cmds3.pkl</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">KADI_CMDS_VERSION</span></code></dt><dd><p>Set the kadi commands archive version to use. By default, kadi uses the highest
+version found in the data directory. The version is the integer value in the kadi
+<code class="docutils literal notranslate"><span class="pre">cmds&lt;N&gt;.h5</span></code> and <code class="docutils literal notranslate"><span class="pre">cmds&lt;N&gt;.pkl</span></code> files. This environment variable can be set to an
+integer value (e.g. <code class="docutils literal notranslate"><span class="pre">2</span></code> or <code class="docutils literal notranslate"><span class="pre">3</span></code>) to force kadi to use a specific version.</p>
 </dd>
 <dt><code class="docutils literal notranslate"><span class="pre">KADI_SCENARIO</span></code></dt><dd><p>Set the default scenario. This can be used to set the scenario in an
 application that is not aware of kadi scenarios, effectively a back door to
@@ -620,9 +625,9 @@ files listed below. These files are kept up to date each 10 minutes on the
 HEAD server and must synced at least once each 3 weeks to GRETA and other
 computers using either <code class="docutils literal notranslate"><span class="pre">ska_sync</span></code> or by other means.</p>
 <dl class="simple">
-<dt><code class="docutils literal notranslate"><span class="pre">${SKA}/data/kadi/cmds2.h5</span></code></dt><dd><p>HDF5 table of commands</p>
+<dt><code class="docutils literal notranslate"><span class="pre">${SKA}/data/kadi/cmds3.h5</span></code></dt><dd><p>HDF5 table of commands</p>
 </dd>
-<dt><code class="docutils literal notranslate"><span class="pre">${SKA}/data/kadi/cmds2.pkl</span></code></dt><dd><p>Python pickle file containing a dict of command parameters. Since the command
+<dt><code class="docutils literal notranslate"><span class="pre">${SKA}/data/kadi/cmds3.pkl</span></code></dt><dd><p>Python pickle file containing a dict of command parameters. Since the command
 parameters are often the same this significantly reduces the same of the
 archive data files.</p>
 </dd>

@@ -71,3 +71,6 @@ kadi.config.Conf
 
    .. py:attribute:: maneuver_rasl_step_time
 
+
+   .. py:attribute:: matching_block_size
+

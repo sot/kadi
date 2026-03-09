@@ -1,0 +1,46 @@
+kadi.commands.states.ObsidSchedTransition
+=========================================
+
+.. py:class:: kadi.commands.states.ObsidSchedTransition
+
+   Bases: :py:obj:`ParamTransition`
+
+
+   
+   Scheduled Obsid update
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:attribute:: command_attributes
+
+
+   .. py:attribute:: state_keys
+      :value: ['obsid_sched']
+
+
+
+   .. py:attribute:: transition_key
+      :value: 'obsid_sched'
+
+
+
+   .. py:attribute:: cmd_param_key
+      :value: 'id'
+
+

@@ -48,6 +48,7 @@ Functions
    /api/kadi/commands/filter_cmd_events_by_event
    /api/kadi/commands/filter_scs107_events
    /api/kadi/commands/set_time_now
+   /api/kadi/commands/kadi_cmds_version
    /api/kadi/commands/get_starcats
    /api/kadi/commands/get_observations
    /api/kadi/commands/get_starcats_as_table
@@ -62,6 +63,7 @@ Functions
    kadi.commands.filter_cmd_events_by_event
    kadi.commands.filter_scs107_events
    kadi.commands.set_time_now
+   kadi.commands.kadi_cmds_version
    kadi.commands.get_starcats
    kadi.commands.get_observations
    kadi.commands.get_starcats_as_table

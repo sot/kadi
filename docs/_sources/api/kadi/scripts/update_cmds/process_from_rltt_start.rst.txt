@@ -1,0 +1,35 @@
+kadi.scripts.update_cmds.process_from_rltt_start
+================================================
+
+.. py:function:: kadi.scripts.update_cmds.process_from_rltt_start(opt)
+
+   
+   Process commands archive from the start of the RLTT era in chunks.
+
+   This function updates the commands archive from the RLTT era start date
+   (APR1420B) to the specified stop date (or Now+21 days) by breaking the
+   time range into manageable chunks to avoid memory issues.
+
+   :Parameters:
+
+       **opt** : argparse.Namespace
+           Command line options containing:
+           - stop: Optional stop date for processing
+           - log_level: Logging level
+           - data_root: Root directory for data
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
