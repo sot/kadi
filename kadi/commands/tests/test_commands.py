@@ -1186,12 +1186,14 @@ def test_get_starcat_only_agasc1p8():
             )
         assert np.count_nonzero(starcats[0]["id"] == -999) == 0
         assert np.count_nonzero(starcats[0]["mag"] == -999) == 0
-        assert np.count_nonzero(starcats[1]["id"] == -999) == 3
-        assert np.count_nonzero(starcats[1]["mag"] == -999) == 3
+        assert np.count_nonzero(starcats[1]["id"] == -999) == 1
+        assert np.count_nonzero(starcats[1]["mag"] == -999) == 1
 
 
 def test_get_starcats_with_cmds():
-    start, stop = "2021:365:19:00:00", "2022:002:01:25:00"
+    """Test getting star catalogs with commands"""
+    # The start is the AOSTRCAT date for the first of 7 observations.
+    start, stop = "2021:365:18:39:25.983", "2022:002:01:25:00"
     cmds = commands.get_cmds(start, stop, scenario="flight")
     starcats0 = get_starcats(start, stop, scenario="flight")
     starcats1 = get_starcats(cmds=cmds)

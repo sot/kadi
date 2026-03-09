@@ -519,6 +519,7 @@ def get_starcats(
         obss_iter = tqdm(obss) if show_progress else obss
         for obs in obss_iter:
             if (idx := obs.get("starcat_idx")) is None:
+                # Observation does not have a star catalog
                 continue
 
             db_key = "{}-{}-{:05d}".format(
@@ -530,12 +531,15 @@ def get_starcats(
                 starcat_ids = None
                 starcat_mags = None
 
-            # From the commands archive, building ACA catalog dict from backstop
-            # params
             if cmds is None:
+                # Get starcat params from global params dict starcat_idx from obs
                 params = rev_pars_dict[idx]
             else:
+                # Get starcat params from the command. `obss_iter` may include
+                # observations outside the range of `cmds` so just ignore those.
                 cmds_starcat = cmds[cmds["date"] == obs["starcat_date"]]
+                if len(cmds_starcat) == 0:
+                    continue
                 cmds_starcat.fetch_params()
                 params = cmds_starcat["params"][0]
 
