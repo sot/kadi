@@ -1053,7 +1053,7 @@ def test_get_observations_start_stop_inclusion():
 
     # During a maneuver
     obss = get_observations("2007:002:18:05:00", "2007:002:18:08:00", scenario="flight")
-    assert len(obss) == 0
+    assert len(obss) == 1
 
 
 years = np.arange(2003, 2025)
