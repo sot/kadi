@@ -723,7 +723,7 @@ def get_observations(
     obss = [
         obs
         for obs in obss
-        if obs["obs_start"] <= datestop and obs["obs_stop"] >= datestart
+        if obs["manvr_start"] <= datestop and obs["obs_stop"] >= datestart
     ]
 
     return obss

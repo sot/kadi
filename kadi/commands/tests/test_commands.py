@@ -1059,12 +1059,31 @@ def test_get_observations_start_stop_inclusion():
     obss = get_observations("2007:002:05:00:00", "2007:002:20:00:01", scenario="flight")
     assert len(obss) == 2
 
+    obs_8009 = obss[1]
+
     # One second in the middle of obsid 8008
     obss = get_observations("2007:002:05:00:00", "2007:002:05:00:01", scenario="flight")
     assert len(obss) == 1
 
     # During a maneuver
     obss = get_observations("2007:002:18:05:00", "2007:002:18:08:00", scenario="flight")
+    assert len(obss) == 1
+
+    # Exactly at obs 8009 stop: filtering is inclusive manvr_start <= date <= obs_stop
+    date = obs_8009["manvr_start"]
+    obss = get_observations(date, date, scenario="flight")
+    assert len(obss) == 1
+    assert obss[0]["obsid"] == 8009
+
+    date = obs_8009["obs_stop"]
+    obss = get_observations(date, date, scenario="flight")
+    assert len(obss) == 1
+    assert obss[0]["obsid"] == 8009
+
+    # In the no-observation zone between 8008 and 8009, in the ~10 sec after transition
+    # to NMM (previous obs_stop) but before maneuver starts (next manvr_start).
+    date = CxoTime(obs_8009["manvr_start"]) - 1 * u.ms
+    obss = get_observations(date, date, scenario="flight")
     assert len(obss) == 0
 
 
