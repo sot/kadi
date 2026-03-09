@@ -1114,8 +1114,8 @@ def test_set_starcat_ids_fail(monkeypatch):
     monkeypatch.setenv("AGASC_HDF5_FILE", "proseco_agasc_1p8.h5")
     # Get AOSTRCAT cmd for obsid 28501
     obsid = 28501
-    obs = kc.get_observations(obsid=obsid)[0]
-    sc = kc.get_starcats(obsid=obsid)[0]
+    obs = kc.get_observations(obsid=obsid, scenario="flight")[0]
+    sc = kc.get_starcats(obsid=obsid, scenario="flight")[0]
 
     sc.get_id(2)["zang"] = 0.0
     sc.get_id(239878784)["zang"] = 0.0
