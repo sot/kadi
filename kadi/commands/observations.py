@@ -381,17 +381,19 @@ def get_starcats(
     stop=None,
     *,
     obsid=None,
+    obsid_sched=None,
     scenario=None,
     cmds=None,
     as_dict=False,
     starcat_date=None,
     show_progress=False,
     event_filter=None,
+    **obs_filter,
 ):
     """Get a list of star catalogs corresponding to input parameters.
 
-    The ``start``, ``stop`` and ``obsid`` parameters serve as matching filters
-    on the list of star catalogs that is returned.
+    The ``start``, ``stop``, ``obsid``, ``obsid_sched``, and ``starcat_date`` parameters
+    serve as matching filters on the list of star catalogs that is returned.
 
     By default the result is a list of ``ACATable`` objects similar to the
     output of ``proseco.get_aca_catalog``.
@@ -450,7 +452,11 @@ def get_starcats(
     stop : CxoTime-like, None
         Stop time (default=end of commands)
     obsid : int, None
-        ObsID
+        Return starcats matching requested ObsID
+    obsid_sched : int, None
+        Return starcats matching requested scheduled ObsID from the as-planned
+        loads. This can differ from ``obsid`` after an SCS-107. This is only available
+        for observations after the APR1420B loads.
     scenario : str, None
         Scenario
     cmds : CommandTable, None
@@ -465,6 +471,9 @@ def get_starcats(
         Callable function or list of callable functions that takes an Event Table as
         input and returns a boolean mask with same length as Table. If None, no
         filtering is done.
+    **obs_filter : dict
+        Additional filters on the observation parameters. The keys should be
+        parameter names, for instance ``source`` or ``simpos``.
 
     Returns
     -------
@@ -483,12 +492,14 @@ def get_starcats(
 
     obss = get_observations(
         obsid=obsid,
+        obsid_sched=obsid_sched,
         start=start,
         stop=stop,
         scenario=scenario,
         cmds=cmds,
         starcat_date=starcat_date,
         event_filter=event_filter,
+        **obs_filter,
     )
     starcats = []
     rev_pars_dict = REV_PARS_DICT if cmds is None else cmds.rev_pars_dict()
@@ -573,10 +584,12 @@ def get_observations(
     stop=None,
     *,
     obsid=None,
+    obsid_sched=None,
     scenario=None,
     cmds=None,
     starcat_date=None,
     event_filter=None,
+    **obs_filter,
 ):
     """Get observations corresponding to input parameters.
 
@@ -634,7 +647,11 @@ def get_observations(
     stop : CxoTime-like, None
         Stop time (default=end of commands)
     obsid : int, None
-        ObsID
+        Return observations matching requested ObsID
+    obsid_sched : int, None
+        Return observations matching requested scheduled ObsID from the as-planned
+        loads. This can differ from ``obsid`` after an SCS-107. This is only available
+        for observations after the APR1420B loads.
     scenario : str, None
         Scenario
     cmds : CommandTable, None
@@ -645,6 +662,9 @@ def get_observations(
         Callable function or list of callable functions that takes an Event Table as
         input and returns a boolean mask with same length as Table. If None, no
         filtering is done.
+    **obs_filter : dict
+        Additional filters on the observation parameters. The keys should be
+        parameter names, for instance ``source`` or ``simpos``.
 
     Returns
     -------
@@ -688,15 +708,20 @@ def get_observations(
     i0, i1 = cmds_obs.find_date([(start - 7 * u.day).date, (stop + 7 * u.day).date])
     cmds_obs = cmds_obs[i0:i1]
 
+    # Filter cmd_obs, starting with three explicit keywords and then including any
+    # additional filters passed in obs_filter.
     if starcat_date is not None:
-        cmds_obs = cmds_obs[cmds_obs["starcat_date"] == starcat_date]
-        if len(cmds_obs) == 0:
-            raise ValueError(f"No matching observations for {starcat_date=}")
-
+        obs_filter["starcat_date"] = starcat_date
     if obsid is not None:
-        cmds_obs = cmds_obs[cmds_obs["obsid"] == obsid]
-        if len(cmds_obs) == 0:
-            raise ValueError(f"No matching observations for {obsid=}")
+        obs_filter["obsid"] = obsid
+    if obsid_sched is not None:
+        obs_filter["obsid_sched"] = obsid_sched
+    for key, val in obs_filter.items():
+        cmds_obs = cmds_obs[cmds_obs[key] == val]
+
+    if len(cmds_obs) == 0:
+        filters_as_str = ", ".join(f"{key}={val}" for key, val in obs_filter.items())
+        raise ValueError(f"No matching observations for {filters_as_str}")
 
     obss = [cmd["params"].copy() for cmd in cmds_obs]
     for obs, cmd_obs in zip(obss, cmds_obs):
