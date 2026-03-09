@@ -18,6 +18,7 @@ from Quaternion import Quat
 from testr.test_helper import has_internet
 
 import kadi
+import kadi.commands as kc
 import kadi.commands.states as kcs
 from kadi import commands
 from kadi.commands import (
@@ -1068,6 +1069,39 @@ def test_get_observations_start_stop_inclusion():
     assert len(obss) == 0
 
 
+def test_set_starcat_ids_fail(monkeypatch):
+    """Munge commanded position of a fid and star so they are not identified."""
+    monkeypatch.setenv("AGASC_SUPPLEMENT_ENABLED", "False")
+    monkeypatch.setenv("AGASC_HDF5_FILE", "proseco_agasc_1p8.h5")
+    # Get AOSTRCAT cmd for obsid 28501
+    obsid = 28501
+    obs = kc.get_observations(obsid=obsid, scenario="flight")[0]
+    sc = kc.get_starcats(obsid=obsid, scenario="flight")[0]
+
+    sc.get_id(2)["zang"] = 0.0
+    sc.get_id(239878784)["zang"] = 0.0
+    cmds = kc.get_cmds("2023:346:01:00:00", obs["obs_stop"])
+    cmds_bad = parse_cm.backstop.replace_starcat_backstop(cmds, {obsid: sc})
+
+    sc_bad = kc.get_starcats(cmds=cmds_bad)[0]
+    exp = [
+        "slot idx     id    type  sz   mag   maxmag   yang     zang   dim res halfw",
+        "---- --- --------- ---- --- ------- ------ -------- -------- --- --- -----",
+        "   0   1      -999  FID 8x8 -999.00   8.50  -773.14     0.00   1   1    25",
+        "   1   2         4  FID 8x8    7.00   8.50  2140.38   166.73   1   1    25",
+        "   2   3         5  FID 8x8    7.00   8.50 -1826.24   160.26   1   1    25",
+        "   3   4      -999  BOT 8x8 -999.00   7.69 -1599.55     0.00  28   1   160",
+        "   4   5 239732072  BOT 8x8    6.31   7.81 -1863.14 -2051.75  28   1   160",
+        "   5   6 167512680  BOT 8x8    8.48   9.98  1771.34   620.06  28   1   160",
+        "   6   7 239734216  BOT 8x8    8.86  10.36  -588.55  1245.06  20   1   120",
+        "   7   8 239736384  BOT 8x8    8.95  10.45 -2299.70    57.83  28   1   160",
+        "   0   9 239733224  ACQ 8x8    8.98  10.48   580.73   572.45  16   1   100",
+        "   1  10 167513136  ACQ 8x8    9.63  11.13  2152.55  -445.40  28   1   160",
+        "   2  11 239736664  ACQ 8x8    9.42  10.92  -856.79   583.51  28   1   160",
+    ]
+    assert sc_bad.pformat() == exp
+
+
 years = np.arange(2003, 2025)
 
 
@@ -1113,12 +1147,14 @@ def test_get_starcat_only_agasc1p8():
             )
         assert np.count_nonzero(starcats[0]["id"] == -999) == 0
         assert np.count_nonzero(starcats[0]["mag"] == -999) == 0
-        assert np.count_nonzero(starcats[1]["id"] == -999) == 3
-        assert np.count_nonzero(starcats[1]["mag"] == -999) == 3
+        assert np.count_nonzero(starcats[1]["id"] == -999) == 1
+        assert np.count_nonzero(starcats[1]["mag"] == -999) == 1
 
 
 def test_get_starcats_with_cmds():
-    start, stop = "2021:365:19:00:00", "2022:002:01:25:00"
+    """Test getting star catalogs with commands"""
+    # The start is the AOSTRCAT date for the first of 7 observations.
+    start, stop = "2021:365:18:39:25.983", "2022:002:01:25:00"
     cmds = commands.get_cmds(start, stop, scenario="flight")
     starcats0 = get_starcats(start, stop, scenario="flight")
     starcats1 = get_starcats(cmds=cmds)
