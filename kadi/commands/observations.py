@@ -748,12 +748,14 @@ def get_observations(
         return []
 
     # Get possible filter keys from last available obs and check for invalid keys.
-    avail_keys = list(cmds_obs["params"][-1]) + cmds_obs.colnames
-    bad_keys = [key for key in obs_filter if key not in avail_keys]
-    if bad_keys:
-        raise KeyError(
-            f"invalid filter key(s): {bad_keys}. Available keys are: {sorted(avail_keys)}"
-        )
+    if obs_filter:
+        cmds_obs.fetch_params()
+        avail_keys = list(cmds_obs["params"][-1]) + cmds_obs.colnames
+        bad_keys = [key for key in obs_filter if key not in avail_keys]
+        if bad_keys:
+            raise KeyError(
+                f"invalid filter key(s): {bad_keys}. Available keys are: {sorted(avail_keys)}"
+            )
 
     # Filter cmd_obs, starting with three explicit keywords and then including any
     # additional filters passed in obs_filter.
