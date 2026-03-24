@@ -313,11 +313,13 @@ def get_starcats_as_table(
     stop=None,
     *,
     obsid=None,
+    obsid_sched=None,
     unique=False,
     scenario=None,
     cmds=None,
     starcat_date=None,
     event_filter=None,
+    **obs_filter,
 ):
     """Get a single table of star catalog entries corresponding to input parameters.
 
@@ -353,6 +355,10 @@ def get_starcats_as_table(
         Stop time (default=end of commands)
     obsid : int, None
         ObsID
+    obsid_sched : int, None
+        Return observations matching requested scheduled ObsID from the as-planned
+        loads. This can differ from ``obsid`` after an SCS-107. This is only available
+        for observations after the APR1420B loads.
     unique : bool
         If True return remove duplicate entries
     scenario : str, None
@@ -365,6 +371,9 @@ def get_starcats_as_table(
         Callable function or list of callable functions that takes an Event Table as
         input and returns a boolean mask with same length as Table. If None, no
         filtering is done.
+    **obs_filter : dict
+        Additional filters on the observation parameters. The keys should be
+        parameter names, for instance ``source`` or ``simpos``.
 
     Returns
     -------
@@ -373,6 +382,7 @@ def get_starcats_as_table(
     """
     starcats = get_starcats(
         obsid=obsid,
+        obsid_sched=obsid_sched,
         start=start,
         stop=stop,
         scenario=scenario,
@@ -380,6 +390,7 @@ def get_starcats_as_table(
         starcat_date=starcat_date,
         as_dict=True,
         event_filter=event_filter,
+        **obs_filter,
     )
     out = defaultdict(list)
     for starcat in starcats:
@@ -416,8 +427,14 @@ def get_starcats(
 ):
     """Get a list of star catalogs corresponding to input parameters.
 
-    The ``start``, ``stop``, ``obsid``, ``obsid_sched``, and ``starcat_date`` parameters
-    serve as matching filters on the list of star catalogs that is returned.
+    The ``start``, ``stop``, ``starcat_date``, ``obsid``, and ``obsid_sched`` parameters
+    serve as matching filters on the list of observations that is returned. In addition,
+    you can filter on any of the observation parameters, for instance ``source`` or
+    ``simpos``, by passing those as keyword arguments.
+
+    ``obsid_sched`` is the original scheduled ObsID for an observation. This can differ
+    from ``obsid`` after an SCS-107 when the observing loads stop. This is only
+    available for observations after the APR1420B loads.
 
     By default the result is a list of ``ACATable`` objects similar to the
     output of ``proseco.get_aca_catalog``.
@@ -607,15 +624,20 @@ def get_observations(
 ):
     """Get observations corresponding to input parameters.
 
-    The ``start``, ``stop``, ``starcat_date`` and ``obsid`` parameters serve as
-    matching filters on the list of observations that is returned.
+    The ``start``, ``stop``, ``starcat_date``, ``obsid``, and ``obsid_sched`` parameters
+    serve as matching filters on the list of observations that is returned. In addition,
+    you can filter on any of the observation parameters, for instance ``source`` or
+    ``simpos``, by passing those as keyword arguments.
 
-    Over the mission there are thousands of instances of multiple observations
-    with the same obsid, so this function always returns a list of observation
-    parameters even when ``obsid`` is specified. This most frequently occurs
-    after any unexpected stoppage of the observng loads (SCS-107) which
-    therefore cancels subsequent obsid commanding. In many cases you can just
-    use the first element.
+    ``obsid_sched`` is the original scheduled ObsID for an observation. This can differ
+    from ``obsid`` after an SCS-107 when the observing loads stop. This is only
+    available for observations after the APR1420B loads.
+
+    Over the mission there are thousands of instances of multiple observations with the
+    same obsid, so this function always returns a list of observation parameters even
+    when ``obsid`` is specified. This most frequently occurs after any unexpected
+    stoppage of the observing loads (SCS-107) which therefore cancels subsequent obsid
+    commanding. In many cases you can just use the first element.
 
     Examples::
 
@@ -636,9 +658,8 @@ def get_observations(
 
         >>> obs_all = get_observations()  # All observations in commands archive
 
-        # Might be convenient to handle this as a Table
-        >>> from astropy.table import Table
-        >>> obs_all = Table(obs_all)
+        # Might be convenient to handle this as a Table >>> from astropy.table import
+        Table >>> obs_all = Table(obs_all)
 
         >>> from kadi.commands import get_observations
         >>> get_observations(starcat_date='2022:001:17:00:58.521')
@@ -677,8 +698,8 @@ def get_observations(
         input and returns a boolean mask with same length as Table. If None, no
         filtering is done.
     **obs_filter : dict
-        Additional filters on the observation parameters. The keys should be
-        parameter names, for instance ``source`` or ``simpos``.
+        Additional filters on the observation parameters. The keys should be parameter
+        names, for instance ``source`` or ``simpos``.
 
     Returns
     -------
