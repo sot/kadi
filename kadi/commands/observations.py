@@ -743,6 +743,18 @@ def get_observations(
     i0, i1 = cmds_obs.find_date([(start - 7 * u.day).date, (stop + 7 * u.day).date])
     cmds_obs = cmds_obs[i0:i1]
 
+    # This can only happen for a date range before/after available kadi commands.
+    if len(cmds_obs) == 0:
+        return []
+
+    # Get possible filter keys from last available obs and check for invalid keys.
+    avail_keys = cmds_obs["params"][-1]
+    bad_keys = [key for key in obs_filter if key not in avail_keys]
+    if bad_keys:
+        raise KeyError(
+            f"invalid filter key(s): {bad_keys}. Available keys are: {sorted(avail_keys)}"
+        )
+
     # Filter cmd_obs, starting with three explicit keywords and then including any
     # additional filters passed in obs_filter.
     if starcat_date is not None:

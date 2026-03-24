@@ -1029,6 +1029,11 @@ def test_get_observations_by_obsid_multi():
     ]
 
 
+def test_get_observations_bad_filter_key():
+    with pytest.raises(KeyError, match="invalid filter key"):
+        get_observations(bad_key="value", scenario="flight")
+
+
 def test_get_observations_and_starcats_filtering():
     # Observation impacted by SCS-107 around 2025:001 and rescheduled in MAR1025B
     obss = Table(get_observations(obsid_sched=28365, scenario="flight"))
