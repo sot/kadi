@@ -744,7 +744,8 @@ def get_observations(
     i0, i1 = cmds_obs.find_date([(start - 7 * u.day).date, (stop + 7 * u.day).date])
     cmds_obs = cmds_obs[i0:i1]
 
-    cmds_obs = merge_cmds_obs_with_cmd_evt_obsid(cmds_obs)
+    if conf.merge_manual_obsid_change_obs_splits:
+        cmds_obs = merge_manual_obsid_change_obs_splits(cmds_obs)
 
     # This can only happen for a date range before/after available kadi commands.
     if len(cmds_obs) == 0:
@@ -792,7 +793,7 @@ def get_observations(
     return obss
 
 
-def merge_cmds_obs_with_cmd_evt_obsid(cmds_obs: Table) -> None:
+def merge_manual_obsid_change_obs_splits(cmds_obs: Table) -> None:
     """Merge each OBS command from a CMD_EVT into the prior normal OBS.
 
     This is an in-place update of ``cmds_obs``.
@@ -813,6 +814,7 @@ def merge_cmds_obs_with_cmd_evt_obsid(cmds_obs: Table) -> None:
     if not np.any(nok):
         return cmds_obs
 
+    cmds_obs = cmds_obs.copy()
     idxs_cmd_evt = np.where(nok)[0]
     idxs_cmd_evt_remove = []
     for idx_cmd_evt in idxs_cmd_evt:
@@ -828,16 +830,18 @@ def merge_cmds_obs_with_cmd_evt_obsid(cmds_obs: Table) -> None:
         if any(
             params_prior[key] != params_current[key]
             for key in [
+                "targ_att",
+                "prev_att",
                 "simpos",
                 "manvr_start",
-                "targ_att",
                 "npnt_enab",
-                "obsid_sched",
-                "prev_att",
             ]
         ):
             continue
 
+        # Now drop the current split observation that starts at the obsid change time.
+        # The `obs_stop` time (and all other params) are the same so just taking the
+        # first obs is all we need (no need to set obs_stop).
         params_prior["obs_stop"] = params_current["obs_stop"]
         cmds_obs[idx_prior]["params"] = params_prior
         idxs_cmd_evt_remove.append(idx_cmd_evt)

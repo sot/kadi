@@ -107,6 +107,11 @@ class Conf(ConfigNamespace):
         "Matching block size for command blocks.",
     )
 
+    merge_manual_obsid_change_obs_splits = ConfigItem(
+        True,
+        "Merge observation splits that result from a manually-commanded ObsID change",
+    )
+
 
 # Create a configuration instance for the user
 conf = Conf()
