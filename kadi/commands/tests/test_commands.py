@@ -954,6 +954,29 @@ Definitive,2020:337:00:00:00,Bright star hold,,Tom Aldcroft,
     commands.clear_caches()
 
 
+def test_get_observations_merge_manual_obsid_change_obs_splits():
+    start, stop = "2025:001:00:00:00", "2025:001:14:00:00"
+    with conf.set_temp("merge_manual_obsid_change_obs_splits", False):
+        obss1 = Table(get_observations(start, stop, scenario="flight"))
+    assert obss1["obsid", "obsid_sched", "obs_start", "obs_stop"].pformat() == [
+        "obsid obsid_sched       obs_start              obs_stop      ",
+        "----- ----------- --------------------- ---------------------",
+        "30550       28365 2024:366:21:58:02.061 2025:001:08:44:01.810",
+        "30550       29835 2025:001:09:10:23.636 2025:001:12:48:34.040",
+        "65518       29835 2025:001:12:48:34.040 2025:001:13:08:03.384",
+        "65518       25501 2025:001:13:44:13.046 2025:001:16:38:44.384",
+    ]
+
+    obss2 = Table(get_observations(start, stop, scenario="flight"))
+    assert obss2["obsid", "obsid_sched", "obs_start", "obs_stop"].pformat() == [
+        "obsid obsid_sched       obs_start              obs_stop      ",
+        "----- ----------- --------------------- ---------------------",
+        "30550       28365 2024:366:21:58:02.061 2025:001:08:44:01.810",
+        "30550       29835 2025:001:09:10:23.636 2025:001:13:08:03.384",
+        "65518       25501 2025:001:13:44:13.046 2025:001:16:38:44.384",
+    ]
+
+
 @pytest.mark.skipif(not HAS_INTERNET, reason="No internet connection")
 def test_get_observations_by_obsid_single():
     obss = get_observations(obsid=8008)

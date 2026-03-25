@@ -730,6 +730,9 @@ def get_observations(
     i0, i1 = cmds_obs.find_date([(start - 7 * u.day).date, (stop + 7 * u.day).date])
     cmds_obs = cmds_obs[i0:i1]
 
+    if conf.merge_manual_obsid_change_obs_splits:
+        cmds_obs = merge_manual_obsid_change_obs_splits(cmds_obs)
+
     # This can only happen for a date range before/after available kadi commands.
     if len(cmds_obs) == 0:
         return []
@@ -774,6 +777,76 @@ def get_observations(
     ]
 
     return obss
+
+
+def merge_manual_obsid_change_obs_splits(cmds_obs: Table) -> Table:
+    """Merge each OBS commands that were split due to a manual ObsID change.
+
+    This returns either the original ``cmds_obs`` (if there are not CMD_EVT commands)
+    or a copy of ``cmds_obs`` with merged obs commands.
+
+    When there is a manually commanded ObsID change following SCS-107, the state machine
+    for creating OBS commands breaks the observation at that point. The original OBS
+    gets a obs_stop time at the manual ObsID change time and then there is a new OBS
+    with the manually commanded ObsID that goes until the original (scheduled) ObsID
+    ends.
+
+    This is good for strict bookkeeping, but in practice it is more useful to have the
+    full scheduled observation as a single OBS. This will have the same values for
+    ``obsid`` and ``obsid_sched``. Then the *next* observation will have obsid as the
+    new manual ObsID for ``obsid`` and the original one for ``obsid_sched``. In this
+    way the number and duration of observations matches the schedule.
+
+    This merging behavior is disabled if ``conf.merge_manual_obsid_change_obs_splits``
+    is set to ``False`` (default=``True``).
+
+    Parameters
+    ----------
+    cmds_obs : Table
+        Table of OBS commands to merge.
+
+    Returns
+    -------
+    Table
+        Table of OBS commands with merged observations.
+    """
+    nok = cmds_obs["source"] == "CMD_EVT"
+    if not np.any(nok):
+        return cmds_obs
+
+    cmds_obs = cmds_obs.copy()
+    idxs_cmd_evt = np.where(nok)[0]
+    idxs_cmd_evt_remove = []
+    for idx_cmd_evt in idxs_cmd_evt:
+        if (idx_prior := idx_cmd_evt - 1) < 0:
+            continue
+        # Copy params dict to be sure of not corrupting upstream cmds
+        params_prior = cmds_obs[idx_prior]["params"].copy()
+        params_current = cmds_obs[idx_cmd_evt]["params"]
+
+        # All of these keys will be identical for a manual obsid change observation.
+        # Events like NSM or manual maneuver will also drive a new observation. For
+        # these at least one of these keys will differ.
+        if any(
+            params_prior[key] != params_current[key]
+            for key in [
+                "targ_att",
+                "prev_att",
+                "simpos",
+                "manvr_start",
+                "npnt_enab",
+            ]
+        ):
+            continue
+
+        # Now drop the current split observation that starts at the obsid change time.
+        params_prior["obs_stop"] = params_current["obs_stop"]
+        cmds_obs[idx_prior]["params"] = params_prior
+        idxs_cmd_evt_remove.append(idx_cmd_evt)
+
+    cmds_obs.remove_rows(idxs_cmd_evt_remove)
+
+    return cmds_obs
 
 
 def get_agasc_cone_fast(
