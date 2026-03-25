@@ -854,8 +854,6 @@ def merge_manual_obsid_change_obs_splits(cmds_obs: Table) -> Table:
             continue
 
         # Now drop the current split observation that starts at the obsid change time.
-        # The `obs_stop` time (and all other params) are the same so just taking the
-        # first obs is all we need (no need to set obs_stop).
         params_prior["obs_stop"] = params_current["obs_stop"]
         cmds_obs[idx_prior]["params"] = params_prior
         idxs_cmd_evt_remove.append(idx_cmd_evt)
