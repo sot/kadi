@@ -658,8 +658,9 @@ def get_observations(
 
         >>> obs_all = get_observations()  # All observations in commands archive
 
-        # Might be convenient to handle this as a Table >>> from astropy.table import
-        Table >>> obs_all = Table(obs_all)
+        # Might be convenient to handle this as a Table
+        >>> from astropy.table import Table
+        >>> obs_all = Table(obs_all)
 
         >>> from kadi.commands import get_observations
         >>> get_observations(starcat_date='2022:001:17:00:58.521')
