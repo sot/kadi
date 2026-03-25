@@ -1030,6 +1030,85 @@ def test_get_observations_by_obsid_multi():
     ]
 
 
+def test_get_observations_bad_filter_key():
+    with pytest.raises(KeyError, match="invalid filter key"):
+        get_observations(bad_key="value", scenario="flight")
+
+
+def test_get_observations_and_starcats_filtering():
+    # Observation impacted by SCS-107 around 2025:001 and rescheduled in MAR1025B
+    obss = Table(get_observations(obsid_sched=28365, scenario="flight"))
+    assert obss["obsid", "obsid_sched", "source", "obs_start"].pformat() == [
+        "obsid obsid_sched  source        obs_start      ",
+        "----- ----------- -------- ---------------------",
+        "30550       28365 DEC2324B 2024:366:21:58:02.061",
+        "28365       28365 MAR1025B 2025:072:23:55:14.230",
+    ]
+    starcats = get_starcats(obsid_sched=28365, scenario="flight")
+    for obs, starcat in zip(obss, starcats, strict=True):
+        assert starcat.date == obs["starcat_date"]
+
+    obss = Table(
+        get_observations(obsid_sched=28365, source="MAR1025B", scenario="flight")
+    )
+    assert obss["obsid", "obsid_sched", "source", "obs_start"].pformat() == [
+        "obsid obsid_sched  source        obs_start      ",
+        "----- ----------- -------- ---------------------",
+        "28365       28365 MAR1025B 2025:072:23:55:14.230",
+    ]
+    starcats = get_starcats(obsid_sched=28365, source="MAR1025B", scenario="flight")
+    for obs, starcat in zip(obss, starcats, strict=True):
+        assert starcat.date == obs["starcat_date"]
+
+    obss = Table(
+        get_observations(manvr_start="2024:366:21:21:11.789", scenario="flight")
+    )
+    assert obss["obsid", "obsid_sched", "source", "manvr_start"].pformat() == [
+        "obsid obsid_sched  source       manvr_start     ",
+        "----- ----------- -------- ---------------------",
+        "30550       28365 DEC2324B 2024:366:21:21:11.789",
+    ]
+
+    starcats = get_starcats(manvr_start="2024:366:21:21:11.789", scenario="flight")
+    for obs, starcat in zip(obss, starcats, strict=True):
+        assert starcat.date == obs["starcat_date"]
+
+
+def test_get_starcats_as_table_with_filtering():
+    starcats = get_starcats_as_table(source="MAR1025B", scenario="flight")
+    assert len(starcats) == 551
+    exp = [
+        "slot     id     type",
+        "---- ---------- ----",
+        "   0 1026443544  BOT",
+        "   1 1026557304  BOT",
+        "   2 1026571288  BOT",
+        "   3 1026573992  BOT",
+        "   4 1026561016  BOT",
+    ]
+    assert starcats[:5]["slot", "id", "type"].pformat() == exp
+
+    starcats = get_starcats_as_table(
+        obsid_sched=28365, source="MAR1025B", scenario="flight"
+    )
+    exp = [
+        "slot     id     type",
+        "---- ---------- ----",
+        "   0          2  FID",
+        "   1          4  FID",
+        "   2          5  FID",
+        "   3 1006782456  BOT",
+        "   4 1006774552  BOT",
+        "   5 1006781496  BOT",
+        "   6 1006778248  BOT",
+        "   7 1006637024  BOT",
+        "   0 1006779528  ACQ",
+        "   1 1006784024  ACQ",
+        "   2 1006767392  ACQ",
+    ]
+    assert starcats["slot", "id", "type"].pformat() == exp
+
+
 def test_get_observations_by_start_date():
     # Test observations from a 6 months ago onward
     obss = get_observations(start=CxoTime.now() - 180 * u.day, scenario="flight")

@@ -105,7 +105,7 @@ cases = [
         "start": "2024:366:00:00:00.000",
         "stop": "2025:004:00:00:00.000",
         "exp_lines": exp_2024366,
-        "len_as_run": 36,  # One extra observation due to the manual obsid update
+        "len_as_run": 36,
         "len_planned": 35,
         "default_stop": 20,
         "event_filter": (
