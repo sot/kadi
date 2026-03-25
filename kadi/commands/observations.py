@@ -793,10 +793,11 @@ def get_observations(
     return obss
 
 
-def merge_manual_obsid_change_obs_splits(cmds_obs: Table) -> None:
-    """Merge each OBS command from a CMD_EVT into the prior normal OBS.
+def merge_manual_obsid_change_obs_splits(cmds_obs: Table) -> Table:
+    """Merge each OBS commands that were split due to a manual ObsID change.
 
-    This is an in-place update of ``cmds_obs``.
+    This returns either the original ``cmds_obs`` (if there are not CMD_EVT commands)
+    or a copy of ``cmds_obs`` with merged obs commands.
 
     When there is a manually commanded ObsID change following SCS-107, the state machine
     for creating OBS commands breaks the observation at that point. The original OBS
@@ -809,6 +810,19 @@ def merge_manual_obsid_change_obs_splits(cmds_obs: Table) -> None:
     ``obsid`` and ``obsid_sched``. Then the *next* observation will have obsid as the
     new manual ObsID for ``obsid`` and the original one for ``obsid_sched``. In this
     way the number and duration of observations matches the schedule.
+
+    This merging behavior is disabled if ``conf.merge_manual_obsid_change_obs_splits``
+    is set to ``False`` (default=``True``).
+
+    Parameters
+    ----------
+    cmds_obs : Table
+        Table of OBS commands to merge.
+
+    Returns
+    -------
+    Table
+        Table of OBS commands with merged observations.
     """
     nok = cmds_obs["source"] == "CMD_EVT"
     if not np.any(nok):
