@@ -1,8 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import logging
-import os
 from collections import defaultdict
-from pathlib import Path
 
 import agasc
 import astropy.units as u
@@ -21,7 +19,6 @@ logger = logging.getLogger(__name__)
 
 __all__ = ["get_starcats", "get_observations", "get_starcats_as_table"]
 
-AGASC_FILE = Path(os.environ["SKA"], "data", "agasc", "proseco_agasc_1p7.h5")
 
 TYPE_MAP = ["ACQ", "GUI", "BOT", "FID", "MON"]
 IMGSZ_MAP = ["4x4", "6x6", "8x8"]
