@@ -216,6 +216,26 @@ persisted for 64 distinct observations in the vehicle loads::
     >>> len(obss)
     64
 
+You can also select observations by any of the other parameters, for instance to
+select the latter of two times that obsid 28365 was scheduled (the first was impacted
+by an SCS-107 and had an as-run obsid of 30550)::
+
+    >>> obss = get_observations(obsid_sched=28365, source="MAR1025B")
+    >>> len(obss)
+    1
+    >>> obss[0]
+    {'obsid': 28365,
+    'simpos': 75624,
+    'obs_stop': '2025:073:07:02:04.474',
+    'manvr_start': '2025:072:23:35:34.561',
+    'targ_att': (-0.440418651679, -0.237558677679, 0.84437464041, 0.191386395926),
+    'npnt_enab': True,
+    'obs_start': '2025:072:23:55:14.230',
+    'obsid_sched': 28365,
+    'prev_att': (-0.709053671222, -0.125822735445, 0.682030353259, 0.127460298938),
+    'starcat_date': '2025:072:23:35:30.310',
+    'starcat_idx': 243252,
+    'source': 'MAR1025B'}
 
 Scheduled ObsID
 ^^^^^^^^^^^^^^^
@@ -355,6 +375,15 @@ The ACA star catalogs associated with observations can be retrieved using the
    are not fully equivalent to the catalogs that ``proseco`` would return. The
    CCD temperatures are set to -20 C and the ``.acqs`` and ``.guides`` attributes
    are stubbed with empty tables.
+
+The same filtering options that are available for observations are also available for
+star catalogs, so you can select by any of the parameters in the observation or star
+catalog. For example, to select the star catalogs for all observations with SIM-Z
+position of 75624::
+
+    >>> acas = get_starcats("2025:001", "2025:010", simpos=75624)
+    >>> len(acas)
+    20
 
 Getting dicts instead of ACA tables
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
