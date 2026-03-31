@@ -803,6 +803,23 @@ class Hrc15vOn_SCS134_Transition(FixedTransition):
     default_value = "ON"
 
 
+class Hrc15vOn_SCS85_Transition(FixedTransition):
+    """HRC 15V ON from SCS-85
+
+    This is the default in operations following release of MATLAB 2026_020
+    and supercedes commanding of SCS-134.
+    """
+
+    command_attributes = {"tlmsid": "COACTSX", "coacts1": 85}
+    state_keys = ["hrc_15v"]
+    transition_key = "hrc_15v"
+    transition_val = "ON"
+    default_value = "ON"
+    # Actual 15V on is 22.166 s after SCS-85 activation. Source: K. Gage communication
+    # 2026-03-31.
+    time_delta = 22.166 * u.s
+
+
 class Hrc15vOff_Transition(FixedTransition):
     """HRC 15V OFF"""
 
