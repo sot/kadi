@@ -448,6 +448,10 @@ class FixedTransition(BaseTransition):
     :param transition_val: single transition value or list of values
     """
 
+    # If specified set the time delta for actual transition relative to command time.
+    # This should be an astropy time Quantity like 10 * u.s.
+    time_delta = None
+
     @classmethod
     def set_transitions(cls, transitions_list: list[Transition], cmds, start, stop):
         """
@@ -478,7 +482,10 @@ class FixedTransition(BaseTransition):
             attrs = [attrs]
 
         for cmd in state_cmds:
-            transitions_list.append(Transition(cmd["date"], zip(attrs, vals)))  # noqa: PERF401
+            date = cmd["date"]
+            if cls.time_delta is not None:
+                date = (CxoTime(date) + cls.time_delta).date
+            transitions_list.append(Transition(date, zip(attrs, vals)))  # noqa: PERF401
 
 
 class ParamTransition(BaseTransition):
