@@ -448,6 +448,10 @@ class FixedTransition(BaseTransition):
     :param transition_val: single transition value or list of values
     """
 
+    # If specified set the time delta for actual transition relative to command time.
+    # This should be an astropy time Quantity like 10 * u.s.
+    time_delta = None
+
     @classmethod
     def set_transitions(cls, transitions_list: list[Transition], cmds, start, stop):
         """
@@ -478,7 +482,10 @@ class FixedTransition(BaseTransition):
             attrs = [attrs]
 
         for cmd in state_cmds:
-            transitions_list.append(Transition(cmd["date"], zip(attrs, vals)))  # noqa: PERF401
+            date = cmd["date"]
+            if cls.time_delta is not None:
+                date = (CxoTime(date) + cls.time_delta).date
+            transitions_list.append(Transition(date, zip(attrs, vals)))  # noqa: PERF401
 
 
 class ParamTransition(BaseTransition):
@@ -794,6 +801,23 @@ class Hrc15vOn_SCS134_Transition(FixedTransition):
     transition_key = "hrc_15v"
     transition_val = "ON"
     default_value = "ON"
+
+
+class Hrc15vOn_SCS85_Transition(FixedTransition):
+    """HRC 15V ON from SCS-85
+
+    This is the default in operations following release of MATLAB 2026_020
+    and supercedes commanding of SCS-134.
+    """
+
+    command_attributes = {"tlmsid": "COACTSX", "coacts1": 85}
+    state_keys = ["hrc_15v"]
+    transition_key = "hrc_15v"
+    transition_val = "ON"
+    default_value = "ON"
+    # Actual 15V on is 22.166 s after SCS-85 activation. Source: K. Gage communication
+    # 2026-03-31.
+    time_delta = 22.166 * u.s
 
 
 class Hrc15vOff_Transition(FixedTransition):
