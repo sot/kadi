@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Commands and states &#8212; kadi 7.20.0 documentation</title>
+    <title>Commands and states &#8212; kadi 7.19.1 documentation</title>
   
   
   
@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../_static/documentation_options.js?v=df038229"></script>
+    <script src="../_static/documentation_options.js?v=05ac560d"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -54,7 +54,7 @@
     <link rel="prev" title="Event Descriptions" href="../events/event_descriptions.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="7.20.0" />
+  <meta name="docsearch:version" content="7.19.1" />
   </head>
   
   
@@ -107,7 +107,7 @@
     <span style="color: rgb(186, 70, 21); font-size: x-large;">kadi</span>
 </a>
 &nbsp;
-<span style="font-size: x-large;">7.20.0</span></div>
+<span style="font-size: x-large;">7.19.1</span></div>
     
   </div>
   
@@ -536,27 +536,6 @@ persisted for 64 distinct observations in the vehicle loads:</p>
 <span class="go">64</span>
 </pre></div>
 </div>
-<p>You can also select observations by any of the other parameters, for instance to
-select the latter of two times that obsid 28365 was scheduled (the first was impacted
-by an SCS-107 and had an as-run obsid of 30550):</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">obss</span> <span class="o">=</span> <span class="n">get_observations</span><span class="p">(</span><span class="n">obsid_sched</span><span class="o">=</span><span class="mi">28365</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="s2">&quot;MAR1025B&quot;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">len</span><span class="p">(</span><span class="n">obss</span><span class="p">)</span>
-<span class="go">1</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">obss</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-<span class="go">{&#39;obsid&#39;: 28365,</span>
-<span class="go">&#39;simpos&#39;: 75624,</span>
-<span class="go">&#39;obs_stop&#39;: &#39;2025:073:07:02:04.474&#39;,</span>
-<span class="go">&#39;manvr_start&#39;: &#39;2025:072:23:35:34.561&#39;,</span>
-<span class="go">&#39;targ_att&#39;: (-0.440418651679, -0.237558677679, 0.84437464041, 0.191386395926),</span>
-<span class="go">&#39;npnt_enab&#39;: True,</span>
-<span class="go">&#39;obs_start&#39;: &#39;2025:072:23:55:14.230&#39;,</span>
-<span class="go">&#39;obsid_sched&#39;: 28365,</span>
-<span class="go">&#39;prev_att&#39;: (-0.709053671222, -0.125822735445, 0.682030353259, 0.127460298938),</span>
-<span class="go">&#39;starcat_date&#39;: &#39;2025:072:23:35:30.310&#39;,</span>
-<span class="go">&#39;starcat_idx&#39;: 243252,</span>
-<span class="go">&#39;source&#39;: &#39;MAR1025B&#39;}</span>
-</pre></div>
-</div>
 <section id="scheduled-obsid">
 <h3>Scheduled ObsID<a class="headerlink" href="#scheduled-obsid" title="Link to this heading">#</a></h3>
 <p>Kadi observations since the APR1420B loads also include the original <em>scheduled</em> ObsID
@@ -692,15 +671,6 @@ select a custom or <code class="docutils literal notranslate"><span class="pre">
 are not fully equivalent to the catalogs that <code class="docutils literal notranslate"><span class="pre">proseco</span></code> would return. The
 CCD temperatures are set to -20 C and the <code class="docutils literal notranslate"><span class="pre">.acqs</span></code> and <code class="docutils literal notranslate"><span class="pre">.guides</span></code> attributes
 are stubbed with empty tables.</p>
-</div>
-<p>The same filtering options that are available for observations are also available for
-star catalogs, so you can select by any of the parameters in the observation or star
-catalog. For example, to select the star catalogs for all observations with SIM-Z
-position of 75624:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">acas</span> <span class="o">=</span> <span class="n">get_starcats</span><span class="p">(</span><span class="s2">&quot;2025:001&quot;</span><span class="p">,</span> <span class="s2">&quot;2025:010&quot;</span><span class="p">,</span> <span class="n">simpos</span><span class="o">=</span><span class="mi">75624</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">len</span><span class="p">(</span><span class="n">acas</span><span class="p">)</span>
-<span class="go">20</span>
-</pre></div>
 </div>
 <section id="getting-dicts-instead-of-aca-tables">
 <h3>Getting dicts instead of ACA tables<a class="headerlink" href="#getting-dicts-instead-of-aca-tables" title="Link to this heading">#</a></h3>

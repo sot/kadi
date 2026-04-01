@@ -1,25 +1,20 @@
 kadi.commands.get_observations
 ==============================
 
-.. py:function:: kadi.commands.get_observations(start=None, stop=None, *, obsid=None, obsid_sched=None, scenario=None, cmds=None, starcat_date=None, event_filter=None, **obs_filter)
+.. py:function:: kadi.commands.get_observations(start=None, stop=None, *, obsid=None, scenario=None, cmds=None, starcat_date=None, event_filter=None)
 
    
    Get observations corresponding to input parameters.
 
-   The ``start``, ``stop``, ``starcat_date``, ``obsid``, and ``obsid_sched`` parameters
-   serve as matching filters on the list of observations that is returned. In addition,
-   you can filter on any of the observation parameters, for instance ``source`` or
-   ``simpos``, by passing those as keyword arguments.
+   The ``start``, ``stop``, ``starcat_date`` and ``obsid`` parameters serve as
+   matching filters on the list of observations that is returned.
 
-   ``obsid_sched`` is the original scheduled ObsID for an observation. This can differ
-   from ``obsid`` after an SCS-107 when the observing loads stop. This is only
-   available for observations after the APR1420B loads.
-
-   Over the mission there are thousands of instances of multiple observations with the
-   same obsid, so this function always returns a list of observation parameters even
-   when ``obsid`` is specified. This most frequently occurs after any unexpected
-   stoppage of the observing loads (SCS-107) which therefore cancels subsequent obsid
-   commanding. In many cases you can just use the first element.
+   Over the mission there are thousands of instances of multiple observations
+   with the same obsid, so this function always returns a list of observation
+   parameters even when ``obsid`` is specified. This most frequently occurs
+   after any unexpected stoppage of the observng loads (SCS-107) which
+   therefore cancels subsequent obsid commanding. In many cases you can just
+   use the first element.
 
    Examples::
 
@@ -67,12 +62,7 @@ kadi.commands.get_observations
            Stop time (default=end of commands)
 
        **obsid** : int, None
-           Return observations matching requested ObsID
-
-       **obsid_sched** : int, None
-           Return observations matching requested scheduled ObsID from the as-planned
-           loads. This can differ from ``obsid`` after an SCS-107. This is only available
-           for observations after the APR1420B loads.
+           ObsID
 
        **scenario** : str, None
            Scenario
@@ -87,10 +77,6 @@ kadi.commands.get_observations
            Callable function or list of callable functions that takes an Event Table as
            input and returns a boolean mask with same length as Table. If None, no
            filtering is done.
-
-       **\*\*obs_filter** : dict
-           Additional filters on the observation parameters. The keys should be parameter
-           names, for instance ``source`` or ``simpos``.
 
 
 

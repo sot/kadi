@@ -64,6 +64,7 @@ Classes
    /api/kadi/commands/states/SimFocusTransition
    /api/kadi/commands/states/Hrc15vOn_Transition
    /api/kadi/commands/states/Hrc15vOn_SCS134_Transition
+   /api/kadi/commands/states/Hrc15vOn_SCS85_Transition
    /api/kadi/commands/states/Hrc15vOff_Transition
    /api/kadi/commands/states/Hrc24vOn_Transition
    /api/kadi/commands/states/Hrc24vOff_Transition
@@ -143,6 +144,7 @@ Classes
    kadi.commands.states.SimFocusTransition
    kadi.commands.states.Hrc15vOn_Transition
    kadi.commands.states.Hrc15vOn_SCS134_Transition
+   kadi.commands.states.Hrc15vOn_SCS85_Transition
    kadi.commands.states.Hrc15vOff_Transition
    kadi.commands.states.Hrc24vOn_Transition
    kadi.commands.states.Hrc24vOff_Transition

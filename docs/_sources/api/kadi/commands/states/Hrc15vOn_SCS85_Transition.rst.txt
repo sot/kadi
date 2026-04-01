@@ -1,0 +1,56 @@
+kadi.commands.states.Hrc15vOn_SCS85_Transition
+==============================================
+
+.. py:class:: kadi.commands.states.Hrc15vOn_SCS85_Transition
+
+   Bases: :py:obj:`FixedTransition`
+
+
+   
+   HRC 15V ON from SCS-85
+
+   This is the default in operations following release of MATLAB 2026_020
+   and supercedes commanding of SCS-134.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:attribute:: command_attributes
+
+
+   .. py:attribute:: state_keys
+      :value: ['hrc_15v']
+
+
+
+   .. py:attribute:: transition_key
+      :value: 'hrc_15v'
+
+
+
+   .. py:attribute:: transition_val
+      :value: 'ON'
+
+
+
+   .. py:attribute:: default_value
+      :value: 'ON'
+
+
+
+   .. py:attribute:: time_delta
+

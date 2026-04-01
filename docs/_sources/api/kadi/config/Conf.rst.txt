@@ -74,6 +74,3 @@ kadi.config.Conf
 
    .. py:attribute:: matching_block_size
 
-
-   .. py:attribute:: merge_manual_obsid_change_obs_splits
-

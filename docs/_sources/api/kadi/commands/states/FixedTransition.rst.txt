@@ -34,6 +34,11 @@ kadi.commands.states.FixedTransition
    ..
        !! processed by numpydoc !!
 
+   .. py:attribute:: time_delta
+      :value: None
+
+
+
    .. py:method:: set_transitions(transitions_list, cmds, start, stop)
       :classmethod:
 

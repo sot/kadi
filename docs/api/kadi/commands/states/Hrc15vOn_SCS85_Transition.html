@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>kadi.commands.command_sets.cmd_set_nsm &#8212; kadi 7.19.1 documentation</title>
+    <title>kadi.commands.states.Hrc15vOn_SCS85_Transition &#8212; kadi 7.19.1 documentation</title>
   
   
   
@@ -46,12 +46,12 @@
     <script src="../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../../../../_static/copybutton.js?v=30646c52"></script>
-    <script>DOCUMENTATION_OPTIONS.pagename = 'api/kadi/commands/command_sets/cmd_set_nsm';</script>
-    <link rel="canonical" href="https://sot.github.io/kadi/api/kadi/commands/command_sets/cmd_set_nsm.html" />
+    <script>DOCUMENTATION_OPTIONS.pagename = 'api/kadi/commands/states/Hrc15vOn_SCS85_Transition';</script>
+    <link rel="canonical" href="https://sot.github.io/kadi/api/kadi/commands/states/Hrc15vOn_SCS85_Transition.html" />
     <link rel="index" title="Index" href="../../../../genindex.html" />
     <link rel="search" title="Search" href="../../../../search.html" />
-    <link rel="next" title="kadi.commands.command_sets.cmd_set_safe_mode" href="cmd_set_safe_mode.html" />
-    <link rel="prev" title="kadi.commands.command_sets._cmd_set_nsm_or_safe_mode" href="_cmd_set_nsm_or_safe_mode.html" />
+    <link rel="next" title="kadi.commands.states.Hrc15vOff_Transition" href="Hrc15vOff_Transition.html" />
+    <link rel="prev" title="kadi.commands.states.Hrc15vOn_SCS134_Transition" href="Hrc15vOn_SCS134_Transition.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="7.19.1" />
@@ -331,9 +331,9 @@
     <li class="breadcrumb-item"><a href="../index.html" class="nav-link">kadi.commands</a></li>
     
     
-    <li class="breadcrumb-item"><a href="index.html" class="nav-link">kadi.commands.command_sets</a></li>
+    <li class="breadcrumb-item"><a href="index.html" class="nav-link">kadi.commands.states</a></li>
     
-    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">kadi.commands.command_sets.cmd_set_nsm</span></li>
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">kadi.commands.states.Hrc15vOn_SCS85_Transition</span></li>
   </ul>
 </nav>
 </div>
@@ -350,12 +350,46 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="kadi-commands-command-sets-cmd-set-nsm">
-<h1>kadi.commands.command_sets.cmd_set_nsm<a class="headerlink" href="#kadi-commands-command-sets-cmd-set-nsm" title="Link to this heading">#</a></h1>
-<dl class="py function">
-<dt class="sig sig-object py" id="kadi.commands.command_sets.cmd_set_nsm">
-<span class="sig-prename descclassname"><span class="pre">kadi.commands.command_sets.</span></span><span class="sig-name descname"><span class="pre">cmd_set_nsm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">date</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kadi.commands.command_sets.cmd_set_nsm" title="Link to this definition">#</a></dt>
+  <section id="kadi-commands-states-hrc15von-scs85-transition">
+<h1>kadi.commands.states.Hrc15vOn_SCS85_Transition<a class="headerlink" href="#kadi-commands-states-hrc15von-scs85-transition" title="Link to this heading">#</a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="kadi.commands.states.Hrc15vOn_SCS85_Transition">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">kadi.commands.states.</span></span><span class="sig-name descname"><span class="pre">Hrc15vOn_SCS85_Transition</span></span><a class="headerlink" href="#kadi.commands.states.Hrc15vOn_SCS85_Transition" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">FixedTransition</span></code></p>
+<p>HRC 15V ON from SCS-85</p>
+<p>This is the default in operations following release of MATLAB 2026_020
+and supercedes commanding of SCS-134.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="kadi.commands.states.Hrc15vOn_SCS85_Transition.command_attributes">
+<span class="sig-name descname"><span class="pre">command_attributes</span></span><a class="headerlink" href="#kadi.commands.states.Hrc15vOn_SCS85_Transition.command_attributes" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="kadi.commands.states.Hrc15vOn_SCS85_Transition.state_keys">
+<span class="sig-name descname"><span class="pre">state_keys</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">['hrc_15v']</span></span><a class="headerlink" href="#kadi.commands.states.Hrc15vOn_SCS85_Transition.state_keys" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="kadi.commands.states.Hrc15vOn_SCS85_Transition.transition_key">
+<span class="sig-name descname"><span class="pre">transition_key</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'hrc_15v'</span></span><a class="headerlink" href="#kadi.commands.states.Hrc15vOn_SCS85_Transition.transition_key" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="kadi.commands.states.Hrc15vOn_SCS85_Transition.transition_val">
+<span class="sig-name descname"><span class="pre">transition_val</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'ON'</span></span><a class="headerlink" href="#kadi.commands.states.Hrc15vOn_SCS85_Transition.transition_val" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="kadi.commands.states.Hrc15vOn_SCS85_Transition.default_value">
+<span class="sig-name descname"><span class="pre">default_value</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'ON'</span></span><a class="headerlink" href="#kadi.commands.states.Hrc15vOn_SCS85_Transition.default_value" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="kadi.commands.states.Hrc15vOn_SCS85_Transition.time_delta">
+<span class="sig-name descname"><span class="pre">time_delta</span></span><a class="headerlink" href="#kadi.commands.states.Hrc15vOn_SCS85_Transition.time_delta" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
 
 </section>
 
@@ -370,20 +404,20 @@
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="_cmd_set_nsm_or_safe_mode.html"
+       href="Hrc15vOn_SCS134_Transition.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">kadi.commands.command_sets._cmd_set_nsm_or_safe_mode</p>
+        <p class="prev-next-title">kadi.commands.states.Hrc15vOn_SCS134_Transition</p>
       </div>
     </a>
     <a class="right-next"
-       href="cmd_set_safe_mode.html"
+       href="Hrc15vOff_Transition.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">kadi.commands.command_sets.cmd_set_safe_mode</p>
+        <p class="prev-next-title">kadi.commands.states.Hrc15vOff_Transition</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -406,7 +440,15 @@
   </div>
   <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#kadi.commands.command_sets.cmd_set_nsm"><code class="docutils literal notranslate"><span class="pre">kadi.commands.command_sets.cmd_set_nsm()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#kadi.commands.states.Hrc15vOn_SCS85_Transition"><code class="docutils literal notranslate"><span class="pre">kadi.commands.states.Hrc15vOn_SCS85_Transition</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#kadi.commands.states.Hrc15vOn_SCS85_Transition.command_attributes"><code class="docutils literal notranslate"><span class="pre">kadi.commands.states.Hrc15vOn_SCS85_Transition.command_attributes</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#kadi.commands.states.Hrc15vOn_SCS85_Transition.state_keys"><code class="docutils literal notranslate"><span class="pre">kadi.commands.states.Hrc15vOn_SCS85_Transition.state_keys</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#kadi.commands.states.Hrc15vOn_SCS85_Transition.transition_key"><code class="docutils literal notranslate"><span class="pre">kadi.commands.states.Hrc15vOn_SCS85_Transition.transition_key</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#kadi.commands.states.Hrc15vOn_SCS85_Transition.transition_val"><code class="docutils literal notranslate"><span class="pre">kadi.commands.states.Hrc15vOn_SCS85_Transition.transition_val</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#kadi.commands.states.Hrc15vOn_SCS85_Transition.default_value"><code class="docutils literal notranslate"><span class="pre">kadi.commands.states.Hrc15vOn_SCS85_Transition.default_value</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#kadi.commands.states.Hrc15vOn_SCS85_Transition.time_delta"><code class="docutils literal notranslate"><span class="pre">kadi.commands.states.Hrc15vOn_SCS85_Transition.time_delta</span></code></a></li>
+</ul>
+</li>
 </ul>
   </nav></div>
 

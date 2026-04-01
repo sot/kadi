@@ -1,7 +1,7 @@
 kadi.commands.get_starcats_as_table
 ===================================
 
-.. py:function:: kadi.commands.get_starcats_as_table(start=None, stop=None, *, obsid=None, obsid_sched=None, unique=False, scenario=None, cmds=None, starcat_date=None, event_filter=None, **obs_filter)
+.. py:function:: kadi.commands.get_starcats_as_table(start=None, stop=None, *, obsid=None, unique=False, scenario=None, cmds=None, starcat_date=None, event_filter=None)
 
    
    Get a single table of star catalog entries corresponding to input parameters.
@@ -41,11 +41,6 @@ kadi.commands.get_starcats_as_table
        **obsid** : int, None
            ObsID
 
-       **obsid_sched** : int, None
-           Return observations matching requested scheduled ObsID from the as-planned
-           loads. This can differ from ``obsid`` after an SCS-107. This is only available
-           for observations after the APR1420B loads.
-
        **unique** : bool
            If True return remove duplicate entries
 
@@ -62,10 +57,6 @@ kadi.commands.get_starcats_as_table
            Callable function or list of callable functions that takes an Event Table as
            input and returns a boolean mask with same length as Table. If None, no
            filtering is done.
-
-       **\*\*obs_filter** : dict
-           Additional filters on the observation parameters. The keys should be
-           parameter names, for instance ``source`` or ``simpos``.
 
 
 
