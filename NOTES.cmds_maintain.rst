@@ -30,13 +30,16 @@ The steps were:
    archive as the aca user.
 7. Restart the update cron task if it was stopped.
 
-With regard to validation in step 4, I set the KADI environment variable to the
-directory with the copied cmds files, and confirmed that cmds with CMD_EVTS included
-only the corrected commands. I also used KADI_CMDS_VERSION to confirm this for both
-the v2 and v3 versions of the cmds files. I also ran kadi_validate_states to confirm
-no new validation errors were introduced. And finally, I wrote out the new and flight
-cmds3 files as text files after day 2026:050 and confirmed by diff that the only
-changes were the corrected commands.
+Example of validation steps for the 2026:065 fix
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+1. Set the ``KADI`` environment variable to the directory with the copied cmds files.
+2. Confirm that ``CMD_EVT`` commands include only the corrected commands. Use
+   ``KADI_CMDS_VERSION`` to confirm this for both the v2 and v3 versions of the cmds
+   files. 
+3. Run ``kadi_validate_states`` to confirm no new validation errors were introduced.
+4. Write the new and flight ``cmds3`` files as text files after day 2026:050 and confirm
+   by diff that the only changes are the corrected commands.
 ```
 diff cmds3_flight.csv cmds3_test.csv
 4175d4174
