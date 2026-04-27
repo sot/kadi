@@ -26,6 +26,7 @@ from kadi.commands import (
     commands_v2,
     conf,
     core,
+    get_observation,
     get_observations,
     get_starcats,
     get_starcats_as_table,
@@ -1155,6 +1156,37 @@ def test_get_observations_no_match():
         get_observations(
             obsid=8008, start="2022:001", stop="2022:002", scenario="flight"
         )
+
+
+def test_get_observation_success():
+    # obsid_sched=8008 is a pre-APR1420B load (DEC2506C) where obsid_sched defaults to
+    # obsid. There is exactly one matching observation so get_observation should succeed.
+    obs = get_observation(obsid_sched=8008)
+    obs.pop("starcat_idx", None)
+    assert obs == {
+        "obsid": 8008,
+        "simpos": 92904,
+        "obs_stop": "2007:002:18:04:28.965",
+        "manvr_start": "2007:002:04:31:48.216",
+        "targ_att": (0.149614271, 0.490896707, 0.831470649, 0.21282047),
+        "npnt_enab": True,
+        "obs_start": "2007:002:04:46:58.056",
+        "prev_att": (0.319214732, 0.535685207, 0.766039803, 0.155969017),
+        "starcat_date": "2007:002:04:31:43.965",
+        "source": "DEC2506C",
+    }
+
+
+def test_get_observation_multiple_matches():
+    # obsid 47912 has two observations (split by an NSM) so get_observation should raise.
+    with pytest.raises(ValueError, match="expected one observation"):
+        get_observation(obsid=47912, scenario="flight")
+
+
+def test_get_observation_no_match():
+    # simpos=10000 does not match either observation for obsid 47912.
+    with pytest.raises(ValueError, match="No matching observations"):
+        get_observation(obsid=47912, simpos=10000, scenario="flight")
 
 
 def test_get_observations_start_stop_inclusion():
