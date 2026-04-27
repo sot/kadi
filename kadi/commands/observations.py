@@ -291,12 +291,9 @@ def get_starcats_as_table(
     start=None,
     stop=None,
     *,
-    obsid=None,
-    obsid_sched=None,
     unique=False,
     scenario=None,
     cmds=None,
-    starcat_date=None,
     event_filter=None,
     **obs_filter,
 ):
@@ -332,20 +329,12 @@ def get_starcats_as_table(
         Start time (default=beginning of commands)
     stop : CxoTime-like, None
         Stop time (default=end of commands)
-    obsid : int, None
-        ObsID
-    obsid_sched : int, None
-        Return observations matching requested scheduled ObsID from the as-planned
-        loads. This can differ from ``obsid`` after an SCS-107. This is only available
-        for observations after the APR1420B loads.
     unique : bool
         If True return remove duplicate entries
     scenario : str, None
         Scenario
     cmds : CommandTable, None
         Use this command table instead of querying the archive.
-    starcat_date : CxoTime-like, None
-        Date of the observation's star catalog
     event_filter : callable, list of callable, None
         Callable function or list of callable functions that takes an Event Table as
         input and returns a boolean mask with same length as Table. If None, no
@@ -360,13 +349,10 @@ def get_starcats_as_table(
         Star catalog entries for matching observations.
     """
     starcats = get_starcats(
-        obsid=obsid,
-        obsid_sched=obsid_sched,
         start=start,
         stop=stop,
         scenario=scenario,
         cmds=cmds,
-        starcat_date=starcat_date,
         as_dict=True,
         event_filter=event_filter,
         **obs_filter,
@@ -394,12 +380,9 @@ def get_starcats(
     start=None,
     stop=None,
     *,
-    obsid=None,
-    obsid_sched=None,
     scenario=None,
     cmds=None,
     as_dict=False,
-    starcat_date=None,
     show_progress=False,
     event_filter=None,
     **obs_filter,
@@ -471,20 +454,12 @@ def get_starcats(
         Start time (default=beginning of commands)
     stop : CxoTime-like, None
         Stop time (default=end of commands)
-    obsid : int, None
-        Return starcats matching requested ObsID
-    obsid_sched : int, None
-        Return starcats matching requested scheduled ObsID from the as-planned
-        loads. This can differ from ``obsid`` after an SCS-107. This is only available
-        for observations after the APR1420B loads.
     scenario : str, None
         Scenario
     cmds : CommandTable, None
         Use this command table instead of querying the archive.
     as_dict : bool, False
         Return a list of dict instead of a list of ACATable objects.
-    starcat_date : CxoTime-like, None
-        Date of the observation's star catalog
     show_progress : bool
         Show progress bar for long queries (default=False)
     event_filter : callable, list of callable, None
@@ -511,13 +486,10 @@ def get_starcats(
     from kadi.paths import STARCATS_CACHE_PATH
 
     obss = get_observations(
-        obsid=obsid,
-        obsid_sched=obsid_sched,
         start=start,
         stop=stop,
         scenario=scenario,
         cmds=cmds,
-        starcat_date=starcat_date,
         event_filter=event_filter,
         **obs_filter,
     )
@@ -652,24 +624,20 @@ def get_observations(
     start=None,
     stop=None,
     *,
-    obsid=None,
-    obsid_sched=None,
     scenario=None,
     cmds=None,
-    starcat_date=None,
     event_filter=None,
     **obs_filter,
 ):
     """Get observations corresponding to input parameters.
 
-    The ``start``, ``stop``, ``starcat_date``, ``obsid``, and ``obsid_sched`` parameters
-    serve as matching filters on the list of observations that is returned. In addition,
-    you can filter on any of the observation parameters, for instance ``source`` or
-    ``simpos``, by passing those as keyword arguments.
+    The ``start``, ``stop``, ``starcat_date``, ``obsid``, ``obsid_sched``, and
+    ``source`` parameters serve as matching filters on the list of observations that is
+    returned. In addition, you can filter on any of the observation parameters, for
+    instance ``simpos``, by passing those as keyword arguments.
 
     ``obsid_sched`` is the original scheduled ObsID for an observation. This can differ
-    from ``obsid`` after an SCS-107 when the observing loads stop. This is only
-    available for observations after the APR1420B loads.
+    from ``obsid`` after an SCS-107 when the observing loads stop.
 
     Over the mission there are thousands of instances of multiple observations with the
     same obsid, so this function always returns a list of observation parameters even
@@ -720,18 +688,10 @@ def get_observations(
         Start time (default=beginning of commands)
     stop : CxoTime-like, None
         Stop time (default=end of commands)
-    obsid : int, None
-        Return observations matching requested ObsID
-    obsid_sched : int, None
-        Return observations matching requested scheduled ObsID from the as-planned
-        loads. This can differ from ``obsid`` after an SCS-107. This is only available
-        for observations after the APR1420B loads.
     scenario : str, None
         Scenario
     cmds : CommandTable, None
         Use this command table instead of querying the archive
-    starcat_date : CxoTime-like, None
-        Date of the observation's star catalog
     event_filter : callable, list of callable, None
         Callable function or list of callable functions that takes an Event Table as
         input and returns a boolean mask with same length as Table. If None, no
@@ -749,7 +709,7 @@ def get_observations(
     from kadi.commands.commands_v2 import get_cmds
     from kadi.commands.core import get_cxotime_now
 
-    if starcat_date is not None:
+    if (starcat_date := obs_filter.get("starcat_date")) is not None:
         start = starcat_date if start is None else start
         stop = CxoTime(starcat_date) + 7 * u.day if stop is None else stop
     start = CxoTime("1999:001" if start is None else start)
@@ -796,7 +756,7 @@ def get_observations(
             obs_filter.pop(key)
 
     if obs_filter:
-        cmds_obs.fetch_params()
+        # Get possible filter keys from last available obs and check for invalid keys.
         avail_keys = list(cmds_obs["params"][-1]) + cmds_obs.colnames
         bad_keys = [key for key in obs_filter if key not in avail_keys]
         if bad_keys:
@@ -804,16 +764,10 @@ def get_observations(
                 f"invalid filter key(s): {bad_keys}. Available keys are: {sorted(avail_keys)}"
             )
 
-    # Filter cmd_obs, starting with three explicit keywords and then including any
-    # additional filters passed in obs_filter.
-    if starcat_date is not None:
-        obs_filter["starcat_date"] = starcat_date
-    if obsid is not None:
-        obs_filter["obsid"] = obsid
-    if obsid_sched is not None:
-        obs_filter["obsid_sched"] = obsid_sched
-    for key, val in obs_filter.items():
-        cmds_obs = cmds_obs[cmds_obs[key] == val]
+        ok = np.ones(len(cmds_obs), dtype=bool)
+        for key, val in obs_filter.items():
+            ok &= cmds_obs[key] == val
+        cmds_obs = cmds_obs[ok]
 
     if len(cmds_obs) == 0:
         filters_as_str = ", ".join(f"{key}={val}" for key, val in obs_filter.items())
