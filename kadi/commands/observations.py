@@ -789,7 +789,12 @@ def get_observations(
     if len(cmds_obs) == 0:
         return []
 
-    # Get possible filter keys from last available obs and check for invalid keys.
+    # Filter observations by input parameters. Any filter value of None means no filter,
+    # e.g. source=None means no filtering on source.
+    for key in list(obs_filter):
+        if obs_filter[key] is None:
+            obs_filter.pop(key)
+
     if obs_filter:
         cmds_obs.fetch_params()
         avail_keys = list(cmds_obs["params"][-1]) + cmds_obs.colnames
