@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import logging
 from collections import defaultdict
+from typing import Any
 
 import agasc
 import astropy.units as u
@@ -17,7 +18,12 @@ from kadi.config import conf
 logger = logging.getLogger(__name__)
 
 
-__all__ = ["get_starcats", "get_observations", "get_starcats_as_table"]
+__all__ = [
+    "get_starcats",
+    "get_observations",
+    "get_starcats_as_table",
+    "get_observation",
+]
 
 
 TYPE_MAP = ["ACQ", "GUI", "BOT", "FID", "MON"]
@@ -591,6 +597,55 @@ def get_starcats(
             )
 
     return starcats
+
+
+def get_observation(*args, **kwargs) -> dict[str, Any]:
+    """Get one observation corresponding to input parameters.
+
+    This is a wrapper around ``get_observations`` that returns the matching
+    observation if it is unique, otherwise it raises a ValueError.
+
+    The ``start``, ``stop``, ``starcat_date``, ``obsid``, ``obsid_sched``, and
+    ``source`` parameters serve as matching filters on the list of observations that is
+    returned. In addition, you can filter on any of the observation parameters, for
+    instance ``simpos``, by passing those as keyword arguments.
+
+    Parameters
+    ----------
+    start : CxoTime-like, None
+        Start time (default=beginning of commands)
+    stop : CxoTime-like, None
+        Stop time (default=end of commands)
+    scenario : str, None
+        Scenario
+    cmds : CommandTable, None
+        Use this command table instead of querying the archive
+    event_filter : callable, list of callable, None
+        Callable function or list of callable functions that takes an Event Table as
+        input and returns a boolean mask with same length as Table. If None, no
+        filtering is done.
+    **obs_filter : dict
+        Additional filters on the observation parameters. The keys should be parameter
+        names, for instance ``source`` or ``simpos``. Any filter value of None means no
+        filter, e.g. source=None means no filtering on source.
+
+    Returns
+    -------
+    dict[str, Any]
+        Observation parameters for the matching observation.
+
+    Raises
+    ------
+    ValueError
+        If there is not exactly one observation matching the filter criteria.
+    """
+    obss = get_observations(*args, **kwargs)
+    if len(obss) != 1:
+        raise ValueError(
+            "expected one observation matching the filter criteria "
+            f"but got {len(obss)}:\n {obss}"
+        )
+    return obss[0]
 
 
 def get_observations(
