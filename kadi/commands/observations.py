@@ -705,15 +705,15 @@ def get_observations(
         if cache_key not in OBSERVATIONS:
             cmds = get_cmds(scenario=scenario, event_filter=event_filter)
             cmds_obs = cmds[cmds["tlmsid"] == "OBS"]
+            # Special case: make new columns obsids and obsids_sched for faster searching
             obsids = []
+            obsids_sched = []
             for cmd in cmds_obs:
-                if cmd["params"] is None:
-                    _obsid = cmd["obsid"]
-                else:
-                    _obsid = cmd["params"]["obsid"]
-                obsids.append(_obsid)
-
+                obsids.append(obsid_as_run := cmd["params"]["obsid"])
+                # Before APR1420B loads, obsid_sched is not available so just use obsid.
+                obsids_sched.append(cmd["params"].get("obsid_sched", obsid_as_run))
             cmds_obs["obsid"] = obsids
+            cmds_obs["obsid_sched"] = obsids_sched
             OBSERVATIONS[cache_key] = cmds_obs
         else:
             cmds_obs = OBSERVATIONS[cache_key]
