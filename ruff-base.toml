@@ -48,6 +48,7 @@ lint.ignore = [
 extend-exclude = [
   "docs",
   "build",
+  ".eggs",
 ]
 
 [lint.pycodestyle]
