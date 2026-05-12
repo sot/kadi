@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>kadi.commands.get_starcats &#8212; kadi 7.21.0 documentation</title>
+    <title>kadi.commands.get_starcats &#8212; kadi 7.22.0 documentation</title>
   
   
   
@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../../../_static/documentation_options.js?v=aed6c870"></script>
+    <script src="../../../_static/documentation_options.js?v=3ca9169b"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -54,7 +54,7 @@
     <link rel="prev" title="kadi.commands.kadi_cmds_version" href="kadi_cmds_version.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="7.21.0" />
+  <meta name="docsearch:version" content="7.22.0" />
   </head>
   
   
@@ -107,7 +107,7 @@
     <span style="color: rgb(186, 70, 21); font-size: x-large;">kadi</span>
 </a>
 &nbsp;
-<span style="font-size: x-large;">7.21.0</span></div>
+<span style="font-size: x-large;">7.22.0</span></div>
     
   </div>
   
@@ -351,7 +351,7 @@
 <h1>kadi.commands.get_starcats<a class="headerlink" href="#kadi-commands-get-starcats" title="Link to this heading">#</a></h1>
 <dl class="py function">
 <dt class="sig sig-object py" id="kadi.commands.get_starcats">
-<span class="sig-prename descclassname"><span class="pre">kadi.commands.</span></span><span class="sig-name descname"><span class="pre">get_starcats</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stop</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">obsid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obsid_sched</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scenario</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">as_dict</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">starcat_date</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_progress</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">event_filter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">obs_filter</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kadi.commands.get_starcats" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">kadi.commands.</span></span><span class="sig-name descname"><span class="pre">get_starcats</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stop</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">scenario</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">as_dict</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_progress</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">event_filter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">obs_filter</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kadi.commands.get_starcats" title="Link to this definition">#</a></dt>
 <dd><p>Get a list of star catalogs corresponding to input parameters.</p>
 <p>The <code class="docutils literal notranslate"><span class="pre">start</span></code>, <code class="docutils literal notranslate"><span class="pre">stop</span></code>, <code class="docutils literal notranslate"><span class="pre">starcat_date</span></code>, <code class="docutils literal notranslate"><span class="pre">obsid</span></code>, and <code class="docutils literal notranslate"><span class="pre">obsid_sched</span></code> parameters
 serve as matching filters on the list of observations that is returned. In addition,
@@ -411,19 +411,11 @@ are significantly faster.</p>
 </dd>
 <dt><strong>stop</strong><span class="classifier">CxoTime-like, None</span></dt><dd><p>Stop time (default=end of commands)</p>
 </dd>
-<dt><strong>obsid</strong><span class="classifier">int, None</span></dt><dd><p>Return starcats matching requested ObsID</p>
-</dd>
-<dt><strong>obsid_sched</strong><span class="classifier">int, None</span></dt><dd><p>Return starcats matching requested scheduled ObsID from the as-planned
-loads. This can differ from <code class="docutils literal notranslate"><span class="pre">obsid</span></code> after an SCS-107. This is only available
-for observations after the APR1420B loads.</p>
-</dd>
 <dt><strong>scenario</strong><span class="classifier">str, None</span></dt><dd><p>Scenario</p>
 </dd>
 <dt><strong>cmds</strong><span class="classifier">CommandTable, None</span></dt><dd><p>Use this command table instead of querying the archive.</p>
 </dd>
 <dt><strong>as_dict</strong><span class="classifier">bool, False</span></dt><dd><p>Return a list of dict instead of a list of ACATable objects.</p>
-</dd>
-<dt><strong>starcat_date</strong><span class="classifier">CxoTime-like, None</span></dt><dd><p>Date of the observation’s star catalog</p>
 </dd>
 <dt><strong>show_progress</strong><span class="classifier">bool</span></dt><dd><p>Show progress bar for long queries (default=False)</p>
 </dd>

@@ -1,7 +1,7 @@
 kadi.commands.get_starcats_as_table
 ===================================
 
-.. py:function:: kadi.commands.get_starcats_as_table(start=None, stop=None, *, obsid=None, obsid_sched=None, unique=False, scenario=None, cmds=None, starcat_date=None, event_filter=None, **obs_filter)
+.. py:function:: kadi.commands.get_starcats_as_table(start=None, stop=None, *, unique=False, scenario=None, cmds=None, event_filter=None, **obs_filter)
 
    
    Get a single table of star catalog entries corresponding to input parameters.
@@ -38,14 +38,6 @@ kadi.commands.get_starcats_as_table
        **stop** : CxoTime-like, None
            Stop time (default=end of commands)
 
-       **obsid** : int, None
-           ObsID
-
-       **obsid_sched** : int, None
-           Return observations matching requested scheduled ObsID from the as-planned
-           loads. This can differ from ``obsid`` after an SCS-107. This is only available
-           for observations after the APR1420B loads.
-
        **unique** : bool
            If True return remove duplicate entries
 
@@ -54,9 +46,6 @@ kadi.commands.get_starcats_as_table
 
        **cmds** : CommandTable, None
            Use this command table instead of querying the archive.
-
-       **starcat_date** : CxoTime-like, None
-           Date of the observation's star catalog
 
        **event_filter** : callable, list of callable, None
            Callable function or list of callable functions that takes an Event Table as

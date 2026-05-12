@@ -1,7 +1,7 @@
 kadi.commands.observations.get_starcats
 =======================================
 
-.. py:function:: kadi.commands.observations.get_starcats(start=None, stop=None, *, obsid=None, obsid_sched=None, scenario=None, cmds=None, as_dict=False, starcat_date=None, show_progress=False, event_filter=None, **obs_filter)
+.. py:function:: kadi.commands.observations.get_starcats(start=None, stop=None, *, scenario=None, cmds=None, as_dict=False, show_progress=False, event_filter=None, **obs_filter)
 
    
    Get a list of star catalogs corresponding to input parameters.
@@ -73,14 +73,6 @@ kadi.commands.observations.get_starcats
        **stop** : CxoTime-like, None
            Stop time (default=end of commands)
 
-       **obsid** : int, None
-           Return starcats matching requested ObsID
-
-       **obsid_sched** : int, None
-           Return starcats matching requested scheduled ObsID from the as-planned
-           loads. This can differ from ``obsid`` after an SCS-107. This is only available
-           for observations after the APR1420B loads.
-
        **scenario** : str, None
            Scenario
 
@@ -89,9 +81,6 @@ kadi.commands.observations.get_starcats
 
        **as_dict** : bool, False
            Return a list of dict instead of a list of ACATable objects.
-
-       **starcat_date** : CxoTime-like, None
-           Date of the observation's star catalog
 
        **show_progress** : bool
            Show progress bar for long queries (default=False)

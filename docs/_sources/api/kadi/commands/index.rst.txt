@@ -52,6 +52,7 @@ Functions
    /api/kadi/commands/get_starcats
    /api/kadi/commands/get_observations
    /api/kadi/commands/get_starcats_as_table
+   /api/kadi/commands/get_observation
 
 .. autoapisummary::
 
@@ -67,6 +68,7 @@ Functions
    kadi.commands.get_starcats
    kadi.commands.get_observations
    kadi.commands.get_starcats_as_table
+   kadi.commands.get_observation
 
 
 

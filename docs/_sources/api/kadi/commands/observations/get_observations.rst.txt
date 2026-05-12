@@ -1,19 +1,18 @@
 kadi.commands.observations.get_observations
 ===========================================
 
-.. py:function:: kadi.commands.observations.get_observations(start=None, stop=None, *, obsid=None, obsid_sched=None, scenario=None, cmds=None, starcat_date=None, event_filter=None, **obs_filter)
+.. py:function:: kadi.commands.observations.get_observations(start=None, stop=None, *, scenario=None, cmds=None, event_filter=None, **obs_filter)
 
    
    Get observations corresponding to input parameters.
 
-   The ``start``, ``stop``, ``starcat_date``, ``obsid``, and ``obsid_sched`` parameters
-   serve as matching filters on the list of observations that is returned. In addition,
-   you can filter on any of the observation parameters, for instance ``source`` or
-   ``simpos``, by passing those as keyword arguments.
+   The ``start``, ``stop``, ``starcat_date``, ``obsid``, ``obsid_sched``, and
+   ``source`` parameters serve as matching filters on the list of observations that is
+   returned. In addition, you can filter on any of the observation parameters, for
+   instance ``simpos``, by passing those as keyword arguments.
 
    ``obsid_sched`` is the original scheduled ObsID for an observation. This can differ
-   from ``obsid`` after an SCS-107 when the observing loads stop. This is only
-   available for observations after the APR1420B loads.
+   from ``obsid`` after an SCS-107 when the observing loads stop.
 
    Over the mission there are thousands of instances of multiple observations with the
    same obsid, so this function always returns a list of observation parameters even
@@ -66,22 +65,11 @@ kadi.commands.observations.get_observations
        **stop** : CxoTime-like, None
            Stop time (default=end of commands)
 
-       **obsid** : int, None
-           Return observations matching requested ObsID
-
-       **obsid_sched** : int, None
-           Return observations matching requested scheduled ObsID from the as-planned
-           loads. This can differ from ``obsid`` after an SCS-107. This is only available
-           for observations after the APR1420B loads.
-
        **scenario** : str, None
            Scenario
 
        **cmds** : CommandTable, None
            Use this command table instead of querying the archive
-
-       **starcat_date** : CxoTime-like, None
-           Date of the observation's star catalog
 
        **event_filter** : callable, list of callable, None
            Callable function or list of callable functions that takes an Event Table as

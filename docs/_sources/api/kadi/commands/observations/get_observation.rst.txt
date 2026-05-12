@@ -1,0 +1,63 @@
+kadi.commands.observations.get_observation
+==========================================
+
+.. py:function:: kadi.commands.observations.get_observation(*args, **kwargs)
+
+   
+   Get one observation corresponding to input parameters.
+
+   This is a wrapper around ``get_observations`` that returns the matching
+   observation if it is unique, otherwise it raises a ValueError.
+
+   The ``start``, ``stop``, ``starcat_date``, ``obsid``, ``obsid_sched``, and
+   ``source`` parameters serve as matching filters on the list of observations that is
+   returned. In addition, you can filter on any of the observation parameters, for
+   instance ``simpos``, by passing those as keyword arguments.
+
+   :Parameters:
+
+       **start** : CxoTime-like, None
+           Start time (default=beginning of commands)
+
+       **stop** : CxoTime-like, None
+           Stop time (default=end of commands)
+
+       **scenario** : str, None
+           Scenario
+
+       **cmds** : CommandTable, None
+           Use this command table instead of querying the archive
+
+       **event_filter** : callable, list of callable, None
+           Callable function or list of callable functions that takes an Event Table as
+           input and returns a boolean mask with same length as Table. If None, no
+           filtering is done.
+
+       **\*\*obs_filter** : dict
+           Additional filters on the observation parameters. The keys should be parameter
+           names, for instance ``source`` or ``simpos``. Any filter value of None means no
+           filter, e.g. source=None means no filtering on source.
+
+
+
+   :Returns:
+
+       dict[str, Any]
+           Observation parameters for the matching observation.
+
+
+
+
+   :Raises:
+
+       ValueError
+           If there is not exactly one observation matching the filter criteria.
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
