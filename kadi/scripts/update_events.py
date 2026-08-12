@@ -2,9 +2,11 @@
 """Update the events database"""
 
 import argparse
+import filecmp
 import logging
 import os
 import re
+import shutil
 import time
 from typing import TYPE_CHECKING, Type
 
@@ -59,6 +61,19 @@ def get_opt_parser():
     )
     parser.add_argument(
         "--data-root", default=".", help="Root data directory (default='.')"
+    )
+    parser.add_argument(
+        "--update-dir",
+        default=None,
+        help=(
+            "Directory for processing the events database (default=None). "
+            "If not provided, the events database in --data-root is updated "
+            "in place. If provided, the events database in --data-root is "
+            "copied into this directory, updated there, and then moved back "
+            "into --data-root only if it actually changed. This avoids "
+            "touching the production database file when there are no "
+            "updates. A relative path is taken relative to --data-root."
+        ),
     )
     parser.add_argument(
         "--maude", action="store_true", help="Use MAUDE data source for telemetry"
@@ -513,6 +528,29 @@ def check_maude_server_has_new_telemetry(stop) -> bool:
     return has_new
 
 
+def resolve_update_dir(update_dir: str, data_root: str) -> str:
+    """Resolve ``update_dir`` to an absolute path.
+
+    A relative ``update_dir`` is taken relative to ``data_root`` (which must
+    itself already be absolute).
+
+    Parameters
+    ----------
+    update_dir : str
+        Value of the --update-dir command line option.
+    data_root : str
+        Absolute path to the root data directory (--data-root).
+
+    Returns
+    -------
+    str
+        Absolute path to the update directory.
+    """
+    return (
+        update_dir if os.path.isabs(update_dir) else os.path.join(data_root, update_dir)
+    )
+
+
 def main(args=None):
     opt = get_opt_parser().parse_args(args)
 
@@ -522,14 +560,52 @@ def main(args=None):
     logger.setLevel(opt.log_level)
     log_run_info(logger.info, opt)
 
+    data_root = os.path.abspath(opt.data_root)
+
+    # If --update-dir is provided then process a copy of the events database in that
+    # directory instead of the production copy in --data-root. The production copy is
+    # only overwritten at the end if it actually changed, which avoids needlessly
+    # replacing the production file (e.g. on every cron run) when there is nothing new.
+    if opt.update_dir:
+        update_dir = resolve_update_dir(opt.update_dir, data_root)
+        os.makedirs(update_dir, exist_ok=True)
+        prod_db_path = os.path.join(data_root, "events3.db3")
+        proc_db_path = os.path.join(update_dir, "events3.db3")
+        shutil.copy2(prod_db_path, proc_db_path)
+        proc_data_root = update_dir
+    else:
+        proc_data_root = data_root
+
     # Set the global root data directory.  This gets used in the django
     # setup to find the sqlite3 database file.
-    os.environ["KADI"] = os.path.abspath(opt.data_root)
+    os.environ["KADI"] = proc_data_root
     from kadi.paths import EVENTS_DB_PATH
 
     logger.info("Event database : {}".format(EVENTS_DB_PATH()))
     logger.info("")
 
+    update_events(opt)
+
+    if opt.update_dir:
+        if filecmp.cmp(prod_db_path, proc_db_path, shallow=False):
+            logger.info(
+                f"Events database unchanged, not updating production copy {prod_db_path}"
+            )
+        else:
+            logger.info(
+                f"Events database changed, updating production copy {prod_db_path}"
+            )
+            os.replace(proc_db_path, prod_db_path)
+
+
+def update_events(opt):
+    """Update event models per ``opt`` in the events database set by the KADI env var.
+
+    Parameters
+    ----------
+    opt : argparse.Namespace
+        Command line options from ``get_opt_parser()``.
+    """
     from kadi.events import models
 
     if (
