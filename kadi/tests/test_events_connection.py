@@ -10,6 +10,10 @@ frozen at import time.  On a local filesystem the old file handle keeps
 reading the unlinked inode (no "disk I/O error" as on NFS), so the tests
 assert the observable mechanism: after the swap, queries must see the new
 file's contents, which requires dropping the stale connection.
+
+The stale-connection handling is active only on Linux (the production
+platform), so the subprocess scripts fake ``platform.system()`` to "Linux"
+to exercise the mechanism on any OS (a no-op when actually on Linux).
 """
 
 import os
@@ -19,6 +23,13 @@ import sys
 import textwrap
 
 import pytest
+
+# These tests atomically replace the database file while a sqlite connection
+# has it open. Windows does not allow renaming over an open sqlite database
+# (no FILE_SHARE_DELETE), so the scenario under test cannot occur there.
+pytestmark = pytest.mark.skipif(
+    sys.platform == "win32", reason="requires POSIX rename-over-open-file semantics"
+)
 
 OBSID_TABLE_SQL = (
     'CREATE TABLE "events_obsid" ("start" varchar(21) NOT NULL PRIMARY KEY, '
@@ -64,6 +75,10 @@ def test_query_recovers_after_db_file_replaced(tmp_path):
     stdout = run_kadi_subprocess(
         """
         import os
+        import platform
+
+        platform.system = lambda: "Linux"
+
         from kadi import events
         from kadi.tests.test_events_connection import make_events_db
 
@@ -91,7 +106,11 @@ def test_each_thread_recovers_after_db_file_replaced(tmp_path):
     stdout = run_kadi_subprocess(
         """
         import os
+        import platform
         import threading
+
+        platform.system = lambda: "Linux"
+
         from kadi import events
         from kadi.tests.test_events_connection import make_events_db
 
@@ -129,57 +148,3 @@ def test_each_thread_recovers_after_db_file_replaced(tmp_path):
         ((1, "before"), 1),
     ]
     assert f"RESULTS {expected}" in stdout
-
-
-@pytest.fixture
-def flaky_cursor_execute(monkeypatch):
-    """Make the first N cursor executions raise OperationalError('disk I/O error').
-
-    Returns a dict; set ``n_fail`` to control failures, read ``n_raised`` and
-    ``close_all_calls`` to see what happened.
-    """
-    from django.db import connections
-    from django.db.backends.utils import CursorWrapper
-    from django.db.utils import OperationalError
-
-    state = {"n_fail": 1, "n_raised": 0, "close_all_calls": 0}
-    orig_execute = CursorWrapper.execute
-    orig_close_all = connections.close_all
-
-    def execute(self, sql, params=None):
-        if state["n_raised"] < state["n_fail"]:
-            state["n_raised"] += 1
-            raise OperationalError("disk I/O error")
-        return orig_execute(self, sql, params)
-
-    def close_all():
-        state["close_all_calls"] += 1
-        orig_close_all()
-
-    monkeypatch.setattr(CursorWrapper, "execute", execute)
-    monkeypatch.setattr(connections, "close_all", close_all)
-    return state
-
-
-def test_filter_obsid_retries_after_operational_error(flaky_cursor_execute):
-    """A transient 'disk I/O error' (stale NFS handle after a file swap) must
-    be healed by closing the stale connection and retrying once."""
-    from kadi import events
-
-    flaky_cursor_execute["n_fail"] = 1
-    manvrs = events.manvrs.filter(obsid=14305)
-    assert flaky_cursor_execute["n_raised"] == 1
-    assert flaky_cursor_execute["close_all_calls"] == 1
-    assert len(manvrs) == 1
-
-
-def test_filter_obsid_raises_on_persistent_operational_error(flaky_cursor_execute):
-    """A persistent OperationalError is re-raised after a single retry."""
-    from django.db.utils import OperationalError
-
-    from kadi import events
-
-    flaky_cursor_execute["n_fail"] = 100
-    with pytest.raises(OperationalError, match="disk I/O error"):
-        events.manvrs.filter(obsid=14305)
-    assert flaky_cursor_execute["n_raised"] == 2

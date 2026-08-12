@@ -2,6 +2,7 @@
 import contextlib
 import operator
 import os
+import platform
 import sys
 import threading
 import warnings
@@ -38,7 +39,6 @@ except RuntimeError as exc:
         raise
 
 from django.db import connections  # noqa: E402
-from django.db.utils import OperationalError  # noqa: E402
 
 from kadi.paths import EVENTS_DB_PATH  # noqa: E402
 
@@ -64,6 +64,10 @@ def _close_stale_connections():
     Detect the swap by file identity and drop this thread's connections so the
     next query reopens the new file.
     """
+    if platform.system() != "Linux":
+        # The stale-handle failure mode occurs on the production Linux/NFS
+        # servers; skip the per-query stat elsewhere.
+        return
     try:
         stat = os.stat(EVENTS_DB_PATH())
         db_key = (stat.st_dev, stat.st_ino)
@@ -351,24 +355,11 @@ class EventQuery(object):
 
             # If obsid is set then define a filter so that the start of the event occurs
             # in the interval of the requested obsid.  First get the interval.
-            # Retry once on OperationalError: a connection to a just-replaced
-            # events file gives "disk I/O error" (stale NFS handle) even after
-            # the inode check, since os.stat over NFS can serve cached
-            # attributes. Closing this thread's connections and retrying runs
-            # the query against the new file.
-            for retry in (False, True):
-                try:
-                    obsid_events = obsids.filter(obsid__exact=obsid)
-                    n_obsid_events = len(obsid_events)
-                    break
-                except OperationalError:
-                    if retry:
-                        raise
-                    connections.close_all()
-            if n_obsid_events != 1:
+            obsid_events = obsids.filter(obsid__exact=obsid)
+            if len(obsid_events) != 1:
                 raise ValueError(
                     "Error: Found {} events matching obsid={}".format(
-                        n_obsid_events, obsid
+                        len(obsid_events), obsid
                     )
                 )
             start = obsid_events[0].start
