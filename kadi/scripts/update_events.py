@@ -569,16 +569,19 @@ def main(args=None):
     if opt.update_dir:
         update_dir = resolve_update_dir(opt.update_dir, data_root)
         os.makedirs(update_dir, exist_ok=True)
-        prod_db_path = os.path.join(data_root, "events3.db3")
-        proc_db_path = os.path.join(update_dir, "events3.db3")
-        shutil.copy2(prod_db_path, proc_db_path)
-        proc_data_root = update_dir
+        db_path_flight = os.path.join(data_root, "events3.db3")
+        db_path_process = os.path.join(update_dir, "events3.db3")
+        if not os.path.exists(db_path_process) or not filecmp.cmp(
+            db_path_flight, db_path_process, shallow=False
+        ):
+            shutil.copy2(db_path_flight, db_path_process)
+        data_root_process = update_dir
     else:
-        proc_data_root = data_root
+        data_root_process = data_root
 
     # Set the global root data directory.  This gets used in the django
     # setup to find the sqlite3 database file.
-    os.environ["KADI"] = proc_data_root
+    os.environ["KADI"] = data_root_process
     from kadi.paths import EVENTS_DB_PATH
 
     logger.info("Event database : {}".format(EVENTS_DB_PATH()))
@@ -587,15 +590,15 @@ def main(args=None):
     update_events(opt)
 
     if opt.update_dir:
-        if filecmp.cmp(prod_db_path, proc_db_path, shallow=False):
+        if filecmp.cmp(db_path_flight, db_path_process, shallow=False):
             logger.info(
-                f"Events database unchanged, not updating production copy {prod_db_path}"
+                f"Events database unchanged, not updating production copy {db_path_flight}"
             )
         else:
             logger.info(
-                f"Events database changed, updating production copy {prod_db_path}"
+                f"Events database changed, updating production copy {db_path_flight}"
             )
-            os.replace(proc_db_path, prod_db_path)
+            os.replace(db_path_process, db_path_flight)
 
 
 def update_events(opt):
