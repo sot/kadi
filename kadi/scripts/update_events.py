@@ -63,7 +63,7 @@ def get_opt_parser():
         "--data-root", default=".", help="Root data directory (default='.')"
     )
     parser.add_argument(
-        "--update-dir",
+        "--process-dir",
         default=None,
         help=(
             "Directory for processing the events database (default=None). "
@@ -528,26 +528,28 @@ def check_maude_server_has_new_telemetry(stop) -> bool:
     return has_new
 
 
-def resolve_update_dir(update_dir: str, data_root: str) -> str:
-    """Resolve ``update_dir`` to an absolute path.
+def resolve_process_dir(process_dir: str, data_root: str) -> str:
+    """Resolve ``process_dir`` to an absolute path.
 
-    A relative ``update_dir`` is taken relative to ``data_root`` (which must
+    A relative ``process_dir`` is taken relative to ``data_root`` (which must
     itself already be absolute).
 
     Parameters
     ----------
-    update_dir : str
-        Value of the --update-dir command line option.
+    process_dir : str
+        Value of the --process-dir command line option.
     data_root : str
         Absolute path to the root data directory (--data-root).
 
     Returns
     -------
     str
-        Absolute path to the update directory.
+        Absolute path to the process directory.
     """
     return (
-        update_dir if os.path.isabs(update_dir) else os.path.join(data_root, update_dir)
+        process_dir
+        if os.path.isabs(process_dir)
+        else os.path.join(data_root, process_dir)
     )
 
 
@@ -562,15 +564,15 @@ def main(args=None):
 
     data_root = os.path.abspath(opt.data_root)
 
-    # If --update-dir is provided then process a copy of the events database in that
+    # If --process-dir is provided then process a copy of the events database in that
     # directory instead of the production copy in --data-root. The production copy is
     # only overwritten at the end if it actually changed, which avoids needlessly
     # replacing the production file (e.g. on every cron run) when there is nothing new.
-    if opt.update_dir:
-        update_dir = resolve_update_dir(opt.update_dir, data_root)
-        os.makedirs(update_dir, exist_ok=True)
+    if opt.process_dir:
+        process_dir = resolve_process_dir(opt.process_dir, data_root)
+        os.makedirs(process_dir, exist_ok=True)
         db_path_flight = os.path.join(data_root, "events3.db3")
-        db_path_process = os.path.join(update_dir, "events3.db3")
+        db_path_process = os.path.join(process_dir, "events3.db3")
         # shallow=True is safe here: it only fast-paths declaring files *equal* when
         # their (mode, size, mtime) signatures match exactly (as they will if nothing
         # touched db_path_process since it last mirrored db_path_flight); any signature
@@ -579,7 +581,7 @@ def main(args=None):
             db_path_flight, db_path_process, shallow=True
         ):
             shutil.copy2(db_path_flight, db_path_process)
-        data_root_process = update_dir
+        data_root_process = process_dir
     else:
         data_root_process = data_root
 
@@ -593,7 +595,7 @@ def main(args=None):
 
     update_events(opt)
 
-    if opt.update_dir:
+    if opt.process_dir:
         if filecmp.cmp(db_path_flight, db_path_process, shallow=True):
             logger.info(
                 f"Events database unchanged, not updating production copy {db_path_flight}"
