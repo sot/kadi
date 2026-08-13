@@ -570,6 +570,7 @@ def main(args=None):
     # replacing the production file (e.g. on every cron run) when there is nothing new.
     if opt.process_dir:
         process_dir = resolve_process_dir(opt.process_dir, data_root)
+        logger.info(f"Processing events database copy in process dir {process_dir}")
         os.makedirs(process_dir, exist_ok=True)
         db_path_flight = os.path.join(data_root, "events3.db3")
         db_path_process = os.path.join(process_dir, "events3.db3")
@@ -580,10 +581,16 @@ def main(args=None):
         if not os.path.exists(db_path_process) or not filecmp.cmp(
             db_path_flight, db_path_process, shallow=True
         ):
+            logger.info(
+                f"Copying events database {db_path_flight} -> {db_path_process}"
+            )
             shutil.copy2(db_path_flight, db_path_process)
         data_root_process = process_dir
     else:
         data_root_process = data_root
+        logger.info(
+            f"Processing events database directly in data root {data_root_process}"
+        )
 
     # Set the global root data directory.  This gets used in the django
     # setup to find the sqlite3 database file.
@@ -602,7 +609,7 @@ def main(args=None):
             )
         else:
             logger.info(
-                f"Events database changed, updating production copy {db_path_flight}"
+                f"Events database changed, moving {db_path_process} -> {db_path_flight}"
             )
             os.replace(db_path_process, db_path_flight)
 
