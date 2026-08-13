@@ -571,8 +571,12 @@ def main(args=None):
         os.makedirs(update_dir, exist_ok=True)
         db_path_flight = os.path.join(data_root, "events3.db3")
         db_path_process = os.path.join(update_dir, "events3.db3")
+        # shallow=True is safe here: it only fast-paths declaring files *equal* when
+        # their (mode, size, mtime) signatures match exactly (as they will if nothing
+        # touched db_path_process since it last mirrored db_path_flight); any signature
+        # mismatch still falls through to a full byte comparison, same as shallow=False.
         if not os.path.exists(db_path_process) or not filecmp.cmp(
-            db_path_flight, db_path_process, shallow=False
+            db_path_flight, db_path_process, shallow=True
         ):
             shutil.copy2(db_path_flight, db_path_process)
         data_root_process = update_dir
@@ -590,7 +594,7 @@ def main(args=None):
     update_events(opt)
 
     if opt.update_dir:
-        if filecmp.cmp(db_path_flight, db_path_process, shallow=False):
+        if filecmp.cmp(db_path_flight, db_path_process, shallow=True):
             logger.info(
                 f"Events database unchanged, not updating production copy {db_path_flight}"
             )
