@@ -2,7 +2,9 @@
 import contextlib
 import operator
 import os
+import platform
 import sys
+import threading
 import warnings
 
 import django
@@ -36,11 +38,44 @@ except RuntimeError as exc:
     else:
         raise
 
+from django.db import connections  # noqa: E402
+
+from kadi.paths import EVENTS_DB_PATH  # noqa: E402
+
 from . import models  # noqa: E402
 from .models import IntervalPad  # noqa: E402
 
 # This gets updated dynamically by code at the end
 __all__ = ["get_dates_vals", "EventQuery"]
+
+# Per-thread record of the events database file identity (st_dev, st_ino).
+# Django caches one sqlite connection per thread and connections.close_all()
+# only closes the calling thread's connections, so the identity check must
+# also be per-thread.
+_conn_local = threading.local()
+
+
+def _close_stale_connections():
+    """Close this thread's DB connections if the events file was replaced.
+
+    The events database is updated via an atomic swap (mv of a new file over
+    the live path), which changes the inode. A long-lived process holding a
+    connection to the old inode then gets "disk I/O error" from sqlite on NFS.
+    Detect the swap by file identity and drop this thread's connections so the
+    next query reopens the new file.
+    """
+    if platform.system() != "Linux":
+        # The stale-handle failure mode occurs on the production Linux/NFS
+        # servers; skip the per-query stat elsewhere.
+        return
+    try:
+        stat = os.stat(EVENTS_DB_PATH())
+        db_key = (stat.st_dev, stat.st_ino)
+    except OSError:
+        db_key = None
+    if getattr(_conn_local, "db_key", None) not in (None, db_key):
+        connections.close_all()
+    _conn_local.db_key = db_key
 
 
 def un_unicode(vals):
@@ -233,6 +268,7 @@ class EventQuery(object):
         return EventQuery(left=self, op=operator.not_)
 
     def intervals(self, start, stop):
+        _close_stale_connections()
         if self.op is not None:
             intervals0 = self.left.intervals(start, stop)
             if self.right is None:
@@ -304,6 +340,7 @@ class EventQuery(object):
         -------
         Django query set with matching events
         """
+        _close_stale_connections()
         cls = self.cls
         objs = cls.objects.all()
 
