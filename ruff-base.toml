@@ -43,6 +43,7 @@ lint.ignore = [
   "PLR1730", # Checks for if statements that can be replaced with min() or max() calls
   "PLC0415", # `import` should be at the top-level of a file
   "PLW1641", # Class implements `__hash__` if `__eq__` is implemented
+  "PLR0917", # Too many positional arguments
 ]
 
 extend-exclude = [
@@ -57,8 +58,10 @@ max-line-length = 100 # E501 reports lines that exceed the length of 100.
 [lint.extend-per-file-ignores]
 "__init__.py" = ["E402", "F401", "F403"]
 # For tests:
-# - D205: Don't worry about test docstrings
-# - ARG001: Unused function argument false positives for some fixtures
-# - E501: Line-too-long
-# - S101: Do not use assert
-"**/tests/test_*.py" = ["D205", "ARG001", "E501", "S101"]
+"**/tests/test_*.py" = [
+    "D205", # 1 blank line required between summary line and description
+    "ARG001", # Unused function argument (false positives for some fixtures)
+    "E501", # Line too long
+    "S101", # Use of `assert` detected
+    "ISC004", # Unparenthesized implicit string concatenation in collection
+    ]
