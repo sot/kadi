@@ -72,7 +72,7 @@ def get_opt_parser():
             "copied into this directory, updated there, and then moved back "
             "into --data-root only if it actually changed. This avoids "
             "touching the production database file when there are no "
-            "updates. A relative path is taken relative to --data-root."
+            "updates. A relative path is taken relative to --data-root. "
             "The process dir must be on the same disk mount as --data-root."
         ),
     )
