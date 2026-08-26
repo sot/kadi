@@ -1,0 +1,29 @@
+kadi.scripts.update_events.update_events
+========================================
+
+.. py:function:: kadi.scripts.update_events.update_events(opt)
+
+   
+   Update event models per ``opt`` in the events database set by the KADI env var.
+
+
+   :Parameters:
+
+       **opt** : argparse.Namespace
+           Command line options from ``get_opt_parser()``.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!

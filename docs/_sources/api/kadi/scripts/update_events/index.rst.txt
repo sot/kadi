@@ -28,7 +28,9 @@ Functions
    /api/kadi/scripts/update_events/get_sample_period_max
    /api/kadi/scripts/update_events/get_all_telemetry_event_msids
    /api/kadi/scripts/update_events/check_maude_server_has_new_telemetry
+   /api/kadi/scripts/update_events/resolve_process_dir
    /api/kadi/scripts/update_events/main
+   /api/kadi/scripts/update_events/update_events
 
 .. autoapisummary::
 
@@ -42,7 +44,9 @@ Functions
    kadi.scripts.update_events.get_sample_period_max
    kadi.scripts.update_events.get_all_telemetry_event_msids
    kadi.scripts.update_events.check_maude_server_has_new_telemetry
+   kadi.scripts.update_events.resolve_process_dir
    kadi.scripts.update_events.main
+   kadi.scripts.update_events.update_events
 
 
 

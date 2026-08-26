@@ -1,0 +1,38 @@
+kadi.scripts.update_events.resolve_process_dir
+==============================================
+
+.. py:function:: kadi.scripts.update_events.resolve_process_dir(process_dir, data_root)
+
+   
+   Resolve ``process_dir`` to an absolute path.
+
+   A relative ``process_dir`` is taken relative to ``data_root`` (which must
+   itself already be absolute).
+
+   :Parameters:
+
+       **process_dir** : str
+           Value of the --process-dir command line option.
+
+       **data_root** : str
+           Absolute path to the root data directory (--data-root).
+
+
+
+   :Returns:
+
+       str
+           Absolute path to the process directory.
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
