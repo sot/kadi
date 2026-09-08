@@ -1,5 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import logging
+import numbers
 from collections import defaultdict
 from typing import Any
 
@@ -58,6 +59,31 @@ STARCAT_NAMES = [
     "res",
     "halfw",
 ]
+
+# Numeric time args are CXC seconds, so anything before the mission start is not a real
+# time. Most commonly this is an obsid passed as a positional ``start`` argument.
+MISSION_START_SECS = date2secs("1999:001")
+
+
+def _check_time_arg(val, name):
+    """Raise ValueError if ``val`` is a number that cannot be a Chandra time.
+
+    ``CxoTime`` interprets a bare number as CXC seconds, so ``get_observations(8008)``
+    quietly becomes a start time in 1998 instead of a query for obsid 8008.
+
+    Parameters
+    ----------
+    val
+        Value of the time argument
+    name : str
+        Name of the time argument, used in the exception message
+    """
+    if isinstance(val, numbers.Real) and val < MISSION_START_SECS:
+        raise ValueError(
+            f"{name}={val} is not a valid Chandra time (numeric times are CXC seconds "
+            f"and this is before 1999:001). If you meant an ObsID then use the obsid "
+            f"keyword argument, e.g. obsid={val}."
+        )
 
 
 def get_detector_and_sim_offset(simpos):
@@ -685,7 +711,8 @@ def get_observations(
     Parameters
     ----------
     start : CxoTime-like, None
-        Start time (default=beginning of commands)
+        Start time (default=beginning of commands). An ObsID is not a valid start time,
+        use the ``obsid`` filter instead.
     stop : CxoTime-like, None
         Stop time (default=end of commands)
     scenario : str, None
@@ -704,10 +731,19 @@ def get_observations(
     -------
     list of dict
         Observation parameters for matching observations.
+
+    Raises
+    ------
+    ValueError
+        If ``start`` or ``stop`` is a number before the mission start, which most
+        commonly means an ObsID was supplied instead of a time.
     """
     from kadi.commands import conf
     from kadi.commands.commands_v2 import get_cmds
     from kadi.commands.core import get_cxotime_now
+
+    _check_time_arg(start, "start")
+    _check_time_arg(stop, "stop")
 
     if (starcat_date := obs_filter.get("starcat_date")) is not None:
         start = starcat_date if start is None else start

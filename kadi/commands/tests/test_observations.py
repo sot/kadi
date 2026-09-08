@@ -229,6 +229,29 @@ def test_get_observations_no_match():
         )
 
 
+@pytest.mark.parametrize(
+    "args,kwargs",
+    [
+        ((8008,), {}),  # obsid supplied as a positional start time
+        ((), {"start": 8008}),
+        ((), {"stop": 65535}),
+        ((), {"start": 0.0}),
+    ],
+)
+def test_get_observations_obsid_as_time(args, kwargs):
+    with pytest.raises(ValueError, match="is not a valid Chandra time"):
+        get_observations(*args, scenario="flight", **kwargs)
+
+
+def test_get_observations_numeric_time():
+    """Numeric times after the mission start are still valid CXC seconds"""
+    obss = get_observations(
+        CxoTime("2022:001").secs, CxoTime("2022:002").secs, scenario="flight"
+    )
+    assert obss == get_observations("2022:001", "2022:002", scenario="flight")
+    assert len(obss) > 0
+
+
 def test_get_observation_success():
     # obsid_sched=8008 is a pre-APR1420B load (DEC2506C) where obsid_sched defaults to
     # obsid. There is exactly one matching observation so get_observation should succeed.
