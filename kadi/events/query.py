@@ -378,8 +378,13 @@ class EventQuery(object):
 
         if start is not None:
             field_names = [x.name for x in cls.get_model_fields()]
-            attr = "stop__gt" if "stop" in field_names else "start__gt"
-            kwargs[attr] = DateTime(start).date
+            if "stop" in field_names:
+                kwargs["stop__gt"] = DateTime(start).date
+                # Add a lower bound on the indexed start column so SQLite does not
+                # scan every event from the beginning of the mission (issue #391).
+                kwargs["start__gt"] = (DateTime(start) - cls.max_duration_days).date
+            else:
+                kwargs["start__gt"] = DateTime(start).date
 
         if kwargs:
             objs = objs.filter(**kwargs)

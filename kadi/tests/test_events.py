@@ -132,6 +132,28 @@ def test_short_query():
     assert len(dwells) == 1
 
 
+def test_filter_start_lower_bound():
+    """
+    filter(start, stop) on a model with a stop field sets a lower bound on the indexed
+    start column (issue #391) without changing the results.
+    """
+    start, stop = "2012:001:12:00:00", "2012:003:12:00:00"
+    for eq in (events.obsids, events.dwells, events.manvrs):
+        cls = eq.cls
+        objs = eq.filter(start, stop)
+        datestart = (DateTime(start) - cls.max_duration_days).date
+        # Make sure the SQL query has the new lower bound
+        assert f'"start" > {datestart}' in str(objs.query)
+
+        # Filter using the pre-391 bounds and confirm the current results are the same
+        exp = cls.objects.filter(
+            start__lte=DateTime(stop).date, stop__gt=DateTime(start).date
+        )
+        starts = list(objs.values_list("start", flat=True))
+        assert len(starts) > 0
+        assert starts == list(exp.values_list("start", flat=True))
+
+
 def test_get_obsid():
     """
     Test that the get_obsid() method gives the right obsid for all event models.
