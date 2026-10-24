@@ -555,6 +555,9 @@ class BaseEvent(BaseModel):
     _get_obsid_start_attr = "start"  # Attribute to use for getting event obsid
     lookback = 21  # days of lookback
     interval_pad = IntervalPad()  # interval padding before/ after event start/stop
+    # Maximum event duration (days), used in EventQuery.filter() to put a lower bound
+    # on the indexed start column for efficient queries.
+    max_duration_days = 7
 
     def get_commands(self):
         """
@@ -857,6 +860,7 @@ class Obsid(TlmEvent):
     event_msids = ["cobsrqid"]
 
     update_priority = 1000  # Process Obsid first
+    max_duration_days = 60  # Obsid can span a safe mode
 
     @classmethod
     def get_events(cls, start, stop=None):
@@ -1957,6 +1961,7 @@ class SafeSun(TlmEvent):
     event_msids = ["conlofp", "ctufmtsl", "c1sqax"]
     event_filter_bad = False
     event_min_dur = 3600
+    max_duration_days = 60
 
     fetch_event_pad = 86400 / 2
     fetch_event_msids = ["conlofp", "ctufmtsl", "c1sqax", "aopcadmd", "61psts02"]
@@ -2022,6 +2027,7 @@ class NormalSun(TlmEvent):
 
     event_msids = ["aopcadmd"]
     event_val = "NSUN"
+    max_duration_days = 60
 
 
 class MajorEvent(BaseEvent):
@@ -2240,6 +2246,7 @@ class CAP(IFotEvent):
     link = models.CharField(max_length=250, help_text="CAP link")
 
     ifot_type_desc = "CAP"
+    max_duration_days = 30
     ifot_props = ["NUM", "START", "STOP", "TITLE", "LINK", "DESC"]
 
     def __unicode__(self):
@@ -2276,6 +2283,7 @@ class LoadSegment(IFotEvent):
     comment = models.TextField(help_text="Comment")
 
     ifot_type_desc = "LOADSEG"
+    max_duration_days = 30
     ifot_props = ["NAME", "SCS", "LOAD_NAME", "COMMENT"]
 
     lookback = 40  # days of lookback
