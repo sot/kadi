@@ -142,8 +142,10 @@ def test_filter_start_lower_bound():
         cls = eq.cls
         objs = eq.filter(start, stop)
         datestart = (DateTime(start) - cls.max_duration_days).date
+        # Make sure the SQL query has the new lower bound
         assert f'"start" > {datestart}' in str(objs.query)
 
+        # Filter using the pre-391 bounds and confirm the current results are the same
         exp = cls.objects.filter(
             start__lte=DateTime(stop).date, stop__gt=DateTime(start).date
         )
